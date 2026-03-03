@@ -670,7 +670,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -995,7 +995,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -1217,7 +1217,7 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -5020,7 +5020,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -5241,7 +5241,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -5463,7 +5463,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -7967,7 +7967,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -8188,7 +8188,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -8390,7 +8390,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -10894,7 +10894,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -11219,7 +11219,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -11441,7 +11441,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -13293,7 +13293,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -13618,7 +13618,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -13840,7 +13840,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -16320,7 +16320,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -16541,7 +16541,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -16743,7 +16743,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -18588,7 +18588,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -18913,7 +18913,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -19135,7 +19135,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -21016,7 +21016,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -21341,7 +21341,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -21483,7 +21483,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,

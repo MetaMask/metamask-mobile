@@ -534,7 +534,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -648,7 +648,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": 400,

@@ -588,7 +588,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -722,7 +722,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -852,7 +852,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -987,7 +987,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -1112,7 +1112,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -1248,7 +1248,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -2133,7 +2133,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -2252,7 +2252,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -2382,7 +2382,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -2502,7 +2502,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -2604,7 +2604,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -2725,7 +2725,7 @@ exports[`EnterAddress Component prefills form data when previousFormData is prov
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -3610,7 +3610,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -3729,7 +3729,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -3859,7 +3859,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -3979,7 +3979,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -4089,7 +4089,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -4210,7 +4210,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -5095,7 +5095,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -5214,7 +5214,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                     style={
                                       [
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": 400,
@@ -5344,7 +5344,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -5464,7 +5464,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -5594,7 +5594,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,
@@ -5715,7 +5715,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                       style={
                                         [
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "fontWeight": 400,

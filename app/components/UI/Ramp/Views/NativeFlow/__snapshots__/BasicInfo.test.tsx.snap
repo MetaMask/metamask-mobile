@@ -229,7 +229,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -350,7 +350,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -470,7 +470,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -620,7 +620,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1134,7 +1134,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -1255,7 +1255,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -1375,7 +1375,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1539,7 +1539,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2204,7 +2204,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -2325,7 +2325,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                   style={
                     [
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "fontWeight": 400,
@@ -2445,7 +2445,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2609,7 +2609,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
