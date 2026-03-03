@@ -341,6 +341,7 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'home_section' },
     });
   });
 
@@ -373,6 +374,7 @@ describe('PerpsSection', () => {
       params: {
         market: fullMarket,
         initialTab: 'position',
+        source: 'section_position',
       },
     });
   });
@@ -392,6 +394,7 @@ describe('PerpsSection', () => {
       params: {
         market: { symbol: 'BTC', maxLeverage: 50 },
         initialTab: 'position',
+        source: 'section_position',
       },
     });
   });
@@ -646,7 +649,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: 'home_section' },
       });
     });
 
@@ -710,6 +713,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+        params: { source: 'home_section' },
       });
     });
 
