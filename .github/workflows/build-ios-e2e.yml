@@ -71,6 +71,8 @@ jobs:
       # Get the source code from the repository
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Restore Xcode derived data from branch cache
         id: xcode-restore-cache

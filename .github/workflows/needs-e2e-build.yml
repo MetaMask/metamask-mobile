@@ -47,7 +47,7 @@ jobs:
         id: skip-tag
         run: |
           echo "SKIP=false" >> "$GITHUB_OUTPUT"
-          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
+          if [[ "${{ github.event_name }}" == "pull_request" ]] || [[ "${{ github.event_name }}" == "pull_request_target" ]] || [[ "${{ github.event_name }}" == "merge_group" ]]; then
             if git show --format='%B' --no-patch "${HEAD_COMMIT_HASH}" | grep --fixed-strings --quiet '[skip-e2e]'; then
               echo "SKIP=true" >> "$GITHUB_OUTPUT"
               echo "-> SKIP=true due to [skip-e2e] tag in last commit message"
@@ -56,7 +56,7 @@ jobs:
 
       - name: Check skip label
         id: skip-label
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         run: |
           echo "SKIP=false" >> "$GITHUB_OUTPUT"
           if gh pr view ${{ github.event.pull_request.number }} --json labels --jq '.labels[].name' | grep -qx "skip-e2e"; then
