@@ -69,7 +69,7 @@ import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const MINIMUM_BET = 1;
 
@@ -78,7 +78,6 @@ export function PredictDepositAndOrderInfo() {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
   const { onReject } = useConfirmActions();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const market = activeOrder?.market;
@@ -570,10 +569,7 @@ export function PredictDepositAndOrderInfo() {
   };
 
   return (
-    <Box
-      twClassName="flex-1 bg-background-default"
-      style={{ paddingTop: insets.top }}
-    >
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
         title={title}
         outcomeImage={outcome?.image}
@@ -596,6 +592,6 @@ export function PredictDepositAndOrderInfo() {
         onAddFunds={deposit}
       />
       {renderBottomContent()}
-    </Box>
+    </SafeAreaView>
   );
 }
