@@ -115,8 +115,18 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
     const isInitialMount = useRef(true);
     const hasTrackedScreenViewRef = useRef(false);
+    const hasSeenNftFetchingRef = useRef(false);
 
     const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+
+    // Mark that a fetch has been initiated (useFocusEffect/detectNfts sets isNftFetchingProgress
+    // to true). Only track "Position Screen Viewed" after at least one fetch cycle, so we don't
+    // fire with stale empty data before detection runs (isNftFetchingProgress defaults to false).
+    useEffect(() => {
+      if (isNftFetchingProgress) {
+        hasSeenNftFetchingRef.current = true;
+      }
+    }, [isNftFetchingProgress]);
 
     const allFilteredCollectibles: Nft[] = useMemo(() => {
       trace({ name: TraceName.LoadCollectibles });
@@ -147,6 +157,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       if (
         !isFullView ||
         isNftFetchingProgress ||
+        !hasSeenNftFetchingRef.current ||
         hasTrackedScreenViewRef.current
       )
         return;
