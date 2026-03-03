@@ -27,6 +27,10 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('aiDigestControllerInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('initializes the controller', () => {
     const { controller } = aiDigestControllerInit(getInitRequestMock());
     expect(controller).toBeInstanceOf(AiDigestController);
