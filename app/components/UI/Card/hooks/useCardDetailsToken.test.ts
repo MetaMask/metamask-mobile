@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
-import useCardDetailsToken from './useCardDetailsToken';
+import useCardDetailsToken, { CARD_DETAILS_CSS } from './useCardDetailsToken';
 import { CardType, CardDetailsTokenResponse } from '../types';
 import { CardSDK } from '../sdk/CardSDK';
 
@@ -120,12 +120,7 @@ describe('useCardDetailsToken', () => {
       const firstCallArgs = mockGenerateCardDetailsToken.mock.calls[0][0];
       expect(firstCallArgs).toEqual(
         expect.objectContaining({
-          customCss: expect.objectContaining({
-            cardBackgroundColor: expect.any(String),
-            cardTextColor: expect.any(String),
-            panBackgroundColor: expect.any(String),
-            panTextColor: expect.any(String),
-          }),
+          customCss: CARD_DETAILS_CSS[CardType.VIRTUAL],
         }),
       );
       expect(result.current.imageUrl).toBe(mockTokenResponse.imageUrl);
