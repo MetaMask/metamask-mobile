@@ -1378,21 +1378,56 @@ export type PerpsTracer = {
 };
 
 // ============================================================================
-// Rewards Interface
+// Minimal local types for cross-controller DI (no external controller imports)
 // ============================================================================
 
 /**
- * Rewards controller operations required by Perps.
- * Provides fee discount capabilities for MetaMask rewards program.
+ * Minimal typed-message params passed to keyring for EIP-712 signing.
+ * Structurally matches KeyringController's TypedMessageParams.
  */
-export type PerpsRewardsOperations = {
-  /**
-   * Get fee discount for an account.
-   * Returns discount in basis points (e.g., 6500 = 65% discount)
-   */
-  getFeeDiscount(
-    caipAccountId: `${string}:${string}:${string}`,
-  ): Promise<number>;
+export type PerpsTypedMessageParams = {
+  from: string;
+  data: unknown;
+};
+
+/**
+ * Minimal transaction params passed to TransactionController.addTransaction.
+ * Only the fields PerpsController actually sets.
+ */
+export type PerpsTransactionParams = {
+  from: string;
+  to?: string;
+  value?: string;
+  data?: string;
+  gas?: string;
+};
+
+/**
+ * Options passed to TransactionController.addTransaction.
+ */
+export type PerpsAddTransactionOptions = {
+  networkClientId: string;
+  origin?: string;
+  type?: string;
+  skipInitialGasEstimate?: boolean;
+};
+
+/**
+ * Minimal account shape read from AccountTreeController.
+ * Only the fields PerpsController and its services actually use.
+ */
+export type PerpsInternalAccount = {
+  address: string;
+  type: string;
+  id: string;
+};
+
+/**
+ * Minimal remote feature flag state shape.
+ * Only the remoteFeatureFlags record is needed by PerpsController.
+ */
+export type PerpsRemoteFeatureFlagState = {
+  remoteFeatureFlags: Record<string, unknown>;
 };
 
 /**
@@ -1401,10 +1436,11 @@ export type PerpsRewardsOperations = {
  * Architecture:
  * - Observability: logger, debugLogger, metrics, performance, tracer
  * - Platform: streamManager (mobile/extension specific)
- * - Rewards: fee discount operations
  * - Cache: cache invalidation for standalone queries
+ * - Rewards: delegated rewards interaction (DI — no RewardsController in Core yet)
  *
- * Controller access uses messenger pattern (messenger.call()).
+ * Cross-controller communication uses the messenger pattern (messenger.call).
+ * Only rewards remains as DI because RewardsController is not yet in Core.
  */
 export type PerpsPlatformDependencies = {
   // === Observability (stateless utilities) ===
@@ -1416,9 +1452,6 @@ export type PerpsPlatformDependencies = {
 
   // === Platform Services (mobile/extension specific) ===
   streamManager: PerpsStreamManager;
-
-  // === Rewards (no standard messenger action in core) ===
-  rewards: PerpsRewardsOperations;
 
   // === Feature Flags (platform-specific version gating) ===
   featureFlags: {
@@ -1438,6 +1471,17 @@ export type PerpsPlatformDependencies = {
 
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
+
+  // === Rewards (DI — no RewardsController in Core yet) ===
+  rewards: {
+    /**
+     * Get fee discount for an account from the RewardsController.
+     * Returns discount in basis points (e.g., 6500 = 65% discount)
+     */
+    getPerpsDiscountForAccount(
+      caipAccountId: `${string}:${string}:${string}`,
+    ): Promise<number>;
+  };
 };
 
 /**

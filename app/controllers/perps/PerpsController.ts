@@ -1,7 +1,3 @@
-import type {
-  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -10,30 +6,11 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
-import type {
-  NetworkControllerGetStateAction,
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerFindNetworkClientIdByChainIdAction,
-} from '@metamask/network-controller';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
-import type {
-  RemoteFeatureFlagControllerState,
-  RemoteFeatureFlagControllerStateChangeEvent,
-  RemoteFeatureFlagControllerGetStateAction,
-} from '@metamask/remote-feature-flag-controller';
-import {
-  TransactionControllerAddTransactionAction,
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerTransactionFailedEvent,
-  TransactionControllerTransactionSubmittedEvent,
-  TransactionType,
-} from '@metamask/transaction-controller';
 import type { Json } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -130,7 +107,14 @@ import type {
   PerpsActiveProviderMode,
   PerpsProviderType,
   PerpsSelectedPaymentToken,
+  PerpsRemoteFeatureFlagState,
+  PerpsTransactionParams,
+  PerpsAddTransactionOptions,
 } from './types';
+import type {
+  PerpsControllerAllowedActions,
+  PerpsControllerAllowedEvents,
+} from './types/messenger';
 import type { CandleData } from './types/perps-types';
 import {
   LastTransactionResult,
@@ -746,37 +730,14 @@ export type PerpsControllerActions =
     };
 
 /**
- * External actions the PerpsController can call via messenger
- */
-export type AllowedActions =
-  | GeolocationControllerGetGeolocationAction
-  | NetworkControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken
-  | RemoteFeatureFlagControllerGetStateAction
-  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | KeyringControllerGetStateAction
-  | KeyringControllerSignTypedMessageAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
-
-/**
- * External events the PerpsController can subscribe to
- */
-export type AllowedEvents =
-  | TransactionControllerTransactionSubmittedEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent
-  | AccountTreeControllerSelectedAccountGroupChangeEvent;
-
-/**
- * PerpsController messenger constraints
+ * PerpsController messenger constraints.
+ * Includes both PerpsController's own actions/events and
+ * allowed actions/events from external controllers.
  */
 export type PerpsControllerMessenger = Messenger<
   'PerpsController',
-  PerpsControllerActions | AllowedActions,
-  PerpsControllerEvents | AllowedEvents
+  PerpsControllerActions | PerpsControllerAllowedActions,
+  PerpsControllerEvents | PerpsControllerAllowedEvents
 >;
 
 /**
@@ -788,7 +749,8 @@ export type PerpsControllerOptions = {
   clientConfig?: PerpsControllerConfig;
   /**
    * Platform-specific dependencies (required)
-   * Provides logging, metrics, tracing, stream management, and account utilities.
+   * Provides logging, metrics, tracing, stream management, and rewards.
+   * Cross-controller communication uses the messenger pattern.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
@@ -972,8 +934,8 @@ export class PerpsController extends BaseController<
       infrastructure,
     };
 
-    // Instantiate services with platform dependencies and messenger
-    // Services that need inter-controller communication receive the messenger
+    // Instantiate services with platform dependencies
+    // Services that need cross-controller access receive the messenger
     this.#tradingService = new TradingService(infrastructure);
     this.#marketDataService = new MarketDataService(infrastructure);
     this.#accountService = new AccountService(infrastructure, messenger);
@@ -1028,11 +990,12 @@ export class PerpsController extends BaseController<
       );
     }
 
-    const featureFlagHandler =
-      this.refreshEligibilityOnFeatureFlagChange.bind(this);
+    // Subscribe for the full controller lifetime — intentionally not stored;
+    // geo-blocking and HIP-3 flag propagation must remain active across
+    // disconnect → reconnect cycles and must never be torn down.
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
-      featureFlagHandler,
+      this.refreshEligibilityOnFeatureFlagChange.bind(this),
     );
 
     this.providers = new Map();
@@ -1185,27 +1148,20 @@ export class PerpsController extends BaseController<
    * @returns The transaction result containing a hash promise and transaction metadata.
    */
   async #submitTransaction(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-      gas?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: TransactionType;
-      skipInitialGasEstimate?: boolean;
-    },
+    txParams: PerpsTransactionParams,
+    options: PerpsAddTransactionOptions,
   ): Promise<{
     result: Promise<string>;
     transactionMeta: { id: string; hash?: string };
   }> {
+    // Cast needed: PerpsController uses loose string types for txParams/options
+    // while TransactionController uses strict branded types (TransactionParams, AddTransactionOptions)
     return this.messenger.call(
       'TransactionController:addTransaction',
-      txParams,
-      options,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      txParams as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      options as any,
     );
   }
 
@@ -1258,7 +1214,7 @@ export class PerpsController extends BaseController<
    * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController.
    */
   protected refreshEligibilityOnFeatureFlagChange(
-    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+    remoteFeatureFlagControllerState: PerpsRemoteFeatureFlagState,
   ): void {
     this.#featureFlagConfigurationService.refreshEligibility({
       remoteFeatureFlagControllerState,
@@ -1950,7 +1906,11 @@ export class PerpsController extends BaseController<
       currentDepositId = depositId;
 
       // Get current account address via messenger (outside of update() for proper typing)
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
       const accountAddress = evmAccount?.address ?? 'unknown';
 
       this.update((state) => {
@@ -1992,10 +1952,10 @@ export class PerpsController extends BaseController<
       };
 
       if (placeOrder) {
-        // Use messenger-based addTransaction to create transaction without navigating to confirmation screen
+        // Use addTransaction to create transaction without navigating to confirmation screen
         const addResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDepositAndOrder,
+          type: 'perpsDepositAndOrder',
         });
         transactionMeta = addResult.transactionMeta;
         // Return transaction ID immediately (fire-and-forget for caller)
@@ -2007,7 +1967,7 @@ export class PerpsController extends BaseController<
         // The promise will resolve when transaction completes or reject if cancelled/failed
         const submitResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDeposit,
+          type: 'perpsDeposit',
         });
         result = submitResult.result;
         transactionMeta = submitResult.transactionMeta;
@@ -2666,7 +2626,11 @@ export class PerpsController extends BaseController<
 
     // Watch for account changes via AccountTreeController
     const accountChangeHandler = (): void => {
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
       const currentAddress = evmAccount?.address ?? null;
 
       // If there's cached data from a different account (or no EVM account now), clear it
@@ -2818,7 +2782,11 @@ export class PerpsController extends BaseController<
     }
 
     // Get current user address
-    const evmAccount = getSelectedEvmAccount(this.messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       return;
     }
@@ -4333,9 +4301,7 @@ export class PerpsController extends BaseController<
       slPrice: params.slPrice,
       tpPrice: params.tpPrice,
       isTestnet: this.state.isTestnet,
-      context: this.#createServiceContext('reportOrderToDataLake', {
-        messenger: this.messenger,
-      }),
+      context: this.#createServiceContext('reportOrderToDataLake', {}),
       retryCount: params.retryCount,
       _traceId: params._traceId,
     });

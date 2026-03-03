@@ -514,8 +514,8 @@ describe('PerpsController', () => {
     });
 
     it('reads current RemoteFeatureFlagController state during construction', () => {
-      // Given: A mock messenger that tracks calls
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: A messenger that returns remote feature flags state
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -527,24 +527,25 @@ describe('PerpsController', () => {
         }
         return undefined;
       });
+      const testMessenger = createMockMessenger({ call: testMockCall });
 
       // When: Controller is constructed
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: testMessenger,
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
       });
 
-      // Then: Should have called to get RemoteFeatureFlagController state
+      // Then: Should have called to get RemoteFeatureFlagController state via messenger
       expect(testController).toBeDefined();
-      expect(mockCall).toHaveBeenCalledWith(
+      expect(testMockCall).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:getState',
       );
     });
 
     it('applies remote blocked regions when available during construction', () => {
-      // Given: Remote feature flags with blocked regions
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: Messenger that returns remote feature flags with blocked regions
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -559,7 +560,7 @@ describe('PerpsController', () => {
 
       // When: Controller is constructed
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
         clientConfig: {
@@ -602,8 +603,8 @@ describe('PerpsController', () => {
     });
 
     it('never downgrade from remote to fallback regions', () => {
-      // Given: Remote feature flags with blocked regions
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: Messenger that returns remote feature flags with blocked regions
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -618,7 +619,7 @@ describe('PerpsController', () => {
 
       // When: Controller is constructed with both remote and fallback
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
         clientConfig: {
@@ -641,16 +642,16 @@ describe('PerpsController', () => {
     });
 
     it('continues initialization when RemoteFeatureFlagController state call throws error', () => {
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      const testInfrastructure = createMockInfrastructure();
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           throw new Error('RemoteFeatureFlagController not ready');
         }
         return undefined;
       });
-      const testInfrastructure = createMockInfrastructure();
 
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: testInfrastructure,
         clientConfig: {
@@ -2386,9 +2387,9 @@ describe('PerpsController', () => {
     const mockTransactionMeta = { id: 'tx-meta-123' };
     const mockTxHash = '0xhash123';
 
-    // Local messenger mock for depositWithConfirmation tests
-    let depositMessengerMock: jest.Mock;
+    let depositInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
     let depositController: TestablePerpsController;
+    let depositMockCall: jest.Mock;
 
     beforeEach(() => {
       // Mock DepositService
@@ -2400,38 +2401,42 @@ describe('PerpsController', () => {
           currentDepositId: mockDepositId,
         });
 
-      // Create a messenger mock that handles network and transaction actions
-      depositMessengerMock = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountriesV2: {
-                blockedRegions: [],
+      // Create infrastructure mock (controllers no longer on infra)
+      depositInfrastructure = createMockInfrastructure();
+
+      // Create messenger mock that handles network + transaction + account controller calls
+      depositMockCall = jest
+        .fn()
+        .mockImplementation((action: string, ..._args: unknown[]) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountriesV2: { blockedRegions: [] },
               },
-            },
-          };
-        }
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.resolve({
-            result: Promise.resolve(mockTxHash),
-            transactionMeta: mockTransactionMeta,
-          });
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [
-            {
-              address: mockTransaction.from,
-              type: 'eip155:eoa',
-            },
-          ];
-        }
-        return undefined;
-      });
+            };
+          }
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.resolve({
+              result: Promise.resolve(mockTxHash),
+              transactionMeta: mockTransactionMeta,
+            });
+          }
+          return undefined;
+        });
 
       Engine.context.TransactionController.estimateGasFee = jest
         .fn()
@@ -2461,11 +2466,11 @@ describe('PerpsController', () => {
         },
       };
 
-      // Create a controller with the custom messenger for this test suite
+      // Create a controller with the custom infrastructure for this test suite
       depositController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: depositMessengerMock }),
+        messenger: createMockMessenger({ call: depositMockCall }),
         state: getDefaultPerpsControllerState(),
-        infrastructure: createMockInfrastructure(),
+        infrastructure: depositInfrastructure,
       });
     });
 
@@ -2513,7 +2518,7 @@ describe('PerpsController', () => {
 
       await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      expect(depositMockCall).toHaveBeenCalledWith(
         'NetworkController:findNetworkClientIdByChainId',
         mockAssetChainId,
       );
@@ -2527,7 +2532,7 @@ describe('PerpsController', () => {
 
       await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      expect(depositMockCall).toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         mockTransaction,
         {
@@ -2577,17 +2582,28 @@ describe('PerpsController', () => {
         new Map([['hyperliquid', mockProvider]]),
       );
       const mockError = new Error('Network client not found');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          throw mockError;
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            throw mockError;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2599,17 +2615,28 @@ describe('PerpsController', () => {
       depositController.testSetProviders(
         new Map([['hyperliquid', mockProvider]]),
       );
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return undefined;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
           return undefined;
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2630,20 +2657,31 @@ describe('PerpsController', () => {
         new Map([['hyperliquid', mockProvider]]),
       );
       const mockError = new Error('Transaction failed');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2659,20 +2697,31 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('Network error');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2690,20 +2739,31 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('User denied transaction signature');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2862,8 +2922,8 @@ describe('PerpsController', () => {
         placeOrder: true,
       });
 
-      // placeOrder uses messenger-based submitTransaction with perpsDepositAndOrder type
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      // placeOrder uses messenger-based addTransaction with perpsDepositAndOrder type
+      expect(depositMockCall).toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         mockTransaction,
         {
@@ -2874,7 +2934,7 @@ describe('PerpsController', () => {
         },
       );
       // Should NOT also call with perpsDeposit type
-      expect(depositMessengerMock).not.toHaveBeenCalledWith(
+      expect(depositMockCall).not.toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         expect.anything(),
         expect.objectContaining({ type: 'perpsDeposit' }),
@@ -2937,23 +2997,34 @@ describe('PerpsController', () => {
 
       // Mock messenger to succeed initially, but result promise rejects
       const mockError = new Error('Network error occurred');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.resolve({
-            result: Promise.reject(mockError),
-            transactionMeta: mockTransactionMeta,
-          });
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.resolve({
+              result: Promise.reject(mockError),
+              transactionMeta: mockTransactionMeta,
+            });
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       const { result } = await depositController.depositWithConfirmation({
         amount: '100',
@@ -3003,24 +3074,34 @@ describe('PerpsController', () => {
         jest.clearAllMocks();
         const mockError = new Error(message);
         // Mock messenger to succeed initially, but result promise rejects with user cancellation
-        depositMessengerMock.mockImplementation((action: string) => {
-          if (action === 'NetworkController:findNetworkClientIdByChainId') {
-            return mockNetworkClientId;
-          }
-          if (action === 'TransactionController:addTransaction') {
-            return Promise.resolve({
-              result: Promise.reject(mockError),
-              transactionMeta: mockTransactionMeta,
-            });
-          }
-          if (
-            action ===
-            'AccountTreeController:getAccountsFromSelectedAccountGroup'
-          ) {
-            return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-          }
-          return undefined;
-        });
+        depositMockCall.mockImplementation(
+          (action: string, ..._args: unknown[]) => {
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [
+                {
+                  address: '0x1234567890123456789012345678901234567890',
+                  type: 'eip155:eoa',
+                },
+              ];
+            }
+            if (action === 'TransactionController:addTransaction') {
+              return Promise.resolve({
+                result: Promise.reject(mockError),
+                transactionMeta: mockTransactionMeta,
+              });
+            }
+            if (action === 'NetworkController:findNetworkClientIdByChainId') {
+              return mockNetworkClientId;
+            }
+            if (action === 'RemoteFeatureFlagController:getState') {
+              return { remoteFeatureFlags: {} };
+            }
+            return undefined;
+          },
+        );
 
         const { result } = await depositController.depositWithConfirmation({
           amount: '100',
@@ -4311,8 +4392,13 @@ describe('PerpsController', () => {
     });
 
     it('switches to myx provider successfully', async () => {
-      // Enable MYX feature flag via remote flags + version gating
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Create controller with MYX-enabled mocks
+      const myxInfrastructure = createMockInfrastructure();
+      (
+        myxInfrastructure.featureFlags.validateVersionGated as jest.Mock
+      ).mockReturnValue(true);
+      // Enable MYX feature flag via messenger
+      const myxMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -4327,14 +4413,8 @@ describe('PerpsController', () => {
         return undefined;
       });
 
-      // Create controller with MYX-enabled mocks
-      const myxInfrastructure = createMockInfrastructure();
-      (
-        myxInfrastructure.featureFlags.validateVersionGated as jest.Mock
-      ).mockReturnValue(true);
-
       const myxController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: myxMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: myxInfrastructure,
       });
