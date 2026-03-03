@@ -58,7 +58,7 @@ exports[`AddressList renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginHorizontal": 16,

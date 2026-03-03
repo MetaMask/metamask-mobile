@@ -39,7 +39,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -244,7 +244,7 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }

@@ -447,7 +447,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -462,7 +462,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -501,7 +501,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -638,7 +638,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -735,7 +735,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
-                                      "fontSize": 20,
+                                      "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1208,7 +1208,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1223,7 +1223,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1266,7 +1266,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1414,7 +1414,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
-                                      "fontSize": 20,
+                                      "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1887,7 +1887,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1902,7 +1902,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1945,7 +1945,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Bold",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -2082,7 +2082,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       {
                                         "color": "#131416",
                                         "fontFamily": "Geist-Regular",
-                                        "fontSize": 20,
+                                        "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -2179,7 +2179,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
-                                      "fontSize": 20,
+                                      "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }

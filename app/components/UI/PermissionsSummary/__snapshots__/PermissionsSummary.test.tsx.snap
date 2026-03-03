@@ -233,7 +233,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -1368,7 +1368,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -2088,7 +2088,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -2655,7 +2655,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -3328,7 +3328,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -4463,7 +4463,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",

@@ -14,7 +14,7 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
       {
         "color": "#131416",
         "fontFamily": "Geist-Bold",
-        "fontSize": 20,
+        "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
         "paddingBottom": 8,
@@ -361,7 +361,7 @@ exports[`Staking Earnings should render correctly 1`] = `
       {
         "color": "#131416",
         "fontFamily": "Geist-Bold",
-        "fontSize": 20,
+        "fontSize": 18,
         "letterSpacing": 0,
         "lineHeight": 24,
         "paddingBottom": 8,

@@ -229,7 +229,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -243,7 +243,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -262,7 +262,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -317,7 +317,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -331,7 +331,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -405,7 +405,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -419,7 +419,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -438,7 +438,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -473,11 +473,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-1"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -499,7 +499,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -530,7 +530,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -577,7 +577,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -594,7 +594,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -623,11 +623,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-2"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -649,7 +649,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -680,7 +680,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -727,7 +727,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -744,7 +744,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -773,11 +773,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-3"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -799,7 +799,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -830,7 +830,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -877,7 +877,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -894,7 +894,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -923,11 +923,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-4"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -949,7 +949,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -980,7 +980,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1027,7 +1027,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1044,7 +1044,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1073,11 +1073,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-5"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -1099,7 +1099,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1130,7 +1130,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1144,7 +1144,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1177,7 +1177,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1194,7 +1194,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1223,11 +1223,11 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-6"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -1249,7 +1249,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1280,7 +1280,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1327,7 +1327,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1344,7 +1344,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1607,7 +1607,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1621,7 +1621,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -1695,7 +1695,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1709,7 +1709,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -1728,7 +1728,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1783,7 +1783,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1797,7 +1797,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -1816,7 +1816,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1851,11 +1851,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-1"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -1877,7 +1877,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1908,7 +1908,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1955,7 +1955,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1972,7 +1972,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2001,11 +2001,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-sell-2"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2027,7 +2027,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2058,7 +2058,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2105,7 +2105,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2122,7 +2122,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2151,11 +2151,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-3"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2177,7 +2177,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2208,7 +2208,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2255,7 +2255,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2272,7 +2272,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2301,11 +2301,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-4"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2327,7 +2327,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2358,7 +2358,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2405,7 +2405,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2422,7 +2422,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2451,11 +2451,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-5"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2477,7 +2477,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2508,7 +2508,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2555,7 +2555,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2572,7 +2572,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2601,11 +2601,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-6"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2627,7 +2627,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2658,7 +2658,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2672,7 +2672,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2705,7 +2705,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2722,7 +2722,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2751,11 +2751,11 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-7"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -2777,7 +2777,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2808,7 +2808,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2855,7 +2855,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2872,7 +2872,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -3034,7 +3034,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3048,7 +3048,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -3067,7 +3067,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3122,7 +3122,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3136,7 +3136,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -3210,7 +3210,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3224,7 +3224,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -3243,7 +3243,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3301,7 +3301,7 @@ exports[`OrdersList renders empty buy message 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -3463,7 +3463,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3477,7 +3477,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -3496,7 +3496,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3551,7 +3551,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3565,7 +3565,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -3584,7 +3584,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3639,7 +3639,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3653,7 +3653,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -3730,7 +3730,7 @@ exports[`OrdersList renders empty sell message 1`] = `
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -3909,7 +3909,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3923,7 +3923,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -3942,7 +3942,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3997,7 +3997,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4011,7 +4011,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -4030,7 +4030,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4085,7 +4085,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4099,7 +4099,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -4153,11 +4153,11 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-sell-1"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -4179,7 +4179,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -4210,7 +4210,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4257,7 +4257,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4274,7 +4274,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -4453,7 +4453,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4467,7 +4467,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -4486,7 +4486,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4541,7 +4541,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4555,7 +4555,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -4574,7 +4574,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4629,7 +4629,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4643,7 +4643,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -4697,11 +4697,11 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-sell-1"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -4723,7 +4723,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -4754,7 +4754,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4801,7 +4801,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4818,7 +4818,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5081,7 +5081,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5095,7 +5095,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#121314",
+                      "backgroundColor": "#131416",
                     },
                     undefined,
                   ],
@@ -5169,7 +5169,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5183,7 +5183,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -5202,7 +5202,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -5257,7 +5257,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5271,7 +5271,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#3c4d9d0f",
+                      "backgroundColor": "#b4b4b528",
                     },
                     undefined,
                   ],
@@ -5290,7 +5290,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -5325,11 +5325,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-1"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -5351,7 +5351,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5382,7 +5382,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5429,7 +5429,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5446,7 +5446,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5475,11 +5475,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-sell-2"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -5501,7 +5501,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5532,7 +5532,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5579,7 +5579,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5596,7 +5596,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5625,11 +5625,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-3"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -5651,7 +5651,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5682,7 +5682,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5729,7 +5729,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5746,7 +5746,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5775,11 +5775,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-4"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -5801,7 +5801,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5832,7 +5832,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5879,7 +5879,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5896,7 +5896,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5925,11 +5925,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-5"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -5951,7 +5951,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5982,7 +5982,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6029,7 +6029,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6046,7 +6046,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -6075,11 +6075,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-deposit-6"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -6101,7 +6101,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -6132,7 +6132,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6146,7 +6146,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -6179,7 +6179,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6196,7 +6196,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -6225,11 +6225,11 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
           }
         }
         testID="ramps-order-buy-7"
-        underlayColor="#f3f5f9"
+        underlayColor="#f3f3f4"
       >
         <View
           accessibilityRole="none"
@@ -6251,7 +6251,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -6282,7 +6282,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6329,7 +6329,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6346,7 +6346,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,

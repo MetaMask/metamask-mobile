@@ -15,7 +15,7 @@ exports[`Earnings displays lending maintenance banner when feature flag is enabl
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
           "paddingBottom": 8,
@@ -373,7 +373,7 @@ exports[`Earnings displays pooled-staking maintenance banner when feature flag i
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
           "paddingBottom": 8,
@@ -731,7 +731,7 @@ exports[`Earnings should render correctly 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 20,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
           "paddingBottom": 8,

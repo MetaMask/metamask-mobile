@@ -187,7 +187,7 @@ exports[`TokenListItem basic rendering renders correctly and matches snapshot 1`
             {
               "color": "#131416",
               "fontFamily": "Geist-Medium",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -402,7 +402,7 @@ exports[`TokenListItem basic rendering renders disabled token with info button a
             {
               "color": "#131416",
               "fontFamily": "Geist-Medium",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
             }

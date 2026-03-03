@@ -232,7 +232,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 20,
+                "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -317,7 +317,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -403,7 +403,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -506,7 +506,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -591,7 +591,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -676,7 +676,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -753,7 +753,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 20,
+                "fontSize": 18,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
