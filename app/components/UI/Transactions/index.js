@@ -11,7 +11,6 @@ import {
   Text,
   View,
 } from 'react-native';
-import Modal from 'react-native-modal';
 import { connect } from 'react-redux';
 import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -66,7 +65,6 @@ import TransactionElement from '../TransactionElement';
 import RetryModal from './RetryModal';
 import TransactionsFooter from './TransactionsFooter';
 import { filterDuplicateOutgoingTransactions } from './utils';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
 
 const createStyles = (colors) =>
@@ -187,10 +185,6 @@ class Transactions extends PureComponent {
      */
     tokenChainId: PropTypes.string,
     /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
-    /**
      * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
      * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)
      */
@@ -220,7 +214,6 @@ class Transactions extends PureComponent {
     isLedgerAccount: false,
   };
 
-  existingGas = null;
   existingTx = null;
   cancelTxId = null;
   speedUpTxId = null;
@@ -371,30 +364,6 @@ class Transactions extends PureComponent {
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
-    const shouldShowSwitchNetwork = () => {
-      if (this.props.isMultichainAccountsState2Enabled) {
-        return false;
-      }
-      if (!this.props.tokenChainId || !this.props.chainId) {
-        return false;
-      }
-
-      if (this.isNonEvmChain || this.isTokenNonEvmChain) {
-        return this.props.tokenChainId !== this.props.chainId;
-      }
-
-      return this.props.tokenChainId !== this.props.chainId;
-    };
-
-    if (shouldShowSwitchNetwork()) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.textTransactions}>
-            {strings('wallet.switch_network_to_view_transactions')}
-          </Text>
-        </View>
-      );
-    }
     return (
       <View style={styles.emptyContainer}>
         <TabEmptyState description={strings('wallet.no_transactions')} />
@@ -451,9 +420,14 @@ class Transactions extends PureComponent {
 
   keyExtractor = (item) => item.id.toString();
 
-  onSpeedUpAction = (speedUpAction, existingGas, tx) => {
+  onSpeedUpAction = (speedUpAction, tx) => {
+    if (!speedUpAction) {
+      this.setState({ speedUp1559IsOpen: false, speedUpIsOpen: false });
+      this.speedUpTxId = null;
+      this.existingTx = null;
+      return;
+    }
     if (!tx) return;
-    this.existingGas = existingGas;
     this.speedUpTxId = tx.id;
     this.existingTx = tx;
     const speedUpConfirmDisabled = validateTransactionActionBalance(
@@ -466,14 +440,18 @@ class Transactions extends PureComponent {
 
   onSpeedUpCompleted = () => {
     this.setState({ speedUpIsOpen: false });
-    this.existingGas = null;
     this.speedUpTxId = null;
     this.existingTx = null;
   };
 
-  onCancelAction = (cancelAction, existingGas, tx) => {
+  onCancelAction = (cancelAction, tx) => {
+    if (!cancelAction) {
+      this.setState({ cancel1559IsOpen: false, cancelIsOpen: false });
+      this.cancelTxId = null;
+      this.existingTx = null;
+      return;
+    }
     if (!tx) return;
-    this.existingGas = existingGas;
     this.cancelTxId = tx.id;
     this.existingTx = tx;
     const cancelConfirmDisabled = validateTransactionActionBalance(
@@ -486,19 +464,27 @@ class Transactions extends PureComponent {
 
   onCancelCompleted = () => {
     this.setState({ cancelIsOpen: false });
-    this.existingGas = null;
     this.cancelTxId = null;
     this.existingTx = null;
   };
 
   getParamsToSend = (transactionObject) => {
+    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
+    if (
+      transactionObject &&
+      transactionObject.gasPrice !== undefined &&
+      (transactionObject.gasPrice === '0x0' ||
+        parseInt(String(transactionObject.gasPrice), 16) === 0)
+    ) {
+      return this.getCancelOrSpeedupValues();
+    }
     if (
       transactionObject &&
       (transactionObject.maxFeePerGas || transactionObject.gasPrice)
     ) {
       return transactionObject;
     }
-    return this.getCancelOrSpeedupValues(transactionObject);
+    return this.getCancelOrSpeedupValues();
   };
 
   onScroll = (event) => {
@@ -543,19 +529,15 @@ class Transactions extends PureComponent {
 
       const params = this.getParamsToSend(transactionObject);
       if (isLedgerAccount) {
-        const eip1559GasFee =
-          params?.maxFeePerGas && params?.maxPriorityFeePerGas
-            ? {
-                maxFeePerGas: params.maxFeePerGas,
-                maxPriorityFeePerGas: params.maxPriorityFeePerGas,
-              }
-            : {
-                maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-                maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-              };
+        const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
           id: this.speedUpTxId,
-          replacementParams: { type: 'speedUp', eip1559GasFee },
+          replacementParams: {
+            type: 'speedUp',
+            ...(isEip1559
+              ? { eip1559GasFee: params }
+              : { legacyGasFee: params }),
+          },
         });
       } else {
         await speedUpTransaction(this.speedUpTxId, params);
@@ -623,19 +605,15 @@ class Transactions extends PureComponent {
 
       const params = this.getParamsToSend(transactionObject);
       if (isLedgerAccount) {
-        const eip1559GasFee =
-          params?.maxFeePerGas && params?.maxPriorityFeePerGas
-            ? {
-                maxFeePerGas: params.maxFeePerGas,
-                maxPriorityFeePerGas: params.maxPriorityFeePerGas,
-              }
-            : {
-                maxFeePerGas: `0x${transactionObject?.suggestedMaxFeePerGasHex}`,
-                maxPriorityFeePerGas: `0x${transactionObject?.suggestedMaxPriorityFeePerGasHex}`,
-              };
+        const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
           id: this.cancelTxId,
-          replacementParams: { type: 'cancel', eip1559GasFee },
+          replacementParams: {
+            type: 'cancel',
+            ...(isEip1559
+              ? { eip1559GasFee: params }
+              : { legacyGasFee: params }),
+          },
         });
       } else {
         await Engine.context.TransactionController.stopTransaction(
@@ -684,12 +662,12 @@ class Transactions extends PureComponent {
     //If the exitsing TX id true then it is a speed up retry
     if (this.speedUpTxId) {
       InteractionManager.runAfterInteractions(() => {
-        this.onSpeedUpAction(true, this.existingGas, this.existingTx);
+        this.onSpeedUpAction(true, this.existingTx);
       });
     }
     if (this.cancelTxId) {
       InteractionManager.runAfterInteractions(() => {
-        this.onCancelAction(true, this.existingGas, this.existingTx);
+        this.onCancelAction(true, this.existingTx);
       });
     }
   };
@@ -771,57 +749,25 @@ class Transactions extends PureComponent {
           )}
         </PriceChartContext.Consumer>
 
-        {!isSigningQRObject && this.state.speedUpIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.bottomModal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={this.onSpeedUpCompleted}
-            onBackButtonPress={this.onSpeedUpCompleted}
-            onSwipeComplete={this.onSpeedUpCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel={false}
-              tx={this.existingTx}
-              existingGas={this.existingGas}
-              onConfirm={this.speedUpTransaction}
-              onClose={this.onSpeedUpCompleted}
-              confirmDisabled={speedUpConfirmDisabled}
-            />
-          </Modal>
+        {!isSigningQRObject && (
+          <CancelSpeedupModal
+            isVisible={this.state.speedUpIsOpen}
+            isCancel={false}
+            tx={this.existingTx}
+            onConfirm={this.speedUpTransaction}
+            onClose={this.onSpeedUpCompleted}
+            confirmDisabled={speedUpConfirmDisabled}
+          />
         )}
-        {!isSigningQRObject && this.state.cancelIsOpen && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.bottomModal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={this.onCancelCompleted}
-            onBackButtonPress={this.onCancelCompleted}
-            onSwipeComplete={this.onCancelCompleted}
-            swipeDirection="down"
-            propagateSwipe
-          >
-            <CancelSpeedupModal
-              isCancel
-              tx={this.existingTx}
-              existingGas={this.existingGas}
-              onConfirm={this.cancelTransaction}
-              onClose={this.onCancelCompleted}
-              confirmDisabled={cancelConfirmDisabled}
-            />
-          </Modal>
+        {!isSigningQRObject && (
+          <CancelSpeedupModal
+            isVisible={this.state.cancelIsOpen}
+            isCancel
+            tx={this.existingTx}
+            onConfirm={this.cancelTransaction}
+            onClose={this.onCancelCompleted}
+            confirmDisabled={cancelConfirmDisabled}
+          />
         )}
       </View>
     );
@@ -848,20 +794,14 @@ class Transactions extends PureComponent {
     );
   };
 
-  getCancelOrSpeedupValues(transactionObject) {
-    const { suggestedMaxFeePerGasHex, suggestedMaxPriorityFeePerGasHex } =
-      transactionObject ?? {};
-
-    if (suggestedMaxFeePerGasHex) {
-      return {
-        maxFeePerGas: `0x${suggestedMaxFeePerGasHex}`,
-        maxPriorityFeePerGas: `0x${suggestedMaxPriorityFeePerGasHex}`,
-      };
-    }
-
-    if (this.existingGas.gasPrice !== 0) {
-      // Transaction controller will multiply existing gas price by the rate.
-      return undefined;
+  getCancelOrSpeedupValues() {
+    const txParams = this.existingTx?.txParams;
+    const existingGasPriceHex = txParams?.gasPrice;
+    if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
+      const existingGasPriceDecimal = parseInt(String(existingGasPriceHex), 16);
+      if (existingGasPriceDecimal !== 0) {
+        return undefined;
+      }
     }
 
     return { gasPrice: this.getGasPriceEstimate() };
@@ -893,8 +833,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 Transactions.contextType = ThemeContext;

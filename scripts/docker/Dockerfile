@@ -33,7 +33,7 @@ ENV HOME=/home/node
 # distro rbenv and ruby are out of date - install rbenv from git and manage ruby
 # RUBY_BUILD_VERSION=v20240501
 ARG RBENV_COMMIT=3bac268cdb81dd745ce13a1cf6ff4a286336ab3b
-ARG RUBY_BUILD_COMMIT=aab1b8d0e7e814f200320749501ba57e2fae20d0
+ARG RUBY_BUILD_COMMIT=d395d1ae53c9834f239ca42913d42dd2e0beaeb3
 RUN (mkdir /home/node/.rbenv \
     && curl -sL https://github.com/rbenv/rbenv/archive/${RBENV_COMMIT}.tar.gz \
     | tar --strip-components=1 -C /home/node/.rbenv/ -xzf - \

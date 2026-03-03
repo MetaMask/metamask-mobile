@@ -2,13 +2,14 @@
  * Unit tests for Perps account utilities
  * Tests EVM account filtering and selection helpers (pure functions)
  */
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   findEvmAccount,
   getEvmAccountFromAccountGroup,
   getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
+  PerpsControllerMessenger,
 } from '@metamask/perps-controller';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 describe('accountUtils', () => {
   describe('findEvmAccount', () => {
@@ -266,7 +267,9 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(
+        mockMessenger as unknown as PerpsControllerMessenger,
+      );
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -301,7 +304,9 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(
+        mockMessenger as unknown as PerpsControllerMessenger,
+      );
 
       expect(result).toBeUndefined();
     });
@@ -315,7 +320,9 @@ describe('accountUtils', () => {
         >,
       };
 
-      const result = getSelectedEvmAccount(mockMessenger);
+      const result = getSelectedEvmAccount(
+        mockMessenger as unknown as PerpsControllerMessenger,
+      );
 
       expect(result).toBeUndefined();
     });

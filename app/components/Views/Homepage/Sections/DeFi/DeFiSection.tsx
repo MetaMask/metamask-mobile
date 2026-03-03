@@ -1,5 +1,6 @@
 import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
@@ -7,12 +8,15 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -57,6 +61,7 @@ const DeFiPositionsSkeleton = () => {
  * Uses Redux state from DeFiPositionsController.
  */
 const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
+  const navigation = useNavigation();
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
   const privacyMode = useSelector(selectPrivacyMode);
   const title = strings('homepage.sections.defi');
@@ -64,9 +69,13 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const { positions, isLoading, hasError, isEmpty } =
     useDeFiPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
 
-  // DeFi positions come from Redux selectors - no async refresh needed
+  const handleViewAllDeFi = useCallback(() => {
+    navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
+  }, [navigation]);
+
   const refresh = useCallback(async () => {
-    // Data refreshes automatically via DeFiPositionsController
+    const controller = Engine.context.DeFiPositionsController;
+    await controller._executePoll();
   }, []);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -76,14 +85,29 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     return null;
   }
 
-  // Don't render if error or empty (and not loading)
-  if (!isLoading && (hasError || isEmpty)) {
+  // Don't render if empty and not loading (200 with no data)
+  if (!isLoading && isEmpty) {
     return null;
+  }
+
+  // Show retry UI on error
+  if (!isLoading && hasError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllDeFi} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={refresh}
+        />
+      </Box>
+    );
   }
 
   return (
     <Box gap={3}>
-      <SectionTitle title={title} />
+      <SectionTitle title={title} onPress={handleViewAllDeFi} />
       <SectionRow>
         <Box>
           {isLoading ? (

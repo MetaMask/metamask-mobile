@@ -502,43 +502,8 @@ exports[`ActivityView matches snapshot 1`] = `
                               </TouchableOpacity>
                             </View>
                             <View
-                              style={
-                                {
-                                  "flex": 1,
-                                }
-                              }
-                            >
-                              <View
-                                style={
-                                  {
-                                    "backgroundColor": "#ffffff",
-                                    "flex": 1,
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "#ffffff",
-                                      "justifyContent": "center",
-                                      "paddingVertical": 40,
-                                      "width": "100%",
-                                    }
-                                  }
-                                >
-                                  <ActivityIndicator
-                                    size="small"
-                                    style={
-                                      {
-                                        "alignSelf": "center",
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
-                              <View />
-                            </View>
+                              testID="unified-transactions-view-mock"
+                            />
                           </View>
                         </View>
                         <View

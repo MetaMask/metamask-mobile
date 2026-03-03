@@ -6,6 +6,20 @@ import { CancelSpeedupModal } from './cancel-speedup-modal';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useCancelSpeedupGas } from '../../../hooks/gas/useCancelSpeedupGas';
 
+jest.mock('react-native-modal', () => {
+  const RN = jest.requireActual<typeof import('react')>('react');
+  return {
+    __esModule: true,
+    default: ({
+      children,
+      isVisible,
+    }: {
+      children: React.ReactNode;
+      isVisible: boolean;
+    }) => (isVisible ? RN.createElement(RN.Fragment, null, children) : null),
+  };
+});
+
 jest.mock('../../../../../UI/NetworkAssetLogo', () => ({
   __esModule: true,
   default: function MockNetworkAssetLogo() {
@@ -50,13 +64,22 @@ const defaultGasValues = {
   networkFeeDisplay: '0.001 ETH',
   networkFeeNative: '0.001',
   networkFeeFiat: '$1.80',
-  speedDisplay: 'Market ~ 15 sec',
   nativeTokenSymbol: 'ETH',
 };
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
   useCancelSpeedupGas: jest.fn(),
 }));
+
+jest.mock('../../gas/gas-speed', () => {
+  const RN = jest.requireActual<typeof import('react')>('react');
+  const { Text } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  return {
+    GasSpeed: ({ transactionId }: { transactionId?: string | null }) =>
+      transactionId ? RN.createElement(Text, null, 'Market ~ 15 sec') : null,
+  };
+});
 
 const mockedUseCancelSpeedupGas = jest.mocked(useCancelSpeedupGas);
 
@@ -77,17 +100,13 @@ describe('CancelSpeedupModal', () => {
   const mockOnClose = jest.fn();
 
   const defaultProps = {
+    isVisible: true,
     isCancel: false,
     tx: {
       id: 'tx-1',
       chainId: '0x1',
       txParams: { gas: '0x5208' },
     } as unknown as TransactionMeta,
-    existingGas: {
-      isEIP1559Transaction: true,
-      maxFeePerGas: '0x1',
-      maxPriorityFeePerGas: '0x1',
-    },
     onConfirm: mockOnConfirm,
     onClose: mockOnClose,
     confirmDisabled: false,
@@ -110,7 +129,6 @@ describe('CancelSpeedupModal', () => {
     ).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(getByText('Speed')).toBeOnTheScreen();
-    expect(getByText('0.001')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
     expect(getByText('$1.80')).toBeOnTheScreen();
     expect(getByText('Market ~ 15 sec')).toBeOnTheScreen();
@@ -178,19 +196,28 @@ describe('CancelSpeedupModal', () => {
     });
 
     expect(mockedUseCancelSpeedupGas).toHaveBeenCalledWith({
-      existingGas: defaultProps.existingGas,
       tx: defaultProps.tx,
       isCancel: false,
     });
   });
 
-  it('handles null tx and existingGas gracefully', () => {
+  it('handles null tx gracefully', () => {
     const { getByText } = renderWithProvider(
-      <CancelSpeedupModal {...defaultProps} tx={null} existingGas={null} />,
+      <CancelSpeedupModal {...defaultProps} tx={null} />,
       { state: baseState },
     );
 
     expect(getByText('Speed up Transaction')).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
+  });
+
+  it('does not render when isVisible is false', () => {
+    const { queryByText } = renderWithProvider(
+      <CancelSpeedupModal {...defaultProps} isVisible={false} />,
+      { state: baseState },
+    );
+
+    expect(queryByText('Speed up Transaction')).toBeNull();
+    expect(queryByText('Network fee')).toBeNull();
   });
 });
