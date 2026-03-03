@@ -31,7 +31,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
   it('Navigate to all sections full views via View All and return to feed', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withDetectedGeolocation('ES').build(),
+        fixture: new FixtureBuilder().withDetectedGeolocation('AR').build(),
         restartDevice: true,
         testSpecificMock,
       },
