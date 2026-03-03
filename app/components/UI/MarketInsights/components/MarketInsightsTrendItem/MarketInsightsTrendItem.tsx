@@ -46,11 +46,12 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       }),
     );
 
-    return getUniqueSourcesByFavicon([
-      ...articleSources,
-      ...tweetSources,
-    ]).slice(0, MAX_VISIBLE_SOURCE_LOGOS);
+    return getUniqueSourcesByFavicon([...articleSources, ...tweetSources]);
   }, [trend.articles, trend.tweets]);
+
+  const visibleLogos = uniqueSources.slice(0, MAX_VISIBLE_SOURCE_LOGOS);
+  const firstSourceName = uniqueSources[0]?.name;
+  const remainingCount = Math.max(0, uniqueSources.length - 1);
 
   return (
     <Pressable
@@ -71,35 +72,42 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {trend.description}
       </Text>
-      {uniqueSources.length > 0 && (
+      {visibleLogos.length > 0 && (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="pt-2"
+          twClassName="pt-2 gap-2"
         >
-          {uniqueSources.map((source, index) => (
-            <Box
-              key={`${source.name}-${source.url}`}
-              twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
-                index > 0 ? '-ml-1' : ''
-              }`}
-            >
-              {isXSourceUrl(source.url) ? (
-                <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
-                  <Icon
-                    name={IconName.X}
-                    size={IconSize.Sm}
-                    color={IconColor.IconDefault}
+          <Box flexDirection={BoxFlexDirection.Row}>
+            {visibleLogos.map((source, index) => (
+              <Box
+                key={`${source.name}-${source.url}`}
+                twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
+                  index > 0 ? '-ml-1' : ''
+                }`}
+              >
+                {isXSourceUrl(source.url) ? (
+                  <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
+                    <Icon
+                      name={IconName.X}
+                      size={IconSize.Sm}
+                      color={IconColor.IconDefault}
+                    />
+                  </Box>
+                ) : (
+                  <Image
+                    source={{ uri: getFaviconUrl(source.url) }}
+                    style={tw.style('h-4 w-4 rounded-full')}
                   />
-                </Box>
-              ) : (
-                <Image
-                  source={{ uri: getFaviconUrl(source.url) }}
-                  style={tw.style('h-4 w-4 rounded-full')}
-                />
-              )}
-            </Box>
-          ))}
+                )}
+              </Box>
+            ))}
+          </Box>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {remainingCount > 0
+              ? `${firstSourceName} +${remainingCount}`
+              : firstSourceName}
+          </Text>
         </Box>
       )}
     </Pressable>

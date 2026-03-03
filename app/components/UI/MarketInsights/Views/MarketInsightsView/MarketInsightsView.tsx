@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Linking, Pressable, Animated, Image } from 'react-native';
+import { ScrollView, Linking, Pressable, Animated } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -33,8 +33,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useMarketInsights } from '../../hooks/useMarketInsights';
 import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
-import { MarketInsightsSourcesBottomSheet } from '../../components/MarketInsightsSourcesFooter';
-import type { MarketInsightsSourceListItem } from '../../components/MarketInsightsSourcesFooter/MarketInsightsSourcesFooter.types';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -44,7 +42,6 @@ import {
 } from '../../../Bridge/hooks/useSwapBridgeNavigation';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type {
-  MarketInsightsSource,
   MarketInsightsTweet,
   MarketInsightsTrend,
 } from '@metamask/ai-controllers';
@@ -61,12 +58,6 @@ import { useAppThemeFromContext } from '../../../../../util/theme';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
-import {
-  getFaviconUrl,
-  getNormalizedHandle,
-  getUniqueSourcesByFavicon,
-  isXSourceUrl,
-} from '../../utils/marketInsightsFormatting';
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -76,42 +67,10 @@ const SECTION_ANIMATION_DELAYS_MS = {
   closerLook: 80,
   whatsBeingSaid: 160,
 };
-const MAX_VISIBLE_SOURCES = 3;
-
 interface AnimatedSectionProps {
   children: React.ReactNode;
   delay?: number;
 }
-
-const TrendSourceIcon: React.FC<{
-  source: MarketInsightsSource;
-  index: number;
-}> = ({ source, index }) => {
-  const tw = useTailwind();
-
-  return (
-    <Box
-      twClassName={`w-5 h-5 rounded-full bg-default border border-muted overflow-hidden ${
-        index > 0 ? '-ml-2' : ''
-      }`}
-    >
-      {isXSourceUrl(source.url) ? (
-        <Box twClassName="w-5 h-5 items-center justify-center rounded-full">
-          <Icon
-            name={IconName.X}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-          />
-        </Box>
-      ) : (
-        <Image
-          source={{ uri: getFaviconUrl(source.url) }}
-          style={tw.style('w-4 h-4 rounded-full')}
-        />
-      )}
-    </Box>
-  );
-};
 
 const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   children,
@@ -210,7 +169,6 @@ const MarketInsightsView: React.FC = () => {
   const loadingSkeletonTimeoutRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
-  const [isSourcesSheetVisible, setIsSourcesSheetVisible] = useState(false);
   const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
 
   // Build BridgeToken from route params for swap navigation
@@ -244,65 +202,6 @@ const MarketInsightsView: React.FC = () => {
     if (!report) return [];
     return report.trends.flatMap((trend) => trend.tweets).slice(0, 4);
   }, [report]);
-  const trendAllSources: MarketInsightsSourceListItem[] = useMemo(() => {
-    if (!report) {
-      return [];
-    }
-
-    const articleSources = report.trends.flatMap((trend) =>
-      trend.articles.map((article) => {
-        const sourceSeed = article.url || article.source;
-        const normalizedUrl = sourceSeed.includes('://')
-          ? sourceSeed
-          : `https://${sourceSeed}`;
-
-        return {
-          name: article.source || sourceSeed,
-          type: 'article',
-          url: normalizedUrl,
-          headline: article.title,
-          date: article.date,
-        };
-      }),
-    );
-
-    const tweetSources = report.trends.flatMap((trend) =>
-      (trend.tweets ?? []).map((tweet) => ({
-        name: getNormalizedHandle(tweet.author),
-        type: 'social',
-        url: tweet.url,
-        headline: tweet.contentSummary,
-        date: tweet.date,
-      })),
-    );
-
-    return [...articleSources, ...tweetSources];
-  }, [report]);
-
-  const sourcesSheetItems: MarketInsightsSourceListItem[] = useMemo(() => {
-    if (trendAllSources.length > 0) {
-      return trendAllSources;
-    }
-
-    return (report?.sources ?? []).map((source) => ({
-      name: source.name,
-      type: source.type,
-      url: source.url,
-    }));
-  }, [report?.sources, trendAllSources]);
-  const trendSourcesPillSources: MarketInsightsSource[] = useMemo(
-    () => getUniqueSourcesByFavicon(sourcesSheetItems),
-    [sourcesSheetItems],
-  );
-  const visibleTrendSourceCount = Math.min(
-    trendSourcesPillSources.length,
-    MAX_VISIBLE_SOURCES,
-  );
-  const remainingTrendSourceCount = Math.max(
-    trendSourcesPillSources.length - MAX_VISIBLE_SOURCES,
-    0,
-  );
-
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -362,14 +261,6 @@ const MarketInsightsView: React.FC = () => {
     },
     [],
   );
-  const handleOpenSources = useCallback(() => {
-    setIsSourcesSheetVisible(true);
-  }, []);
-
-  const handleCloseSources = useCallback(() => {
-    setIsSourcesSheetVisible(false);
-  }, []);
-
   const trackMarketInsightsInteraction = useCallback(
     (
       interactionType: 'thumbs_up' | 'thumbs_down' | 'source_click',
@@ -545,26 +436,6 @@ const MarketInsightsView: React.FC = () => {
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
           {/* "A closer look" section */}
           <Box twClassName="pb-6">
-            {/* <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-              twClassName="px-4 py-4"
-            >
-              <Icon
-                name={IconName.Description}
-                size={IconSize.Md}
-                color={IconColor.IconAlternative}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-              >
-                {strings('market_insights.a_closer_look')}
-              </Text>
-            </Box> */}
-
             {report.trends.map((trend, index) => (
               <MarketInsightsTrendItem
                 key={`trend-${index}`}
@@ -573,43 +444,6 @@ const MarketInsightsView: React.FC = () => {
                 testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
               />
             ))}
-            {trendSourcesPillSources.length > 0 ? (
-              <Box twClassName="px-4 pt-2">
-                <Pressable
-                  onPress={handleOpenSources}
-                  style={({ pressed }) =>
-                    tw.style(
-                      'self-start flex-row items-center bg-muted rounded-full px-3 py-2',
-                      pressed && 'opacity-70',
-                    )
-                  }
-                  testID="market-insights-open-sources-button"
-                >
-                  <Box flexDirection={BoxFlexDirection.Row} twClassName="pr-2">
-                    {trendSourcesPillSources
-                      .slice(0, visibleTrendSourceCount)
-                      .map((source, index) => (
-                        <TrendSourceIcon
-                          key={`${source.name}-${source.url}`}
-                          source={source}
-                          index={index}
-                        />
-                      ))}
-                  </Box>
-                  {remainingTrendSourceCount > 0 ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('market_insights.sources_count', {
-                        count: String(remainingTrendSourceCount),
-                      })}
-                    </Text>
-                  ) : null}
-                </Pressable>
-              </Box>
-            ) : null}
           </Box>
         </AnimatedSection>
 
@@ -722,15 +556,6 @@ const MarketInsightsView: React.FC = () => {
           trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
-          onSourcePress={handleSourcePress}
-        />
-      ) : null}
-
-      {isSourcesSheetVisible ? (
-        <MarketInsightsSourcesBottomSheet
-          isVisible
-          onClose={handleCloseSources}
-          sources={sourcesSheetItems}
           onSourcePress={handleSourcePress}
         />
       ) : null}

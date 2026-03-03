@@ -26,7 +26,21 @@ describe('MarketInsightsTrendItem', () => {
     expect(getByText(trend.description)).toBeOnTheScreen();
   });
 
-  it('renders stacked unique source favicon logos', () => {
+  it('shows source name label for a single source', () => {
+    const trend = {
+      title: 'Institutional inflows drive BTC demand',
+      description: 'Large funds keep adding BTC exposure.',
+      articles: [{ source: 'Coindesk', url: 'https://coindesk.com/news/1' }],
+    };
+
+    const { getByText } = renderWithProvider(
+      <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
+    );
+
+    expect(getByText('Coindesk')).toBeOnTheScreen();
+  });
+
+  it('shows first source name and remaining count for multiple sources', () => {
     const trend = {
       title: 'Macro liquidity supports risk assets',
       description: 'Broad risk-on sentiment is supporting ETH and BTC.',
@@ -43,11 +57,13 @@ describe('MarketInsightsTrendItem', () => {
       ],
     };
 
-    const { UNSAFE_getAllByType } = renderWithProvider(
+    const { getByText, UNSAFE_getAllByType } = renderWithProvider(
       <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
     );
 
-    // Cointelegraph entries dedupe to one favicon, plus The Block = 2.
+    // Cointelegraph entries dedupe to one favicon, plus The Block = 2 unique sources.
+    // Label: "Cointelegraph +1" (2 sources - 1 named = 1 remaining).
+    expect(getByText('Cointelegraph +1')).toBeOnTheScreen();
     expect(UNSAFE_getAllByType(Image)).toHaveLength(2);
   });
 
@@ -66,12 +82,14 @@ describe('MarketInsightsTrendItem', () => {
       ],
     };
 
-    const { UNSAFE_queryAllByType } = renderWithProvider(
+    const { UNSAFE_queryAllByType, getByText } = renderWithProvider(
       <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
     );
 
     // X source uses Icon component, not Image.
     expect(UNSAFE_queryAllByType(Image)).toHaveLength(0);
+    // Label shows X as the source name.
+    expect(getByText('X')).toBeOnTheScreen();
   });
 
   it('calls onPress when trend item is tapped', () => {

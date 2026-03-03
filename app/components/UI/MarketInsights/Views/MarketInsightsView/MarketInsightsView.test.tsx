@@ -12,7 +12,6 @@ const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockTrendSourcesBottomSheet = jest.fn();
-const mockSourcesBottomSheet = jest.fn();
 const mockFeedbackBottomSheet = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(
@@ -108,72 +107,6 @@ jest.mock('../../components/MarketInsightsTweetCard', () => {
     </MockPressable>
   );
   return TweetCard;
-});
-
-jest.mock('../../components/MarketInsightsSourcesFooter', () => {
-  const {
-    View: MockView,
-    Pressable: MockPressable,
-    Text: MockText,
-  } = jest.requireActual('react-native');
-
-  const SourcesFooter = ({
-    testID,
-    onSourcesPress,
-    onThumbsUp,
-    onThumbsDown,
-  }: {
-    testID?: string;
-    onSourcesPress?: () => void;
-    onThumbsUp?: () => void;
-    onThumbsDown?: () => void;
-  }) => (
-    <MockView testID={testID ?? 'sources-footer'}>
-      <MockPressable
-        testID="market-insights-open-sources-button"
-        onPress={onSourcesPress}
-      >
-        <MockText>open-sources</MockText>
-      </MockPressable>
-      <MockPressable
-        testID="market-insights-thumbs-up-button"
-        onPress={onThumbsUp}
-      >
-        <MockText>thumbs-up</MockText>
-      </MockPressable>
-      <MockPressable
-        testID="market-insights-thumbs-down-button"
-        onPress={onThumbsDown}
-      >
-        <MockText>thumbs-down</MockText>
-      </MockPressable>
-    </MockView>
-  );
-
-  const SourcesBottomSheet = (
-    props: { onSourcePress?: (url: string) => void } | unknown,
-  ) => {
-    mockSourcesBottomSheet(props);
-    const typedProps = props as { onSourcePress?: (url: string) => void };
-    return (
-      <MockView testID="market-insights-sources-bottom-sheet">
-        <MockPressable
-          testID="market-insights-source-link-button"
-          onPress={() =>
-            typedProps.onSourcePress?.('https://coindesk.com/article-1')
-          }
-        >
-          <MockText>source-link</MockText>
-        </MockPressable>
-      </MockView>
-    );
-  };
-
-  return {
-    __esModule: true,
-    default: SourcesFooter,
-    MarketInsightsSourcesBottomSheet: SourcesBottomSheet,
-  };
 });
 
 jest.mock('../../components/MarketInsightsTrendSourcesBottomSheet', () => {
@@ -463,8 +396,6 @@ describe('MarketInsightsView', () => {
       getByTestId('market-insights-feedback-bottom-sheet'),
     ).toBeOnTheScreen();
     fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
-    fireEvent.press(getByTestId('market-insights-open-sources-button'));
-    fireEvent.press(getByTestId('market-insights-source-link-button'));
     fireEvent.press(getByTestId('market-insights-trend-source-link-button'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -513,26 +444,10 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           interaction_type: 'source_click',
-          source: 'https://coindesk.com/article-1',
-        }),
-      }),
-    );
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
-        properties: expect.objectContaining({
-          interaction_type: 'source_click',
           source: 'https://www.coindesk.com/article',
         }),
       }),
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: expect.objectContaining({
-        newTabUrl: 'https://coindesk.com/article-1',
-        fromTrending: true,
-      }),
-    });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: expect.objectContaining({
@@ -652,98 +567,6 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x456',
         }),
-      }),
-    );
-  });
-
-  it('uses the same trend/article source list for pill count and global sources sheet', () => {
-    mockUseMarketInsights.mockReturnValue({
-      report: {
-        asset: 'eth',
-        generatedAt: '2026-02-17T11:55:00.000Z',
-        headline: 'ETH extends gains',
-        summary: 'Momentum improves on macro risk-on signals',
-        trends: [
-          {
-            title: 'ETF inflows',
-            description: 'Spot ETF inflows remain elevated',
-            articles: [
-              {
-                title: 'A1',
-                source: 'coindesk.com',
-                date: '2026-02-17T08:00:00.000Z',
-                url: 'https://www.coindesk.com/article-1',
-              },
-              {
-                title: 'A2',
-                source: 'theblock.co',
-                date: '2026-02-17T08:30:00.000Z',
-                url: 'https://www.theblock.co/article-2',
-              },
-              {
-                title: 'A3',
-                source: 'decrypt.co',
-                date: '2026-02-17T09:00:00.000Z',
-                url: 'https://decrypt.co/article-3',
-              },
-              {
-                title: 'A4',
-                source: 'cointelegraph.com',
-                date: '2026-02-17T09:30:00.000Z',
-                url: 'https://cointelegraph.com/article-4',
-              },
-              {
-                title: 'A5',
-                source: 'coindesk.com',
-                date: '2026-02-17T10:00:00.000Z',
-                url: 'https://www.coindesk.com/article-5',
-              },
-            ],
-            tweets: [],
-          },
-        ],
-        // Keep this intentionally larger to verify it does NOT drive the pill count.
-        sources: [
-          { name: 's1', type: 'article', url: 'https://a.com' },
-          { name: 's2', type: 'article', url: 'https://b.com' },
-          { name: 's3', type: 'article', url: 'https://c.com' },
-          { name: 's4', type: 'article', url: 'https://d.com' },
-          { name: 's5', type: 'article', url: 'https://e.com' },
-          { name: 's6', type: 'article', url: 'https://f.com' },
-          { name: 's7', type: 'article', url: 'https://g.com' },
-          { name: 's8', type: 'article', url: 'https://h.com' },
-          { name: 's9', type: 'article', url: 'https://i.com' },
-          { name: 's10', type: 'article', url: 'https://j.com' },
-        ],
-      },
-      isLoading: false,
-      error: null,
-      timeAgo: '5m ago',
-    });
-
-    const { getByText, getByTestId } = renderWithProvider(
-      <MarketInsightsView />,
-    );
-
-    expect(getByText('+1 sources')).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId('market-insights-open-sources-button'));
-
-    expect(mockSourcesBottomSheet).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        sources: expect.arrayContaining([
-          expect.objectContaining({
-            url: 'https://www.coindesk.com/article-1',
-          }),
-          expect.objectContaining({ url: 'https://www.theblock.co/article-2' }),
-          expect.objectContaining({ url: 'https://decrypt.co/article-3' }),
-          expect.objectContaining({
-            url: 'https://cointelegraph.com/article-4',
-          }),
-          expect.objectContaining({
-            url: 'https://www.coindesk.com/article-5',
-          }),
-        ]),
       }),
     );
   });
