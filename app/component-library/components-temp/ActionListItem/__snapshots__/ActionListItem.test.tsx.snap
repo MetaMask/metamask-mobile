@@ -90,7 +90,7 @@ exports[`ActionListItem Rendering should render correctly with basic props 1`] =
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -108,7 +108,7 @@ exports[`ActionListItem Rendering should render correctly with basic props 1`] =
           style={
             [
               {
-                "color": "#686e7d",
+                "color": "#66676a",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 14,
                 "fontWeight": 400,

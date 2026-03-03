@@ -92,7 +92,7 @@ exports[`BrowserTab render Browser 1`] = `
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "height": 32,
                 "width": 32,
               },
@@ -153,13 +153,13 @@ exports[`BrowserTab render Browser 1`] = `
                 onFocus={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="Search by site or address"
-                placeholderTextColor="#b7bbc8"
+                placeholderTextColor="#babbbe"
                 returnKeyType="go"
                 selectTextOnFocus={true}
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "flex": 1,
                       "fontFamily": "Geist-Regular",
                       "fontSize": 14,
@@ -200,7 +200,7 @@ exports[`BrowserTab render Browser 1`] = `
                 onStartShouldSetResponder={[Function]}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -236,7 +236,7 @@ exports[`BrowserTab render Browser 1`] = `
                 [
                   {
                     "alignItems": "center",
-                    "borderColor": "#686e7d",
+                    "borderColor": "#66676a",
                     "borderRadius": 6,
                     "borderWidth": 2,
                     "justifyContent": "center",
@@ -252,7 +252,7 @@ exports[`BrowserTab render Browser 1`] = `
                 style={
                   {
                     "alignSelf": "center",
-                    "color": "#686e7d",
+                    "color": "#66676a",
                     "flex": 0,
                     "fontFamily": "Geist-Regular",
                     "fontSize": 15,
@@ -338,7 +338,7 @@ exports[`BrowserTab render Browser 1`] = `
       <View
         style={
           {
-            "borderBottomColor": "#b7bbc8",
+            "borderBottomColor": "#949596",
             "borderBottomWidth": 1,
             "height": 3,
             "width": "100%",
@@ -629,7 +629,7 @@ exports[`BrowserTab render Browser 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
             "borderTopWidth": 1,
             "display": "flex",
             "flexDirection": "row",
@@ -716,7 +716,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 32,
                   "width": 32,
                 },
@@ -784,7 +784,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 32,
                   "width": 32,
                 },
@@ -852,7 +852,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 32,
                   "width": 32,
                 },
@@ -934,7 +934,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 32,
                   "width": 32,
                 },
@@ -1002,7 +1002,7 @@ exports[`BrowserTab render Browser 1`] = `
             style={
               [
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "height": 32,
                   "width": 32,
                 },
