@@ -276,7 +276,7 @@ const LedgerSelectAccount = () => {
 
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
-      const isReady = await ensureDeviceReady(deviceId ?? undefined);
+      const isReady = await ensureDeviceReady(deviceId);
       if (!isReady) {
         return;
       }
@@ -313,7 +313,10 @@ const LedgerSelectAccount = () => {
         );
         setBlockingModalVisible(false);
         showHardwareWalletError(err);
+        return;
       }
+
+      setBlockingModalVisible(false);
     },
     [
       updateNewLegacyAccountsLabel,
