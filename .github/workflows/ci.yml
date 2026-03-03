@@ -294,8 +294,7 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ needs.unit-test-scope.outputs.mode }}" == "framework" ]]; then
-            yarn jest ./tests/**/*.test.ts .github/**/*.test.ts \
-              --testPathIgnorePatterns='.*/tests/(smoke|regression)/.*\.spec\.(ts|tsx|js)$|.*/e2e/.*\.spec\.(ts|tsx|js)$|.*\.view(\..*)?\.test\.(ts|tsx|js|jsx)$' \
+            yarn test:unit:framework \
               --shard=${{ matrix.shard }}/${{ needs.unit-test-scope.outputs.total_shards }} \
               --forceExit \
               --silent \
