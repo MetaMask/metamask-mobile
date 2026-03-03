@@ -96,6 +96,10 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
+import {
+  TokenApprovalsScreenStack,
+  TokenApprovalsModalStack,
+} from '../../UI/TokenApprovals/routes';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -1073,6 +1077,16 @@ const MainNavigator = () => {
         name="StakeScreens"
         component={StakeScreenStack}
         options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.TOKEN_APPROVALS.ROOT}
+        component={TokenApprovalsScreenStack}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
+      <Stack.Screen
+        name={Routes.TOKEN_APPROVALS.MODALS.ROOT}
+        component={TokenApprovalsModalStack}
+        options={clearStackNavigatorOptions}
       />
       <Stack.Screen
         name={Routes.EARN.ROOT}

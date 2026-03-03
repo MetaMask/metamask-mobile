@@ -22,6 +22,7 @@ export const AccountsMenuSelectorsIDs = {
   CONTACTS: 'contacts-menu-item',
   PERMISSIONS: 'permissions-menu-item',
   NETWORKS: 'networks-menu-item',
+  TOKEN_APPROVALS: 'token-approvals-menu-item',
 
   // Resources Section
   ABOUT_METAMASK: 'about-metamask-menu-item',
