@@ -159,6 +159,24 @@ describe('NFTsSection', () => {
     expect(mockDetectNfts).toHaveBeenCalledTimes(1);
   });
 
+  it('calls abortDetection on unmount', () => {
+    const { unmount } = renderWithProvider(<NFTsSection />);
+
+    unmount();
+
+    expect(mockAbortDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('handles rejected detectNfts gracefully', async () => {
+    mockDetectNfts.mockRejectedValueOnce(new Error('Aborted'));
+
+    renderWithProvider(<NFTsSection />);
+
+    await act(async () => undefined);
+
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
+  });
+
   it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {
     const ref = createRef<SectionRefreshHandle>();
 

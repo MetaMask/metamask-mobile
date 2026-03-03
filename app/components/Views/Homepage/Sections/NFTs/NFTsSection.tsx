@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { View } from 'react-native';
@@ -61,18 +62,30 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const { onRefresh } = useNftRefresh();
   const { detectNfts, abortDetection } = useNftDetection();
+  const hasLoadedOnceRef = useRef(false);
+  const isSilentDetectionRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
-      detectNfts().catch(() => {
-        // AbortError is expected when detection is cancelled on blur
-      });
+      isSilentDetectionRef.current = hasLoadedOnceRef.current;
+
+      detectNfts()
+        .catch(() => {
+          // AbortError is expected when detection is cancelled on blur
+        })
+        .finally(() => {
+          hasLoadedOnceRef.current = true;
+          isSilentDetectionRef.current = false;
+        });
 
       return () => {
         abortDetection();
+        isSilentDetectionRef.current = false;
       };
     }, [detectNfts, abortDetection]),
   );
+
+  const showSkeleton = isNftFetchingProgress && !isSilentDetectionRef.current;
 
   const title = strings('homepage.sections.nfts');
 
@@ -142,7 +155,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             ))}
           </Box>
         </SectionRow>
-      ) : isNftFetchingProgress ? (
+      ) : showSkeleton ? (
         <SectionRow>
           <NftSkeletonRow />
         </SectionRow>
