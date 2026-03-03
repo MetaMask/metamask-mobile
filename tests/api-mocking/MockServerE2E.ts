@@ -20,6 +20,7 @@ import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
@@ -76,6 +77,10 @@ const translateFallbackPortToActual = (url: string): string => {
         ResourceType.DAPP_SERVER,
         `dapp-server-${dappIndex}`,
       );
+    } else if (portNum === FALLBACK_MOCKSERVER_PORT) {
+      // Allow /proxy requests targeting fallback mock-server port (8000)
+      // to resolve to the allocated runtime mock-server port.
+      actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
     }
 
     if (actualPort !== undefined) {
