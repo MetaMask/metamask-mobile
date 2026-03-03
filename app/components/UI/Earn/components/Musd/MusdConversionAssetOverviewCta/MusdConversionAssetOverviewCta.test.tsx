@@ -131,7 +131,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       ).toBeOnTheScreen();
       expect(
         getByText(
-          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% annual bonus that you can claim daily.`,
+          `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
         ),
       ).toBeOnTheScreen();
     });
