@@ -7,10 +7,6 @@ import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
 
-// Intrinsic dimensions of the Lottie assets (logo-light.json / logo-dark.json).
-const LOTTIE_INTRINSIC_WIDTH = 1000;
-const LOTTIE_INTRINSIC_HEIGHT = 1624;
-
 const animationSize = Device.getDeviceWidth() / 2;
 
 const loadingLight = require('./logo-light.json');
@@ -40,7 +36,6 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     },
     animation: {
       width: animationSize,
-      aspectRatio: LOTTIE_INTRINSIC_WIDTH / LOTTIE_INTRINSIC_HEIGHT,
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',

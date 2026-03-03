@@ -8,7 +8,7 @@ exports[`MainNavigator should match snapshot when browser is not infullscreen mo
     testID="tab-bar-item-Wallet"
   />
   <View
-    testID="tab-bar-item-Trending"
+    testID="tab-bar-item-Browser"
   />
   <View
     testID="tab-bar-item-Trade"
