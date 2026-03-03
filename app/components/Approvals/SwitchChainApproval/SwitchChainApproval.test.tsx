@@ -18,26 +18,6 @@ jest.mock('../../../selectors/networkController', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
-  useNetworksByNamespace: () => ({
-    networks: [
-      {
-        id: 'eip155:1',
-        name: 'Ethereum',
-        caipChainId: 'eip155:1',
-        isSelected: false,
-        imageSource:
-          'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880',
-        networkTypeOrRpcUrl: 'https://mock-url.com',
-      },
-    ],
-  }),
-  NetworkType: {
-    Popular: 'popular',
-    Custom: 'custom',
-  },
-}));
-
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork');
 
@@ -121,22 +101,6 @@ describe('SwitchChainApproval', () => {
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {
-    mockApprovalRequest({
-      type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
-      requestData: mockApprovalRequestData,
-    });
-
-    const wrapper = shallow(<SwitchChainApproval />);
-    wrapper.find('SwitchCustomNetwork').simulate('confirm');
-
-    expect(networkSwitched).toHaveBeenCalledTimes(1);
-    expect(networkSwitched).toHaveBeenCalledWith({
-      networkUrl: URL_MOCK,
-      networkStatus: true,
-    });
-  });
-
-  it('sets token network filter', () => {
     mockApprovalRequest({
       type: ApprovalTypes.SWITCH_ETHEREUM_CHAIN,
       requestData: mockApprovalRequestData,
