@@ -50,8 +50,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr-number.outputs.PR_NUMBER }}
 
-  react-to-comment:
-    name: React to the comment
+  acknowledge-command:
+    name: Acknowledge command
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: is-fork-pull-request
@@ -59,18 +59,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: React to the comment
+      - name: Reply to the comment with job link
         run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content='+1'
+          gh pr comment "${PR_NUMBER}" --body "🔄 **Fixture update started.** [View workflow run](${ACTION_RUN_URL})"
         env:
-          COMMENT_ID: ${{ github.event.comment.id }}
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
-          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACTION_RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
 
   prepare:
     name: Prepare build artifacts
@@ -222,7 +217,7 @@ jobs:
         timeout-minutes: 30
         run: |
           IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
-            detox test -c ios.sim.main.ci --headless \
+            yarn detox test -c ios.sim.main.ci --headless \
             tests/regression/fixtures/fixture-validation.spec.ts
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
