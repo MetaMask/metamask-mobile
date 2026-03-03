@@ -497,6 +497,18 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
+   * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
+   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withDetectedGeolocation(countryCode: string) {
+    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
+    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
+    return this;
+  }
+
+  /**
    * Adds chain switching permission for specific chains.
    * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
