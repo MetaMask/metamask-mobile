@@ -52,7 +52,7 @@ jobs:
           else
             echo "No changes detected"
           fi
-  
+
   dedupe:
     runs-on: ubuntu-latest
     steps:
@@ -392,6 +392,7 @@ jobs:
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.fork }}
     continue-on-error: true
     permissions:
       contents: read
@@ -589,7 +590,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.repository.fork }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -633,7 +634,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.repository.fork }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -738,7 +739,7 @@ jobs:
           fi
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  
+
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
