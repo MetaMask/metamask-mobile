@@ -88,7 +88,7 @@ const BalanceEndContainer = ({
             color={TextColor.Default}
             testID={AccountCellIds.BALANCE}
           >
-            {totalBalance ? displayBalance : null}
+            {totalBalance != null ? displayBalance : null}
           </Text>
           {networkImageSource && (
             <Avatar

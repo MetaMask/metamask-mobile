@@ -110,6 +110,15 @@ describe('AccountCell', () => {
     expect(getByText('Test Account Group')).toBeTruthy();
   });
 
+  it('renders zero fiat balance values', () => {
+    mockBalance.value = 0;
+    mockBalance.currency = 'usd';
+
+    const { getByText } = renderAccountCell();
+
+    expect(getByText('$0.00')).toBeOnTheScreen();
+  });
+
   it.each([
     { currency: 'usd', value: 1234.56, expected: '$1,234.56' },
     { currency: 'eur', value: 987.65, expected: '€987.65' },
