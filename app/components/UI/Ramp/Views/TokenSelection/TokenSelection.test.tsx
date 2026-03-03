@@ -175,6 +175,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
   });
 
@@ -309,6 +315,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -356,6 +368,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -415,6 +433,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
@@ -484,6 +508,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -557,6 +587,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -611,6 +647,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
