@@ -53,9 +53,10 @@ export const useUnrealizedPnL = (
   const { data: activePositions } = usePredictPositions({ claimable: false });
   const hasPositions = (activePositions?.length ?? 0) > 0;
 
-  const queryOpts = predictQueries.unrealizedPnL.options({
-    address: resolvedAddress,
-  });
+  const queryOpts = useMemo(
+    () => predictQueries.unrealizedPnL.options({ address: resolvedAddress }),
+    [resolvedAddress],
+  );
 
   const query = useQuery({
     ...queryOpts,
@@ -90,7 +91,11 @@ export const useUnrealizedPnL = (
   );
 
   const loadUnrealizedPnL = useCallback(async () => {
-    await queryClient.fetchQuery({ ...queryOpts, staleTime: 0 });
+    try {
+      await queryClient.fetchQuery({ ...queryOpts, staleTime: 0 });
+    } catch {
+      // Error is tracked via query.error and logged by the useEffect above
+    }
   }, [queryClient, queryOpts]);
 
   const unrealizedPnL = useMemo(
