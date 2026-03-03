@@ -135,6 +135,11 @@ function handleSetOHLCVData(payload) {
   var newResolution = detectResolution(window.ohlcvData);
   var hasPending = !!window.pendingGetBarsCallback;
 
+  // TODO: Early return bypasses resolution-change handling at lines 146–170.
+  // If SET_OHLCV_DATA arrives at a different resolution while a history
+  // request is pending (if a user switches interval during a pending chart candle history navigation request),
+  // the widget stays at the old resolution while window.currentResolution
+  // reflects the new one. Fix when wiring up history pagination for Perps.
   if (hasPending) {
     var pending = window.pendingGetBarsCallback;
     window.pendingGetBarsCallback = null;
