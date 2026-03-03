@@ -11,7 +11,7 @@ import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
@@ -107,6 +107,7 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
@@ -358,19 +359,35 @@ function BuildQuote() {
   }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: KeypadChangeData) => {
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back) {
+        if (!keyboardIsDirty) {
+          setAmount('0');
+          setAmountAsNumber(0);
+        } else {
+          setAmount(value || '0');
+          setAmountAsNumber(valueAsNumber || 0);
+        }
+        setKeyboardIsDirty(true);
+        setUserHasEnteredAmount(true);
+        setNativeFlowError(null);
+        return;
+      }
+
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
     },
-    [],
+    [keyboardIsDirty],
   );
 
   const handleQuickAmountPress = useCallback(
     (quickAmount: number) => {
       setAmount(String(quickAmount));
       setAmountAsNumber(quickAmount);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
       trackEvent(

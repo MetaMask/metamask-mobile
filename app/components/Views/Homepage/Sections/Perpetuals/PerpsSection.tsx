@@ -14,6 +14,8 @@ import { useSelector } from 'react-redux';
 import {
   type PerpsMarketData,
   type Position,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
@@ -36,6 +38,8 @@ import ViewMoreCard from '../../components/ViewMoreCard';
 import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
+import { usePerpsEventTracking } from '../../../../UI/Perps/hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -53,6 +57,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const title = strings('homepage.sections.perpetuals');
+  const { track } = usePerpsEventTracking();
 
   const { positions, isInitialLoading: positionsLoading } =
     usePerpsLivePositions({
@@ -185,11 +190,20 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
     });
   }, [navigation]);
 
   const handlePositionPress = useCallback(
     (position: Position) => {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+      });
       const market = markets.find((m) => m.symbol === position.symbol);
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -199,17 +213,18 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             maxLeverage: position.maxLeverage,
           },
           initialTab: 'position',
+          source: 'section_position',
         },
       });
     },
-    [navigation, markets],
+    [navigation, markets, track],
   );
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
     },
     [navigation],
