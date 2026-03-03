@@ -638,8 +638,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    # Temporarily skipped until SonarCloud is fixed
-    if: false
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -683,8 +682,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    # Temporarily skipped until SonarCloud is fixed
-    if: false
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -750,6 +748,7 @@ jobs:
         component-view-tests,
         check-workflows,
         js-bundle-size-check,
+        sonar-cloud-quality-gate-status,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}

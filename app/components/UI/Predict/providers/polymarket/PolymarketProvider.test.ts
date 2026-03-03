@@ -233,6 +233,7 @@ describe('PolymarketProvider', () => {
       highlights: [],
       minimumVersion: '7.64.0',
     },
+    fakOrdersEnabled: false,
   };
   const createProvider = (
     featureFlagsOverride?: Partial<PredictFeatureFlags>,
@@ -837,7 +838,9 @@ describe('PolymarketProvider', () => {
   }
 
   // Helper function to setup place order test environment
-  function setupPlaceOrderTest() {
+  function setupPlaceOrderTest(
+    featureFlagsOverride?: Partial<PredictFeatureFlags>,
+  ) {
     const mockAddress = '0x1234567890123456789012345678901234567890';
     const mockSigner = {
       address: mockAddress,
@@ -845,7 +848,7 @@ describe('PolymarketProvider', () => {
       signPersonalMessage: mockSignPersonalMessage,
     };
 
-    const provider = createProvider();
+    const provider = createProvider(featureFlagsOverride);
 
     const mockMarket = {
       id: 'market-1',
@@ -1751,7 +1754,7 @@ describe('PolymarketProvider', () => {
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
     });
 
-    it('always submits orders with FOK type', async () => {
+    it('submits FOK order type when fakOrdersEnabled is false', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({ side: Side.BUY });
@@ -1764,8 +1767,106 @@ describe('PolymarketProvider', () => {
         }),
       );
     });
-  });
 
+    it('submits FAK order type when Permit2 is used and fakOrdersEnabled is true', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          executors: ['0xexecutor1'],
+          permit2Enabled: true,
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
+        }),
+      );
+    });
+
+    it('submits FOK order type when Permit2 is used but fakOrdersEnabled is false', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: false,
+      });
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          executors: ['0xexecutor1'],
+          permit2Enabled: true,
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+        }),
+      );
+    });
+
+    it('submits FOK order type when falling back to Safe tx regardless of fakOrdersEnabled', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+      mockHasPermit2Allowance.mockResolvedValue(false);
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          executors: ['0xexecutor1'],
+          permit2Enabled: true,
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+        }),
+      );
+    });
+  });
   describe('placeOrder edge cases', () => {
     it('places order without fee authorization when totalFee is zero', async () => {
       // Clear mock to ensure clean state for this test
