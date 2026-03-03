@@ -21,7 +21,7 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
-import { PredictDepositAndOrderInfo } from '../../../../UI/Predict/views/PredictDepositAndOrderInfo';
+import { PredictPayWithAnyTokenInfo } from '../../../../UI/Predict/views/PredictPayWithAnyTokenInfo';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
@@ -128,7 +128,7 @@ const Info = ({ route }: InfoProps) => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
   ) {
-    return <PredictDepositAndOrderInfo />;
+    return <PredictPayWithAnyTokenInfo />;
   }
 
   if (

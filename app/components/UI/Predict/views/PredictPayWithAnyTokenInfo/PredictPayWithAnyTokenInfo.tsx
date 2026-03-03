@@ -5,16 +5,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonSize as ButtonSizeHero,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -22,24 +12,18 @@ import {
   StackActions,
   useNavigation,
 } from '@react-navigation/native';
-import { ActivityIndicator, Linking, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import PredictAmountDisplay from '../../components/PredictAmountDisplay';
+import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
+import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
+import PredictBuyActionButton from '../../components/PredictBuyActionButton';
+import PredictBuyBottomContent from '../../components/PredictBuyBottomContent';
 import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
-import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -48,7 +32,8 @@ import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTrans
 import { selectPredictActiveOrder } from '../../selectors/predictController';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatCents, formatPrice } from '../../utils/format';
+import { formatPrice } from '../../utils/format';
+import { MINIMUM_BET } from '../../constants/transactions';
 import { BigNumber } from 'bignumber.js';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -71,9 +56,7 @@ import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConf
 import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const MINIMUM_BET = 1;
-
-export function PredictDepositAndOrderInfo() {
+export function PredictPayWithAnyTokenInfo() {
   const activeOrder = useSelector(selectPredictActiveOrder);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -361,215 +344,11 @@ export function PredictDepositAndOrderInfo() {
     return null;
   }
 
-  const renderAmount = () => (
-    <ScrollView
-      style={tw.style('flex-col')}
-      contentContainerStyle={tw.style('flex-grow justify-center')}
-      showsVerticalScrollIndicator={false}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full"
-      >
-        <Box twClassName="text-center leading-[72px]">
-          <PredictAmountDisplay
-            amount={currentValueUSDString}
-            onPress={() => keypadRef.current?.handleAmountPress()}
-            isActive={isInputFocused}
-            hasError={false}
-          />
-        </Box>
-        <Box twClassName="text-center mt-2">
-          {isBalanceLoading || (!isPredictBalanceSelected && !payToken) ? (
-            <Skeleton width={120} height={20} />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {`${strings('predict.order.available')}: `}
-              {availableBalanceDisplay}
-            </Text>
-          )}
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="mt-2"
-        >
-          <Text
-            variant={TextVariant.BodyLg}
-            twClassName="font-medium"
-            color={TextColor.SuccessDefault}
-          >
-            {`${strings('predict.order.to_win')} `}
-          </Text>
-          {isCalculating && isUserInputChange ? (
-            <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
-          ) : (
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="font-medium"
-              color={TextColor.SuccessDefault}
-            >
-              {formatPrice(toWin, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              })}
-            </Text>
-          )}
-        </Box>
-        <Box twClassName="mt-4 w-full shrink-0">
-          <PredictPayWithRow />
-        </Box>
-      </Box>
-    </ScrollView>
-  );
-
-  const renderErrorMessage = () => {
-    if (isBalanceLoading) {
-      return null;
-    }
-
-    if (isBelowMinimum) {
-      return (
-        <Box twClassName="px-12 pb-4">
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={tw.style('text-center')}
-          >
-            {strings('predict.order.prediction_minimum_bet', {
-              amount: formatPrice(MINIMUM_BET, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              }),
-            })}
-          </Text>
-        </Box>
-      );
-    }
-
-    return null;
-  };
-
-  const renderActionButton = () => {
-    if (isConfirming) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          onPress={handleConfirm}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        disabled={!canPlaceBet}
-        onPress={handleConfirm}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full', !canPlaceBet && 'opacity-50')}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
-        </Text>
-      </ButtonHero>
-    );
-  };
-
-  const renderFeesSummary = () => {
-    if (isInputFocused) {
-      return null;
-    }
-
-    return (
-      <PredictFeeSummary
-        disabled={isInputFocused}
-        loading={isPayFeesLoading}
-        total={totalWithDepositFee}
-        metamaskFee={metamaskFee}
-        providerFee={providerFee}
-        depositFee={depositFeeUsd}
-        shouldShowRewardsRow={shouldShowRewardsRow}
-        rewardsAccountScope={rewardsAccountScope}
-        accountOptedIn={isAccountOptedIntoRewards}
-        estimatedPoints={estimatedRewardsPoints}
-        isLoadingRewards={
-          (isCalculating && isUserInputChange) || isRewardsLoading
-        }
-        hasRewardsError={isRewardsError}
-      />
-    );
-  };
-
-  const renderBottomContent = () => {
-    if (isInputFocused) {
-      return null;
-    }
-
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted p-4 pb-0 gap-4"
-      >
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          {errorMessage && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              style={tw.style('text-center pb-2')}
-            >
-              {errorMessage}
-            </Text>
-          )}
-          <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.consent_sheet.disclaimer')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              style={tw.style('text-info-default')}
-              onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
-              }}
-            >
-              {strings('predict.consent_sheet.learn_more')}
-            </Text>
-          </Box>
-        </Box>
-      </Box>
-    );
-  };
-
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['top', 'left', 'right']}
+    >
       <PredictBuyPreviewHeader
         title={title}
         outcomeImage={outcome?.image}
@@ -578,9 +357,39 @@ export function PredictDepositAndOrderInfo() {
         sharePrice={preview?.sharePrice}
         onBack={onReject}
       />
-      {renderAmount()}
-      {renderFeesSummary()}
-      {renderErrorMessage()}
+      <PredictBuyAmountSection
+        currentValueUSDString={currentValueUSDString}
+        keypadRef={keypadRef}
+        isInputFocused={isInputFocused}
+        isBalanceLoading={
+          isBalanceLoading || (!isPredictBalanceSelected && !payToken)
+        }
+        availableBalanceDisplay={availableBalanceDisplay}
+        toWin={toWin}
+        isShowingToWinSkeleton={isCalculating && isUserInputChange}
+      />
+      {!isInputFocused && (
+        <PredictFeeSummary
+          disabled={isInputFocused}
+          loading={isPayFeesLoading}
+          total={totalWithDepositFee}
+          metamaskFee={metamaskFee}
+          providerFee={providerFee}
+          depositFee={depositFeeUsd}
+          shouldShowRewardsRow={shouldShowRewardsRow}
+          rewardsAccountScope={rewardsAccountScope}
+          accountOptedIn={isAccountOptedIntoRewards}
+          estimatedPoints={estimatedRewardsPoints}
+          isLoadingRewards={
+            (isCalculating && isUserInputChange) || isRewardsLoading
+          }
+          hasRewardsError={isRewardsError}
+        />
+      )}
+      <PredictBuyMinimumError
+        isBalanceLoading={isBalanceLoading}
+        isBelowMinimum={isBelowMinimum}
+      />
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -591,7 +400,19 @@ export function PredictDepositAndOrderInfo() {
         setIsInputFocused={setIsInputFocused}
         onAddFunds={deposit}
       />
-      {renderBottomContent()}
+      <PredictBuyBottomContent
+        isInputFocused={isInputFocused}
+        errorMessage={errorMessage ?? undefined}
+      >
+        <PredictBuyActionButton
+          isLoading={isConfirming}
+          onPress={handleConfirm}
+          disabled={!canPlaceBet}
+          showReducedOpacity={!canPlaceBet}
+          outcomeTokenTitle={outcomeToken?.title}
+          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        />
+      </PredictBuyBottomContent>
     </SafeAreaView>
   );
 }

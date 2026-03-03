@@ -72,9 +72,7 @@ import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/Pr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
@@ -85,8 +83,6 @@ import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-
-export const MINIMUM_BET = 1; // $1 minimum bet
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -101,29 +97,7 @@ const PredictBuyPreview = () => {
   const shouldPreserveSelectedPaymentToken = Boolean(transactionId);
 
   const analyticsProperties = useMemo(
-    () => ({
-      marketId: market?.id,
-      marketTitle: market?.title,
-      marketCategory: market?.category,
-      marketTags: market?.tags,
-      entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-      liquidity: market?.liquidity,
-      volume: market?.volume,
-      sharePrice: outcomeToken?.price,
-      marketType:
-        market?.outcomes?.length === 1
-          ? PredictEventValues.MARKET_TYPE.BINARY
-          : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
-      outcome: outcomeToken?.title?.toLowerCase(),
-      marketSlug: market?.slug,
-      gameId: market?.game?.id,
-      gameStartTime: market?.game?.startTime,
-      gameLeague: market?.game?.league,
-      gameStatus: market?.game?.status,
-      gamePeriod: market?.game?.period,
-      gameClock: market?.game?.elapsed,
-    }),
+    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
     [market, outcomeToken, entryPoint],
   );
 

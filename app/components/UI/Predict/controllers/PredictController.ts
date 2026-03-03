@@ -2076,7 +2076,7 @@ export class PredictController extends BaseController<
    *
    * The flow reuses `provider.prepareDeposit` but overrides the transaction
    * type so the confirmation routing in `info-root.tsx` renders
-   * `PredictDepositAndOrderInfo`.
+   * `PredictPayWithAnyTokenInfo`.
    *
    * TODO: Remove the cast once `predictDepositAndOrder` is added to
    * `@metamask/transaction-controller`.
