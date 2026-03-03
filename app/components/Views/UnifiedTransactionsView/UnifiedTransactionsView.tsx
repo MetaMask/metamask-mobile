@@ -678,7 +678,7 @@ const UnifiedTransactionsView = ({
             />
           )}
         </PriceChartContext.Consumer>
-        {/* Single CancelSpeedupModal for speed up or cancel; only mount when open to avoid hook cost when closed */}
+        {/* Speed up / Cancel modals */}
         {(speedUpIsOpen || cancelIsOpen) && (
           <CancelSpeedupModal
             isVisible
