@@ -1,5 +1,6 @@
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
+import { MatcherOptions } from './types.ts';
 import { getDriver } from './Utilities.ts';
 import { ChainablePromiseElement } from 'webdriverio';
 
@@ -40,13 +41,35 @@ export default class PlaywrightMatchers {
 
   /**
    * Get element by ID (Android resource-id or iOS accessibility identifier)
+   *
    * @param elementId - The ID of the element
+   * @param MatcherOptions - The options for the matcher
+   * @param MatcherOptions.exact - Whether to match the exact ID or not
    * @returns The wrapped element
    */
-  static async getElementById(elementId: string): Promise<PlaywrightElement> {
+  static async getElementById(
+    elementId: string,
+    options: MatcherOptions = {},
+  ): Promise<PlaywrightElement> {
+    const { exact = false } = options;
+
+    let locator: string;
+    const isAndroid = await PlatformDetector.isAndroid();
+    if (isAndroid) {
+      locator = 'android=new UiSelector()';
+      locator = exact
+        ? `${locator}.resourceId('${elementId}')`
+        : `${locator}.resourceIdMatches('.*${elementId}.*')`;
+    } else {
+      locator = '-ios predicate string:';
+      locator = exact
+        ? `${locator}name == '${elementId}'`
+        : `${locator}name CONTAINS '${elementId}'`;
+    }
+
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
-    const element = await drv.$(elementId);
+    const element = await drv.$(locator);
     return wrapElement(element);
   }
 
