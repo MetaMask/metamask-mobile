@@ -19,11 +19,6 @@ import Engine from '../../../../core/Engine';
 
 interface UsePerpsMarketListViewParams {
   /**
-   * Initial search visibility
-   * @default false
-   */
-  defaultSearchVisible?: boolean;
-  /**
    * Enable polling for markets data
    * @default false
    */
@@ -133,13 +128,11 @@ interface UsePerpsMarketListViewReturn {
  *   isLoading,
  *   error,
  * } = usePerpsMarketListView({
- *   defaultSearchVisible: false,
  *   enablePolling: false,
  * });
  * ```
  */
 export const usePerpsMarketListView = ({
-  defaultSearchVisible = false,
   enablePolling = false,
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
@@ -168,25 +161,16 @@ export const usePerpsMarketListView = ({
     defaultMarketTypeFilter,
   );
 
-  // Use search hook for search state and filtering
-  // Pass ALL markets to search so it can search across all market types
+  // Use search hook for search state and filtering (search bar always visible in UI)
   const searchHook = usePerpsSearch({
     markets: allMarkets,
-    initialSearchVisible: defaultSearchVisible,
+    initialSearchVisible: true,
   });
 
-  const { filteredMarkets: searchedMarkets, searchQuery } = searchHook;
+  const { filteredMarkets: searchedMarkets } = searchHook;
 
-  // Apply market type filter AFTER search
-  // When searching: show all search results across all market types
-  // When not searching: filter by selected category
+  // Apply market type filter to search results (search + category work together)
   const marketTypeFilteredMarkets = useMemo(() => {
-    // If searching, return search results from all markets (ignore category filter)
-    if (searchQuery.trim()) {
-      return searchedMarkets;
-    }
-
-    // If 'all' selected (no category badge selected), show all markets
     if (marketTypeFilter === 'all') {
       return searchedMarkets;
     }
@@ -216,7 +200,7 @@ export const usePerpsMarketListView = ({
 
     // Fallback: return all markets for unknown filter values
     return searchedMarkets;
-  }, [searchedMarkets, searchQuery, marketTypeFilter]);
+  }, [searchedMarkets, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic
   const sortingHook = usePerpsSorting({

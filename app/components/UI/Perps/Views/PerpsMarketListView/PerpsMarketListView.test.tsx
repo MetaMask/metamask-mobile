@@ -868,17 +868,14 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders the component with header and search button', async () => {
+    it('renders the component with header and search bar', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(screen.getByText('Markets')).toBeOnTheScreen();
       expect(
-        screen.getByTestId(
-          `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-        ),
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
 
-      // Wait for filter bar to render (it renders when tabs exist and markets are available)
       await waitFor(() => {
         expect(screen.getByText('Volume')).toBeOnTheScreen();
       });
@@ -900,11 +897,8 @@ describe('PerpsMarketListView', () => {
     it('renders interactive elements', async () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Should have search toggle button and market rows
       expect(
-        screen.getByTestId(
-          `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-        ),
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
 
       await waitFor(() => {
@@ -919,194 +913,32 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Search Functionality', () => {
-    it('shows search input when search button is pressed', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
+    it('shows search bar always visible', async () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Initially search should not be visible
       expect(
-        screen.queryByPlaceholderText('Search by token symbol'),
-      ).not.toBeOnTheScreen();
-
-      // Click search toggle button
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Now search input should be visible
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    it('shows all markets when search is visible with empty query', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
-
-      const btcRows = screen.queryAllByTestId('market-row-BTC');
-      const ethRows = screen.queryAllByTestId('market-row-ETH');
-      const solRows = screen.queryAllByTestId('market-row-SOL');
-      expect(btcRows.length).toBeGreaterThan(0);
-      expect(ethRows.length).toBeGreaterThan(0);
-      expect(solRows.length).toBeGreaterThan(0);
-
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-
-      // Markets should still be visible with empty search query
-      const btcRowsAfter = screen.queryAllByTestId('market-row-BTC');
-      const ethRowsAfter = screen.queryAllByTestId('market-row-ETH');
-      const solRowsAfter = screen.queryAllByTestId('market-row-SOL');
-      expect(btcRowsAfter.length).toBeGreaterThan(0);
-      expect(ethRowsAfter.length).toBeGreaterThan(0);
-      expect(solRowsAfter.length).toBeGreaterThan(0);
-    });
-
-    it('hides PerpsMarketBalanceActions when search is visible', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
-
-      // Initially balance actions should be visible
-      expect(
-        screen.getByTestId('perps-market-balance-actions'),
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
-
-      // Click search toggle button to show search
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Balance actions should now be hidden (component hides it when search is visible)
-      await waitFor(() => {
-        expect(
-          screen.queryByTestId('perps-market-balance-actions'),
-        ).not.toBeOnTheScreen();
-      });
-
-      // Search input should be visible
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    it('shows search input when search toggle is pressed', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
-
-      // Initially search should not be visible
-      expect(
-        screen.queryByPlaceholderText('Search by token symbol'),
-      ).not.toBeOnTheScreen();
-
-      // Click search toggle button to show search
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Search input should be visible
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-    });
-
-    it('hides search when cancel is pressed while search is visible', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
-
-      // Click search toggle button to show search
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Search input should be visible
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-
-      // Click the cancel button to close search
-      const cancelButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-close`,
-      );
-      await act(async () => {
-        fireEvent.press(cancelButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Search should be hidden
-      await waitFor(() => {
-        expect(
-          screen.queryByPlaceholderText('Search by token symbol'),
-        ).not.toBeOnTheScreen();
-      });
-    });
-
-    it('handles keyboard dismissal while search is visible', async () => {
-      const { rerender } = renderWithProvider(<PerpsMarketListView />, {
-        state: mockState,
-      });
-
-      // Click search toggle button to show search
-      const searchButton = screen.getByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-      await act(async () => {
-        fireEvent.press(searchButton);
-        rerender(<PerpsMarketListView />);
-      });
-
-      // Search input should be visible
-      await waitFor(() => {
-        expect(
-          screen.getByPlaceholderText('Search by token symbol'),
-        ).toBeOnTheScreen();
-      });
-
-      // Note: PerpsMarketListHeader doesn't use Keyboard.addListener.
-      // It uses Keyboard.dismiss() directly in the Pressable onPress handler.
-      // This test verifies that search remains visible (which it does).
       expect(
         screen.getByPlaceholderText('Search by token symbol'),
       ).toBeOnTheScreen();
+    });
+
+    it('shows all markets when search query is empty', async () => {
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
+      ).toBeOnTheScreen();
+
+      await waitFor(() => {
+        const btcRows = screen.queryAllByTestId('market-row-BTC');
+        const ethRows = screen.queryAllByTestId('market-row-ETH');
+        const solRows = screen.queryAllByTestId('market-row-SOL');
+        expect(btcRows.length).toBeGreaterThan(0);
+        expect(ethRows.length).toBeGreaterThan(0);
+        expect(solRows.length).toBeGreaterThan(0);
+      });
     });
   });
 
