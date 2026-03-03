@@ -172,7 +172,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await act(async () => {
       fireEvent.press(screen.getByText(/retry/i));
