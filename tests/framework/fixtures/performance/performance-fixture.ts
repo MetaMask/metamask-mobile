@@ -1,5 +1,9 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../../reporters/PerformanceTracker';
+import {
+  PerformanceTracker,
+  type MetricsOutput,
+} from '../../../reporters/PerformanceTracker';
+import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
 import {
   QualityGatesValidator,
   markQualityGateFailure,
@@ -56,10 +60,9 @@ export const test = base.extend<PerformanceFixtures>({
     }
 
     // Always try to attach performance metrics, even if test failed
+    let metrics: MetricsOutput | null = null;
     try {
-      const metrics = (await performanceTracker.attachToTest(
-        testInfo,
-      )) as unknown as { steps: unknown[]; total: number };
+      metrics = await performanceTracker.attachToTest(testInfo);
       console.log(
         `✅ Performance metrics attached: ${
           metrics.steps.length
@@ -70,6 +73,23 @@ export const test = base.extend<PerformanceFixtures>({
         '❌ Failed to attach performance metrics:',
         (error as Error).message,
       );
+    }
+
+    if (metrics) {
+      const sentToSentry = await publishPerformanceScenarioToSentry({
+        metrics,
+        testTitle: testInfo.title,
+        projectName: testInfo.project?.name ?? 'unknown',
+        testFilePath: testInfo.file,
+        tags: testTags,
+        status: testInfo.status,
+        retry: testInfo.retry,
+        workerIndex: testInfo.workerIndex,
+      });
+
+      if (sentToSentry) {
+        console.log(`📡 Scenario "${testInfo.title}" sent to Sentry`);
+      }
     }
 
     // Validate quality gates if any timer has thresholds defined
