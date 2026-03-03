@@ -5,11 +5,7 @@ import { AccountWalletType } from '@metamask/account-api';
 
 export const selectWallets = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) => {
-    if (!multichainAccountsState1Enabled) {
-      return [];
-    }
-
+  (accountTreeState) => {
     if (!accountTreeState?.accountTree?.wallets) {
       return [];
     }
