@@ -309,17 +309,25 @@ describe('LedgerBluetoothAdapter', () => {
 
     it('ignores stale events from a replaced transport', async () => {
       await adapter.connect('device-123');
-      onDisconnect.mockClear();
 
       const oldDisconnectHandler = mockTransportInstance.on.mock.calls.find(
         (call: [string, () => void]) => call[0] === 'disconnect',
       )?.[1];
 
-      for (let i = 0; i < 6; i++) {
-        oldDisconnectHandler?.();
-      }
+      const newTransport = {
+        on: jest.fn(),
+        close: jest.fn().mockResolvedValue(undefined),
+      };
+      mockedTransportBLE.open.mockResolvedValueOnce(
+        newTransport as unknown as TransportBLE,
+      );
+      await adapter.connect('device-456');
 
-      expect(onDisconnect).not.toHaveBeenCalled();
+      expect(adapter.isConnected()).toBe(true);
+
+      oldDisconnectHandler?.();
+
+      expect(adapter.isConnected()).toBe(true);
     });
   });
 
