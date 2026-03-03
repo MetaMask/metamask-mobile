@@ -433,6 +433,8 @@ export interface PredictFees {
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 /**
