@@ -123,8 +123,7 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
         await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
 
-        await WalletView.scrollDownToDefiSection();
-        await WalletView.tapOnDeFiPositionsNew();
+        await WalletView.scrollAndTapDefiSection();
 
         await DefiView.tapNetworkFilter();
         await NetworkManager.tapNetwork('eip155:1');

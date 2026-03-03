@@ -44,8 +44,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         await device.disableSynchronization();
 
         // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollDownToPerpsSection();
-        await WalletView.tapOnNewPerpsSection();
+        await WalletView.scrollAndTapPerpsSection();
 
         // Select ETH market and tap Long
         await PerpsMarketListView.selectMarket('ETH');
@@ -88,8 +87,7 @@ describe(RegressionTrade('Perps - ETH limit long fill'), () => {
         );
 
         // Navigate to ETH again to verify order is gone and position is present
-        await WalletView.scrollDownToPerpsSection();
-        await WalletView.tapOnNewPerpsSection();
+        await WalletView.scrollAndTapPerpsSection();
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.expectNoOpenOrderVisible();
       },

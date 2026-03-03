@@ -72,8 +72,7 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
 
         await loginToApp();
 
-        await WalletView.scrollDownToNftsSection();
-        await WalletView.tapOnNewNftsSection();
+        await WalletView.scrollAndTapNftsSection();
         await WalletView.tapImportNFTButton();
         await Assertions.expectElementToBeVisible(ImportNFTView.container);
         await ImportNFTView.typeInNFTAddress('1234');

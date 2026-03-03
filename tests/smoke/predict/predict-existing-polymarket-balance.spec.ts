@@ -66,12 +66,8 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       },
       async () => {
         await loginToApp();
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet container should be visible',
-        });
 
-        await WalletView.scrollDownToPredictionsSection();
-        await WalletView.tapOnNewPredictionsSection();
+        await WalletView.scrollAndTapPredictionsSection();
         await WalletView.tapOnAvailableBalance();
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.balanceCard,

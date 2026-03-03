@@ -40,8 +40,7 @@ describe(RegressionTrade('Perps Position'), () => {
         await loginToApp();
 
         // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollDownToPerpsSection();
-        await WalletView.tapOnNewPerpsSection();
+        await WalletView.scrollAndTapPerpsSection();
 
         await PerpsMarketListView.selectMarket('ETH');
         await PerpsMarketDetailsView.tapLongButton();

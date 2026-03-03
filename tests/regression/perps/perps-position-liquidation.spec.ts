@@ -51,8 +51,7 @@ describe(RegressionTrade('Perps Position'), () => {
         await device.disableSynchronization();
 
         // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollDownToPerpsSection();
-        await WalletView.tapOnNewPerpsSection();
+        await WalletView.scrollAndTapPerpsSection();
 
         await PerpsMarketListView.selectMarket('ETH');
 

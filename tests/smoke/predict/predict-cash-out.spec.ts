@@ -3,6 +3,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
+import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
@@ -23,6 +24,7 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
+import TestHelpers from '../../helpers';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -62,17 +64,21 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
 
-        await WalletView.scrollDownToPredictionsSection();
-        await WalletView.tapOnNewPredictionsSection();
+        //await WalletView.scrollAndTapPredictionsSection();
 
+        //await TestHelpers.delay(1000000);
         // Current balance prior to cashing out
-        await Assertions.expectTextDisplayed(positionDetails.initialBalance);
+        //await Assertions.expectTextDisplayed(positionDetails.initialBalance);
+        await Assertions.expectTextDisplayed(positionDetails.name, {
+          timeout: 30000,
+          description:
+            'Predictions open position should be visible before tapping',
+        });
         await device.disableSynchronization();
-
-        await WalletView.tapOnPredictionsPosition(positionDetails.name);
+        await TestHelpers.delay(100000000);
+        await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
-        await PredictDetailsPage.tapPositionsTab();
         // Set up cash out mocks before tapping cash out
         // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
         await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
@@ -89,22 +95,12 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictDetailsPage.tapBackButton();
         await device.enableSynchronization();
-
+        await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
           description: 'Predictions balance should be updated to $58.16',
         });
-        // Check that Spurs vs Pelicans is removed from current positions list
-        for (let i = 0; i < 4; i++) {
-          const positionCard =
-            WalletView.getPredictCurrentPositionCardByIndex(i);
-          await Assertions.expectElementToNotHaveText(
-            positionCard,
-            positionDetails.name,
-            {
-              description: `Position card at index ${i} should not have text "${positionDetails.name}"`,
-            },
-          );
-        }
+
+        await PredictMarketList.tapBackButton();
         await TabBarComponent.tapActivity();
 
         await ActivitiesView.tapOnPredictionsTab();

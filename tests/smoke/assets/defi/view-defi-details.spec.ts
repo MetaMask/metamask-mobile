@@ -41,7 +41,7 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         await loginToApp();
         // await Assertions.expectElementToBeVisible(WalletView.defiPositionsNew);
 
-        await WalletView.scrollDownToDefiSection();
+        await WalletView.scrollAndTapDefiSection();
         await Assertions.expectTextDisplayed('Aave V3');
         await Assertions.expectTextDisplayed('$14.74');
         await Assertions.expectTextDisplayed('WETH +1 other');
@@ -54,7 +54,6 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         await Assertions.expectTextDisplayed('Aave V2');
         await Assertions.expectTextDisplayed('$0.33');
         await Assertions.expectTextDisplayed('USDC +1 other');
-        await WalletView.tapOnDeFiPositionsNew();
         await DefiView.checkContainerIsDisplayed();
         await Assertions.expectTextDisplayed('Aave V3');
         await Assertions.expectTextDisplayed('$14.74');

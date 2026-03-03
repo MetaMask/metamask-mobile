@@ -104,8 +104,7 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
         );
 
         // Go to Perps tab
-        await WalletView.scrollDownToPerpsSection();
-        await WalletView.tapOnNewPerpsSection();
+        await WalletView.scrollAndTapPerpsSection();
 
         // Read initial balance text for later comparison
         const initialBalance = await PerpsTabView.getBalance();

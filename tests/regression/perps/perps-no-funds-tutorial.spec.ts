@@ -42,8 +42,7 @@ describe(
           await device.disableSynchronization();
 
           // Go to Perps from homepage section (same click path as smoke perps tests)
-          await WalletView.scrollDownToPerpsSection();
-          await WalletView.tapOnNewPerpsSection();
+          await WalletView.scrollAndTapPerpsSection();
 
           // Start Trading should be present for first-time/no-positions
           await PerpsTabView.tapOnboardingButton();
