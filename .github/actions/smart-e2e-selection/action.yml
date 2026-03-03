@@ -50,7 +50,7 @@ runs:
   steps:
     - name: Check skip-smart-e2e-selection label
       id: check-skip-label
-      if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
+      if: (inputs.event-name == 'pull_request' || inputs.event-name == 'pull_request_target') && inputs.pr-number != ''
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
@@ -132,7 +132,7 @@ runs:
         SHOULD_SKIP=false
         SKIP_REASON=""
 
-        if [[ "$EVENT_NAME" != "pull_request" ]]; then
+        if [[ "$EVENT_NAME" != "pull_request" && "$EVENT_NAME" != "pull_request_target" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="only runs on PRs"
         elif [[ "$BASE_REF" != "main" ]]; then
