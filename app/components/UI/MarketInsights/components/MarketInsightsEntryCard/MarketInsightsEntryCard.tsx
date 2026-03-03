@@ -76,31 +76,38 @@ const SourceLogoGroup: React.FC<{ sources?: MarketInsightsSource[] }> = ({
     return null;
   }
 
+  const visibleLogos = uniqueSources.slice(0, MAX_VISIBLE_SOURCE_LOGOS);
   return (
-    <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
-      {uniqueSources.slice(0, MAX_VISIBLE_SOURCE_LOGOS).map((source, index) => (
-        <Box
-          key={source.name}
-          twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
-            index > 0 ? '-ml-1' : ''
-          }`}
-        >
-          {isXSourceUrl(source.url) ? (
-            <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
-              <Icon
-                name={IconName.X}
-                size={IconSize.Sm}
-                color={IconColor.IconDefault}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+    >
+      <Box flexDirection={BoxFlexDirection.Row}>
+        {visibleLogos.map((source, index) => (
+          <Box
+            key={source.name}
+            twClassName={`h-4 w-4 rounded-full border border-muted bg-default overflow-hidden ${
+              index > 0 ? '-ml-1' : ''
+            }`}
+          >
+            {isXSourceUrl(source.url) ? (
+              <Box twClassName="h-4 w-4 items-center justify-center rounded-full">
+                <Icon
+                  name={IconName.X}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
+                />
+              </Box>
+            ) : (
+              <Image
+                source={{ uri: getFaviconUrl(source.url) }}
+                style={tw.style('h-4 w-4 rounded-full')}
               />
-            </Box>
-          ) : (
-            <Image
-              source={{ uri: getFaviconUrl(source.url) }}
-              style={tw.style('h-4 w-4 rounded-full')}
-            />
-          )}
-        </Box>
-      ))}
+            )}
+          </Box>
+        ))}
+      </Box>
     </Box>
   );
 };
