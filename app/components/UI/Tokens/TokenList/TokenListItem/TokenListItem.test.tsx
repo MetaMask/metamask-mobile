@@ -132,6 +132,7 @@ jest.mock('../../../Earn/hooks/useMusdConversionEligibility', () => ({
     blockedCountries: [],
   })),
 }));
+
 const mockUseMusdConversionEligibility =
   useMusdConversionEligibility as jest.MockedFunction<
     typeof useMusdConversionEligibility

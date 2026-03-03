@@ -204,7 +204,7 @@ const MusdQuickConvertView = () => {
           token={item}
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
-          areActionsDisabled ={
+          areActionsDisabled={
             hasUnapprovedMusdConversion || hasInFlightMusdConversion
           }
           isConversionPending={Boolean(txStatusInfo?.isPending)}

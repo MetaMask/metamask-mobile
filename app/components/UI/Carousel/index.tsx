@@ -427,7 +427,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
         return navigate(navigation.route);
       }
     },
-    [trackEvent, createEventBuilder, navigate, lastSelectedSolanaAccount],
+    [
+      trackEvent,
+      createEventBuilder,
+      navigate,
+      ///: BEGIN:ONLY_INCLUDE_IF(solana)
+      lastSelectedSolanaAccount,
+      ///: END:ONLY_INCLUDE_IF
+    ],
   );
 
   const handleTransitionToNextCard = useCallback(

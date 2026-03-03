@@ -11,9 +11,7 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useAlerts } from '../../../context/alert-system-context';
-import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { ApprovalType } from '@metamask/controller-utils';
 
 const mockToken: AssetType = {
   address: '0x123',
@@ -62,11 +60,6 @@ jest.mock('../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useApprovalRequest', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 jest.mock(
   '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter',
   () => ({
@@ -101,14 +94,10 @@ const mockUseTransactionMetadataRequest = jest.mocked(
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
 const mockUseTransactionConfirm = jest.mocked(useTransactionConfirm);
 const mockUseAlerts = jest.mocked(useAlerts);
-const mockUseApprovalRequest = jest.mocked(useApprovalRequest);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
 
 function setupMocksForSuccessPath() {
   mockUseParams.mockReturnValue({ token: mockToken });
-  mockUseApprovalRequest.mockReturnValue({
-    approvalRequest: { type: ApprovalType.Transaction },
-  } as ReturnType<typeof useApprovalRequest>);
   mockUseTransactionMetadataRequest.mockReturnValue({
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
@@ -116,9 +105,6 @@ function setupMocksForSuccessPath() {
   mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
   mockUseAlerts.mockReturnValue({
     alerts: [],
-    fieldAlerts: [],
-    hasBlockingAlerts: false,
-    hasUnconfirmedDangerAlerts: false,
   } as unknown as ReturnType<typeof useAlerts>);
   mockUseFiatFormatter.mockReturnValue((value: { toString: () => string }) =>
     value.toString(),
@@ -158,10 +144,7 @@ describe('MusdMaxConversionInfo', () => {
             isBlocking: true,
           },
         ],
-        fieldAlerts: [],
-        hasBlockingAlerts: true,
-        hasUnconfirmedDangerAlerts: false,
-      } as unknown as ReturnType<typeof useAlerts>);
+      } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
@@ -181,10 +164,7 @@ describe('MusdMaxConversionInfo', () => {
             isBlocking: true,
           },
         ],
-        fieldAlerts: [],
-        hasBlockingAlerts: true,
-        hasUnconfirmedDangerAlerts: false,
-      } as unknown as ReturnType<typeof useAlerts>);
+      } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
@@ -201,10 +181,7 @@ describe('MusdMaxConversionInfo', () => {
             isBlocking: true,
           },
         ],
-        fieldAlerts: [],
-        hasBlockingAlerts: true,
-        hasUnconfirmedDangerAlerts: false,
-      } as unknown as ReturnType<typeof useAlerts>);
+      } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
@@ -262,10 +239,7 @@ describe('MusdMaxConversionInfo', () => {
             isBlocking: true,
           },
         ],
-        fieldAlerts: [],
-        hasBlockingAlerts: true,
-        hasUnconfirmedDangerAlerts: false,
-      } as unknown as ReturnType<typeof useAlerts>);
+      } as ReturnType<typeof useAlerts>);
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 

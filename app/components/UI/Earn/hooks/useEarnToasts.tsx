@@ -155,22 +155,6 @@ const useEarnToasts = (): {
           </View>
         ),
       },
-      alert: {
-        ...(EARN_TOASTS_DEFAULT_OPTIONS as EarnToastOptions),
-        variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
-        iconColor: theme.colors.info.default,
-        hapticsType: NotificationFeedbackType.Warning,
-        startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.Warning}
-              color={theme.colors.info.default}
-              size={IconSize.Lg}
-            />
-          </View>
-        ),
-      },
     }),
     [theme],
   );

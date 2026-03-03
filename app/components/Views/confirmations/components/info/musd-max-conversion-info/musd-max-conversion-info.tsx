@@ -8,6 +8,8 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import { useAlerts } from '../../../context/alert-system-context';
 import { TotalRow } from '../../rows/total-row';
@@ -23,7 +25,6 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../../UI/Earn/constants/musd';
-import { useConfirmationPrimaryAction } from '../../../hooks/alerts/useConfirmationPrimaryAction';
 
 /**
  * Navigation params for MusdMaxConversionInfo
@@ -45,6 +46,9 @@ export const MusdMaxConversionInfo = () => {
 
   const { token } = useParams<MusdMaxConversionParams>();
 
+  const transactionMetadata = useTransactionMetadataRequest();
+  const isQuoteLoading = useIsTransactionPayLoading();
+
   const { onConfirm } = useTransactionConfirm();
   const { alerts } = useAlerts();
 
@@ -54,16 +58,13 @@ export const MusdMaxConversionInfo = () => {
 
   const formatFiat = useFiatFormatter();
 
-  const { label: sharedPrimaryLabel, isDisabled: isConfirmDisabled } =
-    useConfirmationPrimaryAction();
+  const isLoading = !transactionMetadata || isQuoteLoading;
+
+  const isConfirmDisabled = isLoading || Boolean(blockingAlert);
 
   const buttonLabel = useMemo(
-    () =>
-      blockingAlert?.title ??
-      (sharedPrimaryLabel === strings('confirm.confirm')
-        ? strings('earn.musd_conversion.convert')
-        : sharedPrimaryLabel),
-    [blockingAlert, sharedPrimaryLabel],
+    () => blockingAlert?.title ?? strings('earn.musd_conversion.convert'),
+    [blockingAlert],
   );
 
   const outputToken = useMemo((): AssetType => {
