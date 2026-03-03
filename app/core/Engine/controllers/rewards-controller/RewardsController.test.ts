@@ -5211,10 +5211,11 @@ describe('RewardsController', () => {
       );
 
       // Act & Assert — reauth login fails (silently absorbed by performSilentAuth),
-      // retry fires, gets 403 again, and the 403 propagates
+      // performReauthForSubscription throws, caches are invalidated, and the
+      // reauth error propagates (retry is never reached)
       await expect(
         testableController.getSeasonStatus(mockSubscriptionId, mockSeasonId),
-      ).rejects.toThrow(mock403Error);
+      ).rejects.toThrow(`Reauth failed for subscription ${mockSubscriptionId}`);
 
       // Verify reauth was attempted
       expect(localMockMessenger.call).toHaveBeenCalledWith(
