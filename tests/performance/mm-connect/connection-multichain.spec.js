@@ -1,4 +1,5 @@
-import { test } from 'appwright';
+import { test } from '../../framework/fixtures/performance';
+import TimerHelper from '../../framework/TimerHelper';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
@@ -16,6 +17,8 @@ import {
   getDappUrlForBrowser,
   setupAdbReverse,
   cleanupAdbReverse,
+  waitForDappServerReady,
+  unlockIfLockScreenVisible,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -33,6 +36,7 @@ test.beforeAll(async () => {
   // Set port and start the server directly (bypassing Detox-specific utilities)
   playgroundServer.setServerPort(DAPP_PORT);
   await playgroundServer.start();
+  await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
   setupAdbReverse(DAPP_PORT);
@@ -46,6 +50,7 @@ test.afterAll(async () => {
 
 test('@metamask/connect-multichain - Connect via Multichain API to Local Browser Playground', async ({
   device,
+  performanceTracker,
 }) => {
   // Get platform-specific URL (use bs-local.com when running on BrowserStack Local tunnel)
   const platform = device.getPlatform?.() || 'android';
@@ -78,17 +83,21 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
 
-  // Short delay so dapp loads before tap Connect (avoid auto-lock)
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   //
-  // Connect via Multichain API
+  // Connect via Multichain API (wait for dapp ready then tap Connect to minimize idle time / auto-lock)
   //
 
-  // Tap the Connect button (multichain API - default scopes)
+  const connectTimer = new TimerHelper(
+    'Time from tapping Connect to dapp confirming Multichain connected state',
+    { ios: 20000, android: 30000 },
+    device,
+  );
+
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
+      await BrowserPlaygroundDapp.waitForConnectButtonVisible(15000);
+      connectTimer.start();
       await BrowserPlaygroundDapp.tapConnect();
     },
     DAPP_URL,
@@ -97,6 +106,7 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
   // Handle connection approval in MetaMask
   await AppwrightHelpers.withNativeAction(device, async () => {
     await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
+    await unlockIfLockScreenVisible(device);
     await DappConnectionModal.tapConnectButton();
   });
 
@@ -113,12 +123,15 @@ test('@metamask/connect-multichain - Connect via Multichain API to Local Browser
     async () => {
       // Verify connected by checking for scope cards section
       await BrowserPlaygroundDapp.assertMultichainConnected(true);
+      connectTimer.stop();
 
       // Verify at least one scope card is visible (eip155:1 is default)
       await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
     },
     DAPP_URL,
   );
+
+  performanceTracker.addTimers(connectTimer);
 
   //
   // Cleanup - disconnect

@@ -18,13 +18,15 @@ import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectMerklCampaignClaimingEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -44,7 +46,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TokenDetailsSource } from '../../../TokenDetails/Views/TokenDetails';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
@@ -91,6 +93,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
@@ -158,7 +161,7 @@ export const TokenListItemV2 = React.memo(
     showPercentageChange = true,
     isFullView = false,
   }: TokenListItemV2Props) => {
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -194,12 +197,17 @@ export const TokenListItemV2 = React.memo(
       selectStablecoinLendingEnabledFlag,
     );
 
+    const isQuickConvertEnabled = useSelector(
+      selectMusdQuickConvertEnabledFlag,
+    );
+
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
 
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
-    const { initiateConversion, hasSeenConversionEducationScreen } =
+
+    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
 
     const shouldShowConvertToMusdCta = useMemo(
@@ -235,6 +243,29 @@ export const TokenListItemV2 = React.memo(
         isEligibleForMerkl &&
         !merklData.hasPendingClaim,
     );
+
+    const handleClaimBonus = useCallback(() => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MUSD_CLAIM_BONUS_BUTTON_CLICKED)
+          .addProperties({
+            location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.TOKEN_LIST_ITEM,
+            action_type: 'claim_bonus',
+            button_text: strings('earn.claim_bonus'),
+            network_chain_id: asset?.chainId,
+            network_name: networkName,
+            asset_symbol: asset?.symbol,
+          })
+          .build(),
+      );
+      merklData.claimRewards();
+    }, [
+      trackEvent,
+      createEventBuilder,
+      asset?.chainId,
+      asset?.symbol,
+      networkName,
+      merklData,
+    ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
@@ -290,10 +321,15 @@ export const TokenListItemV2 = React.memo(
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
-        const getRedirectLocation = () =>
-          hasSeenConversionEducationScreen
-            ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
-            : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        const getRedirectLocation = () => {
+          if (!hasSeenConversionEducationScreen) {
+            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+          }
+
+          return isQuickConvertEnabled
+            ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+            : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+        };
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
@@ -324,12 +360,13 @@ export const TokenListItemV2 = React.memo(
 
         const assetChainId = toHex(asset.chainId);
 
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
             chainId: assetChainId,
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       } catch (error) {
         Logger.error(
@@ -344,7 +381,8 @@ export const TokenListItemV2 = React.memo(
       chainId,
       createEventBuilder,
       hasSeenConversionEducationScreen,
-      initiateConversion,
+      initiateCustomConversion,
+      isQuickConvertEnabled,
       networkName,
       trackEvent,
     ]);
@@ -381,7 +419,7 @@ export const TokenListItemV2 = React.memo(
         return {
           text: strings('earn.claim_bonus'),
           color: TextColor.Primary,
-          onPress: merklData.claimRewards,
+          onPress: handleClaimBonus,
         };
       }
 
@@ -433,7 +471,7 @@ export const TokenListItemV2 = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      merklData.claimRewards,
+      handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
     ]);
@@ -524,7 +562,7 @@ export const TokenListItemV2 = React.memo(
               <View style={styles.assetNameContainer}>
                 <View style={styles.assetName}>
                   <Text
-                    variant={TextVariant.BodyMDBold}
+                    variant={TextVariant.BodyMDMedium}
                     numberOfLines={1}
                     style={styles.assetNameText}
                   >
@@ -538,7 +576,10 @@ export const TokenListItemV2 = React.memo(
                 {renderEarnCta()}
 
                 {isStockToken(asset as BridgeToken) && (
-                  <StockBadge style={styles.stockBadgeWrapper} token={asset} />
+                  <StockBadge
+                    style={styles.stockBadgeWrapper}
+                    token={asset as BridgeToken}
+                  />
                 )}
               </View>
 

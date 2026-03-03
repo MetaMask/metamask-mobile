@@ -143,6 +143,7 @@ class TrendingView {
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
       'Trending tokens': 'tokens',
+      Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
@@ -203,13 +204,9 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Determine scroll direction: Predictions and Trending tokens are usually near top
-    // But scrollToElement can handle both directions, so we try 'up' first for top sections
-    // and it will automatically adjust if needed
-    const direction =
-      sectionTitle === 'Predictions' || sectionTitle === 'Trending tokens'
-        ? 'up'
-        : 'down';
+    // Trending tokens is at the top of the feed; scroll up to find it.
+    // All other sections (stocks, perps, predictions, sites) are below.
+    const direction = sectionTitle === 'Trending tokens' ? 'up' : 'down';
 
     // Use generic scroll method
     await this.scrollToElementInFeed(

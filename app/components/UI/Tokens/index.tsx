@@ -5,11 +5,13 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -26,7 +28,6 @@ import {
   goToAddEvmToken,
 } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -44,11 +45,6 @@ import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/feature
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
-
 interface TokensProps {
   /**
    * Whether this is the full view (with header and safe area) or tab view
@@ -58,11 +54,8 @@ interface TokensProps {
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   ({ isFullView = false }, ref) => {
-    const navigation =
-      useNavigation<
-        StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-      >();
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const navigation = useNavigation();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
     // evm
@@ -97,6 +90,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const [showScamWarningModal, setShowScamWarningModal] = useState(false);
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
@@ -122,6 +116,28 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         });
       }
     }, [sortedTokenKeys, hasInitialLoad]);
+
+    useEffect(() => {
+      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+        return;
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+          .addProperties({
+            item_count: sortedTokenKeys.length,
+            location: 'homepage',
+            is_empty: sortedTokenKeys.length === 0,
+            screen_type: 'tokens',
+          })
+          .build(),
+      );
+    }, [
+      isFullView,
+      hasInitialLoad,
+      sortedTokenKeys.length,
+      trackEvent,
+      createEventBuilder,
+    ]);
 
     const showRemoveMenu = useCallback((token: TokenI) => {
       setRemoveTokenState({ isVisible: true, token });

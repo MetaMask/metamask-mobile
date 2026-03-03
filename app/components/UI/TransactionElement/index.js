@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   TouchableOpacity,
@@ -19,12 +19,10 @@ import decodeTransaction from './utils';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
-import { isTestNet } from '../../../util/networks';
-import { weiHexToGweiDec } from '@metamask/controller-utils';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import {
   TransactionType,
   WalletDevice,
-  isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { selectTickerByChainId } from '../../../selectors/networkController';
@@ -60,8 +58,14 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+  getMonetizedPrimitive,
+} from '../../../core/Analytics/events/transactions';
+import { getTransactionTypeValue } from '../../../core/Engine/controllers/transaction-controller/metrics_properties/base';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -225,10 +229,6 @@ class TransactionElement extends PureComponent {
       navigate: PropTypes.func.isRequired,
     }).isRequired,
     /**
-     * Whether multichain accounts state 2 is enabled
-     */
-    isMultichainAccountsState2Enabled: PropTypes.bool,
-    /**
      * Whether to render a bottom border for row separation (used in unified list)
      */
     showBottomBorder: PropTypes.bool,
@@ -236,6 +236,10 @@ class TransactionElement extends PureComponent {
      * All EVM transactions in controller state
      */
     transactions: PropTypes.arrayOf(PropTypes.object).isRequired,
+    /**
+     * Callback to track transaction detail click analytics
+     */
+    trackTransactionDetailClicked: PropTypes.func,
   };
 
   state = {
@@ -279,8 +283,9 @@ class TransactionElement extends PureComponent {
   }
 
   onPressItem = () => {
-    const { tx, i, onPressItem } = this.props;
+    const { tx, i, onPressItem, trackTransactionDetailClicked } = this.props;
     onPressItem && onPressItem(tx.id, i);
+    trackTransactionDetailClicked && trackTransactionDetailClicked();
 
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
@@ -333,24 +338,15 @@ class TransactionElement extends PureComponent {
     let incoming = false;
     let selfSent = false;
 
-    if (this.props.isMultichainAccountsState2Enabled) {
-      const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
-        (account) => account.address,
-      );
-      incoming = selectedAddresses.includes(
-        safeToChecksumAddress(tx.txParams.to),
-      );
-      selfSent =
-        incoming &&
-        selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
-    } else {
-      const selectedAddress = safeToChecksumAddress(
-        selectedInternalAccount?.address,
-      );
-      incoming = safeToChecksumAddress(tx.txParams.to) === selectedAddress;
-      selfSent =
-        incoming && safeToChecksumAddress(tx.txParams.from) === selectedAddress;
-    }
+    const selectedAddresses = selectSelectedAccountGroupInternalAccounts.map(
+      (account) => account.address,
+    );
+    incoming = selectedAddresses.includes(
+      safeToChecksumAddress(tx.txParams.to),
+    );
+    selfSent =
+      incoming &&
+      selectedAddresses.includes(safeToChecksumAddress(tx.txParams.from));
     const shouldShowFromDevice =
       (!incoming || selfSent) &&
       tx.deviceConfirmedOn === WalletDevice.MM_MOBILE;
@@ -448,7 +444,13 @@ class TransactionElement extends PureComponent {
         ? transactions?.find((t) => t.id === requiredTransactionIds[0])?.chainId
         : undefined;
 
-    const chainId = perpsDepositChainId ?? txChainId;
+    const predictWithdrawChainId = hasTransactionType(this.props.tx, [
+      TransactionType.predictWithdraw,
+    ])
+      ? this.props.tx.metamaskPay?.chainId
+      : undefined;
+
+    const chainId = perpsDepositChainId ?? predictWithdrawChainId ?? txChainId;
 
     return (
       <BadgeWrapper
@@ -492,7 +494,7 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { status, chainId, type },
+      tx: { status, isSmartTransaction, chainId, type },
       tx,
       bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
@@ -507,6 +509,14 @@ class TransactionElement extends PureComponent {
             bridgeTxHistoryItem.status.status,
           )
         : status;
+
+    const renderNormalActions =
+      (transactionStatus === 'submitted' ||
+        (transactionStatus === 'approved' &&
+          !isQRHardwareAccount &&
+          !isLedgerAccount)) &&
+      !isSmartTransaction &&
+      !isBridgeTransaction;
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =
@@ -557,6 +567,12 @@ class TransactionElement extends PureComponent {
             </ListItem.Amounts>
           )}
         </ListItem.Content>
+        {renderNormalActions && (
+          <ListItem.Actions>
+            {this.renderSpeedUpButton()}
+            {this.renderCancelButton()}
+          </ListItem.Actions>
+        )}
         {renderUnsignedQRActions && (
           <ListItem.Actions>
             {this.renderQRSignButton()}
@@ -570,43 +586,28 @@ class TransactionElement extends PureComponent {
     );
   };
 
-  parseGas = () => {
-    const { tx } = this.props;
+  renderCancelButton = () => {
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
 
-    let existingGas = {};
-    const transaction = tx?.txParams;
-    if (transaction) {
-      if (isEIP1559Transaction(transaction)) {
-        existingGas = {
-          isEIP1559Transaction: true,
-          maxFeePerGas: weiHexToGweiDec(transaction.maxFeePerGas),
-          maxPriorityFeePerGas: weiHexToGweiDec(
-            transaction.maxPriorityFeePerGas,
-          ),
-        };
-      } else {
-        const existingGasPrice = tx.txParams ? tx.txParams.gasPrice : '0x0';
-        const existingGasPriceDecimal = parseInt(
-          existingGasPrice === undefined ? '0x0' : existingGasPrice,
-          16,
-        );
-        existingGas = { gasPrice: existingGasPriceDecimal };
-      }
-    }
-    return existingGas;
+    return (
+      <StyledButton
+        type={'cancel'}
+        containerStyle={styles.actionContainerStyle}
+        style={styles.actionStyle}
+        onPress={this.showCancelModal}
+      >
+        {strings('transaction.cancel')}
+      </StyledButton>
+    );
   };
 
   showCancelModal = () => {
-    const existingGas = this.parseGas();
-
-    this.mounted && this.props.onCancelAction(true, existingGas, this.props.tx);
+    this.mounted && this.props.onCancelAction(true, this.props.tx);
   };
 
   showSpeedUpModal = () => {
-    const existingGas = this.parseGas();
-
-    this.mounted &&
-      this.props.onSpeedUpAction(true, existingGas, this.props.tx);
+    this.mounted && this.props.onSpeedUpAction(true, this.props.tx);
   };
 
   hideSpeedUpModal = () => {
@@ -623,6 +624,25 @@ class TransactionElement extends PureComponent {
 
   cancelUnsignedQRTransaction = () => {
     this.mounted && this.props.cancelUnsignedQRTransaction(this.props.tx);
+  };
+
+  renderSpeedUpButton = () => {
+    const { colors, typography } = this.context || mockTheme;
+    const styles = createStyles(colors, typography);
+
+    return (
+      <StyledButton
+        type={'normal'}
+        containerStyle={[
+          styles.actionContainerStyle,
+          styles.speedupActionContainerStyle,
+        ]}
+        style={styles.actionStyle}
+        onPress={this.showSpeedUpModal}
+      >
+        {strings('transaction.speedup')}
+      </StyledButton>
+    );
   };
 
   renderQRSignButton = () => {
@@ -724,8 +744,6 @@ const mapStateToProps = (state, ownProps) => ({
     ownProps.txChainId,
   ),
   tokens: selectTokensByChainIdAndAddress(state, ownProps.txChainId),
-  isMultichainAccountsState2Enabled:
-    selectMultichainAccountsState2Enabled(state),
 });
 
 TransactionElement.contextType = ThemeContext;
@@ -734,18 +752,51 @@ TransactionElement.contextType = ThemeContext;
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({ evmTxMeta: props.tx });
   const transactions = useSelector(selectTransactions);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const trackTransactionDetailClicked = useCallback(() => {
+    const tx = props.tx;
+    const chainId = tx.chainId ?? '';
+    const decimalChainId = getDecimalChainId(chainId);
+    const monetizedPrimitive = getMonetizedPrimitive(tx.type);
+    const destChainId =
+      bridgeTxHistoryData?.bridgeTxHistoryItem?.quote?.destChainId;
+
+    trackEvent(
+      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+        .addProperties({
+          transaction_type: getTransactionTypeValue(tx.type, tx),
+          transaction_status: tx.status,
+          location: props.location ?? TransactionDetailLocation.Home,
+          chain_id_source: String(decimalChainId),
+          chain_id_destination: String(destChainId ?? decimalChainId),
+          ...(monetizedPrimitive && {
+            monetized_primitive: monetizedPrimitive,
+          }),
+        })
+        .build(),
+    );
+  }, [
+    props.tx,
+    props.location,
+    bridgeTxHistoryData,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   return (
     <TransactionElement
       {...props}
       bridgeTxHistoryData={bridgeTxHistoryData}
       transactions={transactions}
+      trackTransactionDetailClicked={trackTransactionDetailClicked}
     />
   );
 };
 
 TransactionElementWithBridge.propTypes = {
   tx: PropTypes.object.isRequired,
+  location: PropTypes.string,
 };
 
 export default connect(mapStateToProps)(TransactionElementWithBridge);

@@ -28,6 +28,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AddressBookController": {
         "addressBook": {},
       },
+      "AiDigestController": {
+        "marketInsights": {},
+      },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
         "optedIn": false,
@@ -40,7 +43,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AssetsController": {
         "assetPreferences": {},
         "assetsBalance": {},
-        "assetsMetadata": {},
+        "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
       },
@@ -608,6 +611,30 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
+        "nativeProviders": {
+          "transak": {
+            "buyQuote": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "isAuthenticated": false,
+            "kycRequirement": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "userDetails": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+          },
+        },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -616,12 +643,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         },
         "providers": {
           "data": [],
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
-        "quotes": {
-          "data": null,
           "error": null,
           "isLoading": false,
           "selected": null,
@@ -647,6 +668,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeBoosts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
+        "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
         "snapshots": {},
@@ -861,6 +883,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AddressBookController": {
         "addressBook": {},
       },
+      "AiDigestController": {
+        "marketInsights": {},
+      },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
         "optedIn": false,
@@ -873,7 +898,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AssetsController": {
         "assetPreferences": {},
         "assetsBalance": {},
-        "assetsMetadata": {},
+        "assetsInfo": {},
         "assetsPrice": {},
         "customAssets": {},
       },
@@ -1441,6 +1466,30 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
+        "nativeProviders": {
+          "transak": {
+            "buyQuote": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "isAuthenticated": false,
+            "kycRequirement": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+            "userDetails": {
+              "data": null,
+              "error": null,
+              "isLoading": false,
+              "selected": null,
+            },
+          },
+        },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -1449,12 +1498,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "providers": {
           "data": [],
-          "error": null,
-          "isLoading": false,
-          "selected": null,
-        },
-        "quotes": {
-          "data": null,
           "error": null,
           "isLoading": false,
           "selected": null,
@@ -1480,6 +1523,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeBoosts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
+        "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
         "snapshots": {},

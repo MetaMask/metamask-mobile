@@ -1,8 +1,8 @@
 import { TestSpecificMock } from '../../framework/types.ts';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder.ts';
 import { setupMockRequest } from '../helpers/mockHelpers.ts';
-import { createGeolocationResponse } from './ramps/ramps-geolocation.ts';
-import { RAMPS_NETWORKS_RESPONSE } from './ramps/ramps-mocks.ts';
+import { createGeolocationResponse } from './ramps/responses/ramps-geolocation.ts';
+import { RAMPS_NETWORKS_RESPONSE } from './ramps/responses/ramps-networks-response.ts';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants.ts';
 import { ethers } from 'ethers';
 
@@ -310,6 +310,15 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     response: {
       is: [`eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`],
     },
+    responseCode: 200,
+  });
+
+  // Card dashboard — opened in an in-app browser by card tests
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/card\.metamask\.io(\/.*)?$/,
+    response:
+      '<html><head><title>Card</title></head><body>Card Dashboard</body></html>',
     responseCode: 200,
   });
 };

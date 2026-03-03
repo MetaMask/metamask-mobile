@@ -1,6 +1,6 @@
-import '../../../../../../util/test/component-view/mocks';
-import { renderComponentViewScreen } from '../../../../../../util/test/component-view/render';
-import { initialStateWallet } from '../../../../../../util/test/component-view/presets/wallet';
+import '../../../../../../../tests/component-view/mocks';
+import { renderComponentViewScreen } from '../../../../../../../tests/component-view/render';
+import { initialStateWallet } from '../../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../../util/test/platform';
 import React from 'react';
 import { View } from 'react-native';
@@ -103,7 +103,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% annual bonus that you can claim daily.`,
       ),
     ).toBeOnTheScreen();
   });
@@ -474,7 +474,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct boost title text', () => {
+  it('renders CTA with correct bonus title text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -507,7 +507,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct boost description text', () => {
+  it('renders CTA with correct bonus description text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -537,7 +537,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     // Assert
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% annual bonus that you can claim daily.`,
       ),
     ).toBeOnTheScreen();
   });

@@ -81,6 +81,11 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       setOptions: jest.fn(),
     }),
+    useRoute: () => ({
+      params: {
+        location: 'Main View',
+      },
+    }),
   };
 });
 
@@ -849,6 +854,7 @@ describe('SwapsConfirmButton', () => {
               aggregator: mockActiveQuote.quote.bridgeId,
               walletAddress: '0x1234567890123456789012345678901234567890',
             },
+            location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -908,6 +914,7 @@ describe('SwapsConfirmButton', () => {
               aggregator: solanaActiveQuote.quote.bridgeId,
               walletAddress: '0x1234567890123456789012345678901234567890',
             },
+            location: 'Main View',
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });

@@ -25,10 +25,10 @@ import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
-import RewardSettingsOptOut from './RewardSettingsOptOut';
 import ReferredByCodeSection from './ReferredByCodeSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { useTheme } from '../../../../../util/theme';
 
@@ -348,9 +348,9 @@ const RewardSettingsAccountGroupList: React.FC = () => {
 
   const ListFooterComponent = useCallback(
     () => (
-      <Box>
+      <Box twClassName="gap-4">
         <ReferredByCodeSection />
-        <RewardSettingsOptOut />
+        <RewardsEnvironmentToggle />
       </Box>
     ),
     [],

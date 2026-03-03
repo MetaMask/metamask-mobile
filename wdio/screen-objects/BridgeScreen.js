@@ -6,7 +6,6 @@ import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Per
 import { QuoteViewSelectorText } from '../../tests/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
-import { splitAmountIntoDigits } from '../../tests/framework/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 
 class BridgeScreen {
@@ -43,7 +42,7 @@ class BridgeScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
-        return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
+        return AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${networkName}"]`);
       }
     }
   }
@@ -59,6 +58,7 @@ class BridgeScreen {
     // Tap each digit on the numeric keypad
     const digits = amount.split('');
     AmountScreen.device = this._device;
+    await AppwrightGestures.tap(this.sourceTokenInput);
     for (const digit of digits) {
       const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
       await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
@@ -70,7 +70,9 @@ class BridgeScreen {
     const destinationToken = await this.destinationTokenArea;
     await AppwrightGestures.tap(destinationToken);
     const networkButton = await this.getNetworkButton(network);
-    await AppwrightGestures.tap(networkButton);
+    if (network !== 'Ethereum'){
+      await AppwrightGestures.tap(networkButton);
+    }
     let tokenNetworkId;
     if (network == 'Ethereum'){
       tokenNetworkId = `0x1`;
@@ -81,8 +83,8 @@ class BridgeScreen {
     else if (network == 'Solana'){
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
-    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
-    await appwrightExpect(tokenButton).toBeVisible({ timeout: 15000 });
+    const tokenButton = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`) : await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+    await appwrightExpect(tokenButton).toBeVisible({ timeout: 30000 });
     await AppwrightGestures.tap(tokenButton);
   }
 

@@ -81,8 +81,9 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
 
-const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+jest.mock('../../../../hooks/useDebouncedValue', () => ({
+  useDebouncedValue: <T,>(value: T) => value,
+}));
 
 const mockGetNetworkName = jest.fn();
 jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
@@ -172,20 +173,19 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders correctly and matches snapshot (legacy)', () => {
@@ -313,15 +313,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
@@ -367,15 +366,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -433,15 +431,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
@@ -509,15 +506,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -589,15 +585,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -611,27 +606,6 @@ describe('TokenSelection Component', () => {
         searchString: '   ',
       }),
     );
-  });
-
-  it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
-    fireEvent.press(firstToken);
-
-    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-      ramp_type: 'UNIFIED BUY',
-      region: 'US',
-      chain_id: mockTokens[0].chainId,
-      currency_destination: mockTokens[0].assetId,
-      currency_destination_symbol: mockTokens[0].symbol,
-      currency_destination_network: 'Ethereum Mainnet',
-      currency_source: '',
-      is_authenticated: false,
-      token_caip19: mockTokens[0].assetId,
-      token_symbol: mockTokens[0].symbol,
-      ramp_routing: UnifiedRampRoutingType.DEPOSIT,
-    });
   });
 
   it('filters tokens to only include those for configured networks (V2 enabled)', () => {
@@ -671,15 +645,14 @@ describe('TokenSelection Component', () => {
       setSelectedPaymentMethod: jest.fn(),
       paymentMethodsLoading: false,
       paymentMethodsError: null,
-      quotes: null,
-      selectedQuote: null,
       getQuotes: jest.fn(),
-      setSelectedQuote: jest.fn(),
-      startQuotePolling: jest.fn(),
-      stopQuotePolling: jest.fn(),
       getWidgetUrl: jest.fn(),
-      quotesLoading: false,
-      quotesError: null,
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);

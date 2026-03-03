@@ -44,9 +44,15 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CardPinTokenRequest,
+  CardPinTokenResponse,
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
+  CashbackWalletResponse,
+  CashbackWithdrawRequest,
+  CashbackWithdrawResponse,
+  CashbackWithdrawEstimationResponse,
 } from '../types';
 import {
   DEFAULT_REFRESH_TOKEN_EXPIRES_IN_SECONDS,
@@ -196,6 +202,9 @@ export class CardSDK {
       lowerOp.includes('authorize')
     ) {
       return 'card_auth';
+    }
+    if (lowerOp.includes('cashback')) {
+      return 'card_cashback';
     }
     return 'card_api_request';
   }
@@ -762,6 +771,57 @@ export class CardSDK {
   };
 
   /**
+   * Freeze the user's card to temporarily disable all transactions.
+   * The card can be unfrozen at any time.
+   *
+   * @returns Promise resolving to success status
+   */
+  freezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'freezeCard',
+      'card/freeze',
+      'Failed to freeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/freeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'freezeCard',
+          'card/freeze',
+          'Failed to freeze card',
+        );
+      },
+    );
+
+  /**
+   * Unfreeze the user's card to resume normal transaction processing.
+   *
+   * @returns Promise resolving to success status
+   */
+  unfreezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'unfreezeCard',
+      'card/unfreeze',
+      'Failed to unfreeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/unfreeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'unfreezeCard',
+          'card/unfreeze',
+          'Failed to unfreeze card',
+        );
+      },
+    );
+
+  /**
    * Generate a secure token for displaying sensitive card details through an image-based display.
    * The token is time-limited (~10 minutes) and single-use.
    *
@@ -797,6 +857,45 @@ export class CardSDK {
     }
 
     return (await response.json()) as CardDetailsTokenResponse;
+  };
+
+  /**
+   * Generate a secure token for viewing the card PIN through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   * The PIN is never transmitted as plain text, ensuring PCI compliance.
+   *
+   * @param request - Optional customization for the PIN image appearance
+   * @returns Promise containing the token and imageUrl for displaying the card PIN
+   */
+  generateCardPinToken = async (
+    request?: CardPinTokenRequest,
+  ): Promise<CardPinTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/pin/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card PIN token. Please try again.',
+        'generateCardPinToken',
+        'card/pin/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardPinTokenResponse;
   };
 
   getCardExternalWalletDetails = async (
@@ -1859,6 +1958,80 @@ export class CardSDK {
         return data;
       },
     );
+  };
+
+  getCashbackWallet = async (): Promise<CashbackWalletResponse> =>
+    this.withErrorHandling(
+      'getCashbackWallet',
+      'wallet/reward',
+      'Failed to get cashback wallet. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward', {
+          fetchOptions: { method: 'GET' },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWalletResponse>(
+          response,
+          'getCashbackWallet',
+          'wallet/reward',
+          'Failed to get cashback wallet',
+        );
+      },
+    );
+
+  getCashbackWithdrawEstimation =
+    async (): Promise<CashbackWithdrawEstimationResponse> =>
+      this.withErrorHandling(
+        'getCashbackWithdrawEstimation',
+        'wallet/reward/withdraw-estimation',
+        'Failed to estimate withdrawal fees. Please try again.',
+        async () => {
+          const response = await this.makeRequest(
+            '/v1/wallet/reward/withdraw-estimation',
+            {
+              fetchOptions: { method: 'GET' },
+              authenticated: true,
+            },
+          );
+          return this.handleApiResponse<CashbackWithdrawEstimationResponse>(
+            response,
+            'getCashbackWithdrawEstimation',
+            'wallet/reward/withdraw-estimation',
+            'Failed to estimate withdrawal fees',
+          );
+        },
+      );
+
+  withdrawCashback = async (
+    request: CashbackWithdrawRequest,
+  ): Promise<CashbackWithdrawResponse> =>
+    this.withErrorHandling(
+      'withdrawCashback',
+      'wallet/reward/withdraw',
+      'Failed to withdraw cashback. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward/withdraw', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWithdrawResponse>(
+          response,
+          'withdrawCashback',
+          'wallet/reward/withdraw',
+          'Failed to withdraw cashback',
+        );
+      },
+    );
+
+  getTransactionReceipt = async (
+    txHash: string,
+    network: CardNetwork = 'linea',
+  ): Promise<ethers.providers.TransactionReceipt | null> => {
+    const provider = this.getEthersProvider(network);
+    return provider.getTransactionReceipt(txHash);
   };
 
   private getFirstSupportedTokenOrNull(): CardToken | null {

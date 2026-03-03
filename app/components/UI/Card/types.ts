@@ -147,12 +147,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
@@ -465,6 +465,25 @@ export interface CardDetailsTokenResponse {
 }
 
 /**
+ * Request body for generating card PIN token
+ * Used to customize the visual appearance of the PIN image
+ */
+export interface CardPinTokenRequest {
+  customCss?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+/**
+ * Response from generating card PIN token
+ */
+export interface CardPinTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
  * Payment methods supported for orders
  */
 export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
@@ -562,4 +581,26 @@ export class BaanxOAuth2Error extends Error {
     this.type = type;
     this.originalError = originalError;
   }
+}
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawRequest {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
 }

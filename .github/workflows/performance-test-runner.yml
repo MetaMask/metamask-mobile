@@ -10,7 +10,7 @@ on:
       build_type:
         required: true
         type: string
-        description: 'Build type (imported-wallet/onboarding)'
+        description: 'Build type (imported-wallet/onboarding/mm-connect)'
       device_matrix:
         required: true
         type: string
@@ -98,18 +98,37 @@ jobs:
           username: ${{ secrets.BROWSERSTACK_USERNAME }}
           access-key: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
           project-name: ${{ github.repository }}
-      
+
+      - name: Compute BrowserStack Local Identifier
+        id: bs-local-id
+        run: |
+          # Strip any character that is not alphanumeric or a hyphen (covers spaces, /, \, @, etc.)
+          BUILD_TYPE_SAFE=$(printf '%s' "${{ inputs.build_type }}" | tr -c 'a-zA-Z0-9-' '_')
+          DEVICE_SAFE=$(printf '%s' "${{ matrix.device.name }}" | tr -c 'a-zA-Z0-9-' '_')
+          if [ -z "$BUILD_TYPE_SAFE" ]; then
+            echo "❌ Error: inputs.build_type is empty — cannot build a valid BrowserStack Local identifier"
+            exit 1
+          fi
+          if [ -z "$DEVICE_SAFE" ]; then
+            echo "❌ Error: matrix.device.name is empty — cannot build a valid BrowserStack Local identifier"
+            exit 1
+          fi
+          echo "value=${{ github.run_id }}-${BUILD_TYPE_SAFE}-${DEVICE_SAFE}" >> "$GITHUB_OUTPUT"
+
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
           local-testing: start
-          local-identifier: ${{ github.run_id }}
-          local-args: --force-local --verbose
+          local-identifier: ${{ steps.bs-local-id.outputs.value }}
+          # Use same args for all build types. Do not use --include-hosts for mm-connect:
+          # bs-local.com requests must be forwarded to localhost; --include-hosts can block them.
+          local-args: '--force-local --verbose'
       
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 10
+          # mm-connect needs the tunnel ready so the device can reach bs-local.com:8090; allow extra time
+          sleep ${{ inputs.build_type == 'mm-connect' && 15 || 10 }}
           echo "BrowserStack Local should be ready now"
       
       - name: Set Test Environment
@@ -143,7 +162,8 @@ jobs:
       
       - name: Run Tests
         env:
-          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
+          BROWSERSTACK_LOCAL: 'true'
+          BROWSERSTACK_LOCAL_IDENTIFIER: ${{ steps.bs-local-id.outputs.value }}
           BROWSERSTACK_BUILD_NAME: ${{ inputs.browserstack_build_name }}
         working-directory: '.'
         run: |
@@ -157,6 +177,8 @@ jobs:
           # Run the appropriate test command based on build_type flag
           if [ "${{ inputs.build_type }}" = "onboarding" ]; then
             yarn run-appwright:${{ inputs.platform }}-onboarding-bs
+          elif [ "${{ inputs.build_type }}" = "mm-connect" ]; then
+            yarn run-appwright:mm-connect-${{ inputs.platform }}-bs
           else
             yarn run-appwright:${{ inputs.platform }}-bs
           fi
@@ -167,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || 'imported-wallet' }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
+          name: ${{ inputs.platform }}-${{ inputs.build_type == 'onboarding' && 'onboarding-flow' || inputs.build_type }}-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
             tests/test-reports/appwright-report/
             tests/reporters/reports

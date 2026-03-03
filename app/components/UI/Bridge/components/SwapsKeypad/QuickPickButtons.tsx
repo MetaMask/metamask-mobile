@@ -23,7 +23,7 @@ export const QuickPickButtons = ({ options, show }: Props) => {
         <Button
           key={option.label}
           variant={ButtonVariants.Secondary}
-          size={ButtonSize.Md}
+          size={ButtonSize.Lg}
           label={option.label}
           onPress={option.onPress}
           style={styles.button}

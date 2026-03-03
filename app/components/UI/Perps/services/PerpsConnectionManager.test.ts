@@ -839,4 +839,111 @@ describe('PerpsConnectionManager', () => {
       });
     });
   });
+
+  describe('waitForConnection', () => {
+    it('awaits resolving initPromise', async () => {
+      // Arrange — set initPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('swallows initPromise rejection', async () => {
+      // Arrange — set initPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        initPromise: Promise<void> | null;
+      };
+      m.initPromise = Promise.reject(new Error('init failed'));
+
+      // Act & Assert — should resolve (not throw) even though initPromise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.initPromise = null;
+    });
+
+    it('awaits resolving pendingReconnectPromise', async () => {
+      // Arrange — set pendingReconnectPromise to a resolved promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.resolve();
+
+      // Act & Assert — should complete without error
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
+    });
+
+    it('swallows pendingReconnectPromise rejection', async () => {
+      // Arrange — set pendingReconnectPromise to a rejected promise
+      const m = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+      m.pendingReconnectPromise = Promise.reject(new Error('reconnect failed'));
+
+      // Act & Assert — should resolve (not throw) even though promise rejects
+      await expect(
+        PerpsConnectionManager.waitForConnection(),
+      ).resolves.toBeUndefined();
+
+      // Cleanup
+      m.pendingReconnectPromise = null;
+    });
+  });
+
+  describe('getActiveProviderName', () => {
+    it('returns activeProvider from PerpsController state', () => {
+      // Arrange
+      (
+        Engine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        activeProvider: 'hyperliquid',
+      };
+
+      // Act
+      const result = PerpsConnectionManager.getActiveProviderName();
+
+      // Assert
+      expect(result).toBe('hyperliquid');
+    });
+
+    it('returns undefined when Engine access throws', () => {
+      // Arrange — remove PerpsController so property access throws
+      const original = Engine.context.PerpsController;
+      Object.defineProperty(Engine.context, 'PerpsController', {
+        get: () => {
+          throw new Error('Engine not initialized');
+        },
+        configurable: true,
+      });
+
+      // Act
+      const result = PerpsConnectionManager.getActiveProviderName();
+
+      // Assert
+      expect(result).toBeUndefined();
+
+      // Cleanup
+      Object.defineProperty(Engine.context, 'PerpsController', {
+        value: original,
+        configurable: true,
+        writable: true,
+      });
+    });
+  });
 });
