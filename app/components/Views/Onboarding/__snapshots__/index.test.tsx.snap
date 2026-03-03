@@ -120,7 +120,7 @@ exports[`Onboarding renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -165,7 +165,7 @@ exports[`Onboarding renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -354,7 +354,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -399,7 +399,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -588,7 +588,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -633,7 +633,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -822,7 +822,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -867,7 +867,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,

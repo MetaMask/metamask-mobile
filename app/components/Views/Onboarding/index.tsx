@@ -795,7 +795,10 @@ const Onboarding = () => {
       >
         <Box justifyContent={BoxJustifyContent.Center}>
           <ActivityIndicator size="small" />
-          <Text style={tw.style('mt-[30px] text-center text-default')}>
+          <Text
+            variant={TextVariant.BodyMd}
+            style={tw.style('mt-[30px] text-center text-default')}
+          >
             {loadingMsg}
           </Text>
         </Box>

@@ -452,7 +452,7 @@ describe('Onboarding', () => {
         await Promise.resolve();
       });
 
-      expect(firstRender.getByText(loadingMessage)).toBeTruthy();
+      expect(firstRender.getByText(loadingMessage)).toBeOnTheScreen();
 
       firstRender.unmount();
 
