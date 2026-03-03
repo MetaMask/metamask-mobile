@@ -3,7 +3,7 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking';
+import { usePredictPayWithAnyTokenTracking } from './usePredictPayWithAnyTokenTracking';
 
 function runHook({
   transactionId,
@@ -13,7 +13,7 @@ function runHook({
   transactions?: TransactionMeta[];
 }) {
   return renderHookWithProvider(
-    () => usePredictOrderDepositTracking({ transactionId }),
+    () => usePredictPayWithAnyTokenTracking({ transactionId }),
     {
       state: {
         engine: {
@@ -28,7 +28,7 @@ function runHook({
   );
 }
 
-describe('usePredictOrderDepositTracking', () => {
+describe('usePredictPayWithAnyTokenTracking', () => {
   it('returns confirmed state when deposit transaction is confirmed', () => {
     const { result } = runHook({
       transactionId: 'tx-1',

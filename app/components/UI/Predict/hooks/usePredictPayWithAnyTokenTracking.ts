@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 
-interface UsePredictOrderDepositTrackingParams {
+interface UsePredictPayWithAnyTokenTrackingParams {
   transactionId?: string;
 }
 
@@ -36,9 +36,9 @@ function getTransactionErrorMessage(
   return undefined;
 }
 
-export function usePredictOrderDepositTracking({
+export function usePredictPayWithAnyTokenTracking({
   transactionId,
-}: UsePredictOrderDepositTrackingParams) {
+}: UsePredictPayWithAnyTokenTrackingParams) {
   const transactionMeta = useSelector((state: RootState) =>
     transactionId ? selectTransactionMetadataById(state, transactionId) : null,
   );

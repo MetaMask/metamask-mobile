@@ -8,8 +8,8 @@ let mockTrackingState = {
   errorMessage: undefined as string | undefined,
 };
 
-jest.mock('./usePredictOrderDepositTracking', () => ({
-  usePredictOrderDepositTracking: () => mockTrackingState,
+jest.mock('./usePredictPayWithAnyTokenTracking', () => ({
+  usePredictPayWithAnyTokenTracking: () => mockTrackingState,
 }));
 
 const preview = {

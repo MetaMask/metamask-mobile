@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { OrderPreview, PlaceOrderParams } from '../providers/types';
-import { usePredictOrderDepositTracking } from './usePredictOrderDepositTracking';
+import { usePredictPayWithAnyTokenTracking } from './usePredictPayWithAnyTokenTracking';
 
 type AutoPlacePhase = 'idle' | 'initialized' | 'order_placed' | 'failed';
 
@@ -46,7 +46,7 @@ export function usePredictAutoPlaceOrder({
     isConfirmed: isAutoPlaceDepositConfirmed,
     hasFailed: hasAutoPlaceDepositFailed,
     errorMessage: autoPlaceDepositErrorMessage,
-  } = usePredictOrderDepositTracking({
+  } = usePredictPayWithAnyTokenTracking({
     transactionId: shouldAutoPlaceOrder ? transactionId : undefined,
   });
 
