@@ -297,7 +297,7 @@ const RewardsHome = () => (
   <Stack.Navigator
     screenOptions={{
       ...clearStackNavigatorOptions,
-      presentation: 'modal',
+      presentation: 'transparentModal',
       cardStyle: { backgroundColor: importedColors.white },
     }}
   >
@@ -753,7 +753,7 @@ const HomeTabs = () => {
     <Tab.Navigator
       initialRouteName={Routes.WALLET.HOME}
       tabBar={renderTabBar}
-      screenOptions={{ headerShown: false }}
+      screenOptions={{ headerShown: false, presentation: 'transparentModal' }}
     >
       {/* Home Tab */}
       <Tab.Screen
@@ -979,7 +979,7 @@ const MainNavigator = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        presentation: 'modal',
+        presentation: 'transparentModal',
       }}
       initialRouteName={'Home'}
     >
