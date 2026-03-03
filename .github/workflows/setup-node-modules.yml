@@ -124,14 +124,17 @@ jobs:
         run: |
           node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
 
-      - name: Cache Foundry binaries
+      - name: Restore .metamask folder
+        id: restore-metamask
         if: inputs.platform != ''
         uses: actions/cache@v4
         with:
-          path: .metamask/cache
-          key: foundry-${{ runner.os }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            foundry-${{ runner.os }}-
+          path: .metamask
+          key: .metamask-${{ hashFiles('yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: inputs.platform != '' && steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
 
       - name: Setup project
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2

@@ -123,13 +123,16 @@ jobs:
       - name: Clean iOS plist files
         run: find ios -name "*.plist" -exec xattr -c {} \;
 
-      - name: Cache Foundry binaries
+      - name: Restore .metamask folder
+        id: restore-metamask
         uses: actions/cache@v4
         with:
-          path: .metamask/cache
-          key: foundry-${{ runner.os }}-${{ hashFiles('package.json') }}
-          restore-keys: |
-            foundry-${{ runner.os }}-
+          path: .metamask
+          key: .metamask-${{ hashFiles('yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
