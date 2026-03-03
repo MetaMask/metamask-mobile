@@ -349,7 +349,7 @@ describe('PerpsSection', () => {
 
     renderWithProvider(<PerpsSection />);
 
-    const roeElements = screen.getAllByText('+9.4%');
+    const roeElements = screen.getAllByText('+9.40%');
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
