@@ -8212,10 +8212,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^8.2.1":
-  version: 8.2.1
-  resolution: "@metamask/design-tokens@npm:8.2.1"
-  checksum: 10/6ac6d407707bf8d81c6f5df83ab5b494692c65249b4346f137ebd324c1ac9b27e7de5618236d415ceaeb32c4d1c3ff0d02e0c3a3b004956219433268dd93220c
+"@metamask/design-tokens@npm:^8.2.2":
+  version: 8.2.2
+  resolution: "@metamask/design-tokens@npm:8.2.2"
+  checksum: 10/2ab9e2c148f55874819c550a2e038c050d906709c33315edd200ddaeb7677b5f121f50fa2f43c06ce94b5fc66b59450c81b8927088721d8ad6ee559cf864f442
   languageName: node
   linkType: hard
 
@@ -10146,9 +10146,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^16.1.1":
-  version: 16.1.1
-  resolution: "@metamask/transaction-pay-controller@npm:16.1.1"
+"@metamask/transaction-pay-controller@npm:^16.1.2":
+  version: 16.1.2
+  resolution: "@metamask/transaction-pay-controller@npm:16.1.2"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10169,7 +10169,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/23f537240235afb68bb968f19ccbbcd638fbc6e8e04db2e9d6edaec873739de12261b55aff532b5f533b184a22b46e99ed76840287c5f729907367852a5be001
+  checksum: 10/d304824be5a3218a28b39ccde514748f38b6ed23d694fee08f562c53dc9c16d3257f6a036bc26b5193db35b5bb3e9d9669b2411ff532285738e7310e81090654
   languageName: node
   linkType: hard
 
@@ -35373,7 +35373,7 @@ __metadata:
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.8.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
-    "@metamask/design-tokens": "npm:^8.2.1"
+    "@metamask/design-tokens": "npm:^8.2.2"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
@@ -35463,7 +35463,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.19.0"
-    "@metamask/transaction-pay-controller": "npm:^16.1.1"
+    "@metamask/transaction-pay-controller": "npm:^16.1.2"
     "@metamask/tron-wallet-snap": "npm:^1.21.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"
