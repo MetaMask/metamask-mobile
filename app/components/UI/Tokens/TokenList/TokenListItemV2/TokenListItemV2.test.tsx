@@ -31,7 +31,7 @@ import {
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import { isTokenEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
@@ -194,7 +194,7 @@ jest.mock(
   '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
   () => ({
     useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
-    isEligibleForMerklRewards: jest.fn(() => false),
+    isTokenEligibleForMerklRewards: jest.fn(() => false),
   }),
 );
 
@@ -398,7 +398,9 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       claimableReward,
       isLoading: false,
     });
-    (isEligibleForMerklRewards as jest.Mock).mockReturnValue(isMerklEligible);
+    (isTokenEligibleForMerklRewards as jest.Mock).mockReturnValue(
+      isMerklEligible,
+    );
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
