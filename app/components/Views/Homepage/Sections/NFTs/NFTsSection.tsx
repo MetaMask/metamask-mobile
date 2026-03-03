@@ -64,7 +64,9 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   useFocusEffect(
     useCallback(() => {
-      detectNfts();
+      detectNfts().catch(() => {
+        // AbortError is expected when detection is cancelled on blur
+      });
 
       return () => {
         abortDetection();
