@@ -14,12 +14,12 @@ import Button, {
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
 import styleSheet from './SampleFeatureDevSettingsEntryPoint.styles';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 
 function NavigateToSampleFeature() {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
 
   const onPressNavigate = () => {

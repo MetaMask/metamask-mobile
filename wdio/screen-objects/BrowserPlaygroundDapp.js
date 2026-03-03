@@ -125,6 +125,10 @@ class BrowserPlaygroundDapp {
     return this._getByTestId('app-btn-connect-wagmi');
   }
 
+  get wagmiDisconnectButton() {
+    return this._getByTestId('wagmi-btn-disconnect');
+  }
+
   get wagmiCard() {
     return this._getByTestId('wagmi-card');
   }
@@ -182,6 +186,34 @@ class BrowserPlaygroundDapp {
   }
 
   // ============================================================
+  // SOLANA CARD SELECTORS
+  // ============================================================
+
+  get solanaCard() {
+    return this._getByTestId('solana-card');
+  }
+
+  get solanaConnectButton() {
+    return this._getByTestId('app-btn-connect-solana');
+  }
+
+  get solanaDisconnectButton() {
+    return this._getByTestId('solana-btn-disconnect');
+  }
+
+  get solanaAddressContainer() {
+    return this._getByTestId('solana-address-container');
+  }
+
+  get solanaSignMessageButton() {
+    return this._getByTestId('solana-btn-sign-message');
+  }
+
+  get solanaSignedMessageResult() {
+    return this._getByTestId('solana-signed-message-result');
+  }
+
+  // ============================================================
   // MULTICHAIN / SCOPE CARD SELECTORS
   // ============================================================
 
@@ -199,7 +231,7 @@ class BrowserPlaygroundDapp {
    */
   getScopeCard(scope) {
     // The scope card ID uses dashes instead of colons (e.g., 'eip155-1' not 'eip155:1')
-    const escapedScope = scope.replace(/:/g, '-');
+    const escapedScope = scope.toLowerCase().replace(/:/g, '-');
     return this._getByTestId(`scope-card-${escapedScope}`);
   }
 
@@ -271,6 +303,12 @@ class BrowserPlaygroundDapp {
     await AppwrightGestures.tap(element);
   }
 
+  async tapWagmiDisconnect() {
+    if (!this._device) return;
+    const element = await this.wagmiDisconnectButton;
+    await AppwrightGestures.tap(element);
+  }
+
   async tapWagmiSignMessage() {
     if (!this._device) return;
     const element = await this.wagmiSignMessageButton;
@@ -293,6 +331,28 @@ class BrowserPlaygroundDapp {
     if (!this._device) return;
     const element = await this.wagmiSignMessageInput;
     await AppwrightGestures.typeText(element, message);
+  }
+
+  // ============================================================
+  // SOLANA ACTIONS
+  // ============================================================
+
+  async tapSolanaConnect() {
+    if (!this._device) return;
+    const element = await this.solanaConnectButton;
+    await AppwrightGestures.tap(element);
+  }
+
+  async tapSolanaDisconnect() {
+    if (!this._device) return;
+    const element = await this.solanaDisconnectButton;
+    await AppwrightGestures.tap(element);
+  }
+
+  async tapSolanaSignMessage() {
+    if (!this._device) return;
+    const element = await this.solanaSignMessageButton;
+    await AppwrightGestures.tap(element);
   }
 
   // ============================================================
@@ -466,6 +526,49 @@ class BrowserPlaygroundDapp {
   }
 
   // ============================================================
+  // SOLANA ASSERTIONS
+  // ============================================================
+
+  /**
+   * Assert Solana is connected by checking for the solana address container
+   * @param {boolean} isConnected - Expected connection state
+   */
+  async assertSolanaConnected(isConnected = true) {
+    if (!this._device) return;
+
+    if (isConnected) {
+      const solanaCard = await this.solanaCard;
+      await expect(solanaCard).toBeVisible({ timeout: 10000 });
+    } else {
+      const solanaConnectButton = await this.solanaConnectButton;
+      await expect(solanaConnectButton).toBeVisible({ timeout: 10000 });
+    }
+  }
+
+  /**
+   * Assert Solana active account address
+   * @param {string} expectedAccount - Expected account address
+   */
+    async assertSolanaActiveAccount(expectedAddress) {
+      if (!this._device) return;
+      const addressElement = await this.solanaAddressContainer;
+      const text = await addressElement.getText();
+      expect(text.toLowerCase()).toContain(expectedAddress);
+    }
+
+  /**
+   * Assert Solana signed message result contains expected value
+   * @param {string} expectedValue - Expected signature or part of the signed message result
+   */
+  async assertSolanaSignedMessageResult(expectedValue) {
+    if (!this._device) return;
+    const resultElement = await this.solanaSignedMessageResult;
+    await expect(resultElement).toBeVisible({ timeout: 10000 });
+    const text = await resultElement.getText();
+    expect(text).toContain(expectedValue);
+  }
+
+  // ============================================================
   // MULTICHAIN ASSERTIONS
   // ============================================================
 
@@ -493,6 +596,16 @@ class BrowserPlaygroundDapp {
     if (!this._device) return;
     const scopeCard = await this.getScopeCard(scope);
     await expect(scopeCard).toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Assert a specific scope card is notvisible
+   * @param {string} scope - The CAIP-2 scope (e.g., 'eip155:1')
+   */
+  async assertScopeCardNotVisible(scope) {
+    if (!this._device) return;
+    const scopeCard = await this.getScopeCard(scope);
+    await expect(scopeCard).not.toBeVisible({ timeout: 10000 });
   }
 }
 

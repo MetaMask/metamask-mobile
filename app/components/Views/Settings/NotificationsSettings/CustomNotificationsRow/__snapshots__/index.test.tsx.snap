@@ -11,7 +11,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
   testID="notifications-switch--container"
 >
   <SvgMock
-    color="#121314"
+    color="#131416"
     fill="currentColor"
     height={24}
     name="Sparkle"
@@ -36,9 +36,9 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -64,7 +64,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
             "alignSelf": "flex-start",
           },
           {
-            "backgroundColor": "#b7bbc866",
+            "backgroundColor": "#b4b4b566",
             "borderRadius": 16,
           },
         ],
@@ -72,7 +72,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
     }
     testID="notifications-switch"
     thumbTintColor="#ffffff"
-    tintColor="#b7bbc866"
+    tintColor="#b4b4b566"
     value={false}
   />
 </View>

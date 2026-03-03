@@ -45,7 +45,7 @@ import {
   SLIPPAGE_SELL,
   POLYMARKET_PROVIDER_ID,
 } from './constants';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -394,16 +394,22 @@ export const submitClobOrder = async ({
   headers,
   clobOrder,
   feeAuthorization,
+  executor,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  executor?: string;
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+  const body: ClobOrderObject & {
+    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    executor?: string;
+  } = {
     ...clobOrder,
     feeAuthorization,
+    ...(executor && { executor }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -1091,6 +1097,8 @@ export async function calculateFees({
       totalFee: 0,
       totalFeePercentage: 0,
       collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
     };
   }
 
@@ -1113,6 +1121,8 @@ export async function calculateFees({
     totalFee,
     totalFeePercentage,
     collector: feeCollection.collector,
+    executors: feeCollection.executors ?? [],
+    permit2Enabled: feeCollection.permit2Enabled ?? false,
   };
 }
 
