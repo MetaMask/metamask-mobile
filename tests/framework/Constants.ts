@@ -63,6 +63,15 @@ export const DEFAULT_SOLANA_TEST_DAPP_PATH = path.join(
   'dist',
 );
 
+export const DEFAULT_BITCOIN_TEST_DAPP_PATH = path.join(
+  '..',
+  '..',
+  'node_modules',
+  '@metamask',
+  'test-dapp-bitcoin',
+  'dist',
+);
+
 export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
   '..',
   '..',
@@ -97,6 +106,7 @@ export enum DappVariants {
   TEST_DAPP = 'test-dapp',
   MULTICHAIN_TEST_DAPP = 'multichain-test-dapp',
   SOLANA_TEST_DAPP = 'solana-test-dapp',
+  BITCOIN_TEST_DAPP = 'bitcoin-test-dapp',
   BROWSER_PLAYGROUND = 'browser-playground',
 }
 
@@ -109,6 +119,9 @@ export const TestDapps = {
   },
   [DappVariants.SOLANA_TEST_DAPP]: {
     dappPath: path.resolve(__dirname, DEFAULT_SOLANA_TEST_DAPP_PATH),
+  },
+  [DappVariants.BITCOIN_TEST_DAPP]: {
+    dappPath: path.resolve(__dirname, DEFAULT_BITCOIN_TEST_DAPP_PATH),
   },
   [DappVariants.BROWSER_PLAYGROUND]: {
     dappPath: path.resolve(__dirname, DEFAULT_BROWSER_PLAYGROUND_PATH),
