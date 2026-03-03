@@ -13,8 +13,7 @@ import { chartLogicScript } from './webview';
  * npx http-server --cors -p 8000 <dir-containing-charting_library/>
  */
 export const CHARTING_LIBRARY_BASE_URL =
-  process.env.MM_CHARTING_LIBRARY_URL ||
-  'https://va-mmcx-terminal.s3.us-east-2.amazonaws.com/charting_library/';
+  process.env.MM_CHARTING_LIBRARY_URL ?? '';
 
 const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
