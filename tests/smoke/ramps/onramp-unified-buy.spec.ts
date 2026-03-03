@@ -13,9 +13,8 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import {
-  setupRegionAwareOnRampMocks,
-  TRANSAK_NATIVE_FLOW_MOCKS,
-  BUY_ORDER_STATUS_MOCKS,
+  setupDepositOnRampMocks,
+  setupBuyOnRampMocks,
 } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -41,8 +40,7 @@ const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
       minimumVersion: '1.0.0',
     },
   });
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
-  await TRANSAK_NATIVE_FLOW_MOCKS(mockServer);
+  await setupDepositOnRampMocks(mockServer, selectedRegion);
 };
 
 const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
@@ -50,8 +48,7 @@ const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
     mockServer,
     remoteFeatureFlagRampsUnifiedEnabled(true),
   );
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion, 'aggregator');
-  await BUY_ORDER_STATUS_MOCKS(mockServer);
+  await setupBuyOnRampMocks(mockServer, selectedRegion);
 };
 
 // Deposit order mock (ramps-deposit-order-status-response) returns USD; UI shows $ + formatFiatValue
