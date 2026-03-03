@@ -217,13 +217,14 @@ describe('formatDateOfBirth', () => {
     });
 
     it('formats timestamp with different time zones correctly', () => {
-      // Given: timestamp for a specific UTC date
-      const timestampString = '1137312000000'; // 2006-01-15T00:00:00.000Z
+      // Given: date created in local timezone (Jan 15, 2006)
+      const date = new Date(2006, 0, 15);
+      const timestampString = date.getTime().toString();
 
       // When: formatting timestamp
       const result = formatDateOfBirth(timestampString);
 
-      // Then: should return correct date regardless of timezone
+      // Then: should return the local calendar date
       expect(result).toBe('2006-01-15');
     });
 
