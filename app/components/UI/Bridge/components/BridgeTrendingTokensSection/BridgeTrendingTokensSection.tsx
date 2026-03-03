@@ -195,7 +195,7 @@ const BridgeTrendingTokensSection = ({
             testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
             onPress={loadNextChunk}
             style={({ pressed }) =>
-              tw.style('mt-3 py-2 self-center', pressed && 'opacity-20')
+              tw.style('mt-3 py-2 self-center', pressed && 'opacity-70')
             }
           >
             <Text
