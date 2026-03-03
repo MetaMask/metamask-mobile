@@ -14,7 +14,7 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
@@ -373,11 +373,10 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       onClose={handleDismiss}
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
-        <BottomSheetHeader>
-          <Text variant={TextVariant.HeadingSm}>
-            {accountGroupContext?.metadata?.name}
-          </Text>
-        </BottomSheetHeader>
+        <HeaderCompactStandard
+          title={accountGroupContext?.metadata.name}
+          onClose={handleDismiss}
+        />
       )}
 
       {flatListData.length > 0 && (

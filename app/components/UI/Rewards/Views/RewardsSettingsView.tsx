@@ -1,31 +1,21 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { getNavigationOptionsTitle } from '../../Navbar';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { useTheme } from '../../../../util/theme';
-import { Box } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
 
+export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
+
 const RewardsSettingsView: React.FC = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedSettingsViewed = useRef(false);
-
-  // Set navigation title with back button
-  useEffect(() => {
-    navigation.setOptions({
-      ...getNavigationOptionsTitle(
-        strings('rewards.settings.title'),
-        navigation,
-        false,
-        colors,
-      ),
-      headerTitleAlign: 'center',
-    });
-  }, [colors, navigation]);
 
   useEffect(() => {
     if (!hasTrackedSettingsViewed.current) {
@@ -38,9 +28,20 @@ const RewardsSettingsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
-      <Box twClassName="py-4 flex-1 gap-4">
-        <RewardSettingsAccountGroupList />
-      </Box>
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
+      >
+        <HeaderCompactStandard
+          title={strings('rewards.settings.title')}
+          onBack={() => navigation.goBack()}
+          includesTopInset
+        />
+        <Box twClassName="py-4 flex-1 gap-4">
+          <RewardSettingsAccountGroupList />
+        </Box>
+      </SafeAreaView>
     </ErrorBoundary>
   );
 };

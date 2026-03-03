@@ -115,15 +115,27 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
-// Mock useSafeAreaInsets
-jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-  })),
-}));
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+    SafeAreaView: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(View, { ...props, testID }, children),
+  };
+});
 
 // Mock useMetrics hook
 const mockTrackEvent = jest.fn();
@@ -183,11 +195,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     };
     return translations[key] || key;
   }),
-}));
-
-// Mock getNavigationOptionsTitle
-jest.mock('../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Rewards' })),
 }));
 
 // Mock ErrorBoundary
@@ -928,17 +935,28 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('navigation', () => {
-    it('should set navigation options on mount', async () => {
-      // Act
-      render(<RewardsDashboard />);
+  describe('header and SafeAreaView', () => {
+    it('renders SafeAreaView wrapper', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
     });
 
+    it('renders HeaderRoot with title Rewards', () => {
+      const { getByText } = render(<RewardsDashboard />);
+
+      expect(getByText('Rewards')).toBeTruthy();
+    });
+
+    it('renders settings and referral buttons in header', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
+    });
+  });
+
+  describe('navigation', () => {
     it('should navigate to referral view when referral button is pressed', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);

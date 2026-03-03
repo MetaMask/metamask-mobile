@@ -1,14 +1,16 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { configureStore } from '@reduxjs/toolkit';
-import RewardsSettingsView from './RewardsSettingsView';
+import RewardsSettingsView, {
+  REWARDS_SETTINGS_SAFE_AREA_TEST_ID,
+} from './RewardsSettingsView';
 
 // Mock navigation
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -17,26 +19,70 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
+      goBack: mockGoBack,
     }),
     useRoute: () => mockUseRoute(),
   };
 });
 
-// Mock theme
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: '#000',
-      background: '#fff',
-    },
-  }),
-}));
+// Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
+jest.mock('react-native-safe-area-context', () => {
+  const React = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('react-native-safe-area-context');
+  return {
+    ...actual,
+    useSafeAreaInsets: jest.fn(() => ({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    })),
+    SafeAreaView: ({
+      children,
+      testID,
+      ...props
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(View, { ...props, testID }, children),
+  };
+});
 
-// Mock getNavigationOptionsTitle
-jest.mock('../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Settings' })),
-}));
+// Mock HeaderCompactStandard
+jest.mock(
+  '../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const React = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: function MockHeaderCompactStandard({
+        title,
+        onBack,
+      }: {
+        title?: string;
+        onBack?: () => void;
+      }) {
+        return React.createElement(
+          View,
+          { testID: 'header-compact-standard' },
+          title != null &&
+            React.createElement(Text, { testID: 'header-title' }, title),
+          onBack != null &&
+            React.createElement(
+              Pressable,
+              {
+                testID: 'header-back-button',
+                onPress: onBack,
+              },
+              React.createElement(Text, null, 'Back'),
+            ),
+        );
+      },
+    };
+  },
+);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => {
@@ -208,15 +254,28 @@ describe('RewardsSettingsView', () => {
         getByTestId('reward-settings-account-group-list'),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('sets navigation options on mount', async () => {
-      // Act
-      renderWithNavigation(<RewardsSettingsView />);
+  describe('header and SafeAreaView', () => {
+    it('renders SafeAreaView wrapper', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
 
-      // Assert
-      await waitFor(() => {
-        expect(mockSetOptions).toHaveBeenCalled();
-      });
+      expect(getByTestId(REWARDS_SETTINGS_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders HeaderCompactStandard with settings title', () => {
+      const { getByText } = renderWithNavigation(<RewardsSettingsView />);
+
+      expect(getByText('Settings')).toBeOnTheScreen();
+    });
+
+    it('calls navigation.goBack when back button is pressed', () => {
+      const { getByTestId } = renderWithNavigation(<RewardsSettingsView />);
+      const backButton = getByTestId('header-back-button');
+
+      fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
