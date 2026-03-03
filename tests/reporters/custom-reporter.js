@@ -401,16 +401,20 @@ class CustomReporter {
       );
     }
 
+    const hasCredentials =
+      !!process.env.BROWSERSTACK_USERNAME &&
+      !!process.env.BROWSERSTACK_ACCESS_KEY;
+
     console.log(
-      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
+      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}, hasCredentials: ${hasCredentials}`,
     );
-    if (this.sessions.length > 0 && !isBrowserStackRun) {
+    if (this.sessions.length > 0 && (!hasCredentials || !isBrowserStackRun)) {
       console.log(
-        `[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project name does not include "browserstack-"`,
+        `[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): ${!hasCredentials ? 'missing BROWSERSTACK_USERNAME or BROWSERSTACK_ACCESS_KEY' : 'project name does not include "browserstack-"'}`,
       );
     }
 
-    if (this.sessions.length > 0 && isBrowserStackRun) {
+    if (this.sessions.length > 0 && hasCredentials && isBrowserStackRun) {
       console.log(
         `🎥 Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
       );
@@ -442,7 +446,6 @@ class CustomReporter {
           }
 
           // Fetch profiling data from BrowserStack API
-          let buildId = null;
           try {
             console.log(
               `🔍 Fetching profiling data for ${session.testTitle}...`,
@@ -451,8 +454,6 @@ class CustomReporter {
               await appProfilingHandler.fetchCompleteProfilingData(
                 session.sessionId,
               );
-
-            buildId = profilingResult.sessionDetails?.buildId || null;
 
             if (profilingResult.error) {
               console.log(`⚠️ ${profilingResult.error}`);
@@ -491,46 +492,25 @@ class CustomReporter {
             };
           }
 
-          // Fallback: fetch buildId independently if profiling didn't provide it
-          if (!buildId) {
-            try {
-              const sessionDetails =
-                await appProfilingHandler.getSessionDetails(session.sessionId);
-              buildId = sessionDetails?.buildId || null;
-            } catch (error) {
-              console.log(
-                `⚠️ Failed to get session details for ${session.testTitle}: ${error.message}`,
-              );
-            }
-          }
-
           // Fetch BrowserStack network logs (HAR)
           try {
-            if (!buildId) {
-              console.log(
-                `[Pipeline] Skipping network logs for ${session.testTitle}: no buildId available`,
-              );
+            console.log(
+              `[Pipeline] Fetching network logs for session ${session.sessionId} (${session.testTitle})...`,
+            );
+            const networkResult = await appProfilingHandler.getNetworkLogs(
+              session.sessionId,
+            );
+            if (networkResult.error) {
+              session.networkLogsError = networkResult.error;
               session.networkLogsEntries = [];
-            } else {
               console.log(
-                `[Pipeline] Fetching network logs for session ${session.sessionId} (${session.testTitle})...`,
+                `[Pipeline] Network logs error for ${session.testTitle}: ${networkResult.error}`,
               );
-              const networkResult = await appProfilingHandler.getNetworkLogs(
-                buildId,
-                session.sessionId,
+            } else {
+              session.networkLogsEntries = networkResult.entries || [];
+              console.log(
+                `✅ Network logs fetched for ${session.testTitle}: ${session.networkLogsEntries.length} request(s)`,
               );
-              if (networkResult.error) {
-                session.networkLogsError = networkResult.error;
-                session.networkLogsEntries = [];
-                console.log(
-                  `[Pipeline] Network logs error for ${session.testTitle}: ${networkResult.error}`,
-                );
-              } else {
-                session.networkLogsEntries = networkResult.entries || [];
-                console.log(
-                  `✅ Network logs fetched for ${session.testTitle}: ${session.networkLogsEntries.length} request(s)`,
-                );
-              }
             }
           } catch (error) {
             session.networkLogsError = error.message;

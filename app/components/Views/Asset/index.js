@@ -68,6 +68,7 @@ import {
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
+import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import {
   selectSwapsTransactions,
@@ -900,4 +901,4 @@ const mapStateToProps = (state, { route }) => {
   };
 };
 
-export default connect(mapStateToProps)(Asset);
+export default connect(mapStateToProps)(withMetricsAwareness(Asset));
