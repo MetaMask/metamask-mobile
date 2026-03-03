@@ -33,7 +33,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 
   const effectiveWalletType = targetWalletType ?? walletType;
 
-  const { handleDeviceEvent, handleError, clearError, updateConnectionState } =
+  const { handleDeviceEvent, handleError, updateConnectionState } =
     useDeviceEventHandlers({
       refs,
       setters,
@@ -72,15 +72,15 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const {
     ensureDeviceReady,
     connect,
-    retryLastOperation,
+    retryEnsureDeviceReady,
     closeFlow,
     handleConnectionSuccess,
   } = useDeviceConnectionFlow({
     refs,
     setters,
     walletType: effectiveWalletType,
+    deviceId,
     handleError,
-    clearError,
     updateConnectionState,
     createAdapterWithCallbacks,
     initializeAdapter,
@@ -158,7 +158,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         connectionState={connectionState}
         deviceSelection={deviceSelection}
         walletType={effectiveWalletType}
-        retryLastOperation={retryLastOperation}
+        retryEnsureDeviceReady={retryEnsureDeviceReady}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}

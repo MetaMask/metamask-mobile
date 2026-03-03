@@ -2021,7 +2021,7 @@ export function getRampsBuildQuoteNavbarOptions(
               onBackPress?.();
               navigation.goBack();
             }}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
             testID="build-quote-back-button"
@@ -2031,7 +2031,7 @@ export function getRampsBuildQuoteNavbarOptions(
           <ButtonIcon
             style={styles.headerRightButton}
             onPress={onSettingsPress}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.Setting}
             iconColor={IconColor.Default}
             testID="build-quote-settings-button"
@@ -2077,11 +2077,11 @@ export function getRampsBuildQuoteNavbarOptions(
                 />
               </BadgeWrapperComponent>
               <View style={innerStyles.labelsContainer}>
-                <MorphText variant={TextVariant.HeadingSM}>
+                <MorphText variant={TextVariant.HeadingMD}>
                   {strings('fiat_on_ramp.buy', { ticker: tokenSymbol })}
                 </MorphText>
                 <MorphText
-                  variant={TextVariant.BodySM}
+                  variant={TextVariant.BodySMMedium}
                   color={TextColor.Alternative}
                 >
                   {strings('fiat_on_ramp.on_network', { networkName })}

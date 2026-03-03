@@ -36,7 +36,8 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
   ToastVariants,
@@ -242,7 +243,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <HeaderStackedStandard
+      <HeaderCompactStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -255,29 +256,26 @@ const ImportNewSecretRecoveryPhrase = () => {
             testID: 'qr-code-button',
           },
         ]}
-        titleStandardProps={{
-          testID: ImportSRPIDs.SCREEN_TITLE_ID,
-          title: strings(
-            'import_new_secret_recovery_phrase.import_wallet_title',
-          ),
-          bottomAccessory: (
-            <View style={styles.subtitleContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings(
-                  'import_new_secret_recovery_phrase.enter_srp_subtitle',
-                )}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.Info}
-                iconProps={{
-                  color: IconColor.IconAlternative,
-                }}
-                onPress={showWhatIsSeedPhrase}
-                testID="info-icon"
-              />
-            </View>
-          ),
-        }}
+      />
+      <TitleStandard
+        testID={ImportSRPIDs.SCREEN_TITLE_ID}
+        title={strings('import_new_secret_recovery_phrase.import_wallet_title')}
+        bottomAccessory={
+          <View style={styles.subtitleContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{
+                color: IconColor.IconAlternative,
+              }}
+              onPress={showWhatIsSeedPhrase}
+              testID="info-icon"
+            />
+          </View>
+        }
+        twClassName="px-4 pt-1 pb-3"
       />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
