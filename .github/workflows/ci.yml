@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('yarn.lock') }}
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
