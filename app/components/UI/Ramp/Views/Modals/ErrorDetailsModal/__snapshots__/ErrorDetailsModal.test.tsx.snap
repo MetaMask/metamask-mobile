@@ -376,7 +376,7 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -894,7 +894,7 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1414,7 +1414,7 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -1930,7 +1930,7 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -2487,7 +2487,7 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
