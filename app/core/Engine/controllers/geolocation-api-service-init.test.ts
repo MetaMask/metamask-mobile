@@ -17,7 +17,7 @@ jest.mock('../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment', () => ({
 
 import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
-import { SDK } from '@metamask/profile-sync-controller';
+import { Env } from '@metamask/geolocation-controller';
 
 const mockGetSdkEnvironment = jest.mocked(getSdkEnvironment);
 
@@ -46,23 +46,23 @@ describe('geolocationApiServiceInit', () => {
     expect(controller).toBeInstanceOf(GeolocationApiService);
   });
 
-  it('passes SDK.Env.PRD for production environment', () => {
+  it('passes Env.PRD for production environment', () => {
     mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Production);
     geolocationApiServiceInit(getInitRequestMock());
 
     const ServiceMock = jest.mocked(GeolocationApiService);
     expect(ServiceMock).toHaveBeenCalledWith(
-      expect.objectContaining({ env: SDK.Env.PRD }),
+      expect.objectContaining({ env: Env.PRD }),
     );
   });
 
-  it('passes SDK.Env.DEV for staging environment', () => {
+  it('passes Env.DEV for staging environment', () => {
     mockGetSdkEnvironment.mockReturnValue(SdkEnvironment.Staging);
     geolocationApiServiceInit(getInitRequestMock());
 
     const ServiceMock = jest.mocked(GeolocationApiService);
     expect(ServiceMock).toHaveBeenCalledWith(
-      expect.objectContaining({ env: SDK.Env.DEV }),
+      expect.objectContaining({ env: Env.DEV }),
     );
   });
 

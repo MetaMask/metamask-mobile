@@ -1,8 +1,8 @@
 import {
   GeolocationApiService,
+  Env,
   type GeolocationApiServiceMessenger,
 } from '@metamask/geolocation-controller';
-import { SDK } from '@metamask/profile-sync-controller';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
 import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
 import type { ControllerInitFunction } from '../types';
@@ -19,7 +19,7 @@ export const geolocationApiServiceInit: ControllerInitFunction<
   GeolocationApiServiceMessenger
 > = ({ controllerMessenger }) => {
   const sdkEnv = getSdkEnvironment();
-  const env = sdkEnv === SdkEnvironment.Production ? SDK.Env.PRD : SDK.Env.DEV;
+  const env = sdkEnv === SdkEnvironment.Production ? Env.PRD : Env.DEV;
 
   const controller = new GeolocationApiService({
     messenger: controllerMessenger,

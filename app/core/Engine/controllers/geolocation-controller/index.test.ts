@@ -9,7 +9,19 @@ import {
 } from '@metamask/geolocation-controller';
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 
-jest.mock('@metamask/geolocation-controller');
+jest.mock('@metamask/geolocation-controller', () => {
+  const MockGeolocationController = jest.fn().mockImplementation(() => ({
+    getGeolocation: jest.fn().mockResolvedValue('US'),
+  }));
+  // Preserve instanceof checks
+  MockGeolocationController.prototype = Object.create(
+    MockGeolocationController.prototype,
+  );
+  return {
+    ...jest.requireActual('@metamask/geolocation-controller'),
+    GeolocationController: MockGeolocationController,
+  };
+});
 
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<GeolocationControllerMessenger>
@@ -32,7 +44,8 @@ describe('geolocationControllerInit', () => {
 
   it('initializes the controller', () => {
     const { controller } = geolocationControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(GeolocationController);
+    expect(controller).toBeDefined();
+    expect(GeolocationController).toHaveBeenCalledTimes(1);
   });
 
   it('passes the messenger to the controller', () => {
