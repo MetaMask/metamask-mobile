@@ -1143,7 +1143,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1364,7 +1364,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1585,7 +1585,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1806,7 +1806,7 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
