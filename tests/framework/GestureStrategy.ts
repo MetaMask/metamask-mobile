@@ -99,6 +99,12 @@ export interface GestureStrategy {
  * mapped to Detox-specific option shapes internally.
  */
 export class DetoxGestureStrategy implements GestureStrategy {
+  /**
+   * Tap an element
+   * @param elem - The element to tap
+   * @param opts - The options for the tap
+   * @returns A promise that resolves when the tap is complete
+   */
   async tap(
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
@@ -109,6 +115,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Wait for an element to be visible and then tap it
+   * @param elem - The element to wait and tap
+   * @param opts - The options for the wait and tap
+   * @returns A promise that resolves when the wait and tap is complete
+   */
   async waitAndTap(
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
@@ -119,6 +131,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Type text into an element
+   * @param elem - The element to type text into
+   * @param text - The text to type
+   * @param opts - The options for the type text
+   * @returns A promise that resolves when the type text is complete
+   */
   async typeText(
     elem: EncapsulatedElementType,
     text: string,
@@ -131,6 +150,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Replace text in an element
+   * @param elem - The element to replace text in
+   * @param text - The text to replace
+   * @param opts - The options for the replace text
+   * @returns A promise that resolves when the replace text is complete
+   */
   async replaceText(
     elem: EncapsulatedElementType,
     text: string,
@@ -142,6 +168,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Swipe an element
+   * @param elem - The element to swipe
+   * @param direction - The direction to swipe
+   * @param opts - The options for the swipe
+   * @returns A promise that resolves when the swipe is complete
+   */
   async swipe(
     elem: EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
@@ -153,6 +186,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Scroll to an element
+   * @param target - The element to scroll to
+   * @param scrollView - The scroll view to scroll to
+   * @param opts - The options for the scroll to element
+   * @returns A promise that resolves when the scroll to element is complete
+   */
   async scrollToElement(
     target: EncapsulatedElementType,
     scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
@@ -168,6 +208,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
     );
   }
 
+  /**
+   * Long press an element
+   * @param elem - The element to long press
+   * @param opts - The options for the long press
+   * @returns A promise that resolves when the long press is complete
+   */
   async longPress(
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
@@ -178,6 +224,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Double tap an element
+   * @param elem - The element to double tap
+   * @param opts - The options for the double tap
+   * @returns A promise that resolves when the double tap is complete
+   */
   async dblTap(
     elem: EncapsulatedElementType,
     opts?: UnifiedGestureOptions,
@@ -188,6 +240,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Tap at a point on an element
+   * @param elem - The element to tap at a point on
+   * @param point - The point to tap at
+   * @param opts - The options for the tap at point
+   * @returns A promise that resolves when the tap at point is complete
+   */
   async tapAtPoint(
     elem: EncapsulatedElementType,
     point: { x: number; y: number },
@@ -199,6 +258,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
     });
   }
 
+  /**
+   * Tap at an index on an element
+   * @param elem - The element to tap at an index on
+   * @param index - The index to tap at
+   * @param opts - The options for the tap at index
+   * @returns A promise that resolves when the tap at index is complete
+   */
   async tapAtIndex(
     elem: EncapsulatedElementType,
     index: number,
@@ -217,21 +283,43 @@ export class DetoxGestureStrategy implements GestureStrategy {
  * Wraps `PlaywrightElement` and `PlaywrightGestures`.
  */
 export class AppiumGestureStrategy implements GestureStrategy {
+  /**
+   * Tap an element
+   * @param elem - The element to tap
+   * @returns A promise that resolves when the tap is complete
+   */
   async tap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.click();
   }
 
+  /**
+   * Wait for an element to be visible and then tap it
+   * @param elem - The element to wait and tap
+   * @returns A promise that resolves when the wait and tap is complete
+   */
   async waitAndTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.click();
   }
 
+  /**
+   * Type text into an element
+   * @param elem - The element to type text into
+   * @param text - The text to type
+   * @returns A promise that resolves when the type text is complete
+   */
   async typeText(elem: EncapsulatedElementType, text: string): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.fill(text);
   }
 
+  /**
+   * Replace text in an element
+   * @param elem - The element to replace text in
+   * @param text - The text to replace
+   * @returns A promise that resolves when the replace text is complete
+   */
   async replaceText(
     elem: EncapsulatedElementType,
     text: string,
@@ -241,6 +329,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await el.fill(text);
   }
 
+  /**
+   * Swipe an element
+   * @param elem - The element to swipe
+   * @param direction - The direction to swipe
+   * @returns A promise that resolves when the swipe is complete
+   */
   async swipe(
     elem: EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
@@ -249,6 +343,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await PlaywrightGestures.swipe(el, direction);
   }
 
+  /**
+   * Scroll to an element
+   * @param target - The element to scroll to
+   * @param scrollView - The scroll view to scroll to
+   * @returns A promise that resolves when the scroll to element is complete
+   */
   async scrollToElement(
     target: EncapsulatedElementType,
     _scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
@@ -257,17 +357,33 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await PlaywrightGestures.scrollIntoView(el);
   }
 
+  /**
+   * Long press an element
+   * @param elem - The element to long press
+   * @returns A promise that resolves when the long press is complete
+   */
   async longPress(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await PlaywrightGestures.longPress(el);
   }
 
+  /**
+   * Double tap an element
+   * @param elem - The element to double tap
+   * @returns A promise that resolves when the double tap is complete
+   */
   async dblTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
     await el.click();
     await el.click();
   }
 
+  /**
+   * Tap at a point on an element
+   * @param elem - The element to tap at a point on
+   * @param point - The point to tap at
+   * @returns A promise that resolves when the tap at point is complete
+   */
   async tapAtPoint(
     elem: EncapsulatedElementType,
     point: { x: number; y: number },
@@ -276,6 +392,12 @@ export class AppiumGestureStrategy implements GestureStrategy {
     await el.tapOnCoordinates(point);
   }
 
+  /**
+   * Tap at an index on an element
+   * @param elem - The element to tap at an index on
+   * @param index - The index to tap at
+   * @returns A promise that resolves when the tap at index is complete
+   */
   async tapAtIndex(elem: TapAtIndexElement, index: number): Promise<void> {
     // If an array of PlaywrightElements is provided, tap the one at `index`
     if (Array.isArray(elem)) {
