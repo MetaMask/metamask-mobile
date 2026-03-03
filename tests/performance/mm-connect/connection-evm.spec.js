@@ -49,12 +49,12 @@ test.beforeAll(async () => {
   await waitForDappServerReady(DAPP_PORT);
 
   // Set up adb reverse for Android emulator access
-  setupAdbReverse(DAPP_PORT);
+  // setupAdbReverse(DAPP_PORT);
 });
 
 // Stop local playground server after all tests
 test.afterAll(async () => {
-  cleanupAdbReverse(DAPP_PORT);
+  // cleanupAdbReverse(DAPP_PORT);
   await playgroundServer.stop();
 });
 
