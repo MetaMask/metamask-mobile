@@ -2874,10 +2874,6 @@
     "enabling_notifications": "Ativando notificações...",
     "updating_notifications": "Atualizando notificações...",
     "updating_account_settings": "Atualizando configurações da conta...",
-    "reset_notifications_title": "Redefinir notificações",
-    "reset_notifications_description": "Redefinir as notificações significa que você está excluindo suas chaves de armazenamento de notificações e redefinindo todo o seu histórico de notificações. Tem certeza de que deseja fazer isso?",
-    "reset_notifications": "Redefinir notificações",
-    "reset_notifications_success": "Chave de armazenamento de notificações excluída/recriada e histórico de notificações redefinido.",
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Selecionar URL da RPC",
     "title": "Configurações",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "Comprar mUSD",
       "get_musd": "Obter mUSD",
-      "boost_title": "Obtenha {{percentage}}% sobre suas stablecoins",
-      "boost_description": "Converta suas stablecoins em mUSD e receba um bônus de até {{percentage}}%.",
+      "bonus_title": "Obtenha {{percentage}}% sobre suas stablecoins",
+      "bonus_description": "Converta suas stablecoins em mUSD e receba um bônus de até {{percentage}}%.",
       "powered_by_relay": "Desenvolvido por Relay"
     },
     "bonus_claim": {

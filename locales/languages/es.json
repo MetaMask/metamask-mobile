@@ -2874,10 +2874,6 @@
     "enabling_notifications": "Activando notificaciones...",
     "updating_notifications": "Actualizando notificaciones...",
     "updating_account_settings": "Actualizando la configuración de la cuenta...",
-    "reset_notifications_title": "Restablecer notificaciones",
-    "reset_notifications_description": "Restablecer notificaciones significa que está eliminando sus claves de almacenamiento de notificaciones y reiniciando todo su historial de notificaciones. ¿Está seguro de que desea hacer esto?",
-    "reset_notifications": "Restablecer notificaciones",
-    "reset_notifications_success": "Se eliminó/recreó la clave de almacenamiento de notificaciones y se restableció el historial de notificaciones.",
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Seleccionar URL de RPC",
     "title": "Configuración",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "Comprar mUSD",
       "get_musd": "Obtener USDC",
-      "boost_title": "Obtén un {{percentage}} % en tus monedas estables",
-      "boost_description": "Convierte tus monedas estables a mUSD y recibe un bono de hasta el {{percentage}} %.",
+      "bonus_title": "Obtén un {{percentage}} % en tus monedas estables",
+      "bonus_description": "Convierte tus monedas estables a mUSD y recibe un bono de hasta el {{percentage}} %.",
       "powered_by_relay": "Desarrollado por Relay"
     },
     "bonus_claim": {

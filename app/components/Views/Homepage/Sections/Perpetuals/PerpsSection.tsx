@@ -10,29 +10,38 @@ import { ScrollView } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import {
   type PerpsMarketData,
   type Position,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsLivePositions,
   usePerpsLiveOrders,
   usePerpsMarkets,
 } from '../../../../UI/Perps/hooks';
+import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
+import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
-import PerpsViewMoreCard from './components/PerpsViewMoreCard';
+import ViewMoreCard from '../../components/ViewMoreCard';
 import { useHomepageSparklines } from './hooks/useHomepageSparklines';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
+import { usePerpsEventTracking } from '../../../../UI/Perps/hooks/usePerpsEventTracking';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -50,6 +59,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const title = strings('homepage.sections.perpetuals');
+  const { error: connectionError, reconnectWithNewContext } =
+    usePerpsConnection();
+  const { track } = usePerpsEventTracking();
 
   const { positions, isInitialLoading: positionsLoading } =
     usePerpsLivePositions({
@@ -106,6 +118,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tpSlReady = anyPositionHasTpSl || tpSlSettled;
 
   const { markets, isLoading: marketsLoading } = usePerpsMarkets();
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
   const displayPositions = useMemo(
     () => positions.slice(0, MAX_ITEMS),
@@ -125,43 +138,79 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
   const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 
-  const trendingMarkets = useMemo(
-    () =>
-      showTrending && markets.length > 0
-        ? filterAndSortMarkets({
-            marketData: markets,
-            showZeroVolume: false,
-          }).slice(0, MAX_TRENDING_MARKETS)
-        : [],
-    [showTrending, markets],
+  const safeWatchlistSymbols = useMemo(
+    () => watchlistSymbols ?? [],
+    [watchlistSymbols],
   );
 
-  const trendingSymbols = useMemo(
-    () => trendingMarkets.map((m) => m.symbol),
-    [trendingMarkets],
+  const watchlistMarkets = useMemo(() => {
+    if (markets.length === 0 || safeWatchlistSymbols.length === 0) return [];
+    const marketBySymbol = new Map(markets.map((m) => [m.symbol, m]));
+    return safeWatchlistSymbols
+      .map((sym) => marketBySymbol.get(sym))
+      .filter((m): m is PerpsMarketDataWithVolumeNumber => m != null);
+  }, [markets, safeWatchlistSymbols]);
+
+  const trendingMarkets = useMemo(() => {
+    if (markets.length === 0) return [];
+    const wlSet = new Set(watchlistMarkets.map((m) => m.symbol));
+    return filterAndSortMarkets({
+      marketData: markets,
+      showZeroVolume: false,
+    })
+      .filter((m) => !wlSet.has(m.symbol))
+      .slice(0, Math.max(0, MAX_TRENDING_MARKETS - watchlistMarkets.length));
+  }, [markets, watchlistMarkets]);
+
+  const allCarouselMarkets = useMemo(
+    () =>
+      [...watchlistMarkets, ...trendingMarkets].slice(0, MAX_TRENDING_MARKETS),
+    [watchlistMarkets, trendingMarkets],
+  );
+
+  const watchlistSymbolSet = useMemo(
+    () => new Set(watchlistMarkets.map((m) => m.symbol)),
+    [watchlistMarkets],
+  );
+
+  const carouselSymbols = useMemo(
+    () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+    [showTrending, allCarouselMarkets],
   );
   const { sparklines, refresh: refreshSparklines } =
-    useHomepageSparklines(trendingSymbols);
+    useHomepageSparklines(carouselSymbols);
 
   useImperativeHandle(
     ref,
     () => ({
-      refresh: () => {
+      refresh: async () => {
+        if (connectionError) {
+          await reconnectWithNewContext({ force: true });
+          return;
+        }
         refreshSparklines();
-        return Promise.resolve();
       },
     }),
-    [refreshSparklines],
+    [connectionError, reconnectWithNewContext, refreshSparklines],
   );
 
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
     });
   }, [navigation]);
 
   const handlePositionPress = useCallback(
     (position: Position) => {
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+      });
       const market = markets.find((m) => m.symbol === position.symbol);
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
@@ -171,21 +220,36 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             maxLeverage: position.maxLeverage,
           },
           initialTab: 'position',
+          source: 'section_position',
         },
       });
     },
-    [navigation, markets],
+    [navigation, markets, track],
   );
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
     },
     [navigation],
   );
+
+  if (connectionError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPerps} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={() => reconnectWithNewContext({ force: true })}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box gap={3}>
@@ -203,7 +267,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
                 position={position}
                 compact
                 compactVariant="position"
-                iconSize={36}
                 tpSlLoading={!tpSlReady}
                 onPress={() => handlePositionPress(position)}
                 testID={`perps-position-row-${position.symbol}`}
@@ -213,13 +276,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               <PerpsCard
                 key={order.orderId}
                 order={order}
-                iconSize={36}
                 testID={`perps-order-row-${order.orderId}`}
               />
             ))}
           </Box>
         </SectionRow>
-      ) : trendingMarkets.length > 0 ? (
+      ) : allCarouselMarkets.length > 0 ? (
         <FadingScrollContainer>
           {(scrollProps) => (
             <ScrollView
@@ -229,15 +291,20 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               testID="homepage-trending-perps-carousel"
               {...scrollProps}
             >
-              {trendingMarkets.map((market) => (
+              {allCarouselMarkets.map((market) => (
                 <PerpsMarketTileCard
                   key={market.symbol}
                   market={market}
                   sparklineData={sparklines[market.symbol]}
+                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
                   onPress={handleTilePress}
                 />
               ))}
-              <PerpsViewMoreCard onPress={handleViewAllPerps} />
+              <ViewMoreCard
+                onPress={handleViewAllPerps}
+                twClassName="w-[180px] flex-1"
+                testID="perps-view-more-card"
+              />
             </ScrollView>
           )}
         </FadingScrollContainer>

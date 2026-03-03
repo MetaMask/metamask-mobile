@@ -2874,10 +2874,6 @@
     "enabling_notifications": "通知を有効にしています...",
     "updating_notifications": "通知を更新しています...",
     "updating_account_settings": "アカウント設定を更新しています...",
-    "reset_notifications_title": "通知をリセット",
-    "reset_notifications_description": "通知をリセットすると、通知ストレージキーが削除され、通知履歴がすべてリセットされます。よろしいですか？",
-    "reset_notifications": "通知のリセット",
-    "reset_notifications_success": "通知ストレージキーが削除/再作成され、通知履歴がリセットされました。",
     "notifications_dismiss_modal": "閉じる",
     "select_rpc_url": "RPC URLを選択",
     "title": "設定",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "mUSDを購入",
       "get_musd": "mUSDを入手",
-      "boost_title": "ステーブルコインで{{percentage}}%をゲット",
-      "boost_description": "お持ちのステーブルコインをmUSDに換えて、最大{{percentage}}%のボーナスを受け取りましょう。",
+      "bonus_title": "ステーブルコインで{{percentage}}%をゲット",
+      "bonus_description": "お持ちのステーブルコインをmUSDに換えて、最大{{percentage}}%のボーナスを受け取りましょう。",
       "powered_by_relay": "Powered by Relay"
     },
     "bonus_claim": {
