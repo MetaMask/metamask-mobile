@@ -1464,14 +1464,14 @@ describe('PolymarketProvider', () => {
       expect(result.orderType).toBe('FOK');
     });
 
-    it('returns FOK orderType when fees are absent despite FAK flags being enabled', async () => {
+    it('returns FAK orderType when fees are absent and FAK flags are enabled', async () => {
       mockPreviewOrder.mockResolvedValue({});
       mockHasPermit2Allowance.mockResolvedValue(true);
       const provider = createPermit2PreviewProvider(true);
 
       const result = await provider.previewOrder(createPreviewOrderParams());
 
-      expect(result.orderType).toBe('FOK');
+      expect(result.orderType).toBe('FAK');
       expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
     });
   });
@@ -1954,6 +1954,57 @@ describe('PolymarketProvider', () => {
       );
     });
   });
+  describe('placeOrder FAK order type for sell orders', () => {
+    it('submits FAK order type for sell order without fees when FAK is enabled', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
+        }),
+      );
+      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
+    });
+
+    it('submits FOK order type for sell order without fees when FAK is disabled', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: false,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+        }),
+      );
+    });
+  });
+
   describe('placeOrder edge cases', () => {
     it('places order without fee authorization when totalFee is zero', async () => {
       // Clear mock to ensure clean state for this test
