@@ -938,6 +938,9 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.MODAL.ROOT_MODAL_FLOW}
       component={RootModalFlow as ScreenComponent}
+      options={{
+        detachPreviousScreen: false,
+      }}
     />
     <Stack.Screen
       name="ImportPrivateKeyView"

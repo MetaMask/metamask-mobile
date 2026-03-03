@@ -52,4 +52,9 @@ export interface HeaderCompactStandardProps extends HeaderBaseProps {
    * If provided, a close button will be added to endButtonIconProps with these props spread.
    */
   closeButtonProps?: Omit<ButtonIconProps, 'iconName'>;
+  /**
+   * If true, wraps the header in a SafeAreaView with background color
+   * to properly handle the status bar area.
+   */
+  includesTopInset?: boolean;
 }

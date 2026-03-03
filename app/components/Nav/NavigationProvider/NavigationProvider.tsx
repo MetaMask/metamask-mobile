@@ -6,7 +6,6 @@ import {
   Theme,
 } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useTheme } from '../../../util/theme';
 import { onNavigationReady } from '../../../actions/navigation';
 import { useDispatch } from 'react-redux';
 import NavigationService from '../../../core/NavigationService';
@@ -27,7 +26,6 @@ const Stack = createStackNavigator();
 const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
-  const { colors } = useTheme();
   const dispatch = useDispatch();
   const hasInitialized = useRef(false);
 
@@ -64,8 +62,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
 
   return (
     <NavigationContainer
-      // TODO: Check if other color properties are needed
-      theme={{ colors: { background: colors.background.default } } as Theme}
+      // Using transparent background to support transparent modals
+      // The actual app background is handled by individual screens
+      theme={{ colors: { background: 'transparent' } } as Theme}
       onReady={onReady}
       ref={setNavigationRef}
     >

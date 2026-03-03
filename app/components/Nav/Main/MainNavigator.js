@@ -243,7 +243,11 @@ const WalletTabStackFlow = () => (
 
 const WalletTabModalFlow = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
   >
     <Stack.Screen
       name={Routes.WALLET.TAB_STACK_FLOW}
@@ -253,7 +257,9 @@ const WalletTabModalFlow = () => (
 );
 
 const TransactionsHome = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{ cardStyle: { backgroundColor: importedColors.white } }}
+  >
     <Stack.Screen
       name={Routes.TRANSACTIONS_VIEW}
       component={ActivityView}
@@ -289,7 +295,11 @@ const TransactionsHome = () => (
 
 const RewardsHome = () => (
   <Stack.Navigator
-    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
+    screenOptions={{
+      ...clearStackNavigatorOptions,
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
   >
     <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
     <Stack.Screen
@@ -322,7 +332,7 @@ const BrowserFlow = (props) => (
     initialRouteName={Routes.BROWSER.VIEW}
     screenOptions={{
       presentation: 'modal',
-      cardStyle: { backgroundColor: importedColors.transparent },
+      cardStyle: { backgroundColor: importedColors.white },
     }}
   >
     <Stack.Screen
@@ -346,7 +356,10 @@ const BrowserFlow = (props) => (
 const ExploreHome = () => (
   <Stack.Navigator
     initialRouteName={Routes.TRENDING_FEED}
-    screenOptions={{ presentation: 'modal' }}
+    screenOptions={{
+      presentation: 'modal',
+      cardStyle: { backgroundColor: importedColors.white },
+    }}
   >
     <Stack.Screen
       name={Routes.TRENDING_FEED}
