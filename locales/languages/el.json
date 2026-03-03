@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "Αγοράστε mUSD",
       "get_musd": "Αποκτήστε mUSD",
-      "boost_title": "Λάβετε {{percentage}}% σε stablecoins",
-      "boost_description": "Μετατρέψτε τα stablecoins σε mUSD και λάβετε μπόνους έως και {{percentage}}%.",
+      "bonus_title": "Λάβετε {{percentage}}% σε stablecoins",
+      "bonus_description": "Μετατρέψτε τα stablecoins σε mUSD και λάβετε μπόνους έως και {{percentage}}%.",
       "powered_by_relay": "Υποστηρίζεται από το Relay"
     },
     "bonus_claim": {

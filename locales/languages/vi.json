@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "Mua mUSD",
       "get_musd": "Nhận mUSD",
-      "boost_title": "Nhận {{percentage}}% cho đồng ổn định của bạn",
-      "boost_description": "Chuyển đổi đồng ổn định sang mUSD và nhận thưởng lên đến {{percentage}}%.",
+      "bonus_title": "Nhận {{percentage}}% cho đồng ổn định của bạn",
+      "bonus_description": "Chuyển đổi đồng ổn định sang mUSD và nhận thưởng lên đến {{percentage}}%.",
       "powered_by_relay": "Cung cấp bởi Relay"
     },
     "bonus_claim": {

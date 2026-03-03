@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "mUSD खरीदें",
       "get_musd": "mUSD प्राप्त करें",
-      "boost_title": "अपने स्टेबलकॉइंस पर {{percentage}}% पाएं",
-      "boost_description": "अपने स्टेबलकॉइंस को mUSD में कन्वर्ट करें और {{percentage}}% तक का बोनस प्राप्त करें।",
+      "bonus_title": "अपने स्टेबलकॉइंस पर {{percentage}}% पाएं",
+      "bonus_description": "अपने स्टेबलकॉइंस को mUSD में कन्वर्ट करें और {{percentage}}% तक का बोनस प्राप्त करें।",
       "powered_by_relay": "Relay द्वारा संचालित"
     },
     "bonus_claim": {

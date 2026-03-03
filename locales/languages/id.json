@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "Beli mUSD",
       "get_musd": "Dapatkan mUSD",
-      "boost_title": "Dapatkan {{percentage}}% pada stablecoin",
-      "boost_description": "Konversikan stablecoin ke mUSD dan dapatkan bonus hingga {{percentage}}%.",
+      "bonus_title": "Dapatkan {{percentage}}% pada stablecoin",
+      "bonus_description": "Konversikan stablecoin ke mUSD dan dapatkan bonus hingga {{percentage}}%.",
       "powered_by_relay": "Didukung oleh Relay"
     },
     "bonus_claim": {

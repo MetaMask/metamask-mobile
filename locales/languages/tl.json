@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "Bumili ng mUSD",
       "get_musd": "Kumuha ng mUSD",
-      "boost_title": "Makakakuha ng {{percentage}}% sa mga stablecoin mo",
-      "boost_description": "I-convert ang mga stablecoin mo sa mUSD at makakatanggap ng hanggang {{percentage}}% na bonus.",
+      "bonus_title": "Makakakuha ng {{percentage}}% sa mga stablecoin mo",
+      "bonus_description": "I-convert ang mga stablecoin mo sa mUSD at makakatanggap ng hanggang {{percentage}}% na bonus.",
       "powered_by_relay": "Pinapagana ng Relay"
     },
     "bonus_claim": {

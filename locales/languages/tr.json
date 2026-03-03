@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "mUSD al",
       "get_musd": "mUSD kazan",
-      "boost_title": "Stabil kripto paranızda %{{percentage}} bonus kazanın",
-      "boost_description": "Stabil kripto paranızı mUSD'ye dönüştürün ve %{{percentage}} oranına varan bonus kazanın.",
+      "bonus_title": "Stabil kripto paranızda %{{percentage}} bonus kazanın",
+      "bonus_description": "Stabil kripto paranızı mUSD'ye dönüştürün ve %{{percentage}} oranına varan bonus kazanın.",
       "powered_by_relay": "Destekleyen Relay"
     },
     "bonus_claim": {

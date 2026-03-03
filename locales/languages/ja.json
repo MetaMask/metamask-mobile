@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "mUSDを購入",
       "get_musd": "mUSDを入手",
-      "boost_title": "ステーブルコインで{{percentage}}%をゲット",
-      "boost_description": "お持ちのステーブルコインをmUSDに換えて、最大{{percentage}}%のボーナスを受け取りましょう。",
+      "bonus_title": "ステーブルコインで{{percentage}}%をゲット",
+      "bonus_description": "お持ちのステーブルコインをmUSDに換えて、最大{{percentage}}%のボーナスを受け取りましょう。",
       "powered_by_relay": "Powered by Relay"
     },
     "bonus_claim": {

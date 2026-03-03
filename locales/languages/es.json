@@ -5935,8 +5935,8 @@
       },
       "buy_musd": "Comprar mUSD",
       "get_musd": "Obtener USDC",
-      "boost_title": "Obtén un {{percentage}} % en tus monedas estables",
-      "boost_description": "Convierte tus monedas estables a mUSD y recibe un bono de hasta el {{percentage}} %.",
+      "bonus_title": "Obtén un {{percentage}} % en tus monedas estables",
+      "bonus_description": "Convierte tus monedas estables a mUSD y recibe un bono de hasta el {{percentage}} %.",
       "powered_by_relay": "Desarrollado por Relay"
     },
     "bonus_claim": {
