@@ -3,8 +3,10 @@ import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
 import { useMusdConversionStaleApprovalCleanup } from './useMusdConversionStaleApprovalCleanup';
-import { selectPendingUnapprovedMusdConversions } from '../selectors/musdConversionStatus';
+import { selectUnapprovedMusdConversions } from '../selectors/musdConversionStatus';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -24,8 +26,18 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
+jest.mock('../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      getCurrentRoute: jest.fn(),
+      goBack: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../selectors/musdConversionStatus', () => ({
-  selectPendingUnapprovedMusdConversions: jest.fn(),
+  selectUnapprovedMusdConversions: jest.fn(),
 }));
 
 describe('useMusdConversionStaleApprovalCleanup', () => {
@@ -34,16 +46,21 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   >;
   const mockRejectPendingApproval = jest.mocked(Engine.rejectPendingApproval);
   const mockLoggerLog = jest.mocked(Logger.log);
-  const mockSelectPendingUnapprovedMusdConversions = jest.mocked(
-    selectPendingUnapprovedMusdConversions,
+  const mockSelectUnapprovedMusdConversions = jest.mocked(
+    selectUnapprovedMusdConversions,
   );
+  const mockGetCurrentRoute = jest.mocked(
+    NavigationService.navigation.getCurrentRoute,
+  );
+  const mockGoBack = jest.mocked(NavigationService.navigation.goBack);
 
   let appStateHandler: ((nextAppState: AppStateStatus) => void) | undefined;
   let removeSubscriptionMock: jest.Mock;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
-    mockSelectPendingUnapprovedMusdConversions.mockReturnValue([]);
+    mockSelectUnapprovedMusdConversions.mockReturnValue([]);
 
     removeSubscriptionMock = jest.fn();
     appStateHandler = undefined;
@@ -60,15 +77,18 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         } as unknown as ReturnType<typeof AppState.addEventListener>;
       });
 
+    mockGetCurrentRoute.mockReturnValue(undefined as never);
+
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectPendingUnapprovedMusdConversions) {
-        return mockSelectPendingUnapprovedMusdConversions({} as never);
+      if (selector === selectUnapprovedMusdConversions) {
+        return mockSelectUnapprovedMusdConversions({} as never);
       }
       return undefined as ReturnType<typeof selector>;
     });
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -88,7 +108,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   });
 
   it('rejects stale pending approvals when app returns to active', () => {
-    mockSelectPendingUnapprovedMusdConversions.mockReturnValue([
+    mockSelectUnapprovedMusdConversions.mockReturnValue([
       { id: 'tx-1' } as never,
     ]);
 
@@ -123,7 +143,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   });
 
   it('does not reject approvals on inactive to active transition', () => {
-    mockSelectPendingUnapprovedMusdConversions.mockReturnValue([
+    mockSelectUnapprovedMusdConversions.mockReturnValue([
       { id: 'tx-1' } as never,
     ]);
 
@@ -139,7 +159,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   });
 
   it('does not reject approvals when there are no stale pending approvals', () => {
-    mockSelectPendingUnapprovedMusdConversions.mockReturnValue([]);
+    mockSelectUnapprovedMusdConversions.mockReturnValue([]);
 
     renderHook(() => useMusdConversionStaleApprovalCleanup());
 
@@ -153,7 +173,7 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
   });
 
   it('uses latest pending approvals after rerender', () => {
-    mockSelectPendingUnapprovedMusdConversions
+    mockSelectUnapprovedMusdConversions
       .mockReturnValueOnce([])
       .mockReturnValue([{ id: 'tx-latest' } as never]);
 
@@ -176,5 +196,63 @@ describe('useMusdConversionStaleApprovalCleanup', () => {
         logErrors: false,
       },
     );
+  });
+
+  it('navigates back when confirmation screen is focused after rejecting stale approvals', () => {
+    mockSelectUnapprovedMusdConversions.mockReturnValue([
+      { id: 'tx-1' } as never,
+    ]);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+    act(() => {
+      appStateHandler?.('background');
+      appStateHandler?.('active');
+    });
+
+    jest.runAllTimers();
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate back when a different screen is focused', () => {
+    mockSelectUnapprovedMusdConversions.mockReturnValue([
+      { id: 'tx-1' } as never,
+    ]);
+    mockGetCurrentRoute.mockReturnValue({
+      name: 'SomeOtherScreen',
+    } as never);
+
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+    act(() => {
+      appStateHandler?.('background');
+      appStateHandler?.('active');
+    });
+
+    jest.runAllTimers();
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate back when no stale approvals exist', () => {
+    mockSelectUnapprovedMusdConversions.mockReturnValue([]);
+    mockGetCurrentRoute.mockReturnValue({
+      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    } as never);
+
+    renderHook(() => useMusdConversionStaleApprovalCleanup());
+
+    act(() => {
+      appStateHandler?.('background');
+      appStateHandler?.('active');
+    });
+
+    jest.runAllTimers();
+
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

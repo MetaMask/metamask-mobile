@@ -5,7 +5,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { selectTransactions } from '../../../../selectors/transactionController';
-import { selectPendingApprovals } from '../../../../selectors/approvalController';
 
 interface ConversionStatusInfo {
   txId: string;
@@ -50,28 +49,11 @@ export const selectUnapprovedMusdConversions = createSelector(
 );
 
 /**
- * Selects pending unapproved mUSD conversion transactions.
- *
- * These are mUSD conversion transactions that are still unapproved and also
- * present in ApprovalController pending approvals.
- */
-export const selectPendingUnapprovedMusdConversions = createSelector(
-  [selectUnapprovedMusdConversions, selectPendingApprovals],
-  (unapprovedConversions, pendingApprovals): TransactionMeta[] => {
-    const pendingApprovalIds = new Set(Object.keys(pendingApprovals ?? {}));
-
-    return unapprovedConversions.filter((transactionMeta) =>
-      pendingApprovalIds.has(transactionMeta.id),
-    );
-  },
-);
-
-/**
  * True when any mUSD conversion is awaiting user approval.
  * Used to disable quick-convert actions while approval is pending.
  */
 export const selectHasUnapprovedMusdConversion = createSelector(
-  [selectPendingUnapprovedMusdConversions],
+  [selectUnapprovedMusdConversions],
   (pendingUnapprovedConversions): boolean =>
     pendingUnapprovedConversions.length > 0,
 );

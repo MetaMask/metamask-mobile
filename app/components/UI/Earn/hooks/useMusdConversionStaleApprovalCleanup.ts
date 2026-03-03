@@ -4,7 +4,9 @@ import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { selectPendingUnapprovedMusdConversions } from '../selectors/musdConversionStatus';
+import NavigationService from '../../../../core/NavigationService';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectUnapprovedMusdConversions } from '../selectors/musdConversionStatus';
 
 /**
  * Rejects stale mUSD conversion pending approvals on app foreground.
@@ -16,7 +18,7 @@ import { selectPendingUnapprovedMusdConversions } from '../selectors/musdConvers
  */
 export const useMusdConversionStaleApprovalCleanup = () => {
   const pendingUnapprovedMusdConversions = useSelector(
-    selectPendingUnapprovedMusdConversions,
+    selectUnapprovedMusdConversions,
   );
 
   const pendingMusdUnapprovedTransactionIds = useMemo(
@@ -81,6 +83,18 @@ export const useMusdConversionStaleApprovalCleanup = () => {
       }
 
       previousAppState = nextAppState;
+
+      // Pop the orphaned confirmation screen on the next frame so React
+      // finishes processing the approval-rejection state updates first.
+      requestAnimationFrame(() => {
+        const currentRoute = NavigationService.navigation.getCurrentRoute();
+        if (
+          currentRoute?.name ===
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+        ) {
+          NavigationService.navigation.goBack();
+        }
+      });
     };
 
     const appStateListener = AppState.addEventListener(
