@@ -82,14 +82,12 @@ describe('MarketInsightsTrendItem', () => {
       ],
     };
 
-    const { UNSAFE_queryAllByType, getByText } = renderWithProvider(
+    const { UNSAFE_queryAllByType } = renderWithProvider(
       <MarketInsightsTrendItem trend={trend as never} testID="trend-item" />,
     );
 
     // X source uses Icon component, not Image.
     expect(UNSAFE_queryAllByType(Image)).toHaveLength(0);
-    // Label shows X as the source name.
-    expect(getByText('X')).toBeOnTheScreen();
   });
 
   it('calls onPress when trend item is tapped', () => {

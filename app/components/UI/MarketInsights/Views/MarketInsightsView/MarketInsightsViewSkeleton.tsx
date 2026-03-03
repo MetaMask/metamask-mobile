@@ -5,9 +5,6 @@ import {
   Box,
   Text,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Icon,
   IconName,
   IconSize,
@@ -57,7 +54,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
       </Box>
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
+        contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4 pt-4 pb-3" gap={2}>
@@ -99,19 +96,6 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
           </Box>
         </Box>
       </ScrollView>
-
-      <Box
-        twClassName={`absolute bottom-0 left-0 right-0 bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          isDisabled
-        >
-          {strings('market_insights.trade_button')}
-        </Button>
-      </Box>
     </Box>
   );
 };
