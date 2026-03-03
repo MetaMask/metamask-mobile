@@ -11,7 +11,10 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import {
+  setupDepositOnRampMocks,
+  setupBuyOnRampMocks,
+} from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -25,12 +28,25 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
-const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagRampsUnifiedEnabled(true),
+    depositConfig: {
+      active: true,
+      providerApiKey: 'DUMMY_VALUE_FOR_TESTING',
+      entrypoints: { walletActions: true },
+      minimumVersion: '1.0.0',
+    },
+  });
+  await setupDepositOnRampMocks(mockServer, selectedRegion);
+};
+
+const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     remoteFeatureFlagRampsUnifiedEnabled(true),
   );
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await setupBuyOnRampMocks(mockServer, selectedRegion);
 };
 
 // Deposit order mock (ramps-deposit-order-status-response) returns USD; UI shows $ + formatFiatValue
