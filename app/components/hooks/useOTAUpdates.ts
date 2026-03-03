@@ -24,6 +24,8 @@ export const useOTAUpdates = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    const hadCompletedOnboarding = completedOnboarding;
+
     const checkForUpdates = async () => {
       if (!otaUpdatesEnabled || __DEV__) {
         return;
@@ -37,7 +39,7 @@ export const useOTAUpdates = () => {
 
           if (fetchResult.isNew) {
             InteractionManager.runAfterInteractions(() => {
-              if (completedOnboarding) {
+              if (hadCompletedOnboarding) {
                 navigation.navigate(...createOTAUpdatesModalNavDetails());
               } else {
                 Logger.log(
@@ -60,5 +62,9 @@ export const useOTAUpdates = () => {
     };
 
     checkForUpdates();
-  }, [navigation, otaUpdatesEnabled, completedOnboarding]);
+    // Intentionally omit completedOnboarding: we use its value at check start time
+    // so that finishing onboarding in the same session does not re-run the check
+    // and show the modal (update stays deferred to next launch).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, otaUpdatesEnabled]);
 };
