@@ -182,6 +182,7 @@ export async function ensureAccountGroupsFinishedLoading(device) {
  */
 export function ensurePlaygroundInstalled() {
   const apkPath = resolvePlaygroundApkPath();
+  console.log(`Resolved playground APK path: ${apkPath}`);
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {

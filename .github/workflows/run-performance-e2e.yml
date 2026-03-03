@@ -296,7 +296,7 @@ jobs:
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
     secrets: inherit
 
-  fetch-rn-playground-apk:
+  fetch-rn-playground-apk-upload-to-browserstack:
     name: Fetch RN Playground APK and Upload to BrowserStack
     runs-on: ubuntu-latest
     needs: [wait-for-onboarding-completion]
@@ -311,9 +311,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RN_PLAYGROUND_APK_VERSION: ${{ vars.RN_PLAYGROUND_APK_VERSION || '' }}
-        run: |
-          chmod +x ./scripts/fetch-rn-playground-apk.sh
-          ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
+        run: ./scripts/fetch-rn-playground-apk.sh --output ./tmp/rn-playground.apk
 
       - name: Upload playground APK to BrowserStack
         id: upload-playground
@@ -341,11 +339,11 @@ jobs:
       [
         read-device-matrix,
         trigger-android-dual-versions,
-        fetch-rn-playground-apk,
+        fetch-rn-playground-apk-upload-to-browserstack,
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk.result == 'success'
+    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '') && needs.fetch-rn-playground-apk-upload-to-browserstack.result == 'success'
     with:
       platform: android
       build_type: mm-connect
@@ -354,7 +352,7 @@ jobs:
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
-      browserstack_playground_url: ${{ needs.fetch-rn-playground-apk.outputs.browserstack-playground-url }}
+      browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
     secrets: inherit
 
   aggregate-results:
