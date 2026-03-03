@@ -29,6 +29,7 @@ import { selectSelectedInternalAccountId } from '../../../../../selectors/accoun
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
+import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 
 const MAX_TOKENS_DISPLAYED = 5;
 
@@ -51,6 +52,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
+  const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
   const popularTokensListRef = useRef<SectionRefreshHandle>(null);
   const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -147,6 +149,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               setShowScamWarningModal={noopSetShowScamWarningModal}
               privacyMode={privacyMode}
               showPercentageChange
+              shouldShowTokenListItemCta={shouldShowTokenListItemCta}
             />
           ))}
         </SectionRow>
