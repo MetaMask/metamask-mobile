@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, SectionList, Linking } from 'react-native';
+import { View, SectionList } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +25,6 @@ import styleSheet from './MusdQuickConvertView.styles';
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { TagProps } from '../../../../../component-library/components/Tags/Tag/Tag.types';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
-import AppConstants from '../../../../../core/AppConstants';
 import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
@@ -238,10 +237,6 @@ const MusdQuickConvertView = () => {
     </View>
   );
 
-  const handleTermsOfUsePressed = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, []);
-
   // If feature flags are not enabled, don't render
   if (!isQuickConvertEnabled) {
     return null;
@@ -258,21 +253,13 @@ const MusdQuickConvertView = () => {
         <View style={styles.headerTextContainer}>
           <Text variant={TextVariant.HeadingLG}>
             {strings('earn.musd_conversion.quick_convert.title', {
-              apy: MUSD_CONVERSION_APY,
+              percentage: MUSD_CONVERSION_APY,
             })}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('earn.musd_conversion.quick_convert.subtitle', {
-              apy: MUSD_CONVERSION_APY,
-            })}{' '}
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.termsApply}
-              onPress={handleTermsOfUsePressed}
-            >
-              {strings('earn.musd_conversion.education.terms_apply')}
-            </Text>
+              percentage: MUSD_CONVERSION_APY,
+            })}
           </Text>
         </View>
         {hasMusdBalanceOnAnyChain && (

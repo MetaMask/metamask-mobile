@@ -407,7 +407,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "height": 24,
                                       "width": 24,
                                     },
@@ -448,7 +448,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -533,7 +533,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -577,8 +577,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderColor": "#b7bbc8",
+                                      "backgroundColor": "#b4b4b528",
+                                      "borderColor": "#949596",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -607,14 +607,14 @@ exports[`AddActivationKey renders correctly 1`] = `
                                       onFocus={[Function]}
                                       onSubmitEditing={[Function]}
                                       placeholder="Add a label to this key"
-                                      placeholderTextColor="#686e7d"
+                                      placeholderTextColor="#66676a"
                                       returnKeyType="done"
                                       style={
                                         {
                                           "backgroundColor": "inherit",
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
@@ -644,7 +644,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -688,8 +688,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
-                                      "borderColor": "#b7bbc8",
+                                      "backgroundColor": "#b4b4b528",
+                                      "borderColor": "#949596",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -719,7 +719,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                       onFocus={[Function]}
                                       onSubmitEditing={[Function]}
                                       placeholder="Paste or type an activation key"
-                                      placeholderTextColor="#686e7d"
+                                      placeholderTextColor="#66676a"
                                       returnKeyType="done"
                                       spellCheck={false}
                                       style={
@@ -727,7 +727,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                           "backgroundColor": "inherit",
                                           "borderColor": "transparent",
                                           "borderWidth": 1,
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
@@ -767,7 +767,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -784,7 +784,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -807,7 +807,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flex": 1,
                                       "flexDirection": "row",

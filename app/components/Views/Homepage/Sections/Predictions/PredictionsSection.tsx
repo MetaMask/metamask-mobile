@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
@@ -45,7 +45,7 @@ import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 const MAX_MARKETS_DISPLAYED = 5;
 
 // Card dimensions for snap offsets
-const CARD_WIDTH = 280;
+const CARD_WIDTH = 240;
 const GAP = 12;
 const PADDING = 16; // px-4
 
@@ -287,8 +287,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               ))}
               <ViewMoreCard
                 onPress={handleViewAllPredictions}
-                twClassName="w-[180px] h-[180px]"
-                textVariant={TextVariant.BodyLg}
+                twClassName="w-[180px] flex-1"
               />
             </>
           )}
