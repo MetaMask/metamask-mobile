@@ -43,6 +43,9 @@ import sampleCounterReducer from '../features/SampleFeature/reducers/sample-coun
 ///: END:ONLY_INCLUDE_IF
 import cardReducer from '../core/redux/slices/card';
 import rewardsReducer, { RewardsState } from './rewards';
+import tokenApprovalsReducer, {
+  TokenApprovalsState,
+} from '../core/redux/slices/tokenApprovals';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -131,6 +134,7 @@ export interface RootState {
   ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
+  tokenApprovals: TokenApprovalsState;
   networkConnectionBanner: NetworkConnectionBannerState;
 }
 
@@ -173,6 +177,7 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
+  tokenApprovals: tokenApprovalsReducer,
   networkConnectionBanner: networkConnectionBannerReducer,
 };
 
