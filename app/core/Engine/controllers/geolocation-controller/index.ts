@@ -1,5 +1,6 @@
 import {
   GeolocationController,
+  getDefaultGeolocationControllerState,
   type GeolocationControllerMessenger,
 } from '@metamask/geolocation-controller';
 import type { ControllerInitFunction } from '../../types';
@@ -9,14 +10,20 @@ import type { ControllerInitFunction } from '../../types';
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
+ * @param request.persistedState - The persisted state to hydrate from.
  * @returns The initialized controller.
  */
 export const geolocationControllerInit: ControllerInitFunction<
   GeolocationController,
   GeolocationControllerMessenger
-> = ({ controllerMessenger }) => {
+> = ({ controllerMessenger, persistedState }) => {
+  const geolocationControllerState =
+    persistedState.GeolocationController ??
+    getDefaultGeolocationControllerState();
+
   const controller = new GeolocationController({
     messenger: controllerMessenger,
+    state: geolocationControllerState,
   });
 
   // Eagerly fetch geolocation on Engine start so the value is available
