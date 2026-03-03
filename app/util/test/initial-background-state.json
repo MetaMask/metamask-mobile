@@ -755,7 +755,8 @@
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {}
+    "subscriptions": {},
+    "rewardsEnvUrl": null
   },
   "PredictController": {
     "eligibility": { "eligible": false },
@@ -819,6 +820,7 @@
         }
       }
     },
-    "requests": {}
+    "requests": {},
+    "orders": []
   }
 }

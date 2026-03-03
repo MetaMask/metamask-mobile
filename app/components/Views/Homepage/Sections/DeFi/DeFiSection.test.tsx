@@ -1,8 +1,27 @@
 import React, { createRef } from 'react';
-import { screen, act } from '@testing-library/react-native';
+import { screen, act, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import DeFiSection from './DeFiSection';
 import { SectionRefreshHandle } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+const mockExecutePoll = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    DeFiPositionsController: {
+      _executePoll: (...args: unknown[]) => mockExecutePoll(...args),
+    },
+  },
+}));
 
 jest.mock(
   '../../../../../selectors/featureFlagController/assetsDefiPositions',
@@ -110,7 +129,7 @@ describe('DeFiSection', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('returns null when there is an error and not loading', () => {
+  it('renders error state with retry when there is an error and not loading', () => {
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [],
       isLoading: false,
@@ -118,9 +137,28 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    const { toJSON } = renderWithProvider(<DeFiSection />);
+    renderWithProvider(<DeFiSection />);
 
-    expect(toJSON()).toBeNull();
+    expect(screen.getByText('DeFi')).toBeOnTheScreen();
+    expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
+    expect(screen.getByText(/retry/i)).toBeOnTheScreen();
+  });
+
+  it('calls _executePoll on retry button press', async () => {
+    mockUseDeFiPositionsForHomepage.mockReturnValue({
+      positions: [],
+      isLoading: false,
+      hasError: true,
+      isEmpty: false,
+    });
+
+    renderWithProvider(<DeFiSection />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText(/retry/i));
+    });
+
+    expect(mockExecutePoll).toHaveBeenCalled();
   });
 
   it('renders skeleton when loading', () => {
@@ -151,7 +189,7 @@ describe('DeFiSection', () => {
     expect(screen.getByText('Uniswap')).toBeOnTheScreen();
   });
 
-  it('title is not interactive (no drill-down for DeFi)', () => {
+  it('navigates to DeFi full view when title is pressed', () => {
     mockUseDeFiPositionsForHomepage.mockReturnValue({
       positions: [createMockPosition('Aave')],
       isLoading: false,
@@ -161,10 +199,9 @@ describe('DeFiSection', () => {
 
     renderWithProvider(<DeFiSection />);
 
-    // DeFi section title exists but is not interactive - no onPress passed to SectionTitle
-    expect(screen.getByText('DeFi')).toBeOnTheScreen();
-    // Verify no arrow icon is rendered (arrow only shows when onPress is provided)
-    expect(screen.queryByTestId('icon-arrow-right')).toBeNull();
+    fireEvent.press(screen.getByText('DeFi'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.DEFI_FULL_VIEW);
   });
 
   it('exposes refresh function via ref', async () => {
@@ -186,6 +223,6 @@ describe('DeFiSection', () => {
       await ref.current?.refresh();
     });
 
-    // Refresh is a no-op for DeFi (data comes from controller)
+    expect(mockExecutePoll).toHaveBeenCalled();
   });
 });

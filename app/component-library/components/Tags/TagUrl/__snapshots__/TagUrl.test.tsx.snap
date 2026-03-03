@@ -7,7 +7,7 @@ exports[`TagUrl should render correctly 1`] = `
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#949596",
       "borderRadius": 99,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -36,7 +36,7 @@ exports[`TagUrl should render correctly 1`] = `
   <Text
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "flexShrink": 1,
       }
     }

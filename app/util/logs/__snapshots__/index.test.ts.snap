@@ -634,6 +634,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             },
           },
         },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -667,6 +668,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "activeBoosts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
+        "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
         "snapshots": {},
@@ -1487,6 +1489,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             },
           },
         },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -1520,6 +1523,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "activeBoosts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
+        "rewardsEnvUrl": null,
         "seasonStatuses": {},
         "seasons": {},
         "snapshots": {},
