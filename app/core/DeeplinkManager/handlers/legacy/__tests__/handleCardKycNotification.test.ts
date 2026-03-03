@@ -86,7 +86,7 @@ describe('handleCardKycNotification', () => {
     );
 
     // Mock CardSDK
-    (CardSDK as jest.Mock).mockImplementation(() => ({
+    (CardSDK as unknown as jest.Mock).mockImplementation(() => ({
       getRegistrationStatus: mockGetRegistrationStatus,
       getUserDetails: mockGetUserDetails,
     }));
