@@ -1,15 +1,22 @@
 import type { Theme } from '../../../../util/theme/models';
 import { chartLogicScript } from './webview';
 
-// AWS S3 - CORS configured to allow origin: null from WebView iframes
+/**
+ * CDN base URL for the TradingView charting library assets.
+ *
+ * Production: set MM_CHARTING_LIBRARY_URL to the CloudFront distribution URL
+ * (trailing slash required). Defaults to the S3 origin until the CloudFront
+ * distribution is delivered by DevOps.
+ *
+ * Local development: override MM_CHARTING_LIBRARY_URL with a local http-server
+ * URL (e.g. http://localhost:8000/) and run:
+ * npx http-server --cors -p 8000 <dir-containing-charting_library/>
+ */
 export const CHARTING_LIBRARY_BASE_URL =
+  process.env.MM_CHARTING_LIBRARY_URL ||
   'https://va-mmcx-terminal.s3.us-east-2.amazonaws.com/charting_library/';
-const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
-// Local development server fallback:
-//   npx http-server --cors -p 8000 <dir-containing-charting_library/>
-// export const CHARTING_LIBRARY_BASE_URL = 'http://localhost:8000/';
-// const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
+const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
 /**
  * Strip the alpha channel from a hex color string.
