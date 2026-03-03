@@ -505,7 +505,7 @@ class WalletView {
   }
 
   get predictionsTab(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.PREDICTIONS_TAB);
+    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
   }
 
   get PredictionsTabContainer(): DetoxElement {
@@ -520,14 +520,14 @@ class WalletView {
     return Matchers.getElementByText('DeFi');
   }
 
-  /** Perpetuals section header on the homepage (assumes English locale). */
+  /** Perpetuals section title button on the homepage (assumes English locale). */
   get perpsSectionHeader(): DetoxElement {
-    return Matchers.getElementByText('Perpetuals');
+    return Matchers.getElementByLabel('Perpetuals');
   }
 
-  /** Predictions section header on the homepage (assumes English locale). */
+  /** Predictions section title button on the homepage (assumes English locale). */
   get predictionsSectionHeader(): DetoxElement {
-    return Matchers.getElementByText('Predictions');
+    return Matchers.getElementByLabel('Predictions');
   }
 
   /** Tokens section header on the homepage (assumes English locale). */
@@ -656,7 +656,9 @@ class WalletView {
       this.walletScrollViewMatcher,
       {
         direction: 'down',
-        scrollAmount: 350,
+        scrollAmount: 200,
+        startPositionY: 0.85,
+        timeout: 20000,
         elemDescription: 'scroll to Perpetuals section',
       },
     );
@@ -673,7 +675,9 @@ class WalletView {
       this.walletScrollViewMatcher,
       {
         direction: 'down',
-        scrollAmount: 350,
+        scrollAmount: 200,
+        startPositionY: 0.85,
+        timeout: 20000,
         elemDescription: 'scroll to Predictions section',
       },
     );
@@ -912,7 +916,7 @@ class WalletView {
   }
 
   get newPerpsSection(): DetoxElement {
-    return Matchers.getElementByText('Perpetuals');
+    return Matchers.getElementByLabel('Perpetuals');
   }
 
   async tapOnPerpsTab(): Promise<void> {
