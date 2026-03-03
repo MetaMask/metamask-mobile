@@ -259,7 +259,7 @@ const MusdQuickConvertView = () => {
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('earn.musd_conversion.quick_convert.subtitle', {
               percentage: MUSD_CONVERSION_APY,
-            })}{' '}
+            })}
           </Text>
         </View>
         {hasMusdBalanceOnAnyChain && (
