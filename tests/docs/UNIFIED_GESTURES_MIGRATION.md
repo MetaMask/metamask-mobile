@@ -61,7 +61,7 @@ get passwordInput(): EncapsulatedElementType {
 
 ```typescript
 // Before
-import Gestures from '../../framework/Gestures';
+import { Gestures } from '../../framework';
 
 async enterPassword(password: string) {
   await Gestures.typeText(this.passwordInput, password, {
@@ -71,7 +71,7 @@ async enterPassword(password: string) {
 }
 
 // After
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import { UnifiedGestures } from '../../framework';
 
 async enterPassword(password: string) {
   await UnifiedGestures.typeText(this.passwordInput, password, {
@@ -90,7 +90,7 @@ Framework-specific options like `hideKeyboard`, `checkStability`, and `clearFirs
 For the rare ~3% of methods where Detox and Appium need structurally different flows:
 
 ```typescript
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { encapsulatedAction } from '../../framework';
 
 async dismissOnboarding() {
   await encapsulatedAction({
@@ -111,7 +111,7 @@ async dismissOnboarding() {
 When the unified approach becomes overly complex for a specific case, you can always use `FrameworkDetector` or `PlatformDetector` directly for custom conditional logic:
 
 ```typescript
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { FrameworkDetector } from '../../framework';
 
 async complexSpecialCase() {
   if (FrameworkDetector.isDetox()) {
@@ -129,8 +129,7 @@ This should be the last resort. Prefer `UnifiedGestures` > `encapsulatedAction()
 ### Before (Detox-only)
 
 ```typescript
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import { Gestures, Matchers } from '../../framework';
 import { LoginViewSelectors } from '../../selectors/LoginView.selectors';
 
 class LoginView {
@@ -157,13 +156,13 @@ class LoginView {
 ### After (Unified)
 
 ```typescript
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import { UnifiedGestures } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import Matchers from '../../framework/Matchers';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+  Matchers,
+  PlaywrightMatchers,
+} from '../../framework';
 import { LoginViewSelectors } from '../../selectors/LoginView.selectors';
 
 class LoginView {

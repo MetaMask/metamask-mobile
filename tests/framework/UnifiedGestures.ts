@@ -4,6 +4,7 @@ import {
   GestureStrategy,
   UnifiedGestureOptions,
   TapAtIndexElement,
+  ScrollViewMatcher,
   DetoxGestureStrategy,
   AppiumGestureStrategy,
 } from './GestureStrategy.ts';
@@ -17,7 +18,7 @@ import {
  *
  * @example
  * ```typescript
- * import UnifiedGestures from '../framework/UnifiedGestures';
+ * import { UnifiedGestures } from '../framework';
  *
  * class LoginView {
  *   get passwordInput(): EncapsulatedElementType { ... }
@@ -88,7 +89,7 @@ export default class UnifiedGestures {
 
   static async scrollToElement(
     target: EncapsulatedElementType,
-    scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.scrollToElement(target, scrollView, opts);

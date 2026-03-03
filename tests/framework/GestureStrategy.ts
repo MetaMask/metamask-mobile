@@ -25,6 +25,7 @@ export interface UnifiedGestureOptions {
  * or an array of elements (Appium selects by array index).
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
+export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
@@ -64,7 +65,7 @@ export interface GestureStrategy {
 
   scrollToElement(
     target: EncapsulatedElementType,
-    scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
@@ -195,18 +196,35 @@ export class DetoxGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
+    scrollView: ScrollViewMatcher,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    // Gestures.scrollToElement expects a Promise<NativeMatcher> (e.g. by.id()),
-    // not a DetoxElement. EncapsulatedElementType resolves to a NativeElement,
-    // which would cause element(scrollable) / whileElement(scrollable) to fail.
-    // Only accept an actual NativeMatcher here.
-    const scrollMatcher = scrollView as Promise<Detox.NativeMatcher>;
-    await Gestures.scrollToElement(asDetoxElement(target), scrollMatcher, {
-      timeout: opts?.timeout,
-      elemDescription: opts?.description,
-    });
+    const resolvedScrollView = await scrollView;
+
+    if (this.isLikelyDetoxElement(resolvedScrollView)) {
+      throw new Error(
+        'DetoxGestureStrategy.scrollToElement requires a Detox NativeMatcher ' +
+          '(e.g. Matchers.getIdentifier(...) or by.id(...)), not a DetoxElement.',
+      );
+    }
+
+    await Gestures.scrollToElement(
+      asDetoxElement(target),
+      Promise.resolve(resolvedScrollView),
+      {
+        timeout: opts?.timeout,
+        elemDescription: opts?.description,
+      },
+    );
+  }
+
+  private isLikelyDetoxElement(value: unknown): value is DetoxElement {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'tap' in value &&
+      typeof (value as { tap?: unknown }).tap === 'function'
+    );
   }
 
   /**
@@ -352,7 +370,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
+    _scrollView: ScrollViewMatcher,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
     await PlaywrightGestures.scrollIntoView(el);
@@ -375,7 +393,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async dblTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.unwrap().doubleClick();
+    await PlaywrightGestures.dblTap(el);
   }
 
   /**
