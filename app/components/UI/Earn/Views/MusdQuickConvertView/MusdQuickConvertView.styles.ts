@@ -26,9 +26,6 @@ const styleSheet = () =>
       alignItems: 'center',
       gap: 8,
     },
-    termsApply: {
-      textDecorationLine: 'underline',
-    },
     balanceCardContainer: {
       paddingVertical: 12,
     },
