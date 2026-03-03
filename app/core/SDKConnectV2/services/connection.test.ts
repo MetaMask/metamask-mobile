@@ -76,6 +76,8 @@ const mockHostApp: jest.Mocked<HostApplicationAdapter> = {
   showConnectionLoading: jest.fn(),
   hideConnectionLoading: jest.fn(),
   showConnectionError: jest.fn(),
+  showInternalError: jest.fn(),
+  showMethodError: jest.fn(),
   showNotFoundError: jest.fn(),
   showConfirmationRejectionError: jest.fn(),
   showReturnToApp: jest.fn(),
@@ -427,7 +429,7 @@ describe('Connection', () => {
       );
     });
 
-    it('shows error toast when bridge response includes an error', async () => {
+    it('shows internal error toast for server-range error codes (-32000 to -32099)', async () => {
       await Connection.create(
         mockConnectionInfo,
         mockKeyManager,
@@ -441,29 +443,94 @@ describe('Connection', () => {
           jsonrpc: '2.0',
           error: {
             code: -32000,
-            message: 'User rejected the request',
+            message: 'Server error',
           },
         },
       };
 
-      // Simulate the RPCBridgeAdapter emitting an error response
       onBridgeResponseCallback(errorResponsePayload);
 
-      // Should show error toast, not success toast
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledWith(
+      expect(mockHostApp.showInternalError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showInternalError).toHaveBeenCalledWith(
         mockConnectionInfo,
       );
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+      expect(mockHostApp.showConfirmationRejectionError).not.toHaveBeenCalled();
       expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
 
-      // And still send the error response to the client
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         errorResponsePayload,
       );
     });
 
-    it('shows confirmation rejection error toast when bridge response includes user rejected request error', async () => {
+    it('shows internal error toast for JSON-RPC internal error code (-32603)', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const errorResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Internal error',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(errorResponsePayload);
+
+      expect(mockHostApp.showInternalError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showInternalError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows method error toast for non-rejection, non-internal error codes', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const errorResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: 53,
+            reason: 'Invalid URL',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(errorResponsePayload);
+
+      expect(mockHostApp.showMethodError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showMethodError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+      expect(mockHostApp.showConfirmationRejectionError).not.toHaveBeenCalled();
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        errorResponsePayload,
+      );
+    });
+
+    it('shows confirmation rejection error toast for EVM user rejected request (4001)', async () => {
       await Connection.create(
         mockConnectionInfo,
         mockKeyManager,
@@ -482,24 +549,92 @@ describe('Connection', () => {
         },
       };
 
-      // Simulate the RPCBridgeAdapter emitting a user rejected error response
       onBridgeResponseCallback(userRejectedErrorResponsePayload);
 
-      // Should show confirmation rejection error toast, not generic error toast
       expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
         1,
       );
       expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledWith(
         mockConnectionInfo,
       );
-      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+      expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
       expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
 
-      // And still send the error response to the client
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         userRejectedErrorResponsePayload,
       );
+    });
+
+    it('shows confirmation rejection error toast for Solana user rejection (5000)', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const solanaRejectionPayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: 5000,
+            message: 'User rejected the request',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(solanaRejectionPayload);
+
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+      expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs error payload at warn level when error toast is shown', async () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const errorResponsePayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: 53,
+            message: 'Invalid URL',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(errorResponsePayload);
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        '[SDKConnectV2]',
+        'RPC error response',
+        {
+          connectionId: mockConnectionInfo.id,
+          code: 53,
+          message: 'Invalid URL',
+        },
+      );
+
+      warnSpy.mockRestore();
     });
 
     it('shows success toast for successful response with result', async () => {

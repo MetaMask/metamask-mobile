@@ -3386,7 +3386,7 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": 
+    "seed_phrase_warning_explanation":
       "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
     "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
@@ -7820,6 +7820,14 @@
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
+    },
+    "show_internal_error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again."
+    },
+    "show_method_error": {
+      "title": "Request failed",
+      "description": "The request could not be completed. Please try again."
     }
   },
   "network_connection_banner": {
