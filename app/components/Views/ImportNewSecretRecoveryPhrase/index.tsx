@@ -242,7 +242,10 @@ const ImportNewSecretRecoveryPhrase = () => {
   };
 
   const content = (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+    >
       <HeaderCompactStandard
         includesTopInset
         backButtonProps={{
@@ -261,8 +264,15 @@ const ImportNewSecretRecoveryPhrase = () => {
         testID={ImportSRPIDs.SCREEN_TITLE_ID}
         title={strings('import_new_secret_recovery_phrase.import_wallet_title')}
         bottomAccessory={
-          <View style={styles.subtitleContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-1"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
             </Text>
             <ButtonIcon
@@ -273,7 +283,7 @@ const ImportNewSecretRecoveryPhrase = () => {
               onPress={showWhatIsSeedPhrase}
               testID="info-icon"
             />
-          </View>
+          </Box>
         }
         twClassName="px-4 pt-1 pb-3"
       />
