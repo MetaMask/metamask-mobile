@@ -252,10 +252,10 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                 >
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Sm}
                     label={
                       <Text
-                        variant={TextVariant.BodySm}
+                        variant={TextVariant.BodyMd}
                         style={tw.style('font-medium')}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
@@ -269,12 +269,12 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                   />
                   <Button
                     variant={ButtonVariants.Secondary}
-                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Md}
+                    size={isCarousel ? ButtonSize.Sm : ButtonSize.Sm}
                     width={ButtonWidthTypes.Full}
                     label={
                       <Text
                         variant={
-                          isCarousel ? TextVariant.BodyXs : TextVariant.BodySm
+                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
                         }
                         style={tw.style('font-medium')}
                         color={TextColor.ErrorDefault}

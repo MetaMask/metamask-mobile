@@ -20,8 +20,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     contentContainer: {
       marginHorizontal: 16,
-      borderRadius: 16,
-      paddingTop: 12,
+      borderRadius: 12,
+      paddingVertical: 4,
       backgroundColor: theme.colors.background.muted,
     },
   });
