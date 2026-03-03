@@ -117,7 +117,7 @@ module.exports = {
       },
     },
     {
-      files: ['app/components/UI/Card/**/*.test.{js,jsx,ts,tsx}'],
+      files: ['app/components/UI/Card/**/*.{js,jsx,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
       },
