@@ -7,19 +7,6 @@ import {
 } from '@metamask/ramps-controller';
 
 /**
- * On Android emulator, localhost points to the emulator's loopback, not the host.
- * Use 10.0.2.2 to reach the host machine's localhost from the emulator.
- */
-function getLocalApiBaseUrl(): string | undefined {
-  const baseUrl = process.env.RAMPS_API_BASE_URL;
-  if (!baseUrl) return undefined;
-  if (Platform.OS === 'android' && baseUrl.includes('localhost')) {
-    return baseUrl.replace(/localhost/g, '10.0.2.2');
-  }
-  return baseUrl;
-}
-
-/**
  * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses RAMPS_ENVIRONMENT (set by builds.yml).
  * When not (Bitrise / .js.env / E2E), uses METAMASK_ENVIRONMENT switch.
  */
@@ -70,7 +57,6 @@ export const rampsServiceInit: ControllerInitFunction<
     environment: getRampsEnvironment(),
     context: getRampsContext(),
     fetch,
-    baseUrlOverride: getLocalApiBaseUrl(),
   });
 
   return {
