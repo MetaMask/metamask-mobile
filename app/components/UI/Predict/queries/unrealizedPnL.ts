@@ -4,12 +4,14 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type { UnrealizedPnL } from '../types';
 
 export const predictUnrealizedPnLKeys = {
-  all: (address: string) => ['predict', 'unrealizedPnL', address] as const,
+  all: () => ['predict', 'unrealizedPnL'] as const,
+  byAddress: (address: string) =>
+    [...predictUnrealizedPnLKeys.all(), address] as const,
 };
 
 export const predictUnrealizedPnLOptions = ({ address }: { address: string }) =>
   queryOptions({
-    queryKey: predictUnrealizedPnLKeys.all(address),
+    queryKey: predictUnrealizedPnLKeys.byAddress(address),
     queryFn: async (): Promise<UnrealizedPnL | null> => {
       const result = await Engine.context.PredictController.getUnrealizedPnL({
         address,
