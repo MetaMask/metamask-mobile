@@ -5,6 +5,7 @@ import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -565,10 +566,28 @@ describe('DeFiPositionsList', () => {
       mockAddProperties = jest.fn().mockReturnThis();
       jest.mocked(useAnalytics).mockReturnValue({
         trackEvent: mockTrackEvent,
-        createEventBuilder: jest.fn(() => ({
-          addProperties: mockAddProperties,
-          build: jest.fn(() => ({})),
-        })),
+        createEventBuilder: jest.fn(() => {
+          const mockEvent: AnalyticsTrackingEvent = {
+            name: '',
+            properties: {},
+            sensitiveProperties: {},
+            saveDataRecording: false,
+            get isAnonymous(): boolean {
+              return false;
+            },
+            get hasProperties(): boolean {
+              return false;
+            },
+          };
+          return {
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
+            build: jest.fn(() => mockEvent),
+          };
+        }),
         isEnabled: jest.fn(),
         enable: jest.fn(),
         addTraitsToUser: jest.fn(),
