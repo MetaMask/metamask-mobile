@@ -100,7 +100,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -140,7 +140,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -297,7 +297,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -337,7 +337,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -494,7 +494,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -534,7 +534,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -691,7 +691,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -731,7 +731,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -888,7 +888,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -928,7 +928,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1085,7 +1085,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1125,7 +1125,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1282,7 +1282,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1322,7 +1322,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1479,7 +1479,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1519,7 +1519,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
@@ -1676,7 +1676,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "MMSans-Regular",
             "fontSize": 32,
             "letterSpacing": 0,
@@ -1716,7 +1716,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#131416",
+            "backgroundColor": "#121314",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,

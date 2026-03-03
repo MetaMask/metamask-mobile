@@ -321,6 +321,14 @@ describe('OnboardingSuccess', () => {
   });
 
   describe('route params handling', () => {
+    it('uses default successFlow when route is undefined', () => {
+      const { getByText } = renderWithProvider(<OnboardingSuccess />);
+
+      expect(
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
+    });
+
     it('uses default successFlow when route params are undefined', () => {
       const routeWithNoParams = {
         params: undefined,

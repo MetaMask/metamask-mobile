@@ -18,6 +18,19 @@ jest.mock('../../../core/BackupVault', () => ({
   ),
 }));
 
+let mockSkipLoadingUnset = false;
+jest.mock('../../../actions/user', () => {
+  const actualUserActions = jest.requireActual('../../../actions/user');
+  return {
+    ...actualUserActions,
+    loadingUnset: jest.fn(() =>
+      mockSkipLoadingUnset
+        ? { type: 'UNIT_TEST_NOOP' }
+        : actualUserActions.loadingUnset(),
+    ),
+  };
+});
+
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
@@ -385,6 +398,87 @@ describe('Onboarding', () => {
       },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('covers both medium-device layout branches', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+    renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
+    renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(Device.isMediumDevice).toHaveBeenCalled();
+  });
+
+  it('renders loading overlay and covers both iPhoneX notification padding branches', async () => {
+    jest.useFakeTimers();
+    mockSkipLoadingUnset = true;
+
+    const loadingMessage = 'Creating your wallet...';
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: loadingMessage,
+      },
+    };
+
+    mockRoute.params = { delete: true };
+    try {
+      (Device.isIphoneX as jest.Mock).mockReturnValue(true);
+      const firstRender = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+        await Promise.resolve();
+      });
+
+      expect(firstRender.getByText(loadingMessage)).toBeTruthy();
+
+      firstRender.unmount();
+
+      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+      renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+        await Promise.resolve();
+      });
+
+      expect((Device.isIphoneX as jest.Mock).mock.calls.length).toBeGreaterThan(
+        1,
+      );
+    } finally {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
   });
 
   it('handles click on create wallet button', () => {
