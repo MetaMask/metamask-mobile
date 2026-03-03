@@ -190,6 +190,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
     });
   }, [navigation]);
 
@@ -212,6 +213,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             maxLeverage: position.maxLeverage,
           },
           initialTab: 'position',
+          source: 'section_position',
         },
       });
     },
@@ -222,7 +224,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
     },
     [navigation],
