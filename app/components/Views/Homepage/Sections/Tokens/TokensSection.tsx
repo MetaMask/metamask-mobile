@@ -72,8 +72,11 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     selectEvmNetworkConfigurationsByChainId,
   );
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
   const selectedSolanaAccount =
-    useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
+    selectInternalAccountByScope(SolScope.Mainnet) || null;
   const isSolanaSelected = selectedSolanaAccount !== null;
 
   const prevAccountIdRef = useRef(selectedAccountId);
@@ -133,10 +136,6 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     setHasTokensError(false);
     await refresh();
   }, [refresh]);
-
-  const selectInternalAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
-  );
 
   const showRemoveMenu = useCallback((token: TokenI) => {
     setRemoveTokenState({ isVisible: true, token });

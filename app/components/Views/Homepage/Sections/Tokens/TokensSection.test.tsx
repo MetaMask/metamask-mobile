@@ -94,43 +94,83 @@ jest.mock('./components/PopularTokensSkeleton', () => {
 });
 
 // Mock TokenListItem and TokenListItemV2 to avoid complex import chains
-const MockTokenListItem = ({ assetKey }: { assetKey: { address: string } }) => {
+const MockTokenListItem = ({
+  assetKey,
+  showRemoveMenu,
+}: {
+  assetKey: { address: string; chainId?: string };
+  showRemoveMenu?: (token: unknown) => void;
+}) => {
   const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
   return ReactActual.createElement(
-    Text,
-    { testID: `token-item-${assetKey.address}` },
-    `Token ${assetKey.address}`,
+    TouchableOpacity,
+    {
+      testID: `token-item-${assetKey.address}`,
+      onLongPress: () =>
+        showRemoveMenu?.({
+          address: assetKey.address,
+          chainId: assetKey.chainId,
+          name: `Token ${assetKey.address}`,
+          symbol: 'TKN',
+          decimals: 18,
+          image: '',
+          balance: '0',
+          logo: undefined,
+          isETH: false,
+        }),
+    },
+    ReactActual.createElement(Text, null, `Token ${assetKey.address}`),
   );
 };
 
 jest.mock(
   '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem',
   () => ({
-    TokenListItem: (props: { assetKey: { address: string } }) =>
-      MockTokenListItem(props),
+    TokenListItem: (props: {
+      assetKey: { address: string; chainId?: string };
+      showRemoveMenu?: (token: unknown) => void;
+    }) => MockTokenListItem(props),
   }),
 );
 
 const MockTokenListItemV2 = ({
   assetKey,
+  showRemoveMenu,
 }: {
-  assetKey: { address: string };
+  assetKey: { address: string; chainId?: string };
+  showRemoveMenu?: (token: unknown) => void;
 }) => {
   const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, TouchableOpacity } = jest.requireActual('react-native');
   return ReactActual.createElement(
-    Text,
-    { testID: `token-item-v2-${assetKey.address}` },
-    `TokenV2 ${assetKey.address}`,
+    TouchableOpacity,
+    {
+      testID: `token-item-v2-${assetKey.address}`,
+      onLongPress: () =>
+        showRemoveMenu?.({
+          address: assetKey.address,
+          chainId: assetKey.chainId,
+          name: `Token ${assetKey.address}`,
+          symbol: 'TKN',
+          decimals: 18,
+          image: '',
+          balance: '0',
+          logo: undefined,
+          isETH: false,
+        }),
+    },
+    ReactActual.createElement(Text, null, `TokenV2 ${assetKey.address}`),
   );
 };
 
 jest.mock(
   '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
   () => ({
-    TokenListItemV2: (props: { assetKey: { address: string } }) =>
-      MockTokenListItemV2(props),
+    TokenListItemV2: (props: {
+      assetKey: { address: string; chainId?: string };
+      showRemoveMenu?: (token: unknown) => void;
+    }) => MockTokenListItemV2(props),
   }),
 );
 
@@ -511,6 +551,76 @@ describe('TokensSection', () => {
     expect(
       screen.queryByTestId('remove-token-bottom-sheet'),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('token removal', () => {
+    const { removeEvmToken, removeNonEvmToken } = jest.requireMock(
+      '../../../../UI/Tokens/util',
+    );
+    const { isNonEvmChainId } = jest.requireMock(
+      '../../../../../core/Multichain/utils',
+    );
+
+    beforeEach(() => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      mockSortedTokenKeys.mockReturnValue([
+        { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      ]);
+      removeEvmToken.mockClear();
+      removeNonEvmToken.mockClear();
+      isNonEvmChainId.mockReturnValue(false);
+    });
+
+    it('shows RemoveTokenBottomSheet on long press and calls removeEvmToken on confirm', async () => {
+      renderWithProvider(<TokensSection />);
+
+      fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
+
+      expect(screen.getByTestId('remove-token-bottom-sheet')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('remove-token-confirm'));
+      });
+
+      expect(removeEvmToken).toHaveBeenCalledTimes(1);
+      expect(removeNonEvmToken).not.toHaveBeenCalled();
+    });
+
+    it('calls removeNonEvmToken for non-EVM tokens', async () => {
+      isNonEvmChainId.mockReturnValue(true);
+      mockSortedTokenKeys.mockReturnValue([
+        {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          address: '0xsoltoken',
+          isStaked: false,
+        },
+      ]);
+
+      renderWithProvider(<TokensSection />);
+
+      fireEvent(screen.getByTestId('token-item-0xsoltoken'), 'onLongPress');
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('remove-token-confirm'));
+      });
+
+      expect(removeNonEvmToken).toHaveBeenCalledTimes(1);
+      expect(removeEvmToken).not.toHaveBeenCalled();
+    });
+
+    it('hides RemoveTokenBottomSheet on cancel', () => {
+      renderWithProvider(<TokensSection />);
+
+      fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
+
+      expect(screen.getByTestId('remove-token-bottom-sheet')).toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('remove-token-cancel'));
+
+      expect(
+        screen.queryByTestId('remove-token-bottom-sheet'),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
