@@ -4,11 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './QuoteDetailsCard.styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import {
   Box,
@@ -18,6 +14,10 @@ import {
   Text,
   TextVariant,
   TextColor,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -49,6 +49,7 @@ import {
   TextColor as TextColorLegacy,
 } from '../../../../../component-library/components/Texts/Text';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
 
 if (
   Platform.OS === 'android' &&
@@ -59,6 +60,7 @@ if (
 
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
+  location,
 }) => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -102,6 +104,17 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
       params: {
         sourceChainId: sourceToken?.chainId,
         destChainId: destToken?.chainId,
+      },
+    });
+  };
+
+  const handlePriceImpactPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+      params: {
+        type: PriceImpactModalType.Info,
+        token: sourceToken,
+        location,
       },
     });
   };
@@ -150,7 +163,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
+              iconName: IconNameLegacy.Info,
             },
           }}
           value={{
@@ -180,7 +193,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
@@ -246,7 +259,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
@@ -270,7 +283,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
+              iconName: IconNameLegacy.Info,
             },
           }}
           value={{
@@ -290,7 +303,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                 />
               </TouchableOpacity>
             ),
@@ -309,7 +322,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
@@ -325,19 +338,31 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
         {formattedQuoteData.priceImpact && (
           <KeyValueRow
             field={{
-              label: {
-                text: toSentenceCase(strings('bridge.price_impact')),
-                variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: isGasless
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
+              label: (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {toSentenceCase(strings('bridge.price_impact'))}
+                  </Text>
+                  <TouchableOpacity
+                    testID="price-impact-info-button"
+                    onPress={handlePriceImpactPress}
+                    activeOpacity={0.6}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </TouchableOpacity>
+                </Box>
+              ),
             }}
             value={{
               icon: priceImactViewData.icon,
@@ -367,7 +392,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.points_tooltip_content_1',
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
-                  iconName: IconName.Info,
+                  iconName: IconNameLegacy.Info,
                 },
               }}
               value={{
@@ -404,7 +429,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     title: strings('bridge.points_error'),
                     content: strings('bridge.points_error_content'),
                     size: TooltipSizes.Sm,
-                    iconName: IconName.Info,
+                    iconName: IconNameLegacy.Info,
                   },
                 }),
               }}

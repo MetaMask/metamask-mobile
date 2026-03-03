@@ -14,7 +14,11 @@ import { Hex } from '@metamask/utils';
 import BridgeView from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
-import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  RequestStatus,
+  type QuoteResponse,
+} from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -24,6 +28,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -1371,6 +1376,65 @@ describe('BridgeView', () => {
 
       // Should display default ETH token from Redux state
       expect(getByText('ETH')).toBeTruthy();
+    });
+  });
+
+  describe('location forwarding', () => {
+    it('forwards route.params.location to SwapsConfirmButton via price impact modal navigation', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        location: MetaMetricsSwapsEventSource.MainView,
+      } as BridgeRouteParams;
+
+      // A priceImpact above the error threshold (25) causes handleContinue to
+      // navigate to the PriceImpactModal — the location value is embedded in
+      // the navigation params, making this the easiest observable side-effect
+      // to assert for location forwarding.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockQuoteWithMetadata,
+          formattedQuoteData: {
+            ...mockUseBridgeQuoteData.formattedQuoteData,
+            priceImpact: '30%',
+          },
+        }));
+
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+            quotesLastFetched: Date.now(),
+          },
+          bridgeReducerOverrides: {
+            sourceAmount: '1.0',
+          },
+        },
+        mockState,
+      );
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          expect.objectContaining({
+            params: expect.objectContaining({
+              location: MetaMetricsSwapsEventSource.MainView,
+            }),
+          }),
+        );
+      });
     });
   });
 
