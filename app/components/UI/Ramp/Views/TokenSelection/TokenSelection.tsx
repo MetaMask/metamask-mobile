@@ -94,6 +94,13 @@ function TokenSelection() {
       });
     };
 
+    // When tokens have never been loaded, controllerTokens is null and
+    // controllerTokensLoading is false (default state). Treat that as loading
+    // so we show spinner instead of "No tokens match" on first load before
+    // controller.init() has completed (e.g. fresh install or update).
+    const tokensNotYetLoaded =
+      controllerTokens === null && !controllerTokensError;
+
     return {
       topTokens: filterTokens(controllerTokens?.topTokens) as
         | RampsToken[]
@@ -101,7 +108,7 @@ function TokenSelection() {
       allTokens: filterTokens(controllerTokens?.allTokens) as
         | RampsToken[]
         | null,
-      isLoading: controllerTokensLoading,
+      isLoading: controllerTokensLoading || tokensNotYetLoaded,
       error: controllerTokensError,
     };
   }, [
