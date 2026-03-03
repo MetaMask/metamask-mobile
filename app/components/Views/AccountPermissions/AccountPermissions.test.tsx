@@ -185,6 +185,10 @@ jest.mock('../../../core/Engine', () => ({
           },
           selectedAccount: 'mock-id-1',
         },
+        accountIdByAddress: {
+          '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272': 'mock-id-1',
+          '0xd018538C87232FF95acbCe4870629b75640a78E7': 'mock-id-2',
+        },
       },
     },
     AccountTrackerController: {

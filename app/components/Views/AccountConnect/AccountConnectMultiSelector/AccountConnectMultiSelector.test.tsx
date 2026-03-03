@@ -56,6 +56,10 @@ jest.mock('../../../../core/Engine', () => ({
             },
           },
         },
+        accountIdByAddress: {
+          '0x1234': '0x1234',
+          '0x5678': '0x5678',
+        },
       },
     },
   },

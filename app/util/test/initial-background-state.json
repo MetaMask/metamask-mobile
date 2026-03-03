@@ -13,7 +13,8 @@
     "internalAccounts": {
       "accounts": {},
       "selectedAccount": ""
-    }
+    },
+    "accountIdByAddress": {}
   },
   "AccountTreeController": {
     "accountTree": {
@@ -759,7 +760,9 @@
     "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": { "eligible": false },
+    "eligibility": {
+      "eligible": false
+    },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
