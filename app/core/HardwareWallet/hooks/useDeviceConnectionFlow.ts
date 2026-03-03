@@ -182,7 +182,7 @@ export const useDeviceConnectionFlow = ({
   );
 
   const ensureDeviceReady = useCallback(
-    async (targetDeviceId?: string): Promise<boolean> => {
+    async (targetDeviceId?: string | null): Promise<boolean> => {
       DevLogger.log(
         '[HardwareWallet] ensureDeviceReady called with deviceId:',
         targetDeviceId,
@@ -196,8 +196,10 @@ export const useDeviceConnectionFlow = ({
       }
 
       const targetType = walletType ?? HardwareWalletType.Ledger;
-      const deviceIdToUse =
-        targetDeviceId === undefined ? undefined : targetDeviceId;
+
+      if (!targetDeviceId) {
+        setters.setDeviceId(null);
+      }
 
       const adapter = resolveOrCreateAdapter(targetType);
 
@@ -212,7 +214,7 @@ export const useDeviceConnectionFlow = ({
       }
 
       return createBlockingPromise(() => {
-        if (!deviceIdToUse) {
+        if (!targetDeviceId) {
           DevLogger.log(
             '[HardwareWallet] No device ID - starting device selection',
           );
@@ -227,7 +229,7 @@ export const useDeviceConnectionFlow = ({
         (async () => {
           try {
             refs.abortControllerRef.current = new AbortController();
-            await tryEnsureReady(adapter, deviceIdToUse);
+            await tryEnsureReady(adapter, targetDeviceId);
           } catch (error) {
             DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
             handleError(error);
@@ -239,6 +241,7 @@ export const useDeviceConnectionFlow = ({
     },
     [
       refs,
+      setters,
       handleError,
       walletType,
       updateConnectionState,
