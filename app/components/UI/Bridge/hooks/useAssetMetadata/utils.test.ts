@@ -76,7 +76,7 @@ describe('asset-utils', () => {
       expect(getAssetImageUrl(assetId, 'eip155:1')).toBe(expectedUrl);
     });
 
-    it('should lowercase EVM erc20 asset references in the image URL', () => {
+    it('lowercases EVM erc20 asset references in the image URL', () => {
       const assetId =
         'eip155:1/erc20:0xFeDC5f4a6c38211c1338aa411018DFAf26612c08' as CaipAssetType;
       const expectedUrl = `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png`;
