@@ -312,22 +312,28 @@ exports[`ActivityView matches snapshot 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "off",
+                          "right": "off",
+                          "top": "off",
+                        }
+                      }
                       style={
                         [
                           {
-                            "backgroundColor": "#ffffff",
-                            "display": "flex",
                             "flexBasis": "0%",
                             "flexGrow": 1,
                             "flexShrink": 1,
-                            "gap": 16,
                           },
                           {
-                            "marginTop": 0,
+                            "backgroundColor": "#ffffff",
                           },
                         ]
                       }
+                      testID="activity-view-safe-area"
                     >
                       <View
                         style={
@@ -336,16 +342,17 @@ exports[`ActivityView matches snapshot 1`] = `
                               "alignItems": "center",
                               "flexDirection": "row",
                               "gap": 16,
-                            },
-                            false,
-                            {
-                              "marginBottom": 16,
+                              "minHeight": 56,
                               "paddingLeft": 16,
-                              "paddingRight": 16,
+                              "paddingRight": 8,
                             },
+                            {
+                              "marginTop": 0,
+                            },
+                            undefined,
                           ]
                         }
-                        testID="header"
+                        testID="activity-view-header-root"
                       >
                         <View
                           style={
@@ -361,146 +368,59 @@ exports[`ActivityView matches snapshot 1`] = `
                             ]
                           }
                         >
-                          <Text
-                            accessibilityRole="text"
+                          <View
                             style={
                               [
                                 {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 24,
-                                  "fontWeight": 700,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 32,
+                                  "alignItems": "center",
+                                  "display": "flex",
+                                  "flexDirection": "row",
                                 },
                                 undefined,
                               ]
                             }
-                            testID="header-title"
                           >
-                            Activity
-                          </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": 700,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              Activity
+                            </Text>
+                          </View>
                         </View>
                       </View>
                       <View
-                        testID="tabs-list"
+                        style={
+                          [
+                            {
+                              "display": "flex",
+                              "flexBasis": "0%",
+                              "flexGrow": 1,
+                              "flexShrink": 1,
+                              "gap": 16,
+                            },
+                            undefined,
+                          ]
+                        }
                       >
                         <View
-                          testID="tab-transactions"
+                          testID="tabs-list"
                         >
                           <View
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              }
-                            }
-                            tabLabel="Transactions"
+                            testID="tab-transactions"
                           >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                  "marginVertical": 8,
-                                  "paddingHorizontal": 16,
-                                  "width": "100%",
-                                }
-                              }
-                            >
-                              <TouchableOpacity
-                                accessibilityRole="button"
-                                accessible={true}
-                                activeOpacity={1}
-                                disabled={false}
-                                onPress={[Function]}
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "alignSelf": "flex-start",
-                                    "backgroundColor": "#ffffff",
-                                    "borderColor": "#b4b4b566",
-                                    "borderRadius": 8,
-                                    "borderWidth": 1,
-                                    "flexDirection": "row",
-                                    "height": 40,
-                                    "justifyContent": "center",
-                                    "maxWidth": "80%",
-                                    "overflow": "hidden",
-                                    "paddingHorizontal": 12,
-                                  }
-                                }
-                                testID="tokens-network-filter"
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "display": "flex",
-                                      "flexDirection": "row",
-                                      "gap": 4,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "#ffffff",
-                                        "borderRadius": 4,
-                                        "height": 16,
-                                        "justifyContent": "center",
-                                        "overflow": "hidden",
-                                        "width": 16,
-                                      }
-                                    }
-                                  >
-                                    <Image
-                                      onError={[Function]}
-                                      resizeMode="contain"
-                                      source={1}
-                                      style={
-                                        {
-                                          "height": 16,
-                                          "width": 16,
-                                        }
-                                      }
-                                      testID="network-avatar-image"
-                                    />
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    numberOfLines={1}
-                                    style={
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
-                                    }
-                                  >
-                                    Popular networks
-                                  </Text>
-                                </View>
-                                <SvgMock
-                                  color="#131416"
-                                  fill="currentColor"
-                                  height={16}
-                                  name="ArrowDown"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "marginLeft": 8,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                              </TouchableOpacity>
-                            </View>
                             <View
                               style={
                                 {
@@ -508,145 +428,259 @@ exports[`ActivityView matches snapshot 1`] = `
                                   "flex": 1,
                                 }
                               }
+                              tabLabel="Transactions"
                             >
                               <View
-                                collapsable={false}
-                                onLayout={[Function]}
                                 style={
                                   {
-                                    "flex": 1,
-                                    "overflow": "hidden",
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                    "marginVertical": 8,
+                                    "paddingHorizontal": 16,
+                                    "width": "100%",
                                   }
                                 }
                               >
-                                <RCTScrollView
-                                  collapsable={false}
-                                  keyExtractor={[Function]}
-                                  maintainVisibleContentPosition={
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  style={
                                     {
-                                      "minIndexForVisible": 0,
+                                      "alignItems": "center",
+                                      "alignSelf": "flex-start",
+                                      "backgroundColor": "#ffffff",
+                                      "borderColor": "#b4b4b566",
+                                      "borderRadius": 8,
+                                      "borderWidth": 1,
+                                      "flexDirection": "row",
+                                      "height": 40,
+                                      "justifyContent": "center",
+                                      "maxWidth": "80%",
+                                      "overflow": "hidden",
+                                      "paddingHorizontal": 12,
                                     }
                                   }
-                                  onScroll={[Function]}
-                                  refreshControl={
-                                    <RefreshControlMock
-                                      colors={
-                                        [
-                                          "#4459ff",
-                                        ]
-                                      }
-                                      onRefresh={[Function]}
-                                      refreshing={false}
-                                      tintColor="#131416"
-                                    />
-                                  }
-                                  scrollEnabled={true}
-                                  scrollEventThrottle={16}
-                                  style={{}}
-                                  testID="unified-transactions-view"
+                                  testID="tokens-network-filter"
                                 >
-                                  <RCTRefreshControl />
-                                  <View>
-                                    <View
-                                      style={
-                                        {
-                                          "height": 0,
-                                          "left": 0,
-                                          "position": "absolute",
-                                          "top": 1000000,
-                                        }
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 4,
                                       }
-                                    />
-                                    <View
-                                      style={
-                                        {
-                                          "height": 0,
-                                          "width": undefined,
-                                        }
-                                      }
-                                    />
-                                    <View
-                                      style={false}
-                                    />
+                                    }
+                                  >
                                     <View
                                       style={
                                         {
                                           "alignItems": "center",
+                                          "backgroundColor": "#ffffff",
+                                          "borderRadius": 4,
+                                          "height": 16,
                                           "justifyContent": "center",
-                                          "paddingVertical": 40,
-                                          "width": "100%",
+                                          "overflow": "hidden",
+                                          "width": 16,
                                         }
                                       }
                                     >
-                                      <View
+                                      <Image
+                                        onError={[Function]}
+                                        resizeMode="contain"
+                                        source={1}
                                         style={
+                                          {
+                                            "height": 16,
+                                            "width": 16,
+                                          }
+                                        }
+                                        testID="network-avatar-image"
+                                      />
+                                    </View>
+                                    <Text
+                                      accessibilityRole="text"
+                                      numberOfLines={1}
+                                      style={
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        }
+                                      }
+                                    >
+                                      Popular networks
+                                    </Text>
+                                  </View>
+                                  <SvgMock
+                                    color="#131416"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="ArrowDown"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "marginLeft": 8,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "backgroundColor": "#ffffff",
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <View
+                                  collapsable={false}
+                                  onLayout={[Function]}
+                                  style={
+                                    {
+                                      "flex": 1,
+                                      "overflow": "hidden",
+                                    }
+                                  }
+                                >
+                                  <RCTScrollView
+                                    collapsable={false}
+                                    keyExtractor={[Function]}
+                                    maintainVisibleContentPosition={
+                                      {
+                                        "minIndexForVisible": 0,
+                                      }
+                                    }
+                                    onScroll={[Function]}
+                                    refreshControl={
+                                      <RefreshControlMock
+                                        colors={
                                           [
-                                            {
-                                              "alignItems": "center",
-                                              "backgroundColor": "#ffffff",
-                                              "display": "flex",
-                                              "flexDirection": "column",
-                                              "gap": 12,
-                                              "justifyContent": "center",
-                                              "maxWidth": 256,
-                                            },
-                                            undefined,
+                                            "#4459ff",
                                           ]
                                         }
+                                        onRefresh={[Function]}
+                                        refreshing={false}
+                                        tintColor="#131416"
+                                      />
+                                    }
+                                    scrollEnabled={true}
+                                    scrollEventThrottle={16}
+                                    style={{}}
+                                    testID="unified-transactions-view"
+                                  >
+                                    <RCTRefreshControl />
+                                    <View>
+                                      <View
+                                        style={
+                                          {
+                                            "height": 0,
+                                            "left": 0,
+                                            "position": "absolute",
+                                            "top": 1000000,
+                                          }
+                                        }
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "height": 0,
+                                            "width": undefined,
+                                          }
+                                        }
+                                      />
+                                      <View
+                                        style={false}
+                                      />
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "center",
+                                            "justifyContent": "center",
+                                            "paddingVertical": 40,
+                                            "width": "100%",
+                                          }
+                                        }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <View
                                           style={
                                             [
                                               {
-                                                "color": "#66676a",
-                                                "fontFamily": "Geist-Regular",
-                                                "fontSize": 16,
-                                                "fontWeight": 400,
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                                "textAlign": "center",
+                                                "alignItems": "center",
+                                                "backgroundColor": "#ffffff",
+                                                "display": "flex",
+                                                "flexDirection": "column",
+                                                "gap": 12,
+                                                "justifyContent": "center",
+                                                "maxWidth": 256,
                                               },
                                               undefined,
                                             ]
                                           }
                                         >
-                                          You have no transactions
-                                        </Text>
+                                          <Text
+                                            accessibilityRole="text"
+                                            style={
+                                              [
+                                                {
+                                                  "color": "#66676a",
+                                                  "fontFamily": "Geist-Regular",
+                                                  "fontSize": 16,
+                                                  "fontWeight": 400,
+                                                  "letterSpacing": 0,
+                                                  "lineHeight": 24,
+                                                  "textAlign": "center",
+                                                },
+                                                undefined,
+                                              ]
+                                            }
+                                          >
+                                            You have no transactions
+                                          </Text>
+                                        </View>
                                       </View>
                                     </View>
-                                  </View>
-                                </RCTScrollView>
+                                  </RCTScrollView>
+                                </View>
+                                <View />
                               </View>
-                              <View />
                             </View>
                           </View>
-                        </View>
-                        <View
-                          testID="tab-orders"
-                        >
                           <View
-                            style={
-                              {
-                                "backgroundColor": "#ffffff",
-                                "flex": 1,
-                              }
-                            }
-                            tabLabel="Transfers"
+                            testID="tab-orders"
                           >
                             <View
-                              testID="ramp-orders-list"
-                            />
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flex": 1,
+                                }
+                              }
+                              tabLabel="Transfers"
+                            >
+                              <View
+                                testID="ramp-orders-list"
+                              />
+                            </View>
                           </View>
+                          <View
+                            testID="tab-2"
+                          />
+                          <View
+                            testID="tab-3"
+                          />
                         </View>
-                        <View
-                          testID="tab-2"
-                        />
-                        <View
-                          testID="tab-3"
-                        />
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
