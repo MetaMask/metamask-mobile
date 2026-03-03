@@ -213,11 +213,64 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
+  unit-test-scope:
+    name: Determine unit test scope
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.set-scope.outputs.mode }}
+      total_shards: ${{ steps.set-scope.outputs.total_shards }}
+      shards_json: ${{ steps.set-scope.outputs.shards_json }}
+      validate_coverage: ${{ steps.set-scope.outputs.validate_coverage }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set unit test execution scope
+        id: set-scope
+        shell: bash
+        run: |
+          MODE="full"
+          TOTAL_SHARDS="10"
+          SHARDS_JSON='[1,2,3,4,5,6,7,8,9,10]'
+          VALIDATE_COVERAGE="true"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            CHANGED_FILES="$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)"
+
+            echo "Changed files:"
+            echo "$CHANGED_FILES"
+
+            if [[ -n "$CHANGED_FILES" ]]; then
+              FRAMEWORK_ONLY="true"
+              while IFS= read -r FILE; do
+                [[ -z "$FILE" ]] && continue
+                if [[ ! "$FILE" =~ ^(tests/|\.github/) ]]; then
+                  FRAMEWORK_ONLY="false"
+                  break
+                fi
+              done <<< "$CHANGED_FILES"
+
+              if [[ "$FRAMEWORK_ONLY" == "true" ]]; then
+                MODE="framework"
+                TOTAL_SHARDS="2"
+                SHARDS_JSON='[1,2]'
+                VALIDATE_COVERAGE="false"
+              fi
+            fi
+          fi
+
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "total_shards=$TOTAL_SHARDS" >> "$GITHUB_OUTPUT"
+          echo "shards_json=$SHARDS_JSON" >> "$GITHUB_OUTPUT"
+          echo "validate_coverage=$VALIDATE_COVERAGE" >> "$GITHUB_OUTPUT"
+
   unit-tests:
     runs-on: ubuntu-latest
+    needs: unit-test-scope
     strategy:
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        shard: ${{ fromJSON(needs.unit-test-scope.outputs.shards_json) }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -235,9 +288,26 @@ jobs:
         run: yarn setup:github-ci --node
       - name: Prepare results directory
         run: mkdir -p tests/results
-      # The "10" in this command is the total number of shards. It must be kept
-      # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+      - name: Run unit tests by selected scope
+        shell: bash
+        run: |
+          if [[ "${{ needs.unit-test-scope.outputs.mode }}" == "framework" ]]; then
+            yarn test:unit:framework \
+              --shard=${{ matrix.shard }}/${{ needs.unit-test-scope.outputs.total_shards }} \
+              --forceExit \
+              --silent \
+              --coverageReporters=json \
+              --json \
+              --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+          else
+            yarn test:unit \
+              --shard=${{ matrix.shard }}/${{ needs.unit-test-scope.outputs.total_shards }} \
+              --forceExit \
+              --silent \
+              --coverageReporters=json \
+              --json \
+              --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+          fi
         env:
           NODE_OPTIONS: --max_old_space_size=20480
       - name: Rename coverage report and extract test count for this shard
@@ -263,7 +333,7 @@ jobs:
 
   merge-unit-and-component-view-tests:
     runs-on: ubuntu-latest
-    needs: [unit-tests, component-view-tests]
+    needs: [unit-test-scope, unit-tests, component-view-tests]
     if: ${{ !cancelled() && github.event_name != 'merge_group' }}
     steps:
       - uses: actions/checkout@v3
@@ -313,6 +383,7 @@ jobs:
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
+        if: ${{ needs.unit-test-scope.outputs.validate_coverage == 'true' }}
       - uses: actions/upload-artifact@v4
         with:
           name: lcov.info
