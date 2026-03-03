@@ -59,8 +59,47 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -68,74 +107,24 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -169,7 +158,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -465,7 +454,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -485,7 +474,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -505,7 +494,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     undefined,
@@ -526,7 +515,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
@@ -541,7 +530,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -584,8 +573,8 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "#b7bbc866",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "#b4b4b566",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -617,14 +606,14 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#686e7d"
+                                    placeholderTextColor="#66676a"
                                     returnKeyType="done"
                                     style={
                                       {
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -668,7 +657,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -698,7 +687,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "height": 24,
                                 }
                               }
@@ -778,8 +767,47 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -787,74 +815,24 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -888,7 +866,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1184,7 +1162,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -1204,7 +1182,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -1224,7 +1202,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     undefined,
@@ -1245,7 +1223,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
@@ -1260,7 +1238,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1303,8 +1281,8 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "#b7bbc866",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "#b4b4b566",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -1336,14 +1314,14 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#686e7d"
+                                    placeholderTextColor="#66676a"
                                     returnKeyType="done"
                                     style={
                                       {
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -1401,7 +1379,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -1431,7 +1409,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "height": 24,
                                 }
                               }
@@ -1511,8 +1489,47 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -1520,74 +1537,24 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -1621,7 +1588,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1917,7 +1884,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -1937,7 +1904,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -1957,7 +1924,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     undefined,
@@ -1978,7 +1945,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
@@ -1993,7 +1960,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2036,8 +2003,8 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "#b7bbc866",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "#b4b4b566",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -2069,14 +2036,14 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#686e7d"
+                                    placeholderTextColor="#66676a"
                                     returnKeyType="done"
                                     style={
                                       {
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -2120,7 +2087,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -2150,7 +2117,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "height": 24,
                                 }
                               }
@@ -2230,8 +2197,47 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
               onLayout={[Function]}
             >
               <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
+                    undefined,
                     {
                       "transform": [
                         {
@@ -2239,74 +2245,24 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                         },
                       ],
                     },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
                   ]
                 }
+                testID="deposit-back-navbar-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  fill="currentColor"
+                  name="ArrowLeft"
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 32,
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                       undefined,
                     ]
                   }
-                  testID="deposit-back-navbar-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
           </View>
@@ -2340,7 +2296,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -2636,7 +2592,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -2656,7 +2612,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     {
@@ -2676,7 +2632,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#b7bbc8",
+                                        "backgroundColor": "#babbbe",
                                       },
                                     ],
                                     undefined,
@@ -2697,7 +2653,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "bold",
@@ -2712,7 +2668,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2755,8 +2711,8 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "#b7bbc866",
+                                    "backgroundColor": "#b4b4b528",
+                                    "borderColor": "#b4b4b566",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -2788,14 +2744,14 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                     onFocus={[Function]}
                                     onSubmitEditing={[Function]}
                                     placeholder="name@domain.com"
-                                    placeholderTextColor="#686e7d"
+                                    placeholderTextColor="#66676a"
                                     returnKeyType="done"
                                     style={
                                       {
                                         "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -2853,7 +2809,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -2883,7 +2839,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "height": 24,
                                 }
                               }

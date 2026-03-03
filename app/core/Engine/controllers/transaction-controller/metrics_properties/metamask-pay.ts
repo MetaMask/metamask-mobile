@@ -24,6 +24,7 @@ const COPY_METRICS = [
   'mm_pay_transaction_step_total',
   'mm_pay_sending_value_usd',
   'mm_pay_receiving_value_usd',
+  'mm_pay_metamask_fee_usd',
 ] as const;
 
 const PAY_TYPES = [

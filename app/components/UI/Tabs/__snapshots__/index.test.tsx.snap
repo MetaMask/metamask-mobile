@@ -37,7 +37,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
           "fontFamily": "Geist-Bold",
           "fontSize": 18,
@@ -69,7 +69,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
     }
     style={
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "flex": 1,
       }
     }
@@ -100,7 +100,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
           style={
             [
               {
-                "borderColor": "#b7bbc8",
+                "borderColor": "#949596",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "elevation": 4,
@@ -152,7 +152,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -170,7 +170,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
                     "fontFamily": "Geist-Bold",
                     "fontSize": 12,
@@ -199,7 +199,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
               testID="tab-close-button-1"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"
@@ -265,7 +265,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
           style={
             [
               {
-                "borderColor": "#b7bbc8",
+                "borderColor": "#949596",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "elevation": 4,
@@ -314,7 +314,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -332,7 +332,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
                     "fontFamily": "Geist-Bold",
                     "fontSize": 12,
@@ -361,7 +361,7 @@ exports[`Tabs rendering renders tabs component with multiple tabs 1`] = `
               testID="tab-close-button-2"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"
@@ -445,7 +445,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
           "fontFamily": "Geist-Bold",
           "fontSize": 18,
@@ -477,7 +477,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
     }
     style={
       {
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "flex": 1,
       }
     }
@@ -508,7 +508,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
           style={
             [
               {
-                "borderColor": "#b7bbc8",
+                "borderColor": "#949596",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "elevation": 4,
@@ -560,7 +560,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 }
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="Global"
@@ -578,7 +578,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "flex": 1,
                     "fontFamily": "Geist-Bold",
                     "fontSize": 12,
@@ -607,7 +607,7 @@ exports[`Tabs rendering renders with single tab 1`] = `
               testID="tab-close-button-1"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="Close"

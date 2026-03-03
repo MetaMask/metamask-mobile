@@ -349,8 +349,47 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -358,74 +397,24 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -459,7 +448,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -560,7 +549,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -599,7 +588,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -631,7 +620,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -655,7 +644,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -697,7 +686,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -709,7 +698,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -723,7 +712,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -753,7 +742,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#686e7d",
+                                            "color": "#66676a",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -803,13 +792,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                   "width": 51,
                                                 },
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "borderRadius": 16,
                                                 },
                                               ]
                                             }
                                             thumbTintColor="#ffffff"
-                                            tintColor="#b7bbc866"
+                                            tintColor="#b4b4b566"
                                             value={true}
                                           />
                                         </View>
@@ -835,7 +824,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -850,7 +839,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1022,13 +1011,13 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                                   "width": 51,
                                                 },
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "borderRadius": 16,
                                                 },
                                               ]
                                             }
                                             thumbTintColor="#ffffff"
-                                            tintColor="#b7bbc866"
+                                            tintColor="#b4b4b566"
                                             value={false}
                                           />
                                         </View>
@@ -1054,7 +1043,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1069,7 +1058,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1226,7 +1215,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderColor": "transparent",
                                             "borderRadius": 12,
                                             "borderWidth": 1,
@@ -1243,7 +1232,7 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1624,8 +1613,47 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -1633,74 +1661,24 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -1734,7 +1712,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -1835,7 +1813,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -1874,7 +1852,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1906,7 +1884,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -1930,7 +1908,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -1972,7 +1950,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -1984,7 +1962,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -1998,7 +1976,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -2025,7 +2003,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#686e7d",
+                                            "color": "#66676a",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -2060,7 +2038,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderColor": "transparent",
                                             "borderRadius": 12,
                                             "borderWidth": 1,
@@ -2076,7 +2054,7 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2457,8 +2435,47 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -2466,74 +2483,24 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -2567,7 +2534,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -2668,7 +2635,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -2707,7 +2674,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -2739,7 +2706,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -3121,8 +3088,47 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -3130,74 +3136,24 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -3231,7 +3187,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -3332,7 +3288,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -3371,7 +3327,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -3403,7 +3359,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -3427,7 +3383,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#3c4d9d0f",
+                                          "backgroundColor": "#b4b4b528",
                                           "borderColor": "transparent",
                                           "borderRadius": 12,
                                           "borderWidth": 1,
@@ -3443,7 +3399,7 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -3823,8 +3779,47 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -3832,74 +3827,24 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -3933,7 +3878,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -4034,7 +3979,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -4073,7 +4018,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -4105,7 +4050,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -4129,7 +4074,7 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -4523,8 +4468,47 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -4532,74 +4516,24 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -4633,7 +4567,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -4734,7 +4668,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -4773,7 +4707,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -4805,7 +4739,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -4829,7 +4763,7 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5223,8 +5157,47 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -5232,74 +5205,24 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -5333,7 +5256,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -5434,7 +5357,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -5473,7 +5396,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -5505,7 +5428,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -5529,7 +5452,7 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -5923,8 +5846,47 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -5932,74 +5894,24 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -6033,7 +5945,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -6134,7 +6046,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -6173,7 +6085,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -6205,7 +6117,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -6229,7 +6141,7 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -6623,8 +6535,47 @@ exports[`Settings renders correctly 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -6632,74 +6583,24 @@ exports[`Settings renders correctly 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -6733,7 +6634,7 @@ exports[`Settings renders correctly 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -6834,7 +6735,7 @@ exports[`Settings renders correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -6873,7 +6774,7 @@ exports[`Settings renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -6905,7 +6806,7 @@ exports[`Settings renders correctly 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -6929,7 +6830,7 @@ exports[`Settings renders correctly 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -7323,8 +7224,47 @@ exports[`Settings renders correctly for internal builds 1`] = `
                             onLayout={[Function]}
                           >
                             <View
+                              accessibilityState={
+                                {
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
+                                }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
                               style={
                                 [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "transparent",
+                                    "borderRadius": 8,
+                                    "height": 32,
+                                    "justifyContent": "center",
+                                    "opacity": 1,
+                                    "width": 32,
+                                  },
+                                  undefined,
                                   {
                                     "transform": [
                                       {
@@ -7332,74 +7272,24 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       },
                                     ],
                                   },
-                                  {
-                                    "alignItems": "center",
-                                    "justifyContent": "center",
-                                  },
                                 ]
                               }
+                              testID="ramp-settings-back-button"
                             >
-                              <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
+                              <SvgMock
+                                fill="currentColor"
+                                name="ArrowLeft"
                                 style={
                                   [
                                     {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
+                                      "color": "#131416",
+                                      "height": 24,
+                                      "width": 24,
                                     },
                                     undefined,
                                   ]
                                 }
-                                testID="ramp-settings-back-button"
-                              >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
-                                  style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                />
-                              </View>
+                              />
                             </View>
                           </View>
                         </View>
@@ -7433,7 +7323,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                               style={
                                 [
                                   {
-                                    "color": "#121314",
+                                    "color": "#131416",
                                     "fontFamily": "Geist-Bold",
                                     "fontSize": 16,
                                     "fontWeight": 400,
@@ -7534,7 +7424,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 18,
                                           "letterSpacing": 0,
@@ -7573,7 +7463,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -7605,7 +7495,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -7629,7 +7519,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "stretch",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#131416",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 48,
@@ -7671,7 +7561,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Regular",
                                           "fontSize": 16,
                                           "letterSpacing": 0,
@@ -7683,7 +7573,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Medium",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -7697,7 +7587,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -7724,7 +7614,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#686e7d",
+                                            "color": "#66676a",
                                             "fontFamily": "Geist-Regular",
                                             "fontSize": 16,
                                             "letterSpacing": 0,
@@ -7774,13 +7664,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                   "width": 51,
                                                 },
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "borderRadius": 16,
                                                 },
                                               ]
                                             }
                                             thumbTintColor="#ffffff"
-                                            tintColor="#b7bbc866"
+                                            tintColor="#b4b4b566"
                                             value={true}
                                           />
                                         </View>
@@ -7806,7 +7696,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -7821,7 +7711,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#131416",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -7993,13 +7883,13 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                                   "width": 51,
                                                 },
                                                 {
-                                                  "backgroundColor": "#b7bbc866",
+                                                  "backgroundColor": "#b4b4b566",
                                                   "borderRadius": 16,
                                                 },
                                               ]
                                             }
                                             thumbTintColor="#ffffff"
-                                            tintColor="#b7bbc866"
+                                            tintColor="#b4b4b566"
                                             value={false}
                                           />
                                         </View>
@@ -8025,7 +7915,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -8040,7 +7930,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                             selectable={true}
                                             style={
                                               {
-                                                "color": "#b7bbc8",
+                                                "color": "#babbbe",
                                                 "fontFamily": "Geist-Regular",
                                                 "fontSize": 16,
                                                 "letterSpacing": 0,
@@ -8197,7 +8087,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#3c4d9d0f",
+                                            "backgroundColor": "#b4b4b528",
                                             "borderColor": "transparent",
                                             "borderRadius": 12,
                                             "borderWidth": 1,
@@ -8213,7 +8103,7 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 16,
                                               "letterSpacing": 0,

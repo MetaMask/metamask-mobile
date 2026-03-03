@@ -334,7 +334,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -481,7 +481,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -501,8 +501,47 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -510,74 +549,24 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -679,7 +668,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                         testID="listitemcolumn"
                                       >
                                         <SvgMock
-                                          color="#121314"
+                                          color="#131416"
                                           fill="currentColor"
                                           height={20}
                                           name="Card"
@@ -713,7 +702,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -745,7 +734,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -763,7 +752,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -854,7 +843,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
                                               "fontSize": 18,
                                               "letterSpacing": 0,
@@ -886,7 +875,7 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
