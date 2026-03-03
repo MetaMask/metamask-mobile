@@ -74,7 +74,7 @@ const LinkedOffDeviceAccountsSheet: React.FC<
   }, []);
 
   const sortedAccounts = useMemo(
-    () => accounts.sort((a, b) => a.address.localeCompare(b.address)),
+    () => [...accounts].sort((a, b) => a.address.localeCompare(b.address)),
     [accounts],
   );
 
