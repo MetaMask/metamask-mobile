@@ -16,7 +16,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
@@ -288,7 +288,6 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               <ViewMoreCard
                 onPress={handleViewAllPredictions}
                 twClassName="w-[180px] flex-1"
-                textVariant={TextVariant.BodyLg}
               />
             </>
           )}
