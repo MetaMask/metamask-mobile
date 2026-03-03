@@ -15,7 +15,7 @@ exports[`PerpsTestnetToggle renders correctly with testnet network 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -43,7 +43,7 @@ exports[`PerpsTestnetToggle renders correctly with testnet network 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,

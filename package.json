@@ -176,7 +176,8 @@
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/bridge-controller@npm:^67.1.1": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
     "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
-    "@metamask/assets-controllers@npm:^99.4.0": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch"
+    "@metamask/assets-controllers@npm:^99.4.0": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -215,7 +216,7 @@
     "@metamask/delegation-deployments": "^0.15.0",
     "@metamask/design-system-react-native": "^0.8.0",
     "@metamask/design-system-twrnc-preset": "^0.3.0",
-    "@metamask/design-tokens": "^8.2.0",
+    "@metamask/design-tokens": "^8.2.2",
     "@metamask/earn-controller": "^10.0.0",
     "@metamask/eip-5792-middleware": "^2.0.0",
     "@metamask/eip1193-permission-middleware": "^1.0.2",
@@ -296,7 +297,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^62.19.0",
-    "@metamask/transaction-pay-controller": "^16.1.0",
+    "@metamask/transaction-pay-controller": "^16.1.2",
     "@metamask/tron-wallet-snap": "^1.21.1",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",

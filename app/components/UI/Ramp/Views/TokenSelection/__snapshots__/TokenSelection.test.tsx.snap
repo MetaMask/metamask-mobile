@@ -388,7 +388,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 32,
@@ -424,7 +424,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -467,7 +467,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -489,7 +489,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -532,7 +532,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -554,7 +554,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -597,7 +597,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -658,8 +658,8 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -679,7 +679,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -708,13 +708,13 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -754,7 +754,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={20}
                                     name="CircleX"
@@ -830,9 +830,9 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
+                                          "fontSize": 20,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1248,7 +1248,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 32,
@@ -1284,7 +1284,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -1327,7 +1327,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -1349,7 +1349,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -1392,7 +1392,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -1414,7 +1414,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -1457,7 +1457,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -1518,8 +1518,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -1539,7 +1539,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -1568,13 +1568,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -1847,9 +1847,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1861,7 +1861,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1948,7 +1948,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -2147,9 +2147,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2161,7 +2161,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2248,7 +2248,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -2447,9 +2447,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2461,7 +2461,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2548,7 +2548,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -2747,9 +2747,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2761,7 +2761,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2848,7 +2848,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -3047,9 +3047,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3061,7 +3061,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3148,7 +3148,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -3567,7 +3567,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#121314",
+                                      "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
                                       "height": 32,
@@ -3603,7 +3603,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -3646,7 +3646,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3668,7 +3668,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -3711,7 +3711,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3733,7 +3733,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -3776,7 +3776,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -3837,8 +3837,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -3858,7 +3858,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -3887,13 +3887,13 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -4166,9 +4166,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4180,7 +4180,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4267,7 +4267,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -4466,9 +4466,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4480,7 +4480,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4567,7 +4567,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -4766,9 +4766,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4780,7 +4780,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4867,7 +4867,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -5066,9 +5066,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5080,7 +5080,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -5167,7 +5167,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },
@@ -5366,9 +5366,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5380,7 +5380,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -5467,7 +5467,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             style={
                                               [
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "height": 24,
                                                   "width": 24,
                                                 },

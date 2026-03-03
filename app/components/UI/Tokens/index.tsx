@@ -5,11 +5,13 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -88,6 +90,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
     const [showScamWarningModal, setShowScamWarningModal] = useState(false);
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
@@ -113,6 +116,28 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         });
       }
     }, [sortedTokenKeys, hasInitialLoad]);
+
+    useEffect(() => {
+      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+        return;
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+          .addProperties({
+            item_count: sortedTokenKeys.length,
+            location: 'homepage',
+            is_empty: sortedTokenKeys.length === 0,
+            screen_type: 'tokens',
+          })
+          .build(),
+      );
+    }, [
+      isFullView,
+      hasInitialLoad,
+      sortedTokenKeys.length,
+      trackEvent,
+      createEventBuilder,
+    ]);
 
     const showRemoveMenu = useCallback((token: TokenI) => {
       setRemoveTokenState({ isVisible: true, token });
