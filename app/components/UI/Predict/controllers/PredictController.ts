@@ -442,7 +442,19 @@ export class PredictController extends BaseController<
         flags.predictFeeCollection,
       ) ?? DEFAULT_FEE_COLLECTION_FLAG;
 
-    return { feeCollection, liveSportsLeagues, marketHighlightsFlag };
+    const fakOrdersEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictFakOrders,
+        ),
+      ) ?? false;
+
+    return {
+      feeCollection,
+      liveSportsLeagues,
+      marketHighlightsFlag,
+      fakOrdersEnabled,
+    };
   }
 
   private getEvmAccountAddress(): string {

@@ -2,10 +2,11 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
+import { useSelector } from 'react-redux';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -15,6 +16,9 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
+import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
@@ -54,6 +58,22 @@ function ProviderSelectionModal() {
     selectedToken,
   } = useRampsController();
 
+  const legacyOrdersProviders = useSelector(getOrdersProviders);
+  const controllerOrders = useSelector(selectRampsOrders);
+
+  const ordersProviders = useMemo(() => {
+    const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
+      (o) => o.providerId,
+    );
+    return Array.from(new Set([...legacyOrdersProviders, ...v2ProviderIds]));
+  }, [legacyOrdersProviders, controllerOrders]);
+
+  const hasPaymentModalInStack = useNavigationState((state) =>
+    state.routes.some(
+      (route) => route.name === Routes.RAMP.MODALS.PAYMENT_SELECTION,
+    ),
+  );
+
   const amount = routeAmount ?? DEFAULT_QUOTE_AMOUNT;
   const walletAddress =
     useRampAccountAddress((selectedToken?.chainId as CaipChainId) ?? null) ??
@@ -74,7 +94,7 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && walletAddress && assetId
+      !skipQuotes && amount > 0 && walletAddress && assetId
         ? {
             amount,
             walletAddress,
@@ -138,7 +158,11 @@ function ProviderSelectionModal() {
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes}
+          showQuotes={!skipQuotes && amount > 0}
+          showBackButton={hasPaymentModalInStack}
+          ordersProviders={ordersProviders.filter(
+            (id): id is string => id != null,
+          )}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

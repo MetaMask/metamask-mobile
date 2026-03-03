@@ -105,7 +105,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility (PR commit)
         uses: ./.github/actions/validate-artifact-compatibility
@@ -325,7 +325,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility
         uses: ./.github/actions/validate-artifact-compatibility
