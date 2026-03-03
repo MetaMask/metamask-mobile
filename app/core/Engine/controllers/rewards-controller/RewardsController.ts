@@ -839,7 +839,10 @@ export class RewardsController extends BaseController<
         Logger.log(
           'RewardsController: Attempting reauth with active account after 403',
         );
-        await this.performSilentAuth(account, false, false);
+        const result = await this.performSilentAuth(account, false, false);
+        if (!result) {
+          throw new Error(`Reauth failed for subscription ${subscriptionId}`);
+        }
         return;
       }
     }
@@ -863,11 +866,16 @@ export class RewardsController extends BaseController<
             Logger.log(
               'RewardsController: Attempting reauth with linked account after 403',
             );
-            await this.performSilentAuth(
+            const result = await this.performSilentAuth(
               intAccount as InternalAccount,
               false,
               false,
             );
+            if (!result) {
+              throw new Error(
+                `Reauth failed for subscription ${subscriptionId}`,
+              );
+            }
             return;
           }
         }

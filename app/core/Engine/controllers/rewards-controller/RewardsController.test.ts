@@ -4992,6 +4992,7 @@ describe('RewardsController', () => {
 
     it('reauthenticates and retries after 403 error', async () => {
       // Arrange
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Authorization failed: 403',
@@ -5232,6 +5233,7 @@ describe('RewardsController', () => {
 
     it('reauthenticates with active account and retries after 403 error', async () => {
       // Arrange
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Authorization failed: 403',
@@ -5380,6 +5382,7 @@ describe('RewardsController', () => {
 
     it('reauthenticates with non-active account and retries after 403 error', async () => {
       // Arrange
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
       jest.spyOn(Date, 'now').mockImplementation(() => 1000000);
       const mock403Error = new AuthorizationFailedError(
         'Authorization failed: 403',
@@ -14758,6 +14761,7 @@ describe('RewardsController', () => {
     });
 
     it('reauthenticates and retries after 403 error on active boosts', async () => {
+      mockStoreSubscriptionToken.mockResolvedValue({ success: true });
       const seasonId = 'season-123';
       const subscriptionId = 'sub-456';
       const mock403Error = new AuthorizationFailedError(
