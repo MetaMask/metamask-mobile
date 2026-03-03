@@ -45,7 +45,7 @@ import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 const MAX_MARKETS_DISPLAYED = 5;
 
 // Card dimensions for snap offsets
-const CARD_WIDTH = 280;
+const CARD_WIDTH = 240;
 const GAP = 12;
 const PADDING = 16; // px-4
 
@@ -287,7 +287,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               ))}
               <ViewMoreCard
                 onPress={handleViewAllPredictions}
-                twClassName="w-[180px] h-[180px]"
+                twClassName="w-[180px] flex-1"
                 textVariant={TextVariant.BodyLg}
               />
             </>
