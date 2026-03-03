@@ -101,6 +101,8 @@ describe('getTransactionTypeValue', () => {
     ['predict_claim', TransactionType.predictClaim],
     ['predict_deposit', TransactionType.predictDeposit],
     ['predict_withdraw', TransactionType.predictWithdraw],
+    ['musd_conversion', TransactionType.musdConversion],
+    ['musd_claim', TransactionType.musdClaim],
   ])('returns %s if nested transaction type is %s', (expected, nestedType) => {
     const mockTransactionMeta = {
       type: TransactionType.simpleSend,
