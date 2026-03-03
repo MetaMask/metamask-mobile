@@ -247,7 +247,9 @@ function handleAddIndicator(payload) {
         inputs = { in_0: 200 };
         break;
       default:
-        return;
+        studyName = indicatorName;
+        inputs = payload.inputs || {};
+        break;
     }
 
     chart
@@ -374,6 +376,9 @@ function handleSetPositionLines(payload) {
         lineStyle: 2,
       });
     }
+    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
+    // Add a line for position.currentPrice (e.g. a solid line showing live mark
+    // price) when the Perps integration is ready.
 
     for (var i = 0; i < lines.length; i++) {
       (function (line) {

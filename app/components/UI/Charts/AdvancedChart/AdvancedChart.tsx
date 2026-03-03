@@ -111,11 +111,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
 
     const addIndicator = useCallback(
-      (indicator: IndicatorType) => {
+      (indicator: IndicatorType, inputs?: Record<string, unknown>) => {
         if (!isChartReady) return;
         postMessage({
           type: 'ADD_INDICATOR',
-          payload: { name: indicator },
+          payload: { name: indicator, inputs },
         });
       },
       [isChartReady, postMessage],
@@ -181,7 +181,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'NEED_MORE_HISTORY':
-            onRequestMoreHistory?.();
+            onRequestMoreHistory?.(message.payload);
             break;
 
           case 'ERROR':

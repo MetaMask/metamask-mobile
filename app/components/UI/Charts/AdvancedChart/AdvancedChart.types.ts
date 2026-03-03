@@ -21,13 +21,11 @@ export interface OHLCVBar {
 }
 
 /**
- * Supported technical indicators.
- *
- * This is a curated subset for the Token Details mobile UX. Consumers that
- * need TradingView's full native study picker can re-enable `header_widget`
- * via the `disabledFeatures` prop override on AdvancedChart.
+ * Any TradingView study name is accepted. The three presets ('MACD', 'RSI',
+ * 'MA200') get built-in parameter defaults in chartLogic.js; all other strings
+ * are forwarded to `createStudy` as-is with optional `inputs` from the payload.
  */
-export type IndicatorType = 'MACD' | 'RSI' | 'MA200';
+export type IndicatorType = string;
 
 /**
  * TradingView widget features disabled by default.
@@ -134,6 +132,8 @@ export interface SetOHLCVDataPayload {
 
 export interface AddIndicatorPayload {
   name: IndicatorType;
+  /** Custom TradingView study inputs (e.g. { in_0: 14 }). Used for non-preset studies. */
+  inputs?: Record<string, unknown>;
 }
 
 export interface RemoveIndicatorPayload {
@@ -200,10 +200,8 @@ export type WebViewToRNMessage =
 // Message parsing / runtime narrowing
 // ============================================
 
-const VALID_INDICATOR_NAMES = new Set<string>(['MACD', 'RSI', 'MA200']);
-
 function isIndicatorType(value: unknown): value is IndicatorType {
-  return typeof value === 'string' && VALID_INDICATOR_NAMES.has(value);
+  return typeof value === 'string' && value.length > 0;
 }
 
 /**
@@ -293,8 +291,13 @@ export interface AdvancedChartProps {
 
   /** Latest bar for real-time streaming (Perps). When this changes the WebView receives a tick. */
   realtimeBar?: OHLCVBar;
-  /** Called when the user scrolls to the left edge and more history is needed (Perps). */
-  onRequestMoreHistory?: () => void;
+  /**
+   * Called when the user scrolls to the left edge and more history is needed.
+   * Receives the oldest bar timestamp (ms) currently held by the chart so
+   * consumers can use it directly as the `endTime` for their next fetch,
+   * without having to independently track their own oldest candle.
+   */
+  onRequestMoreHistory?: (params: { oldestTimestamp: number }) => void;
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
@@ -330,7 +333,10 @@ export interface AdvancedChartProps {
  * Use props for declarative control; ref for one-off imperative actions.
  */
 export interface AdvancedChartRef {
-  addIndicator: (indicator: IndicatorType) => void;
+  addIndicator: (
+    indicator: IndicatorType,
+    inputs?: Record<string, unknown>,
+  ) => void;
   removeIndicator: (indicator: IndicatorType) => void;
   setChartType: (chartType: ChartType) => void;
   reset: () => void;
