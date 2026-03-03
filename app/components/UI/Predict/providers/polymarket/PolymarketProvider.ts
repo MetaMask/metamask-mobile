@@ -187,6 +187,55 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  #hasPermit2Config(params: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+  }): boolean {
+    return (
+      params.permit2Enabled === true &&
+      Array.isArray(params.executors) &&
+      params.executors.length > 0
+    );
+  }
+
+  #shouldUseFakOrderType({
+    permit2Enabled,
+    executors,
+    fakOrdersEnabled,
+    fees,
+    permit2Ready,
+  }: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+    fakOrdersEnabled: boolean;
+    fees?: OrderPreview['fees'];
+    permit2Ready: boolean;
+  }): boolean {
+    return (
+      permit2Ready &&
+      this.#hasPermit2Config({ permit2Enabled, executors }) &&
+      fakOrdersEnabled === true &&
+      fees !== undefined &&
+      fees.totalFee > 0
+    );
+  }
+
+  async #isPermit2AllowanceReady(ownerAddress: string): Promise<boolean> {
+    const safeAddress =
+      this.#accountStateByAddress.get(ownerAddress)?.address ??
+      computeProxyAddress(ownerAddress);
+
+    try {
+      return await hasPermit2Allowance({ address: safeAddress });
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Permit2 allowance check failed', {
+        error,
+        ownerAddress,
+      });
+      return false;
+    }
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
@@ -985,31 +1034,23 @@ export class PolymarketProvider implements PredictProvider {
     // Permit2 fee collection is active, and FAK orders are enabled.
     let orderType = OrderType.FOK;
 
-    const couldUseFak =
-      feeCollection.permit2Enabled === true &&
-      Array.isArray(feeCollection.executors) &&
-      feeCollection.executors.length > 0 &&
-      fakOrdersEnabled === true &&
-      basePreview.fees !== undefined &&
-      basePreview.fees.totalFee > 0;
+    const couldUseFak = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+      fees: basePreview?.fees,
+      permit2Ready: true,
+    });
 
     if (couldUseFak) {
-      try {
-        const safeAddress =
-          this.#accountStateByAddress.get(params.signer.address)?.address ??
-          computeProxyAddress(params.signer.address);
+      // TODO: remove this once placeOrder guarantees Permit2 allowance
+      // is set automatically before order submission.
+      const permit2Ready = await this.#isPermit2AllowanceReady(
+        params.signer.address,
+      );
 
-        // TODO: remove this once placeOrder guarantees Permit2 allowance
-        // is set automatically before order submission.
-        const permit2Ready = await hasPermit2Allowance({
-          address: safeAddress,
-        });
-
-        if (permit2Ready) {
-          orderType = OrderType.FAK;
-        }
-      } catch {
-        // Permit2 allowance check is non-essential; default to FOK
+      if (permit2Ready) {
+        orderType = OrderType.FAK;
       }
     }
 
@@ -1180,17 +1221,17 @@ export class PolymarketProvider implements PredictProvider {
       // Determine fees, permit2, and order type BEFORE building clobOrder
       // so the HMAC signature covers the correct orderType.
       const { fakOrdersEnabled } = this.#getFeatureFlags();
-      const shouldUsePermit2 =
-        fees?.permit2Enabled === true &&
-        Array.isArray(fees.executors) &&
-        fees.executors.length > 0;
+      const shouldUsePermit2 = this.#hasPermit2Config({
+        permit2Enabled: fees?.permit2Enabled,
+        executors: fees?.executors,
+      });
 
       let feeAuthorization:
         | SafeFeeAuthorization
         | Permit2FeeAuthorization
         | undefined;
       let executor: string | undefined;
-      let shouldUseFakOrderType = false;
+      let orderType: OrderType = OrderType.FOK;
 
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
@@ -1198,21 +1239,31 @@ export class PolymarketProvider implements PredictProvider {
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
 
-        if (shouldUsePermit2 && fees.executors) {
-          const permit2Ready = await hasPermit2Allowance({
-            address: safeAddress,
-          });
+        if (shouldUsePermit2) {
+          const executors = fees.executors ?? [];
+          const permit2Ready = await this.#isPermit2AllowanceReady(
+            signer.address,
+          );
 
           if (permit2Ready) {
-            executor =
-              fees.executors[Math.floor(Math.random() * fees.executors.length)];
+            executor = executors[Math.floor(Math.random() * executors.length)];
             feeAuthorization = await createPermit2FeeAuthorization({
               safeAddress,
               signer,
               amount: feeAmountInUsdc,
               spender: executor,
             });
-            shouldUseFakOrderType = fakOrdersEnabled === true;
+            if (
+              this.#shouldUseFakOrderType({
+                permit2Enabled: fees.permit2Enabled,
+                executors: fees.executors,
+                fakOrdersEnabled,
+                fees,
+                permit2Ready,
+              })
+            ) {
+              orderType = OrderType.FAK;
+            }
           } else {
             feeAuthorization = await createSafeFeeAuthorization({
               safeAddress,
@@ -1234,7 +1285,7 @@ export class PolymarketProvider implements PredictProvider {
       const clobOrder = {
         order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
         owner: signerApiKey.apiKey,
-        orderType: shouldUseFakOrderType ? OrderType.FAK : OrderType.FOK,
+        orderType,
       };
 
       const body = JSON.stringify(clobOrder);

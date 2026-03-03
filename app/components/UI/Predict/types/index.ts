@@ -7,6 +7,8 @@ export enum Side {
   SELL = 'SELL',
 }
 
+export type PredictOrderType = 'FOK' | 'FAK';
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -470,7 +472,7 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
-  orderType?: string;
+  orderType?: PredictOrderType;
 }
 
 export type OrderResult = Result<{

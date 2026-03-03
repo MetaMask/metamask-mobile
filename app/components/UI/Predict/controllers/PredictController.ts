@@ -79,6 +79,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -1055,7 +1056,7 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
-    orderType?: string;
+    orderType?: PredictOrderType;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
