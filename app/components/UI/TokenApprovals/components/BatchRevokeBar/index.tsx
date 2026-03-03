@@ -87,7 +87,7 @@ const BatchRevokeBar: React.FC<BatchRevokeBarProps> = ({
         <Button
           variant={ButtonVariants.Secondary}
           size={ButtonSize.Sm}
-          label={strings('token_approvals.filter_all')}
+          label={strings('token_approvals.clear_selection')}
           onPress={onClear}
           isDisabled={isProcessing}
         />
@@ -95,7 +95,6 @@ const BatchRevokeBar: React.FC<BatchRevokeBarProps> = ({
           variant={ButtonVariants.Primary}
           size={ButtonSize.Sm}
           label={strings('token_approvals.batch_revoke_cta')}
-          isDanger
           onPress={onRevoke}
           isDisabled={isProcessing}
         />

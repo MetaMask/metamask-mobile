@@ -2928,6 +2928,7 @@
     "batch_revoke_description": "This will submit {{count}} transactions to revoke the selected approvals. Each transaction requires a gas fee.",
     "batch_revoke_bar": "{{count}} selected",
     "batch_revoke_cta": "Revoke Selected",
+    "clear_selection": "Clear",
     "filter_all": "All",
     "filter_malicious": "Malicious",
     "filter_warning": "Warning",
