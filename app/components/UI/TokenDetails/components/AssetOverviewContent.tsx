@@ -58,10 +58,12 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type CaipChainId } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner';
+import TronClaimBanner from '../../Earn/components/Tron/TronClaimBanner';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -113,6 +115,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
+    bannerWrapper: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    } as ViewStyle,
   });
 };
 
@@ -156,6 +162,9 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  readyForWithdrawalTrxAsset?: TokenI;
+  stakingRewardsTrxAsset?: TokenI;
+  inLockPeriodTrxAsset?: TokenI;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
@@ -193,6 +202,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  readyForWithdrawalTrxAsset,
+  stakingRewardsTrxAsset,
+  inLockPeriodTrxAsset,
   onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -521,6 +533,42 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 hideTitleHeading
                 hidePercentageChange
               />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakingRewardsTrxAsset && (
+              <Balance
+                asset={stakingRewardsTrxAsset}
+                mainBalance={stakingRewardsTrxAsset.balance ?? ''}
+                secondaryBalance={`${stakingRewardsTrxAsset.balance} ${stakingRewardsTrxAsset.symbol}`}
+                hideTitleHeading
+                hidePercentageChange
+              />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakingBanner
+                  amount={inLockPeriodTrxAsset.balance ?? '0'}
+                />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && readyForWithdrawalTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronClaimBanner
+                  amount={readyForWithdrawalTrxAsset.balance ?? '0'}
+                  chainId={String(token.chainId) as CaipChainId}
+                />
+              </View>
             )
             ///: END:ONLY_INCLUDE_IF
           }

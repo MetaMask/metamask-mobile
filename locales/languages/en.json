@@ -6090,7 +6090,10 @@
       "fee": "Fee",
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
-      }
+      },
+      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet.",
+      "claim_trx": "Claim TRX"
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",

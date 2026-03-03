@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { TrxScope } from '@metamask/keyring-api';
-import { Hex } from '@metamask/utils';
+import { Hex, type CaipChainId } from '@metamask/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Logger from '../../../../util/Logger';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
@@ -53,8 +52,9 @@ interface UseTronStakeReturn {
  * - Validates and confirms TRON stakes via Snap methods
  */
 const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
+  const chainId = String(token.chainId) as CaipChainId;
   const selectedTronAccount = useSelector(selectSelectedInternalAccountByScope)(
-    TrxScope.Mainnet,
+    chainId,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
 
@@ -76,8 +76,6 @@ const useTronStake = ({ token }: UseTronStakeParams): UseTronStakeReturn => {
   const [preview, setPreview] = useState<Record<string, unknown> | undefined>(
     undefined,
   );
-
-  const chainId = String(token.chainId);
 
   const validateStakeAmount = useCallback<
     UseTronStakeReturn['validateStakeAmount']

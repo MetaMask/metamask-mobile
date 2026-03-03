@@ -10,6 +10,10 @@ import type {
   TronUnstakeValidateParams,
   TronUnstakeConfirmParams,
   TronUnstakeResult,
+  TronClaimUnstakedTrxParams,
+  TronClaimResult,
+  TronClaimStakingRewardsParams,
+  TronClaimStakingRewardsResult,
   ComputeFeeParams,
   ComputeFeeResult,
   ComputeStakeFeeParams,
@@ -109,4 +113,34 @@ export async function confirmTronUnstake(
       params,
     },
   })) as TronUnstakeResult;
+}
+
+export async function claimUnstakedTrx(
+  fromAccount: InternalAccount,
+  params: TronClaimUnstakedTrxParams,
+): Promise<TronClaimResult> {
+  return (await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'claimUnstakedTrx',
+      params,
+    },
+  })) as TronClaimResult;
+}
+
+export async function claimTrxStakingRewards(
+  fromAccount: InternalAccount,
+  params: TronClaimStakingRewardsParams,
+): Promise<TronClaimStakingRewardsResult> {
+  return (await handleSnapRequest(controllerMessenger, {
+    snapId: fromAccount.metadata?.snap?.id as SnapId,
+    origin: 'metamask',
+    handler: HandlerType.OnClientRequest,
+    request: {
+      method: 'claimTrxStakingRewards',
+      params,
+    },
+  })) as TronClaimStakingRewardsResult;
 }

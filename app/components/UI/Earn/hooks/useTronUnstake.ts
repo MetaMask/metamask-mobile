@@ -1,6 +1,5 @@
-import { TrxScope } from '@metamask/keyring-api';
 import type { CaipAssetType } from '@metamask/snaps-sdk';
-import { Hex } from '@metamask/utils';
+import { Hex, type CaipChainId } from '@metamask/utils';
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { TronResourceType } from '../../../../core/Multichain/constants';
@@ -66,8 +65,9 @@ interface UseTronUnstakeReturn {
 const useTronUnstake = ({
   token,
 }: UseTronUnstakeParams): UseTronUnstakeReturn => {
+  const chainId = String(token.chainId) as CaipChainId;
   const selectedTronAccount = useSelector(selectSelectedInternalAccountByScope)(
-    TrxScope.Mainnet,
+    chainId,
   );
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const tronSpecialAssets = useSelector(
@@ -117,8 +117,6 @@ const useTronUnstake = ({
   const [preview, setPreview] = useState<Record<string, unknown> | undefined>(
     undefined,
   );
-
-  const chainId = String(token.chainId);
 
   const validateUnstakeAmount = useCallback<
     UseTronUnstakeReturn['validateUnstakeAmount']

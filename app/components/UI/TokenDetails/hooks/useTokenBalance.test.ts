@@ -7,8 +7,13 @@ import {
   TronSpecialAssetsMap,
 } from '../../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
+import {
+  createReadyForWithdrawalTrxAsset,
+  createStakingRewardsTrxAsset,
+  createInLockPeriodTrxAsset,
+} from '../../AssetOverview/utils/createTronDerivedAsset';
 
-const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
+const createEmptyResourcesMap = (): TronSpecialAssetsMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -43,16 +48,29 @@ jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
   createStakedTrxAsset: jest.fn(),
 }));
 
+jest.mock('../../AssetOverview/utils/createTronDerivedAsset', () => ({
+  createReadyForWithdrawalTrxAsset: jest.fn(),
+  createStakingRewardsTrxAsset: jest.fn(),
+  createInLockPeriodTrxAsset: jest.fn(),
+}));
+
 const mockSelectAsset = jest.mocked(selectAsset);
 const mockSelectTronResources = jest.mocked(
   selectTronSpecialAssetsBySelectedAccountGroup,
 );
 const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
+const mockCreateReadyForWithdrawalTrxAsset = jest.mocked(
+  createReadyForWithdrawalTrxAsset,
+);
+const mockCreateStakingRewardsTrxAsset = jest.mocked(
+  createStakingRewardsTrxAsset,
+);
+const mockCreateInLockPeriodTrxAsset = jest.mocked(createInLockPeriodTrxAsset);
 
 describe('useTokenBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTronResources.mockReturnValue(createEmptySpecialAssetsMap());
+    mockSelectTronResources.mockReturnValue(createEmptyResourcesMap());
   });
 
   afterEach(() => {
@@ -125,7 +143,7 @@ describe('useTokenBalance', () => {
     } as TokenI);
 
     mockSelectTronResources.mockReturnValue({
-      ...createEmptySpecialAssetsMap(),
+      ...createEmptyResourcesMap(),
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '100' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '200' },
     } as TronSpecialAssetsMap);
@@ -149,5 +167,82 @@ describe('useTokenBalance', () => {
       '100',
       '200',
     );
+  });
+
+  it('returns ready-for-withdrawal, staking-rewards, and in-lock-period assets for Tron native token', () => {
+    const tronToken = {
+      address: '',
+      chainId: 'tron:0x2b6653dc',
+      ticker: 'TRX',
+      symbol: 'TRX',
+    } as TokenI;
+
+    const mockRfwAsset = { symbol: 'rfwTRX', balance: '10' } as TokenI;
+    const mockSrAsset = { symbol: 'srTRX', balance: '5' } as TokenI;
+    const mockIlpAsset = { symbol: 'ilpTRX', balance: '20' } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '1000',
+      balanceFiat: '$100.00',
+      symbol: 'TRX',
+    } as TokenI);
+
+    mockSelectTronResources.mockReturnValue({
+      ...createEmptyResourcesMap(),
+      trxReadyForWithdrawal: {
+        symbol: 'trx-ready-for-withdrawal',
+        balance: '10',
+      },
+      trxStakingRewards: { symbol: 'trx-staking-rewards', balance: '5' },
+      trxInLockPeriod: { symbol: 'trx-in-lock-period', balance: '20' },
+    } as unknown as TronSpecialAssetsMap);
+
+    mockCreateReadyForWithdrawalTrxAsset.mockReturnValue(mockRfwAsset);
+    mockCreateStakingRewardsTrxAsset.mockReturnValue(mockSrAsset);
+    mockCreateInLockPeriodTrxAsset.mockReturnValue(mockIlpAsset);
+
+    const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
+
+    expect(result.current.trxReadyForWithdrawalTrxAsset).toBe(mockRfwAsset);
+    expect(result.current.trxStakingRewardsTrxAsset).toBe(mockSrAsset);
+    expect(result.current.trxInLockPeriodTrxAsset).toBe(mockIlpAsset);
+    expect(mockCreateReadyForWithdrawalTrxAsset).toHaveBeenCalledWith(
+      tronToken,
+      '10',
+    );
+    expect(mockCreateStakingRewardsTrxAsset).toHaveBeenCalledWith(
+      tronToken,
+      '5',
+    );
+    expect(mockCreateInLockPeriodTrxAsset).toHaveBeenCalledWith(
+      tronToken,
+      '20',
+    );
+  });
+
+  it('returns undefined for new Tron assets when resources are not available', () => {
+    const tronToken = {
+      address: '',
+      chainId: 'tron:0x2b6653dc',
+      ticker: 'TRX',
+      symbol: 'TRX',
+    } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '1000',
+      balanceFiat: '$100.00',
+      symbol: 'TRX',
+    } as TokenI);
+
+    mockSelectTronResources.mockReturnValue(createEmptyResourcesMap());
+
+    const { result } = renderHookWithProvider(() => useTokenBalance(tronToken));
+
+    expect(result.current.trxReadyForWithdrawalTrxAsset).toBeUndefined();
+    expect(result.current.trxStakingRewardsTrxAsset).toBeUndefined();
+    expect(result.current.trxInLockPeriodTrxAsset).toBeUndefined();
+    expect(mockCreateReadyForWithdrawalTrxAsset).not.toHaveBeenCalled();
+    expect(mockCreateStakingRewardsTrxAsset).not.toHaveBeenCalled();
+    expect(mockCreateInLockPeriodTrxAsset).not.toHaveBeenCalled();
   });
 });
