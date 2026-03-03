@@ -292,7 +292,7 @@ export class RewardsController extends BaseController<
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
   #isSnapshotsEnabled: () => boolean;
-  #reauthPromise: Promise<void> | null = null;
+  #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
    * Calculate tier status and next tier information
@@ -901,16 +901,17 @@ export class RewardsController extends BaseController<
     } catch (error) {
       if (!(error instanceof AuthorizationFailedError)) throw error;
 
-      if (!this.#reauthPromise) {
+      if (!this.#reauthPromises.has(subscriptionId)) {
         Logger.log(
           'RewardsController: 403 detected, initiating reauth for subscription',
           subscriptionId,
         );
-        this.#reauthPromise = this.#performReauthForSubscription(
+        const promise = this.#performReauthForSubscription(
           subscriptionId,
         ).finally(() => {
-          this.#reauthPromise = null;
+          this.#reauthPromises.delete(subscriptionId);
         });
+        this.#reauthPromises.set(subscriptionId, promise);
       } else {
         Logger.log(
           'RewardsController: 403 detected, reauth already in progress for subscription',
@@ -919,7 +920,7 @@ export class RewardsController extends BaseController<
       }
 
       try {
-        await this.#reauthPromise;
+        await this.#reauthPromises.get(subscriptionId);
       } catch {
         this.invalidateSubscriptionCache(subscriptionId);
         await this.invalidateSubscriptionAndAccounts(subscriptionId);
