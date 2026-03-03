@@ -226,7 +226,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -315,7 +315,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -377,7 +377,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -453,7 +453,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -593,7 +593,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                     "color": "#131416",
                     "flex": 1,
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -658,7 +658,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -759,7 +759,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#66676a",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
                 "marginTop": 0,
@@ -860,7 +860,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 0,
@@ -883,7 +883,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -969,7 +969,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1055,7 +1055,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1140,7 +1140,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -1219,7 +1219,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 32,
@@ -1251,7 +1251,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1335,7 +1335,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 32,
@@ -1367,7 +1367,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1451,7 +1451,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1550,7 +1550,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 32,
@@ -1581,7 +1581,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1665,7 +1665,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                     "color": "#131416",
                     "flex": 1,
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1749,7 +1749,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -1855,7 +1855,7 @@ exports[`SecuritySettings renders correctly 1`] = `
             {
               "color": "#66676a",
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "marginTop": 32,
@@ -1887,7 +1887,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2006,7 +2006,7 @@ exports[`SecuritySettings renders correctly 1`] = `
                   "color": "#131416",
                   "flex": 1,
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -2081,7 +2081,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -2278,7 +2278,7 @@ exports[`SecuritySettings renders correctly 1`] = `
               {
                 "color": "#131416",
                 "fontFamily": "Geist-Medium",
-                "fontSize": 18,
+                "fontSize": 20,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
