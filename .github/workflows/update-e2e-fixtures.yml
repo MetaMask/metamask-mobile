@@ -45,9 +45,11 @@ jobs:
           PR_NUMBER="${{ github.event.issue.number }}"
           IS_FORK=$(gh pr view "${PR_NUMBER}" --json isCrossRepository --jq '.isCrossRepository')
           BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
-          echo "PR_NUMBER=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "IS_FORK=${IS_FORK}" >> "$GITHUB_OUTPUT"
-          echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
+          {
+            echo "PR_NUMBER=${PR_NUMBER}"
+            echo "IS_FORK=${IS_FORK}"
+            echo "BRANCH=${BRANCH}"
+          } >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -58,9 +60,7 @@ jobs:
             --ref "${{ steps.pr.outputs.BRANCH }}" \
             -f pr_number="${{ steps.pr.outputs.PR_NUMBER }}"
 
-          gh pr comment "${PR_NUMBER}" --body "🔄 **Fixture update started.** Running workflow from branch \`${{ steps.pr.outputs.BRANCH }}\`.
-
-[View workflow runs](${ACTIONS_URL})"
+          gh pr comment "${PR_NUMBER}" --body "🔄 **Fixture update started.** Running workflow from branch \`${{ steps.pr.outputs.BRANCH }}\`. [View workflow runs](${ACTIONS_URL})"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
@@ -121,8 +121,6 @@ jobs:
         run: |
           COMMIT_SHA_FULL=$(git rev-parse HEAD)
           BRANCH="${{ steps.branch.outputs.BRANCH }}"
-          CI_RUN_URL="https://github.com/${{ github.repository }}/actions?query=workflow%3Aci+branch%3A${BRANCH}"
-
           echo "::group::Checking CI workflow status"
 
           # Get the most recent ci workflow run for this branch
@@ -358,14 +356,8 @@ jobs:
         run: |
           passed="${{ needs.check-status.outputs.PASSED }}"
           if [[ $passed != "true" ]]; then
-            gh pr comment "${PR_NUMBER}" --body "❌ **E2E fixture update failed.**
-
-**Common causes:**
-- CI workflow is still running — wait for 'Build iOS Apps' to complete
-- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label
-- iOS build failed — check the CI workflow for errors
-
-[View logs and retry](${ACTION_RUN_URL})"
+            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
+            gh pr comment "${PR_NUMBER}" --body "$body"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
