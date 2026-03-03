@@ -2874,10 +2874,6 @@
     "enabling_notifications": "Mengaktifkan notifikasi...",
     "updating_notifications": "Memperbarui notifikasi...",
     "updating_account_settings": "Memperbarui pengaturan akun...",
-    "reset_notifications_title": "Reset notifikasi",
-    "reset_notifications_description": "Mereset notifikasi berarti Anda menghapus kunci penyimpanan notifikasi dan mereset semua riwayat notifikasi. Yakin ingin melakukan ini?",
-    "reset_notifications": "Reset notifikasi",
-    "reset_notifications_success": "Kunci penyimpanan notifikasi dihapus/dibuat ulang dan riwayat notifikasi direset.",
     "notifications_dismiss_modal": "Lewatkan",
     "select_rpc_url": "Pilih URL RPC",
     "title": "Pengaturan",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "Beli mUSD",
       "get_musd": "Dapatkan mUSD",
-      "boost_title": "Dapatkan {{percentage}}% pada stablecoin",
-      "boost_description": "Konversikan stablecoin ke mUSD dan dapatkan bonus hingga {{percentage}}%.",
+      "bonus_title": "Dapatkan {{percentage}}% pada stablecoin",
+      "bonus_description": "Konversikan stablecoin ke mUSD dan dapatkan bonus hingga {{percentage}}%.",
       "powered_by_relay": "Didukung oleh Relay"
     },
     "bonus_claim": {

@@ -2874,10 +2874,6 @@
     "enabling_notifications": "Pinapagana ang mga notipikasyon...",
     "updating_notifications": "Ina-update ang mga notipikasyon...",
     "updating_account_settings": "Ina-update ang mga setting ng account...",
-    "reset_notifications_title": "I-reset ang mga notipikasyon",
-    "reset_notifications_description": "Ang pag-reset sa mga notipikasyon, ay nangangahulungan na tinatanggal mo ang iyong mga storage key ng mga notipikasyon at inire-reset ang lahat ng iyong kasaysayan ng notipikasyon. Sigurado ka ba na gusto mo itong gawin?",
-    "reset_notifications": "I-reset ang mga notipikasyon",
-    "reset_notifications_success": "Tinanggal/nilikha muli ang storage key ng mga notipikasyon, at ini-reset ang kasaysayan ng mga notipikasyon.",
     "notifications_dismiss_modal": "I-dismiss",
     "select_rpc_url": "Pumili ng RPC URL",
     "title": "Mga Setting",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "Bumili ng mUSD",
       "get_musd": "Kumuha ng mUSD",
-      "boost_title": "Makakakuha ng {{percentage}}% sa mga stablecoin mo",
-      "boost_description": "I-convert ang mga stablecoin mo sa mUSD at makakatanggap ng hanggang {{percentage}}% na bonus.",
+      "bonus_title": "Makakakuha ng {{percentage}}% sa mga stablecoin mo",
+      "bonus_description": "I-convert ang mga stablecoin mo sa mUSD at makakatanggap ng hanggang {{percentage}}% na bonus.",
       "powered_by_relay": "Pinapagana ng Relay"
     },
     "bonus_claim": {
