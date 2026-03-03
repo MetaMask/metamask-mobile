@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
-import { FlatList } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { Linking, StyleSheet } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
   Text,
@@ -11,6 +12,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { toHex } from '@metamask/controller-utils';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Avatar, {
@@ -19,9 +21,37 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
 import { formatAddress } from '../../../../../util/address';
-import { getNetworkImageSource } from '../../../../../util/networks';
+import {
+  getNetworkImageSource,
+  getDefaultNetworkByChainId,
+} from '../../../../../util/networks';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
+
+const styles = StyleSheet.create({
+  list: {
+    maxHeight: 275,
+  },
+});
+
+/**
+ * Returns the short display name for a CAIP chain ID (e.g. "eip155:1" → "Ethereum").
+ * Falls back to the raw caipChainId string when the chain is not in the default network list.
+ */
+function getChainShortName(caipChainId: string): string {
+  try {
+    const colonIdx = caipChainId.indexOf(':');
+    if (colonIdx === -1) return caipChainId;
+    const reference = caipChainId.slice(colonIdx + 1);
+    const hexChainId = toHex(reference);
+    const network = getDefaultNetworkByChainId(hexChainId);
+    return (
+      (network as unknown as { shortName?: string })?.shortName ?? caipChainId
+    );
+  } catch {
+    return caipChainId;
+  }
+}
 
 interface LinkedOffDeviceAccountsSheetProps {
   accounts: OffDeviceAccount[];
@@ -31,6 +61,10 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
+  const handleContactSupport = useCallback(() => {
+    Linking.openURL('https://support.metamask.io');
+  }, []);
+
   const handleCopy = useCallback(async (address: string) => {
     try {
       await ClipboardManager.setString(address);
@@ -38,6 +72,11 @@ const LinkedOffDeviceAccountsSheet: React.FC<
       // clipboard write failures are non-critical; swallow silently
     }
   }, []);
+
+  const sortedAccounts = useMemo(
+    () => accounts.sort((a, b) => a.address.localeCompare(b.address)),
+    [accounts],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: OffDeviceAccount }) => {
@@ -49,6 +88,8 @@ const LinkedOffDeviceAccountsSheet: React.FC<
       } catch {
         networkImageSource = undefined;
       }
+
+      const chainName = getChainShortName(item.caipChainId);
 
       return (
         <Box
@@ -64,8 +105,11 @@ const LinkedOffDeviceAccountsSheet: React.FC<
             imageSource={networkImageSource}
           />
 
-          {/* Shortened address - flex grows to fill remaining space */}
+          {/* Chain name + shortened address */}
           <Box twClassName="flex-1">
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {chainName}
+            </Text>
             <Text variant={TextVariant.BodySm} twClassName="text-alternative">
               {formatAddress(item.address, 'short')}
             </Text>
@@ -91,12 +135,24 @@ const LinkedOffDeviceAccountsSheet: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <Box twClassName="px-4 pb-6">
+      <Box twClassName="px-4 gap-4">
+        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+          {strings('rewards.settings.off_device_accounts_sheet_description')}{' '}
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-primary-default"
+            onPress={handleContactSupport}
+          >
+            {strings('rewards.settings.off_device_accounts_sheet_let_us_know')}
+          </Text>
+        </Text>
+
         <FlatList
-          data={accounts}
+          data={sortedAccounts}
           keyExtractor={(item) => item.caip10}
           renderItem={renderItem}
-          scrollEnabled={accounts.length > 8}
+          style={styles.list}
+          scrollEnabled
         />
       </Box>
     </BottomSheet>
