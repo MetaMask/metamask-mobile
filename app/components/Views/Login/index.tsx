@@ -10,7 +10,10 @@ import {
   Image,
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   KeyboardController,
@@ -460,7 +463,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 variant={ButtonVariants.Link}
                 onPress={toggleWarningModal}
                 testID={LoginViewSelectors.RESET_WALLET}
-                label={strings('login.forgot_password')}
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={TextColor.Alternative}
+                  >
+                    {strings('login.forgot_password')}
+                  </Text>
+                }
                 isDisabled={loading}
                 size={ButtonSize.Lg}
               />
