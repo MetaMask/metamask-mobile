@@ -7,6 +7,7 @@ import {
   ATTEMPTS_MAX_DEFAULT,
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
+  STX_DISABLED_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
@@ -117,6 +118,25 @@ describe('MetaMask Pay Feature Flags', () => {
       };
 
     expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
+  });
+
+  it('returns default stxDisabled if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).stxDisabled).toEqual(
+      STX_DISABLED_DEFAULT,
+    );
+  });
+
+  it('returns stxDisabled from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          stxDisabled: true,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).stxDisabled).toEqual(true);
   });
 });
 

@@ -14,6 +14,7 @@ import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
@@ -41,6 +42,7 @@ jest.mock('./event-handlers/metrics');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('@metamask/transaction-pay-controller');
+jest.mock('../../../../selectors/featureFlagController/confirmations');
 
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
@@ -140,6 +142,7 @@ describe('Transaction Controller Init', () => {
     handleTransactionAddedEventForMetrics,
   );
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
+  const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
   const payHookClassMock = jest.mocked(TransactionPayPublishHook);
   const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
 
@@ -172,6 +175,14 @@ describe('Transaction Controller Init', () => {
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
     getGlobalChainIdMock.mockReturnValue('0x1');
     isSendBundleSupportedMock.mockResolvedValue(true);
+    selectMetaMaskPayFlagsMock.mockReturnValue({
+      attemptsMax: 2,
+      bufferInitial: 0.025,
+      bufferStep: 0.025,
+      bufferSubsequent: 0.05,
+      slippage: 0.005,
+      stxDisabled: false,
+    });
 
     payHookClassMock.mockReturnValue({
       getHook: () => payHookMock,
@@ -314,6 +325,40 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       expect(payHookMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes isSmartTransaction returning false to pay hook when stxDisabled is true', async () => {
+      selectMetaMaskPayFlagsMock.mockReturnValue({
+        attemptsMax: 2,
+        bufferInitial: 0.025,
+        bufferStep: 0.025,
+        bufferSubsequent: 0.05,
+        slippage: 0.005,
+        stxDisabled: true,
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
+      expect(isSmartTransaction()).toBe(false);
+    });
+
+    it('passes isSmartTransaction returning true to pay hook when stxDisabled is false', async () => {
+      selectMetaMaskPayFlagsMock.mockReturnValue({
+        attemptsMax: 2,
+        bufferInitial: 0.025,
+        bufferStep: 0.025,
+        bufferSubsequent: 0.05,
+        slippage: 0.005,
+        stxDisabled: false,
+      });
+
+      const hooks = testConstructorOption('hooks');
+      await hooks?.publish?.(MOCK_TRANSACTION_META);
+
+      const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
+      expect(isSmartTransaction()).toBe(true);
     });
   });
 
