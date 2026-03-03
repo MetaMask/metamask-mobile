@@ -501,6 +501,26 @@ describe('Wallet', () => {
     expect(scanButton).toBeDefined();
   });
 
+  it('renders wallet safe area wrapper with wallet-safe-area testID', () => {
+    render(Wallet);
+    const safeAreaWrapper = RNScreen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SAFE_AREA,
+    );
+    expect(safeAreaWrapper).toBeDefined();
+  });
+
+  it('renders HeaderRoot with wallet-header-root testID when wallet content is shown', () => {
+    render(Wallet);
+    const walletContainer = RNScreen.queryByTestId(
+      WalletViewSelectorsIDs.WALLET_CONTAINER,
+    );
+    if (walletContainer) {
+      expect(
+        RNScreen.getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      ).toBeOnTheScreen();
+    }
+  });
+
   it('Should add tokens to state automatically when there are detected tokens', () => {
     const mockedAddTokens = jest.mocked(Engine.context.TokensController);
 

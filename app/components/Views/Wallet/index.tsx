@@ -15,6 +15,7 @@ import { useBalanceRefresh } from './hooks';
 
 import {
   ActivityIndicator,
+  Alert,
   DeviceEventEmitter,
   Linking,
   NativeSyntheticEvent,
@@ -24,6 +25,7 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -44,8 +46,27 @@ import {
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
 } from '../../../constants/storage';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
+import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import AddressCopy from '../../UI/AddressCopy';
+import CardButton from '../../UI/Card/components/CardButton';
+import { createAccountSelectorNavDetails } from '../AccountSelector';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { SharedDeeplinkManager } from '../../../core/DeeplinkManager';
+import { Authentication } from '../../../core';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor as MMDSIconColor,
+  IconName as MMDSIconName,
+} from '@metamask/design-system-react-native';
 
 import {
   NavigationProp,
@@ -216,6 +237,16 @@ const createStyles = ({ colors }: Theme) =>
       right: 0,
       bottom: 0,
       height: 40,
+    },
+    headerEndAccessoryContainer: {
+      alignItems: 'flex-end',
+    },
+    headerActionButtonsContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    headerAccountPickerStyle: {
+      marginRight: 16,
     },
   });
 
@@ -1149,41 +1180,127 @@ const Wallet = ({
     [computeFadeOpacity],
   );
 
-  useEffect(() => {
-    if (!selectedInternalAccount) return;
-    navigation.setOptions(
-      getWalletNavbarOptions(
-        walletRef,
-        selectedInternalAccount,
-        displayName,
-        networkName,
-        networkImageSource,
-        onTitlePress,
-        navigation,
-        colors,
-        isNotificationEnabled,
-        isBackupAndSyncEnabled,
-        unreadNotificationCount,
-        readNotificationCount,
-        shouldDisplayCardButton,
-        isAccountMenuEnabled,
-      ),
+  const touchAreaSlop = useMemo(
+    () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
+    [],
+  );
+
+  const onScanSuccess = useCallback(
+    (data: { private_key?: string; seed?: string }, content: string) => {
+      if (data.private_key) {
+        Alert.alert(
+          strings('wallet.private_key_detected'),
+          strings('wallet.do_you_want_to_import_this_account'),
+          [
+            {
+              text: strings('wallet.cancel'),
+              onPress: () => false,
+              style: 'cancel',
+            },
+            {
+              text: strings('wallet.yes'),
+              onPress: async () => {
+                try {
+                  await Authentication.importAccountFromPrivateKey(
+                    data.private_key as string,
+                  );
+                  navigation.navigate('ImportPrivateKeyView', {
+                    screen: 'ImportPrivateKeySuccess',
+                  });
+                } catch {
+                  Alert.alert(
+                    strings('import_private_key.error_title'),
+                    strings('import_private_key.error_message'),
+                  );
+                }
+              },
+            },
+          ],
+          { cancelable: false },
+        );
+      } else if (data.seed) {
+        Alert.alert(
+          strings('wallet.error'),
+          strings('wallet.logout_to_import_seed'),
+        );
+      } else {
+        setTimeout(() => {
+          SharedDeeplinkManager.parse(content, {
+            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+          });
+        }, 500);
+      }
+    },
+    [navigation],
+  );
+
+  const openQRScanner = useCallback(() => {
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess,
+    });
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_QR_SCANNER,
+      )
+        .addProperties({ action: 'Wallet View', name: 'QR scanner' })
+        .build(),
     );
+  }, [navigation, onScanSuccess, trackEvent]);
+
+  const handleNotificationOnPress = useCallback(() => {
+    if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
+      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
+      trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_MENU_OPENED,
+        )
+          .addProperties({
+            unread_count: unreadNotificationCount,
+            read_count: readNotificationCount,
+          })
+          .build(),
+      );
+    } else {
+      navigation.navigate(Routes.NOTIFICATIONS.OPT_IN_STACK);
+      trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.NOTIFICATIONS_ACTIVATED,
+        )
+          .addProperties({
+            action_type: 'started',
+            is_profile_syncing_enabled: isBackupAndSyncEnabled,
+          })
+          .build(),
+      );
+    }
   }, [
-    selectedInternalAccount,
-    displayName,
-    networkName,
-    networkImageSource,
-    onTitlePress,
-    navigation,
-    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
-    shouldDisplayCardButton,
-    isAccountMenuEnabled,
+    navigation,
+    trackEvent,
   ]);
+
+  const handleHamburgerPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+      )
+        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
+        .build(),
+    );
+    navigation.navigate(Routes.SETTINGS_VIEW);
+  }, [navigation, trackEvent]);
+
+  const handleCardPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation, trackEvent]);
 
   const getTokenAddedAnalyticsParams = useCallback(
     ({ address, symbol }: { address: string; symbol: string }) => {
@@ -1420,61 +1537,163 @@ const Wallet = ({
     [styles],
   );
 
+  const headerEndAccessory = (
+    <View style={styles.headerEndAccessoryContainer}>
+      <View style={styles.headerActionButtonsContainer}>
+        <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
+          <AddressCopy hitSlop={touchAreaSlop} />
+        </View>
+        {shouldDisplayCardButton && (
+          <CardButton onPress={handleCardPress} touchAreaSlop={touchAreaSlop} />
+        )}
+        {!isAccountMenuEnabled && (
+          <ButtonIcon
+            iconProps={{ color: MMDSIconColor.IconDefault }}
+            onPress={openQRScanner}
+            iconName={MMDSIconName.QrCode}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+            hitSlop={touchAreaSlop}
+          />
+        )}
+        {isNotificationsFeatureEnabled() && !isAccountMenuEnabled && (
+          <BadgeWrapper
+            position={BadgeWrapperPosition.TopRight}
+            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+            badge={
+              isNotificationEnabled && unreadNotificationCount > 0 ? (
+                <BadgeStatus status={BadgeStatusStatus.Active} />
+              ) : null
+            }
+          >
+            <ButtonIcon
+              iconProps={{ color: MMDSIconColor.IconDefault }}
+              onPress={handleNotificationOnPress}
+              iconName={MMDSIconName.Notification}
+              size={ButtonIconSize.Md}
+              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
+              hitSlop={touchAreaSlop}
+            />
+          </BadgeWrapper>
+        )}
+        {isNotificationsFeatureEnabled() && isAccountMenuEnabled ? (
+          <BadgeWrapper
+            position={BadgeWrapperPosition.TopRight}
+            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+            badge={
+              isNotificationsFeatureEnabled() &&
+              isNotificationEnabled &&
+              unreadNotificationCount > 0 ? (
+                <BadgeStatus status={BadgeStatusStatus.Attention} />
+              ) : null
+            }
+          >
+            <ButtonIcon
+              iconProps={{ color: MMDSIconColor.IconDefault }}
+              onPress={handleHamburgerPress}
+              iconName={MMDSIconName.Menu}
+              size={ButtonIconSize.Md}
+              testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+              hitSlop={touchAreaSlop}
+            />
+          </BadgeWrapper>
+        ) : (
+          <ButtonIcon
+            iconProps={{ color: MMDSIconColor.IconDefault }}
+            onPress={handleHamburgerPress}
+            iconName={MMDSIconName.Menu}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
+            hitSlop={touchAreaSlop}
+          />
+        )}
+      </View>
+    </View>
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? (
-          <View
-            style={styles.wrapper}
-            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-          >
-            <ConditionalScrollView
-              ref={scrollViewRef}
-              isScrollEnabled={shouldEnableParentScroll}
-              scrollViewProps={{
-                contentContainerStyle: scrollViewContentStyle,
-                showsVerticalScrollIndicator: false,
-                onScroll: isHomepageSectionsV1Enabled
-                  ? handleVerticalScroll
-                  : undefined,
-                onContentSizeChange: isHomepageSectionsV1Enabled
-                  ? handleScrollContentSizeChange
-                  : undefined,
-                onLayout: isHomepageSectionsV1Enabled
-                  ? handleScrollLayout
-                  : undefined,
-                scrollEventThrottle: 16,
-                refreshControl: shouldEnableParentScroll ? (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
+        <SafeAreaView
+          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
+          style={[
+            baseStyles.flexGrow,
+            { backgroundColor: colors.background.default },
+          ]}
+          edges={{ bottom: 'additive' }}
+        >
+          {selectedInternalAccount ? (
+            <>
+              <HeaderRoot
+                includesTopInset
+                testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+                endAccessory={headerEndAccessory}
+                twClassName="pl-2 pr-3"
+              >
+                <PickerAccount
+                  ref={walletRef}
+                  accountName={displayName}
+                  onPress={() =>
+                    navigation.navigate(...createAccountSelectorNavDetails({}))
+                  }
+                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                  hitSlop={touchAreaSlop}
+                  style={styles.headerAccountPickerStyle}
+                />
+              </HeaderRoot>
+              <View
+                style={styles.wrapper}
+                testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+              >
+                <ConditionalScrollView
+                  ref={scrollViewRef}
+                  isScrollEnabled={shouldEnableParentScroll}
+                  scrollViewProps={{
+                    contentContainerStyle: scrollViewContentStyle,
+                    showsVerticalScrollIndicator: false,
+                    onScroll: isHomepageSectionsV1Enabled
+                      ? handleVerticalScroll
+                      : undefined,
+                    onContentSizeChange: isHomepageSectionsV1Enabled
+                      ? handleScrollContentSizeChange
+                      : undefined,
+                    onLayout: isHomepageSectionsV1Enabled
+                      ? handleScrollLayout
+                      : undefined,
+                    scrollEventThrottle: 16,
+                    refreshControl: shouldEnableParentScroll ? (
+                      <RefreshControl
+                        colors={[colors.primary.default]}
+                        tintColor={colors.icon.default}
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                      />
+                    ) : undefined,
+                  }}
+                >
+                  {content}
+                </ConditionalScrollView>
+                {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
+                  <LinearGradient
+                    pointerEvents="none"
+                    colors={[
+                      colorWithOpacity(colors.background.default, 0),
+                      colors.background.default,
+                    ]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 0, y: 1 }}
+                    style={[
+                      styles.bottomFadeOverlay,
+                      { opacity: bottomFadeOpacity },
+                    ]}
                   />
-                ) : undefined,
-              }}
-            >
-              {content}
-            </ConditionalScrollView>
-            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-              <LinearGradient
-                pointerEvents="none"
-                colors={[
-                  colorWithOpacity(colors.background.default, 0),
-                  colors.background.default,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={[
-                  styles.bottomFadeOverlay,
-                  { opacity: bottomFadeOpacity },
-                ]}
-              />
-            )}
-          </View>
-        ) : (
-          renderLoader()
-        )}
+                )}
+              </View>
+            </>
+          ) : (
+            renderLoader()
+          )}
+        </SafeAreaView>
       </View>
     </ErrorBoundary>
   );

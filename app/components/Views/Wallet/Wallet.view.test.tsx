@@ -24,6 +24,12 @@ describeForPlatforms('Wallet', () => {
     });
 
     expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SAFE_AREA),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+    ).toBeOnTheScreen();
+    expect(
       getByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
     ).toBeOnTheScreen();
     expect(
