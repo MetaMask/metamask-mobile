@@ -3,27 +3,22 @@
  * Endpoints: GET user/, GET kyc/requirement, GET orders/user-limit.
  */
 
+import { ONRAMP_PERSONA } from '../onramp-persona-data';
+
 export const TRANSAK_USER_DETAILS_RESPONSE = {
   data: {
     id: 'mock-user-id',
-    firstName: 'Curt',
-    lastName: 'Angle',
-    email: 'curtis.angle@gmail.com',
-    mobileNumber: '+15555555555',
+    firstName: ONRAMP_PERSONA.firstName,
+    lastName: ONRAMP_PERSONA.lastName,
+    email: ONRAMP_PERSONA.email,
+    mobileNumber: ONRAMP_PERSONA.mobileNumber,
     status: 'active',
     kyc: {
       status: 'APPROVED',
       type: 'SIMPLE',
       highestApprovedKYCType: 'SIMPLE',
     },
-    address: {
-      addressLine1: '123 Test St',
-      city: 'Test City',
-      state: 'CA',
-      postCode: '90210',
-      country: 'United States',
-      countryCode: 'US',
-    },
+    address: ONRAMP_PERSONA.address,
     createdAt: new Date().toISOString(),
   },
 };

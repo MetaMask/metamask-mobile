@@ -17,6 +17,7 @@ import {
 } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data';
 import {
   getEventsPayloads,
   EventPayload,
@@ -109,7 +110,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
 
         await KYCScreen.tapVerifyIdentityContinueButton();
 
-        await KYCScreen.enterEmail('curtis@gmail.com');
+        await KYCScreen.enterEmail(ONRAMP_PERSONA.email);
 
         await Assertions.expectElementToBeVisible(KYCScreen.otpScreen, {
           description: 'OTP code screen is visible before entering code',

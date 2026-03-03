@@ -4,11 +4,13 @@
  * Transak API returns responses wrapped in { data: ... }.
  */
 
+import { ONRAMP_PERSONA } from '../onramp-persona-data';
+
 export const TRANSAK_AUTH_LOGIN_RESPONSE = {
   data: {
     stateToken: 'mock-state-token',
     isTncAccepted: true,
-    email: 'curtis@gmail.com',
+    email: ONRAMP_PERSONA.email,
     expiresIn: 20,
   },
 };
