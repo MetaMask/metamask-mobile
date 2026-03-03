@@ -28,7 +28,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };
 
-  it.skip('Navigate to all sections full views via View All and return to feed', async () => {
+  it('Navigate to all sections full views via View All and return to feed', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
