@@ -27,7 +27,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Bold",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -159,7 +159,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       {
         "color": "#131416",
         "fontFamily": "Geist-Bold",
-        "fontSize": 18,
+        "fontSize": 20,
         "letterSpacing": 0,
         "lineHeight": 24,
       }
