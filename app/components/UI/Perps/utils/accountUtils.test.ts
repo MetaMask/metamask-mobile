@@ -8,7 +8,6 @@ import {
   getEvmAccountFromAccountGroup,
   getSelectedEvmAccount,
   calculateWeightedReturnOnEquity,
-  PerpsControllerMessenger,
 } from '@metamask/perps-controller';
 
 describe('accountUtils', () => {
@@ -242,7 +241,7 @@ describe('accountUtils', () => {
   });
 
   describe('getSelectedEvmAccount', () => {
-    it('returns EVM account when messenger returns accounts with EVM', () => {
+    it('returns EVM account when accounts array contains EVM account', () => {
       const mockAccounts = [
         {
           address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
@@ -259,27 +258,14 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
-      };
+      const result = getSelectedEvmAccount(mockAccounts);
 
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      );
       expect(result).toEqual({
         address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef',
       });
     });
 
-    it('returns undefined when no EVM account in selected group', () => {
+    it('returns undefined when no EVM account in accounts array', () => {
       const mockAccounts = [
         {
           address: '0x1234567890123456789012345678901234567890',
@@ -296,33 +282,13 @@ describe('accountUtils', () => {
         },
       ] as unknown as InternalAccount[];
 
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue(mockAccounts) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
-      };
-
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
+      const result = getSelectedEvmAccount(mockAccounts);
 
       expect(result).toBeUndefined();
     });
 
-    it('returns undefined when messenger returns empty accounts', () => {
-      const mockMessenger = {
-        call: jest.fn().mockReturnValue([]) as jest.MockedFunction<
-          (
-            action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) => InternalAccount[]
-        >,
-      };
-
-      const result = getSelectedEvmAccount(
-        mockMessenger as unknown as PerpsControllerMessenger,
-      );
+    it('returns undefined when accounts array is empty', () => {
+      const result = getSelectedEvmAccount([]);
 
       expect(result).toBeUndefined();
     });

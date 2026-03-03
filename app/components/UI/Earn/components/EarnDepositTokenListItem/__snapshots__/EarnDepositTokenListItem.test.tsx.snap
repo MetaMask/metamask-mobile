@@ -141,7 +141,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -180,7 +180,7 @@ exports[`EarnDepositTokenListItem render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#686e7d",
+          "color": "#66676a",
           "fontFamily": "Geist-Bold",
           "fontSize": 14,
           "letterSpacing": 0,

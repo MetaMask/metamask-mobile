@@ -27,18 +27,35 @@ import {
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../util/navigation/navUtils';
+import { createV2EnterEmailNavDetails } from './EnterEmail';
+
+export interface V2VerifyIdentityParams {
+  amount?: string;
+  currency?: string;
+  assetId?: string;
+}
+
+export const createV2VerifyIdentityNavDetails =
+  createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
+  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
-  }, [navigation]);
+    navigation.navigate(
+      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
+    );
+  }, [navigation, amount, currency, assetId]);
 
   useEffect(() => {
     navigation.setOptions(

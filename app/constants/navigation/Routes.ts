@@ -47,6 +47,7 @@ const Routes = {
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
+      SSN_INFO: 'RampSsnInfoModal',
     },
   },
   DEPOSIT: {
@@ -258,6 +259,7 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
   },
   VAULT_RECOVERY: {
@@ -453,6 +455,7 @@ const Routes = {
       PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
+      VIEW_PIN: 'CardViewPinModal',
     },
   },
   SEND: {

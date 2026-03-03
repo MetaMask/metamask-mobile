@@ -2,6 +2,9 @@ import { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { Metadata } from './metadata';
 import { isUUID } from '../../SDKConnect/utils/isUUID';
 
+const HANDSHAKE_CHANNEL_REGEX =
+  /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
  * This is the shared data contract between the dApp SDK and the mobile wallet,
@@ -41,14 +44,45 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
   if (
     !sessionReq.id ||
     typeof sessionReq.id !== 'string' ||
-    !isUUID(sessionReq.id) ||
+    !isUUID(sessionReq.id)
+  ) {
+    return false;
+  }
+
+  if (
     !sessionReq.publicKeyB64 ||
     typeof sessionReq.publicKeyB64 !== 'string' ||
+    sessionReq.publicKeyB64.length > 200
+  ) {
+    return false;
+  }
+  try {
+    const decoded = Buffer.from(sessionReq.publicKeyB64, 'base64');
+    if (decoded.length !== 33) return false; // compressed secp256k1
+  } catch {
+    return false;
+  }
+
+  if (
     !sessionReq.channel ||
     typeof sessionReq.channel !== 'string' ||
+    !HANDSHAKE_CHANNEL_REGEX.test(sessionReq.channel)
+  ) {
+    return false;
+  }
+
+  if (
     !sessionReq.mode ||
     typeof sessionReq.mode !== 'string' ||
-    typeof sessionReq.expiresAt !== 'number'
+    !['trusted', 'untrusted'].includes(sessionReq.mode)
+  ) {
+    return false;
+  }
+
+  if (
+    typeof sessionReq.expiresAt !== 'number' ||
+    isNaN(sessionReq.expiresAt) ||
+    sessionReq.expiresAt < Date.now()
   ) {
     return false;
   }
@@ -63,10 +97,42 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     typeof metadata.dapp !== 'object' ||
     !metadata.dapp.name ||
     typeof metadata.dapp.name !== 'string' ||
+    metadata.dapp.name.length > 256 ||
     !metadata.dapp.url ||
-    typeof metadata.dapp.url !== 'string'
+    typeof metadata.dapp.url !== 'string' ||
+    metadata.dapp.url.length > 1024
   ) {
     return false;
+  }
+
+  // SECURITY: The try/catch rejects plain strings (e.g. 'metamask') that
+  // aren't parseable URLs. The protocol check additionally blocks custom
+  // schemes like metamask:// that are valid URLs but could collide with
+  // internal origin identifiers. Together these ensure dapp.url can never
+  // match INTERNAL_ORIGINS values used in downstream privilege checks.
+  // Do not relax this without also updating the defense-in-depth check
+  // in ConnectionRegistry.handleConnectDeeplink().
+  try {
+    const parsed = new URL(metadata.dapp.url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+
+  if (metadata.dapp.icon) {
+    if (
+      typeof metadata.dapp.icon !== 'string' ||
+      metadata.dapp.icon.length > 1024
+    ) {
+      return false;
+    }
+    try {
+      new URL(metadata.dapp.icon);
+    } catch {
+      return false;
+    }
   }
 
   if (
@@ -74,15 +140,11 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     typeof metadata.sdk !== 'object' ||
     !metadata.sdk.version ||
     typeof metadata.sdk.version !== 'string' ||
+    metadata.sdk.version.length > 64 ||
     !metadata.sdk.platform ||
-    typeof metadata.sdk.platform !== 'string'
+    typeof metadata.sdk.platform !== 'string' ||
+    metadata.sdk.platform.length > 64
   ) {
-    return false;
-  }
-
-  try {
-    new URL(metadata.dapp.url);
-  } catch {
     return false;
   }
 

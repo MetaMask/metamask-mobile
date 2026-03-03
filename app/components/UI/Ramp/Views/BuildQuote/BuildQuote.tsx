@@ -11,7 +11,7 @@ import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
-import Keypad, { type KeypadChangeData } from '../../../../Base/Keypad';
+import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
 import Text, {
@@ -52,7 +52,7 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import { createV2EnterEmailNavDetails } from '../NativeFlow/EnterEmail';
+import { createV2VerifyIdentityNavDetails } from '../NativeFlow/VerifyIdentity';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -107,6 +107,7 @@ function BuildQuote() {
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
     useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
@@ -358,19 +359,35 @@ function BuildQuote() {
   }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }: KeypadChangeData) => {
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back) {
+        if (!keyboardIsDirty) {
+          setAmount('0');
+          setAmountAsNumber(0);
+        } else {
+          setAmount(value || '0');
+          setAmountAsNumber(valueAsNumber || 0);
+        }
+        setKeyboardIsDirty(true);
+        setUserHasEnteredAmount(true);
+        setNativeFlowError(null);
+        return;
+      }
+
       setAmount(value || '0');
       setAmountAsNumber(valueAsNumber || 0);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
     },
-    [],
+    [keyboardIsDirty],
   );
 
   const handleQuickAmountPress = useCallback(
     (quickAmount: number) => {
       setAmount(String(quickAmount));
       setAmountAsNumber(quickAmount);
+      setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
       setNativeFlowError(null);
       trackEvent(
@@ -388,10 +405,6 @@ function BuildQuote() {
   );
 
   const handlePaymentPillPress = useCallback(() => {
-    if (debouncedPollingAmount <= 0) {
-      return;
-    }
-
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED,
@@ -482,7 +495,7 @@ function BuildQuote() {
           await transakRouteAfterAuth(quote);
         } else {
           navigation.navigate(
-            ...createV2EnterEmailNavDetails({
+            ...createV2VerifyIdentityNavDetails({
               amount: String(amountAsNumber),
               currency,
               assetId: selectedToken?.assetId,
