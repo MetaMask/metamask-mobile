@@ -281,8 +281,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               ))}
               <ViewMoreCard
                 onPress={handleViewAllPerps}
-                twClassName="w-[180px] h-[140px]"
-                activeOpacity={0.7}
+                twClassName="w-[180px] flex-1"
                 testID="perps-view-more-card"
               />
             </ScrollView>
