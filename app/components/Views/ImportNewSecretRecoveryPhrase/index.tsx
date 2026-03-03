@@ -30,13 +30,12 @@ import {
   ButtonIcon,
   IconName,
   IconColor,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
 import {
@@ -270,7 +269,10 @@ const ImportNewSecretRecoveryPhrase = () => {
               alignItems={BoxAlignItems.Center}
               twClassName="gap-1"
             >
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings(
                   'import_new_secret_recovery_phrase.enter_srp_subtitle',
                 )}

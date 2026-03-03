@@ -50,6 +50,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
@@ -74,10 +77,10 @@ import { ToastContext } from '../../../component-library/components/Toast/Toast.
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
+import {
+  TextVariant as LegacyTextVariant,
+  TextColor as LegacyTextColor,
+} from '../../../component-library/components/Texts/Text/Text.types';
 import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -593,8 +596,8 @@ const ImportFromSecretRecoveryPhrase = ({
           {currentStep === 0 && (
             <>
               <Text
-                variant={TextVariant.DisplayMD}
-                color={TextColor.Default}
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextDefault}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
                 {strings('import_from_seed.title')}
@@ -606,8 +609,8 @@ const ImportFromSecretRecoveryPhrase = ({
                   twClassName="gap-1"
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
@@ -652,15 +655,15 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="gap-y-1"
               >
                 <Text
-                  variant={TextVariant.DisplayMD}
-                  color={TextColor.Default}
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
                   testID={ChoosePasswordSelectorsIDs.TITLE_ID}
                 >
                   {strings('import_from_seed.metamask_password')}
                 </Text>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
                 >
                   {strings('import_from_seed.metamask_password_description')}
@@ -672,8 +675,8 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="relative gap-2"
               >
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={LegacyTextVariant.BodyMDMedium}
+                  color={LegacyTextColor.Default}
                   style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.create_new_password')}
@@ -708,9 +711,11 @@ const ImportFromSecretRecoveryPhrase = ({
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                 />
                 <Text
-                  variant={TextVariant.BodySM}
+                  variant={TextVariant.BodySm}
                   color={
-                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
+                    isPasswordTooShort
+                      ? TextColor.ErrorDefault
+                      : TextColor.TextAlternative
                   }
                 >
                   {strings('choose_password.must_be_at_least', {
@@ -724,8 +729,8 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="relative gap-2"
               >
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  variant={LegacyTextVariant.BodyMDMedium}
+                  color={LegacyTextColor.Default}
                   style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.confirm_password')}
@@ -759,7 +764,10 @@ const ImportFromSecretRecoveryPhrase = ({
                   isDisabled={password === ''}
                 />
                 {isError && (
-                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                  >
                     {strings('import_from_seed.password_error')}
                   </Text>
                 )}
@@ -786,13 +794,13 @@ const ImportFromSecretRecoveryPhrase = ({
                   testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
                   label={
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
                     >
                       {strings('import_from_seed.learn_more')}
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Primary}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
                         onPress={learnMoreLink}
                         testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
                       >
