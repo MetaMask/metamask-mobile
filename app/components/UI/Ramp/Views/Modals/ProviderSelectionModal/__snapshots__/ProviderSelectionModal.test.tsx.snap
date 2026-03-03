@@ -414,7 +414,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -455,7 +455,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -595,9 +595,9 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "fontWeight": 500,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -616,7 +616,7 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                   accessible={true}
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#b4b4b528",
                                       "bottom": 0,
                                       "flexDirection": "row",
                                       "left": 0,
@@ -677,9 +677,9 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "fontWeight": 500,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,

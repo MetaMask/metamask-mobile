@@ -8212,10 +8212,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "@metamask/design-tokens@npm:8.2.0"
-  checksum: 10/cc80fd485c8eadcf5e1e380212b852be1eda2ad925ab50ff2cc992c04a0148c2ac755fffecf6dae96b350b6b7a6fa4aeaa91cbe3ca5cd58eb4fba17c68d94449
+"@metamask/design-tokens@npm:^8.2.2":
+  version: 8.2.2
+  resolution: "@metamask/design-tokens@npm:8.2.2"
+  checksum: 10/2ab9e2c148f55874819c550a2e038c050d906709c33315edd200ddaeb7677b5f121f50fa2f43c06ce94b5fc66b59450c81b8927088721d8ad6ee559cf864f442
   languageName: node
   linkType: hard
 
@@ -9430,14 +9430,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@metamask/ramps-controller@npm:10.0.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478":
+  version: 10.0.0-preview-225638478
+  resolution: "@metamask-previews/ramps-controller@npm:10.0.0-preview-225638478"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/e8141512569ee521777f8f54579c8e45eed58cb9bd45b0806ecdc214573f4a138041a20d86429cccb792fdb9d3cb56262655077b42df3aa804566916a9bfcbba
+  checksum: 10/dc093dacbe55ee20cbb50cc9b1c9649469b4c115f35db6b0f7a020610742955c6f35ee5e1f74ba079769c481c0210316ffd23e775bd03b1e83798530aaf142cb
   languageName: node
   linkType: hard
 
@@ -35373,7 +35373,7 @@ __metadata:
     "@metamask/delegation-deployments": "npm:^0.15.0"
     "@metamask/design-system-react-native": "npm:^0.8.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
-    "@metamask/design-tokens": "npm:^8.2.0"
+    "@metamask/design-tokens": "npm:^8.2.2"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
