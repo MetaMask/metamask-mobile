@@ -198,14 +198,15 @@ export class DetoxGestureStrategy implements GestureStrategy {
     scrollView: EncapsulatedElementType | Promise<Detox.NativeMatcher>,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    await Gestures.scrollToElement(
-      asDetoxElement(target),
-      scrollView as Promise<Detox.NativeMatcher>,
-      {
-        timeout: opts?.timeout,
-        elemDescription: opts?.description,
-      },
-    );
+    // Gestures.scrollToElement expects a Promise<NativeMatcher> (e.g. by.id()),
+    // not a DetoxElement. EncapsulatedElementType resolves to a NativeElement,
+    // which would cause element(scrollable) / whileElement(scrollable) to fail.
+    // Only accept an actual NativeMatcher here.
+    const scrollMatcher = scrollView as Promise<Detox.NativeMatcher>;
+    await Gestures.scrollToElement(asDetoxElement(target), scrollMatcher, {
+      timeout: opts?.timeout,
+      elemDescription: opts?.description,
+    });
   }
 
   /**
@@ -374,8 +375,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async dblTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.click();
-    await el.click();
+    await el.unwrap().doubleClick();
   }
 
   /**
@@ -411,7 +411,13 @@ export class AppiumGestureStrategy implements GestureStrategy {
       return;
     }
 
-    // Single element fallback — tap it directly
+    // Single element: allow index 0 as a pass-through, reject anything else
+    if (index !== 0) {
+      throw new Error(
+        `tapAtIndex: Appium requires a PlaywrightElement[] array for index > 0. ` +
+          `Received single element with index ${index}.`,
+      );
+    }
     const el = await asPlaywrightElement(elem);
     await el.click();
   }
