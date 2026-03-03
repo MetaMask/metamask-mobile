@@ -432,6 +432,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
               },
               {
                 "backgroundColor": "#FFF2EB",
+                "zIndex": 1000,
               },
             ]
           }
@@ -545,6 +546,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
       style={
         {
           "alignItems": "flex-end",
+          "flex": 0.1,
           "flexDirection": "row",
           "transform": [
             {
@@ -1165,6 +1167,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
               },
               {
                 "backgroundColor": "#FFF2EB",
+                "zIndex": 1000,
               },
             ]
           }
@@ -1278,6 +1281,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
       style={
         {
           "alignItems": "flex-end",
+          "flex": 0.1,
           "flexDirection": "row",
           "transform": [
             {

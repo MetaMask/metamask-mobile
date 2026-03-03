@@ -880,7 +880,7 @@ const Onboarding = () => {
       return (
         <Animated.View
           style={[
-            tw.style('flex-[0.1] flex-row items-end'),
+            tw.style('flex-row items-end', { flex: 0.1 }),
             { transform: [{ translateY: notificationAnimated }] },
           ]}
         >
@@ -991,13 +991,16 @@ const Onboarding = () => {
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
-                twClassName="absolute top-0 left-0 right-0 bottom-0 z-[1000]"
-                style={{
-                  backgroundColor:
-                    themeContext.themeAppearance === 'dark'
-                      ? importedColors.gettingStartedTextColor
-                      : importedColors.gettingStartedPageBackgroundColorLightMode,
-                }}
+                twClassName="absolute top-0 left-0 right-0 bottom-0"
+                style={tw.style(
+                  { zIndex: 1000 },
+                  {
+                    backgroundColor:
+                      themeContext.themeAppearance === 'dark'
+                        ? importedColors.gettingStartedTextColor
+                        : importedColors.gettingStartedPageBackgroundColorLightMode,
+                  },
+                )}
               >
                 {renderLoader()}
               </Box>
