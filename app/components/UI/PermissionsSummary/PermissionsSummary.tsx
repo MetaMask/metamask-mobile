@@ -640,13 +640,11 @@ const PermissionsSummary = ({
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
               color={
-                isMaliciousDapp && !isAlreadyConnected
+                (isMaliciousDapp ||
+                  trustSignalState === TrustSignalDisplayState.Malicious) &&
+                !isAlreadyConnected
                   ? TextColor.Error
-                  : !isAlreadyConnected && trustSignalState === TrustSignalDisplayState.Warning
-                    ? TextColor.Warning
-                    : !isAlreadyConnected && trustSignalState === TrustSignalDisplayState.Malicious
-                      ? TextColor.Error
-                      : undefined
+                  : undefined
               }
             >
               {isNonDappNetworkSwitch
@@ -713,13 +711,10 @@ const PermissionsSummary = ({
               </StyledButton>
               <StyledButton
                 type={
-                  isMaliciousDapp
+                  isMaliciousDapp ||
+                  trustSignalState === TrustSignalDisplayState.Malicious
                     ? 'danger'
-                    : trustSignalState === TrustSignalDisplayState.Malicious
-                      ? 'danger'
-                      : trustSignalState === TrustSignalDisplayState.Warning
-                        ? 'warning'
-                        : 'confirm'
+                    : 'confirm'
                 }
                 onPress={confirm}
                 disabled={
@@ -732,7 +727,11 @@ const PermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch, trustSignalState)}
+                {getConnectButtonContent(
+                  isMaliciousDapp,
+                  isNetworkSwitch,
+                  trustSignalState,
+                )}
               </StyledButton>
             </View>
           )}

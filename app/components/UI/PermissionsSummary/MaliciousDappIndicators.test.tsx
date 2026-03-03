@@ -3,7 +3,6 @@ import { render } from '@testing-library/react-native';
 import {
   MaliciousDappUrlIcon,
   DangerConnectButtonContent,
-  WarningConnectButtonContent,
   TrustSignalUrlIcon,
   getConnectButtonContent,
 } from './MaliciousDappIndicators';
@@ -13,7 +12,6 @@ jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
       primary: { inverse: '#FFFFFF' },
-      error: { inverse: '#FFFFFF' },
     },
   }),
 }));
@@ -48,20 +46,6 @@ describe('MaliciousDappIndicators', () => {
     });
   });
 
-  describe('WarningConnectButtonContent', () => {
-    it('renders the Connect label', () => {
-      const { getByText } = render(<WarningConnectButtonContent />);
-      expect(getByText('Connect')).toBeDefined();
-    });
-
-    it('renders a Danger icon alongside the label', () => {
-      const { toJSON } = render(<WarningConnectButtonContent />);
-      const tree = JSON.stringify(toJSON());
-      expect(tree).toContain('Danger');
-      expect(tree).toContain('Connect');
-    });
-  });
-
   describe('TrustSignalUrlIcon', () => {
     it('renders a VerifiedFilled icon for Verified state', () => {
       const { toJSON } = render(
@@ -71,20 +55,19 @@ describe('MaliciousDappIndicators', () => {
       expect(tree).toContain('VerifiedFilled');
     });
 
-    it('renders a Warning icon for Warning state', () => {
-      const { toJSON } = render(
-        <TrustSignalUrlIcon state={TrustSignalDisplayState.Warning} />,
-      );
-      const tree = JSON.stringify(toJSON());
-      expect(tree).toContain('Warning');
-    });
-
     it('renders a Danger icon for Malicious state', () => {
       const { toJSON } = render(
         <TrustSignalUrlIcon state={TrustSignalDisplayState.Malicious} />,
       );
       const tree = JSON.stringify(toJSON());
       expect(tree).toContain('Danger');
+    });
+
+    it('renders nothing for Warning state', () => {
+      const { toJSON } = render(
+        <TrustSignalUrlIcon state={TrustSignalDisplayState.Warning} />,
+      );
+      expect(toJSON()).toBeNull();
     });
 
     it('renders nothing for Unknown state', () => {
@@ -105,8 +88,6 @@ describe('MaliciousDappIndicators', () => {
   describe('getConnectButtonContent', () => {
     it('returns DangerConnectButtonContent when isMaliciousDapp is true', () => {
       const result = getConnectButtonContent(true, false);
-      expect(result).toBeDefined();
-      // It should return a React element (DangerConnectButtonContent)
       expect(React.isValidElement(result)).toBe(true);
     });
 
@@ -119,13 +100,14 @@ describe('MaliciousDappIndicators', () => {
       expect(React.isValidElement(result)).toBe(true);
     });
 
-    it('returns WarningConnectButtonContent when trustSignalState is Warning', () => {
+    it('returns plain "Connect" string when trustSignalState is Warning', () => {
       const result = getConnectButtonContent(
         false,
         false,
         TrustSignalDisplayState.Warning,
       );
-      expect(React.isValidElement(result)).toBe(true);
+      expect(typeof result).toBe('string');
+      expect(result).toBe('Connect');
     });
 
     it('returns plain "Connect" string when trustSignalState is Unknown', () => {

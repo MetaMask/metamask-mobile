@@ -9,10 +9,10 @@ const mockOnClose = jest.fn();
 
 const MOCK_URL = 'https://suspicious-dapp.example.com';
 
-const renderModal = (variant: 'warning' | 'malicious' = 'warning', url = MOCK_URL) =>
+const renderModal = (url = MOCK_URL) =>
   renderWithProvider(
     <TrustSignalModal
-      variant={variant}
+      variant="malicious"
       url={url}
       onConnectAnyway={mockOnConnectAnyway}
       onClose={mockOnClose}
@@ -24,59 +24,50 @@ describe('TrustSignalModal', () => {
     jest.clearAllMocks();
   });
 
-  describe('warning variant', () => {
-    it('renders all expected elements', () => {
-      const { getByTestId } = renderModal('warning');
+  it('renders all expected elements', () => {
+    const { getByTestId } = renderModal();
 
-      expect(getByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeDefined();
-      expect(getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON)).toBeDefined();
-      expect(getByTestId(TrustSignalModalSelectorsIDs.TITLE)).toBeDefined();
-      expect(getByTestId(TrustSignalModalSelectorsIDs.URL)).toBeDefined();
-      expect(getByTestId(TrustSignalModalSelectorsIDs.DESCRIPTION_BOX)).toBeDefined();
-      expect(getByTestId(TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON)).toBeDefined();
-    });
-
-    it('displays the warning title', () => {
-      const { getByText } = renderModal('warning');
-
-      expect(getByText('Unverified site')).toBeDefined();
-    });
-
-    it('displays the warning description', () => {
-      const { getByText } = renderModal('warning');
-
-      expect(
-        getByText('This site has not been verified. Proceed with caution when connecting.'),
-      ).toBeDefined();
-    });
-
-    it('displays the dapp URL', () => {
-      const { getByText } = renderModal('warning');
-
-      expect(getByText(MOCK_URL)).toBeDefined();
-    });
+    expect(getByTestId(TrustSignalModalSelectorsIDs.CONTAINER)).toBeDefined();
+    expect(
+      getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON),
+    ).toBeDefined();
+    expect(getByTestId(TrustSignalModalSelectorsIDs.TITLE)).toBeDefined();
+    expect(getByTestId(TrustSignalModalSelectorsIDs.URL)).toBeDefined();
+    expect(
+      getByTestId(TrustSignalModalSelectorsIDs.DESCRIPTION_BOX),
+    ).toBeDefined();
+    expect(
+      getByTestId(TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON),
+    ).toBeDefined();
   });
 
-  describe('malicious variant', () => {
-    it('displays the malicious title', () => {
-      const { getByText } = renderModal('malicious');
+  it('displays the malicious title', () => {
+    const { getByText } = renderModal();
 
-      expect(getByText('Malicious site detected')).toBeDefined();
-    });
+    expect(getByText('Malicious site detected')).toBeDefined();
+  });
 
-    it('displays the malicious description', () => {
-      const { getByText } = renderModal('malicious');
+  it('displays the malicious description', () => {
+    const { getByText } = renderModal();
 
-      expect(
-        getByText('This site has been flagged as malicious. Connecting may put your assets at risk.'),
-      ).toBeDefined();
-    });
+    expect(
+      getByText(
+        'This site has been flagged as malicious. Connecting may put your assets at risk.',
+      ),
+    ).toBeDefined();
+  });
 
-    it('displays the dapp URL', () => {
-      const { getByText } = renderModal('malicious');
+  it('displays the dapp URL', () => {
+    const { getByText } = renderModal();
 
-      expect(getByText(MOCK_URL)).toBeDefined();
-    });
+    expect(getByText(MOCK_URL)).toBeDefined();
+  });
+
+  it('renders with a different URL', () => {
+    const otherUrl = 'https://another-dapp.example.com';
+    const { getByText } = renderModal(otherUrl);
+
+    expect(getByText(otherUrl)).toBeDefined();
   });
 
   it('calls onConnectAnyway when the Connect Anyway button is pressed', () => {
@@ -92,9 +83,7 @@ describe('TrustSignalModal', () => {
   it('calls onClose when the close button is pressed', () => {
     const { getByTestId } = renderModal();
 
-    fireEvent.press(
-      getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON),
-    );
+    fireEvent.press(getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON));
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
@@ -102,9 +91,7 @@ describe('TrustSignalModal', () => {
   it('does not call onConnectAnyway when close is pressed', () => {
     const { getByTestId } = renderModal();
 
-    fireEvent.press(
-      getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON),
-    );
+    fireEvent.press(getByTestId(TrustSignalModalSelectorsIDs.CLOSE_BUTTON));
 
     expect(mockOnConnectAnyway).not.toHaveBeenCalled();
   });
@@ -117,12 +104,5 @@ describe('TrustSignalModal', () => {
     );
 
     expect(mockOnClose).not.toHaveBeenCalled();
-  });
-
-  it('renders with a different URL', () => {
-    const otherUrl = 'https://another-dapp.example.com';
-    const { getByText } = renderModal('warning', otherUrl);
-
-    expect(getByText(otherUrl)).toBeDefined();
   });
 });

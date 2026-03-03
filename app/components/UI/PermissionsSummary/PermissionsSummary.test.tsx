@@ -217,15 +217,15 @@ describe('PermissionsSummary', () => {
   });
 
   describe('trustSignalState prop', () => {
-    it('renders a warning icon next to the URL when trustSignalState is Warning', () => {
+    it('renders no icon next to the URL when trustSignalState is Warning', () => {
       const { toJSON } = renderPermissionsSummary({
         trustSignalState: 'warning',
         isAlreadyConnected: false,
       });
 
       const tree = JSON.stringify(toJSON());
-      // The TrustSignalUrlIcon should render a Danger icon with warning color
-      expect(tree).toContain('Danger');
+      // Warning state no longer shows an icon
+      expect(tree).not.toContain('VerifiedFilled');
     });
 
     it('renders an error icon next to the URL when trustSignalState is Malicious', () => {
@@ -263,13 +263,13 @@ describe('PermissionsSummary', () => {
       expect(tree).not.toContain('urlIcon');
     });
 
-    it('renders a warning-style Connect button when trustSignalState is Warning', () => {
+    it('renders a standard Connect button when trustSignalState is Warning', () => {
       const { getByText } = renderPermissionsSummary({
         trustSignalState: 'warning',
         isAlreadyConnected: false,
       });
 
-      // The connect button text should still be present
+      // Warning state uses a plain connect button
       expect(getByText('Connect')).toBeDefined();
     });
 

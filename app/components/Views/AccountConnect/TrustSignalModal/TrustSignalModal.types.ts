@@ -1,4 +1,4 @@
-export type TrustSignalModalVariant = 'warning' | 'malicious';
+export type TrustSignalModalVariant = 'malicious';
 
 export interface TrustSignalModalProps {
   /** Which variant to render — determines colors, copy, and icon. */

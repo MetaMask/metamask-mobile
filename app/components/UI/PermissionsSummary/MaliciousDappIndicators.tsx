@@ -58,15 +58,6 @@ export const TrustSignalUrlIcon = ({
           style={styles.urlIcon}
         />
       );
-    case TrustSignalDisplayState.Warning:
-      return (
-        <Icon
-          name={IconName.Warning}
-          size={IconSize.Sm}
-          color={IconColor.Warning}
-          style={styles.urlIcon}
-        />
-      );
     case TrustSignalDisplayState.Malicious:
       return (
         <Icon
@@ -103,27 +94,6 @@ export const DangerConnectButtonContent = () => {
 };
 
 /**
- * Content for the warning "Connect" button when a dapp has a warning-level
- * trust signal. Renders a danger triangle to the left of the "Connect" label.
- */
-export const WarningConnectButtonContent = () => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={styles.buttonContent}>
-      <Icon
-        name={IconName.Danger}
-        size={IconSize.Sm}
-        color={IconColor.Inverse}
-      />
-      <RNText style={[styles.buttonText, { color: colors.primary.inverse }]}>
-        {strings('accounts.connect')}
-      </RNText>
-    </View>
-  );
-};
-
-/**
  * Returns the appropriate label for the confirm/connect button based on
  * whether the dApp is malicious and whether this is a network switch.
  */
@@ -140,9 +110,6 @@ export const getConnectButtonContent = (
   }
   if (trustSignalState === TrustSignalDisplayState.Malicious) {
     return <DangerConnectButtonContent />;
-  }
-  if (trustSignalState === TrustSignalDisplayState.Warning) {
-    return <WarningConnectButtonContent />;
   }
   return strings('accounts.connect');
 };

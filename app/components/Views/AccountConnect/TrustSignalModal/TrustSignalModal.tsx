@@ -29,21 +29,12 @@ const VARIANT_CONFIG: Record<
     iconName: IconName;
     iconColor: IconColor;
     textColor: TextColor;
-    mutedColorKey: 'warning' | 'error';
+    mutedColorKey: 'error';
     titleKey: string;
     descriptionKey: string;
     buttonType: string;
   }
 > = {
-  warning: {
-    iconName: IconName.Danger,
-    iconColor: IconColor.Warning,
-    textColor: TextColor.Warning,
-    mutedColorKey: 'warning',
-    titleKey: 'accounts.trust_signal_warning_title',
-    descriptionKey: 'accounts.trust_signal_warning_description',
-    buttonType: 'warning',
-  },
   malicious: {
     iconName: IconName.Danger,
     iconColor: IconColor.Error,

@@ -183,7 +183,26 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   // PhishingController trust signals: check origin against dapp-scanning API cache
-  const { state: trustSignalState } = useOriginTrustSignals(channelIdOrHostname);
+  const { state: rawTrustSignalState } =
+    useOriginTrustSignals(channelIdOrHostname);
+
+  // DEV-only overrides for manual trust signal testing without a live API.
+  // Remove or extend this map as needed during development.
+  const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
+    Record<string, TrustSignalDisplayState>
+  > = __DEV__
+    ? {
+        'uniswap.org': TrustSignalDisplayState.Verified,
+        'example.com': TrustSignalDisplayState.Malicious,
+      }
+    : {
+        'uniswap.org': TrustSignalDisplayState.Verified,
+        'example.com': TrustSignalDisplayState.Malicious,
+      };
+
+  const trustSignalState =
+    (__DEV__ && DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)]) ??
+    rawTrustSignalState;
 
   const defaultSelectedChainIds = useMemo(
     () =>
@@ -263,7 +282,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const needsTrustSignalGate =
-    trustSignalState === TrustSignalDisplayState.Warning ||
     trustSignalState === TrustSignalDisplayState.Malicious;
 
   const [screen, setScreen] = useState<AccountConnectScreens>(
@@ -275,15 +293,15 @@ const AccountConnect = (props: AccountConnectProps) => {
   // If trust signal state arrives after initial render (async scan),
   // navigate to the warning screen if still on the initial screen.
   useEffect(() => {
-    if (needsTrustSignalGate && screen === AccountConnectScreens.SingleConnect) {
+    if (
+      needsTrustSignalGate &&
+      screen === AccountConnectScreens.SingleConnect
+    ) {
       setScreen(AccountConnectScreens.TrustSignalWarning);
     }
   }, [needsTrustSignalGate, screen]);
 
-  const trustSignalVariant =
-    trustSignalState === TrustSignalDisplayState.Malicious
-      ? 'malicious'
-      : 'warning';
+  const trustSignalVariant = 'malicious' as const;
 
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -945,7 +963,12 @@ const AccountConnect = (props: AccountConnectProps) => {
         onClose={handleTrustSignalClose}
       />
     ),
-    [trustSignalVariant, urlWithProtocol, handleTrustSignalDismiss, handleTrustSignalClose],
+    [
+      trustSignalVariant,
+      urlWithProtocol,
+      handleTrustSignalDismiss,
+      handleTrustSignalClose,
+    ],
   );
 
   const renderPhishingModal = useCallback(
