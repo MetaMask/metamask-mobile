@@ -189,7 +189,6 @@ export const useTopTokens = ({
     const rawBridgeAssets = await memoizedFetchBridgeTokens(
       chainId,
       BridgeClientId.MOBILE,
-      await Engine.context.AuthenticationController.getBearerToken(),
       handleFetch,
       BRIDGE_API_BASE_URL,
       clientVersion,

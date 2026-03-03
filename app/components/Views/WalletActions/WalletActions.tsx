@@ -21,7 +21,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import {
@@ -60,7 +60,7 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,

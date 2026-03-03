@@ -38,19 +38,8 @@ const styleSheet = (params: StyleSheetParams) => {
     compactInfo: {
       flex: 1,
     },
-    compactNameRow: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      gap: 6,
-    },
     compactRight: {
       alignItems: 'flex-end',
-    },
-    tpSlSkeleton: {
-      width: 80,
-      height: 14,
-      borderRadius: 4,
-      backgroundColor: colors.background.alternative,
     },
     header: {
       flexDirection: 'row',

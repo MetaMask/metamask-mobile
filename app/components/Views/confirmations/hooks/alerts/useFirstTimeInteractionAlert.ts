@@ -1,23 +1,21 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { Alert, Severity } from '../../types/alerts';
+import { AlertKeys } from '../../constants/alerts';
+import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
-import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
-import { AlertKeys } from '../../constants/alerts';
-import { Alert, Severity } from '../../types/alerts';
-import { TrustSignalDisplayState } from '../../types/trustSignals';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useAddressTrustSignal } from '../useAddressTrustSignals';
+import { TrustSignalDisplayState } from '../../types/trustSignals';
 
 export function useFirstTimeInteractionAlert(): Alert[] {
   const transactionMetadata =
     useTransactionMetadataRequest() as TransactionMeta;
   const internalAccounts = useSelector(selectInternalAccounts);
 
-  const to = useTransferRecipient();
-  const recipient = to ?? transactionMetadata?.txParams?.to;
+  const recipient = transactionMetadata?.txParams?.to;
   const chainId = transactionMetadata?.chainId;
 
   const isInternalAccount = useMemo(() => {

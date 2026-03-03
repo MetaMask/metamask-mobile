@@ -29,6 +29,9 @@ import {
 import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../../component-library/components/Badges/BadgeWrapper';
@@ -37,12 +40,6 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
-import { useSelector } from 'react-redux';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -52,14 +49,12 @@ enum CTA_CLICK_TARGET {
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
-
   const { goToBuy } = useRampNavigation();
 
   const { getPaymentTokenForSelectedNetwork, getChainIdForBuyFlow } =
     useMusdConversionFlowData();
 
-  const { initiateCustomConversion, hasSeenConversionEducationScreen } =
+  const { initiateConversion, hasSeenConversionEducationScreen } =
     useMusdConversion();
 
   const { shouldShowBuyGetMusdCta } = useMusdCtaVisibility();
@@ -84,13 +79,9 @@ const MusdConversionAssetListCta = () => {
         return EVENT_LOCATIONS.BUY_SCREEN;
       }
 
-      if (!hasSeenConversionEducationScreen) {
-        return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
-      }
-
-      return isQuickConvertEnabled
-        ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-        : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+      return hasSeenConversionEducationScreen
+        ? EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN
+        : EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
     };
 
     const ctaText =
@@ -138,9 +129,8 @@ const MusdConversionAssetListCta = () => {
     }
 
     try {
-      await initiateCustomConversion({
+      await initiateConversion({
         preferredPaymentToken: paymentToken,
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(

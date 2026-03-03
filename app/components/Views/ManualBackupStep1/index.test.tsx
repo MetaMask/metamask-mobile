@@ -74,19 +74,17 @@ jest.mock('../../../util/theme', () => ({
   },
 }));
 
-// Mock useAnalytics hook
+// Mock useMetrics hook
 const mockIsMetricsEnabled = jest.fn().mockReturnValue(true);
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     isEnabled: mockIsMetricsEnabled,
     enable: jest.fn(),
     addTraitsToUser: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({ build: jest.fn() })),
-      build: jest.fn(),
-    })),
+    createEventBuilder: jest.fn(),
     trackEvent: jest.fn(),
-    getAnalyticsId: jest.fn(),
+    trackAnonymousEvent: jest.fn(),
+    getMetaMetricsId: jest.fn(),
   }),
 }));
 

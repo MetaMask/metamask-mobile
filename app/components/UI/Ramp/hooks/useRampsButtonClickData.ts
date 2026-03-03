@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Order } from '@consensys/on-ramp-sdk';
-import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   getOrders,
   getRampRoutingDecision,
@@ -64,14 +63,8 @@ export function useRampsButtonClickData(): RampsButtonClickData {
         (a, b) => b.createdAt - a.createdAt,
       );
 
-      if (
-        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
-        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
-      ) {
-        const orderData =
-          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
-            ? (lastCompletedOrder.data as RampsOrder)
-            : (lastCompletedOrder.data as Order);
+      if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
+        const orderData = lastCompletedOrder.data as Order;
         preferredProvider = orderData?.provider?.id;
       } else if (
         lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||

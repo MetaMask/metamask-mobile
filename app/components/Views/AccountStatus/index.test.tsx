@@ -20,20 +20,18 @@ const mockNavigation = {
   dispatch: mockDispatch,
 };
 
+const mockRoute = {
+  params: {},
+};
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
+  useRoute: () => mockRoute,
   StackActions: {
     replace: jest.fn(),
   },
 }));
-
-// Helper to create route props
-const createMockRoute = (params = {}) => ({
-  params,
-  key: 'AccountStatus',
-  name: 'AccountStatus' as const,
-});
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({ colors: { text: { default: '#24292E' } } }),
@@ -54,6 +52,7 @@ jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
 describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRoute.params = {};
   });
 
   describe('Snapshots iOS', () => {
@@ -62,28 +61,18 @@ describe('AccountStatus', () => {
     });
 
     it('renders correctly with type="not_exist"', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
-      );
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with type="found"', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'found' })} />,
-      );
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with accountName in route params', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus
-          route={createMockRoute({
-            type: 'found',
-            accountName: 'test@example.com',
-          })}
-        />,
-      );
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
     });
   });
@@ -94,28 +83,18 @@ describe('AccountStatus', () => {
     });
 
     it('renders correctly with type="not_exist"', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
-      );
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with type="found"', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'found' })} />,
-      );
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with accountName in route params', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus
-          route={createMockRoute({
-            type: 'found',
-            accountName: 'test@example.com',
-          })}
-        />,
-      );
+      mockRoute.params = { accountName: 'test@example.com' };
+      const { toJSON } = renderWithProvider(<AccountStatus type="found" />);
       expect(toJSON()).toMatchSnapshot();
     });
   });
@@ -127,7 +106,7 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         const { getByText } = renderWithProvider(
-          <AccountStatus route={createMockRoute({ type: 'found' })} />,
+          <AccountStatus type="found" />,
         );
         const primaryButton = getByText(strings('account_status.log_in'));
 
@@ -146,7 +125,7 @@ describe('AccountStatus', () => {
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         const { getByText } = renderWithProvider(
-          <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
+          <AccountStatus type="not_exist" />,
         );
         const primaryButton = getByText(
           strings('account_status.create_new_wallet'),
@@ -163,13 +142,12 @@ describe('AccountStatus', () => {
       });
 
       it('passes oauthLoginSuccess from route params', () => {
+        mockRoute.params = { oauthLoginSuccess: true };
         const mockReplace = jest.fn();
         (StackActions.replace as jest.Mock).mockReturnValue(mockReplace);
 
         const { getByText } = renderWithProvider(
-          <AccountStatus
-            route={createMockRoute({ type: 'found', oauthLoginSuccess: true })}
-          />,
+          <AccountStatus type="found" />,
         );
         const primaryButton = getByText(strings('account_status.log_in'));
 
@@ -184,9 +162,7 @@ describe('AccountStatus', () => {
 
     describe('Secondary button interactions', () => {
       it('navigates back when secondary button is pressed', () => {
-        const { getByText } = renderWithProvider(
-          <AccountStatus route={createMockRoute()} />,
-        );
+        const { getByText } = renderWithProvider(<AccountStatus />);
         const secondaryButton = getByText('Use a different login method');
 
         fireEvent.press(secondaryButton);
@@ -204,7 +180,7 @@ describe('AccountStatus', () => {
         ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = renderWithProvider(
-          <AccountStatus route={createMockRoute({ type: 'found' })} />,
+          <AccountStatus type="found" />,
         );
         const primaryButton = getByText('Log in');
 
@@ -225,7 +201,7 @@ describe('AccountStatus', () => {
         ).mockImplementation(mockCreateEventBuilder);
 
         const { getByText } = renderWithProvider(
-          <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
+          <AccountStatus type="not_exist" />,
         );
         const primaryButton = getByText('Create a new wallet');
 
@@ -242,9 +218,7 @@ describe('AccountStatus', () => {
 
   describe('Event Tracking', () => {
     it('calls trackOnboarding when primary button is pressed for existing account', () => {
-      const { getByText } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'found' })} />,
-      );
+      const { getByText } = renderWithProvider(<AccountStatus type="found" />);
 
       const primaryButton = getByText(strings('account_status.log_in'));
       fireEvent.press(primaryButton);
@@ -254,7 +228,7 @@ describe('AccountStatus', () => {
 
     it('calls trackOnboarding when primary button is pressed for new account', () => {
       const { getByText } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
+        <AccountStatus type="not_exist" />,
       );
 
       const primaryButton = getByText(
@@ -268,60 +242,12 @@ describe('AccountStatus', () => {
 
   describe('SafeAreaView Configuration', () => {
     it('uses SafeAreaView with top and bottom edges', () => {
-      const { toJSON } = renderWithProvider(
-        <AccountStatus route={createMockRoute({ type: 'not_exist' })} />,
-      );
+      const { toJSON } = renderWithProvider(<AccountStatus type="not_exist" />);
       const tree = toJSON();
 
       expect(tree).toBeTruthy();
       expect(JSON.stringify(tree)).toContain('top');
       expect(JSON.stringify(tree)).toContain('bottom');
-    });
-  });
-
-  describe('Route params handling', () => {
-    it('uses default type when route params are empty', () => {
-      const { getByText } = renderWithProvider(
-        <AccountStatus route={createMockRoute()} />,
-      );
-      // Default type is 'not_exist' which shows "Create a new wallet" button
-      expect(
-        getByText(strings('account_status.create_new_wallet')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders with undefined route params', () => {
-      const routeWithNoParams = {
-        params: undefined,
-        key: 'AccountStatus',
-        name: 'AccountStatus' as const,
-      };
-
-      const { getByText } = renderWithProvider(
-        <AccountStatus
-          route={
-            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
-          }
-        />,
-      );
-      // Should render with default type 'not_exist'
-      expect(
-        getByText(strings('account_status.create_new_wallet')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders with all route params provided', () => {
-      const { getByText } = renderWithProvider(
-        <AccountStatus
-          route={createMockRoute({
-            type: 'found',
-            accountName: 'user@example.com',
-            oauthLoginSuccess: true,
-            provider: 'google',
-          })}
-        />,
-      );
-      expect(getByText(strings('account_status.log_in'))).toBeOnTheScreen();
     });
   });
 });

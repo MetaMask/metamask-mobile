@@ -5,6 +5,7 @@ import {
   selectRewardsActiveAccountAddress,
   selectRewardsActiveAccountSubscriptionId,
 } from './index';
+
 // Mock rewards controller state
 const createMockRewardsControllerState = (overrides = {}) => ({
   activeAccount: null,

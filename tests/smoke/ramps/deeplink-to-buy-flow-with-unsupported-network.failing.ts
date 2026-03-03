@@ -10,7 +10,7 @@ import NetworkApprovalBottomSheet from '../../page-objects/Network/NetworkApprov
 import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';

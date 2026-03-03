@@ -20,7 +20,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useSelector } from 'react-redux';
 import { selectDisplayNftMedia } from '../../../selectors/preferencesController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -32,7 +32,7 @@ const NFTAutoDetectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { addTraitsToUser } = useAnalytics();
+  const { addTraitsToUser } = useMetrics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {

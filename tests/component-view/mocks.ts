@@ -98,8 +98,10 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
-      AuthenticationController: {
-        getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      BridgeController: {
+        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
+        resetState: jest.fn(),
+        stopAllPolling: jest.fn(),
       },
       NetworkController: {
         state: { networksMetadata: {} },
@@ -138,22 +140,13 @@ jest.mock('../../app/core/Engine', () => {
           return { id, provider };
         },
       },
-      BridgeController: {
-        updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue(undefined),
-        resetState: jest.fn(),
-        stopAllPolling: jest.fn(),
-        setLocation: jest.fn(),
-        trackUnifiedSwapBridgeEvent: jest.fn(),
-      },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
       PerpsController: {
-        state: { isTestnet: false },
         getActiveProvider: jest.fn(() => ({
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
-        switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue(undefined),
@@ -172,25 +165,10 @@ jest.mock('../../app/core/Engine', () => {
         getOrders: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
-        depositWithOrder: jest.fn().mockResolvedValue({
-          result: Promise.resolve('0xcomponent-view-deposit'),
-        }),
-        depositWithConfirmation: jest.fn().mockResolvedValue({
-          result: Promise.resolve('0xcomponent-view-deposit'),
-        }),
-        clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
-        calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
-        flipPosition: jest.fn().mockResolvedValue({ success: false }),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
-        getWithdrawalRoutes: jest.fn(() => [
-          {
-            assetId: 'usdc-mainnet',
-            constraints: { minAmount: 10 },
-          },
-        ]),
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
       },
@@ -240,9 +218,6 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
         },
         unsubscribe() {
           return undefined;
-        },
-        call(_action: string, ..._args: unknown[]) {
-          return Promise.resolve(undefined);
         },
       };
     },

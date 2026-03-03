@@ -1,24 +1,22 @@
 import { Hex } from '@metamask/utils';
 import {
-  AnalyticsEventBuilder,
-  type AnalyticsTrackingEvent,
-} from '../../../../util/analytics/AnalyticsEventBuilder';
+  IMetaMetricsEvent,
+  ITrackingEvent,
+} from '../../../../core/Analytics/MetaMetrics.types';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import Engine from '../../../../core/Engine';
 import { TokenI } from '../types';
 import NotificationManager from '../../../../core/NotificationManager';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import Logger from '../../../../util/Logger';
 
 interface RemoveEvmTokenProps {
   tokenToRemove: TokenI;
   currentChainId: string;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
+  trackEvent: (event: ITrackingEvent, saveDataRecording?: boolean) => void;
   strings: (key: string, args?: Record<string, unknown>) => string;
   getDecimalChainId: (chainId: string) => number;
-  createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;
+  createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder;
 }
 
 export const removeEvmToken = async ({
