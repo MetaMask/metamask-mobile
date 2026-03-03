@@ -12,6 +12,8 @@ import { handleListDirectory } from './handlers/list-directory';
 import { handleGrepCodebase } from './handlers/grep-codebase';
 import { handleLoadSkill } from './handlers/load-skill';
 import { handleFinalizeTagSelection } from './handlers/finalize-tag-selection';
+import { handleGitLog } from './handlers/git-log';
+import { handleFinalizeRootCause } from './handlers/finalize-root-cause';
 
 /**
  * Tool execution context
@@ -56,6 +58,12 @@ export async function executeTool(
 
       case 'finalize_tag_selection':
         return handleFinalizeTagSelection(input);
+
+      case 'git_log':
+        return handleGitLog(input, context.baseDir);
+
+      case 'finalize_root_cause':
+        return handleFinalizeRootCause(input);
 
       default:
         return `Unknown tool: ${toolName}`;

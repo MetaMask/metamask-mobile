@@ -5,6 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
+import { execSync } from 'node:child_process';
 import { ParsedArgs, AnalysisContext } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
@@ -87,6 +88,19 @@ function parseArgs(args: string[]): ParsedArgs {
         options.prNumber = validPR;
         break;
       }
+      case '--issue':
+      case '-i': {
+        const issueInput = args[++i];
+        const issueNum = parseInt(issueInput, 10);
+        if (isNaN(issueNum) || issueNum < 1 || issueNum > 999999) {
+          console.error(
+            `❌ Invalid issue number: ${issueInput}. Must be a positive integer (1-999999).`,
+          );
+          process.exit(1);
+        }
+        options.issueNumber = issueNum;
+        break;
+      }
       case '--provider':
       case '-p':
         options.provider = args[++i];
@@ -139,6 +153,7 @@ Options:
   -b, --base-branch <branch>    Base branch for comparison (default: origin/main)
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
+  -i, --issue <number>          GitHub issue number (for root-cause mode)
   -p, --provider <provider>     Force specific provider (anthropic, openai, google)
   --list-skills                 List all available skills
   -h, --help                    Show this help message
@@ -239,9 +254,36 @@ async function main() {
     console.log(`🔒 Provider: ${forcedProvider} (forced)`);
   }
 
-  // Get changed files
+  // For root-cause mode with --issue, fetch issue details and skip changed-files
+  let issueTitle: string | undefined;
+  let issueBody: string | undefined;
+  if (options.issueNumber) {
+    console.log(`🐛 Fetching issue #${options.issueNumber}...`);
+    try {
+      const issueJson = execSync(
+        `gh issue view ${options.issueNumber} --repo ${githubRepo} --json title,body`,
+        { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 },
+      ).trim();
+      const issueData = JSON.parse(issueJson);
+      issueTitle = issueData.title;
+      issueBody = issueData.body;
+      console.log(`   Title: ${issueTitle}`);
+    } catch (error) {
+      console.error(
+        `❌ Failed to fetch issue #${options.issueNumber}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      process.exit(1);
+    }
+  }
+
+  // Get changed files (skip for root-cause mode which investigates issues, not PRs)
   let allChangedFiles: string[];
-  if (options.changedFiles) {
+  if (mode === 'root-cause') {
+    allChangedFiles = [];
+    console.log(
+      '📁 Root-cause mode: skipping changed-files detection (investigating issue)',
+    );
+  } else if (options.changedFiles) {
     const providedFiles = options.changedFiles.split(/\s+/).filter((f) => f);
     allChangedFiles = validateProvidedFiles(providedFiles, baseBranch, baseDir);
   } else if (options.prNumber) {
@@ -249,16 +291,19 @@ async function main() {
   } else {
     allChangedFiles = getAllChangedFiles(baseBranch, baseDir);
   }
-  console.log(`📁 Found ${allChangedFiles.length} modified files`);
 
-  // Validate we have files to analyze
-  if (allChangedFiles.length === 0) {
-    console.log(
-      '💡 Tip: Make sure you have uncommitted changes or are on a branch with commits',
-    );
-    const analysis = MODES[mode].createEmptyResult();
-    MODES[mode].outputAnalysis(analysis);
-    return;
+  if (mode !== 'root-cause') {
+    console.log(`📁 Found ${allChangedFiles.length} modified files`);
+
+    // Validate we have files to analyze
+    if (allChangedFiles.length === 0) {
+      console.log(
+        '💡 Tip: Make sure you have uncommitted changes or are on a branch with commits',
+      );
+      const analysis = MODES[mode].createEmptyResult();
+      MODES[mode].outputAnalysis(analysis);
+      return;
+    }
   }
 
   const criticalFiles = identifyCriticalFiles(allChangedFiles);
@@ -279,6 +324,9 @@ async function main() {
     baseBranch,
     prNumber: options.prNumber,
     githubRepo,
+    issueNumber: options.issueNumber,
+    issueTitle,
+    issueBody,
   };
 
   if (options.prNumber) {

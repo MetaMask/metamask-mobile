@@ -137,6 +137,103 @@ export function getToolDefinitions(): LLMTool[] {
       },
     },
     {
+      name: 'git_log',
+      description:
+        'Get git log for a file to see recent changes and identify PRs that modified it',
+      input_schema: {
+        type: 'object',
+        properties: {
+          file_path: {
+            type: 'string',
+            description: 'Path to file (e.g. "app/core/Engine.ts")',
+          },
+          max_entries: {
+            type: 'number',
+            description: 'Max log entries to return (default: 20)',
+            default: 20,
+          },
+        },
+        required: ['file_path'],
+      },
+    },
+    {
+      name: 'finalize_root_cause',
+      description: 'Submit final root cause analysis findings for a bug report',
+      input_schema: {
+        type: 'object',
+        properties: {
+          summary: {
+            type: 'string',
+            description: 'Root cause summary',
+          },
+          regression_prs: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                number: { type: 'number', description: 'PR number' },
+                title: { type: 'string', description: 'PR title' },
+                author: { type: 'string', description: 'PR author' },
+                explanation: {
+                  type: 'string',
+                  description: 'What changed and why it caused the bug',
+                },
+              },
+              required: ['number', 'title', 'author', 'explanation'],
+            },
+            description:
+              'PRs that likely introduced the regression (empty if pre-existing issue)',
+          },
+          error_flow: {
+            type: 'string',
+            description:
+              'Entry point to failure point with file:line references (e.g. "Engine.ts:42 -> SwapController.ts:88 -> handler.ts:156")',
+          },
+          scope_of_impact: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                file: { type: 'string', description: 'File path' },
+                lines: {
+                  type: 'string',
+                  description: 'Line range (e.g. "42-56")',
+                },
+                description: {
+                  type: 'string',
+                  description: 'What this area does and how it is affected',
+                },
+              },
+              required: ['file', 'lines', 'description'],
+            },
+            description:
+              'Other areas of the codebase affected by the same issue',
+          },
+          suggested_fix: {
+            type: 'string',
+            description: 'Suggested fix approach',
+          },
+          confidence: {
+            type: 'number',
+            description: 'Confidence 0-100 in the analysis',
+          },
+          reasoning: {
+            type: 'string',
+            description: 'Detailed reasoning and evidence for the analysis',
+          },
+        },
+        required: [
+          'summary',
+          'regression_prs',
+          'error_flow',
+          'scope_of_impact',
+          'suggested_fix',
+          'confidence',
+          'reasoning',
+        ],
+      },
+    },
+    {
       name: 'finalize_tag_selection',
       description:
         'Submit final tag selection decision for both E2E tests and performance tests',

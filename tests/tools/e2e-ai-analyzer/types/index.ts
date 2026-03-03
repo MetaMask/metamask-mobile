@@ -27,8 +27,24 @@ export interface SelectTagsAnalysis {
   performanceTests: PerformanceTestSelection;
 }
 
+export interface RootCauseAnalysis {
+  summary: string;
+  regressionPRs: {
+    number: number;
+    title: string;
+    author: string;
+    explanation: string;
+  }[];
+  errorFlow: string;
+  scopeOfImpact: { file: string; lines: string; description: string }[];
+  suggestedFix: string;
+  confidence: number;
+  reasoning: string;
+}
+
 export interface ModeAnalysisTypes {
   'select-tags': SelectTagsAnalysis;
+  'root-cause': RootCauseAnalysis;
 }
 
 /**
@@ -43,7 +59,11 @@ export interface ModeConfig<T = unknown> {
   description: string;
   finalizeToolName: string;
   systemPromptBuilder: (availableSkills: SkillMetadata[]) => string;
-  taskPromptBuilder: (allFiles: string[], criticalFiles: string[]) => string;
+  taskPromptBuilder: (
+    allFiles: string[],
+    criticalFiles: string[],
+    context?: AnalysisContext,
+  ) => string;
   processAnalysis: (aiResponse: string, baseDir: string) => Promise<T | null>;
   createConservativeResult: () => T;
   createEmptyResult: () => T;
@@ -63,6 +83,9 @@ export interface AnalysisContext {
   baseBranch: string;
   prNumber?: number;
   githubRepo?: string;
+  issueNumber?: number;
+  issueTitle?: string;
+  issueBody?: string;
 }
 
 /**
@@ -79,6 +102,7 @@ export interface ParsedArgs {
   baseBranch: string;
   changedFiles?: string;
   prNumber?: number;
+  issueNumber?: number;
   mode?: string;
   provider?: string;
   listSkills?: boolean;
@@ -116,4 +140,19 @@ export interface ToolInput {
     selected_tags: string[];
     reasoning: string;
   };
+
+  // git_log
+  max_entries?: number;
+
+  // finalize_root_cause
+  summary?: string;
+  regression_prs?: {
+    number: number;
+    title: string;
+    author: string;
+    explanation: string;
+  }[];
+  error_flow?: string;
+  scope_of_impact?: { file: string; lines: string; description: string }[];
+  suggested_fix?: string;
 }
