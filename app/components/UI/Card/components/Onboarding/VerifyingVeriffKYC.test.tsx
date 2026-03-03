@@ -29,18 +29,21 @@ jest.mock('../../../AnimatedSpinner', () => {
 // Mock useUserRegistrationStatus hook
 jest.mock('../../hooks/useUserRegistrationStatus');
 
-// Mock useAnalytics hook
+// Mock useMetrics hook
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({ event: 'test' }),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'CARD_VIEWED',
+  },
 }));
 
 // Mock metrics util

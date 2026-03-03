@@ -17,6 +17,7 @@ import Engine from '../../../core/Engine';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
+  selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -52,7 +53,7 @@ import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -209,7 +210,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -222,6 +223,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
   const chainId = asset.chainId as Hex;
+  const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const tokenResult = useSelector((state: RootState) =>
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
@@ -291,6 +293,25 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   useEffect(() => {
     endTrace({ name: TraceName.AssetDetails });
   }, []);
+
+  useEffect(() => {
+    const { SwapsController } = Engine.context;
+    const fetchTokenWithCache = async () => {
+      try {
+        await SwapsController.fetchTokenWithCache({
+          networkClientId: selectedNetworkClientId,
+        });
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        Logger.error(
+          error,
+          'Swaps: error while fetching tokens with cache in AssetOverview',
+        );
+      }
+    };
+    fetchTokenWithCache();
+  }, [selectedNetworkClientId]);
 
   const onReceive = () => {
     trackActionButtonClick(trackEvent, createEventBuilder, {

@@ -32,7 +32,6 @@ export interface AssetType extends TokenI {
 export interface HighlightedActionButton {
   buttonLabel: string;
   onPress: () => void;
-  isDisabled?: boolean;
 }
 
 export interface HighlightedAssetListItem {
@@ -48,13 +47,10 @@ export interface HighlightedAssetListItem {
 
 export interface HighlightedActionListItem {
   type: 'highlighted_action';
-  // Either an IconName or a icon URI string
   icon: string;
   name: string;
   name_description: string;
   actions: HighlightedActionButton[];
-  // Spinner will be shown regardless of the action buttons
-  isLoading?: boolean;
 }
 
 export type TokenListItem =
