@@ -593,11 +593,13 @@ export class CardSDK {
       authenticated = false,
       location = this.userCardLocation,
       timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS,
+      authToken = '',
     }: {
       fetchOptions?: RequestInit & { query?: string };
       authenticated?: boolean;
       location?: CardLocation;
       timeoutMs?: number;
+      authToken?: string;
     } = {},
   ): Promise<Response> {
     const apiKey = this.cardBaanxApiKey;
@@ -620,7 +622,8 @@ export class CardSDK {
 
       if (authenticated) {
         try {
-          const accessToken = await tokenManager.getValidAccessToken();
+          const accessToken =
+            authToken || (await tokenManager.getValidAccessToken());
           if (accessToken) {
             headers.Authorization = `Bearer ${accessToken}`;
           }
@@ -724,10 +727,11 @@ export class CardSDK {
     return response;
   }
 
-  getUserDetails = async (): Promise<UserResponse> => {
+  getUserDetails = async (authToken?: string): Promise<UserResponse> => {
     const response = await this.makeRequest('/v1/user', {
       fetchOptions: { method: 'GET' },
       authenticated: true,
+      authToken,
     });
 
     return this.handleApiResponse<UserResponse>(
@@ -2340,13 +2344,12 @@ export class CardSDK {
     code: string;
     codeVerifier: string;
     redirectUri: string;
-    location?: CardLocation;
   }): Promise<{
     accessToken: string;
     refreshToken?: string;
     expiresIn?: number;
   }> => {
-    const { code, codeVerifier, redirectUri, location } = params;
+    const { code, codeVerifier, redirectUri } = params;
 
     const formBody = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -2365,7 +2368,6 @@ export class CardSDK {
         body: formBody.toString(),
       },
       authenticated: false,
-      ...(location && { location }),
       timeoutMs: CardSDK.OAUTH2_TIMEOUT_MS,
     });
 

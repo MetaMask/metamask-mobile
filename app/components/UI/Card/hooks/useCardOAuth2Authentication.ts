@@ -6,7 +6,7 @@ import {
   type DiscoveryDocument,
   Prompt,
 } from 'expo-auth-session';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { storeCardBaanxToken } from '../util/cardTokenVault';
 import {
@@ -14,7 +14,6 @@ import {
   getBaanxApiBaseUrl,
 } from '../util/mapBaanxApiUrl';
 import {
-  selectUserCardLocation,
   setIsAuthenticatedCard as setIsAuthenticatedAction,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
@@ -22,6 +21,7 @@ import { BaanxOAuth2Error, BaanxOAuth2ErrorType } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import { useCardSDK } from '../sdk';
 import { generateState } from '../util/pkceHelpers';
+import { mapCountryToLocation } from '../util/mapCountryToLocation';
 
 /**
  * Default OAuth 2.0 scopes for Baanx API
@@ -94,7 +94,6 @@ export interface UseCardOAuth2AuthenticationReturn {
 
 const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
   const dispatch = useDispatch();
-  const location = useSelector(selectUserCardLocation);
   const { sdk } = useCardSDK();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -186,13 +185,15 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
         code,
         codeVerifier,
         redirectUri,
-        location,
       });
 
       if (!tokenResponse.accessToken) {
         setError(getErrorMessage(BaanxOAuth2ErrorType.TOKEN_EXCHANGE_FAILED));
         return;
       }
+
+      const user = await sdk.getUserDetails(tokenResponse.accessToken);
+      const location = mapCountryToLocation(user?.countryOfResidence ?? null);
 
       await storeCardBaanxToken({
         accessToken: tokenResponse.accessToken,
@@ -219,16 +220,7 @@ const useCardOAuth2Authentication = (): UseCardOAuth2AuthenticationReturn => {
     } finally {
       setLoading(false);
     }
-  }, [
-    isReady,
-    request,
-    clientId,
-    sdk,
-    promptAsync,
-    redirectUri,
-    location,
-    dispatch,
-  ]);
+  }, [isReady, request, clientId, sdk, promptAsync, redirectUri, dispatch]);
 
   return useMemo(
     () => ({
