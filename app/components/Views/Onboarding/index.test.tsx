@@ -400,9 +400,10 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('covers both medium-device layout branches', () => {
+  it('applies compact gap and medium button size on medium device', () => {
     (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-    renderScreen(
+
+    const { toJSON } = renderScreen(
       Onboarding,
       { name: 'Onboarding' },
       {
@@ -410,22 +411,25 @@ describe('Onboarding', () => {
       },
     );
 
-    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
-    renderScreen(
-      Onboarding,
-      { name: 'Onboarding' },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(Device.isMediumDevice).toHaveBeenCalled();
+    expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders loading overlay and covers both iPhoneX notification padding branches', async () => {
-    jest.useFakeTimers();
-    mockSkipLoadingUnset = true;
+  it('applies standard gap and large button size on non-medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
 
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders loading overlay with loading message', async () => {
+    mockSkipLoadingUnset = true;
     const loadingMessage = 'Creating your wallet...';
     const loadingState = {
       ...mockInitialState,
@@ -435,11 +439,10 @@ describe('Onboarding', () => {
         loadingMsg: loadingMessage,
       },
     };
-
     mockRoute.params = { delete: true };
+
     try {
-      (Device.isIphoneX as jest.Mock).mockReturnValue(true);
-      const firstRender = renderScreen(
+      const { getByText } = renderScreen(
         Onboarding,
         { name: 'Onboarding' },
         {
@@ -447,35 +450,72 @@ describe('Onboarding', () => {
         },
       );
 
-      await act(async () => {
-        jest.runOnlyPendingTimers();
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(getByText(loadingMessage)).toBeOnTheScreen();
       });
-
-      expect(firstRender.getByText(loadingMessage)).toBeOnTheScreen();
-
-      firstRender.unmount();
-
-      (Device.isIphoneX as jest.Mock).mockReturnValue(false);
-      renderScreen(
-        Onboarding,
-        { name: 'Onboarding' },
-        {
-          state: loadingState,
-        },
-      );
-
-      await act(async () => {
-        jest.runOnlyPendingTimers();
-        await Promise.resolve();
-      });
-
-      expect((Device.isIphoneX as jest.Mock).mock.calls.length).toBeGreaterThan(
-        1,
-      );
     } finally {
-      jest.runOnlyPendingTimers();
-      jest.useRealTimers();
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies iPhoneX notification padding when on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(true);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies standard notification padding when not on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
       mockRoute.params = {};
       mockSkipLoadingUnset = false;
     }
