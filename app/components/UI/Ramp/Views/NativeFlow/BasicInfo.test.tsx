@@ -429,6 +429,15 @@ describe('V2BasicInfo', () => {
     expect(getByTestId('ssn-info-button')).toBeOnTheScreen();
   });
 
+  it('navigates to ssn info modal when ssn info button is pressed', () => {
+    const { getByTestId } = renderWithTheme(<V2BasicInfo />);
+    fireEvent.press(getByTestId('ssn-info-button'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'RampModals',
+      expect.objectContaining({ screen: 'RampSsnInfoModal' }),
+    );
+  });
+
   it('handles region with no phone prefix', () => {
     mockUserRegion = {
       country: {

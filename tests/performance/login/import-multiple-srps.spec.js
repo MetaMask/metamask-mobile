@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixtures/performance-test.js';
+import { test } from '../../framework/fixtures/performance';
 
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';

@@ -489,7 +489,11 @@ class AuthenticationService {
   requestBiometricsAccessControlForIOS = async (
     authType: AUTHENTICATION_TYPE,
   ): Promise<AUTHENTICATION_TYPE> => {
-    if (Platform.OS === 'ios' && authType === AUTHENTICATION_TYPE.BIOMETRIC) {
+    if (
+      Platform.OS === 'ios' &&
+      (authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION)
+    ) {
       try {
         // Prompt user for biometrics access control
         const result = await authenticateAsync({ disableDeviceFallback: true });
@@ -1294,7 +1298,14 @@ class AuthenticationService {
         // also show a info popup to user.
 
         // rehydrate with social accounts if max keychain length exceeded
-        await SeedlessOnboardingController.refreshAuthTokens();
+        try {
+          await SeedlessOnboardingController.refreshAuthTokens();
+        } catch (refreshError) {
+          Logger.error(
+            refreshError as Error,
+            'Failed to refresh auth tokens during MaxKeyChainLength recovery, attempting rehydration anyway',
+          );
+        }
         await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         ReduxService.store.dispatch(setIsConnectionRemoved(true));

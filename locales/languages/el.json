@@ -2874,10 +2874,6 @@
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
     "updating_notifications": "Ενημέρωση ειδοποιήσεων...",
     "updating_account_settings": "Ενημέρωση ρυθμίσεων λογαριασμού...",
-    "reset_notifications_title": "Επαναφορά ειδοποιήσεων",
-    "reset_notifications_description": "Η επαναφορά των ειδοποιήσεων σημαίνει ότι διαγράφετε τα κλειδιά αποθήκευσης ειδοποιήσεων και επαναφέρετε όλο το ιστορικό ειδοποιήσεων. Είστε σίγουροι ότι θέλετε να προχωρήσετε;",
-    "reset_notifications": "Επαναφορά ειδοποιήσεων",
-    "reset_notifications_success": "Διαγραφή/δημιουργία εκ νέου κλειδιού αποθήκευσης ειδοποιήσεων και επαναφορά ιστορικού ειδοποιήσεων.",
     "notifications_dismiss_modal": "Απόρριψη",
     "select_rpc_url": "Επιλέξτε την διεύθυνση URL του RPC",
     "title": "Ρυθμίσεις",
@@ -5935,8 +5931,8 @@
       },
       "buy_musd": "Αγοράστε mUSD",
       "get_musd": "Αποκτήστε mUSD",
-      "boost_title": "Λάβετε {{percentage}}% σε stablecoins",
-      "boost_description": "Μετατρέψτε τα stablecoins σε mUSD και λάβετε μπόνους έως και {{percentage}}%.",
+      "bonus_title": "Λάβετε {{percentage}}% σε stablecoins",
+      "bonus_description": "Μετατρέψτε τα stablecoins σε mUSD και λάβετε μπόνους έως και {{percentage}}%.",
       "powered_by_relay": "Υποστηρίζεται από το Relay"
     },
     "bonus_claim": {

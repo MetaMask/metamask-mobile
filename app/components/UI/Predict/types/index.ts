@@ -420,7 +420,6 @@ export interface GetMarketsParams {
   sortDirection?: 'asc' | 'desc';
   offset?: number;
   limit?: number;
-  liveSportsLeagues?: string[];
   customQueryParams?: string;
 }
 
@@ -434,6 +433,8 @@ export interface PredictFees {
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 /**
@@ -540,3 +541,5 @@ export interface GetAccountStateParams {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}
+
+export type { PredictFeatureFlags } from './flags';
