@@ -710,10 +710,12 @@ jobs:
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           EVENT_NAME: ${{ github.event_name }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
           # Check results of all required jobs dynamically
           # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On other events (PR, push), all jobs must succeed
+          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
+          # On other events (push to main), all jobs must succeed
 
           FAILED="false"
 
@@ -722,8 +724,8 @@ jobs:
               echo "::error::Job '$job_name' failed with result: $result"
               FAILED="true"
             elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events)"
+              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
+                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
               else
                 echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
                 FAILED="true"
