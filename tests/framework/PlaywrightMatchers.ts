@@ -198,9 +198,9 @@ export default class PlaywrightMatchers {
    * @returns The wrapped element
    */
   static async getElementByNameiOS(name: string): Promise<PlaywrightElement> {
-    const xpath = `//*[contains(@name,'${name}')]`;
     const isIOS = await PlatformDetector.isIOS();
-    if (!isIOS) throw new Error('Selector is not valid for iOS');
+    if (!isIOS) throw new Error('This function is only valid for iOS');
+    const xpath = `//*[contains(@name,'${name}')]`;
     return await this.getElementByXPath(xpath);
   }
 
