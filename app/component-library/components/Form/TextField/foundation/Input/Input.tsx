@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { TextInput } from 'react-native';
 
 // External dependencies.
@@ -41,17 +41,22 @@ const Input = React.forwardRef<TextInput, InputProps>(
     const [isFocused, setIsFocused] = useState(autoFocus);
     const [internalValue, setInternalValue] = useState(defaultValue ?? '');
 
-    const isControlled = value !== undefined;
+    const isControlledRef = useRef<boolean | null>(null);
+    if (isControlledRef.current === null) {
+      isControlledRef.current = value !== undefined;
+    }
+    const isControlled = isControlledRef.current;
+
     const currentValue = isControlled ? (value ?? '') : internalValue;
     const hasPlaceholder = placeholder != null && placeholder !== '';
     const isPlaceholderVisible =
       hasPlaceholder && (currentValue === '' || currentValue == null);
 
     useEffect(() => {
-      if (!isControlled) {
+      if (!isControlledRef.current) {
         setInternalValue(defaultValue ?? '');
       }
-    }, [defaultValue, isControlled]);
+    }, [defaultValue]);
 
     const { styles, theme } = useStyles(styleSheet, {
       style,
