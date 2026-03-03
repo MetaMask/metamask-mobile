@@ -47,6 +47,7 @@ const Routes = {
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
+      SSN_INFO: 'RampSsnInfoModal',
     },
   },
   DEPOSIT: {
