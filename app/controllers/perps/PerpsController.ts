@@ -34,6 +34,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Json } from '@metamask/utils';
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CandlePeriod } from './constants/chartConfig';
@@ -1988,6 +1989,15 @@ export class PerpsController extends BaseController<
         origin: ORIGIN_METAMASK,
         skipInitialGasEstimate: true,
       };
+
+      addBreadcrumb({
+        category: 'perps',
+        message: 'Deposit action started',
+        level: 'info',
+        data: {
+          place_order_after_deposit: placeOrder === true,
+        },
+      });
 
       if (placeOrder) {
         // Use messenger-based addTransaction to create transaction without navigating to confirmation screen
