@@ -195,7 +195,7 @@ const PerpsHeroCardView: React.FC = () => {
   };
 
   const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
+  const pnlDisplay = `${pnlSign}${data.roe.toFixed(2)}%`;
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage

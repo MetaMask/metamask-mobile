@@ -39,11 +39,12 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
-import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
+import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
+import { isGaslessQuote } from '../../utils/isGaslessQuote';
+import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 
 if (
   Platform.OS === 'android' &&
@@ -80,10 +81,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     isQuoteLoading,
   });
 
-  const gasFeesSponsoredNetworkEnabled = useSelector(
-    getGasFeesSponsoredNetworkEnabled,
-  );
-
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -91,23 +88,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     return native?.symbol ?? sourceToken?.symbol ?? '';
   }, [sourceToken?.chainId, sourceToken?.symbol]);
 
-  const isCurrentNetworkGasSponsored = useMemo(() => {
-    if (!sourceToken?.chainId || !gasFeesSponsoredNetworkEnabled) {
-      return false;
-    }
-    return gasFeesSponsoredNetworkEnabled(sourceToken.chainId);
-  }, [sourceToken?.chainId, gasFeesSponsoredNetworkEnabled]);
-
-  const shouldShowGasSponsored = useMemo(() => {
-    const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
-    return (
-      gasSponsored || (hasInsufficientBalance && isCurrentNetworkGasSponsored)
-    );
-  }, [
-    activeQuote?.quote?.gasSponsored,
+  const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
+    quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
     hasInsufficientBalance,
-    isCurrentNetworkGasSponsored,
-  ]);
+  });
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -131,9 +115,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
-  const isGasless = gasIncluded7702 || gasIncluded;
+  const isGasless = isGaslessQuote(activeQuote?.quote);
 
   const formattedMinToTokenAmount = formatMinimumReceived(
     activeQuote?.minToTokenAmount?.amount || '0',

@@ -4,6 +4,9 @@ import path from 'path';
 import fs from 'fs';
 import { expect } from 'appwright';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
+import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import { login } from '../../framework/utils/Flows.js';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 
@@ -11,6 +14,10 @@ import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 const DEFAULT_DAPP_PORT = 8090;
 
 const UNLOCK_WAIT_MS = 3000;
+
+// Path from metamask-mobile root to the playground release APK in the sibling connect-monorepo
+const PLAYGROUND_APK_RELATIVE =
+  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk';
 
 /**
  * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
@@ -104,9 +111,26 @@ export function cleanupAdbReverse(port) {
   }
 }
 
-// Path from metamask-mobile root to the playground release APK in the sibling connect-monorepo
-const PLAYGROUND_APK_RELATIVE =
-  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk';
+/**
+ * Wait for the wallet to be visible, then cycle the app twice to ensure all
+ * account groups (including Solana) are created and syncing completes.
+ * Must be called from native context after login.
+ * @param {import('appwright').Device} device - Appwright device
+ */
+export async function ensureAccountGroupsFinishedLoading(device) {
+  await WalletMainScreen.isMainWalletViewVisible();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.isComponentDisplayed();
+  await AccountListComponent.waitForSyncingToComplete();
+  await AppwrightGestures.terminateApp(device);
+  await AppwrightGestures.activateApp(device);
+  await login(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+}
 
 /**
  * Ensure the React Native playground release APK is installed on the

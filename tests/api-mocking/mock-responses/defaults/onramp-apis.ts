@@ -58,6 +58,12 @@ export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
     },
     {
       urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/.*\/tokens\?.*$/,
+      responseCode: 200,
+      response: RAMPS_TOP_TOKENS_RESPONSE,
+    },
+    {
+      urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/v2\/regions\/[^/]+\/topTokens\?.*$/,
       responseCode: 200,
       response: RAMPS_TOP_TOKENS_RESPONSE,
