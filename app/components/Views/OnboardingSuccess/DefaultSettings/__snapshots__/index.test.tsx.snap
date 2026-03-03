@@ -97,7 +97,7 @@ exports[`DefaultSettings should render correctly 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -190,7 +190,7 @@ exports[`DefaultSettings should render correctly 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -283,7 +283,7 @@ exports[`DefaultSettings should render correctly 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
