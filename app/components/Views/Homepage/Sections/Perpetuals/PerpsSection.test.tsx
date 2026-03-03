@@ -3,8 +3,20 @@ import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
+const mockTrack = jest.fn();
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: mockTrack,
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -91,23 +103,26 @@ jest.mock('./hooks/useHomepageSparklines', () => ({
 }));
 
 jest.mock('./components/PerpsMarketTileCard', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       market,
       testID,
       onPress,
+      showFavoriteTag,
     }: {
       market: { symbol: string };
       testID?: string;
       onPress?: (m: { symbol: string }) => void;
+      showFavoriteTag?: boolean;
     }) => (
       <TouchableOpacity
         testID={testID ?? `perps-market-tile-${market.symbol}`}
         onPress={() => onPress?.(market)}
       >
         <Text>{market.symbol}</Text>
+        {showFavoriteTag && <View testID={`favorite-badge-${market.symbol}`} />}
       </TouchableOpacity>
     ),
   };
@@ -379,6 +394,29 @@ describe('PerpsSection', () => {
         initialTab: 'position',
       },
     });
+  });
+
+  it('fires PERPS_UI_INTERACTION event when a position is pressed', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(<PerpsSection />);
+
+    fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+      },
+    );
   });
 
   it('limits items to max 5 (positions first, then orders)', () => {
@@ -684,6 +722,210 @@ describe('PerpsSection', () => {
       expect(
         screen.queryByTestId('homepage-trending-perps-carousel'),
       ).toBeNull();
+    });
+  });
+
+  describe('Watchlist Markets in Carousel', () => {
+    const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      maxLeverage: '50x',
+      price: '$52,000',
+      change24h: '+$2,000',
+      change24hPercent: '+4.00%',
+      volume: '$2.5B',
+      volumeNumber: 2500000000,
+      ...overrides,
+    });
+
+    const watchlistState = (symbols: string[]) => ({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            watchlistMarkets: { mainnet: symbols, testnet: [] },
+          },
+        },
+      },
+    });
+
+    it('shows watchlist market first in carousel with favorite badge', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+          makeTrendingMarket({ symbol: 'SOL', volumeNumber: 1000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['SOL']),
+      });
+
+      expect(
+        screen.getByTestId('homepage-trending-perps-carousel'),
+      ).toBeOnTheScreen();
+
+      const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
+      expect(allTiles[0].props.testID).toBe('perps-market-tile-SOL');
+
+      expect(screen.getByTestId('favorite-badge-SOL')).toBeOnTheScreen();
+      expect(screen.queryByTestId('favorite-badge-BTC')).toBeNull();
+      expect(screen.queryByTestId('favorite-badge-ETH')).toBeNull();
+    });
+
+    it('shows multiple watchlist markets before trending markets', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+          makeTrendingMarket({ symbol: 'SOL', volumeNumber: 1000000000 }),
+          makeTrendingMarket({ symbol: 'DOGE', volumeNumber: 500000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['SOL', 'DOGE']),
+      });
+
+      const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
+      const symbols = allTiles.map((t) =>
+        t.props.testID.replace('perps-market-tile-', ''),
+      );
+
+      expect(symbols.indexOf('SOL')).toBeLessThan(symbols.indexOf('BTC'));
+      expect(symbols.indexOf('DOGE')).toBeLessThan(symbols.indexOf('BTC'));
+
+      expect(screen.getByTestId('favorite-badge-SOL')).toBeOnTheScreen();
+      expect(screen.getByTestId('favorite-badge-DOGE')).toBeOnTheScreen();
+    });
+
+    it('excludes watchlist markets from trending to avoid duplicates', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['BTC']),
+      });
+
+      const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
+      const symbols = allTiles.map((t) =>
+        t.props.testID.replace('perps-market-tile-', ''),
+      );
+
+      const btcOccurrences = symbols.filter((s) => s === 'BTC').length;
+      expect(btcOccurrences).toBe(1);
+    });
+
+    it('respects max 5 total tiles including watchlist', () => {
+      const markets = Array.from({ length: 8 }, (_, i) =>
+        makeTrendingMarket({
+          symbol: `MKT${i}`,
+          volumeNumber: 10000000 - i * 1000000,
+        }),
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets,
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['MKT5', 'MKT6']),
+      });
+
+      const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
+      expect(allTiles).toHaveLength(5);
+
+      expect(screen.getByText('MKT5')).toBeOnTheScreen();
+      expect(screen.getByText('MKT6')).toBeOnTheScreen();
+    });
+
+    it('renders only trending when watchlist is empty', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+          makeTrendingMarket({ symbol: 'ETH', volumeNumber: 3000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState([]),
+      });
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.queryByTestId('favorite-badge-BTC')).toBeNull();
+      expect(screen.queryByTestId('favorite-badge-ETH')).toBeNull();
+    });
+
+    it('caps at 5 tiles even when watchlist exceeds max carousel size', () => {
+      const markets = Array.from({ length: 7 }, (_, i) =>
+        makeTrendingMarket({
+          symbol: `MKT${i}`,
+          volumeNumber: 10000000 - i * 1000000,
+        }),
+      );
+      usePerpsMarkets.mockReturnValue({
+        markets,
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['MKT0', 'MKT1', 'MKT2', 'MKT3', 'MKT4', 'MKT5']),
+      });
+
+      const allTiles = screen.getAllByTestId(/^perps-market-tile-/);
+      expect(allTiles).toHaveLength(5);
+
+      expect(screen.queryByTestId('favorite-badge-MKT6')).toBeNull();
+      expect(screen.queryByText('MKT6')).toBeNull();
+      // MKT5 is the 6th watchlist item, truncated by the cap
+      expect(screen.queryByText('MKT5')).toBeNull();
+    });
+
+    it('ignores watchlist symbols not present in market data', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(<PerpsSection />, {
+        state: watchlistState(['NONEXISTENT']),
+      });
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.queryByTestId('favorite-badge-BTC')).toBeNull();
+      expect(screen.queryByTestId('favorite-badge-NONEXISTENT')).toBeNull();
     });
   });
 });

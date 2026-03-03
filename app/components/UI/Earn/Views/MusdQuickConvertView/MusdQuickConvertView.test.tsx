@@ -15,8 +15,6 @@ import {
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
-import AppConstants from '../../../../../core/AppConstants';
-import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
@@ -62,18 +60,10 @@ jest.mock('../../../../hooks/useStyles', () => ({
       listContainer: {},
       emptyContainer: {},
       listHeaderContainer: {},
-      termsApply: {},
       balanceCardHeader: {},
     },
     theme: { colors: {} },
   })),
-}));
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
 }));
 
 const mockSelectMusdQuickConvertEnabledFlag =
@@ -311,7 +301,7 @@ describe('MusdQuickConvertView', () => {
       expect(
         getByText(
           strings('earn.musd_conversion.quick_convert.title', {
-            apy: MUSD_CONVERSION_APY,
+            percentage: MUSD_CONVERSION_APY,
           }),
         ),
       ).toBeOnTheScreen();
@@ -489,26 +479,6 @@ describe('MusdQuickConvertView', () => {
         fireEvent.press(editButton);
       });
       expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('terms of use', () => {
-    it('opens terms URL when terms apply text is pressed', () => {
-      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const termsApplyText = getByText(
-        strings('earn.musd_conversion.education.terms_apply'),
-      );
-
-      act(() => {
-        fireEvent.press(termsApplyText);
-      });
-
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
-      );
     });
   });
 });
