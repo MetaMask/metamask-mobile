@@ -421,46 +421,49 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
 };
 
 /**
- * Sets up base on-ramp API mocks for a given region.
- * Covers region eligibility, catalog data, quotes, checkout, and token icons.
- * Use setupDepositOnRampMocks or setupBuyOnRampMocks for full-flow tests.
+ * Sets up region eligibility and catalog mocks.
+ * Covers geolocation, deposit/aggregator eligibility, and all catalog data
+ * (networks, tokens, providers, payment methods, token icons).
  *
- * @param mockServer - The mock server instance
- * @param selectedRegion - The region selected in the test fixture
- * @param providerType - 'native' for the Transak KYC/OTP flow, 'aggregator' for the widget/WebView flow. Defaults to 'aggregator'.
+ * Use directly for tests that navigate the token-selection or off-ramp UI
+ * without proceeding to a quote or checkout step.
+ * Use setupDepositOnRampMocks or setupBuyOnRampMocks for full-flow tests.
  */
 export const setupRegionAwareOnRampMocks = async (
   mockServer: Mockttp,
   selectedRegion: RampsRegion,
-  providerType: ProviderType = 'aggregator',
 ) => {
   await RAMPS_REGION_MOCKS(mockServer, selectedRegion);
   await RAMPS_CATALOG_MOCKS(mockServer);
-  await RAMPS_QUOTE_MOCKS(mockServer, providerType);
-  await RAMPS_CHECKOUT_MOCKS(mockServer);
   await RAMPS_TOKEN_ICON_MOCKS(mockServer);
 };
 
 /**
  * Sets up all mocks for the native Transak deposit flow (KYC/OTP + bank transfer).
- * Includes base region/catalog/quote/checkout mocks and all Transak API endpoints.
+ * Builds on region/catalog mocks and adds native quotes, checkout, and all
+ * Transak-specific API endpoints.
  */
 export const setupDepositOnRampMocks = async (
   mockServer: Mockttp,
   selectedRegion: RampsRegion,
 ) => {
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion, 'native');
+  await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await RAMPS_QUOTE_MOCKS(mockServer, 'native');
+  await RAMPS_CHECKOUT_MOCKS(mockServer);
   await TRANSAK_NATIVE_FLOW_MOCKS(mockServer);
 };
 
 /**
  * Sets up all mocks for the aggregator WebView buy flow.
- * Includes base region/catalog/quote/checkout mocks and buy order status polling.
+ * Builds on region/catalog mocks and adds aggregator quotes, checkout,
+ * and buy order status polling.
  */
 export const setupBuyOnRampMocks = async (
   mockServer: Mockttp,
   selectedRegion: RampsRegion,
 ) => {
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion, 'aggregator');
+  await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await RAMPS_QUOTE_MOCKS(mockServer);
+  await RAMPS_CHECKOUT_MOCKS(mockServer);
   await BUY_ORDER_STATUS_MOCKS(mockServer);
 };

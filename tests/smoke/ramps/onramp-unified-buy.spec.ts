@@ -177,7 +177,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        await device.disableSynchronization();
+        await device.enableSynchronization();
         await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
         await BuildQuoteView.tapKeypadDeleteButton(1);
         await BuildQuoteView.tapKeypadDeleteButton(1);
