@@ -241,6 +241,17 @@ describe('LedgerSelectAccount', () => {
         expect(mockedGoBack).toHaveBeenCalled();
       });
     });
+
+    it('calls showHardwareWalletError when ensureDeviceReady throws on mount', async () => {
+      const mountError = new Error('Bluetooth adapter failed');
+      mockEnsureDeviceReady.mockRejectedValue(mountError);
+
+      renderWithProvider(<LedgerSelectAccount />);
+
+      await waitFor(() => {
+        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(mountError);
+      });
+    });
   });
 
   describe('Account Loading', () => {
@@ -419,42 +430,124 @@ describe('LedgerSelectAccount', () => {
   });
 
   describe('onUnlock', () => {
-    it('calls ensureDeviceReady before unlocking', async () => {
+    const selectFirstAccountAndUnlock = async (
+      result: ReturnType<typeof renderWithProvider>,
+    ) => {
+      const checkboxes = result.getAllByRole('checkbox');
+      await act(async () => {
+        fireEvent(checkboxes[0], 'valueChange', true);
+      });
+      await act(async () => {
+        fireEvent.press(result.getByText('Unlock'));
+      });
+    };
+
+    it('unlocks selected accounts and navigates back on success', async () => {
       mockGetConnectedDevicesCount.mockResolvedValue(2);
       mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
       mockGetLedgerAccounts.mockResolvedValue([]);
 
-      const { getByText } = await renderAndWaitForAccounts();
+      const result = await renderAndWaitForAccounts();
 
-      const unlockButton = getByText('Unlock');
-      expect(unlockButton).toBeTruthy();
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockEnsureDeviceReady).toHaveBeenCalledWith('test-device-id');
+        expect(mockUnlockLedgerWalletAccount).toHaveBeenCalledWith(0);
+        expect(mockedNavDispatch).toHaveBeenCalled();
+      });
+    });
+
+    it('does nothing when ensureDeviceReady returns false', async () => {
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      const result = await renderAndWaitForAccounts();
+
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockUnlockLedgerWalletAccount).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles ensureDeviceReady throwing during unlock', async () => {
+      const readyError = new Error('Transport disconnected');
+      mockEnsureDeviceReady
+        .mockResolvedValueOnce(true)
+        .mockRejectedValueOnce(readyError);
+
+      const result = await renderAndWaitForAccounts();
+
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(readyError);
+      });
     });
 
     it('calls showHardwareWalletError on unlock failure', async () => {
       const unlockError = new Error('Unlock failed');
-      mockEnsureDeviceReady.mockResolvedValue(true);
       mockUnlockLedgerWalletAccount.mockRejectedValueOnce(unlockError);
 
-      await renderAndWaitForAccounts();
+      const result = await renderAndWaitForAccounts();
 
-      await expect(mockUnlockLedgerWalletAccount(0)).rejects.toThrow(
-        'Unlock failed',
-      );
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(unlockError);
+      });
     });
 
-    it('tracks hardware wallet error event on unlock failure', async () => {
+    it('tracks error analytics on unlock failure', async () => {
       const mockBuilder = {
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue({}),
       };
       mockCreateEventBuilder.mockReturnValue(mockBuilder);
-      mockUnlockLedgerWalletAccount.mockRejectedValue(
-        new Error('Error with status code 0x6d00'),
-      );
+      mockUnlockLedgerWalletAccount.mockRejectedValueOnce(new Error('0x6d00'));
 
-      await renderAndWaitForAccounts();
+      const result = await renderAndWaitForAccounts();
 
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.HARDWARE_WALLET_ERROR,
+        );
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ error: '0x6d00' }),
+        );
+      });
+    });
+
+    it('tracks add-account analytics on success', async () => {
+      const mockBuilder = {
+        addProperties: jest.fn().mockReturnThis(),
+        build: jest.fn().mockReturnValue({}),
+      };
+      mockCreateEventBuilder.mockReturnValue(mockBuilder);
+      mockGetConnectedDevicesCount.mockResolvedValue(3);
+      mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
+      mockGetLedgerAccounts.mockResolvedValue([]);
+
+      const result = await renderAndWaitForAccounts();
+
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT,
+        );
+        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            device_type: HardwareDeviceTypes.LEDGER,
+            hd_path: expect.any(String),
+            connected_device_count: '3',
+          }),
+        );
+      });
     });
   });
 
@@ -470,16 +563,6 @@ describe('LedgerSelectAccount', () => {
         expect(queryByText('Please wait')).toBeTruthy();
       });
     });
-
-    it('calls forgetLedger during the forget flow', async () => {
-      const { getByTestId } = await renderAndWaitForAccounts();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
-      });
-
-      expect(mockForgetLedger).toBeDefined();
-    });
   });
 
   describe('onAnimationCompleted', () => {
@@ -494,44 +577,72 @@ describe('LedgerSelectAccount', () => {
     });
   });
 
-  describe('onSelectedPathChanged', () => {
-    it('renders HD path selector with default Ledger Live path', async () => {
-      const { getByTestId } = await renderAndWaitForAccounts();
-
-      expect(getByTestId(SELECT_DROP_DOWN)).toBeTruthy();
-    });
-
-    it('calls setHDPath when path is changed', async () => {
-      await renderAndWaitForAccounts();
-
-      await mockSetHDPath(LEDGER_LEGACY_PATH);
-      expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LEGACY_PATH);
-    });
-  });
-
   describe('updateNewLegacyAccountsLabel', () => {
-    it('updates account labels for legacy path', async () => {
+    const selectFirstAccountAndUnlock = async (
+      result: ReturnType<typeof renderWithProvider>,
+    ) => {
+      const checkboxes = result.getAllByRole('checkbox');
+      await act(async () => {
+        fireEvent(checkboxes[0], 'valueChange', true);
+      });
+      await act(async () => {
+        fireEvent.press(result.getByText('Unlock'));
+      });
+    };
+
+    it('appends legacy label to new accounts when on legacy path', async () => {
       mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
       const newAccount = '0xnewaccount1234567890abcdef1234567890abcdef';
       mockGetLedgerAccounts.mockResolvedValue([newAccount]);
       (mockAccountsController.getAccountByAddress as jest.Mock).mockReturnValue(
         {
           id: 'account-id',
-          metadata: { name: 'Account 1' },
+          metadata: { name: 'Ledger 1' },
         },
       );
 
-      await renderAndWaitForAccounts();
+      const result = await renderAndWaitForAccounts();
 
-      const path = await mockGetHDPath();
-      expect(path).toBe(LEDGER_LEGACY_PATH);
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockAccountsController.setAccountName).toHaveBeenCalledWith(
+          'account-id',
+          expect.stringContaining('Ledger 1'),
+        );
+      });
     });
 
     it('does not update labels for non-legacy paths', async () => {
       mockGetHDPath.mockResolvedValue(LEDGER_LIVE_PATH);
       mockGetLedgerAccounts.mockResolvedValue([]);
 
-      await renderAndWaitForAccounts();
+      const result = await renderAndWaitForAccounts();
+
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockUnlockLedgerWalletAccount).toHaveBeenCalled();
+      });
+
+      expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
+    });
+
+    it('skips accounts not found in AccountsController', async () => {
+      mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
+      const newAccount = '0xnewaccount1234567890abcdef1234567890abcdef';
+      mockGetLedgerAccounts.mockResolvedValue([newAccount]);
+      (mockAccountsController.getAccountByAddress as jest.Mock).mockReturnValue(
+        undefined,
+      );
+
+      const result = await renderAndWaitForAccounts();
+
+      await selectFirstAccountAndUnlock(result);
+
+      await waitFor(() => {
+        expect(mockUnlockLedgerWalletAccount).toHaveBeenCalled();
+      });
 
       expect(mockAccountsController.setAccountName).not.toHaveBeenCalled();
     });
@@ -597,21 +708,6 @@ describe('LedgerSelectAccount', () => {
           device_model: 'Nano X',
         }),
       );
-    });
-  });
-
-  describe('HD Path Options', () => {
-    it('renders HD path dropdown with correct options', async () => {
-      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
-
-      expect(getByTestId(SELECT_DROP_DOWN)).toBeTruthy();
-      expect(queryByText('Ledger Live')).toBeTruthy();
-    });
-
-    it('all HD paths are valid formats', () => {
-      expect(LEDGER_LIVE_PATH.startsWith('m/')).toBe(true);
-      expect(LEDGER_LEGACY_PATH.startsWith('m/')).toBe(true);
-      expect(LEDGER_BIP44_PATH.startsWith('m/')).toBe(true);
     });
   });
 
@@ -700,19 +796,6 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(mockShowHardwareWalletError).toHaveBeenCalledWith(error);
       });
-    });
-  });
-
-  describe('selectedOption effect', () => {
-    it('refetches accounts when selectedOption changes and accounts exist', async () => {
-      await renderAndWaitForAccounts();
-
-      mockGetLedgerAccountsByOperation.mockClear();
-      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
-
-      await mockSetHDPath(LEDGER_LEGACY_PATH);
-
-      expect(mockSetHDPath).toHaveBeenCalledWith(LEDGER_LEGACY_PATH);
     });
   });
 });

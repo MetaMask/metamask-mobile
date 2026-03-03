@@ -171,7 +171,9 @@ const LedgerSelectAccount = () => {
         }
       };
 
-      init();
+      init().catch((e) => {
+        showHardwareWalletError(e);
+      });
     },
 
     // This is ran once on mount, so we don't need to add any dependencies
@@ -276,14 +278,14 @@ const LedgerSelectAccount = () => {
 
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
-      const isReady = await ensureDeviceReady(deviceId);
-      if (!isReady) {
-        return;
-      }
-
-      showLoadingModal();
-
       try {
+        const isReady = await ensureDeviceReady(deviceId);
+        if (!isReady) {
+          return;
+        }
+
+        showLoadingModal();
+
         for (const index of accountIndexes) {
           await unlockLedgerWalletAccount(index);
         }
