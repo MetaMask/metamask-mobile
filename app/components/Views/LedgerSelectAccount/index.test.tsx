@@ -41,6 +41,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockSetTargetWalletType = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
+
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 
@@ -200,7 +201,7 @@ describe('LedgerSelectAccount', () => {
     const result = renderWithProvider(<LedgerSelectAccount />);
 
     await waitFor(() => {
-      expect(result.queryByText('Select an account')).toBeTruthy();
+      expect(result.queryByText('Select an account')).toBeOnTheScreen();
     });
 
     return result;
@@ -211,7 +212,7 @@ describe('LedgerSelectAccount', () => {
       mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
-      expect(queryByText('Looking for device')).toBeTruthy();
+      expect(queryByText('Looking for device')).toBeOnTheScreen();
     });
 
     it('sets target wallet type to Ledger on mount', async () => {
@@ -242,14 +243,15 @@ describe('LedgerSelectAccount', () => {
       });
     });
 
-    it('calls showHardwareWalletError when ensureDeviceReady throws on mount', async () => {
-      const mountError = new Error('Bluetooth adapter failed');
-      mockEnsureDeviceReady.mockRejectedValue(mountError);
+    it('navigates back when ensureDeviceReady throws on mount', async () => {
+      mockEnsureDeviceReady.mockRejectedValue(
+        new Error('Bluetooth adapter failed'),
+      );
 
       renderWithProvider(<LedgerSelectAccount />);
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(mountError);
+        expect(mockedGoBack).toHaveBeenCalled();
       });
     });
   });
@@ -299,18 +301,19 @@ describe('LedgerSelectAccount', () => {
     it('renders account selector after accounts are loaded', async () => {
       const { queryByText } = await renderAndWaitForAccounts();
 
-      expect(queryByText('Select an account')).toBeTruthy();
-      expect(queryByText('Select HD Path')).toBeTruthy();
+      expect(queryByText('Select an account')).toBeOnTheScreen();
+      expect(queryByText('Select HD Path')).toBeOnTheScreen();
     });
 
-    it('calls showHardwareWalletError when account fetching fails', async () => {
-      const fetchError = new Error('Fetch failed');
-      mockGetLedgerAccountsByOperation.mockRejectedValue(fetchError);
+    it('shows inline error when account fetching fails', async () => {
+      mockGetLedgerAccountsByOperation.mockRejectedValue(
+        new Error('Fetch failed'),
+      );
 
-      renderWithProvider(<LedgerSelectAccount />);
+      const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(fetchError);
+        expect(queryByText('Fetch failed')).toBeOnTheScreen();
       });
     });
   });
@@ -341,17 +344,17 @@ describe('LedgerSelectAccount', () => {
     it('renders account selector with correct elements', async () => {
       const { queryByText, getByTestId } = await renderAndWaitForAccounts();
 
-      expect(queryByText('Select an account')).toBeTruthy();
-      expect(queryByText('Select HD Path')).toBeTruthy();
-      expect(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON)).toBeTruthy();
-      expect(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON)).toBeTruthy();
-      expect(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON)).toBeTruthy();
+      expect(queryByText('Select an account')).toBeOnTheScreen();
+      expect(queryByText('Select HD Path')).toBeOnTheScreen();
+      expect(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON)).toBeOnTheScreen();
     });
 
     it('displays HD path selector dropdown', async () => {
       const { getByTestId } = await renderAndWaitForAccounts();
 
-      expect(getByTestId(SELECT_DROP_DOWN)).toBeTruthy();
+      expect(getByTestId(SELECT_DROP_DOWN)).toBeOnTheScreen();
     });
   });
 
@@ -390,21 +393,20 @@ describe('LedgerSelectAccount', () => {
       });
     });
 
-    it('calls showHardwareWalletError on pagination error', async () => {
-      const { getByTestId } = await renderAndWaitForAccounts();
+    it('shows inline error on pagination error', async () => {
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
-      const paginationError = new Error('Pagination failed');
       mockGetLedgerAccountsByOperation.mockClear();
-      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(paginationError);
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Pagination failed'),
+      );
 
       await act(async () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
       });
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(
-          paginationError,
-        );
+        expect(queryByText('Pagination failed')).toBeOnTheScreen();
       });
     });
 
@@ -421,7 +423,7 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
       });
 
-      expect(queryByText('Please wait')).toBeTruthy();
+      expect(queryByText('Please wait')).toBeOnTheScreen();
 
       await act(async () => {
         resolvePromise?.(mockAccounts);
@@ -472,31 +474,31 @@ describe('LedgerSelectAccount', () => {
       });
     });
 
-    it('handles ensureDeviceReady throwing during unlock', async () => {
-      const readyError = new Error('Transport disconnected');
+    it('shows inline error when ensureDeviceReady throws during unlock', async () => {
       mockEnsureDeviceReady
         .mockResolvedValueOnce(true)
-        .mockRejectedValueOnce(readyError);
+        .mockRejectedValueOnce(new Error('Transport disconnected'));
 
       const result = await renderAndWaitForAccounts();
 
       await selectFirstAccountAndUnlock(result);
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(readyError);
+        expect(result.queryByText('Transport disconnected')).toBeOnTheScreen();
       });
     });
 
-    it('calls showHardwareWalletError on unlock failure', async () => {
-      const unlockError = new Error('Unlock failed');
-      mockUnlockLedgerWalletAccount.mockRejectedValueOnce(unlockError);
+    it('shows inline error on unlock failure', async () => {
+      mockUnlockLedgerWalletAccount.mockRejectedValueOnce(
+        new Error('Unlock failed'),
+      );
 
       const result = await renderAndWaitForAccounts();
 
       await selectFirstAccountAndUnlock(result);
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(unlockError);
+        expect(result.queryByText('Unlock failed')).toBeOnTheScreen();
       });
     });
 
@@ -560,7 +562,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please wait')).toBeTruthy();
+        expect(queryByText('Please wait')).toBeOnTheScreen();
       });
     });
   });
@@ -748,7 +750,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please wait')).toBeTruthy();
+        expect(queryByText('Please wait')).toBeOnTheScreen();
       });
     });
   });
@@ -761,40 +763,42 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
       });
 
-      expect(queryByText('Please wait')).toBeTruthy();
+      expect(queryByText('Please wait')).toBeOnTheScreen();
     });
   });
 
   describe('Error Handling during pagination', () => {
-    it('calls showHardwareWalletError on nextPage error', async () => {
-      const { getByTestId } = await renderAndWaitForAccounts();
+    it('shows inline error on nextPage error', async () => {
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
-      const error = new Error('Test error');
       mockGetLedgerAccountsByOperation.mockClear();
-      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(error);
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Test error'),
+      );
 
       await act(async () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
       });
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(error);
+        expect(queryByText('Test error')).toBeOnTheScreen();
       });
     });
 
-    it('calls showHardwareWalletError on prevPage error', async () => {
-      const { getByTestId } = await renderAndWaitForAccounts();
+    it('shows inline error on prevPage error', async () => {
+      const { getByTestId, queryByText } = await renderAndWaitForAccounts();
 
-      const error = new Error('Network error');
       mockGetLedgerAccountsByOperation.mockClear();
-      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(error);
+      mockGetLedgerAccountsByOperation.mockRejectedValueOnce(
+        new Error('Network error'),
+      );
 
       await act(async () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON));
       });
 
       await waitFor(() => {
-        expect(mockShowHardwareWalletError).toHaveBeenCalledWith(error);
+        expect(queryByText('Network error')).toBeOnTheScreen();
       });
     });
   });
