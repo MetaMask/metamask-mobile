@@ -56,20 +56,22 @@ interface AndroidResumeCardData {
 }
 
 /**
- * Convert our UserAddress to Android format
+ * Convert our UserAddress to Android format.
+ * Defensively defaults every field to a safe value so the Tap and Pay SDK
+ * never receives undefined/null, which would cause an opaque provisioning failure.
  */
 function toAndroidUserAddress(
   address: UserAddress,
 ): AndroidCardData['userAddress'] {
   return {
-    name: address.name,
-    addressOne: address.addressOne,
-    addressTwo: address.addressTwo,
-    administrativeArea: address.administrativeArea,
-    locality: address.locality,
-    countryCode: address.countryCode,
-    postalCode: address.postalCode,
-    phoneNumber: address.phoneNumber,
+    name: address.name ?? '',
+    addressOne: address.addressOne ?? '',
+    addressTwo: address.addressTwo ?? '',
+    administrativeArea: address.administrativeArea ?? '',
+    locality: address.locality ?? '',
+    countryCode: address.countryCode ?? 'US',
+    postalCode: address.postalCode ?? '',
+    phoneNumber: address.phoneNumber ?? '',
   };
 }
 

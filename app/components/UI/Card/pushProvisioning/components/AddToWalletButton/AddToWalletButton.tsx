@@ -210,7 +210,11 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
   borderRadius = 4,
   testID,
 }) => {
-  const GoogleWalletSvg = useMemo(() => getGoogleWalletButtonSvg(), []);
+  const locale: string = I18n.locale ?? 'en';
+  const GoogleWalletSvg = useMemo(
+    () => getGoogleWalletButtonSvg(locale),
+    [locale],
+  );
 
   if (Platform.OS === 'ios') {
     const {

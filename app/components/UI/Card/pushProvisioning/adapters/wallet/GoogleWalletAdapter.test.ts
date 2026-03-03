@@ -282,7 +282,7 @@ describe('GoogleWalletAdapter', () => {
             userAddress: {
               name: 'John Doe',
               addressOne: '',
-              addressTwo: undefined,
+              addressTwo: '',
               administrativeArea: '',
               locality: '',
               countryCode: 'US',
