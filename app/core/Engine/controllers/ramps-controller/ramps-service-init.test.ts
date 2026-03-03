@@ -192,12 +192,14 @@ describe('rampsServiceInit', () => {
   it('passes the proper arguments to the service', () => {
     rampsServiceInit(initRequestMock);
 
-    expect(rampsServiceClassMock).toHaveBeenCalledWith({
-      messenger: expect.any(Object),
-      environment: expect.any(String),
-      context: expect.any(String),
-      fetch,
-    });
+    expect(rampsServiceClassMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messenger: expect.any(Object),
+        environment: expect.any(String),
+        context: expect.any(String),
+        fetch,
+      }),
+    );
   });
 
   it('passes the correct messenger to the service', () => {

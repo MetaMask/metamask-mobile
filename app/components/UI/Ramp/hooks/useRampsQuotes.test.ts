@@ -10,7 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
     },
   },
 }));
@@ -44,14 +44,14 @@ describe('useRampsQuotes', () => {
   });
 
   describe('return value structure', () => {
-    it('returns getQuotes and getWidgetUrl functions', () => {
+    it('returns getQuotes and getBuyWidgetData functions', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
 
       expect(typeof result.current.getQuotes).toBe('function');
-      expect(typeof result.current.getWidgetUrl).toBe('function');
+      expect(typeof result.current.getBuyWidgetData).toBe('function');
     });
 
     it('returns data, loading, error with default values when no options', () => {
@@ -93,8 +93,8 @@ describe('useRampsQuotes', () => {
     });
   });
 
-  describe('getWidgetUrl', () => {
-    it('calls Engine.context.RampsController.getWidgetUrl with quote', async () => {
+  describe('getBuyWidgetData', () => {
+    it('calls Engine.context.RampsController.getBuyWidgetData with quote', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -111,14 +111,14 @@ describe('useRampsQuotes', () => {
       } as Quote;
 
       (
-        Engine.context.RampsController.getWidgetUrl as jest.Mock
+        Engine.context.RampsController.getBuyWidgetData as jest.Mock
       ).mockResolvedValue('https://global.transak.com/?apiKey=test');
 
       await act(async () => {
-        await result.current.getWidgetUrl(testQuote);
+        await result.current.getBuyWidgetData(testQuote);
       });
 
-      expect(Engine.context.RampsController.getWidgetUrl).toHaveBeenCalledWith(
+      expect(Engine.context.RampsController.getBuyWidgetData).toHaveBeenCalledWith(
         testQuote,
       );
     });

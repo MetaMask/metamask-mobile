@@ -17,14 +17,16 @@ const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetParams = jest.fn();
-const mockGetWidgetUrl = jest.fn<
-  Promise<string | null>,
+const mockGetBuyWidgetData = jest.fn<
+  Promise<{ url: string; orderId?: string | null } | null>,
   [quote: Record<string, unknown>]
 >(async (quote) => {
   const buyUrl = (quote as { quote?: { buyURL: string } })?.quote?.buyURL;
   if (!buyUrl) return null;
-  // Simulate the fetch behavior
-  return 'https://global.transak.com/?apiKey=test';
+  return {
+    url: 'https://global.transak.com/?apiKey=test',
+    orderId: null,
+  };
 });
 
 const MOCK_ASSET_ID =
@@ -179,12 +181,15 @@ let mockQuotesData: {
 let mockQuotesLoading = false;
 let mockQuotesError: string | null = null;
 
+const mockAddPrecreatedOrder = jest.fn();
+
 jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: () => ({
     userRegion: mockUserRegion,
     selectedProvider: mockSelectedProvider,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
-    getWidgetUrl: mockGetWidgetUrl,
+    getBuyWidgetData: mockGetBuyWidgetData,
+    addPrecreatedOrder: mockAddPrecreatedOrder,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -694,9 +699,10 @@ describe('BuildQuote', () => {
       const continueButton = getByTestId('build-quote-continue-button');
       expect(continueButton).not.toBeDisabled();
 
-      mockGetWidgetUrl.mockResolvedValue(
-        'https://global.transak.com/?apiKey=test',
-      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://global.transak.com/?apiKey=test',
+        orderId: null,
+      });
 
       await act(async () => {
         fireEvent.press(continueButton);
@@ -751,9 +757,10 @@ describe('BuildQuote', () => {
         error: [],
         customActions: [],
       };
-      mockGetWidgetUrl.mockResolvedValue(
-        'https://global.transak.com/?apiKey=test',
-      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://global.transak.com/?apiKey=test',
+        orderId: null,
+      });
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
@@ -967,7 +974,7 @@ describe('BuildQuote', () => {
 
     it('logs error when aggregator provider has no URL', async () => {
       const mockLogger = jest.spyOn(Logger, 'error');
-      mockGetWidgetUrl.mockResolvedValue(null);
+      mockGetBuyWidgetData.mockResolvedValue(null);
 
       const mockQuote = {
         provider: '/providers/mercuryo',
@@ -1069,7 +1076,7 @@ describe('BuildQuote', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
     });
 
     it('does not navigate when quote payment method does not match selected payment method', async () => {
@@ -1115,7 +1122,7 @@ describe('BuildQuote', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
     });
 
     it('does not navigate when quote has payment method but selectedPaymentMethod is missing', async () => {
@@ -1158,12 +1165,12 @@ describe('BuildQuote', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
     });
 
-    it('logs error when getWidgetUrl throws', async () => {
+    it('logs error when getBuyWidgetData throws', async () => {
       const mockLogger = jest.spyOn(Logger, 'error');
-      mockGetWidgetUrl.mockRejectedValue(new Error('Widget URL fetch failed'));
+      mockGetBuyWidgetData.mockRejectedValue(new Error('Widget URL fetch failed'));
 
       const mockQuote = {
         provider: '/providers/mercuryo',
@@ -1250,7 +1257,7 @@ describe('BuildQuote', () => {
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockGetWidgetUrl).not.toHaveBeenCalled();
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
       expect(mockTransakCheckExistingToken).not.toHaveBeenCalled();
     });
 
@@ -1284,7 +1291,10 @@ describe('BuildQuote', () => {
         error: [],
         customActions: [],
       };
-      mockGetWidgetUrl.mockResolvedValue('https://example.com/widget');
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://example.com/widget',
+        orderId: null,
+      });
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
@@ -1337,9 +1347,10 @@ describe('BuildQuote', () => {
         customActions: [],
       };
 
-      mockGetWidgetUrl.mockResolvedValue(
-        'https://global.transak.com/?apiKey=test',
-      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://global.transak.com/?apiKey=test',
+        orderId: null,
+      });
 
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 

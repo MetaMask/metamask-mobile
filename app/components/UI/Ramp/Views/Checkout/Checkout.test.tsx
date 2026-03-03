@@ -36,12 +36,15 @@ jest.mock('../../../../hooks/useThunkDispatch', () => ({
 
 const mockGetOrderFromCallback = jest.fn();
 const mockAddOrder = jest.fn();
+const mockAddPrecreatedOrder = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getOrderFromCallback: (...args: unknown[]) =>
         mockGetOrderFromCallback(...args),
       addOrder: (...args: unknown[]) => mockAddOrder(...args),
+      addPrecreatedOrder: (...args: unknown[]) =>
+        mockAddPrecreatedOrder(...args),
     },
   },
 }));
@@ -208,15 +211,32 @@ describe('Checkout', () => {
       mockUseParams.mockReturnValue(V2_PARAMS);
     });
 
-    it('dispatches addFiatCustomIdData on mount when customOrderId is provided', () => {
+    it('calls addPrecreatedOrder on mount when orderId is provided', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/custom-order-xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: '/providers/transak/orders/custom-order-xyz',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
+    });
+
+    it('calls addPrecreatedOrder on mount when customOrderId is provided (backward compat)', () => {
       mockUseParams.mockReturnValue({
         ...V2_PARAMS,
         customOrderId: 'custom-order-xyz',
       });
       render();
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'FIAT_ADD_CUSTOM_ID_DATA' }),
-      );
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: 'custom-order-xyz',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
     });
 
     it('ignores navigation state changes to non-callback URLs', async () => {
@@ -354,9 +374,7 @@ describe('Checkout', () => {
         CALLBACK_URL,
         '0xabc',
       );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
-      );
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           routes: expect.arrayContaining([

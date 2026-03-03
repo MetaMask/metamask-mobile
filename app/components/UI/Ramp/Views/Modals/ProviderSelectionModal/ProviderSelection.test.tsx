@@ -62,7 +62,7 @@ const defaultMockController: UseRampsControllerResult = {
   paymentMethodsLoading: false,
   paymentMethodsError: null,
   getQuotes: jest.fn(),
-  getWidgetUrl: jest.fn(),
+  getBuyWidgetData: jest.fn(),
   orders: [],
   getOrderById: jest.fn(),
   addOrder: jest.fn(),

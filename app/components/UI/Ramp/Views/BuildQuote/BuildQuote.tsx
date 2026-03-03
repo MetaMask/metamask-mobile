@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -63,6 +63,8 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+import Device from '../../../../../util/device';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -134,7 +136,8 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
-    getWidgetUrl,
+    getBuyWidgetData,
+    addPrecreatedOrder,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -306,18 +309,18 @@ function BuildQuote() {
     const { success } = quotesResponse;
     const providerMatches = (q: (typeof success)[0]) =>
       q.provider === selectedProvider.id;
+    let result: (typeof success)[0] | null = null;
     if (success.length === 1) {
-      return providerMatches(success[0]) ? success[0] : null;
-    }
-    if (success.length > 1) {
+      result = providerMatches(success[0]) ? success[0] : null;
+    } else if (success.length > 1) {
       const match = success.find(
         (q) =>
           providerMatches(q) &&
           q.quote?.paymentMethod === selectedPaymentMethod.id,
       );
-      return match ?? null;
+      result = match ?? null;
     }
-    return null;
+    return result;
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -430,25 +433,30 @@ function BuildQuote() {
   ]);
 
   const handleContinuePress = useCallback(async () => {
-    if (!selectedQuote || !selectedProvider) return;
+    if (!selectedQuote || !selectedProvider) {
+      return;
+    }
     setNativeFlowError(null);
 
-    const quoteAmount =
+    const quoteAmountRaw =
       selectedQuote.quote?.amountIn ??
       (selectedQuote as { amountIn?: number }).amountIn;
+    const quoteAmount =
+      typeof quoteAmountRaw === 'string'
+        ? Number(quoteAmountRaw)
+        : quoteAmountRaw;
     const quotePaymentMethod =
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
 
-    // Validate provider matches (prevents proceeding with wrong-provider quote)
-    if (selectedQuote.provider !== selectedProvider.id) return;
-
-    // Validate amount matches
-    if (quoteAmount !== amountAsNumber) {
+    if (selectedQuote.provider !== selectedProvider.id) {
       return;
     }
 
-    // Validate payment method context matches
+    if (quoteAmount !== amountAsNumber || Number.isNaN(quoteAmount)) {
+      return;
+    }
+
     if (quotePaymentMethod != null) {
       if (
         !selectedPaymentMethod ||
@@ -520,9 +528,12 @@ function BuildQuote() {
 
     setIsContinueLoading(true);
     try {
-      const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
+      const buyWidget = await getBuyWidgetData(selectedQuote);
 
-      if (fetchedWidgetUrl) {
+      if (buyWidget?.url) {
+        const isCustomAction = Boolean(
+          (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
+        );
         const providerCode = selectedQuote.provider.startsWith('/providers/')
           ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
           : selectedQuote.provider;
@@ -530,19 +541,43 @@ function BuildQuote() {
         const network = chainId?.includes(':')
           ? chainId.split(':')[1] || ''
           : chainId || '';
+        const effectiveWallet = walletAddress ?? '';
+
+        if (isCustomAction) {
+          if (buyWidget.orderId && effectiveWallet) {
+            addPrecreatedOrder({
+              orderId: buyWidget.orderId,
+              providerCode,
+              walletAddress: effectiveWallet,
+              chainId: network || undefined,
+            });
+          }
+          if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
+            await Linking.openURL(buyWidget.url);
+          } else {
+            const redirectUrl = getRampCallbackBaseUrl();
+            try {
+              await InAppBrowser.openAuth(buyWidget.url, redirectUrl);
+            } finally {
+              InAppBrowser.closeAuth();
+            }
+          }
+          return;
+        }
 
         navigation.navigate(
           ...createCheckoutNavDetails({
-            url: fetchedWidgetUrl,
+            url: buyWidget.url,
             providerName:
               selectedProvider?.name || getQuoteProviderName(selectedQuote),
             userAgent: getQuoteBuyUserAgent(selectedQuote),
             providerCode,
             providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-            walletAddress: walletAddress ?? undefined,
+            walletAddress: effectiveWallet || undefined,
             network,
             currency,
             cryptocurrency: selectedToken?.symbol || '',
+            orderId: buyWidget.orderId ?? undefined,
           }),
         );
       } else {
@@ -573,7 +608,8 @@ function BuildQuote() {
     walletAddress,
     currency,
     navigation,
-    getWidgetUrl,
+    getBuyWidgetData,
+    addPrecreatedOrder,
     amountAsNumber,
     selectedPaymentMethod,
     transakCheckExistingToken,
@@ -593,9 +629,13 @@ function BuildQuote() {
   const quoteMatchesCurrentContext = useMemo(() => {
     if (!selectedQuote || !selectedProvider) return false;
 
-    const quoteAmount =
+    const quoteAmountRaw =
       selectedQuote.quote?.amountIn ??
       (selectedQuote as { amountIn?: number }).amountIn;
+    const quoteAmount =
+      typeof quoteAmountRaw === 'string'
+        ? Number(quoteAmountRaw)
+        : quoteAmountRaw;
     const quotePaymentMethod =
       selectedQuote.quote?.paymentMethod ??
       (selectedQuote as { paymentMethod?: string }).paymentMethod;
@@ -603,8 +643,9 @@ function BuildQuote() {
     // Provider must match (prevents using a stale quote for a different provider)
     if (selectedQuote.provider !== selectedProvider.id) return false;
 
-    // Amount must match
-    if (quoteAmount !== amountAsNumber) return false;
+    // Amount must match (normalize: API may return amountIn as string)
+    if (quoteAmount !== amountAsNumber || Number.isNaN(quoteAmount))
+      return false;
 
     // Payment method context must match
     if (quotePaymentMethod != null) {
@@ -624,7 +665,6 @@ function BuildQuote() {
     hasAmount &&
     !selectedQuoteLoading &&
     selectedQuote !== null &&
-    quoteMatchesAmount &&
     quoteMatchesCurrentContext;
 
   const hasNoQuotes =
