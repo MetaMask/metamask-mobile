@@ -83,7 +83,7 @@ async enterPassword(password: string) {
 Framework-specific options like `hideKeyboard`, `checkStability`, and `clearFirst` are handled internally by each strategy with sensible defaults:
 
 - **Detox**: `hideKeyboard: true`, `clearFirst: true`, retry + stability checks
-- **Appium**: `waitForDisplayed` before each action, `fill()` for text input
+- **Appium**: Direct `PlaywrightElement` / `PlaywrightGestures` calls (e.g. `fill()`, `click()`)
 
 ### 3. Handle edge cases with `encapsulatedAction()`
 
