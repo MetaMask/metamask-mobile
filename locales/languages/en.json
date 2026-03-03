@@ -6035,8 +6035,6 @@
       "bonus_title": "Get {{percentage}}% on your stablecoins",
       "bonus_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annual bonus that you can claim daily.",
       "powered_by_relay": "Powered by Relay",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to",
       "max": "Max",
       "quick_convert_button": "Convert",
       "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",

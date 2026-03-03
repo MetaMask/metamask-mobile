@@ -435,7 +435,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -482,7 +484,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -530,7 +534,9 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = `${strings('earn.musd_conversion.earn_rewards_when')} ${strings('earn.musd_conversion.you_convert_to')} mUSD`;
+      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+        percentage: MUSD_CONVERSION_APY,
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
