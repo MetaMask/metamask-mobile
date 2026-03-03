@@ -1613,9 +1613,11 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow}>
+      <View
+        style={baseStyles.flexGrow}
+        testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
+      >
         <SafeAreaView
-          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
           style={[
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
