@@ -418,7 +418,7 @@ exports[`Network Selector renders correctly 1`] = `
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -1411,7 +1411,7 @@ exports[`Network Selector renders correctly 1`] = `
                                       {
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
+                                        "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -1921,7 +1921,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                               {
                                 "color": "#131416",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
+                                "fontSize": 20,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "marginBottom": 8,
@@ -2037,7 +2037,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       {
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
+                                        "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -3714,7 +3714,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       {
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
+                                        "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
@@ -5101,7 +5101,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                       {
                                         "color": "#66676a",
                                         "fontFamily": "Geist-Medium",
-                                        "fontSize": 18,
+                                        "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }

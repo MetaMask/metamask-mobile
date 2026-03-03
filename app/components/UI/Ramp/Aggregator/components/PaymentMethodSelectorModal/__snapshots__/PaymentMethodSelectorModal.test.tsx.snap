@@ -716,7 +716,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,
@@ -997,7 +997,7 @@ exports[`PaymentMethodSelectorModal renders correctly 1`] = `
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,
@@ -1914,7 +1914,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,
@@ -2195,7 +2195,7 @@ exports[`PaymentMethodSelectorModal renders for sell flow 1`] = `
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,
@@ -3110,7 +3110,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,
@@ -3393,7 +3393,7 @@ exports[`PaymentMethodSelectorModal renders without disclaimer when selected pay
                                                 {
                                                   "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                   "marginBottom": 4,

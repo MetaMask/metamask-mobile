@@ -253,7 +253,7 @@ exports[`AccountConnect renders correctly when merging existing CAIP-25 permissi
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -1319,7 +1319,7 @@ exports[`AccountConnect renders correctly with base request when there is no exi
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -2385,7 +2385,7 @@ exports[`AccountConnect renders correctly with request including chains and acco
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
@@ -3451,7 +3451,7 @@ exports[`AccountConnect renders correctly with request including only chains 1`]
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                     "textAlign": "center",
