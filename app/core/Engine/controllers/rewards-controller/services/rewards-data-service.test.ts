@@ -1206,11 +1206,49 @@ describe('RewardsDataService', () => {
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(service.estimatePoints({ activities: [] })).rejects.toThrow(
-        'Points estimation failed: 403',
-      );
       await expect(
-        service.estimatePoints({ activities: [] }),
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
+      ).rejects.toThrow('Points estimation failed: 403');
+      await expect(
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
       ).rejects.not.toBeInstanceOf(AuthorizationFailedError);
     });
   });
