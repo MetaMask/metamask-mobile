@@ -533,7 +533,10 @@ const Onboarding = () => {
           // login as an alternative since the user's intent is to sign in - they just prefer
           // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
           error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
-          error.code === OAuthErrorType.GoogleLoginOneTapFailure
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
+          // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
+          // required provider dependencies. Fallback to browser-based OAuth.
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
