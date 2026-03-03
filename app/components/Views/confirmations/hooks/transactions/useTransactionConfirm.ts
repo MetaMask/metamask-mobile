@@ -98,66 +98,71 @@ export function useTransactionConfirm() {
     ],
   );
 
-  const onConfirm = useCallback(async () => {
-    if (!transactionMetadata) {
-      return;
-    }
+  const onConfirm = useCallback(
+    async (options?: { onError?: (error: unknown) => void }) => {
+      if (!transactionMetadata) {
+        return;
+      }
 
-    const updatedMetadata = cloneDeep(transactionMetadata);
+      const updatedMetadata = cloneDeep(transactionMetadata);
 
-    if (isGaslessSupportedSTX) {
-      handleSmartTransaction(updatedMetadata);
-    } else if (selectedGasFeeToken) {
-      handleGasless7702(updatedMetadata);
-    }
+      if (isGaslessSupportedSTX) {
+        handleSmartTransaction(updatedMetadata);
+      } else if (selectedGasFeeToken) {
+        handleGasless7702(updatedMetadata);
+      }
 
-    try {
-      await onRequestConfirm(
-        {
-          deleteAfterResult: true,
-          // Intentionally not hiding errors so we can log
-          handleErrors: false,
-          waitForResult,
-        },
-        { txMeta: updatedMetadata },
-      );
-    } catch (error) {
-      log('Error confirming transaction', error);
-    }
+      try {
+        await onRequestConfirm(
+          {
+            deleteAfterResult: true,
+            // Intentionally not hiding errors so we can log
+            handleErrors: false,
+            waitForResult,
+          },
+          { txMeta: updatedMetadata },
+        );
+      } catch (error) {
+        log('Error confirming transaction', error);
+        options?.onError?.(error);
+        return;
+      }
 
-    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-    if (type === TransactionType.perpsDepositAndOrder) {
-      return;
-    } else if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
-    } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET_VIEW);
-    } else if (
-      isFullScreenConfirmation &&
-      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-    ) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
+      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+      if (type === TransactionType.perpsDepositAndOrder) {
+        return;
+      } else if (type === TransactionType.perpsDeposit) {
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      } else if (type === TransactionType.musdConversion) {
+        navigation.navigate(Routes.WALLET_VIEW);
+      } else if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+      ) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        navigation.goBack();
+      }
 
-    tryEnableEvmNetwork(chainId);
-  }, [
-    chainId,
-    handleGasless7702,
-    handleSmartTransaction,
-    isFullScreenConfirmation,
-    isGaslessSupportedSTX,
-    navigation,
-    onRequestConfirm,
-    selectedGasFeeToken,
-    transactionMetadata,
-    tryEnableEvmNetwork,
-    type,
-    waitForResult,
-  ]);
+      tryEnableEvmNetwork(chainId);
+    },
+    [
+      chainId,
+      handleGasless7702,
+      handleSmartTransaction,
+      isFullScreenConfirmation,
+      isGaslessSupportedSTX,
+      navigation,
+      onRequestConfirm,
+      selectedGasFeeToken,
+      transactionMetadata,
+      tryEnableEvmNetwork,
+      type,
+      waitForResult,
+    ],
+  );
 
   return { onConfirm };
 }
