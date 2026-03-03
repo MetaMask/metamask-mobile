@@ -31,9 +31,15 @@ describe('DetoxGestureStrategy.scrollToElement', () => {
       description: 'scroll to token',
     });
 
-    expect(Gestures.scrollToElement).toHaveBeenCalledWith(
-      target,
-      scrollView,
+    expect(Gestures.scrollToElement).toHaveBeenCalledTimes(1);
+
+    const [forwardedTarget, forwardedScrollView, forwardedOpts] = (
+      Gestures.scrollToElement as jest.Mock
+    ).mock.calls[0];
+
+    expect(forwardedTarget).toBe(target);
+    await expect(forwardedScrollView).resolves.toBe(matcher);
+    expect(forwardedOpts).toEqual(
       expect.objectContaining({
         timeout: 1000,
         elemDescription: 'scroll to token',
