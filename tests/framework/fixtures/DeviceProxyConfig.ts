@@ -44,6 +44,28 @@ export async function configureAndroidProxy(
   await execAsync(
     `adb ${deviceFlag} shell settings put global http_proxy 10.0.2.2:${proxyPort}`,
   );
+
+  // IMPORTANT (Android emulator + adb reverse):
+  // Our in-app test servers (mock server, fixture server, local nodes) are reached
+  // via fixed "fallback" ports on the device (e.g. localhost:8000/12345), then
+  // mapped to random host ports using `adb reverse`.
+  //
+  // If we proxy those localhost requests, the proxy runs on the HOST and will try
+  // to connect to its own localhost:8000/12345 (which is NOT where the servers are
+  // actually listening) → requests abort → app rehydration/stabilization fails.
+  //
+  // Exclude local endpoints from the system proxy so adb-reverse continues to work.
+  const exclusionList = [
+    'localhost',
+    '127.0.0.1',
+    '127.*',
+    // Some parts of the app/tests fall back to the emulator-host alias.
+    // If proxied, the host-side proxy cannot reach 10.0.2.2 reliably.
+    '10.0.2.2',
+  ].join(',');
+  await execAsync(
+    `adb ${deviceFlag} shell settings put global global_http_proxy_exclusion_list "${exclusionList}"`,
+  );
 }
 
 /**
@@ -52,6 +74,9 @@ export async function configureAndroidProxy(
 export async function removeAndroidProxy(deviceId: string): Promise<void> {
   const deviceFlag = deviceId ? `-s ${deviceId}` : getAdbDeviceFlag();
   await execAsync(`adb ${deviceFlag} shell settings delete global http_proxy`);
+  await execAsync(
+    `adb ${deviceFlag} shell settings delete global global_http_proxy_exclusion_list`,
+  );
 }
 
 /**
