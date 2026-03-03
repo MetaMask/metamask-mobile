@@ -61,7 +61,12 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await RedesignedSendView.pressReviewButton();
         await TransactionConfirmView.tapAdvancedDetails();
 
-        await Gestures.waitAndTap(Matchers.getElementByText(domain, 1));
+        await Gestures.waitAndTap(
+          Matchers.getElementByText(
+            domain,
+            device.getPlatform() === 'ios' ? 1 : 0,
+          ),
+        );
 
         await Assertions.expectTextDisplayed(
           '0xc0ffee254729296a45a3885639ac7e10f9d54979',
