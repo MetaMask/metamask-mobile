@@ -19,6 +19,21 @@ export const CHARTING_LIBRARY_BASE_URL =
 const CHARTING_LIBRARY_URL = `${CHARTING_LIBRARY_BASE_URL}charting_library/`;
 
 /**
+ * Scheme + host only (no path) for use in CSP frame-src.
+ * TradingView's iframe_loading_same_origin feature loads sameorigin.html from
+ * this origin, so frame-src must allow it explicitly.
+ * e.g. "https://va-mmcx-terminal.s3.us-east-2.amazonaws.com"
+ */
+const CHARTING_LIBRARY_ORIGIN = (() => {
+  try {
+    const { origin } = new URL(CHARTING_LIBRARY_BASE_URL);
+    return origin;
+  } catch {
+    return CHARTING_LIBRARY_BASE_URL;
+  }
+})();
+
+/**
  * Strip the alpha channel from a hex color string.
  * Design tokens may use 9-char hex (#RRGGBBAA); TradingView expects #RRGGBB.
  */
@@ -70,7 +85,7 @@ export const createAdvancedChartTemplate = (
     <meta charset="UTF-8">
     <title>TradingView Advanced Chart</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${CHARTING_LIBRARY_BASE_URL}; script-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; style-src 'unsafe-inline' ${CHARTING_LIBRARY_BASE_URL}; img-src 'self' data: ${CHARTING_LIBRARY_BASE_URL}; font-src ${CHARTING_LIBRARY_BASE_URL}; worker-src blob:; frame-src 'self' blob: ${CHARTING_LIBRARY_ORIGIN}; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
     <style>
         html, body {
             margin: 0;
