@@ -1197,6 +1197,22 @@ describe('RewardsDataService', () => {
         AuthorizationFailedError,
       );
     });
+
+    it('does not throw AuthorizationFailedError for 403 on unauthenticated endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({ message: 'Forbidden' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.estimatePoints({ activities: [] })).rejects.toThrow(
+        'Points estimation failed: 403',
+      );
+      await expect(
+        service.estimatePoints({ activities: [] }),
+      ).rejects.not.toBeInstanceOf(AuthorizationFailedError);
+    });
   });
 
   const mockSeasonStateResponse: SeasonStateDto = {

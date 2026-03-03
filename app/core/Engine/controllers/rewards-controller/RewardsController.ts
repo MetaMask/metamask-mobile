@@ -829,45 +829,53 @@ export class RewardsController extends BaseController<
    * Resolves the matching InternalAccount and calls performSilentAuth.
    */
   async #performReauthForSubscription(subscriptionId: string): Promise<void> {
+    await removeSubscriptionToken(subscriptionId);
+
     if (this.state.activeAccount?.subscriptionId === subscriptionId) {
       const account = await this.messenger.call(
         'AccountsController:getSelectedMultichainAccount',
       );
-      Logger.log(
-        'RewardsController: Attempting reauth with active account after 403',
-      );
-      await this.performSilentAuth(account, false, false);
-      return;
+      if (this.isOptInSupported(account as InternalAccount)) {
+        Logger.log(
+          'RewardsController: Attempting reauth with active account after 403',
+        );
+        await this.performSilentAuth(account, false, false);
+        return;
+      }
     }
 
+    // Active account can't sign (e.g. hardware wallet) or doesn't match —
+    // find any software account linked to this subscription.
     if (this.state.accounts && Object.values(this.state.accounts).length > 0) {
-      const accountForSub = Object.values(this.state.accounts).find(
+      const allLinkedAccounts = Object.values(this.state.accounts).filter(
         (acc) => acc.subscriptionId === subscriptionId,
       );
-      if (accountForSub) {
+      if (allLinkedAccounts.length > 0) {
         const accounts = await this.messenger.call(
           'AccountsController:listMultichainAccounts',
         );
-        const intAccountForSub = accounts.find((acc: InternalAccount) => {
-          const accCaipId = this.convertInternalAccountToCaipAccountId(acc);
-          return accCaipId === accountForSub.account;
-        });
-        if (intAccountForSub) {
-          Logger.log(
-            'RewardsController: Attempting reauth with linked account after 403',
-          );
-          await this.performSilentAuth(
-            intAccountForSub as InternalAccount,
-            false,
-            false,
-          );
-          return;
+        for (const linkedAccount of allLinkedAccounts) {
+          const intAccount = accounts.find((acc: InternalAccount) => {
+            const accCaipId = this.convertInternalAccountToCaipAccountId(acc);
+            return accCaipId === linkedAccount.account;
+          });
+          if (intAccount && this.isOptInSupported(intAccount)) {
+            Logger.log(
+              'RewardsController: Attempting reauth with linked account after 403',
+            );
+            await this.performSilentAuth(
+              intAccount as InternalAccount,
+              false,
+              false,
+            );
+            return;
+          }
         }
       }
     }
 
     throw new Error(
-      `No account found for subscription ${subscriptionId} to reauth`,
+      `No signable account found for subscription ${subscriptionId} to reauth`,
     );
   }
 
