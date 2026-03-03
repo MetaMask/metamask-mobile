@@ -1245,7 +1245,9 @@ export class PolymarketProvider implements PredictProvider {
 
           if (permit2Ready) {
             permit2FeeReady = true;
-            executor = executors[Math.floor(Math.random() * executors.length)];
+            const randomIndex = new Uint32Array(1);
+            global.crypto.getRandomValues(randomIndex);
+            executor = executors[randomIndex[0] % executors.length];
             feeAuthorization = await createPermit2FeeAuthorization({
               safeAddress,
               signer,
