@@ -63,6 +63,8 @@ export const ShareAddressQR = () => {
   const { toBlockExplorer, getBlockExplorerName } = useBlockExplorer(chainId);
   const networkImageSource = getNetworkImageSource({ chainId });
 
+  const isEvmChain = chainId.startsWith('eip155:');
+
   const handleOnBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -70,6 +72,16 @@ export const ShareAddressQR = () => {
   const handleViewOnBlockExplorer = useCallback(() => {
     toBlockExplorer(address);
   }, [address, toBlockExplorer]);
+
+  const handleRequestPayment = useCallback(() => {
+    navigation.navigate(
+      'PaymentRequestView' as never,
+      {
+        screen: 'PaymentRequest',
+        params: {},
+      } as never,
+    );
+  }, [navigation]);
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -129,14 +141,13 @@ export const ShareAddressQR = () => {
           />
         </Box>
       </Box>
-      <Box twClassName="px-4 pb-4">
+      <Box twClassName="px-4 pb-4 gap-2">
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           isFullWidth
           onPress={handleViewOnBlockExplorer}
           testID={ShareAddressQRIds.SHARE_ADDRESS_QR_COPY_BUTTON}
-          style={tw.style('mt-1 self-center')}
         >
           {strings(
             'multichain_accounts.share_address.view_on_explorer_button',
@@ -145,6 +156,17 @@ export const ShareAddressQR = () => {
             },
           )}
         </Button>
+        {isEvmChain && (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleRequestPayment}
+            testID={ShareAddressQRIds.REQUEST_PAYMENT_BUTTON}
+          >
+            {strings('receive_request.request_payment')}
+          </Button>
+        )}
       </Box>
     </BottomSheet>
   );
