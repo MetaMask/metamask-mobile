@@ -12,7 +12,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -371,7 +371,7 @@ const PerpsMarketListView = ({
           testID={PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}
         />
       ) : (
-        <HeaderCompactStandard
+        <HeaderStandard
           title={title || strings('perps.home.markets')}
           onBack={handleBackPressed}
           backButtonProps={{

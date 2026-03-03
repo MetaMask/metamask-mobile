@@ -13,7 +13,7 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (colors) =>
@@ -68,7 +68,7 @@ const SeedphraseModal = () => {
   return (
     <BottomSheet ref={bottomSheetRef}>
       <View style={styles.modalContainer}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('account_backup_step_1.what_is_seedphrase_title')}
           onClose={hideWhatIsSeedphrase}
         />

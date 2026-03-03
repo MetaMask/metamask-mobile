@@ -16,7 +16,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -361,7 +361,7 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{

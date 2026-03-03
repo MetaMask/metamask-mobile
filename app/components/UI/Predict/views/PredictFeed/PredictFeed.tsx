@@ -77,7 +77,7 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -694,7 +694,7 @@ const PredictFeed: React.FC = () => {
             backgroundColor: colors.background.default,
           })}
         >
-          <HeaderCompactStandard
+          <HeaderStandard
             includesTopInset
             title={strings('wallet.predict')}
             onBack={handleBackPress}

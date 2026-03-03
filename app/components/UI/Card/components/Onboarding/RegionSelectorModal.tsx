@@ -11,7 +11,7 @@ import Fuse from 'fuse.js';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -214,7 +214,7 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('card.card_onboarding.region_selector.title')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}

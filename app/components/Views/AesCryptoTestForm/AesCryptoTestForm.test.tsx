@@ -47,7 +47,7 @@ describe('AesCryptoTestForm', () => {
     expect(safeArea.props.edges).toMatchObject({ bottom: 'additive' });
   });
 
-  it('renders HeaderCompactStandard with title and back button', () => {
+  it('renders HeaderStandard with title and back button', () => {
     const { getByTestId, getByText } = render(<AesCryptoTestForm />);
 
     expect(getByTestId(aesCryptoFormHeader)).toBeOnTheScreen();

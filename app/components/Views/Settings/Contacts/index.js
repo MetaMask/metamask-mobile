@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import { connect } from 'react-redux';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import AddressList from '../../confirmations/legacy/components/AddressList';
 import StyledButton from '../../../UI/StyledButton';
 import Engine from '../../../../core/Engine';
@@ -124,7 +124,7 @@ class Contacts extends PureComponent {
         testID={ContactsViewSelectorIDs.CONTAINER}
         edges={{ bottom: 'additive' }}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.contacts_title')}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset

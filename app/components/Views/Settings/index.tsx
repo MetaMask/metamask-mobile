@@ -21,7 +21,7 @@ import { isTest } from '../../../util/test/utils';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = (colors: Colors) =>
@@ -206,7 +206,7 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.title')}
         onBack={handleBack}
         backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}

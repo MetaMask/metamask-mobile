@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import { strings } from '../../../../../../locales/i18n';
 import { View } from 'react-native';
 import {
@@ -117,7 +117,7 @@ export const CustomSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
       />

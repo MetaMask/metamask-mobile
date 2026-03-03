@@ -45,7 +45,7 @@ import {
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
 import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 
 const RevealPrivateCredential = ({
   navigation,
@@ -380,7 +380,7 @@ const RevealPrivateCredential = ({
       style={styles.wrapper}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('reveal_credential.seed_phrase_title')}
         onBack={headerNavigationBack}
         backButtonProps={{

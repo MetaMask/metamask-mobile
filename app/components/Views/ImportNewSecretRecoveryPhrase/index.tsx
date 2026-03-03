@@ -36,7 +36,7 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
@@ -243,7 +243,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,

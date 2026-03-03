@@ -17,7 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 // Internal dependencies.
-import HeaderCompactStandard from '../HeaderCompactStandard';
+import HeaderStandard from '../HeaderStandard';
 import { HeaderStandardAnimatedProps } from './HeaderStandardAnimated.types';
 
 const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
@@ -68,12 +68,12 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
   ) : null;
 
   return (
-    <HeaderCompactStandard
+    <HeaderStandard
       {...headerStandardProps}
       twClassName={`bg-default ${twClassName}`.trim()}
     >
       <Animated.View style={centerAnimatedStyle}>{content}</Animated.View>
-    </HeaderCompactStandard>
+    </HeaderStandard>
   );
 };
 

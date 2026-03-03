@@ -46,7 +46,7 @@ import { SettingsViewSelectorsIDs } from '../../Views/Settings/SettingsView.test
 import HeaderBase, {
   HeaderBaseVariant,
 } from '../../../component-library/components/HeaderBase';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import getHeaderStandardNavbarOptions from '../../../component-library/components-temp/HeaderStandard/getHeaderStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
@@ -1594,7 +1594,7 @@ export function getBridgeNavbar(navigation, bridgeViewMode, themeColors) {
     title = strings('swaps.title');
   }
 
-  return getHeaderCompactStandardNavbarOptions({
+  return getHeaderStandardNavbarOptions({
     title,
     onClose: () => navigation.dangerouslyGetParent()?.pop(),
     includesTopInset: true,
@@ -1731,7 +1731,7 @@ export function getDepositNavbarOptions(
     };
   }
 
-  return getHeaderCompactStandardNavbarOptions({
+  return getHeaderStandardNavbarOptions({
     title,
     startButtonIconProps,
     closeButtonProps,
@@ -2113,7 +2113,7 @@ export function getRampsOrderDetailsNavbarOptions(
     };
   }
 
-  return getHeaderCompactStandardNavbarOptions({
+  return getHeaderStandardNavbarOptions({
     title,
     startButtonIconProps,
     includesTopInset: true,

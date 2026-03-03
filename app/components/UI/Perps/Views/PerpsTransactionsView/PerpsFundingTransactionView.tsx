@@ -17,7 +17,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import {
@@ -54,10 +54,7 @@ const PerpsFundingTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -109,7 +106,7 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}

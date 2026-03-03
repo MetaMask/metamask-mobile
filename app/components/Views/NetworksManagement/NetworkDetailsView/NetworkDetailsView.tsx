@@ -27,7 +27,7 @@ import { useStyles } from '../../../../component-library/hooks/useStyles';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Icon, {
@@ -183,7 +183,7 @@ const NetworkDetailsView = () => {
       edges={['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onBack={handleBack}
         endAccessory={
           !formHook.form.addMode ? (
@@ -225,7 +225,7 @@ const NetworkDetailsView = () => {
             {headerTitle}
           </Text>
         </Box>
-      </HeaderCompactStandard>
+      </HeaderStandard>
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}

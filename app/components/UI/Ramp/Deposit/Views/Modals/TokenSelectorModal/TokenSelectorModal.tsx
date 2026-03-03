@@ -14,7 +14,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../../component-library/components-temp/HeaderStandard';
 import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
 
@@ -173,7 +173,7 @@ function TokenSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           isEditingNetworkFilter
             ? strings('deposit.networks_filter_selector.select_network')

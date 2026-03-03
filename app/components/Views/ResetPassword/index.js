@@ -24,7 +24,7 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -1058,7 +1058,7 @@ class ResetPassword extends PureComponent {
     if (!ready) return this.renderLoader();
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('password_reset.change_password')}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{ isDisabled: loading }}

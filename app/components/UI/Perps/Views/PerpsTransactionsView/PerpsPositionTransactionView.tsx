@@ -18,7 +18,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import {
@@ -69,10 +69,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -174,7 +171,7 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={transaction?.fill?.shortTitle || ''}
         onBack={() => navigation.goBack()}
         includesTopInset

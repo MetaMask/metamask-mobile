@@ -16,7 +16,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -118,7 +118,7 @@ const NetworksManagementView = () => {
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.networks_title')}
         onBack={handleBack}
         includesTopInset

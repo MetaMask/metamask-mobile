@@ -9,7 +9,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
@@ -44,7 +44,7 @@ export const TooltipModal = ({
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={title}
           onClose={() => setOpen(false)}
           closeButtonProps={{

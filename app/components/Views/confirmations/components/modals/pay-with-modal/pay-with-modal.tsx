@@ -10,7 +10,7 @@ import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 import {
   AssetType,
   isHighlightedItemInAssetList,
@@ -193,9 +193,9 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={modalTitle}
-        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
+        // HeaderStandard close handler receives a press event; we must ignore it so it
         // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
         onClose={() => close()}
       />

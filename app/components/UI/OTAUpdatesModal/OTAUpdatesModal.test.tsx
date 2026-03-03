@@ -24,31 +24,28 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => mockTw,
 }));
 
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const {
-      View: ReactNativeView,
-      Pressable: ReactNativePressable,
-      Text: ReactNativeText,
-    } = jest.requireActual('react-native');
+// Mock HeaderStandard
+jest.mock('../../../component-library/components-temp/HeaderStandard', () => {
+  const ReactActual = jest.requireActual('react');
+  const {
+    View: ReactNativeView,
+    Pressable: ReactNativePressable,
+    Text: ReactNativeText,
+  } = jest.requireActual('react-native');
 
-    return (props: { children: React.ReactNode; onClose?: () => void }) =>
-      ReactActual.createElement(
-        ReactNativeView,
-        { testID: 'header' },
-        props.children,
-        props.onClose &&
-          ReactActual.createElement(
-            ReactNativePressable,
-            { testID: 'close-button', onPress: props.onClose },
-            ReactActual.createElement(ReactNativeText, {}, 'Close'),
-          ),
-      );
-  },
-);
+  return (props: { children: React.ReactNode; onClose?: () => void }) =>
+    ReactActual.createElement(
+      ReactNativeView,
+      { testID: 'header' },
+      props.children,
+      props.onClose &&
+        ReactActual.createElement(
+          ReactNativePressable,
+          { testID: 'close-button', onPress: props.onClose },
+          ReactActual.createElement(ReactNativeText, {}, 'Close'),
+        ),
+    );
+});
 
 // Mock for BottomSheet onCloseBottomSheet
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {

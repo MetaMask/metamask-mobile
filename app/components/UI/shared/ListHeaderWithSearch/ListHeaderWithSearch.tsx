@@ -25,7 +25,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import { useTheme } from '../../../../util/theme';
 import type { ListHeaderWithSearchProps } from './ListHeaderWithSearch.types';
 import styleSheet from './ListHeaderWithSearch.styles';
@@ -140,7 +140,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   }
 
   return (
-    <HeaderCompactStandard
+    <HeaderStandard
       title={title || defaultTitle}
       onBack={handleBack}
       backButtonProps={{

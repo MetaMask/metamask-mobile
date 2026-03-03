@@ -34,7 +34,7 @@ import {
 } from '../../../../core/redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
 import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 
 /**
@@ -183,7 +183,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
   );
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.experimental_title')}
         onBack={handleBack}
         backButtonProps={{
