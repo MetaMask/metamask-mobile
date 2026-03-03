@@ -95,7 +95,7 @@ exports[`PaymentMethodSelector renders correctly 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -303,7 +303,7 @@ exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Medium",
-                  "fontSize": 20,
+                  "fontSize": 18,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

@@ -387,7 +387,7 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                               {
                                 "color": "#ca3542",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "textAlign": "center",
@@ -849,7 +849,7 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                               {
                                 "color": "#ca3542",
                                 "fontFamily": "Geist-Bold",
-                                "fontSize": 20,
+                                "fontSize": 18,
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                                 "textAlign": "center",

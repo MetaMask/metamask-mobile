@@ -160,7 +160,7 @@ exports[`AccountPermissions renders correctly 1`] = `
             {
               "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 20,
+              "fontSize": 18,
               "letterSpacing": 0,
               "lineHeight": 24,
             }

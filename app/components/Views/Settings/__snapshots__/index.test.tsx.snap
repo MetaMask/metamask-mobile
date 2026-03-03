@@ -209,7 +209,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -303,7 +303,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -397,7 +397,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -491,7 +491,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -585,7 +585,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -679,7 +679,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -773,7 +773,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -867,7 +867,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -961,7 +961,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1055,7 +1055,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1149,7 +1149,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1243,7 +1243,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1322,7 +1322,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1416,7 +1416,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1464,7 +1464,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1512,7 +1512,7 @@ exports[`Settings renders settings component with all sections 1`] = `
                   {
                     "color": "#4459ff",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 20,
+                    "fontSize": 18,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

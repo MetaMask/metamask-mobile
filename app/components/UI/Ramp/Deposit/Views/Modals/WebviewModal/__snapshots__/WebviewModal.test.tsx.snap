@@ -1246,7 +1246,7 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                                           {
                                             "color": "#ca3542",
                                             "fontFamily": "Geist-Bold",
-                                            "fontSize": 20,
+                                            "fontSize": 18,
                                             "letterSpacing": 0,
                                             "lineHeight": 24,
                                             "textAlign": "center",

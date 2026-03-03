@@ -869,7 +869,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                     {
                                       "color": "#131416",
                                       "fontFamily": "Geist-Bold",
-                                      "fontSize": 20,
+                                      "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2210,7 +2210,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                     {
                                       "color": "#131416",
                                       "fontFamily": "Geist-Bold",
-                                      "fontSize": 20,
+                                      "fontSize": 18,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }

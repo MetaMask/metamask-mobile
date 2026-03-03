@@ -3588,7 +3588,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3622,7 +3622,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3919,7 +3919,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -3953,7 +3953,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4175,7 +4175,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -4209,7 +4209,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#131416",
                                                           "fontFamily": "Geist-Medium",
-                                                          "fontSize": 20,
+                                                          "fontSize": 18,
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
                                                         }
@@ -5279,7 +5279,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
-                                                    "fontSize": 20,
+                                                    "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
@@ -5313,7 +5313,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "color": "#131416",
                                                     "fontFamily": "Geist-Medium",
-                                                    "fontSize": 20,
+                                                    "fontSize": 18,
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
                                                   }
