@@ -5931,8 +5931,8 @@
       },
       "buy_musd": "Acheter des mUSD",
       "get_musd": "Obtenir des mUSD",
-      "boost_title": "Obtenez {{percentage}} % sur vos stablecoins",
-      "boost_description": "Convertissez vos stablecoins en mUSD et recevez jusqu’à {{percentage}} % de bonus.",
+      "bonus_title": "Obtenez {{percentage}} % sur vos stablecoins",
+      "bonus_description": "Convertissez vos stablecoins en mUSD et recevez jusqu’à {{percentage}} % de bonus.",
       "powered_by_relay": "Propulsé par Relay"
     },
     "bonus_claim": {
