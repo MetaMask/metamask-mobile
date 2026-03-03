@@ -118,13 +118,19 @@ exports[`Onboarding renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#000000",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                    },
+                  ]
                 }
               >
                 Create a new wallet
@@ -157,13 +163,19 @@ exports[`Onboarding renders correctly 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ]
                 }
               >
                 Import using Secret Recovery Phrase
@@ -340,13 +352,19 @@ exports[`Onboarding renders correctly with android 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#000000",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                    },
+                  ]
                 }
               >
                 Create a new wallet
@@ -379,13 +397,19 @@ exports[`Onboarding renders correctly with android 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ]
                 }
               >
                 Import using Secret Recovery Phrase
@@ -562,13 +586,19 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#000000",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                    },
+                  ]
                 }
               >
                 Create a new wallet
@@ -601,13 +631,19 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ]
                 }
               >
                 Import using Secret Recovery Phrase
@@ -784,13 +820,19 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#000000",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#000000",
+                    },
+                  ]
                 }
               >
                 Create a new wallet
@@ -823,13 +865,19 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#FFFFFF",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#FFFFFF",
+                    },
+                  ]
                 }
               >
                 Import using Secret Recovery Phrase

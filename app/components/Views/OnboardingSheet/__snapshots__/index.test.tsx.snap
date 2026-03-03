@@ -197,13 +197,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                  ]
                 }
               >
                 Sign in with Google
@@ -256,13 +262,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                  ]
                 }
               >
                 Sign in with Apple
@@ -302,13 +314,17 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#b7bbc8",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 18,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
+              [
+                {
+                  "color": "#b7bbc8",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 18,
+                  "fontWeight": 500,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
             }
           >
             or
@@ -398,14 +414,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 12,
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-                "textAlign": "center",
-              }
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 12,
+                  "fontWeight": 400,
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+                {
+                  "textAlign": "center",
+                },
+              ]
             }
           >
             By continuing, you agree to MetaMask's
@@ -414,15 +435,18 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               accessibilityRole="text"
               onPress={[Function]}
               style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
-                }
+                [
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  },
+                  undefined,
+                ]
               }
-              suppressHighlighting={true}
               testID="terms-of-use-link"
             >
               Terms of use
@@ -434,15 +458,18 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               accessibilityRole="text"
               onPress={[Function]}
               style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
-                }
+                [
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  },
+                  undefined,
+                ]
               }
-              suppressHighlighting={true}
               testID="privacy-notice-link"
             >
               Privacy notice
@@ -652,13 +679,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                  ]
                 }
               >
                 Continue with Google
@@ -711,13 +744,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#ffffff",
-                    "fontFamily": "Geist-Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "Geist-Medium",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "color": "#ffffff",
+                    },
+                  ]
                 }
               >
                 Continue with Apple
@@ -757,13 +796,17 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#b7bbc8",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 18,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
+              [
+                {
+                  "color": "#b7bbc8",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 18,
+                  "fontWeight": 500,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                },
+                undefined,
+              ]
             }
           >
             or
@@ -853,14 +896,19 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
           <Text
             accessibilityRole="text"
             style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 12,
-                "letterSpacing": 0.25,
-                "lineHeight": 20,
-                "textAlign": "center",
-              }
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist-Medium",
+                  "fontSize": 12,
+                  "fontWeight": 400,
+                  "letterSpacing": 0.25,
+                  "lineHeight": 20,
+                },
+                {
+                  "textAlign": "center",
+                },
+              ]
             }
           >
             By continuing, you agree to MetaMask's
@@ -869,15 +917,18 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               accessibilityRole="text"
               onPress={[Function]}
               style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
-                }
+                [
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  },
+                  undefined,
+                ]
               }
-              suppressHighlighting={true}
               testID="terms-of-use-link"
             >
               Terms of use
@@ -889,15 +940,18 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               accessibilityRole="text"
               onPress={[Function]}
               style={
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 12,
-                  "letterSpacing": 0.25,
-                  "lineHeight": 20,
-                }
+                [
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 12,
+                    "fontWeight": 400,
+                    "letterSpacing": 0.25,
+                    "lineHeight": 20,
+                  },
+                  undefined,
+                ]
               }
-              suppressHighlighting={true}
               testID="privacy-notice-link"
             >
               Privacy notice

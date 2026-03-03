@@ -7,10 +7,6 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -25,6 +21,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -133,7 +133,8 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                   name={'google'}
                 />
                 <Text
-                  variant={TextVariant.BodyMDMedium}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   style={{ color: colors.background.default }}
                 >
                   {createWallet
@@ -174,7 +175,8 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                   />
                 )}
                 <Text
-                  variant={TextVariant.BodyMDMedium}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   style={{ color: colors.background.default }}
                 >
                   {createWallet
@@ -197,7 +199,11 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           twClassName="gap-[10px]"
         >
           <Box twClassName="flex-1 h-px bg-border-muted" />
-          <Text variant={TextVariant.BodyLGMedium} color={TextColor.Muted}>
+          <Text
+            variant={TextVariant.BodyLg}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextMuted}
+          >
             {strings('onboarding.or')}
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
@@ -222,26 +228,27 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         </Box>
         <Box alignItems={BoxAlignItems.Center} twClassName="mt-6">
           <Text
-            variant={TextVariant.BodyXSMedium}
-            color={TextColor.Default}
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
             style={tw.style('text-center')}
           >
             {strings('onboarding.by_continuing')}{' '}
             <Text
-              variant={TextVariant.BodyXSMedium}
-              style={tw.style('text-primary-default')}
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
               onPress={onPressTermsOfUse}
-              suppressHighlighting
               testID="terms-of-use-link"
             >
               {strings('onboarding.terms_of_use')}
             </Text>{' '}
             {strings('onboarding.and')}{' '}
             <Text
-              variant={TextVariant.BodyXSMedium}
-              style={tw.style('text-primary-default')}
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
               onPress={onPressPrivacyNotice}
-              suppressHighlighting
               testID="privacy-notice-link"
             >
               {strings('onboarding.privacy_notice')}

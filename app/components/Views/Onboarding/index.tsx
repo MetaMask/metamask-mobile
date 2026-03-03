@@ -15,9 +15,6 @@ import {
   Platform,
 } from 'react-native';
 import { captureException } from '@sentry/react-native';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
@@ -97,6 +94,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -822,8 +822,9 @@ const Onboarding = () => {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             label={
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.applePayBlack}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                style={{ color: importedColors.applePayBlack }}
               >
                 {strings('onboarding.start_exploring_now')}
               </Text>
@@ -840,8 +841,9 @@ const Onboarding = () => {
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             label={
               <Text
-                variant={TextVariant.BodyMDMedium}
-                color={importedColors.white}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                style={{ color: importedColors.white }}
               >
                 {SEEDLESS_ONBOARDING_ENABLED
                   ? strings('onboarding.import_using_srp_social_login')
