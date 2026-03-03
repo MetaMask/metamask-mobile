@@ -27,11 +27,9 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { isTokenEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
@@ -167,36 +165,25 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 const mockClaimRewards = jest.fn();
-const mockUseMerklClaim = jest.fn((_asset?: unknown) => ({
-  claimRewards: mockClaimRewards,
-  isClaiming: false,
-  error: null,
-}));
-jest.mock('../../../Earn/components/MerklRewards/hooks/useMerklClaim', () => ({
-  useMerklClaim: (...args: [unknown]) => mockUseMerklClaim(...args),
-}));
-
-const mockUsePendingMerklClaim = jest.fn(() => ({
-  hasPendingClaim: false,
-}));
-jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
-  () => ({
-    usePendingMerklClaim: () => mockUsePendingMerklClaim(),
-  }),
-);
-
-const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
+const mockUseMerklBonusClaim = jest.fn((_asset?: unknown) => ({
   claimableReward: null as string | null,
-  isLoading: false,
+  hasPendingClaim: false,
+  isClaiming: false,
+  claimRewards: mockClaimRewards,
 }));
 jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
   () => ({
-    useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
-    isTokenEligibleForMerklRewards: jest.fn(() => false),
+    useMerklBonusClaim: (...args: [unknown]) => mockUseMerklBonusClaim(...args),
   }),
 );
+
+const mockShouldShowBonusClaimCta = jest.fn(() => false);
+jest.mock('../../../Earn/hooks/useMerklClaimCtaVisibility', () => ({
+  useMerklClaimCtaVisibility: () => ({
+    shouldShowBonusClaimCta: mockShouldShowBonusClaimCta,
+  }),
+}));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
@@ -204,7 +191,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
@@ -220,11 +206,6 @@ const mockSelectStablecoinLendingEnabledFlag =
 const mockSelectMusdQuickConvertEnabledFlag =
   selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
     typeof selectMusdQuickConvertEnabledFlag
-  >;
-
-const mockSelectMerklCampaignClaimingEnabledFlag =
-  selectMerklCampaignClaimingEnabledFlag as jest.MockedFunction<
-    typeof selectMerklCampaignClaimingEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -354,9 +335,8 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    isMerklClaimingEnabled?: boolean;
+    shouldShowBonusClaim?: boolean;
     claimableReward?: string | null;
-    isMerklEligible?: boolean;
     tokenMarketData?: Record<string, Record<string, { price: number }>>;
     currencyRatesData?: Record<string, { conversionRate: number }>;
     nativeCurrency?: string;
@@ -375,9 +355,8 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    isMerklClaimingEnabled = false,
+    shouldShowBonusClaim = false,
     claimableReward = null,
-    isMerklEligible = false,
     tokenMarketData,
     currencyRatesData,
     nativeCurrency,
@@ -391,16 +370,13 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     mockSelectStablecoinLendingEnabledFlag.mockReturnValue(
       isStablecoinLendingEnabled ?? false,
     );
-    mockSelectMerklCampaignClaimingEnabledFlag.mockReturnValue(
-      isMerklClaimingEnabled,
-    );
-    mockUseMerklRewards.mockReturnValue({
+    mockUseMerklBonusClaim.mockReturnValue({
       claimableReward,
-      isLoading: false,
+      hasPendingClaim: false,
+      isClaiming: false,
+      claimRewards: mockClaimRewards,
     });
-    (isTokenEligibleForMerklRewards as jest.Mock).mockReturnValue(
-      isMerklEligible,
-    );
+    mockShouldShowBonusClaimCta.mockReturnValue(shouldShowBonusClaim);
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -454,10 +430,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectMusdQuickConvertEnabledFlag) {
           return isQuickConvertEnabled;
-        }
-
-        if (selector === selectMerklCampaignClaimingEnabledFlag) {
-          return isMerklClaimingEnabled;
         }
 
         if (selector === selectTokenMarketData) {
@@ -1246,13 +1218,12 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" replacing percentage when all conditions are met', () => {
+    it('shows "Claim bonus" replacing percentage when shouldShowBonusClaimCta returns true', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        isMerklClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByText, queryByText } = renderWithProvider(
@@ -1272,9 +1243,8 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        isMerklClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1333,9 +1303,8 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        isMerklClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1363,13 +1332,12 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to percentage when merkl claiming is disabled', () => {
+    it('falls back to percentage when shouldShowBonusClaimCta returns false', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 1.5,
-        isMerklClaimingEnabled: false,
+        shouldShowBonusClaim: false,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { queryByText, getByText } = renderWithProvider(

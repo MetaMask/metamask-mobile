@@ -21,11 +21,9 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { isTokenEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
@@ -155,36 +153,25 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 const mockClaimRewards = jest.fn();
-const mockUseMerklClaim = jest.fn((_asset?: unknown) => ({
-  claimRewards: mockClaimRewards,
-  isClaiming: false,
-  error: null,
-}));
-jest.mock('../../../Earn/components/MerklRewards/hooks/useMerklClaim', () => ({
-  useMerklClaim: (...args: [unknown]) => mockUseMerklClaim(...args),
-}));
-
-const mockUsePendingMerklClaim = jest.fn(() => ({
-  hasPendingClaim: false,
-}));
-jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
-  () => ({
-    usePendingMerklClaim: () => mockUsePendingMerklClaim(),
-  }),
-);
-
-const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
+const mockUseMerklBonusClaim = jest.fn((_asset?: unknown) => ({
   claimableReward: null as string | null,
-  isLoading: false,
+  hasPendingClaim: false,
+  isClaiming: false,
+  claimRewards: mockClaimRewards,
 }));
 jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
   () => ({
-    useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
-    isTokenEligibleForMerklRewards: jest.fn(() => false),
+    useMerklBonusClaim: (...args: [unknown]) => mockUseMerklBonusClaim(...args),
   }),
 );
+
+const mockShouldShowBonusClaimCta = jest.fn(() => false);
+jest.mock('../../../Earn/hooks/useMerklClaimCtaVisibility', () => ({
+  useMerklClaimCtaVisibility: () => ({
+    shouldShowBonusClaimCta: mockShouldShowBonusClaimCta,
+  }),
+}));
 
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
@@ -192,7 +179,6 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
@@ -337,9 +323,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    isMerklCampaignClaimingEnabled?: boolean;
+    shouldShowBonusClaim?: boolean;
     claimableReward?: string | null;
-    isMerklEligible?: boolean;
     hasPendingClaim?: boolean;
     isClaiming?: boolean;
   }
@@ -354,9 +339,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    isMerklCampaignClaimingEnabled = false,
+    shouldShowBonusClaim = false,
     claimableReward = null,
-    isMerklEligible = false,
     hasPendingClaim = false,
     isClaiming = false,
   }: PrepareMocksOptions = {}) {
@@ -367,20 +351,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStablecoinLendingEnabled,
     );
 
-    // Merkl claim mocks
-    mockUseMerklRewards.mockReturnValue({
+    mockUseMerklBonusClaim.mockReturnValue({
       claimableReward,
-      isLoading: false,
-    });
-    (isTokenEligibleForMerklRewards as jest.Mock).mockReturnValue(
-      isMerklEligible,
-    );
-    mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim });
-    mockUseMerklClaim.mockReturnValue({
-      claimRewards: mockClaimRewards,
+      hasPendingClaim,
       isClaiming,
-      error: null,
+      claimRewards: mockClaimRewards,
     });
+    mockShouldShowBonusClaimCta.mockReturnValue(shouldShowBonusClaim);
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -440,10 +417,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
         if (selector === selectMusdQuickConvertEnabledFlag) {
           return isQuickConvertEnabled;
-        }
-
-        if (selector === selectMerklCampaignClaimingEnabledFlag) {
-          return isMerklCampaignClaimingEnabled;
         }
 
         const selectorString = selector.toString();
@@ -1273,14 +1246,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" CTA when all conditions are met', () => {
+    it('shows "Claim bonus" CTA when shouldShowBonusClaimCta returns true', () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-        hasPendingClaim: false,
-        isClaiming: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -1295,15 +1265,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
     });
 
-    it('hides "Claim bonus" CTA when hasPendingClaim is true', () => {
+    it('hides "Claim bonus" CTA when shouldShowBonusClaimCta returns false', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 2.0,
-        isMerklCampaignClaimingEnabled: true,
+        shouldShowBonusClaim: false,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-        hasPendingClaim: true,
-        isClaiming: false,
       });
 
       const { queryByText, getByText } = renderWithProvider(
@@ -1315,7 +1282,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      // Should fall through to percentage display instead
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
       expect(getByText('+2.00%')).toBeOnTheScreen();
     });
@@ -1323,9 +1289,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('calls claimRewards when "Claim bonus" CTA is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByTestId, getByText } = renderWithProvider(
@@ -1351,9 +1316,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1396,12 +1360,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('shows ActivityIndicator instead of text when isClaiming is true', () => {
+    it('shows Spinner instead of text when isClaiming is true', () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
+        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
         isClaiming: true,
       });
 
@@ -1414,65 +1377,18 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      // "Claim bonus" text should not be rendered
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
 
-      // Spinner should be rendered
       const { Spinner } = jest.requireActual(
         '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
       );
       expect(UNSAFE_getByType(Spinner)).toBeTruthy();
     });
 
-    it('hides "Claim bonus" when merkl campaign claiming is disabled', () => {
+    it('passes asset to useMerklBonusClaim hook', () => {
       prepareMocks({
         asset: claimableAsset,
-        pricePercentChange1d: 1.5,
-        isMerklCampaignClaimingEnabled: false,
-        claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-      });
-
-      const { queryByText, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-      expect(getByText('+1.50%')).toBeOnTheScreen();
-    });
-
-    it('hides "Claim bonus" when there is no claimable reward', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 3.0,
-        isMerklCampaignClaimingEnabled: true,
-        claimableReward: null,
-        isMerklEligible: true,
-      });
-
-      const { queryByText, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-      expect(getByText('+3.00%')).toBeOnTheScreen();
-    });
-
-    it('passes asset to useMerklClaim hook via MerklClaimHandler', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
-        isMerklEligible: true,
+        shouldShowBonusClaim: true,
       });
 
       renderWithProvider(
@@ -1484,31 +1400,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
         />,
       );
 
-      expect(mockUseMerklClaim).toHaveBeenCalledWith(claimableAsset);
-    });
-
-    it('does not mount MerklClaimHandler when asset is not eligible', () => {
-      prepareMocks({
-        asset: undefined,
-        isMerklEligible: false,
-      });
-
-      const emptyAssetKey: FlashListAssetKey = {
-        address: '0x999',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      renderWithProvider(
-        <TokenListItem
-          assetKey={emptyAssetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(mockUseMerklClaim).not.toHaveBeenCalled();
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(claimableAsset);
     });
   });
 });
