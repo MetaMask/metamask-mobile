@@ -216,18 +216,6 @@ describe('formatDateOfBirth', () => {
       expect(result).toBe('2006-01-15');
     });
 
-    it('formats timestamp with different time zones correctly', () => {
-      // Given: date created in local timezone (Jan 15, 2006)
-      const date = new Date(2006, 0, 15);
-      const timestampString = date.getTime().toString();
-
-      // When: formatting timestamp
-      const result = formatDateOfBirth(timestampString);
-
-      // Then: should return the local calendar date
-      expect(result).toBe('2006-01-15');
-    });
-
     it('handles leap year dates correctly', () => {
       // Given: leap year date created in local timezone (Feb 29, 2004)
       const leapYearDate = new Date(2004, 1, 29);
