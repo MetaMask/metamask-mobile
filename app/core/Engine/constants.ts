@@ -15,6 +15,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'BackendWebSocketService',
   'AccountActivityService',
   'MultichainAccountService',
+  'GeolocationApiService',
   'ProfileMetricsService',
   'RampsService',
   'TransakService',

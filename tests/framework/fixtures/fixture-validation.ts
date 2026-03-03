@@ -313,6 +313,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
 
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
+    'engine.backgroundState.GeolocationController.location',
     'fiatOrders.detectedGeolocation',
 
     // ── Dynamic network client IDs, port-dependent URLs, and display names ──

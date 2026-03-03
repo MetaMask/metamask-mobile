@@ -150,6 +150,9 @@
           },
           "currentCurrency": "usd"
         },
+        "GeolocationController": {
+          "location": "UNKNOWN"
+        },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
           "gasEstimateType": "none",

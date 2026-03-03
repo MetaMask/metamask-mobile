@@ -503,8 +503,9 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withDetectedGeolocation(countryCode: string) {
-    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
+    merge(this.fixture.state.engine.backgroundState, {
+      GeolocationController: { location: countryCode },
+    });
     return this;
   }
 

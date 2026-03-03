@@ -397,6 +397,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const geolocationController = controllersByName.GeolocationController;
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
@@ -557,6 +558,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
+      GeolocationController: geolocationController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1369,6 +1371,7 @@ export default {
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,
+      GeolocationController: GeolocationController.state,
       GatorPermissionsController: GatorPermissionsController.state,
       KeyringController: KeyringController.state,
       LoggingController: LoggingController.state,
