@@ -2081,7 +2081,7 @@ export class PredictController extends BaseController<
    * TODO: Remove the cast once `predictDepositAndOrder` is added to
    * `@metamask/transaction-controller`.
    */
-  public async depositAndOrderWithConfirmation(
+  public async payWithAnyTokenConfirmation(
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
@@ -2119,7 +2119,7 @@ export class PredictController extends BaseController<
       }));
 
       DevLogger.log(
-        'PredictController: depositAndOrderWithConfirmation transactions',
+        'PredictController: payWithAnyTokenConfirmation transactions',
         {
           count: depositAndOrderTransactions.length,
           transactions: depositAndOrderTransactions.map((tx, index) => ({
@@ -2177,7 +2177,7 @@ export class PredictController extends BaseController<
       }
       Logger.error(
         e,
-        this.getErrorContext('depositAndOrderWithConfirmation', {
+        this.getErrorContext('payWithAnyTokenConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
         }),
       );

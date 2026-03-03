@@ -6,7 +6,7 @@ import { PredictBuyPreviewParams } from '../types/navigation';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
 
 const mockGoBack = jest.fn();
-const mockDepositAndOrderWithConfirmation = jest.fn();
+const mockPayWithAnyTokenConfirmation = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockShowToast = jest.fn();
 
@@ -19,7 +19,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('./usePredictTrading', () => ({
   usePredictTrading: () => ({
-    depositAndOrder: mockDepositAndOrderWithConfirmation,
+    payWithAnyTokenConfirmation: mockPayWithAnyTokenConfirmation,
   }),
 }));
 
@@ -75,10 +75,10 @@ describe('usePredictPayWithAnyToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDepositAndOrderWithConfirmation.mockResolvedValue(undefined);
+    mockPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
   });
 
-  it('sets active order, triggers depositAndOrder, and navigates to confirmation', async () => {
+  it('sets active order, triggers payWithAnyTokenConfirmation, and navigates to confirmation', async () => {
     const { result } = renderHook(() => usePredictPayWithAnyToken(), {
       wrapper,
     });
@@ -104,7 +104,7 @@ describe('usePredictPayWithAnyToken', () => {
         isInputFocused: false,
       }),
     );
-    expect(mockDepositAndOrderWithConfirmation).toHaveBeenCalledWith({});
+    expect(mockPayWithAnyTokenConfirmation).toHaveBeenCalledWith({});
     expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
     expect(
       Engine.context.PredictController.clearActiveOrder,
@@ -113,8 +113,8 @@ describe('usePredictPayWithAnyToken', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('handles depositAndOrder failure by clearing active order, going back, and showing error toast', async () => {
-    mockDepositAndOrderWithConfirmation.mockRejectedValue(new Error('boom'));
+  it('handles payWithAnyTokenConfirmation failure by clearing active order, going back, and showing error toast', async () => {
+    mockPayWithAnyTokenConfirmation.mockRejectedValue(new Error('boom'));
 
     const { result } = renderHook(() => usePredictPayWithAnyToken(), {
       wrapper,

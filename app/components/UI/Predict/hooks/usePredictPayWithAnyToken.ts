@@ -38,8 +38,7 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const { depositAndOrder: depositAndOrderWithConfirmation } =
-    usePredictTrading();
+  const { payWithAnyTokenConfirmation } = usePredictTrading();
 
   const handleDepositError = useCallback(
     (err: unknown, action: string) => {
@@ -103,17 +102,13 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             : {}),
         });
 
-        await depositAndOrderWithConfirmation({});
+        await payWithAnyTokenConfirmation({});
         navigateToConfirmation();
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
       }
     },
-    [
-      depositAndOrderWithConfirmation,
-      handleDepositError,
-      navigateToConfirmation,
-    ],
+    [payWithAnyTokenConfirmation, handleDepositError, navigateToConfirmation],
   );
 
   return {
