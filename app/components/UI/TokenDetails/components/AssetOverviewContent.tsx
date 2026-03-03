@@ -68,6 +68,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -210,6 +211,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     handlePerpsAction,
   } = usePerpsActions({
     symbol: isPerpsEnabled ? token.symbol : null,
+    fromTokenDetails: true,
     abTestTokenDetailsLayout: isTestActive ? variantName : undefined,
   });
 
@@ -308,6 +310,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
   ]);
 
+  // Start the entry card trace synchronously during render so it is registered
+  // in the trace map before any child useEffect (where endTrace fires) runs.
+  // Using a ref guard ensures we only start one trace per unique asset.
+  const entryCardTraceStartedRef = useRef<string | null>(null);
+  if (
+    isMarketInsightsEnabled &&
+    marketInsightsCaip19Id &&
+    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
+  ) {
+    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
+    trace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      op: TraceOperation.MarketInsightsLoad,
+      id: marketInsightsCaip19Id,
+    });
+  }
+
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
       url,
@@ -317,6 +336,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const handleMarketInsightsPress = useCallback(() => {
     if (marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsViewLoad,
+        op: TraceOperation.MarketInsightsLoad,
+      });
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
@@ -501,12 +524,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
-          {isMarketInsightsEnabled && marketInsightsReport ? (
+          {isMarketInsightsEnabled &&
+          marketInsightsReport &&
+          marketInsightsCaip19Id ? (
             <View style={styles.marketInsightsWrapper}>
               <MarketInsightsEntryCard
                 report={marketInsightsReport}
                 timeAgo={marketInsightsTimeAgo}
                 onPress={handleMarketInsightsPress}
+                caip19Id={marketInsightsCaip19Id}
                 testID="market-insights-entry-card"
               />
             </View>

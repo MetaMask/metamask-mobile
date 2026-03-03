@@ -183,7 +183,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-16"
+        twClassName="py-2"
       >
         {/* Token Avatar */}
         <AvatarToken
@@ -233,13 +233,15 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
         </Box>
 
         {/* Buy Button */}
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleBuy}
-        >
-          {strings('asset_overview.buy_button')}
-        </Button>
+        <Box twClassName="self-center">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={handleBuy}
+          >
+            {strings('asset_overview.buy_button')}
+          </Button>
+        </Box>
       </Box>
     </TouchableOpacity>
   );

@@ -141,6 +141,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [],
     });
   });
 
@@ -224,6 +225,7 @@ describe('useBridgeQuoteData', () => {
       blockaidError: null,
       shouldShowPriceImpactWarning: false,
       quotesLoadingStatus: RequestStatus.FETCHED,
+      validQuotes: [],
     });
   });
 
@@ -302,6 +304,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [],
     });
   });
 
@@ -337,6 +340,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: RequestStatus.LOADING,
+      validQuotes: [],
     });
   });
 
@@ -373,6 +377,7 @@ describe('useBridgeQuoteData', () => {
       willRefresh: false,
       blockaidError: null,
       quotesLoadingStatus: null,
+      validQuotes: [],
     });
   });
 
@@ -808,6 +813,522 @@ describe('useBridgeQuoteData', () => {
 
     await waitFor(() => {
       expect(result.current.blockaidError).toBe(null);
+    });
+  });
+
+  // Test validQuotes filtering
+  describe('validQuotes filtering', () => {
+    it('returns filtered validQuotes that match destination token', () => {
+      const mockQuote1 = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          destAsset: {
+            ...mockQuoteWithMetadata.quote.destAsset,
+            address:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            assetId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          },
+        },
+      };
+
+      const mockQuote2 = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          destAsset: {
+            ...mockQuoteWithMetadata.quote.destAsset,
+            address: '0x0000000000000000000000000000000000000000',
+            assetId: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuote1,
+        sortedQuotes: [mockQuote1, mockQuote2],
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.validQuotes).toHaveLength(1);
+      expect(result.current.validQuotes[0]).toEqual(mockQuote1);
+    });
+
+    it('returns empty validQuotes array when quotes are expired and not refreshing', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata],
+        alternativeQuotes: [],
+      }));
+
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.validQuotes).toEqual([]);
+      expect(result.current.isExpired).toBe(true);
+    });
+
+    it('returns empty validQuotes when isSubmittingTx is true', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [mockQuoteWithMetadata],
+        alternativeQuotes: [],
+      }));
+
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+
+      const bridgeReducerOverrides = {
+        isSubmittingTx: true,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.validQuotes).toEqual([]);
+    });
+  });
+
+  // Test isQuoteSourceTokenMatch
+  describe('source token matching', () => {
+    it('returns undefined destTokenAmount when quote source token does not match selected source token', () => {
+      const mockQuoteWithDifferentSource = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          srcAsset: {
+            ...mockQuoteWithMetadata.quote.srcAsset,
+            address: '0x1111111111111111111111111111111111111111',
+          },
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithDifferentSource,
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        sourceToken: {
+          symbol: 'DAI',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+          decimals: 18,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.destTokenAmount).toBeUndefined();
+    });
+
+    it('handles non-EVM source chain IDs correctly', () => {
+      const mockQuoteWithSolanaSource = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          srcAsset: {
+            address: '11111111111111111111111111111112',
+            assetId:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112',
+            decimals: 9,
+          },
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithSolanaSource,
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        sourceToken: {
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111112',
+          decimals: 9,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote).toEqual(mockQuoteWithSolanaSource);
+    });
+  });
+
+  // Test estimated time formatting
+  describe('estimated time formatting', () => {
+    it('formats time as "< 1 second" when less than 1 second', () => {
+      const mockQuoteWithFastTime = {
+        ...mockQuoteWithMetadata,
+        estimatedProcessingTimeInSeconds: 0.5,
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithFastTime,
+        alternativeQuotes: [],
+      }));
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.estimatedTime).toBe(
+        '< 1 second',
+      );
+    });
+
+    it('formats time as seconds when between 1 and 59 seconds', () => {
+      const mockQuoteWith30Seconds = {
+        ...mockQuoteWithMetadata,
+        estimatedProcessingTimeInSeconds: 30,
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWith30Seconds,
+        alternativeQuotes: [],
+      }));
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.estimatedTime).toBe(
+        '30 seconds',
+      );
+    });
+
+    it('formats time as minutes when 60 seconds or more', () => {
+      const mockQuoteWith120Seconds = {
+        ...mockQuoteWithMetadata,
+        estimatedProcessingTimeInSeconds: 120,
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWith120Seconds,
+        alternativeQuotes: [],
+      }));
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.estimatedTime).toBe('2 min');
+    });
+
+    it('rounds up minutes when formatting', () => {
+      const mockQuoteWith90Seconds = {
+        ...mockQuoteWithMetadata,
+        estimatedProcessingTimeInSeconds: 90,
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWith90Seconds,
+        alternativeQuotes: [],
+      }));
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.estimatedTime).toBe('2 min');
+    });
+  });
+
+  // Test quote rate formatting
+  describe('quote rate formatting', () => {
+    it('formats rate with 2 decimals when rate is greater than 1', () => {
+      const mockQuoteWithHighRate = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          destTokenAmount: '2500000000',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithHighRate,
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        sourceAmount: '1',
+        sourceToken: {
+          symbol: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.rate).toMatch(/1 ETH = /);
+      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+    });
+
+    it('formats rate with 3 significant digits when rate is less than 1', () => {
+      const mockQuoteWithLowRate = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          destTokenAmount: '100000',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithLowRate,
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        sourceAmount: '1',
+        sourceToken: {
+          symbol: 'ETH',
+          chainId: CHAIN_IDS.MAINNET,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.formattedQuoteData?.rate).toMatch(/1 ETH = /);
+      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+    });
+  });
+
+  // Test race condition handling
+  describe('validation race condition handling', () => {
+    it('aborts previous validation when quote changes', async () => {
+      const mockQuote1 = {
+        ...mockQuoteWithMetadata,
+        quote: { ...mockQuoteWithMetadata.quote, requestId: 'quote1' },
+      };
+      const mockQuote2 = {
+        ...mockQuoteWithMetadata,
+        quote: { ...mockQuoteWithMetadata.quote, requestId: 'quote2' },
+      };
+
+      // Start with first quote
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuote1,
+        alternativeQuotes: [],
+      }));
+
+      let abortCallCount = 0;
+      const mockAbort = jest.fn(() => {
+        abortCallCount++;
+      });
+
+      const originalAbortController = global.AbortController;
+      global.AbortController = jest.fn().mockImplementation(() => ({
+        signal: {},
+        abort: mockAbort,
+      })) as typeof AbortController;
+
+      mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
+
+      const bridgeReducerOverrides = {
+        sourceToken: {
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address: '11111111111111111111111111111112',
+          decimals: 9,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      await waitFor(() => {
+        expect(result.current.blockaidError).toBe(null);
+      });
+
+      // Change to second quote
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuote2,
+        alternativeQuotes: [],
+      }));
+
+      // Re-render with new quote
+      const { result: result2 } = renderHookWithProvider(
+        () => useBridgeQuoteData(),
+        {
+          state: testState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.blockaidError).toBe(null);
+      });
+
+      // Verify abort was called when quote changed
+      expect(abortCallCount).toBeGreaterThan(0);
+
+      // Restore original AbortController
+      global.AbortController = originalAbortController;
+    });
+  });
+
+  // Test abort controller cleanup
+  describe('abort controller cleanup', () => {
+    it('cleans up abort controller on unmount', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        alternativeQuotes: [],
+      }));
+
+      const testState = createBridgeTestState({});
+
+      const { unmount } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // Should not throw when unmounting
+      expect(() => unmount()).not.toThrow();
+    });
+  });
+
+  // Test willRefresh scenarios
+  describe('willRefresh behavior', () => {
+    it('sets willRefresh to true when conditions are met', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        alternativeQuotes: [],
+      }));
+
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(true);
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.willRefresh).toBe(true);
+    });
+
+    it('shows activeQuote when expired but willRefresh is true', () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        alternativeQuotes: [],
+      }));
+
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(true);
+
+      const testState = createBridgeTestState({});
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote).toEqual(mockQuoteWithMetadata);
+      expect(result.current.isExpired).toBe(true);
+      expect(result.current.willRefresh).toBe(true);
     });
   });
 });

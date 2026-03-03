@@ -25,7 +25,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -93,7 +93,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
@@ -116,7 +116,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -130,7 +130,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -173,7 +173,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
@@ -230,7 +230,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -298,7 +298,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Bold",
             "fontSize": 18,
             "letterSpacing": 0,
@@ -321,7 +321,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -335,7 +335,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -378,7 +378,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#131416",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
