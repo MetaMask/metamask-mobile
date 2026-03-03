@@ -636,6 +636,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigateToOrder({
         direction,
         asset: market.symbol,
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
       });
     },
     [
