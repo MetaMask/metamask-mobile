@@ -154,26 +154,28 @@ const LedgerSelectAccount = () => {
   useEffect(
     () => {
       const init = async () => {
-        DevLogger.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
-        setTargetWalletType(HardwareWalletType.Ledger);
-        const isReady = await ensureDeviceReady();
+        try {
+          DevLogger.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
+          setTargetWalletType(HardwareWalletType.Ledger);
+          const isReady = await ensureDeviceReady();
 
-        if (isReady) {
-          DevLogger.log(
-            '[LedgerSelectAccount] Device ready - fetching accounts',
-          );
-          await fetchAccounts();
-        } else {
-          DevLogger.log(
-            '[LedgerSelectAccount] User cancelled - navigating back',
-          );
-          navigation.goBack();
+          if (isReady) {
+            DevLogger.log(
+              '[LedgerSelectAccount] Device ready - fetching accounts',
+            );
+            await fetchAccounts();
+          } else {
+            DevLogger.log(
+              '[LedgerSelectAccount] User cancelled - navigating back',
+            );
+            navigation.goBack();
+          }
+        } catch (e) {
+          showHardwareWalletError(e);
         }
       };
 
-      init().catch((e) => {
-        showHardwareWalletError(e);
-      });
+      init();
     },
 
     // This is ran once on mount, so we don't need to add any dependencies
