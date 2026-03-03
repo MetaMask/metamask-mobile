@@ -12,8 +12,11 @@ import BrowserView from '../../page-objects/Browser/BrowserView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
+import TokenOverview from '../../page-objects/wallet/TokenOverview';
 
 jest.setTimeout(150_000);
+
+const TOKEN = 'Ethereum';
 
 describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
   it('displays the resolved recipient address in the send flow', async () => {
@@ -46,16 +49,19 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
 
         await BrowserView.tapCloseBrowserButton();
         await TabBarComponent.tapHome();
-        await WalletView.tapWalletSendButton();
+        await device.disableSynchronization();
+        await WalletView.waitForTokenToBeReady(TOKEN);
+        await WalletView.tapOnToken(TOKEN);
+        await TokenOverview.tapSendButton();
 
-        await Gestures.tap(Matchers.getElementByText('Ethereum', 1));
+        const domain = 'metamask.domain';
         await RedesignedSendView.enterZeroAmount();
         await RedesignedSendView.pressContinueButton();
-        await RedesignedSendView.inputRecipientAddress('metamask.domain');
+        await RedesignedSendView.inputRecipientAddress(domain);
         await RedesignedSendView.pressReviewButton();
         await TransactionConfirmView.tapAdvancedDetails();
 
-        await Gestures.tap(Matchers.getElementByText('metamask.domain'));
+        await Gestures.waitAndTap(Matchers.getElementByText(domain));
 
         await Assertions.expectTextDisplayed(
           '0xc0ffee254729296a45a3885639ac7e10f9d54979',
