@@ -212,7 +212,7 @@ const BatchRevokeConfirmSheet: React.FC = () => {
           <Button
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
-            label={strings('token_approvals.filter_all')}
+            label={strings('token_approvals.cancel_button')}
             onPress={handleClose}
             style={styles.footerButton}
             width={ButtonWidthTypes.Full}
@@ -222,7 +222,6 @@ const BatchRevokeConfirmSheet: React.FC = () => {
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             label={strings('token_approvals.batch_confirm_cta')}
-            isDanger
             onPress={handleConfirm}
             style={styles.footerButton}
             width={ButtonWidthTypes.Full}
