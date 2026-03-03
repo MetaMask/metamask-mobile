@@ -1,4 +1,4 @@
-/**
+111/**
  * E2E AI Analyzer
  *
  * Functional orchestrator for AI-powered E2E test analysis.
@@ -33,6 +33,16 @@ import {
   outputAnalysis as outputSelectTagsAnalysis,
   checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
+import {
+  buildSystemPrompt as buildTestPlanSystemPrompt,
+  buildTaskPrompt as buildTestPlanTaskPrompt,
+} from '../modes/generate-test-plan/prompt';
+import {
+  processAnalysis as processTestPlanAnalysis,
+  createConservativeResult as createTestPlanConservativeResult,
+  createEmptyResult as createTestPlanEmptyResult,
+  outputAnalysis as outputTestPlanAnalysis,
+} from '../modes/generate-test-plan/handlers';
 
 /**
  * Mode Registry — see ModeConfig in types/index.ts for the full interface.
@@ -55,6 +65,16 @@ export const MODES: {
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
     checkHardRules: checkSelectTagsHardRules,
+  },
+  'generate-test-plan': {
+    description: 'Generate exploratory test plan for release testing',
+    finalizeToolName: 'finalize_test_plan_generation',
+    systemPromptBuilder: buildTestPlanSystemPrompt,
+    taskPromptBuilder: buildTestPlanTaskPrompt,
+    processAnalysis: processTestPlanAnalysis,
+    createConservativeResult: createTestPlanConservativeResult,
+    createEmptyResult: createTestPlanEmptyResult,
+    outputAnalysis: outputTestPlanAnalysis,
   },
 };
 
@@ -112,9 +132,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,
+    context,
   );
 
-  const tools = getToolDefinitions();
+  const tools = getToolDefinitions({
+    finalizeToolName: modeConfig.finalizeToolName,
+  });
   let currentMessage: LLMContentBlock[] | string = taskPrompt;
   const conversationHistory: LLMMessage[] = [];
 
@@ -200,8 +223,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       // Update conversation history
       conversationHistory.push({
         role: 'user',
-        content:
-          typeof currentMessage === 'string' ? currentMessage : currentMessage,
+        content: currentMessage,
       });
       conversationHistory.push({
         role: 'assistant',

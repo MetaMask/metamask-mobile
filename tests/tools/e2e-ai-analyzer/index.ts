@@ -11,6 +11,7 @@ import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
+  getCherryPicksBetweenCommits,
 } from './utils/git-utils';
 import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
@@ -20,6 +21,18 @@ import {
   ProviderType,
 } from './providers';
 import { getSkillsMetadata } from './utils/skill-loader';
+import {
+  getPullRequestInfo,
+  getLatestBuildFromPRComments,
+} from './utils/github-client';
+import {
+  analyzeWithSingleCall,
+  formatForSlack,
+  analyzeDeltaWithLLM,
+  formatDeltaForSlack,
+  createCombinedTestPlan,
+  formatCombinedForSlack,
+} from './modes/generate-test-plan/fast-analyzer';
 
 /**
  * Validates provided files against actual git changes
@@ -94,6 +107,28 @@ function parseArgs(args: string[]): ParsedArgs {
       case '--list-skills':
         options.listSkills = true;
         break;
+      case '--build':
+        options.buildNumber = parseInt(args[++i], 10);
+        break;
+      case '--prev-build':
+        options.prevBuildNumber = parseInt(args[++i], 10);
+        break;
+      case '--from-commit':
+        options.fromCommit = args[++i];
+        break;
+      case '--to-commit':
+        options.toCommit = args[++i];
+        break;
+      case '--version':
+      case '-v':
+        options.releaseVersion = args[++i];
+        break;
+      case '--initial-commit':
+        options.initialCommit = args[++i];
+        break;
+      case '--initial-build':
+        options.initialBuildNumber = parseInt(args[++i], 10);
+        break;
     }
   }
 
@@ -140,8 +175,21 @@ Options:
   -cf --changed-files <files>   Provide changed files directly
   -pr --pr <number>             Get changed files from a specific PR
   -p, --provider <provider>     Force specific provider (anthropic, openai, google)
+  --build <number>              Current build number (e.g., 3685)
+  --prev-build <number>         Previous build number to compare against (e.g., 3682)
+  --from-commit <sha>           Start commit SHA for cherry-pick range (alternative to --prev-build)
+  --to-commit <sha>             End commit SHA for cherry-pick range (alternative to --build)
+  --initial-commit <sha>        Initial build commit (first RC cut) for combined output
+  --initial-build <number>      Initial build number (first RC cut) for combined output
+  -v, --version <version>       Release version (e.g., 7.65.0) for test plan title
   --list-skills                 List all available skills
   -h, --help                    Show this help message
+
+Combined Output Mode:
+  Use --initial-commit with --pr to generate a combined test plan with:
+  - Cherry-pick scenarios on top (delta from initial build)
+  - Initial scenarios below (from RC cut)
+  This aligns with Extension team format for cross-platform consistency.
 
 Note: Skills are loaded on-demand by the AI agent during analysis.
 
@@ -279,6 +327,10 @@ async function main() {
     baseBranch,
     prNumber: options.prNumber,
     githubRepo,
+    buildNumber: options.buildNumber,
+    prevBuildNumber: options.prevBuildNumber,
+    fromCommit: options.fromCommit,
+    toCommit: options.toCommit,
   };
 
   if (options.prNumber) {
@@ -322,7 +374,213 @@ async function main() {
     `\n📋 Available providers: ${availableProviders.map((p) => p.type).join(' → ')}`,
   );
 
-  // Try each available provider in order
+  // FAST PATH: generate-test-plan mode with PR number
+  if (mode === 'generate-test-plan' && options.prNumber) {
+    // COMBINED MODE: initial-commit provided - generate combined output
+    if (options.initialCommit) {
+      console.log(`\n📦 Combined mode: generating full test plan with cherry-picks from initial build`);
+      console.log(`   Initial commit: ${options.initialCommit}`);
+
+      const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
+      const version = options.releaseVersion || prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] || 'unknown';
+
+      // Get latest build number
+      const latestBuild = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+      if (latestBuild) {
+        console.log(`   Current build: ${latestBuild}`);
+      }
+
+      // Get current HEAD commit
+      const { execSync } = await import('child_process');
+      const currentCommit = execSync('git rev-parse HEAD', { encoding: 'utf-8', cwd: baseDir }).trim();
+      console.log(`   Current commit: ${currentCommit.substring(0, 7)}`);
+
+      // Get cherry-picks between initial and current
+      const cherryPicks = getCherryPicksBetweenCommits(
+        options.initialCommit,
+        currentCommit,
+        baseDir,
+      );
+      console.log(`   Cherry-picks since initial: ${cherryPicks.length}`);
+
+      // Try providers
+      for (let i = 0; i < availableProviders.length; i++) {
+        const { type: providerType, provider } = availableProviders[i];
+
+        try {
+          console.log(`\n🚀 Using ${provider.displayName}...`);
+
+          // Step 1: Generate initial analysis
+          console.log(`\n📋 Step 1: Generating initial scenarios...`);
+          const initialResult = await analyzeWithSingleCall(provider, prInfo, latestBuild);
+
+          // Step 2: Generate delta analysis (if there are cherry-picks)
+          let deltaResult = undefined;
+          if (cherryPicks.length > 0) {
+            console.log(`\n🍒 Step 2: Generating cherry-pick scenarios...`);
+            deltaResult = await analyzeDeltaWithLLM(
+              provider,
+              cherryPicks,
+              prInfo.teamSignOffs,
+              options.prNumber,
+              options.initialCommit,
+              currentCommit,
+              version,
+              options.initialBuildNumber,
+              latestBuild,
+              baseDir,
+            );
+          } else {
+            console.log(`\n✅ No cherry-picks since initial build`);
+          }
+
+          // Step 3: Combine results
+          console.log(`\n🔗 Step 3: Combining results...`);
+          const combinedResult = createCombinedTestPlan(initialResult, deltaResult);
+
+          // Format for Slack
+          const slackOutput = formatCombinedForSlack(combinedResult);
+          console.log('\n' + slackOutput);
+
+          // Write to files
+          const fs = await import('fs');
+          fs.writeFileSync('release-test-plan.md', slackOutput);
+          fs.writeFileSync('release-test-plan.json', JSON.stringify(combinedResult, null, 2));
+          console.log('\n💾 Saved to release-test-plan.md and release-test-plan.json');
+          return;
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          console.warn(`\n⚠️  ${providerType} failed: ${err.message}`);
+
+          if (i < availableProviders.length - 1) {
+            console.log('🔄 Falling back to next provider...');
+          }
+        }
+      }
+
+      console.error('\n❌ All providers failed for combined analysis.');
+      process.exit(1);
+    }
+
+    // Check if this is delta mode (comparing builds)
+    if (options.fromCommit && options.toCommit) {
+      console.log(`\n🍒 Delta mode: comparing ${options.fromCommit} → ${options.toCommit}`);
+
+      // Get PR info for sign-offs
+      const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
+
+      // Get cherry-picks between commits
+      const cherryPicks = getCherryPicksBetweenCommits(
+        options.fromCommit,
+        options.toCommit,
+        baseDir,
+      );
+
+      const version = options.releaseVersion || prInfo.title.match(/\d+\.\d+\.\d+/)?.[0] || 'unknown';
+
+      // Get build number from PR comments
+      console.log(`   Fetching build number from PR comments...`);
+      const latestBuild = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+      if (latestBuild) {
+        console.log(`   ✓ Latest build: ${latestBuild}`);
+      }
+
+      if (cherryPicks.length === 0) {
+        console.log('\n✅ No cherry-picks detected between these commits.');
+        console.log('No delta analysis needed.');
+        return;
+      }
+
+      console.log(`   Found ${cherryPicks.length} cherry-pick(s)`);
+
+      // Use LLM to generate test scenarios for cherry-picks
+      for (let i = 0; i < availableProviders.length; i++) {
+        const { type: providerType, provider } = availableProviders[i];
+
+        try {
+          const deltaResult = await analyzeDeltaWithLLM(
+            provider,
+            cherryPicks,
+            prInfo.teamSignOffs,
+            options.prNumber,
+            options.fromCommit,
+            options.toCommit,
+            version,
+            options.prevBuildNumber,
+            options.buildNumber || latestBuild,
+          );
+
+          // Format for Slack
+          const deltaMarkdown = formatDeltaForSlack(deltaResult);
+
+          // Output delta
+          console.log('\n' + deltaMarkdown);
+
+          // Write to files
+          const fs = await import('fs');
+          fs.writeFileSync('release-delta.md', deltaMarkdown);
+          fs.writeFileSync('release-delta.json', JSON.stringify(deltaResult, null, 2));
+          console.log('\n💾 Saved to release-delta.md and release-delta.json');
+          return;
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error));
+          console.warn(`\n⚠️  ${providerType} failed: ${err.message}`);
+
+          if (i < availableProviders.length - 1) {
+            console.log('🔄 Falling back to next provider...');
+          }
+        }
+      }
+
+      console.error('\n❌ All providers failed for delta analysis.');
+      process.exit(1);
+    }
+
+    // Fast path: single LLM call for test plan generation
+    console.log(`\n⚡ Fast mode: single LLM call for test plan generation`);
+
+    const prInfo = getPullRequestInfo(options.prNumber, githubRepo);
+
+    // Fetch build number from PR comments
+    const buildNumber = getLatestBuildFromPRComments(options.prNumber, githubRepo);
+    if (buildNumber) {
+      console.log(`   ✓ Latest build: ${buildNumber}`);
+    }
+
+    // Try each provider
+    for (let i = 0; i < availableProviders.length; i++) {
+      const { type: providerType, provider } = availableProviders[i];
+
+      try {
+        console.log(`\n🚀 Using ${provider.displayName}...`);
+
+        const result = await analyzeWithSingleCall(provider, prInfo, buildNumber);
+
+        // Output Slack-formatted result
+        const slackOutput = formatForSlack(result);
+        console.log('\n' + slackOutput);
+
+        // Write to files
+        const fs = await import('fs');
+        fs.writeFileSync('release-test-plan.md', slackOutput);
+        fs.writeFileSync('release-test-plan.json', JSON.stringify(result, null, 2));
+        console.log('\n💾 Saved to release-test-plan.md and release-test-plan.json');
+        return;
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        console.warn(`\n⚠️  ${providerType} failed: ${err.message}`);
+
+        if (i < availableProviders.length - 1) {
+          console.log('🔄 Falling back to next provider...');
+        }
+      }
+    }
+
+    console.error('\n❌ All providers failed for fast analysis.');
+    process.exit(1);
+  }
+
+  // LEGACY PATH: agentic loop for other modes
   let lastError: Error | null = null;
 
   for (let i = 0; i < availableProviders.length; i++) {

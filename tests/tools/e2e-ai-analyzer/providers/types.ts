@@ -8,7 +8,7 @@
 /**
  * Supported LLM provider types
  */
-export type ProviderType = 'anthropic' | 'openai' | 'google';
+export type ProviderType = 'anthropic' | 'openai' | 'google' | 'litellm';
 
 /**
  * Content block types used in messages
@@ -85,4 +85,5 @@ export interface LLMResponse {
 export interface ProviderConfig {
   model: string;
   envKey: string;
+  baseUrl?: string;
 }

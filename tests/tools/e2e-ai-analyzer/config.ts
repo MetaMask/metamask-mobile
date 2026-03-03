@@ -16,14 +16,14 @@ export const LLM_CONFIG = {
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
    */
-  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
+  providerPriority: ['litellm', 'anthropic'] as ProviderType[],
 
   /**
    * Per-provider configuration
    */
   providers: {
     anthropic: {
-      model: 'claude-opus-4-5-20251101',
+      model: 'claude-opus-4-20250514',
       envKey: 'E2E_CLAUDE_API_KEY',
     } as ProviderConfig,
     openai: {
@@ -33,6 +33,11 @@ export const LLM_CONFIG = {
     google: {
       model: 'gemini-2.0-flash',
       envKey: 'E2E_GEMINI_API_KEY',
+    } as ProviderConfig,
+    litellm: {
+      model: 'claude-sonnet-4-20250514',
+      envKey: 'E2E_LITELLM_API_KEY',
+      baseUrl: 'https://litellm.consensys.info',
     } as ProviderConfig,
   },
 

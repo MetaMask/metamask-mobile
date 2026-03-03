@@ -9,6 +9,7 @@ import { ProviderType } from './types';
 import { AnthropicProvider } from './anthropic-provider';
 import { OpenAIProvider } from './openai-provider';
 import { GoogleProvider } from './google-provider';
+import { LiteLLMProvider } from './litellm-provider';
 import { LLM_CONFIG } from '../config';
 
 /**
@@ -18,6 +19,7 @@ const PROVIDER_CONSTRUCTORS: Record<ProviderType, () => ILLMProvider> = {
   anthropic: () => new AnthropicProvider(),
   openai: () => new OpenAIProvider(),
   google: () => new GoogleProvider(),
+  litellm: () => new LiteLLMProvider(),
 };
 
 /**
@@ -125,6 +127,7 @@ export async function createProviderWithFallback(
   if (availableProviders.length === 0) {
     throw new Error(
       'No LLM provider available. Set one of: ' +
+        `${LLM_CONFIG.providers.litellm.envKey}, ` +
         `${LLM_CONFIG.providers.anthropic.envKey}, ` +
         `${LLM_CONFIG.providers.openai.envKey}, ` +
         `${LLM_CONFIG.providers.google.envKey}`,

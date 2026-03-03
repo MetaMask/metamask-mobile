@@ -128,6 +128,18 @@ export class AnthropicProvider implements ILLMProvider {
       anthropicRequest.tools = toAnthropicTools(request.tools);
     }
 
+    // Use streaming for Opus models to avoid timeout issues
+    const isOpus = request.model.includes('opus');
+    if (isOpus) {
+      const stream = client.messages.stream(anthropicRequest);
+      const response = await stream.finalMessage();
+      return {
+        content: fromAnthropicContent(response.content),
+        model: response.model,
+        stopReason: response.stop_reason || 'end_turn',
+      };
+    }
+
     const response = await client.messages.create(anthropicRequest);
 
     return {

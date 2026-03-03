@@ -171,6 +171,7 @@ export function getPRFiles(prNumber: number, repo: string): string[] {
   }
 }
 
+
 /**
  * Filters diff output to only include specified files
  */
@@ -212,4 +213,265 @@ export function validatePRNumber(input: unknown): number | null {
   }
 
   return num;
+}
+
+/**
+ * Find commit SHA for a build number by searching for version bump commits
+ * Looks for commits like "[skip ci] Bump version number to 3678"
+ */
+export function getCommitForBuild(
+  buildNumber: number,
+  baseDir: string,
+): string | null {
+  try {
+    const commit = execSync(
+      `git log --oneline --grep="Bump version number to ${buildNumber}" --format="%H" -1`,
+      {
+        encoding: 'utf-8',
+        cwd: baseDir,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+
+    return commit || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cherry-pick info extracted from git log
+ */
+export interface CherryPickInfo {
+  commit: string;
+  message: string;
+  prNumber: string | null;
+  author: string;
+  date: string;
+}
+
+/**
+ * Get diff for a specific commit
+ */
+export function getCommitDiff(
+  commitSha: string,
+  baseDir: string,
+  linesLimit = 500,
+): string {
+  try {
+    const diff = execSync(`git show ${commitSha} --format="" --patch`, {
+      encoding: 'utf-8',
+      cwd: baseDir,
+      maxBuffer: 10 * 1024 * 1024,
+    });
+
+    const lines = diff.split('\n');
+    if (lines.length > linesLimit) {
+      return lines.slice(0, linesLimit).join('\n') + '\n... [truncated]';
+    }
+    return diff;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Get cherry-picks between two builds
+ * Returns commits that were added after prevBuild and up to currentBuild
+ * First tries to get from PR (for release branches), falls back to local git
+ */
+export function getCherryPicksBetweenBuilds(
+  prevBuildNumber: number,
+  currentBuildNumber: number,
+  baseDir: string,
+  prNumber?: number,
+  repo?: string,
+): CherryPickInfo[] {
+  // Try PR-based lookup first (for release PRs)
+  if (prNumber && repo) {
+    const prCherryPicks = getCherryPicksFromPR(
+      prNumber,
+      repo,
+      prevBuildNumber,
+      currentBuildNumber,
+    );
+    if (prCherryPicks.length > 0) {
+      return prCherryPicks;
+    }
+  }
+
+  // Fall back to local git log
+  const prevCommit = getCommitForBuild(prevBuildNumber, baseDir);
+  const currentCommit = getCommitForBuild(currentBuildNumber, baseDir);
+
+  if (!prevCommit || !currentCommit) {
+    console.warn(
+      `Could not find commits for builds ${prevBuildNumber} or ${currentBuildNumber}`,
+    );
+    return [];
+  }
+
+  try {
+    // Get commits between the two build commits (excluding the prev build commit)
+    const log = execSync(
+      `git log ${prevCommit}..${currentCommit} --format="%H|%s|%an|%ad" --date=short`,
+      {
+        encoding: 'utf-8',
+        cwd: baseDir,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+
+    if (!log) return [];
+
+    const cherryPicks: CherryPickInfo[] = [];
+    const lines = log.split('\n').filter((l) => l);
+
+    for (const line of lines) {
+      const [commit, message, author, date] = line.split('|');
+
+      // Skip the version bump commit itself
+      if (message.includes('Bump version number')) continue;
+
+      // Extract PR number from message like "cherry-pick fix(card): ... (#25800)"
+      const prMatch = message.match(/#(\d+)/);
+
+      cherryPicks.push({
+        commit: commit.substring(0, 7),
+        message,
+        prNumber: prMatch ? `#${prMatch[1]}` : null,
+        author,
+        date,
+      });
+    }
+
+    return cherryPicks;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get cherry-picks between two commits directly
+ * Use this when you have commit SHAs from the release PR
+ */
+export function getCherryPicksBetweenCommits(
+  fromCommit: string,
+  toCommit: string,
+  baseDir: string,
+): CherryPickInfo[] {
+  try {
+    // Get commits between the two commit SHAs
+    const log = execSync(
+      `git log ${fromCommit}..${toCommit} --format="%H|%s|%an|%ad" --date=short`,
+      {
+        encoding: 'utf-8',
+        cwd: baseDir,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      },
+    ).trim();
+
+    if (!log) return [];
+
+    const cherryPicks: CherryPickInfo[] = [];
+    const lines = log.split('\n').filter((l) => l);
+
+    for (const line of lines) {
+      const [commit, message, author, date] = line.split('|');
+
+      // Skip version bump commits
+      if (message.includes('Bump version number')) continue;
+
+      // Extract PR number from message like "cherry-pick fix(card): ... (#25800)"
+      const prMatch = message.match(/#(\d+)/);
+
+      cherryPicks.push({
+        commit: commit.substring(0, 7),
+        message,
+        prNumber: prMatch ? `#${prMatch[1]}` : null,
+        author,
+        date,
+      });
+    }
+
+    return cherryPicks;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.warn(`   Failed to get commits between ${fromCommit}..${toCommit}: ${msg}`);
+    return [];
+  }
+}
+
+/**
+ * Get cherry-picks from a release PR between two build numbers
+ * Uses gh CLI to fetch commits from the PR
+ */
+export function getCherryPicksFromPR(
+  prNumber: number,
+  repo: string,
+  prevBuildNumber: number,
+  currentBuildNumber: number,
+): CherryPickInfo[] {
+  try {
+    // Get all commits from the PR
+    const commitsJson = execSync(
+      `gh pr view ${prNumber} --repo ${repo} --json commits`,
+      {
+        encoding: 'utf-8',
+        maxBuffer: 50 * 1024 * 1024,
+      },
+    );
+
+    const data = JSON.parse(commitsJson);
+    const commits = data.commits || [];
+
+    // Find commits between the two build numbers
+    // Build bumps look like: "[skip ci] Bump version number to 3685"
+    let inRange = false;
+    let foundPrevBuild = false;
+    const cherryPicks: CherryPickInfo[] = [];
+
+    for (const commit of commits) {
+      const message = commit.messageHeadline || '';
+      const buildMatch = message.match(/Bump version number to (\d+)/);
+
+      if (buildMatch) {
+        const buildNum = parseInt(buildMatch[1], 10);
+
+        // Start collecting after we pass the previous build
+        if (buildNum === prevBuildNumber) {
+          foundPrevBuild = true;
+          inRange = true;
+          continue;
+        }
+
+        // Stop when we reach the current build
+        if (buildNum === currentBuildNumber) {
+          break;
+        }
+      }
+
+      // Collect cherry-picks while in range
+      if (inRange && !message.includes('Bump version number')) {
+        const prMatch = message.match(/#(\d+)/);
+        cherryPicks.push({
+          commit: (commit.oid || '').substring(0, 7),
+          message,
+          prNumber: prMatch ? `#${prMatch[1]}` : null,
+          author: commit.authors?.[0]?.name || 'Unknown',
+          date: commit.committedDate?.split('T')[0] || '',
+        });
+      }
+    }
+
+    if (!foundPrevBuild) {
+      console.warn(`   Build ${prevBuildNumber} not found in PR commits`);
+    }
+
+    return cherryPicks;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.warn(`   Failed to get commits from PR: ${msg}`);
+    return [];
+  }
 }

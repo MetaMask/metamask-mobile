@@ -25,6 +25,7 @@ export type { ILLMProvider } from './llm-provider';
 export { AnthropicProvider } from './anthropic-provider';
 export { OpenAIProvider } from './openai-provider';
 export { GoogleProvider } from './google-provider';
+export { LiteLLMProvider } from './litellm-provider';
 
 // Factory
 export {
