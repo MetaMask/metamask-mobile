@@ -17,11 +17,14 @@ import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -64,7 +67,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -108,6 +111,7 @@ import {
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
+import { colorWithOpacity } from '../../../util/colors';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
@@ -117,7 +121,12 @@ import ErrorBoundary from '../ErrorBoundary';
 import { Token } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../selectors/featureFlagController/homepage';
+import Homepage from '../Homepage';
+import { SectionRefreshHandle } from '../Homepage/types';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -171,6 +180,7 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
+import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -199,6 +209,13 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    bottomFadeOverlay: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 40,
     },
   });
 
@@ -461,6 +478,17 @@ const WalletTokensTabView = forwardRef<
     }
   }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
+  // Background preload perps market data when feature is enabled
+  useEffect(() => {
+    const controller = Engine.context.PerpsController;
+    if (isPerpsEnabled) {
+      controller.startMarketDataPreload();
+    } else {
+      controller.stopMarketDataPreload();
+    }
+    return () => controller.stopMarketDataPreload();
+  }, [isPerpsEnabled]);
+
   // Handle deep link effects
   useHomeDeepLinkEffects({
     navigation,
@@ -608,7 +636,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -739,6 +767,7 @@ const Wallet = ({
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const { isNetworkEnabledForDefi } = useCurrentNetworkInfo();
 
   const collectiblesEnabled = useMemo(() => {
     if (allEnabledNetworks.length === 1) {
@@ -747,7 +776,7 @@ const Wallet = ({
     return true;
   }, [isEvmSelected, allEnabledNetworks]);
 
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
@@ -953,6 +982,7 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
+  const isAccountMenuEnabled = useAccountMenuEnabled();
   const { detectNfts } = useNftDetection();
 
   /**
@@ -1044,12 +1074,79 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations],
+    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
+  );
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
+  const homepageRef = useRef<SectionRefreshHandle>(null);
+
+  // Enable parent scroll when homepage redesign or sections feature flags are enabled
+  const shouldEnableParentScroll =
+    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
+
+  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
+
+  const scrollContentHeight = useRef(0);
+  const scrollLayoutHeight = useRef(0);
+  const scrollOffsetY = useRef(0);
+
+  const computeFadeOpacity = useCallback(
+    (contentH: number, layoutH: number, offsetY: number) => {
+      const scrollableHeight = contentH - layoutH;
+      if (scrollableHeight <= 0) {
+        setBottomFadeOpacity(0);
+        return;
+      }
+      const distanceFromEnd = scrollableHeight - offsetY;
+      const fadeThreshold = 100;
+      setBottomFadeOpacity(
+        Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
+      );
+    },
+    [],
+  );
+
+  const handleVerticalScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      scrollContentHeight.current = contentSize.height;
+      scrollLayoutHeight.current = layoutMeasurement.height;
+      scrollOffsetY.current = contentOffset.y;
+      computeFadeOpacity(
+        contentSize.height,
+        layoutMeasurement.height,
+        contentOffset.y,
+      );
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollContentSizeChange = useCallback(
+    (_w: number, h: number) => {
+      scrollContentHeight.current = h;
+      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      scrollLayoutHeight.current = event.nativeEvent.layout.height;
+      computeFadeOpacity(
+        scrollContentHeight.current,
+        event.nativeEvent.layout.height,
+        scrollOffsetY.current,
+      );
+    },
+    [computeFadeOpacity],
   );
 
   useEffect(() => {
@@ -1069,6 +1166,7 @@ const Wallet = ({
         unreadNotificationCount,
         readNotificationCount,
         shouldDisplayCardButton,
+        isAccountMenuEnabled,
       ),
     );
   }, [
@@ -1084,6 +1182,7 @@ const Wallet = ({
     unreadNotificationCount,
     readNotificationCount,
     shouldDisplayCardButton,
+    isAccountMenuEnabled,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -1191,14 +1290,20 @@ const Wallet = ({
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
           : '';
       if (tabLabel === strings('wallet.tokens')) {
-        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_TOKENS)
+            .addProperties({ action: 'Wallet View', name: 'Tokens' })
+            .build(),
+        );
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
       } else if (tabLabel === strings('wallet.collectibles')) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES)
+            .addProperties({ action: 'Wallet View', name: 'Collectibles' })
+            .build(),
         );
         detectNfts();
       }
@@ -1213,7 +1318,7 @@ const Wallet = ({
   }, [navigation]);
 
   const defiEnabled =
-    isEvmSelected &&
+    isNetworkEnabledForDefi &&
     !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
@@ -1221,9 +1326,9 @@ const Wallet = ({
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      isHomepageRedesignV1Enabled && { flex: undefined, flexGrow: 0 },
+      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
     ],
-    [styles.wrapper, isHomepageRedesignV1Enabled],
+    [styles.wrapper, shouldEnableParentScroll],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1236,7 +1341,13 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      if (isHomepageSectionsV1Enabled) {
+        // Homepage sections mode - refresh homepage and balance
+        await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
+      } else {
+        // Legacy tab mode
+        await walletTokensTabViewRef.current?.refresh(refreshBalance);
+      }
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
@@ -1247,7 +1358,7 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance]);
+  }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
   const content = (
     <>
@@ -1286,13 +1397,17 @@ const Wallet = ({
 
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
-        <WalletTokensTabView
-          ref={walletTokensTabViewRef}
-          navigation={navigation}
-          onChangeTab={onChangeTab}
-          defiEnabled={defiEnabled}
-          collectiblesEnabled={collectiblesEnabled}
-        />
+        {isHomepageSectionsV1Enabled ? (
+          <Homepage ref={homepageRef} />
+        ) : (
+          <WalletTokensTabView
+            ref={walletTokensTabViewRef}
+            navigation={navigation}
+            onChangeTab={onChangeTab}
+            defiEnabled={defiEnabled}
+            collectiblesEnabled={collectiblesEnabled}
+          />
+        )}
       </>
     </>
   );
@@ -1315,11 +1430,21 @@ const Wallet = ({
           >
             <ConditionalScrollView
               ref={scrollViewRef}
-              isScrollEnabled={isHomepageRedesignV1Enabled}
+              isScrollEnabled={shouldEnableParentScroll}
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
-                refreshControl: isHomepageRedesignV1Enabled ? (
+                onScroll: isHomepageSectionsV1Enabled
+                  ? handleVerticalScroll
+                  : undefined,
+                onContentSizeChange: isHomepageSectionsV1Enabled
+                  ? handleScrollContentSizeChange
+                  : undefined,
+                onLayout: isHomepageSectionsV1Enabled
+                  ? handleScrollLayout
+                  : undefined,
+                scrollEventThrottle: 16,
+                refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
                     tintColor={colors.icon.default}
@@ -1331,6 +1456,21 @@ const Wallet = ({
             >
               {content}
             </ConditionalScrollView>
+            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
+              <LinearGradient
+                pointerEvents="none"
+                colors={[
+                  colorWithOpacity(colors.background.default, 0),
+                  colors.background.default,
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={[
+                  styles.bottomFadeOverlay,
+                  { opacity: bottomFadeOpacity },
+                ]}
+              />
+            )}
           </View>
         ) : (
           renderLoader()

@@ -1,11 +1,8 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { PredictNavigationParamList } from '../types/navigation';
 import { usePredictTrading } from './usePredictTrading';
-import { createSelector } from 'reselect';
-import { RootState } from '../../../../reducers';
 import { useSelector } from 'react-redux';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
@@ -13,20 +10,15 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
+import { selectPredictWithdrawTransaction } from '../selectors/predictController';
 
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
 
-  const selectWithdrawTransaction = createSelector(
-    (state: RootState) => state.engine.backgroundState.PredictController,
-    (predictState) => predictState.withdrawTransaction,
-  );
-
-  const withdrawTransaction = useSelector(selectWithdrawTransaction);
+  const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
     try {

@@ -63,7 +63,6 @@ export interface CardDisplayInfo {
   lastFourDigits: string;
   cardNetwork: CardNetwork;
   cardDescription?: string;
-  expiryDate?: string;
 }
 
 /** Encrypted payload for wallet provisioning */
@@ -156,7 +155,6 @@ export interface CardDetails {
   holderName: string;
   panLast4: string;
   status: string;
-  expiryDate?: string;
 }
 
 /** Options for usePushProvisioning hook */

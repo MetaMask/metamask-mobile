@@ -1,5 +1,6 @@
 import React from 'react';
 import { merge } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PayTokenAmount } from './pay-token-amount';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
@@ -25,15 +26,26 @@ const PAY_TOKEN_SYMBOL_MOCK = 'TST';
 const CHAIN_ID_2_MOCK = '0x456';
 const ADDRESS_2_MOCK = '0xdef';
 
-function render({ disabled = false } = {}) {
+function render({
+  disabled = false,
+  transactionType,
+}: { disabled?: boolean; transactionType?: TransactionType } = {}) {
+  const state = merge(
+    {},
+    simpleSendTransactionControllerMock,
+    transactionApprovalControllerMock,
+    otherControllersMock,
+  );
+
+  if (transactionType) {
+    state.engine.backgroundState.TransactionController.transactions[0].type =
+      transactionType;
+  }
+
   return renderWithProvider(
     <PayTokenAmount amountHuman={ASSET_AMOUNT_MOCK} disabled={disabled} />,
     {
-      state: merge(
-        simpleSendTransactionControllerMock,
-        transactionApprovalControllerMock,
-        otherControllersMock,
-      ),
+      state,
     },
   );
 }
@@ -98,5 +110,15 @@ describe('PayTokenAmount', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('pay-token-amount-skeleton')).toBeDefined();
+  });
+
+  it('returns null for withdrawal transactions', () => {
+    const { queryByTestId, queryByText } = render({
+      transactionType: TransactionType.predictWithdraw,
+    });
+
+    expect(queryByTestId('pay-token-amount')).toBeNull();
+    expect(queryByTestId('pay-token-amount-skeleton')).toBeNull();
+    expect(queryByText(PAY_TOKEN_SYMBOL_MOCK)).toBeNull();
   });
 });

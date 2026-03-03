@@ -7,11 +7,8 @@ import { CardSDK } from '../sdk/CardSDK';
 import { CardTokenAllowance, AllowanceState } from '../types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import {
-  IUseMetricsHook,
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { ARBITRARY_ALLOWANCE } from '../constants';
@@ -35,15 +32,8 @@ jest.mock('./useNeedsGasFaucet', () => ({
   useNeedsGasFaucet: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_DELEGATION_PROCESS_STARTED: 'CARD_DELEGATION_PROCESS_STARTED',
-    CARD_DELEGATION_PROCESS_COMPLETED: 'CARD_DELEGATION_PROCESS_COMPLETED',
-    CARD_DELEGATION_PROCESS_FAILED: 'CARD_DELEGATION_PROCESS_FAILED',
-    CARD_DELEGATION_PROCESS_USER_CANCELED:
-      'CARD_DELEGATION_PROCESS_USER_CANCELED',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -78,7 +68,9 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const mockUseNeedsGasFaucet = useNeedsGasFaucet as jest.MockedFunction<
   typeof useNeedsGasFaucet
 >;
@@ -163,8 +155,7 @@ describe('useCardDelegation', () => {
     });
     mockTrackEvent = jest.fn();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
       isEnabled: jest.fn().mockReturnValue(true),
@@ -172,11 +163,11 @@ describe('useCardDelegation', () => {
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
       isDataRecorded: jest.fn().mockReturnValue(true),
       getDeleteRegulationId: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),
-    } as IUseMetricsHook);
+    } as ReturnType<typeof useAnalytics>);
 
     // Setup selector mock - returns a function that returns account
     mockUseSelector.mockReturnValue(

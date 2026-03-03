@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { TraceName, TraceOperation } from '../../../../util/trace';
-import { MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -16,6 +16,8 @@ import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface UsePerpsOrderExecutionParams {
+  /** Called when the order has been successfully submitted to the exchange (before position fetch). */
+  onSubmitted?: () => void;
   onSuccess?: (position?: Position) => void;
   onError?: (error: string) => void;
 }
@@ -34,7 +36,7 @@ interface UsePerpsOrderExecutionReturn {
 export function usePerpsOrderExecution(
   params: UsePerpsOrderExecutionParams = {},
 ): UsePerpsOrderExecutionReturn {
-  const { onSuccess, onError } = params;
+  const { onSubmitted, onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
   const { track } = usePerpsEventTracking();
 
@@ -62,6 +64,8 @@ export function usePerpsOrderExecution(
           'usePerpsOrderExecution: Placing order',
           JSON.stringify(orderParams, null, 2),
         );
+
+        onSubmitted?.();
 
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
@@ -232,7 +236,14 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, getPositions, onSuccess, onError, track],
+    [
+      controllerPlaceOrder,
+      getPositions,
+      onSubmitted,
+      onSuccess,
+      onError,
+      track,
+    ],
   );
 
   return {

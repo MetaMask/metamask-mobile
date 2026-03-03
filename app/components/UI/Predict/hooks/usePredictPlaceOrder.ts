@@ -1,4 +1,5 @@
 import { useCallback, useContext, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
@@ -12,14 +13,14 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PlaceOrderParams } from '../providers/types';
-import { Side, type Result } from '../types';
+import { PlaceOrderParams, Side, type Result } from '../types';
 import { usePredictTrading } from './usePredictTrading';
 import { strings } from '../../../../../locales/i18n';
 import { formatPrice } from '../utils/format';
 import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { usePredictBalance } from './usePredictBalance';
+import { predictQueries } from '../queries';
 import { usePredictDeposit } from './usePredictDeposit';
 import { PredictEventValues } from '../constants/eventNames';
 
@@ -75,7 +76,8 @@ export function usePredictPlaceOrder(
   const [result, setResult] = useState<Result | null>(null);
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
   const { toastRef } = useContext(ToastContext);
-  const { balance } = usePredictBalance({ loadOnMount: false });
+  const queryClient = useQueryClient();
+  const { data: balance = 0 } = usePredictBalance();
   const { deposit } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
@@ -149,14 +151,15 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
-        preview: { minAmountReceived, side, maxAmountSpent },
+        preview: { minAmountReceived, side, maxAmountSpent, fees },
       } = orderParams;
 
+      const totalAmount = maxAmountSpent + (fees?.totalFee ?? 0);
+
       // Check if user has sufficient balance for the bet amount
-      // maxAmountSpent includes the bet amount plus all fees
-      if (side === Side.BUY && balance < maxAmountSpent) {
+      if (side === Side.BUY && balance < totalAmount) {
         await deposit({
-          amountUsd: maxAmountSpent,
+          amountUsd: totalAmount,
           analyticsProperties: {
             ...orderParams.analyticsProperties,
             marketId: orderParams.preview.marketId,
@@ -178,6 +181,18 @@ export function usePredictPlaceOrder(
         onComplete?.(orderResult);
 
         setResult(orderResult);
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.positions.keys.all(),
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.activity.keys.all(),
+        });
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
@@ -239,6 +254,7 @@ export function usePredictPlaceOrder(
       balance,
       deposit,
       controllerPlaceOrder,
+      queryClient,
       onComplete,
       showOrderPlacedToast,
       showCashedOutToast,

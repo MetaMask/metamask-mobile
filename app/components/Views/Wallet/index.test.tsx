@@ -90,7 +90,11 @@ import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen, renderHook } from '@testing-library/react-native';
+import {
+  screen as RNScreen,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -515,6 +519,43 @@ describe('Wallet', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
+  it('calls AccountTrackerController.refresh when selectedInternalAccount changes', async () => {
+    const refreshMock = jest.mocked(
+      Engine.context.AccountTrackerController.refresh,
+    );
+
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    render(Wallet);
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
+    refreshMock.mockClear();
+
+    renderScreen(
+      // @ts-expect-error we are ignoring the navigation params on purpose
+      Wallet,
+      { name: Routes.WALLET_VIEW },
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              AccountsController: {
+                ...mockInitialState.engine.backgroundState.AccountsController,
+                internalAccounts: {
+                  ...mockInitialState.engine.backgroundState.AccountsController
+                    .internalAccounts,
+                  selectedAccount: 'different-account-id',
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    await waitFor(() => expect(refreshMock).toHaveBeenCalled());
   });
 
   // Simple test to verify mock setup

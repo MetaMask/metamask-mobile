@@ -1,191 +1,565 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import Checkout from './Checkout';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import { act, fireEvent } from '@testing-library/react-native';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import Checkout from '.';
+import Routes from '../../../../../constants/navigation/Routes';
+import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import Logger from '../../../../../util/Logger';
 
-const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
-const mockGoBack = jest.fn();
-
-const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    setOptions: mockSetOptions,
-    goBack: mockGoBack,
-  }),
-  useRoute: () => ({
-    params: {
-      url: 'https://provider.example.com/widget?test=1',
-      providerName: 'Test Provider',
-    },
-  }),
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
-  I18nEvents: {
-    addListener: jest.fn(),
+const mockSetOptions = jest.fn();
+const mockNavigate = jest.fn();
+const mockPop = jest.fn();
+const mockReset = jest.fn();
+const mockDangerouslyGetParent = jest.fn(() => ({ pop: mockPop }));
+const mockNavigation = {
+  goBack: jest.fn(),
+  navigate: mockNavigate,
+  reset: mockReset,
+  setOptions: mockSetOptions,
+  dangerouslyGetParent: mockDangerouslyGetParent,
+};
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
+
+const mockDispatchThunk = jest.fn();
+jest.mock('../../../../hooks/useThunkDispatch', () => ({
+  __esModule: true,
+  default: () => mockDispatchThunk,
+}));
+
+const mockGetOrderFromCallback = jest.fn();
+const mockAddOrder = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      getOrderFromCallback: (...args: unknown[]) =>
+        mockGetOrderFromCallback(...args),
+      addOrder: (...args: unknown[]) => mockAddOrder(...args),
+    },
   },
 }));
 
-jest.mock('../../../Navbar', () => ({}));
+jest.mock('../../../../../core/NotificationManager', () => ({
+  showSimpleNotification: jest.fn(),
+}));
+
+jest.mock('../../utils/stateHasOrder', () => ({
+  __esModule: true,
+  default: jest.fn(() => false),
+}));
+
+jest.mock('../../utils/getNotificationDetails', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
+jest.mock('../../../../../actions/user', () => ({
+  protectWalletModalVisible: jest.fn(() => ({
+    type: 'PROTECT_WALLET_MODAL_VISIBLE',
+  })),
+}));
+
+const MOCK_CALLBACK_BASE_URL = 'https://callback.test';
+
+jest.mock('../../Aggregator/sdk', () => ({
+  ...jest.requireActual('../../Aggregator/sdk'),
+  callbackBaseUrl: 'https://callback.test',
+}));
+
+const mockUseParams = jest.fn<Record<string, unknown>, []>(() => ({
+  url: 'https://provider.example.com/widget?test=1',
+  providerName: 'Test Provider',
+}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn(() => ({
-    url: 'https://provider.example.com/widget?test=1',
-    providerName: 'Test Provider',
-  })),
+  useParams: () => mockUseParams(),
 }));
 
-jest.mock('../../../../../util/browser', () => ({
-  shouldStartLoadWithRequest: jest.fn(() => true),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  log: jest.fn(),
-  error: jest.fn(),
-}));
-
-jest.mock('../../Aggregator/sdk', () => ({
-  useRampSDK: jest.fn(() => ({
-    selectedPaymentMethodId: null,
-    selectedRegion: null,
-    selectedAsset: null,
-    selectedFiatCurrencyId: null,
-    isBuy: true,
-  })),
-}));
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const mockReact = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: mockReact.forwardRef(
-        (
-          {
-            children,
-          }: {
-            children: React.ReactNode;
-          },
-          ref: React.Ref<unknown>,
-        ) => {
-          mockReact.useImperativeHandle(ref, () => ({
-            onCloseBottomSheet: mockOnCloseBottomSheet,
-          }));
-          return <>{children}</>;
-        },
-      ),
-    };
-  },
-);
+function render() {
+  return renderScreen(Checkout, {
+    name: Routes.RAMP.CHECKOUT,
+  });
+}
 
 describe('Checkout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders correctly with valid URL', () => {
-    const { toJSON } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders WebView when URL is provided', () => {
-    const { getByTestId } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
-
-    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
-  });
-
-  it('renders close button', () => {
-    const { getByTestId } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
-
-    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
-  });
-
-  it('passes userAgent to WebView when provided in params', () => {
-    const useParamsMock = jest.requireMock<
-      typeof import('../../../../../util/navigation/navUtils')
-    >('../../../../../util/navigation/navUtils').useParams as jest.Mock;
-
-    useParamsMock.mockReturnValue({
-      url: 'https://provider.example.com/widget',
-      providerName: 'Test Provider',
-      userAgent: 'CustomProvider/1.0 (MetaMask)',
+    mockDispatchThunk.mockImplementation((thunk: unknown) => {
+      if (typeof thunk === 'function') {
+        thunk(mockDispatch, () => ({}));
+      }
     });
-
-    const { getByTestId } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
-
-    const webview = getByTestId('checkout-webview');
-    expect(webview.props.userAgent).toBe('CustomProvider/1.0 (MetaMask)');
-
-    useParamsMock.mockReturnValue({
+    mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/widget?test=1',
       providerName: 'Test Provider',
     });
   });
 
-  it('does not show error view for auxiliary resource HTTP errors', () => {
-    const { getByTestId, queryByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
-
-    const webview = getByTestId('checkout-webview');
-
-    // Simulate an HTTP error for an auxiliary resource (not the initial URL)
-    fireEvent(webview, 'onHttpError', {
-      nativeEvent: {
-        url: 'https://analytics.example.com/track.js',
-        statusCode: 404,
-      },
-    });
-
-    // Error view should NOT be shown for auxiliary resource failures
-    expect(
-      queryByText('fiat_on_ramp_aggregator.webview_received_error'),
-    ).not.toBeOnTheScreen();
+  it('renders WebView when URL is provided', () => {
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
   });
 
-  it('shows error view on HTTP error for initial URL', () => {
-    const { getByTestId, getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <Checkout />
-      </ThemeContext.Provider>,
-    );
+  it('renders close button', () => {
+    const { getByTestId } = render();
+    expect(getByTestId('checkout-close-button')).toBeOnTheScreen();
+  });
 
+  it('renders error view when no URL is provided', () => {
+    mockUseParams.mockReturnValue({
+      url: '',
+      providerName: 'Test Provider',
+    });
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('sets and displays error on http error for initial URL', async () => {
+    const { getByTestId, getByText } = render();
     const webview = getByTestId('checkout-webview');
 
-    fireEvent(webview, 'onHttpError', {
-      nativeEvent: {
-        url: 'https://provider.example.com/widget?test=1',
-        statusCode: 500,
-      },
+    await act(async () => {
+      await webview.props.onHttpError({
+        nativeEvent: {
+          url: 'https://provider.example.com/widget?test=1',
+          statusCode: 500,
+        },
+      });
     });
 
-    expect(
-      getByText('fiat_on_ramp_aggregator.webview_received_error'),
-    ).toBeOnTheScreen();
+    expect(getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('sets and displays error on http error for callback URL', async () => {
+    const { getByTestId, toJSON } = render();
+    const webview = getByTestId('checkout-webview');
+
+    await act(async () => {
+      await webview.props.onHttpError({
+        nativeEvent: {
+          url: MOCK_CALLBACK_BASE_URL,
+          statusCode: 500,
+        },
+      });
+    });
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('ignores http error for auxiliary resources', async () => {
+    const { getByTestId, queryByText } = render();
+    const webview = getByTestId('checkout-webview');
+
+    await act(async () => {
+      await webview.props.onHttpError({
+        nativeEvent: {
+          url: 'https://analytics.example.com/track.js',
+          statusCode: 404,
+        },
+      });
+    });
+
+    expect(queryByText('Try again')).toBeNull();
+  });
+
+  it('retries loading after error by pressing try again', async () => {
+    const { getByTestId, getByText } = render();
+    const webview = getByTestId('checkout-webview');
+
+    await act(async () => {
+      await webview.props.onHttpError({
+        nativeEvent: {
+          url: 'https://provider.example.com/widget?test=1',
+          statusCode: 500,
+        },
+      });
+    });
+
+    const tryAgainButton = getByText('Try again');
+    await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
+
+    expect(getByTestId('checkout-webview')).toBeOnTheScreen();
+  });
+
+  describe('V2 callback flow', () => {
+    const V2_PARAMS = {
+      url: 'https://provider.example.com/widget?test=1',
+      providerName: 'Transak',
+      providerCode: 'transak',
+      walletAddress: '0xabc',
+      network: '1',
+      currency: 'USD',
+      cryptocurrency: 'ETH',
+    };
+
+    const CALLBACK_URL = `${MOCK_CALLBACK_BASE_URL}?orderId=abc-123&status=PENDING`;
+
+    beforeEach(() => {
+      mockUseParams.mockReturnValue(V2_PARAMS);
+    });
+
+    it('dispatches addFiatCustomIdData on mount when customOrderId is provided', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-order-xyz',
+      });
+      render();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'FIAT_ADD_CUSTOM_ID_DATA' }),
+      );
+    });
+
+    it('ignores navigation state changes to non-callback URLs', async () => {
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: 'https://provider.example.com/some-other-page',
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('ignores navigation state change while page is still loading', async () => {
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: true,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('handles callback with empty query params by closing the screen', async () => {
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: MOCK_CALLBACK_BASE_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockPop).toHaveBeenCalled();
+    });
+
+    it('handles callback error when getOrderFromCallback returns null', async () => {
+      mockGetOrderFromCallback.mockResolvedValue(null);
+
+      const { getByTestId, getByText } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(
+        getByText('Order could not be retrieved from callback'),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to order details even when order IDs are null', async () => {
+      mockGetOrderFromCallback.mockResolvedValue({
+        status: 'PENDING',
+        id: null,
+        providerOrderId: null,
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockAddOrder).toHaveBeenCalled();
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({
+                orderId: null,
+                showCloseButton: true,
+              }),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('successfully creates order from callback with customOrderId', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        provider: { id: 'transak', name: 'Transak', links: [] },
+        fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
+        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = render();
+      mockDispatch.mockClear();
+
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).toHaveBeenCalledWith(
+        'transak',
+        CALLBACK_URL,
+        '0xabc',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'FIAT_REMOVE_CUSTOM_ID_DATA' }),
+      );
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({ showCloseButton: true }),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('navigates to Ramps order details with showCloseButton when providerType is RAMPS_V2', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        provider: { id: 'transak', name: 'Transak', links: [] },
+        fiatCurrency: { symbol: 'USD', decimals: 2, denomSymbol: '$' },
+        cryptoCurrency: { symbol: 'ETH', decimals: 18 },
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      // For RAMPS_V2, navigation.reset() is used instead of pop() + navigate()
+      // to avoid a race condition where pop() removes the ramp modal before
+      // navigate() can push the order details screen.
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({ showCloseButton: true }),
+            }),
+          ]),
+        }),
+      );
+      expect(mockPop).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to Ramps order details when providerType is not RAMPS_V2', async () => {
+      const mockOrder = {
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-123',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.RAMP.RAMPS_ORDER_DETAILS,
+        expect.anything(),
+      );
+    });
+
+    it('navigates to order details with null orderId when order IDs are missing', async () => {
+      const mockOrder = {
+        id: null,
+        providerOrderId: null,
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      };
+
+      mockGetOrderFromCallback.mockResolvedValue(mockOrder);
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        customOrderId: 'custom-fallback-123',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          routes: expect.arrayContaining([
+            expect.objectContaining({
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: expect.objectContaining({
+                orderId: null,
+                showCloseButton: true,
+              }),
+            }),
+          ]),
+        }),
+      );
+    });
+
+    it('does not process callback twice when already handled', async () => {
+      mockGetOrderFromCallback.mockResolvedValue({
+        id: 'order-123',
+        providerOrderId: 'provider-123',
+        status: 'PENDING',
+        fiatAmount: 100,
+        cryptoAmount: 0.05,
+        totalFeesFiat: 5,
+        createdAt: Date.now(),
+        walletAddress: '0xabc',
+        network: '1',
+        excludeFromPurchases: false,
+        orderType: 'BUY',
+      });
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      mockGetOrderFromCallback.mockClear();
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('logs error on callback failure', async () => {
+      const testError = new Error('Network failure');
+      mockGetOrderFromCallback.mockRejectedValue(testError);
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+
+      const { getByTestId } = render();
+      const webview = getByTestId('checkout-webview');
+
+      await act(async () => {
+        await webview.props.onNavigationStateChange({
+          url: CALLBACK_URL,
+          loading: false,
+        });
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledWith(testError, {
+        message: 'UnifiedCheckout: error handling callback',
+      });
+    });
   });
 });

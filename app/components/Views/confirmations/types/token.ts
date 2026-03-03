@@ -29,6 +29,49 @@ export interface AssetType extends TokenI {
   rawBalance?: Hex;
 }
 
+export interface HighlightedActionButton {
+  buttonLabel: string;
+  onPress: () => void;
+  isDisabled?: boolean;
+}
+
+export type HighlightedItemPosition = 'in_asset_list' | 'outside_of_asset_list';
+
+export interface HighlightedItem {
+  /** Controls where the row is rendered in the asset picker UI. */
+  position: HighlightedItemPosition;
+  /** Either an IconName string or a remote icon URI. */
+  icon: string;
+  /** Primary label shown for the highlighted row. */
+  name: string;
+  /** Secondary label shown under the primary name. */
+  name_description: string;
+  /** Callback fired when the row itself is pressed. */
+  action: () => void;
+  /** Optional action buttons shown on the right side of the row. */
+  actions?: HighlightedActionButton[];
+  /** Right-side fiat value shown when no action buttons are rendered. */
+  fiat: string;
+  /** Right-side fiat subtitle shown below the fiat value. */
+  fiat_description: string;
+  /** Selected state used to apply pressed/selected background styling. */
+  isSelected?: boolean;
+  /** Loading state that shows a spinner and hides action buttons. */
+  isLoading?: boolean;
+}
+
+export type TokenListItem = AssetType | HighlightedItem;
+
+export const isHighlightedItemInAssetList = (
+  item: TokenListItem,
+): item is HighlightedItem =>
+  'position' in item && item.position === 'in_asset_list';
+
+export const isHighlightedItemOutsideAssetList = (
+  item: TokenListItem,
+): item is HighlightedItem =>
+  'position' in item && item.position === 'outside_of_asset_list';
+
 export interface Nft {
   address: string;
   standard: 'ERC721' | 'ERC1155';

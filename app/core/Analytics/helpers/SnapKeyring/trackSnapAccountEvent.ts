@@ -1,6 +1,7 @@
-import { IMetaMetricsEvent, MetaMetrics } from '../..';
+import { IMetaMetricsEvent } from '../..';
 import Logger from '../../../../util/Logger';
-import { MetricsEventBuilder } from '../../MetricsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
 /**
  * Track a Snap account-related event.
@@ -15,7 +16,7 @@ export function trackSnapAccountEvent(
   snapName: string,
 ): void {
   try {
-    const event = MetricsEventBuilder.createEventBuilder(metricEvent)
+    const event = AnalyticsEventBuilder.createEventBuilder(metricEvent)
       .addProperties({
         account_type: 'Snap',
         snap_id: snapId,
@@ -23,7 +24,7 @@ export function trackSnapAccountEvent(
       })
       .build();
 
-    MetaMetrics.getInstance().trackEvent(event);
+    analytics.trackEvent(event);
   } catch (error) {
     Logger.error(
       error as Error,

@@ -15,6 +15,8 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../../queries';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -33,6 +35,7 @@ import {
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectSelectedAccountGroupId } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -71,15 +74,14 @@ const PredictPositionsHeader = forwardRef<
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
+  const queryClient = useQueryClient();
   const {
-    balance,
-    loadBalance,
+    data: balance = 0,
     isLoading: isBalanceLoading,
     error: balanceError,
-  } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  } = usePredictBalance();
+  // Subscribe to account group changes so the component re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
@@ -96,15 +98,17 @@ const PredictPositionsHeader = forwardRef<
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
-    const combinedError = balanceError || pnlError;
+    const combinedError = balanceError?.message ?? pnlError ?? null;
     onError?.(combinedError);
   }, [balanceError, pnlError, onError]);
 
   useEffect(() => {
     if (!isDepositPending) {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [isDepositPending, queryClient]);
 
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -119,7 +123,9 @@ const PredictPositionsHeader = forwardRef<
     refresh: async () => {
       await Promise.all([
         loadUnrealizedPnL({ isRefresh: true }),
-        loadBalance({ isRefresh: true }),
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        }),
       ]);
     },
   }));
@@ -182,7 +188,7 @@ const PredictPositionsHeader = forwardRef<
         >
           <SensitiveText
             variant={ComponentTextVariant.BodyMD}
-            color={ComponentTextColor.Inverse}
+            color="white"
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
           >

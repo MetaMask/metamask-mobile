@@ -1,4 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { captureException } from '@sentry/react-native';
 import React, {
   useCallback,
@@ -31,7 +31,7 @@ import Text, {
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
@@ -52,7 +52,6 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
@@ -81,7 +80,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad

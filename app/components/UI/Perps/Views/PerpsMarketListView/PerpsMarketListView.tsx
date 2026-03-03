@@ -41,7 +41,7 @@ import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import PerpsMarketListHeader from '../../components/PerpsMarketListHeader';

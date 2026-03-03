@@ -1,13 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  Icon,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -18,6 +11,7 @@ import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
+import SelectField from './SelectField';
 import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
 import {
   resetOnboardingState,
@@ -34,7 +28,8 @@ import {
 } from '../../util/validateDateOfBirth';
 import { CardError } from '../../types';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import {
@@ -43,7 +38,6 @@ import {
   Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { TouchableOpacity } from 'react-native';
 
 const PersonalDetails = () => {
   const navigation = useNavigation();
@@ -51,7 +45,7 @@ const PersonalDetails = () => {
   const { setUser, fetchUserData, user: userData } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
   const initialSelectedCountry = useSelector(selectSelectedCountry);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
@@ -360,19 +354,11 @@ const PersonalDetails = () => {
         <Label>
           {strings('card.card_onboarding.personal_details.nationality_label')}
         </Label>
-        <Box twClassName="w-full border border-solid border-border-default rounded-lg py-1">
-          <TouchableOpacity
-            onPress={handleNationalitySelect}
-            testID="personal-details-nationality-select"
-          >
-            <Box twClassName="flex flex-row items-center justify-between px-4 py-2">
-              <Text variant={TextVariant.BodyMd}>
-                {nationalityName || nationalityKey}
-              </Text>
-              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
-            </Box>
-          </TouchableOpacity>
-        </Box>
+        <SelectField
+          value={nationalityName || nationalityKey}
+          onPress={handleNationalitySelect}
+          testID="personal-details-nationality-select"
+        />
       </Box>
 
       {/* SSN */}

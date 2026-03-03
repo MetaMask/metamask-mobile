@@ -12,16 +12,18 @@ import reducer, {
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
   selectBip44DefaultPair,
-  selectGasIncludedQuoteParams,
   selectIsBridgeEnabledSource,
-  selectDestChainRanking,
-  selectSourceChainRanking,
+  selectAllowedChainRanking,
+  setTokenSelectorNetworkFilter,
+  selectTokenSelectorNetworkFilter,
+  setVisiblePillChainIds,
+  selectVisiblePillChainIds,
 } from '.';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 
@@ -67,6 +69,8 @@ describe('bridge slice', () => {
         isSelectingToken: false,
         isMaxSourceAmount: false,
         isDestTokenManuallySet: false,
+        tokenSelectorNetworkFilter: undefined,
+        visiblePillChainIds: undefined,
       });
     });
   });
@@ -259,6 +263,17 @@ describe('bridge slice', () => {
       const newState = reducer(state, action);
 
       expect(newState).toEqual(initialState);
+    });
+
+    it('resets visible pill chain IDs when bridge state resets', () => {
+      const stateWithVisiblePills = {
+        ...initialState,
+        visiblePillChainIds: ['eip155:137', 'eip155:1'] as CaipChainId[],
+      };
+
+      const newState = reducer(stateWithVisiblePills, resetBridgeState());
+
+      expect(newState.visiblePillChainIds).toBeUndefined();
     });
   });
 
@@ -453,70 +468,6 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectGasIncludedQuoteParams', () => {
-    it('returns gasIncluded true with 7702 false when STX send bundle is supported', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          isGasIncludedSTXSendBundleSupported: true,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
-    });
-
-    it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: { ...mockDestToken, chainId: mockToken.chainId },
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
-    });
-
-    it('returns gasIncluded false with 7702 false for swap without 7702 support', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: { ...mockDestToken, chainId: mockToken.chainId },
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: false,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
-    });
-
-    it('returns gasIncluded false with 7702 false for bridge mode', () => {
-      const mockState = {
-        bridge: {
-          ...initialState,
-          sourceToken: mockToken,
-          destToken: mockDestToken,
-          isGasIncludedSTXSendBundleSupported: false,
-          isGasIncluded7702Supported: true,
-        },
-      } as RootState;
-
-      const result = selectGasIncludedQuoteParams(mockState);
-
-      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
-    });
-  });
-
   describe('selectIsBridgeEnabledSource', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Mock state structure causes TypeScript warnings but tests are valid
@@ -555,88 +506,15 @@ describe('bridge slice', () => {
     });
   });
 
-  describe('selectSourceChainRanking', () => {
-    it('returns only supported and user-configured chains', () => {
-      const result = selectSourceChainRanking(
+  describe('selectAllowedChainRanking', () => {
+    it('returns all supported chains from feature flags', () => {
+      const result = selectAllowedChainRanking(
         mockRootState as unknown as RootState,
       );
 
-      // Should return chains that are both in ALLOWED_BRIDGE_CHAIN_IDS
-      // and in the user's configured networks
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
 
-      // Ethereum (0x1) is allowed and configured in the mock state
-      expect(result.some((chain) => chain.chainId === 'eip155:1')).toBe(true);
-    });
-
-    it('filters out unsupported EVM chains from chainRanking', () => {
-      const mockState = cloneDeep(mockRootState);
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
-        [
-          ...mockState.engine.backgroundState.RemoteFeatureFlagController
-            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
-          { chainId: 'eip155:99999', name: 'Unsupported EVM Chain' },
-        ];
-
-      const result = selectSourceChainRanking(
-        mockState as unknown as RootState,
-      );
-
-      expect(result.some((chain) => chain.chainId === 'eip155:99999')).toBe(
-        false,
-      );
-    });
-
-    it('filters out unsupported non-EVM chains from chainRanking', () => {
-      const mockState = cloneDeep(mockRootState);
-      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
-        [
-          ...mockState.engine.backgroundState.RemoteFeatureFlagController
-            .remoteFeatureFlags.bridgeConfigV2.chainRanking,
-          { chainId: 'cosmos:cosmoshub-4', name: 'Unsupported Cosmos Chain' },
-        ];
-
-      const result = selectSourceChainRanking(
-        mockState as unknown as RootState,
-      );
-
-      expect(
-        result.some((chain) => chain.chainId === 'cosmos:cosmoshub-4'),
-      ).toBe(false);
-    });
-
-    it('filters out chains not in user-configured networks', () => {
-      const result = selectSourceChainRanking(
-        mockRootState as unknown as RootState,
-      );
-
-      // Optimism (0xa) is in chainRanking and ALLOWED_BRIDGE_CHAIN_IDS
-      // AND in the mock user's configured networks
-      const hasOptimism = result.some((chain) => chain.chainId === 'eip155:10');
-      expect(hasOptimism).toBe(true);
-
-      // Verify no chains appear that aren't in the user's configured networks
-      // The user only has Ethereum (0x1) and Optimism (0xa) configured as EVM networks
-      result.forEach((chain) => {
-        if (chain.chainId.startsWith('eip155:')) {
-          expect(['eip155:1', 'eip155:10']).toContain(chain.chainId);
-        }
-      });
-    });
-  });
-
-  describe('selectDestChainRanking', () => {
-    it('returns chainRanking from feature flags', () => {
-      const result = selectDestChainRanking(
-        mockRootState as unknown as RootState,
-      );
-
-      // Verify it returns an array with chain ranking data
-      expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
-
-      // Verify the structure of each item
       result.forEach((chain) => {
         expect(chain).toHaveProperty('chainId');
         expect(chain).toHaveProperty('name');
@@ -644,22 +522,11 @@ describe('bridge slice', () => {
         expect(typeof chain.name).toBe('string');
       });
 
-      // Verify Ethereum is included (commonly in chainRanking)
-      const hasEthereum = result.some(
-        (chain) => chain.chainId === 'eip155:1' && chain.name === 'Ethereum',
-      );
-      expect(hasEthereum).toBe(true);
-    });
-
-    it('returns all supported chains without filtering by user-configured networks', () => {
-      const result = selectDestChainRanking(
-        mockRootState as unknown as RootState,
-      );
-
-      // selectDestChainRanking should return all supported chains from feature flags
-      // This is the key difference from selectSourceChainRanking which filters
-      // by user-configured networks
-      expect(result.length).toBeGreaterThan(0);
+      expect(
+        result.some(
+          (chain) => chain.chainId === 'eip155:1' && chain.name === 'Ethereum',
+        ),
+      ).toBe(true);
     });
 
     it('filters out unsupported EVM chains not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
@@ -668,10 +535,12 @@ describe('bridge slice', () => {
         [
           ...mockState.engine.backgroundState.RemoteFeatureFlagController
             .remoteFeatureFlags.bridgeConfigV2.chainRanking,
-          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+          { chainId: 'eip155:99999', name: 'Unsupported EVM Chain' },
         ];
 
-      const result = selectDestChainRanking(mockState as unknown as RootState);
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+      );
 
       expect(result.some((chain) => chain.chainId === 'eip155:99999')).toBe(
         false,
@@ -688,7 +557,9 @@ describe('bridge slice', () => {
           { chainId: 'cosmos:cosmoshub-4', name: 'Unsupported Cosmos Chain' },
         ];
 
-      const result = selectDestChainRanking(mockState as unknown as RootState);
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+      );
 
       expect(
         result.some((chain) => chain.chainId === 'cosmos:cosmoshub-4'),
@@ -699,6 +570,113 @@ describe('bridge slice', () => {
             chain.chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         ),
       ).toBe(true);
+    });
+  });
+
+  describe('setTokenSelectorNetworkFilter', () => {
+    it('should set the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setTokenSelectorNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBe(chainId);
+    });
+
+    it('should clear the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setTokenSelectorNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBeUndefined();
+    });
+
+    it('should update the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setTokenSelectorNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.tokenSelectorNetworkFilter).toBe('eip155:137');
+    });
+  });
+
+  describe('selectTokenSelectorNetworkFilter', () => {
+    it('should return undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        tokenSelectorNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
+    });
+  });
+
+  describe('setVisiblePillChainIds', () => {
+    it('sets the visible pill chain IDs', () => {
+      const chainIds = ['eip155:1', 'eip155:137'] as CaipChainId[];
+      const action = setVisiblePillChainIds(chainIds);
+      const state = reducer(initialState, action);
+
+      expect(state.visiblePillChainIds).toEqual(chainIds);
+    });
+
+    it('clears visible pill chain IDs when set to undefined', () => {
+      const stateWithPills = {
+        ...initialState,
+        visiblePillChainIds: ['eip155:1'] as CaipChainId[],
+      };
+      const action = setVisiblePillChainIds(undefined);
+      const state = reducer(stateWithPills, action);
+
+      expect(state.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('selectVisiblePillChainIds', () => {
+    it('returns undefined when no pills are set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectVisiblePillChainIds(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the set chain IDs', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        visiblePillChainIds: ['eip155:1', 'eip155:10'],
+      };
+
+      const result = selectVisiblePillChainIds(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toEqual(['eip155:1', 'eip155:10']);
     });
   });
 

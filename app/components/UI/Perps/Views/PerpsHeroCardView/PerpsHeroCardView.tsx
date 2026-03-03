@@ -54,7 +54,7 @@ import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
@@ -195,7 +195,7 @@ const PerpsHeroCardView: React.FC = () => {
   };
 
   const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(1)}%`;
+  const pnlDisplay = `${pnlSign}${data.roe.toFixed(2)}%`;
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage

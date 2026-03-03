@@ -6,24 +6,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import {
-  PerpsController,
-  getDefaultPerpsControllerState,
-  InitializationState,
-  type PerpsControllerState,
-} from './PerpsController';
-import { PERPS_ERROR_CODES } from './perpsErrorCodes';
-import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import type {
-  AccountState,
-  PerpsProvider,
-  PerpsPlatformDependencies,
-  PerpsProviderType,
-  SubscribeAccountParams,
-} from './types';
-import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+
 import {
   createMockHyperLiquidProvider,
   createMockPosition,
@@ -33,6 +19,23 @@ import {
   createMockMessenger,
 } from '../../components/UI/Perps/__mocks__/serviceMocks';
 import Engine from '../../core/Engine';
+
+import {
+  PerpsController,
+  getDefaultPerpsControllerState,
+  InitializationState,
+} from './PerpsController';
+import type { PerpsControllerState } from './PerpsController';
+import { PERPS_ERROR_CODES } from './perpsErrorCodes';
+import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
+import type {
+  AccountState,
+  GetAvailableDexsParams,
+  PerpsProvider,
+  PerpsPlatformDependencies,
+  PerpsProviderType,
+  SubscribeAccountParams,
+} from './types';
 
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
@@ -275,6 +278,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to update state directly.
    * Exposed for scenarios where state needs to be manipulated
    * outside the normal public API (e.g., testing error conditions).
+   * @param callback
    */
   public testUpdate(callback: (state: PerpsControllerState) => void) {
     this.update(callback);
@@ -295,6 +299,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to set the providers map with complete providers.
    * Used in most tests to inject mock providers.
    * Also sets activeProviderInstance to the first provider (default provider).
+   * @param providers
    */
   public testSetProviders(providers: Map<PerpsProviderType, PerpsProvider>) {
     this.providers = providers;
@@ -309,6 +314,7 @@ class TestablePerpsController extends PerpsController {
    * Test-only method to set the providers map with partial providers.
    * Used explicitly in tests that verify error handling with incomplete providers.
    * Type cast is intentional and necessary for testing graceful degradation.
+   * @param providers
    */
   public testSetPartialProviders(
     providers: Map<PerpsProviderType, Partial<PerpsProvider>>,
@@ -327,6 +333,7 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set initialization state.
    * Allows tests to simulate both initialized and uninitialized states.
+   * @param value
    */
   public testSetInitialized(value: boolean) {
     this.isInitialized = value;
@@ -351,6 +358,8 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test-only method to set blocked region list.
    * Used to test priority logic (remote vs fallback).
+   * @param list
+   * @param source
    */
   public testSetBlockedRegionList(
     list: string[],
@@ -362,6 +371,7 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test accessor for protected method refreshEligibilityOnFeatureFlagChange.
    * Wrapper is necessary because protected methods can't be called from test code.
+   * @param remoteFlags
    */
   public testRefreshEligibilityOnFeatureFlagChange(remoteFlags: any) {
     this.refreshEligibilityOnFeatureFlagChange(remoteFlags);
@@ -370,9 +380,14 @@ class TestablePerpsController extends PerpsController {
   /**
    * Test accessor for protected method reportOrderToDataLake.
    * Wrapper is necessary because protected methods can't be called from test code.
+   * @param data
    */
   public testReportOrderToDataLake(data: any): Promise<any> {
     return this.reportOrderToDataLake(data);
+  }
+
+  public testHasStandaloneProvider(): boolean {
+    return this.hasStandaloneProvider();
   }
 }
 
@@ -437,6 +452,25 @@ describe('PerpsController', () => {
           },
         };
       }
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            id: 'account-1',
+            options: {},
+            scopes: ['eip155:1'],
+            methods: [],
+            metadata: {
+              name: 'Test',
+              importTime: 0,
+              keyring: { type: 'HD Key Tree' },
+            },
+          },
+        ];
+      }
       return undefined;
     });
 
@@ -482,8 +516,8 @@ describe('PerpsController', () => {
     });
 
     it('reads current RemoteFeatureFlagController state during construction', () => {
-      // Given: A mock messenger that tracks calls
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: A messenger that returns remote feature flags state
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -495,24 +529,25 @@ describe('PerpsController', () => {
         }
         return undefined;
       });
+      const testMessenger = createMockMessenger({ call: testMockCall });
 
       // When: Controller is constructed
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: testMessenger,
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
       });
 
-      // Then: Should have called to get RemoteFeatureFlagController state
+      // Then: Should have called to get RemoteFeatureFlagController state via messenger
       expect(testController).toBeDefined();
-      expect(mockCall).toHaveBeenCalledWith(
+      expect(testMockCall).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:getState',
       );
     });
 
     it('applies remote blocked regions when available during construction', () => {
-      // Given: Remote feature flags with blocked regions
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: Messenger that returns remote feature flags with blocked regions
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -527,7 +562,7 @@ describe('PerpsController', () => {
 
       // When: Controller is constructed
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
         clientConfig: {
@@ -570,8 +605,8 @@ describe('PerpsController', () => {
     });
 
     it('never downgrade from remote to fallback regions', () => {
-      // Given: Remote feature flags with blocked regions
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Given: Messenger that returns remote feature flags with blocked regions
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -586,7 +621,7 @@ describe('PerpsController', () => {
 
       // When: Controller is constructed with both remote and fallback
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: createMockInfrastructure(),
         clientConfig: {
@@ -609,16 +644,16 @@ describe('PerpsController', () => {
     });
 
     it('continues initialization when RemoteFeatureFlagController state call throws error', () => {
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      const testInfrastructure = createMockInfrastructure();
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           throw new Error('RemoteFeatureFlagController not ready');
         }
         return undefined;
       });
-      const testInfrastructure = createMockInfrastructure();
 
       const testController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: testMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: testInfrastructure,
         clientConfig: {
@@ -706,9 +741,7 @@ describe('PerpsController', () => {
     it('returns null during reinitialization', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      (
-        controller as unknown as { isReinitializing: boolean }
-      ).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = controller.getActiveProviderOrNull();
 
@@ -1526,6 +1559,32 @@ describe('PerpsController', () => {
 
       expect(mockProvider.disconnect).toHaveBeenCalled();
     });
+
+    it('cleans up preload subscriptions on disconnect', async () => {
+      jest.useFakeTimers();
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.disconnect.mockResolvedValue({ success: true });
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+
+      // Arrange: start preloading to set up timer + subscriptions
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Act: disconnect should tear down all preload state
+      await controller.disconnect();
+
+      // Assert: provider disconnected and no interval fires after disconnect
+      expect(mockProvider.disconnect).toHaveBeenCalled();
+      const callsBefore =
+        mockProvider.getMarketDataWithPrices.mock.calls.length;
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      expect(mockProvider.getMarketDataWithPrices.mock.calls.length).toBe(
+        callsBefore,
+      );
+
+      jest.useRealTimers();
+    });
   });
 
   describe('utility methods', () => {
@@ -2235,8 +2294,8 @@ describe('PerpsController', () => {
       const orderParams = {
         action: 'open' as const,
         symbol: 'BTC',
-        sl_price: 45000,
-        tp_price: 55000,
+        slPrice: 45000,
+        tpPrice: 55000,
       };
 
       const result = await controller.testReportOrderToDataLake(orderParams);
@@ -2245,8 +2304,8 @@ describe('PerpsController', () => {
       expect(mockDataLakeServiceInstance.reportOrder).toHaveBeenCalledWith({
         action: orderParams.action,
         symbol: orderParams.symbol,
-        sl_price: orderParams.sl_price,
-        tp_price: orderParams.tp_price,
+        slPrice: orderParams.slPrice,
+        tpPrice: orderParams.tpPrice,
         isTestnet: controller.state.isTestnet,
         context: expect.objectContaining({
           tracingContext: expect.any(Object),
@@ -2287,7 +2346,7 @@ describe('PerpsController', () => {
 
     it('passes filter parameters to provider', async () => {
       const mockDexs = ['dex1'];
-      const filterParams = { validated: true };
+      const filterParams = {} as GetAvailableDexsParams;
       jest
         .spyOn(mockMarketDataServiceInstance, 'getAvailableDexs')
         .mockResolvedValue(mockDexs);
@@ -2330,9 +2389,9 @@ describe('PerpsController', () => {
     const mockTransactionMeta = { id: 'tx-meta-123' };
     const mockTxHash = '0xhash123';
 
-    // Local messenger mock for depositWithConfirmation tests
-    let depositMessengerMock: jest.Mock;
+    let depositInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
     let depositController: TestablePerpsController;
+    let depositMockCall: jest.Mock;
 
     beforeEach(() => {
       // Mock DepositService
@@ -2344,38 +2403,42 @@ describe('PerpsController', () => {
           currentDepositId: mockDepositId,
         });
 
-      // Create a messenger mock that handles network and transaction actions
-      depositMessengerMock = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return {
-            remoteFeatureFlags: {
-              perpsPerpTradingGeoBlockedCountriesV2: {
-                blockedRegions: [],
+      // Create infrastructure mock (controllers no longer on infra)
+      depositInfrastructure = createMockInfrastructure();
+
+      // Create messenger mock that handles network + transaction + account controller calls
+      depositMockCall = jest
+        .fn()
+        .mockImplementation((action: string, ..._args: unknown[]) => {
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return {
+              remoteFeatureFlags: {
+                perpsPerpTradingGeoBlockedCountriesV2: { blockedRegions: [] },
               },
-            },
-          };
-        }
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.resolve({
-            result: Promise.resolve(mockTxHash),
-            transactionMeta: mockTransactionMeta,
-          });
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [
-            {
-              address: mockTransaction.from,
-              type: 'eip155:eoa',
-            },
-          ];
-        }
-        return undefined;
-      });
+            };
+          }
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.resolve({
+              result: Promise.resolve(mockTxHash),
+              transactionMeta: mockTransactionMeta,
+            });
+          }
+          return undefined;
+        });
 
       Engine.context.TransactionController.estimateGasFee = jest
         .fn()
@@ -2405,11 +2468,11 @@ describe('PerpsController', () => {
         },
       };
 
-      // Create a controller with the custom messenger for this test suite
+      // Create a controller with the custom infrastructure for this test suite
       depositController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: depositMessengerMock }),
+        messenger: createMockMessenger({ call: depositMockCall }),
         state: getDefaultPerpsControllerState(),
-        infrastructure: createMockInfrastructure(),
+        infrastructure: depositInfrastructure,
       });
     });
 
@@ -2457,7 +2520,7 @@ describe('PerpsController', () => {
 
       await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      expect(depositMockCall).toHaveBeenCalledWith(
         'NetworkController:findNetworkClientIdByChainId',
         mockAssetChainId,
       );
@@ -2471,7 +2534,7 @@ describe('PerpsController', () => {
 
       await depositController.depositWithConfirmation({ amount: '100' });
 
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      expect(depositMockCall).toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         mockTransaction,
         {
@@ -2521,21 +2584,73 @@ describe('PerpsController', () => {
         new Map([['hyperliquid', mockProvider]]),
       );
       const mockError = new Error('Network client not found');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          throw mockError;
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            throw mockError;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
       ).rejects.toThrow('Network client not found');
+    });
+
+    it('marks deposit request as failed when networkClientId is not found', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return undefined;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
+
+      await expect(
+        depositController.depositWithConfirmation({ amount: '100' }),
+      ).rejects.toThrow('No network client found for chain');
+
+      // Verify the deposit request was marked as failed, not left as pending
+      const depositRequest = depositController.state.depositRequests.find(
+        (req) => req.id === mockDepositId,
+      );
+      expect(depositRequest).toBeDefined();
+      expect(depositRequest?.status).toBe('failed');
+      expect(depositRequest?.success).toBe(false);
     });
 
     it('propagates TransactionController:addTransaction errors', async () => {
@@ -2544,20 +2659,31 @@ describe('PerpsController', () => {
         new Map([['hyperliquid', mockProvider]]),
       );
       const mockError = new Error('Transaction failed');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2573,20 +2699,31 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('Network error');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2604,20 +2741,31 @@ describe('PerpsController', () => {
         state.lastDepositTransactionId = 'old-tx-id';
       });
       const mockError = new Error('User denied transaction signature');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.reject(mockError);
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.reject(mockError);
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       await expect(
         depositController.depositWithConfirmation({ amount: '100' }),
@@ -2776,8 +2924,8 @@ describe('PerpsController', () => {
         placeOrder: true,
       });
 
-      // placeOrder uses messenger-based submitTransaction with perpsDepositAndOrder type
-      expect(depositMessengerMock).toHaveBeenCalledWith(
+      // placeOrder uses messenger-based addTransaction with perpsDepositAndOrder type
+      expect(depositMockCall).toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         mockTransaction,
         {
@@ -2788,7 +2936,7 @@ describe('PerpsController', () => {
         },
       );
       // Should NOT also call with perpsDeposit type
-      expect(depositMessengerMock).not.toHaveBeenCalledWith(
+      expect(depositMockCall).not.toHaveBeenCalledWith(
         'TransactionController:addTransaction',
         expect.anything(),
         expect.objectContaining({ type: 'perpsDeposit' }),
@@ -2796,6 +2944,23 @@ describe('PerpsController', () => {
       expect(depositController.state.lastDepositTransactionId).toBe(
         'tx-meta-123',
       );
+    });
+
+    it('returns resolved promise with transaction ID when placeOrder is true', async () => {
+      depositController.testMarkInitialized();
+      depositController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+
+      const { result } = await depositController.depositWithConfirmation({
+        amount: '100',
+        placeOrder: true,
+      });
+
+      // This would hang indefinitely with the old never-resolving promise
+      const txId = await result;
+      expect(typeof txId).toBe('string');
+      expect(txId).toBe('tx-meta-123');
     });
 
     it('clears depositInProgress after successful transaction', async () => {
@@ -2834,23 +2999,34 @@ describe('PerpsController', () => {
 
       // Mock messenger to succeed initially, but result promise rejects
       const mockError = new Error('Network error occurred');
-      depositMessengerMock.mockImplementation((action: string) => {
-        if (action === 'NetworkController:findNetworkClientIdByChainId') {
-          return mockNetworkClientId;
-        }
-        if (action === 'TransactionController:addTransaction') {
-          return Promise.resolve({
-            result: Promise.reject(mockError),
-            transactionMeta: mockTransactionMeta,
-          });
-        }
-        if (
-          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-        ) {
-          return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-        }
-        return undefined;
-      });
+      depositMockCall.mockImplementation(
+        (action: string, ..._args: unknown[]) => {
+          if (
+            action ===
+            'AccountTreeController:getAccountsFromSelectedAccountGroup'
+          ) {
+            return [
+              {
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+              },
+            ];
+          }
+          if (action === 'TransactionController:addTransaction') {
+            return Promise.resolve({
+              result: Promise.reject(mockError),
+              transactionMeta: mockTransactionMeta,
+            });
+          }
+          if (action === 'NetworkController:findNetworkClientIdByChainId') {
+            return mockNetworkClientId;
+          }
+          if (action === 'RemoteFeatureFlagController:getState') {
+            return { remoteFeatureFlags: {} };
+          }
+          return undefined;
+        },
+      );
 
       const { result } = await depositController.depositWithConfirmation({
         amount: '100',
@@ -2900,24 +3076,34 @@ describe('PerpsController', () => {
         jest.clearAllMocks();
         const mockError = new Error(message);
         // Mock messenger to succeed initially, but result promise rejects with user cancellation
-        depositMessengerMock.mockImplementation((action: string) => {
-          if (action === 'NetworkController:findNetworkClientIdByChainId') {
-            return mockNetworkClientId;
-          }
-          if (action === 'TransactionController:addTransaction') {
-            return Promise.resolve({
-              result: Promise.reject(mockError),
-              transactionMeta: mockTransactionMeta,
-            });
-          }
-          if (
-            action ===
-            'AccountTreeController:getAccountsFromSelectedAccountGroup'
-          ) {
-            return [{ address: mockTransaction.from, type: 'eip155:eoa' }];
-          }
-          return undefined;
-        });
+        depositMockCall.mockImplementation(
+          (action: string, ..._args: unknown[]) => {
+            if (
+              action ===
+              'AccountTreeController:getAccountsFromSelectedAccountGroup'
+            ) {
+              return [
+                {
+                  address: '0x1234567890123456789012345678901234567890',
+                  type: 'eip155:eoa',
+                },
+              ];
+            }
+            if (action === 'TransactionController:addTransaction') {
+              return Promise.resolve({
+                result: Promise.reject(mockError),
+                transactionMeta: mockTransactionMeta,
+              });
+            }
+            if (action === 'NetworkController:findNetworkClientIdByChainId') {
+              return mockNetworkClientId;
+            }
+            if (action === 'RemoteFeatureFlagController:getState') {
+              return { remoteFeatureFlags: {} };
+            }
+            return undefined;
+          },
+        );
 
         const { result } = await depositController.depositWithConfirmation({
           amount: '100',
@@ -3194,7 +3380,7 @@ describe('PerpsController', () => {
   describe('toggleTestnet', () => {
     it('returns error when already reinitializing', async () => {
       await controller.init();
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.toggleTestnet();
 
@@ -3212,6 +3398,45 @@ describe('PerpsController', () => {
       expect(result.success).toBe(true);
       expect(result.isTestnet).toBe(!initialTestnetState);
       expect(controller.state.isTestnet).toBe(!initialTestnetState);
+    });
+
+    it('returns failure and rolls back isTestnet when init sets InitializationState.Failed', async () => {
+      await controller.init();
+      const initialTestnetState = controller.state.isTestnet;
+
+      // Make init set state to Failed (mimics performInitialization catching an error)
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+          state.initializationError = 'Network toggle init failed';
+        });
+      });
+
+      const result = await controller.toggleTestnet();
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Network toggle init failed');
+      // isTestnet should be rolled back to its original value
+      expect(result.isTestnet).toBe(initialTestnetState);
+      expect(controller.state.isTestnet).toBe(initialTestnetState);
+
+      jest.restoreAllMocks();
+    });
+
+    it('clears isReinitializing flag after init failure', async () => {
+      await controller.init();
+
+      jest.spyOn(controller, 'init').mockImplementationOnce(async () => {
+        controller.testUpdate((state) => {
+          state.initializationState = InitializationState.Failed;
+        });
+      });
+
+      await controller.toggleTestnet();
+
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
+
+      jest.restoreAllMocks();
     });
   });
 
@@ -3944,6 +4169,109 @@ describe('PerpsController', () => {
         expect(accountState).toEqual(mockAccountState);
       });
     });
+
+    describe('standalone provider caching', () => {
+      it('reuses the same standalone provider across multiple calls', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        tempMockProvider.getOpenOrders.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Two standalone calls — should only create one provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        await controller.getOpenOrders({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+      });
+
+      it('cleans up standalone provider on init()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        // Create a cached standalone provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        // init() should clean it up
+        await controller.init();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('invalidates cached provider when isTestnet changes', async () => {
+        const firstProvider = createMockHyperLiquidProvider();
+        firstProvider.getPositions.mockResolvedValue([]);
+        const secondProvider = createMockHyperLiquidProvider();
+        secondProvider.getPositions.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementationOnce(
+          () => firstProvider,
+        ).mockImplementationOnce(() => secondProvider);
+
+        // First standalone call on mainnet
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(1);
+
+        // Toggle testnet flag (simulates config change)
+        controller.testUpdate((state) => {
+          state.isTestnet = true;
+        });
+
+        // Second standalone call — should create a new provider
+        await controller.getPositions({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+        expect(MockedHyperLiquidProvider).toHaveBeenCalledTimes(2);
+        // Old provider should have been disconnected
+        expect(firstProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on disconnect()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarketDataWithPrices({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        await controller.disconnect();
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+
+      it('cleans up standalone provider on stopMarketDataPreload()', async () => {
+        const tempMockProvider = createMockHyperLiquidProvider();
+        tempMockProvider.getMarkets.mockResolvedValue([]);
+        MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+        await controller.getMarkets({ standalone: true });
+        expect(controller.testHasStandaloneProvider()).toBe(true);
+
+        controller.stopMarketDataPreload();
+
+        // Fire-and-forget — give microtask a tick to resolve
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(controller.testHasStandaloneProvider()).toBe(false);
+        expect(tempMockProvider.disconnect).toHaveBeenCalled();
+      });
+    });
   });
 
   describe('setSelectedPaymentToken', () => {
@@ -4007,6 +4335,15 @@ describe('PerpsController', () => {
   });
 
   describe('switchProvider', () => {
+    it('returns success as no-op before init() when already on requested provider', async () => {
+      // Before init(), providers map is empty.
+      // switchProvider should still succeed as a no-op because activeProvider already matches.
+      const result = await controller.switchProvider('hyperliquid');
+
+      expect(result.success).toBe(true);
+      expect(result.providerId).toBe('hyperliquid');
+    });
+
     it('returns success without re-init when switching to same provider', async () => {
       await controller.init();
 
@@ -4028,7 +4365,7 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       controller.testSetProviders(providers);
 
-      (controller as any).isReinitializing = true;
+      jest.spyOn(controller, 'isCurrentlyReinitializing').mockReturnValue(true);
 
       const result = await controller.switchProvider('myx');
 
@@ -4057,8 +4394,13 @@ describe('PerpsController', () => {
     });
 
     it('switches to myx provider successfully', async () => {
-      // Enable MYX feature flag via remote flags + version gating
-      const mockCall = jest.fn().mockImplementation((action: string) => {
+      // Create controller with MYX-enabled mocks
+      const myxInfrastructure = createMockInfrastructure();
+      (
+        myxInfrastructure.featureFlags.validateVersionGated as jest.Mock
+      ).mockReturnValue(true);
+      // Enable MYX feature flag via messenger
+      const myxMockCall = jest.fn().mockImplementation((action: string) => {
         if (action === 'RemoteFeatureFlagController:getState') {
           return {
             remoteFeatureFlags: {
@@ -4073,14 +4415,8 @@ describe('PerpsController', () => {
         return undefined;
       });
 
-      // Create controller with MYX-enabled mocks
-      const myxInfrastructure = createMockInfrastructure();
-      (
-        myxInfrastructure.featureFlags.validateVersionGated as jest.Mock
-      ).mockReturnValue(true);
-
       const myxController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: mockCall }),
+        messenger: createMockMessenger({ call: myxMockCall }),
         state: getDefaultPerpsControllerState(),
         infrastructure: myxInfrastructure,
       });
@@ -4146,7 +4482,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
     });
 
     it('clears isReinitializing flag after failure', async () => {
@@ -4169,7 +4505,7 @@ describe('PerpsController', () => {
 
       await controller.switchProvider('myx');
 
-      expect((controller as any).isReinitializing).toBe(false);
+      expect(controller.isCurrentlyReinitializing()).toBe(false);
 
       jest.restoreAllMocks();
     });
@@ -4187,6 +4523,689 @@ describe('PerpsController', () => {
 
       // The init path should detect MYX is not available and fall back
       expect(controller.state.activeProvider).toBe('hyperliquid');
+    });
+  });
+
+  describe('getOpenOrders with standalone mode', () => {
+    const mockUserAddress = '0xabcdef1234567890abcdef1234567890abcdef12';
+    const MockedHyperLiquidProvider = HyperLiquidProvider as jest.MockedClass<
+      typeof HyperLiquidProvider
+    >;
+
+    beforeEach(() => {
+      MockedHyperLiquidProvider.mockClear();
+    });
+
+    it('uses existing provider for standalone queries when available', async () => {
+      const mockOrders = [
+        {
+          orderId: 'o1',
+          symbol: 'BTC',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '0.1',
+          originalSize: '0.1',
+          filledSize: '0',
+          remainingSize: '0.1',
+          price: '50000',
+          status: 'open' as const,
+          timestamp: Date.now(),
+        },
+      ];
+      const existingMockProvider = createMockHyperLiquidProvider();
+      existingMockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      controller.testSetProviders(
+        new Map([['hyperliquid', existingMockProvider]]),
+      );
+      controller.testMarkInitialized();
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+      });
+
+      const result = await controller.getOpenOrders({
+        standalone: true,
+        userAddress: mockUserAddress,
+      });
+
+      expect(existingMockProvider.getOpenOrders).toHaveBeenCalledWith({
+        standalone: true,
+        userAddress: mockUserAddress,
+      });
+      expect(result).toEqual(mockOrders);
+      expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+    });
+
+    it('creates temporary provider for standalone queries when no activeProviderInstance', async () => {
+      const mockOrders = [
+        {
+          orderId: 'o2',
+          symbol: 'ETH',
+          side: 'sell' as const,
+          orderType: 'market' as const,
+          size: '1',
+          originalSize: '1',
+          filledSize: '0',
+          remainingSize: '1',
+          price: '3000',
+          status: 'open' as const,
+          timestamp: Date.now(),
+        },
+      ];
+      const tempMockProvider = createMockHyperLiquidProvider();
+      tempMockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.isTestnet = true;
+      });
+
+      const result = await controller.getOpenOrders({
+        standalone: true,
+        userAddress: mockUserAddress,
+      });
+
+      expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ isTestnet: true }),
+      );
+      expect(result).toEqual(mockOrders);
+    });
+
+    it('bypasses getActiveProvider check for standalone queries', async () => {
+      const tempMockProvider = createMockHyperLiquidProvider();
+      tempMockProvider.getOpenOrders.mockResolvedValue([]);
+      MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+      controller.testUpdate((state) => {
+        state.initializationState = InitializationState.Initializing;
+        state.activeProvider = 'aggregated';
+      });
+
+      const result = await controller.getOpenOrders({
+        standalone: true,
+        userAddress: mockUserAddress,
+      });
+
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getMarketDataWithPrices with standalone mode', () => {
+    const MockedHyperLiquidProvider = HyperLiquidProvider as jest.MockedClass<
+      typeof HyperLiquidProvider
+    >;
+
+    beforeEach(() => {
+      MockedHyperLiquidProvider.mockClear();
+    });
+
+    it('uses existing provider for standalone queries when available', async () => {
+      const mockMarketData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      const existingMockProvider = createMockHyperLiquidProvider();
+      existingMockProvider.getMarketDataWithPrices.mockResolvedValue(
+        mockMarketData,
+      );
+      controller.testSetProviders(
+        new Map([['hyperliquid', existingMockProvider]]),
+      );
+      controller.testMarkInitialized();
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+      });
+
+      const result = await controller.getMarketDataWithPrices({
+        standalone: true,
+      });
+
+      expect(existingMockProvider.getMarketDataWithPrices).toHaveBeenCalled();
+      expect(result).toEqual(mockMarketData);
+      expect(MockedHyperLiquidProvider).not.toHaveBeenCalled();
+    });
+
+    it('creates temporary provider for standalone queries when no activeProviderInstance', async () => {
+      const mockMarketData = [
+        {
+          symbol: 'ETH',
+          name: 'ETH',
+          price: '3000',
+          maxLeverage: '50x',
+          change24h: '+50',
+          change24hPercent: '+1.7%',
+          volume: '$500M',
+        },
+      ];
+      const tempMockProvider = createMockHyperLiquidProvider();
+      tempMockProvider.getMarketDataWithPrices.mockResolvedValue(
+        mockMarketData,
+      );
+      MockedHyperLiquidProvider.mockImplementation(() => tempMockProvider);
+
+      controller.testUpdate((state) => {
+        state.activeProvider = 'aggregated';
+        state.isTestnet = false;
+      });
+
+      const result = await controller.getMarketDataWithPrices({
+        standalone: true,
+      });
+
+      expect(MockedHyperLiquidProvider).toHaveBeenCalledWith(
+        expect.objectContaining({ isTestnet: false }),
+      );
+      expect(result).toEqual(mockMarketData);
+    });
+
+    it('uses getActiveProvider for non-standalone queries', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+
+      const result = await controller.getMarketDataWithPrices();
+
+      expect(mockProvider.getMarketDataWithPrices).toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('startMarketDataPreload and stopMarketDataPreload', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      controller.stopMarketDataPreload();
+      jest.useRealTimers();
+    });
+
+    it('is idempotent - calling start twice does not create duplicate timers', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+
+      controller.startMarketDataPreload();
+      controller.startMarketDataPreload();
+
+      // Advance timers past the preload interval (5 min) to verify no double calls
+      jest.advanceTimersByTime(5 * 60 * 1000 + 100);
+
+      // performMarketDataPreload calls getMarketDataWithPrices({ standalone: true })
+      // The first immediate call happens, then only 1 interval call (not 2)
+      // With isPreloading guard, second immediate call is skipped
+      expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+        'PerpsController: Preload already started, skipping',
+      );
+    });
+
+    it('calls performMarketDataPreload immediately on start', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ]);
+
+      controller.startMarketDataPreload();
+
+      // Wait for the async performMarketDataPreload to complete
+      await jest.advanceTimersByTimeAsync(100);
+
+      expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+        'PerpsController: Fetching market data in background',
+      );
+    });
+
+    it('stopMarketDataPreload clears interval', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+
+      controller.startMarketDataPreload();
+      controller.stopMarketDataPreload();
+
+      // After stop, advancing timers should not trigger more calls
+      const callCountBefore =
+        mockProvider.getMarketDataWithPrices.mock.calls.length;
+      jest.advanceTimersByTime(10 * 60 * 1000);
+      const callCountAfter =
+        mockProvider.getMarketDataWithPrices.mock.calls.length;
+
+      // No new calls should have been made after stop
+      expect(callCountAfter).toBe(callCountBefore);
+    });
+
+    it('stopMarketDataPreload is safe to call when not started', () => {
+      expect(() => controller.stopMarketDataPreload()).not.toThrow();
+    });
+  });
+
+  describe('performMarketDataPreload', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      controller.stopMarketDataPreload();
+      jest.useRealTimers();
+    });
+
+    it('updates cachedMarketData in state', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      expect(controller.state.cachedMarketData).toEqual(mockData);
+      expect(controller.state.cachedMarketDataTimestamp).toBeGreaterThan(0);
+    });
+
+    it('respects 30s debounce guard', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      // First preload
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const callCount = mockProvider.getMarketDataWithPrices.mock.calls.length;
+
+      // Advance by less than 30s and trigger interval
+      controller.stopMarketDataPreload();
+      // Set timestamp to recent to trigger debounce guard
+      controller.testUpdate((state) => {
+        state.cachedMarketDataTimestamp = Date.now();
+      });
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Should not have called again due to debounce
+      // The second immediate call is debounced
+      expect(mockProvider.getMarketDataWithPrices.mock.calls.length).toBe(
+        callCount,
+      );
+    });
+
+    it('handles errors without throwing', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockRejectedValue(
+        new Error('API failed'),
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Should log error but not throw
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'performMarketDataPreload',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('traces performance via tracer', async () => {
+      const mockData = [
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ];
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockResolvedValue(mockData);
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      expect(mockInfrastructure.tracer.trace).toHaveBeenCalled();
+      expect(mockInfrastructure.tracer.endTrace).toHaveBeenCalled();
+      expect(mockInfrastructure.tracer.setMeasurement).toHaveBeenCalled();
+    });
+  });
+
+  describe('performUserDataPreload', () => {
+    // Import actual enum for type compatibility
+    const { WebSocketConnectionState: WSState } = jest.requireActual(
+      './services/HyperLiquidClientService',
+    );
+    const mockEvmAccount = {
+      address: '0x1234567890123456789012345678901234567890',
+      type: 'eip155:eoa',
+      id: 'account-1',
+      options: {},
+      scopes: ['eip155:1'],
+      methods: [],
+      metadata: {
+        name: 'Test',
+        importTime: 0,
+        keyring: { type: 'HD Key Tree' },
+      },
+    };
+
+    let preloadController: TestablePerpsController;
+    let preloadMockProvider: jest.Mocked<HyperLiquidProvider>;
+    let preloadInfrastructure: jest.Mocked<PerpsPlatformDependencies>;
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      // Create controller with messenger that handles account queries
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: { blockedRegions: [] },
+            },
+          };
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [mockEvmAccount];
+        }
+        return undefined;
+      });
+      preloadInfrastructure = createMockInfrastructure();
+      preloadMockProvider = createMockHyperLiquidProvider();
+      preloadMockProvider.getPositions.mockResolvedValue([]);
+      preloadMockProvider.getAccountState.mockResolvedValue({
+        availableBalance: '10000',
+        totalBalance: '10000',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      });
+      preloadMockProvider.getMarkets.mockResolvedValue([]);
+      preloadMockProvider.getOpenOrders.mockResolvedValue([]);
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => preloadMockProvider);
+      preloadController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: mockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: preloadInfrastructure,
+      });
+    });
+
+    afterEach(() => {
+      preloadController.stopMarketDataPreload();
+      jest.useRealTimers();
+    });
+
+    it('fetches positions, orders, and account state', async () => {
+      const mockPositions = [createMockPosition()];
+      const mockOrders = [
+        {
+          orderId: 'o1',
+          symbol: 'BTC',
+          side: 'buy' as const,
+          orderType: 'limit' as const,
+          size: '0.1',
+          originalSize: '0.1',
+          filledSize: '0',
+          remainingSize: '0.1',
+          price: '50000',
+          status: 'open' as const,
+          timestamp: Date.now(),
+        },
+      ];
+      const mockAccountState: AccountState = {
+        totalBalance: '50000',
+        availableBalance: '45000',
+        marginUsed: '5000',
+        unrealizedPnl: '1000',
+        returnOnEquity: '20',
+      };
+
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getPositions.mockResolvedValue(mockPositions);
+      preloadMockProvider.getOpenOrders.mockResolvedValue(mockOrders);
+      preloadMockProvider.getAccountState.mockResolvedValue(mockAccountState);
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([
+        {
+          symbol: 'BTC',
+          name: 'BTC',
+          price: '50000',
+          maxLeverage: '50x',
+          change24h: '+100',
+          change24hPercent: '+0.2%',
+          volume: '$1B',
+        },
+      ]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadController.state.cachedPositions).toEqual(mockPositions);
+      expect(preloadController.state.cachedOrders).toEqual(mockOrders);
+      expect(preloadController.state.cachedAccountState).toEqual(
+        mockAccountState,
+      );
+      expect(preloadController.state.cachedUserDataTimestamp).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('skips when WebSocket is connected', async () => {
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Connected,
+      );
+
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+        'PerpsController: Skipping user data preload \u2014 WebSocket connected',
+      );
+      expect(preloadController.state.cachedPositions).toBeNull();
+    });
+
+    it('handles errors without throwing', async () => {
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+      preloadMockProvider.getPositions.mockRejectedValue(
+        new Error('positions error'),
+      );
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      // Should not crash
+      expect(preloadController.state.cachedPositions).toBeNull();
+    });
+
+    it('skips when cache is fresh for same account', async () => {
+      preloadController.testMarkInitialized();
+      preloadController.testSetProviders(
+        new Map([['hyperliquid', preloadMockProvider]]),
+      );
+      preloadMockProvider.getMarketDataWithPrices.mockResolvedValue([]);
+      preloadMockProvider.getWebSocketConnectionState.mockReturnValue(
+        WSState.Disconnected,
+      );
+      preloadMockProvider.getPositions.mockResolvedValue([]);
+      preloadMockProvider.getOpenOrders.mockResolvedValue([]);
+      preloadMockProvider.getAccountState.mockResolvedValue({
+        availableBalance: '100',
+        totalBalance: '100',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      });
+
+      // First preload — populates the cache
+      preloadController.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(500);
+
+      expect(preloadController.state.cachedUserDataAddress).toBe(
+        mockEvmAccount.address,
+      );
+      expect(preloadController.state.cachedUserDataTimestamp).toBeGreaterThan(
+        0,
+      );
+
+      // Reset call counts
+      preloadMockProvider.getPositions.mockClear();
+      preloadMockProvider.getOpenOrders.mockClear();
+      preloadMockProvider.getAccountState.mockClear();
+
+      // Trigger another preload cycle — should skip (cache is fresh, same account)
+      await jest.advanceTimersByTimeAsync(60_000);
+
+      expect(preloadMockProvider.getPositions).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('subscribe method hardening', () => {
+    it('subscribeToPrices returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      // Should not throw
+      unsub();
+      expect(mockProvider.subscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToOrders returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOrders({ callback: jest.fn() });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+      expect(mockProvider.subscribeToOrders).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToPositions returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToPositions({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+      expect(mockProvider.subscribeToPositions).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToOrderFills returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOrderFills({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+      expect(mockProvider.subscribeToOrderFills).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToOrderBook returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOrderBook({
+        symbol: 'BTC',
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+    });
+
+    it('subscribeToCandles returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToCandles({
+        symbol: 'BTC',
+        interval: '1h' as never,
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
+    });
+
+    it('subscribeToOICaps returns no-op when provider is null', () => {
+      controller.testSetInitialized(false);
+
+      const unsub = controller.subscribeToOICaps({
+        callback: jest.fn(),
+      });
+
+      expect(typeof unsub).toBe('function');
+      unsub();
     });
   });
 });

@@ -6,9 +6,12 @@ import {
   isMusdClaimForCurrentView,
   convertMusdClaimAmount,
   decodeMerklClaimParams,
-  decodeMerklClaimAmount,
+  getClaimPayoutFromReceipt,
 } from './musd';
-import { DISTRIBUTOR_CLAIM_ABI } from '../components/MerklRewards/constants';
+import {
+  DISTRIBUTOR_CLAIM_ABI,
+  MERKL_DISTRIBUTOR_ADDRESS,
+} from '../components/MerklRewards/constants';
 import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
 
 const LINEA_CHAIN_ID = '0xe708' as Hex;
@@ -258,28 +261,120 @@ describe('musd utils', () => {
     });
   });
 
-  describe('decodeMerklClaimAmount', () => {
-    const userAddress = '0x1234567890123456789012345678901234567890';
-    const tokenAddress = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
-    const amount = '999000';
+  describe('getClaimPayoutFromReceipt', () => {
+    const USER = SELECTED_ADDRESS;
+    const TRANSFER_TOPIC =
+      '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef';
 
-    it('returns the amount from valid claim data', () => {
-      const iface = new Interface(DISTRIBUTOR_CLAIM_ABI);
-      const data = iface.encodeFunctionData('claim', [
-        [userAddress],
-        [tokenAddress],
-        [amount],
-        [[]],
-      ]);
-      expect(decodeMerklClaimAmount(data)).toBe(amount);
+    const padAddress = (addr: string) =>
+      `0x${addr.slice(2).toLowerCase().padStart(64, '0')}`;
+
+    const makeTransferLog = (
+      tokenAddress: string,
+      from: string,
+      to: string,
+      amount: bigint,
+    ) => ({
+      address: tokenAddress,
+      topics: [TRANSFER_TOPIC, padAddress(from), padAddress(to)],
+      data: `0x${amount.toString(16).padStart(64, '0')}`,
     });
 
-    it('returns null for undefined data', () => {
-      expect(decodeMerklClaimAmount(undefined)).toBeNull();
+    it('extracts the payout from a matching Transfer log', () => {
+      const payout = 70000000n; // 70 mUSD
+      const logs = [
+        makeTransferLog(
+          MUSD_TOKEN_ADDRESS,
+          MERKL_DISTRIBUTOR_ADDRESS,
+          USER,
+          payout,
+        ),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, USER)).toBe(payout.toString());
     });
 
-    it('returns null for invalid data', () => {
-      expect(decodeMerklClaimAmount('0xbaddata')).toBeNull();
+    it('ignores Transfer logs from other senders', () => {
+      const logs = [
+        makeTransferLog(MUSD_TOKEN_ADDRESS, OTHER_ADDRESS, USER, 100n),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, USER)).toBeNull();
+    });
+
+    it('ignores Transfer logs to other recipients', () => {
+      const logs = [
+        makeTransferLog(
+          MUSD_TOKEN_ADDRESS,
+          MERKL_DISTRIBUTOR_ADDRESS,
+          OTHER_ADDRESS,
+          100n,
+        ),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, USER)).toBeNull();
+    });
+
+    it('ignores Transfer logs from a different token', () => {
+      const logs = [
+        makeTransferLog(
+          '0x0000000000000000000000000000000000000099',
+          MERKL_DISTRIBUTOR_ADDRESS,
+          USER,
+          100n,
+        ),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, USER)).toBeNull();
+    });
+
+    it('returns null for undefined logs', () => {
+      expect(getClaimPayoutFromReceipt(undefined, USER)).toBeNull();
+    });
+
+    it('returns null for empty logs', () => {
+      expect(getClaimPayoutFromReceipt([], USER)).toBeNull();
+    });
+
+    it('returns null for undefined user address', () => {
+      const logs = [
+        makeTransferLog(
+          MUSD_TOKEN_ADDRESS,
+          MERKL_DISTRIBUTOR_ADDRESS,
+          USER,
+          100n,
+        ),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, undefined)).toBeNull();
+    });
+
+    it('picks the correct log among multiple logs', () => {
+      const payout = 42000000n;
+      const logs = [
+        // Some unrelated log
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          topics: ['0xabc'],
+          data: '0x00',
+        },
+        // The actual mUSD transfer from distributor
+        makeTransferLog(
+          MUSD_TOKEN_ADDRESS,
+          MERKL_DISTRIBUTOR_ADDRESS,
+          USER,
+          payout,
+        ),
+        // Another unrelated transfer
+        makeTransferLog(
+          '0x0000000000000000000000000000000000000099',
+          MERKL_DISTRIBUTOR_ADDRESS,
+          USER,
+          999n,
+        ),
+      ];
+
+      expect(getClaimPayoutFromReceipt(logs, USER)).toBe(payout.toString());
     });
   });
 });

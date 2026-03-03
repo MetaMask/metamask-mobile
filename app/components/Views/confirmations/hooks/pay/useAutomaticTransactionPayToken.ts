@@ -8,6 +8,13 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
+import { isTransactionPayWithdraw } from '../../utils/transaction';
+import { useSelector } from 'react-redux';
+import {
+  selectMetaMaskPayTokensFlags,
+  PreferredToken,
+  getPreferredTokensForTransactionType,
+} from '../../../../../selectors/featureFlagController/confirmations';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -26,15 +33,19 @@ export function useAutomaticTransactionPayToken({
   const isUpdated = useRef(false);
   const { setPayToken } = useTransactionPayToken();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
 
   const tokensWithBalance = useMemo(
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
 
-  const transactionMeta =
-    useTransactionMetadataRequest() ?? ({ txParams: {} } as TransactionMeta);
+  const transactionMetaRequest = useTransactionMetadataRequest();
+  const transactionMeta = useMemo(
+    () => transactionMetaRequest ?? ({ txParams: {} } as TransactionMeta),
+    [transactionMetaRequest],
+  );
 
   const {
     txParams: { from },
@@ -50,8 +61,21 @@ export function useAutomaticTransactionPayToken({
     [requiredTokens],
   );
 
+  const preferredTokensFromFlags = useMemo(
+    () =>
+      getPreferredTokensForTransactionType(
+        payTokensFlags.preferredTokens,
+        transactionMeta.type,
+      ),
+    [transactionMeta.type, payTokensFlags.preferredTokens],
+  );
+
+  // For withdrawals, skip auto-selection — the default token is derived
+  // from required tokens and shown via PayWithRow
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
   useEffect(() => {
-    if (disable || isUpdated.current) {
+    if (disable || isWithdraw || isUpdated.current) {
       return;
     }
 
@@ -60,6 +84,8 @@ export function useAutomaticTransactionPayToken({
       targetToken,
       tokens: tokensWithBalance,
       preferredToken,
+      preferredTokensFromFlags,
+      minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
     });
 
     if (!automaticToken) {
@@ -78,7 +104,10 @@ export function useAutomaticTransactionPayToken({
   }, [
     disable,
     isHardwareWallet,
+    isWithdraw,
+    payTokensFlags.minimumRequiredTokenBalance,
     preferredToken,
+    preferredTokensFromFlags,
     requiredTokens,
     setPayToken,
     targetToken,
@@ -89,11 +118,15 @@ export function useAutomaticTransactionPayToken({
 function getBestToken({
   isHardwareWallet,
   preferredToken,
+  preferredTokensFromFlags,
+  minimumRequiredTokenBalance,
   targetToken,
   tokens,
 }: {
   isHardwareWallet: boolean;
   preferredToken?: SetPayTokenRequest;
+  preferredTokensFromFlags: PreferredToken[];
+  minimumRequiredTokenBalance: number;
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
 }): { address: Hex; chainId: Hex } | undefined {
@@ -117,6 +150,31 @@ function getBestToken({
 
     if (preferredTokenAvailable) {
       return preferredToken;
+    }
+  }
+
+  if (preferredTokensFromFlags.length) {
+    const sorted = [...preferredTokensFromFlags].sort(
+      (a, b) => b.successRate - a.successRate,
+    );
+
+    for (const preferred of sorted) {
+      const matchingToken = tokens.find(
+        (token) =>
+          token.address.toLowerCase() === preferred.address.toLowerCase() &&
+          token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
+      );
+
+      if (matchingToken) {
+        const fiatBalance = matchingToken.fiat?.balance ?? 0;
+
+        if (fiatBalance >= minimumRequiredTokenBalance) {
+          return {
+            address: matchingToken.address as Hex,
+            chainId: matchingToken.chainId as Hex,
+          };
+        }
+      }
     }
   }
 

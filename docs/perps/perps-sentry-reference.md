@@ -239,25 +239,29 @@ setMeasurement(
 | `PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL` | ms | Live discount during order |
 | `PERPS_DATA_LAKE_API_CALL` | ms | Order report submission |
 
-### Data Fetch Operations (7 events)
+### Data Fetch Operations (9 events)
 
 **Purpose:** Track controller data fetch timing.
 
-| TraceName                     | Operation        | Fetches                 | Notes    |
-| ----------------------------- | ---------------- | ----------------------- | -------- |
-| `PerpsGetPositions`           | `PerpsOperation` | Active positions        | REST API |
-| `PerpsGetAccountState`        | `PerpsOperation` | Account balance, margin | REST API |
-| `PerpsGetMarkets`             | `PerpsOperation` | Available markets       | REST API |
-| `PerpsOrdersFetch`            | `PerpsOperation` | Open/historical orders  | REST API |
-| `PerpsOrderFillsFetch`        | `PerpsOperation` | Trade execution history | REST API |
-| `PerpsFundingFetch`           | `PerpsOperation` | Funding rate history    | REST API |
-| `PerpsGetHistoricalPortfolio` | `PerpsOperation` | Portfolio value history | REST API |
+| TraceName                     | Operation        | Fetches                          | Notes                                          |
+| ----------------------------- | ---------------- | -------------------------------- | ---------------------------------------------- |
+| `PerpsGetPositions`           | `PerpsOperation` | Active positions                 | REST API                                       |
+| `PerpsGetAccountState`        | `PerpsOperation` | Account balance, margin          | REST API                                       |
+| `PerpsGetMarkets`             | `PerpsOperation` | Available markets                | REST API                                       |
+| `PerpsOrdersFetch`            | `PerpsOperation` | Open/historical orders           | REST API                                       |
+| `PerpsOrderFillsFetch`        | `PerpsOperation` | Trade execution history          | REST API                                       |
+| `PerpsFundingFetch`           | `PerpsOperation` | Funding rate history             | REST API                                       |
+| `PerpsGetHistoricalPortfolio` | `PerpsOperation` | Portfolio value history          | REST API                                       |
+| `PerpsMarketDataPreload`      | `PerpsOperation` | Market list + prices             | Background preload (5-min interval)            |
+| `PerpsUserDataPreload`        | `PerpsOperation` | Positions, orders, account state | Background preload (skipped when WS connected) |
 
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
 | `PERPS_GET_POSITIONS_OPERATION` | ms | Position fetch within trace |
 | `PERPS_GET_OPEN_ORDERS_OPERATION` | ms | Orders fetch within trace |
+| `PERPS_MARKET_DATA_PRELOAD` | ms | Market data background preload duration |
+| `PERPS_USER_DATA_PRELOAD` | ms | User data background preload duration |
 
 ### Market Data Updates (1 event)
 
@@ -559,6 +563,27 @@ catch (error) {
 8. **Cache API calls**: Use cached values in Rewards API to avoid redundant calls
 9. **Use `Logger.error()` with context** for all error logging (see Error Logging Best Practices)
 10. **Use `ensureError()` helper** to normalize caught errors before logging
+
+## Connection Error Screen Monitoring
+
+### Sentry Filter
+
+```
+component:PerpsConnectionManager action:connection_connection
+```
+
+Use this to isolate genuine perps connection failures. You can also use `feature:perps` as a broader filter — the `feature` tag is set on all perps errors and already excludes Polymarket noise.
+
+Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
+
+### MixPanel
+
+| Event                  | Key Properties                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `PERPS_SCREEN_VIEWED`  | `screen_name: connection_error`, `error_message`, `retry_attempts`                    |
+| `PERPS_UI_INTERACTION` | `action: connection_retry` or `connection_go_back`, `error_message`, `attempt_number` |
+
+---
 
 ## Related Files
 

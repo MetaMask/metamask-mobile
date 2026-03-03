@@ -2,7 +2,6 @@ import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -23,7 +22,6 @@ import {
   type PerpsMarketData,
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,7 +45,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -112,6 +110,7 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
+import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -156,7 +155,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market: routeMarket, monitoringIntent, source } = route.params || {};
@@ -283,12 +282,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [openOrders],
   );
 
-  // Filter out TP/SL (reduceOnly) orders
-  const nonTPSLOrders = useMemo(
-    () => sortedOrders.filter((order) => !order.reduceOnly),
-    [sortedOrders],
-  );
-
   // Subscribe to live prices for current position price
   const livePrices = usePerpsLivePrices({
     symbols: market?.symbol ? [market.symbol] : [],
@@ -401,6 +394,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   useEffect(() => {
     currentPositionRef.current = existingPosition;
   }, [existingPosition]);
+
+  // Show non-reduce-only orders and standalone TP/SL orders in Orders section.
+  // Full-position TP/SL remains in the Auto-close section.
+  const displayOrders = useMemo(
+    () =>
+      normalizeMarketDetailsOrders({
+        orders: sortedOrders,
+        existingPosition: existingPosition ?? undefined,
+      }),
+    [sortedOrders, existingPosition],
+  );
 
   // Compute TP/SL lines for the chart based on existing position
   // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
@@ -947,7 +951,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
-    (order: (typeof nonTPSLOrders)[number]) => {
+    (order: (typeof displayOrders)[number]) => {
       navigation.navigate(Routes.PERPS.ORDER_DETAILS, {
         order,
       });
@@ -1159,13 +1163,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Orders Section - Compact view (TP/SL orders excluded) */}
-          {nonTPSLOrders.length > 0 && (
+          {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
+          {displayOrders.length > 0 && (
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
-              {nonTPSLOrders.map((order) => (
+              {displayOrders.map((order) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
                   order={order}

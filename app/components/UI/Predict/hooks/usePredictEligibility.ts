@@ -219,7 +219,6 @@ export const usePredictEligibility = () => {
   }, []);
 
   // Auto-refresh when country is missing - sequential loading pattern
-  // Similar to usePredictOptimisticPositionRefresh
   // Retries up to MISSING_COUNTRY_MAX_RETRIES times, resets on unmount
   useEffect(() => {
     // Skip if we already have a country

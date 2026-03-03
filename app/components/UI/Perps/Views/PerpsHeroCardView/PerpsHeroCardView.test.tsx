@@ -9,7 +9,7 @@ import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featu
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -270,7 +270,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('+10.0%');
+      expect(pnlText).toHaveTextContent('+10.00%');
     });
   });
 
@@ -627,7 +627,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('-10.0%');
+      expect(pnlText).toHaveTextContent('-10.00%');
     });
   });
 });

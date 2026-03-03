@@ -11,6 +11,8 @@ import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
 import Routes from '../../constants/navigation/Routes';
+import { store } from '../../store';
+import { ActionType } from '../../actions/sdk';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -1649,6 +1651,215 @@ describe('WC2Manager', () => {
       );
 
       expect(originRejection).toBeUndefined();
+    });
+  });
+
+  describe('WalletConnect Verify API context extraction', () => {
+    let dispatchSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      dispatchSpy = jest.spyOn(store, 'dispatch');
+    });
+
+    afterEach(() => {
+      dispatchSpy.mockRestore();
+    });
+
+    const createProposal = (
+      verifyContext?: any,
+      overrides?: { id?: number; url?: string },
+    ): any => ({
+      id: overrides?.id ?? 2001,
+      params: {
+        id: overrides?.id ?? 2001,
+        pairingTopic: 'verify-test-pairing',
+        proposer: {
+          publicKey: 'test-public-key',
+          metadata: {
+            name: 'Verify Test App',
+            description: 'A test dapp',
+            url: overrides?.url ?? 'https://example.com',
+            icons: ['https://example.com/icon.png'],
+          },
+        },
+        expiryTimestamp: Date.now() + 300000,
+        relays: [{ protocol: 'irn' }],
+        requiredNamespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+          },
+        },
+        optionalNamespaces: {},
+      },
+      ...(verifyContext !== undefined ? { verifyContext } : {}),
+    });
+
+    it('dispatches verifyContext with isScam true for malicious dapps', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal({
+        verified: {
+          isScam: true,
+          validation: 'INVALID',
+          origin: 'https://malicious-site.com',
+        },
+      });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: true,
+        validation: 'INVALID',
+        verifiedOrigin: 'https://malicious-site.com',
+      });
+    });
+
+    it('dispatches verifyContext with isScam false for verified dapps', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-2',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(
+        {
+          verified: {
+            isScam: false,
+            validation: 'VALID',
+            origin: 'https://example.com',
+          },
+        },
+        { id: 2002 },
+      );
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: false,
+        validation: 'VALID',
+        verifiedOrigin: 'https://example.com',
+      });
+    });
+
+    it('dispatches undefined verifyContext when verifyContext is absent', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-3',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(undefined, { id: 2003 });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toBeUndefined();
+    });
+
+    it('dispatches undefined verifyContext when verified object is missing', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-4',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal({}, { id: 2004 });
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toBeUndefined();
+    });
+
+    it('defaults validation to UNKNOWN when validation field is absent', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'verify-test-topic-5',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      const proposal = createProposal(
+        {
+          verified: {
+            isScam: false,
+            // validation is intentionally missing
+            origin: 'https://example.com',
+          },
+        },
+        { id: 2005 },
+      );
+
+      await manager.onSessionProposal(proposal);
+
+      const wc2MetadataCalls = dispatchSpy.mock.calls.filter(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+      expect(wc2MetadataCalls.length).toBeGreaterThan(0);
+
+      const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.verifyContext).toEqual({
+        isScam: false,
+        validation: 'UNKNOWN',
+        verifiedOrigin: 'https://example.com',
+      });
     });
   });
 });

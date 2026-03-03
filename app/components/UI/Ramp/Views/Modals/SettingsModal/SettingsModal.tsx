@@ -5,7 +5,7 @@ import React, {
   useState,
   useEffect,
 } from 'react';
-import { Linking } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -25,6 +25,8 @@ import Logger from '../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsController } from '../../../hooks/useRampsController';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
@@ -32,9 +34,13 @@ import {
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 
 /**
- * Transak provider ID - the only provider with native logout support
+ * Transak native provider path prefix - matches both production
+ * ('/providers/transak-native') and staging ('/providers/transak-native-staging')
  */
-const TRANSAK_PROVIDER_ID = '/providers/transak-native';
+const TRANSAK_NATIVE_PREFIX = '/providers/transak-native';
+
+const isTransakNativeProvider = (providerId?: string): boolean =>
+  providerId?.startsWith(TRANSAK_NATIVE_PREFIX) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -42,6 +48,7 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 );
 
 function SettingsModal() {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
@@ -55,7 +62,7 @@ function SettingsModal() {
 
     const checkAuthentication = async () => {
       // Only Transak supports native authentication/logout
-      if (selectedProvider?.id !== TRANSAK_PROVIDER_ID) {
+      if (!isTransakNativeProvider(selectedProvider?.id)) {
         if (isMounted) {
           setIsAuthenticatedWithProvider(false);
         }
@@ -88,6 +95,15 @@ function SettingsModal() {
   )?.url;
 
   const navigateToOrderHistory = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'View Order History',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
@@ -95,16 +111,47 @@ function SettingsModal() {
         redirectToOrders: true,
       },
     });
-  }, [navigation]);
+  }, [navigation, trackEvent, createEventBuilder]);
 
-  const handleContactSupport = useCallback(() => {
-    if (supportUrl) {
-      sheetRef.current?.onCloseBottomSheet();
-      Linking.openURL(supportUrl);
+  const handleContactSupport = useCallback(async () => {
+    if (!supportUrl) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Contact Support',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+    try {
+      if (await InAppBrowser.isAvailable()) {
+        sheetRef.current?.onCloseBottomSheet();
+        await InAppBrowser.open(supportUrl);
+      } else {
+        // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
+        // shouldNavigateBack would fire goBack() after the close animation and pop the
+        // Webview screen off the stack instead of the modal.
+        navigation.navigate('Webview', {
+          screen: 'SimpleWebview',
+          params: { url: supportUrl },
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl]);
+  }, [supportUrl, navigation, trackEvent, createEventBuilder]);
 
   const handleLogOut = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
+        .addProperties({
+          option: 'Log Out',
+          location: 'Amount Input',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     try {
       await resetProviderToken();
       setSelectedProvider(null);
@@ -139,7 +186,7 @@ function SettingsModal() {
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef]);
+  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

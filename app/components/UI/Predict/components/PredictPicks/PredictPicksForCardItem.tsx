@@ -8,7 +8,6 @@ import {
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
 import type { PredictPosition } from '../../types';
 
 interface PredictPicksForCardItemProps {
@@ -20,11 +19,7 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
   position,
   testID,
 }) => {
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const isOptimistic = currentPosition.optimistic ?? false;
+  const isOptimistic = position.optimistic ?? false;
 
   return (
     <Box

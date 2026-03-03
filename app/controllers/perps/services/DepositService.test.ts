@@ -1,16 +1,17 @@
-import { DepositService } from './DepositService';
+import { toHex } from '@metamask/controller-utils';
+import { parseCaipAssetId } from '@metamask/utils';
+
 import { createMockHyperLiquidProvider } from '../../../components/UI/Perps/__mocks__/providerMocks';
 import {
   createMockEvmAccount,
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import { generateDepositId } from '../utils/idUtils';
-import { toHex } from '@metamask/controller-utils';
-import { parseCaipAssetId } from '@metamask/utils';
-import { generateERC20TransferData } from '../utils/transferData';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
-import type { PerpsControllerMessenger } from '../PerpsController';
+import { generateDepositId } from '../utils/idUtils';
+import { generateERC20TransferData } from '../utils/transferData';
+
+import { DepositService } from './DepositService';
 
 jest.mock('../utils/idUtils');
 jest.mock('@metamask/utils');
@@ -35,7 +36,7 @@ jest.mock('@metamask/controller-utils', () => {
 describe('DepositService', () => {
   let mockProvider: jest.Mocked<PerpsProvider>;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
+  let mockMessenger: ReturnType<typeof createMockMessenger>;
   let service: DepositService;
   const mockEvmAccount = createMockEvmAccount();
   const mockDepositId = 'deposit-123';
@@ -162,7 +163,7 @@ describe('DepositService', () => {
       expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
-    it('retrieves EVM account from selected account group via messenger', async () => {
+    it('retrieves EVM account from messenger via accountTree action', async () => {
       await service.prepareTransaction({
         provider: mockProvider,
       });

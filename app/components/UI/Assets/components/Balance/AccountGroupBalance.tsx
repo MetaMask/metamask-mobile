@@ -119,7 +119,7 @@ const AccountGroupBalance = () => {
   );
 
   const totalBalance = groupBalance?.totalBalanceInUserCurrency ?? 0;
-  const userCurrency = groupBalance?.userCurrency ?? '';
+  const userCurrency = groupBalance?.userCurrency || 'USD';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
   // Check if account group balance (across all mainnet networks) is zero for empty state
