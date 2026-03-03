@@ -108,7 +108,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   twClassName="flex-1 pr-2"
                 >
                   {article.title}
@@ -187,7 +187,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   numberOfLines={2}
                   twClassName="flex-1 pr-2"
                 >
