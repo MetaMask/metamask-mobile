@@ -64,7 +64,6 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
 import {
@@ -150,6 +149,7 @@ interface TokenListItemV2Props {
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
 }
 
 export const TokenListItemV2 = React.memo(
@@ -160,6 +160,7 @@ export const TokenListItemV2 = React.memo(
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
+    shouldShowTokenListItemCta,
   }: TokenListItemV2Props) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -204,8 +205,6 @@ export const TokenListItemV2 = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
-
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
     const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();

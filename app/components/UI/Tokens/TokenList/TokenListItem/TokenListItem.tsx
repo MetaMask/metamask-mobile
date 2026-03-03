@@ -65,7 +65,6 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import { useMusdCtaVisibility } from '../../../Earn/hooks/useMusdCtaVisibility';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
@@ -113,6 +112,7 @@ interface TokenListItemProps {
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
+  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -123,6 +123,7 @@ export const TokenListItem = React.memo(
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
+    shouldShowTokenListItemCta,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useAnalytics();
     const navigation = useNavigation();
@@ -154,8 +155,6 @@ export const TokenListItem = React.memo(
     const { getEarnToken } = useEarnTokens();
 
     const earnToken = getEarnToken(asset as TokenI);
-
-    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
 
     const { initiateCustomConversion, hasSeenConversionEducationScreen } =
       useMusdConversion();
