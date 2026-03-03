@@ -13,8 +13,9 @@ import {
   PredictNavigationParamList,
 } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
-import { usePredictConfirmNavigation } from './usePredictConfirmNavigation';
 import { usePredictTrading } from './usePredictTrading';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 export interface PredictPayWithAnyTokenParams {
   amountUsd?: number;
@@ -32,7 +33,7 @@ interface UsePredictPayWithAnyTokenResult {
 }
 
 export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
-  const { navigateToConfirmation } = usePredictConfirmNavigation();
+  const { navigateToConfirmation } = useConfirmNavigation();
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation =
@@ -103,7 +104,11 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
         });
 
         await payWithAnyTokenConfirmation({});
-        navigateToConfirmation();
+        navigateToConfirmation({
+          loader: ConfirmationLoader.CustomAmount,
+          headerShown: false,
+          replace: true,
+        });
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
       }

@@ -3,6 +3,7 @@ import React from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Engine from '../../../../core/Engine';
 import { PredictBuyPreviewParams } from '../types/navigation';
+import { ConfirmationLoader } from '../../Views/confirmations/components/confirm/confirm-component';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
 
 const mockGoBack = jest.fn();
@@ -23,8 +24,8 @@ jest.mock('./usePredictTrading', () => ({
   }),
 }));
 
-jest.mock('./usePredictConfirmNavigation', () => ({
-  usePredictConfirmNavigation: () => ({
+jest.mock('../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: () => ({
     navigateToConfirmation: mockNavigateToConfirmation,
   }),
 }));
@@ -105,7 +106,12 @@ describe('usePredictPayWithAnyToken', () => {
       }),
     );
     expect(mockPayWithAnyTokenConfirmation).toHaveBeenCalledWith({});
-    expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      headerShown: false,
+      replace: true,
+      animationEnabled: false,
+    });
     expect(
       Engine.context.PredictController.clearActiveOrder,
     ).not.toHaveBeenCalled();

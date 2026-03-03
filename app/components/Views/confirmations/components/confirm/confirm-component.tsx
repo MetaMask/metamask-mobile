@@ -49,6 +49,10 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
 ];
 
 const TRANSACTION_TYPES_NO_HEADER = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
+const TRANSACTION_TYPES_USE_DEFAULT_BACKGROUND = [
+  PREDICT_DEPOSIT_AND_ORDER_TYPE,
+];
+const TRANSACTION_TYPES_DISABLE_SAFE_AREA = [PREDICT_DEPOSIT_AND_ORDER_TYPE];
 
 export enum ConfirmationLoader {
   Default = 'default',
@@ -121,14 +125,17 @@ export const Confirm = ({
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
   const transaction = useTransactionMetadataRequest();
-  const isPredictDepositAndOrder = hasTransactionType(transaction, [
-    PREDICT_DEPOSIT_AND_ORDER_TYPE,
-  ]);
+  const useDefaultBackground = hasTransactionType(
+    transaction,
+    TRANSACTION_TYPES_USE_DEFAULT_BACKGROUND,
+  );
+
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
-    disableSafeArea,
-    useDefaultBackground: isPredictDepositAndOrder,
-    disableHorizontalPadding: isPredictDepositAndOrder,
+    disableSafeArea:
+      hasTransactionType(transaction, TRANSACTION_TYPES_DISABLE_SAFE_AREA) ||
+      disableSafeArea,
+    useDefaultBackground,
   });
 
   useEffect(() => {

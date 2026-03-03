@@ -7,7 +7,6 @@ const styleSheet = (params: {
     isFullScreenConfirmation: boolean;
     disableSafeArea?: boolean;
     useDefaultBackground?: boolean;
-    disableHorizontalPadding?: boolean;
   };
 }) => {
   const { theme, vars } = params;
@@ -30,10 +29,7 @@ const styleSheet = (params: {
       justifyContent: 'space-between',
     },
     scrollView: {
-      paddingHorizontal:
-        vars.disableSafeArea === true || vars.disableHorizontalPadding === true
-          ? 0
-          : 16,
+      paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
     },
     scrollViewContent: {
       flex: vars.isFullScreenConfirmation ? 1 : undefined,
