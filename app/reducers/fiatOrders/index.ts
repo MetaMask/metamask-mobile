@@ -165,7 +165,8 @@ export const getProviderName = (
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
       return 'Wyre';
     }
-    case FIAT_ORDER_PROVIDERS.TRANSAK: {
+    case FIAT_ORDER_PROVIDERS.TRANSAK:
+    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
       return 'Transak';
     }
     case FIAT_ORDER_PROVIDERS.MOONPAY: {

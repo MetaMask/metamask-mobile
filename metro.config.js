@@ -98,6 +98,29 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // @ecies/ciphers uses package.json "exports" subpaths that Metro
+          // can't resolve without unstable_enablePackageExports. Map them to
+          // the react-native condition targets manually.
+          // Note: require.resolve can't be used here because the package's
+          // "exports" field blocks direct dist/ access.
+          if (moduleName === '@ecies/ciphers/aes') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/aes/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
+          if (moduleName === '@ecies/ciphers/chacha') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'node_modules/@ecies/ciphers/dist/chacha/noble.js',
+              ),
+              type: 'sourceFile',
+            };
+          }
           // Use axios browser build so Node-only deps (e.g. http2) are never pulled in
           if (
             moduleName === 'axios' ||
@@ -124,6 +147,39 @@ module.exports = function (baseConfig) {
                 filePath: path.resolve(
                   __dirname,
                   'tests/module-mocking/sentry/core.ts',
+                ),
+              };
+            }
+            if (
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller',
+              ) ||
+              moduleName.endsWith(
+                'controllers/seedless-onboarding-controller/index',
+              ) ||
+              moduleName === './seedless-onboarding-controller' ||
+              moduleName === '../seedless-onboarding-controller'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/seedless/index.ts',
+                ),
+              };
+            }
+            // Mock OAuth Login Handlers for E2E Google/Apple login tests
+            if (
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+              moduleName === './OAuthLoginHandlers' ||
+              moduleName === '../OAuthLoginHandlers'
+            ) {
+              return {
+                type: 'sourceFile',
+                filePath: path.resolve(
+                  __dirname,
+                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
                 ),
               };
             }

@@ -43,6 +43,19 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="TokensFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -86,6 +99,16 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="RWATokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -147,6 +170,8 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="NftFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -325,7 +350,7 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
     name="FeatureFlagOverride"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />
@@ -355,6 +380,20 @@ exports[`MainNavigator Tab Bar Visibility hides tab bar when browser is active 1
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
   />
 </Navigator>
 `;
@@ -402,6 +441,19 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="TokensFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -445,6 +497,16 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="RWATokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -506,6 +568,8 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="NftFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -684,7 +748,7 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
     name="FeatureFlagOverride"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />
@@ -714,6 +778,20 @@ exports[`MainNavigator Tab Bar Visibility shows tab bar when not in browser 1`] 
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
   />
 </Navigator>
 `;
@@ -761,6 +839,19 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="TokensFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+        "headerShown": false,
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="DeFiFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -804,6 +895,16 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="TrendingTokensFullView"
+    options={
+      {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
+      }
+    }
+  />
+  <Screen
+    component={[Function]}
+    name="RWATokensFullView"
     options={
       {
         "animationEnabled": true,
@@ -865,6 +966,8 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="NftFullView"
     options={
       {
+        "animationEnabled": true,
+        "cardStyleInterpolator": [Function],
         "headerShown": false,
       }
     }
@@ -1043,7 +1146,7 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
     name="FeatureFlagOverride"
     options={
       {
-        "headerShown": true,
+        "headerShown": false,
       }
     }
   />
@@ -1073,6 +1176,20 @@ exports[`MainNavigator matches rendered snapshot 1`] = `
   <Screen
     component={[Function]}
     name="CardScreens"
+  />
+  <Screen
+    component={[Function]}
+    name="RampProcessingInfoModal"
+    options={
+      {
+        "animationEnabled": false,
+        "cardStyle": {
+          "backgroundColor": "transparent",
+          "cardStyleInterpolator": [Function],
+        },
+        "headerShown": false,
+      }
+    }
   />
 </Navigator>
 `;

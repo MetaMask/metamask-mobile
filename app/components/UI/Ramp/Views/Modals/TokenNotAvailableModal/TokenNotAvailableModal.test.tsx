@@ -118,7 +118,9 @@ describe('TokenNotAvailableModal', () => {
     fireEvent.press(getByText('Change token'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {
@@ -130,8 +132,8 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       'RampModals',
       expect.objectContaining({
-        screen: 'RampProviderPickerModal',
-        params: { assetId: MOCK_ASSET_ID },
+        screen: 'RampProviderSelectionModal',
+        params: { assetId: MOCK_ASSET_ID, skipQuotes: true },
       }),
     );
   });

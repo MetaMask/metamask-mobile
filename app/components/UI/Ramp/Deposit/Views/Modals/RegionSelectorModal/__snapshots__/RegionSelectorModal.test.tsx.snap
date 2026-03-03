@@ -334,7 +334,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -481,7 +481,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -501,8 +501,47 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -510,74 +549,24 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -623,8 +612,8 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -644,7 +633,7 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -673,13 +662,13 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -740,9 +729,9 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Medium",
-                                      "fontSize": 18,
+                                      "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1102,7 +1091,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1152,7 +1141,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1189,7 +1178,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1249,7 +1238,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -1269,8 +1258,47 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1278,74 +1306,24 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -1391,8 +1369,8 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -1412,7 +1390,7 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -1441,13 +1419,13 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -1586,9 +1564,9 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1602,9 +1580,9 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1682,9 +1660,9 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -1698,9 +1676,9 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2066,7 +2044,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2116,7 +2094,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2153,7 +2131,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2213,7 +2191,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -2233,8 +2211,47 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -2242,74 +2259,24 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -2355,8 +2322,8 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -2376,7 +2343,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -2405,13 +2372,13 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -2575,9 +2542,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2591,9 +2558,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2611,7 +2578,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -2686,9 +2653,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2702,9 +2669,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2782,9 +2749,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2798,9 +2765,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2878,9 +2845,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -2894,9 +2861,9 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -3262,7 +3229,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3312,7 +3279,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -3349,7 +3316,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -3409,7 +3376,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -3429,8 +3396,47 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -3438,74 +3444,24 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -3551,8 +3507,8 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -3572,7 +3528,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -3601,13 +3557,13 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -3647,7 +3603,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={20}
                                     name="CircleX"
@@ -3709,9 +3665,9 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Medium",
-                                      "fontSize": 18,
+                                      "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -4071,7 +4027,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4121,7 +4077,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -4158,7 +4114,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -4218,7 +4174,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -4238,8 +4194,47 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -4247,74 +4242,24 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -4360,8 +4305,8 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -4381,7 +4326,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -4410,13 +4355,13 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -4456,7 +4401,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={20}
                                     name="CircleX"
@@ -4584,9 +4529,9 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -4600,9 +4545,9 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -4968,7 +4913,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -5018,7 +4963,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -5055,7 +5000,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -5115,7 +5060,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -5135,8 +5080,47 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -5144,74 +5128,24 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -5257,8 +5191,8 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -5278,7 +5212,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -5307,13 +5241,13 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -5477,9 +5411,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5493,9 +5427,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5513,7 +5447,7 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -5588,9 +5522,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5604,9 +5538,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5684,9 +5618,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5700,9 +5634,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5780,9 +5714,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -5796,9 +5730,9 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6164,7 +6098,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6214,7 +6148,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -6251,7 +6185,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6311,7 +6245,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -6331,8 +6265,47 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -6340,74 +6313,24 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -6453,8 +6376,8 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -6474,7 +6397,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -6503,13 +6426,13 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -6673,9 +6596,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6689,9 +6612,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6769,9 +6692,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6785,9 +6708,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6805,7 +6728,7 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -6880,9 +6803,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6896,9 +6819,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6976,9 +6899,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -6992,9 +6915,9 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -7360,7 +7283,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -7410,7 +7333,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -7447,7 +7370,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -7507,7 +7430,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -7527,8 +7450,47 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -7536,74 +7498,24 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -7649,8 +7561,8 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -7670,7 +7582,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -7699,13 +7611,13 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search by country"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -7869,9 +7781,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -7885,9 +7797,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -7905,7 +7817,7 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -7980,9 +7892,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -7996,9 +7908,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -8076,9 +7988,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -8092,9 +8004,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#686e7d",
+                                                  "color": "#66676a",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -8172,9 +8084,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }
@@ -8188,9 +8100,9 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                                               accessibilityRole="text"
                                               style={
                                                 {
-                                                  "color": "#121314",
+                                                  "color": "#131416",
                                                   "fontFamily": "Geist-Medium",
-                                                  "fontSize": 18,
+                                                  "fontSize": 20,
                                                   "letterSpacing": 0,
                                                   "lineHeight": 24,
                                                 }

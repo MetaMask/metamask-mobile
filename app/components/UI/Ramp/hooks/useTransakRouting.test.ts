@@ -45,10 +45,22 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-const mockHandleNewOrder = jest.fn();
-jest.mock('../Deposit/hooks/useHandleNewOrder', () => ({
-  __esModule: true,
-  default: () => mockHandleNewOrder,
+const mockAddOrder = jest.fn();
+const mockRefreshOrder = jest.fn();
+
+jest.mock('./useRampsOrders', () => ({
+  useRampsOrders: () => ({
+    addOrder: mockAddOrder,
+    refreshOrder: mockRefreshOrder,
+    orders: [],
+    getOrderById: jest.fn(),
+    removeOrder: jest.fn(),
+    getOrderFromCallback: jest.fn(),
+  }),
+}));
+
+jest.mock('../utils/v2OrderToast', () => ({
+  showV2OrderToast: jest.fn(),
 }));
 
 const mockTrackEvent = jest.fn();
@@ -128,11 +140,20 @@ jest.mock('../Deposit/utils', () => ({
 
 jest.mock('../Views/Checkout', () => ({
   createCheckoutNavDetails: jest.fn(
-    ({ url, providerName }: { url: string; providerName: string }) => [
-      'Checkout',
-      { url, providerName },
-    ],
+    ({
+      url,
+      providerName,
+      callbackKey,
+    }: {
+      url: string;
+      providerName: string;
+      callbackKey?: string;
+    }) => ['Checkout', { url, providerName, callbackKey }],
   ),
+}));
+
+jest.mock('../utils/checkoutCallbackRegistry', () => ({
+  registerCheckoutCallback: jest.fn(() => 'mock-callback-key'),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -288,9 +309,15 @@ describe('useTransakRouting', () => {
       });
       mockTransakCreateOrder.mockResolvedValue({
         id: 'order-123',
+        providerOrderId: 'order-123',
         walletAddress: '0xabc',
       });
-      mockHandleNewOrder.mockResolvedValue(undefined);
+      mockRefreshOrder.mockResolvedValue({
+        providerOrderId: 'order-123',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '0.05',
+        status: 'Pending',
+      });
 
       const { result } = renderHook(() => useTransakRouting());
 
@@ -346,8 +373,10 @@ describe('useTransakRouting', () => {
     });
 
     it('handles 401 error by logging out and navigating to enter email', async () => {
-      const error = new Error('Unauthorized') as Error & { status: number };
-      error.status = 401;
+      const error = new Error('Unauthorized') as Error & {
+        httpStatus: number;
+      };
+      error.httpStatus = 401;
       mockGetUserDetails.mockRejectedValue(error);
       mockLogoutFromProvider.mockResolvedValue(undefined);
 

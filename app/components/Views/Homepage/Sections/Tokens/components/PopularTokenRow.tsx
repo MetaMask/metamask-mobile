@@ -27,6 +27,7 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PopularToken } from '../hooks/usePopularTokens';
+import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
 
 // Zero address used for native EVM tokens (ETH, BNB, etc.)
 const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
@@ -159,6 +160,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       address,
       symbol: token.symbol,
       isNative,
+      source: TokenDetailsSource.MobileTokenList,
     });
   }, [navigation, token.assetId, token.symbol]);
 
@@ -183,7 +185,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-16"
+        twClassName="py-2"
       >
         {/* Token Avatar */}
         <AvatarToken
@@ -233,13 +235,15 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
         </Box>
 
         {/* Buy Button */}
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleBuy}
-        >
-          {strings('asset_overview.buy_button')}
-        </Button>
+        <Box twClassName="self-center">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={handleBuy}
+          >
+            {strings('asset_overview.buy_button')}
+          </Button>
+        </Box>
       </Box>
     </TouchableOpacity>
   );

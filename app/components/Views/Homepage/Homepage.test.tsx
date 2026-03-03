@@ -21,6 +21,71 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  usePerpsStream: jest.fn(() => ({
+    candles: { subscribe: jest.fn(() => jest.fn()) },
+  })),
+}));
+
+jest.mock('../../UI/Perps/hooks', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    orders: [],
+    isInitialLoading: false,
+  })),
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [],
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+    isRefreshing: false,
+  })),
+}));
+
+jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+jest.mock(
+  '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: jest.fn(() => ({
+      sparklines: {},
+      refresh: jest.fn(),
+    })),
+  }),
+);
+
+jest.mock('react-native-skeleton-placeholder', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockSkeletonPlaceholder({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return <View testID="skeleton-placeholder">{children}</View>;
+  };
+});
+
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
@@ -61,7 +126,6 @@ describe('Homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(screen.getByText('Import NFTs')).toBeOnTheScreen();
-    expect(screen.getByText('Easily add your collectibles')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref', () => {
