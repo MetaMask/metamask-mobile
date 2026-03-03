@@ -481,6 +481,11 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
+    // Keep GeolocationController in sync so selectors reading from
+    // engine.backgroundState.GeolocationController.location return the
+    // correct region code (e.g. 'us-ca', 'fr').
+    this.withDetectedGeolocation(regionCode);
+
     return this;
   }
 
@@ -1947,9 +1952,10 @@ class FixtureBuilder {
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
     merge(this.fixture.state.fiatOrders, {
-      detectedGeolocation: 'US',
       rampRoutingDecision: 'AGGREGATOR',
     });
+
+    this.withDetectedGeolocation('US');
 
     if (!this.fixture.state.engine.backgroundState.CurrencyRateController) {
       merge(this.fixture.state.engine.backgroundState, {

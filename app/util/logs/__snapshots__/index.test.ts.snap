@@ -146,6 +146,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "isFetchingGatorPermissions": false,
         "isGatorPermissionsEnabled": false,
       },
+      "GeolocationController": {
+        "error": null,
+        "lastFetchedAt": null,
+        "location": "UNKNOWN",
+        "status": "loading",
+      },
       "KeyringController": {
         "isUnlocked": true,
         "keyrings": [
@@ -1000,6 +1006,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "gatorPermissionsProviderSnapId": "npm:@metamask/gator-permissions-snap",
         "isFetchingGatorPermissions": false,
         "isGatorPermissionsEnabled": false,
+      },
+      "GeolocationController": {
+        "error": null,
+        "lastFetchedAt": null,
+        "location": "UNKNOWN",
+        "status": "loading",
       },
       "KeyringController": {
         "isUnlocked": true,

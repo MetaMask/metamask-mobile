@@ -19,10 +19,16 @@ import type {
 } from '@metamask/remote-feature-flag-controller';
 import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
 
+type GeolocationControllerGetGeolocationAction = {
+  type: 'GeolocationController:getGeolocation';
+  handler: () => Promise<string>;
+};
+
 /**
  * Actions from other controllers that PerpsController is allowed to call.
  */
 export type PerpsControllerAllowedActions =
+  | GeolocationControllerGetGeolocationAction
   | NetworkControllerGetStateAction
   | NetworkControllerGetNetworkClientByIdAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
