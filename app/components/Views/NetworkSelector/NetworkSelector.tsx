@@ -171,6 +171,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
   const isSendFlow =
     route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
+  const isPaymentRequest =
+    route?.params?.source === NETWORK_SELECTOR_SOURCES.PAYMENT_REQUEST;
+
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -926,7 +929,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        !isSendFlow && renderNonEvmNetworks(false)
+        !isSendFlow && !isPaymentRequest && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {!isSendFlow &&
@@ -936,7 +939,10 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       {!isSendFlow && isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
       {!isSendFlow && searchString.length === 0 && renderTestNetworksSwitch()}
       {!isSendFlow && showTestNetworks && renderOtherNetworks()}
-      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
+      {!isSendFlow &&
+        !isPaymentRequest &&
+        showTestNetworks &&
+        renderNonEvmNetworks(true)}
     </>
   );
 

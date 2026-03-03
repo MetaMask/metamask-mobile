@@ -4,6 +4,7 @@
  */
 export const NETWORK_SELECTOR_SOURCES = {
   SEND_FLOW: 'SendFlow',
+  PAYMENT_REQUEST: 'PaymentRequest',
 } as const;
 
 /**
