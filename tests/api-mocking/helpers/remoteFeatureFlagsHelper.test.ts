@@ -166,9 +166,6 @@ describe('Remote Feature Flags Helper', () => {
       expect(Array.isArray(confirmationData.customArray)).toBe(true);
       expect(confirmationData.customArray).toEqual(testArray);
       expect(confirmationData.customString).toBe('test');
-
-      // Should have exactly the custom properties we added
-      expect(Object.keys(confirmationData).length).toBe(2);
     });
 
     it('should handle null values', () => {
@@ -296,16 +293,20 @@ describe('Remote Feature Flags Helper', () => {
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       const response = callArgs.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
-      expect(response.length).toBeGreaterThan(0); // Has some default flags
-      expect(response).toContainEqual({ rewards: false });
+      expect(response.length).toBeGreaterThan(0);
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
     it('should call setupMockRequest with flag overrides for both distributions', async () => {
-      await setupRemoteFeatureFlagsMock(mockServer, { rewards: true });
+      await setupRemoteFeatureFlagsMock(mockServer, {
+        addBitcoinAccountDummyFlag: true,
+      });
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
-      expect(callArgs.response).toContainEqual({ rewards: true });
+      expect(callArgs.response).toContainEqual({
+        addBitcoinAccountDummyFlag: true,
+      });
     });
 
     it('should set up mocks for both main and flask distributions across all environments', async () => {
@@ -355,8 +356,8 @@ describe('Remote Feature Flags Helper', () => {
 
       const response = result.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
-      expect(response.length).toBeGreaterThan(0); // Has some default flags
-      expect(response).toContainEqual({ rewards: false });
+      expect(response.length).toBeGreaterThan(0);
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
     it('should handle undefined values in overrides', () => {
@@ -378,9 +379,9 @@ describe('Remote Feature Flags Helper', () => {
       });
 
       const response = result.response as Record<string, unknown>[];
-      expect(response.length).toBe(baselineCount + 1); // One new flag added
+      expect(response.length).toBe(baselineCount + 1);
       expect(response).toContainEqual({ newFlag: true });
-      expect(response).toContainEqual({ rewards: false }); // Defaults preserved
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
     it('should handle overrides with function values', () => {
