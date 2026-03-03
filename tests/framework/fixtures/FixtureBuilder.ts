@@ -481,6 +481,9 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
+    this.fixture.state.fiatOrders.detectedGeolocation =
+      selectedRegion.countryIsoCode;
+
     return this;
   }
 
