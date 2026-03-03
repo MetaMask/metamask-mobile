@@ -40,8 +40,15 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
     return getUniqueSourcesByFavicon([...articleSources, ...tweetSources]);
   }, [trend.articles, trend.tweets]);
 
-  const firstSourceName = uniqueSources[0]?.name;
+  const firstSource = uniqueSources[0];
   const remainingCount = Math.max(0, uniqueSources.length - 1);
+  const sourceLabel = (() => {
+    if (!firstSource) return null;
+    if (firstSource.name === 'X' && remainingCount === 0) return null;
+    return remainingCount > 0
+      ? `${firstSource.name} +${remainingCount}`
+      : firstSource.name;
+  })();
 
   return (
     <Pressable
@@ -69,11 +76,14 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
           twClassName="pt-2 gap-2"
         >
           <SourceLogoGroup sources={uniqueSources} />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {remainingCount > 0
-              ? `${firstSourceName} +${remainingCount}`
-              : firstSourceName}
-          </Text>
+          {sourceLabel ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {sourceLabel}
+            </Text>
+          ) : null}
         </Box>
       )}
     </Pressable>

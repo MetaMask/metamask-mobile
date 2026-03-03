@@ -60,11 +60,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
         contentContainerStyle={tw.style(`pb-[${insets.bottom + 80}px]`)}
         showsVerticalScrollIndicator={false}
       >
-        <Box twClassName="px-4 pt-4 pb-4">
-          <Skeleton height={26} width={110} style={tw.style('rounded-full')} />
-        </Box>
-
-        <Box twClassName="px-4 pb-3" gap={2}>
+        <Box twClassName="px-4 pt-4 pb-3" gap={2}>
           <Skeleton height={28} width="90%" />
           <Skeleton height={28} width="62%" />
         </Box>
@@ -77,10 +73,6 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
         </Box>
 
         <Box twClassName="pb-6">
-          <Box twClassName="px-4 py-4">
-            <Skeleton height={16} width={140} />
-          </Box>
-
           <Box twClassName="px-4" gap={3}>
             <Skeleton height={64} width="100%" style={tw.style('rounded-xl')} />
             <Skeleton height={64} width="100%" style={tw.style('rounded-xl')} />

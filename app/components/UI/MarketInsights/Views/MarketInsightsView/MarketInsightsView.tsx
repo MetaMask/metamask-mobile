@@ -415,7 +415,7 @@ const MarketInsightsView: React.FC = () => {
       </Box>
 
       <ScrollView
-        contentContainerStyle={tw.style('pb-6')}
+        contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}
         showsVerticalScrollIndicator={false}
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
@@ -450,7 +450,7 @@ const MarketInsightsView: React.FC = () => {
         {/* "What's being said" section */}
         {allTweets.length > 0 && (
           <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
-            <Box twClassName="h-4 border-t-4 border-muted" />
+            <Box twClassName="h-4 border-t border-muted" />
             <Box twClassName="pb-6">
               <Box twClassName="px-4 py-4">
                 <Text
@@ -474,9 +474,7 @@ const MarketInsightsView: React.FC = () => {
             </Box>
           </AnimatedSection>
         )}
-      </ScrollView>
 
-      <Box twClassName={`bg-default pb-[${insets.bottom}px]`}>
         <Box
           alignItems={BoxAlignItems.Center}
           twClassName="border-t border-muted px-4 pt-4 pb-5"
@@ -547,7 +545,7 @@ const MarketInsightsView: React.FC = () => {
             </Text>
           </Box>
         </Box>
-      </Box>
+      </ScrollView>
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet
