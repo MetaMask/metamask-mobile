@@ -114,6 +114,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       useNftDetection();
 
     const isInitialMount = useRef(true);
+    const hasTrackedScreenViewRef = useRef(false);
+
+    const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
     const allFilteredCollectibles: Nft[] = useMemo(() => {
       trace({ name: TraceName.LoadCollectibles });
@@ -139,6 +142,32 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
       return itemsToProcess;
     }, [allFilteredCollectibles, maxItems]);
+
+    useEffect(() => {
+      if (
+        !isFullView ||
+        isNftFetchingProgress ||
+        hasTrackedScreenViewRef.current
+      )
+        return;
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+          .addProperties({
+            item_count: allFilteredCollectibles.length,
+            location: 'homepage',
+            is_empty: allFilteredCollectibles.length === 0,
+            screen_type: 'nfts',
+          })
+          .build(),
+      );
+    }, [
+      isFullView,
+      isNftFetchingProgress,
+      allFilteredCollectibles.length,
+      trackEvent,
+      createEventBuilder,
+    ]);
 
     // Trigger NFT detection when enabled networks change (after initial mount)
     useEffect(() => {
