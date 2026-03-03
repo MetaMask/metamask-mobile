@@ -113,7 +113,6 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await BuildQuoteView.tapContinueButton();
 
         await KYCScreen.tapVerifyIdentityContinueButton();
-        await device.enableSynchronization();
 
         await KYCScreen.enterEmail('curtis@gmail.com');
 
@@ -182,7 +181,6 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        await device.enableSynchronization();
         await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
         await BuildQuoteView.tapKeypadDeleteButton(1);
         await BuildQuoteView.enterAmount('15', 'unifiedBuy');
