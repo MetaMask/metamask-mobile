@@ -1303,6 +1303,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GeolocationController,
       GatorPermissionsController,
       KeyringController,
       LoggingController,
