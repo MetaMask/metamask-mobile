@@ -795,7 +795,7 @@ jobs:
     name: Log merge group failure
     runs-on: ubuntu-latest
     # Only run this job if the merge group event fails, skip on forks
-    if: ${{ github.event_name == 'merge_group' && failure() && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:
