@@ -260,10 +260,12 @@ jobs:
             fi
           fi
 
-          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
-          echo "total_shards=$TOTAL_SHARDS" >> "$GITHUB_OUTPUT"
-          echo "shards_json=$SHARDS_JSON" >> "$GITHUB_OUTPUT"
-          echo "validate_coverage=$VALIDATE_COVERAGE" >> "$GITHUB_OUTPUT"
+          {
+            echo "mode=$MODE"
+            echo "total_shards=$TOTAL_SHARDS"
+            echo "shards_json=$SHARDS_JSON"
+            echo "validate_coverage=$VALIDATE_COVERAGE"
+          } >> "$GITHUB_OUTPUT"
 
   unit-tests:
     runs-on: ubuntu-latest
