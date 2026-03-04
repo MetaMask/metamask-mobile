@@ -128,8 +128,8 @@ const resetManager = (manager: unknown) => {
     isInGracePeriod: boolean;
     gracePeriodTimer: number | null;
     hasPreloaded: boolean;
+    isPreloading: boolean;
     prewarmCleanups: (() => void)[];
-    lastBalanceUpdateTime: number;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
@@ -155,7 +155,7 @@ const resetManager = (manager: unknown) => {
   m.isInGracePeriod = false;
   m.gracePeriodTimer = null;
   m.hasPreloaded = false;
-  m.lastBalanceUpdateTime = 0;
+  m.isPreloading = false;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -837,6 +837,83 @@ describe('PerpsConnectionManager', () => {
           'PerpsConnectionManager: All signing cache cleared',
         );
       });
+    });
+  });
+
+  describe('preloadSubscriptions concurrency guard', () => {
+    it('should skip a second preload call while one is already in flight', async () => {
+      // Arrange: set isPreloading = true directly to simulate in-flight preload
+      const m = PerpsConnectionManager as unknown as {
+        isPreloading: boolean;
+        hasPreloaded: boolean;
+        preloadSubscriptions: () => Promise<void>;
+      };
+      m.isPreloading = true;
+
+      await m.preloadSubscriptions();
+
+      // prices.prewarm should NOT have been called — guard blocked concurrent call
+      expect(mockStreamManagerInstance.prices.prewarm).not.toHaveBeenCalled();
+    });
+
+    it('should allow a fresh preload after performReconnection resets isPreloading', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+
+      // First full connection + preload
+      await PerpsConnectionManager.connect();
+      expect(mockStreamManagerInstance.prices.prewarm).toHaveBeenCalledTimes(1);
+
+      // Reconnect resets hasPreloaded and isPreloading, then preloads again
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      expect(mockStreamManagerInstance.prices.prewarm).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('foreground reconnection — single reconnection flow', () => {
+    it('PerpsConnectionManager has no AppState listener — only the hook triggers foreground reconnect', () => {
+      // This test documents the fix for the race condition introduced by PR #26780.
+      // Previously, PerpsConnectionManager registered its own AppState listener in
+      // setupStateMonitoring(), which competed with usePerpsConnectionLifecycle hook.
+      //
+      // Both fired simultaneously on foreground:
+      //   hook  → connect()
+      //   manager → reconnectWithNewContext({ force: true })
+      //
+      // The force path cancelled the hook's in-flight connect() and cleaned up
+      // prewarm subscriptions mid-flight, leaving positions/prices without data.
+      //
+      // Fix: removed the manager-level AppState listener entirely.
+      // The hook is the sole owner of foreground recovery.
+
+      const m = PerpsConnectionManager as unknown as Record<string, unknown>;
+
+      // appStateSubscription field must not exist on the manager
+      expect(m.appStateSubscription).toBeUndefined();
+
+      // handleAppStateChange method must not exist on the manager
+      expect(typeof m.handleAppStateChange).not.toBe('function');
+    });
+
+    it('connect() on foreground completes without interference', async () => {
+      mockPerpsController.init.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(true);
+      expect(state.isConnecting).toBe(false);
+      expect(state.error).toBeNull();
+      // Prewarm subscriptions fired exactly once
+      expect(mockStreamManagerInstance.prices.prewarm).toHaveBeenCalledTimes(1);
+      expect(mockStreamManagerInstance.positions.prewarm).toHaveBeenCalledTimes(
+        1,
+      );
     });
   });
 
