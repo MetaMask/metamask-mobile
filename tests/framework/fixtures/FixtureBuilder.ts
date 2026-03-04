@@ -483,8 +483,8 @@ class FixtureBuilder {
 
     // Keep GeolocationController in sync so selectors reading from
     // engine.backgroundState.GeolocationController.location return the
-    // correct region code (e.g. 'us-ca', 'fr').
-    this.withDetectedGeolocation(regionCode);
+    // 2-letter ISO 3166-1 alpha-2 country code (e.g. 'US', 'FR').
+    this.withDetectedGeolocation(selectedRegion.countryIsoCode);
 
     return this;
   }
