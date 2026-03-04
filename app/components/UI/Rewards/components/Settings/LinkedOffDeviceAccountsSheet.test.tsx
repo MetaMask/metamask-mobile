@@ -1,21 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import LinkedOffDeviceAccountsSheet from './LinkedOffDeviceAccountsSheet';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 
-// Mock Linking.openURL
-jest.mock('react-native', () => {
-  const actual = jest.requireActual('react-native');
-  return {
-    ...actual,
-    Linking: {
-      ...actual.Linking,
-      openURL: jest.fn().mockResolvedValue(undefined),
-    },
-  };
-});
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 // Mock FlatList from gesture handler with the real RN FlatList so items render
 jest.mock('react-native-gesture-handler', () => {
@@ -323,7 +315,7 @@ describe('LinkedOffDeviceAccountsSheet', () => {
   });
 
   describe('Interactions', () => {
-    it('calls Linking.openURL with the MetaMask support URL when "let us know" is pressed', () => {
+    it('navigates to the SimpleWebview with the support URL when "let us know" is pressed', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -333,12 +325,15 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       fireEvent.press(
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://support.metamask.io',
-      );
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: expect.objectContaining({
+          title: 'app_settings.contact_support',
+        }),
+      });
     });
 
-    it('calls Linking.openURL exactly once per press', () => {
+    it('navigates exactly once per press', () => {
       const { getByText } = render(
         <LinkedOffDeviceAccountsSheet
           accounts={[mockAccount1]}
@@ -348,7 +343,7 @@ describe('LinkedOffDeviceAccountsSheet', () => {
       fireEvent.press(
         getByText('rewards.settings.off_device_accounts_sheet_let_us_know'),
       );
-      expect(Linking.openURL).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     it('calls ClipboardManager.setString with the account address when copy is pressed', () => {

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { Linking, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -61,9 +62,23 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
+  const navigation = useNavigation();
+
   const handleContactSupport = useCallback(() => {
-    Linking.openURL('https://support.metamask.io');
-  }, []);
+    let supportUrl = 'https://support.metamask.io';
+
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
+    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
+    ///: END:ONLY_INCLUDE_IF
+
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: supportUrl,
+        title: strings('app_settings.contact_support'),
+      },
+    });
+  }, [navigation]);
 
   const handleCopy = useCallback(async (address: string) => {
     try {
