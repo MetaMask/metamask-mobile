@@ -327,10 +327,10 @@ for file in "${CHANGED_FILES[@]}"; do
     fi
 
     # Rule: warn on useABTest literal flag keys that do not follow naming convention.
-    key="$(sed -nE "s/.*useABTest[[:space:]]*\\([[:space:]]*['\"]([^'\"]+)['\"].*/\\1/p" <<< "$line")"
-    if [[ -n "$key" ]]; then
-      if ! is_valid_flag_key "$key"; then
-        WARNINGS+=("$file: flag key '$key' does not match {team}{TICKET}Abtest{Name}.")
+    use_abtest_literal_key="$(sed -nE "s/.*useABTest[[:space:]]*\\([[:space:]]*['\"]([^'\"]+)['\"].*/\\1/p" <<< "$line")"
+    if [[ -n "$use_abtest_literal_key" ]]; then
+      if ! is_valid_flag_key "$use_abtest_literal_key"; then
+        WARNINGS+=("$file: flag key '$use_abtest_literal_key' does not match {team}{TICKET}Abtest{Name}.")
       fi
     fi
 
@@ -338,6 +338,9 @@ for file in "${CHANGED_FILES[@]}"; do
     while IFS= read -r quoted; do
       [[ -z "$quoted" ]] && continue
       key="${quoted:1:${#quoted}-2}"
+      if [[ -n "$use_abtest_literal_key" && "$key" == "$use_abtest_literal_key" ]]; then
+        continue
+      fi
       if ! is_valid_flag_key "$key"; then
         WARNINGS+=("$file: Abtest key '$key' does not match {team}{TICKET}Abtest{Name}.")
       fi
