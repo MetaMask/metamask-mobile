@@ -63,10 +63,7 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
     },
     imageContainer: {
       alignItems: 'center',
-      // justifyContent: 'center',
       marginTop: Device.getDeviceHeight() * 0.08,
-      // minHeight: 64,
-      // flexShrink: 0,
     },
     buttonContainer: {
       marginBottom: insets.bottom + 20,
