@@ -9,7 +9,7 @@ import {
 
 export interface LedgerConfirmationModalProps {
   onConfirmation: () => Promise<void>;
-  onRejection: () => void;
+  onRejection: () => void | Promise<void>;
   deviceId: string;
   operationType?: 'transaction' | 'message';
 }
@@ -32,7 +32,7 @@ const LedgerConfirmationModal = ({
 
   // Track rejection for analytics
   const handleRejection = useCallback(
-    (error?: unknown) => {
+    async (error?: unknown) => {
       // Track analytics for non-user-initiated rejections
       if (error && !isUserCancellation(error)) {
         trackEvent(
@@ -54,7 +54,7 @@ const LedgerConfirmationModal = ({
         );
       }
 
-      onRejection();
+      await onRejection();
     },
     [onRejection, trackEvent, createEventBuilder],
   );
@@ -73,12 +73,12 @@ const LedgerConfirmationModal = ({
 
         if (!isReady) {
           // User cancelled during connection or device not available
-          handleRejection();
+          await handleRejection();
           return;
         }
 
         showAwaitingConfirmation(operationType, () => {
-          handleRejection();
+          void handleRejection();
         });
 
         try {
@@ -93,10 +93,10 @@ const LedgerConfirmationModal = ({
             showHardwareWalletError(signingError);
           }
 
-          handleRejection(signingError);
+          await handleRejection(signingError);
         }
       } catch (connectionError) {
-        handleRejection(connectionError);
+        await handleRejection(connectionError);
       }
     };
 
