@@ -12,7 +12,7 @@ import {
   ToastOptions,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
-import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
 import ToastService from '../../../../core/ToastService';
@@ -26,7 +26,7 @@ export interface V2OrderToastParams {
   orderId: string;
   cryptocurrency: string;
   cryptoAmount?: string | number;
-  state: FIAT_ORDER_STATES;
+  status: RampsOrderStatus;
 }
 
 const toastStyles = StyleSheet.create({
@@ -47,16 +47,16 @@ const toastStyles = StyleSheet.create({
 });
 
 /**
- * Builds toast options for V2 Ramps orders based on order state.
- * Returns null for CREATED state (no toast shown).
+ * Builds toast options for V2 Ramps orders based on order status.
+ * Returns null for statuses that don't warrant a toast (Created, Precreated, Unknown, IdExpired).
  */
 export function buildV2OrderToastOptions(
   params: V2OrderToastParams,
 ): ToastOptions | null {
-  const { orderId, cryptocurrency, cryptoAmount, state } = params;
+  const { orderId, cryptocurrency, cryptoAmount, status } = params;
 
-  switch (state) {
-    case FIAT_ORDER_STATES.PENDING: {
+  switch (status) {
+    case RampsOrderStatus.Pending: {
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
@@ -94,7 +94,7 @@ export function buildV2OrderToastOptions(
       };
     }
 
-    case FIAT_ORDER_STATES.COMPLETED: {
+    case RampsOrderStatus.Completed: {
       const formattedAmount = cryptoAmount
         ? renderNumber(String(cryptoAmount))
         : '';
@@ -132,7 +132,7 @@ export function buildV2OrderToastOptions(
       };
     }
 
-    case FIAT_ORDER_STATES.FAILED: {
+    case RampsOrderStatus.Failed: {
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
@@ -163,7 +163,7 @@ export function buildV2OrderToastOptions(
       };
     }
 
-    case FIAT_ORDER_STATES.CANCELLED: {
+    case RampsOrderStatus.Cancelled: {
       return {
         variant: ToastVariants.Plain,
         hasNoTimeout: false,
@@ -195,7 +195,10 @@ export function buildV2OrderToastOptions(
       };
     }
 
-    case FIAT_ORDER_STATES.CREATED:
+    case RampsOrderStatus.Created:
+    case RampsOrderStatus.Precreated:
+    case RampsOrderStatus.Unknown:
+    case RampsOrderStatus.IdExpired:
     default:
       return null;
   }
@@ -203,7 +206,7 @@ export function buildV2OrderToastOptions(
 
 /**
  * Shows a toast notification for V2 Ramps orders.
- * No-op if toast options are null (e.g., CREATED state).
+ * No-op for statuses that don't warrant a toast (e.g., Created).
  */
 export function showV2OrderToast(params: V2OrderToastParams): void {
   const toastOptions = buildV2OrderToastOptions(params);

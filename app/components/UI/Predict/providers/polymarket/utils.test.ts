@@ -60,6 +60,7 @@ import {
   parsePolymarketPositions,
   parsePolymarketActivity,
   priceValid,
+  refreshBalanceAllowance,
   submitClobOrder,
   decimalPlaces,
   roundNormal,
@@ -701,6 +702,100 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('refreshBalanceAllowance', () => {
+    beforeEach(() => {
+      mockFetch.mockReset();
+      (global.crypto as any).createHmac.mockReturnValue({
+        update: jest.fn().mockReturnThis(),
+        digest: jest.fn().mockReturnValue('mock-digest-base64'),
+      });
+    });
+
+    it('sends COLLATERAL asset_type for BUY orders', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/balance-allowance/update?'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('asset_type=COLLATERAL');
+      expect(calledUrl).toContain('signature_type=2');
+      expect(calledUrl).not.toContain('token_id=');
+    });
+
+    it('sends CONDITIONAL asset_type with token_id for SELL orders', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.SELL,
+        outcomeTokenId: 'token-456',
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('asset_type=CONDITIONAL');
+      expect(calledUrl).toContain('token_id=token-456');
+      expect(calledUrl).toContain('signature_type=2');
+    });
+
+    it('calls CLOB_ENDPOINT with L2 auth headers', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toMatch(/^https:\/\/clob\.polymarket\.com/);
+      const calledOptions = mockFetch.mock.calls[0][1] as RequestInit;
+      expect(calledOptions.headers).toEqual(
+        expect.objectContaining({
+          POLY_ADDRESS: mockAddress,
+        }),
+      );
+    });
+
+    it('does not throw when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 });
+
+      await expect(
+        refreshBalanceAllowance({
+          address: mockAddress,
+          apiKey: mockApiKey,
+          side: Side.BUY,
+          outcomeTokenId: 'token-123',
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('uses custom signatureType when provided', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+        signatureType: SignatureType.EOA,
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('signature_type=0');
+    });
+  });
+
   describe('submitClobOrder', () => {
     const mockHeaders: ClobHeaders = {
       POLY_ADDRESS: mockAddress,
@@ -975,6 +1070,52 @@ describe('polymarket utils', () => {
           }),
         },
       );
+    });
+
+    it('includes executor in request body when provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        executor: '0x1111111111111111111111111111111111111111',
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.executor).toBe(
+        '0x1111111111111111111111111111111111111111',
+      );
+    });
+
+    it('supports Permit2 fee authorization payload in request body', async () => {
+      const feeAuthorization = {
+        type: 'safe-permit2' as const,
+        authorization: {
+          permit: {
+            permitted: {
+              token: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              amount: '1000000',
+            },
+            nonce: '0',
+            deadline: '1700000000',
+          },
+          spender: '0x1111111111111111111111111111111111111111',
+          signature: '0xabc',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
     });
   });
 
@@ -2787,6 +2928,8 @@ describe('polymarket utils', () => {
       expect(fees.metamaskFee).toBe(expectedMetamaskFee);
       expect(fees.totalFeePercentage).toBe(totalFeePercentage);
       expect(fees.collector).toBe(feeCollection.collector);
+      expect(fees.executors).toEqual(feeCollection.executors ?? []);
+      expect(fees.permit2Enabled).toBe(feeCollection.permit2Enabled ?? false);
     });
 
     it('calculates fees correctly for various amounts', async () => {
@@ -2863,6 +3006,8 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
     });
 
     it('waives fees for markets in waiveList', async () => {
@@ -2893,6 +3038,27 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
+    });
+
+    it('returns executors and permit2Enabled from feeCollection config', async () => {
+      const params = {
+        feeCollection: {
+          ...feeCollection,
+          executors: ['0x1111111111111111111111111111111111111111'],
+          permit2Enabled: true,
+        },
+        marketId: 'market-1',
+        userBetAmount: 100,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual([
+        '0x1111111111111111111111111111111111111111',
+      ]);
+      expect(fees.permit2Enabled).toBe(true);
     });
   });
 

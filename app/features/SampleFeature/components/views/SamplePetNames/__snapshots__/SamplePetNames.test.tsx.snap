@@ -29,7 +29,7 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#b7bbc8",
+          "borderColor": "#949596",
           "borderRadius": 4,
           "borderWidth": 1,
           "padding": 16,
@@ -41,7 +41,7 @@ exports[`SamplePetNames matches rendered snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Bold",
             "fontSize": 16,
             "letterSpacing": 0,
