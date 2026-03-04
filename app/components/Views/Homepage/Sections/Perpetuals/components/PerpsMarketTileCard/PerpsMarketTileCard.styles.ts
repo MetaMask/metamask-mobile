@@ -19,8 +19,7 @@ const styleSheet = (params: {
     },
     content: {
       flex: 1,
-      paddingTop: 12,
-      paddingHorizontal: 12,
+      padding: 16,
     },
     topRow: {
       flexDirection: 'row',
@@ -49,6 +48,7 @@ const styleSheet = (params: {
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
+      marginBottom: 16,
     },
     shimmerOverlay: {
       ...StyleSheet.absoluteFillObject,

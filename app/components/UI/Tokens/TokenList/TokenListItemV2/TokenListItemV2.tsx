@@ -562,7 +562,7 @@ export const TokenListItemV2 = React.memo(
               <View style={styles.assetNameContainer}>
                 <View style={styles.assetName}>
                   <Text
-                    variant={TextVariant.BodyMDBold}
+                    variant={TextVariant.BodyMDMedium}
                     numberOfLines={1}
                     style={styles.assetNameText}
                   >
