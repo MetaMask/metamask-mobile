@@ -13,7 +13,7 @@ jest.mock('../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 
-describe('Migration #121 - Update default search engine to Brave', () => {
+describe('Migration #124 - Update default search engine to Brave', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
     jest.resetAllMocks();
@@ -22,7 +22,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
   const invalidStates = [
     {
       state: null,
-      errorMessage: "FATAL ERROR: Migration 121: Invalid state error: 'object'",
+      errorMessage: "FATAL ERROR: Migration 124: Invalid state error: 'object'",
       scenario: 'state is invalid',
     },
     {
@@ -30,7 +30,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
         engine: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 121: Invalid engine state error: 'object'",
+        "FATAL ERROR: Migration 124: Invalid engine state error: 'object'",
       scenario: 'engine state is invalid',
     },
     {
@@ -40,7 +40,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
         },
       }),
       errorMessage:
-        "FATAL ERROR: Migration 121: Invalid engine backgroundState error: 'object'",
+        "FATAL ERROR: Migration 124: Invalid engine backgroundState error: 'object'",
       scenario: 'backgroundState is invalid',
     },
     {
@@ -51,7 +51,7 @@ describe('Migration #121 - Update default search engine to Brave', () => {
         settings: null,
       }),
       errorMessage:
-        "FATAL ERROR: Migration 121: Invalid Settings state error: 'object'",
+        "FATAL ERROR: Migration 124: Invalid Settings state error: 'object'",
       scenario: 'Settings object is invalid',
     },
   ];

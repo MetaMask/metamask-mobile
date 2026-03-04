@@ -3,7 +3,7 @@ import { isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
 
 /**
- * Migration 121: Change default search engine to Brave
+ * Migration 124: Change default search engine to Brave
  *
  * All existing users will be migrated to 'Brave' for a privacy-focused,
  * ad-free search experience.
@@ -12,14 +12,14 @@ import { ensureValidState } from './util';
  * @returns The migrated Redux state
  */
 export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 121)) {
+  if (!ensureValidState(state, 124)) {
     return state;
   }
 
   if (!isObject(state.settings)) {
     captureException(
       new Error(
-        `FATAL ERROR: Migration 121: Invalid Settings state error: '${typeof state.settings}'`,
+        `FATAL ERROR: Migration 124: Invalid Settings state error: '${typeof state.settings}'`,
       ),
     );
     return state;
