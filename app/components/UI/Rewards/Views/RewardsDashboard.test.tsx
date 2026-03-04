@@ -939,20 +939,26 @@ describe('RewardsDashboard', () => {
     it('renders SafeAreaView wrapper', () => {
       const { getByTestId } = render(<RewardsDashboard />);
 
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW),
+      ).toBeOnTheScreen();
     });
 
     it('renders HeaderRoot with title Rewards', () => {
       const { getByText } = render(<RewardsDashboard />);
 
-      expect(getByText('Rewards')).toBeTruthy();
+      expect(getByText('Rewards')).toBeOnTheScreen();
     });
 
     it('renders settings and referral buttons in header', () => {
       const { getByTestId } = render(<RewardsDashboard />);
 
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

@@ -36,6 +36,7 @@ const RewardsSettingsView: React.FC = () => {
         <HeaderCompactStandard
           title={strings('rewards.settings.title')}
           onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
