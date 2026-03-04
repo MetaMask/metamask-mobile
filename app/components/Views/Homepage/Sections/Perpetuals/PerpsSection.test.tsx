@@ -353,7 +353,7 @@ describe('PerpsSection', () => {
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('navigates to perps home on title press with home_screen source', () => {
+  it('navigates to perps home on title press with home_section source', () => {
     renderWithProvider(<PerpsSection />);
 
     fireEvent.press(screen.getByText('Perpetuals'));
