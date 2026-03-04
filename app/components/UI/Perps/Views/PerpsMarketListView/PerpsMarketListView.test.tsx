@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import {
   NavigationProp,
   ParamListBase,
@@ -308,47 +308,6 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
   };
 });
 
-jest.mock(
-  '../../../../../component-library/components/Form/TextFieldSearch',
-  () => {
-    const {
-      TextInput,
-      View,
-      TouchableOpacity: RNTouchableOpacity,
-    } = jest.requireActual('react-native');
-    return function MockTextFieldSearch({
-      value,
-      onChangeText,
-      placeholder,
-      testID,
-      onPressClearButton,
-    }: {
-      value: string;
-      onChangeText: (text: string) => void;
-      placeholder: string;
-      testID: string;
-      onPressClearButton?: () => void;
-    }) {
-      return (
-        <View>
-          <TextInput
-            value={value}
-            onChangeText={onChangeText}
-            placeholder={placeholder}
-            testID={testID}
-          />
-          {!!value && (
-            <RNTouchableOpacity
-              onPress={onPressClearButton}
-              testID={`${testID}-clear`}
-            />
-          )}
-        </View>
-      );
-    };
-  },
-);
-
 // Mock PerpsMarketListHeader
 jest.mock('../../components/PerpsMarketListHeader', () => {
   const ReactActual = jest.requireActual('react');
@@ -459,121 +418,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock design system - needed because real module requires tailwind setup
-jest.mock('@metamask/design-system-react-native', () => {
-  const {
-    View,
-    TouchableOpacity,
-    Text: RNText,
-  } = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
-  return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
-    Box: ({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(View, { testID }, children),
-    ButtonIcon: ({
-      testID,
-      onPress,
-    }: {
-      testID?: string;
-      onPress?: () => void;
-    }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
-  };
-});
-
-jest.mock(
-  '../../../../../component-library/components/Navigation/TabBarItem',
-  () => {
-    const { TouchableOpacity: MockTouchable, Text: MockText } =
-      jest.requireActual('react-native');
-    return jest.fn(({ label, onPress, testID }) => (
-      <MockTouchable onPress={onPress} testID={testID}>
-        <MockText>{label}</MockText>
-      </MockTouchable>
-    ));
-  },
-);
-
-// Mock TabsBar and Tab components
-jest.mock(
-  '../../../../../component-library/components-temp/Tabs/TabsBar',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: function TabsBar({
-        tabs,
-        onTabPress,
-        testID,
-      }: {
-        tabs: { key: string; label: string }[];
-        activeIndex: number;
-        onTabPress: (index: number) => void;
-        testID?: string;
-      }) {
-        return ReactActual.createElement(
-          View,
-          { testID },
-          tabs.map((tab, index) =>
-            ReactActual.createElement(
-              TouchableOpacity,
-              {
-                key: tab.key,
-                testID: testID ? `${testID}-tab-${index}` : undefined,
-                onPress: () => onTabPress(index),
-              },
-              ReactActual.createElement(Text, null, tab.label),
-            ),
-          ),
-        );
-      },
-    };
-  },
-);
-
-jest.mock('../../../../../component-library/components-temp/Tabs/Tab', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Pressable, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function Tab({
-      label,
-      onPress,
-      testID,
-      onLayout,
-    }: {
-      label: string;
-      isActive?: boolean;
-      onPress?: () => void;
-      testID?: string;
-      onLayout?: (event: unknown) => void;
-    }) {
-      return ReactActual.createElement(
-        View,
-        { testID, onLayout },
-        ReactActual.createElement(
-          Pressable,
-          { onPress },
-          ReactActual.createElement(Text, null, label),
-        ),
-      );
-    },
-  };
-});
-
 // Mock Animated to prevent act() warnings
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -634,30 +478,6 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
     assetUrl: 'https://example.com/asset.png',
   })),
 }));
-
-// Mock component-library Text component with FontWeight
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      BodyMd: 'BodyMd',
-      BodySM: 'BodySM',
-      HeadingMD: 'HeadingMD',
-      HeadingSM: 'HeadingSM',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-    },
-    FontWeight: {
-      Bold: 'bold',
-      Medium: 'medium',
-      Regular: 'regular',
-    },
-  };
-});
 
 interface FlashListProps {
   data: PerpsMarketData[];

@@ -304,7 +304,7 @@ const PerpsMarketListView = ({
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
-          filterKey={`${marketTypeFilter}-${searchQuery}`}
+          filterKey={marketTypeFilter}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
       </Animated.View>
