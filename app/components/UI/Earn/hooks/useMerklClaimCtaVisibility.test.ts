@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMerklClaimCtaVisibility } from './useMerklClaimCtaVisibility';
 import { TokenI } from '../../Tokens/types';
-import { type MerklClaimData } from '../components/MerklRewards/hooks/MerklClaimHandler';
+import { type MerklClaimData } from '../components/MerklRewards/hooks/useMerklBonusClaim';
 import { AGLAMERKL_ADDRESS_MAINNET } from '../components/MerklRewards/constants';
 
 let mockIsMerklCampaignClaimingEnabled = true;

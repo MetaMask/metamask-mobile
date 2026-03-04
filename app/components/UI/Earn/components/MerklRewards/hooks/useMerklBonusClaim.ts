@@ -8,16 +8,30 @@ import {
 } from './useMerklRewards';
 import { usePendingMerklClaim } from './usePendingMerklClaim';
 import { useMerklClaim } from './useMerklClaim';
-import {
-  DEFAULT_MERKL_CLAIM_DATA,
-  type MerklClaimData,
-} from './MerklClaimHandler';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../../selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../hooks/useMusdConversionEligibility';
 
+export interface MerklClaimData {
+  claimableReward: string | null;
+  hasPendingClaim: boolean;
+  isClaiming: boolean;
+  claimRewards: () => Promise<
+    | {
+        txHash: string;
+        transactionMeta: Record<string, unknown>;
+      }
+    | undefined
+  >;
+}
+
+const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
+  claimableReward: null,
+  hasPendingClaim: false,
+  isClaiming: false,
+  claimRewards: async () => undefined,
+};
+
 /**
- * Composing hook that replaces the MerklClaimHandler headless component pattern.
- *
  * Combines `useMerklRewards`, `usePendingMerklClaim`, and `useMerklClaim`
  * into a single hook that can be called unconditionally in token list items.
  *

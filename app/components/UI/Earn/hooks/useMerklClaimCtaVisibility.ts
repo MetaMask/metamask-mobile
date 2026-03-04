@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
-import { type MerklClaimData } from '../components/MerklRewards/hooks/MerklClaimHandler';
+import { type MerklClaimData } from '../components/MerklRewards/hooks/useMerklBonusClaim';
 import { isTokenEligibleForMerklRewards } from '../components/MerklRewards/hooks/useMerklRewards';
 import { selectMerklCampaignClaimingEnabledFlag } from '../selectors/featureFlags';
 import { useMusdConversionEligibility } from './useMusdConversionEligibility';
