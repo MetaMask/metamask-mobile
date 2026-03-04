@@ -1,10 +1,3 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
@@ -12,58 +5,64 @@ import {
   StackActions,
   useNavigation,
 } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
-import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
-import PredictBuyActionButton from '../../components/PredictBuyActionButton';
-import PredictBuyBottomContent from '../../components/PredictBuyBottomContent';
-import PredictKeypad, {
-  PredictKeypadHandles,
-} from '../../components/PredictKeypad';
-import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
-import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
-import { selectPredictActiveOrder } from '../../selectors/predictController';
-import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPrice } from '../../utils/format';
-import { MINIMUM_BET } from '../../constants/transactions';
 import { BigNumber } from 'bignumber.js';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { strings } from '../../../../../../locales/i18n';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   POLYGON_USDCE,
   PREDICT_CURRENCY,
 } from '../../../../Views/confirmations/constants/predict';
-import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
 import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import PredictFeeSummary from '../../components/PredictFeeSummary/PredictFeeSummary';
+import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import PredictBuyActionButton from '../../components/PredictBuyActionButton';
+import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
+import PredictBuyBottomContent from '../../components/PredictBuyBottomContent';
+import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
+import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet/PredictFeeBreakdownSheet';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import PredictFeeSummary from '../../components/PredictFeeSummary/PredictFeeSummary';
+import PredictKeypad, {
+  PredictKeypadHandles,
+} from '../../components/PredictKeypad';
+import { MINIMUM_BET } from '../../constants/transactions';
+import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
+import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
+import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
+import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
+import { Side } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
+import { formatPrice } from '../../utils/format';
 
 export function PredictPayWithAnyTokenInfo() {
-  const activeOrder = useSelector(selectPredictActiveOrder);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const { onReject } = useConfirmActions();
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
+  const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
@@ -264,6 +263,17 @@ export function PredictPayWithAnyTokenInfo() {
     setConfirmError(undefined);
 
     try {
+      updateActiveOrder(
+        activeOrder
+          ? {
+              ...activeOrder,
+              ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+              ...(activeTransactionMeta?.id
+                ? { transactionId: activeTransactionMeta.id }
+                : {}),
+            }
+          : null,
+      );
       redirectToBuyPreview({ includeTransactionId: true });
       await onApprovalConfirm({
         deleteAfterResult: true,
@@ -278,7 +288,15 @@ export function PredictPayWithAnyTokenInfo() {
       );
       setIsConfirming(false);
     }
-  }, [isConfirming, onApprovalConfirm, redirectToBuyPreview]);
+  }, [
+    activeOrder,
+    activeTransactionMeta?.id,
+    currentValue,
+    isConfirming,
+    onApprovalConfirm,
+    redirectToBuyPreview,
+    updateActiveOrder,
+  ]);
 
   useEffect(
     () => () => {

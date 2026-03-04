@@ -158,6 +158,7 @@ export type PredictControllerState = {
     outcome: PredictOutcome;
     outcomeToken: PredictOutcomeToken;
     amountUsd?: number;
+    transactionId?: string;
     isInputFocused?: boolean;
     transactionError?: string;
   } | null;

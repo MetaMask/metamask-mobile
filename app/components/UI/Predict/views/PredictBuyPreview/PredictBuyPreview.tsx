@@ -47,6 +47,7 @@ import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -72,6 +73,8 @@ const PredictBuyPreview = () => {
 
   const { market, outcome, outcomeToken, entryPoint, transactionId } =
     route.params;
+
+  usePredictActiveOrder({ shouldInit: true });
 
   const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
     useState(false);
