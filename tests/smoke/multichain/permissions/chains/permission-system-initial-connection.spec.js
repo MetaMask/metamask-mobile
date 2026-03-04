@@ -32,9 +32,11 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await loginToApp();
         await navigateToBrowserView();
         await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+
         await Browser.navigateToTestDApp();
         await TestDApp.connect();
         await ConnectBottomSheet.tapConnectButton();
+
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
@@ -70,6 +72,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
+
         // Second permission modification: Replace Linea Sepolia with Sepolia
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
@@ -79,12 +82,15 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Complete initial connection
         await ConnectBottomSheet.tapConnectButton();
+
+        // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
         );
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+
         // Verify final permissions state
         // - Should have only Ethereum Mainnet and Sepolia selected
         // - Deselecting both should show the disconnect all button
