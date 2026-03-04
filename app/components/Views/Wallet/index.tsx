@@ -108,13 +108,8 @@ import {
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
-import {
-  selectNetworkImageSource,
-  selectNetworkName,
-} from '../../../selectors/networkInfos';
 import {
   getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
@@ -673,7 +668,6 @@ const Wallet = ({
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -993,12 +987,6 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const selectedNetworkName = useSelector(selectNetworkName);
-
-  const networkName =
-    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
-
-  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -1035,22 +1023,6 @@ const Wallet = ({
    * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
    */
   usePna25BottomSheet();
-
-  /**
-   * Callback to trigger when pressing the navigation title.
-   */
-  const onTitlePress = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Check to see if notifications are enabled
@@ -1630,7 +1602,7 @@ const Wallet = ({
                 includesTopInset
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
                 endAccessory={headerEndAccessory}
-                twClassName="pl-2 pr-3"
+                twClassName="pl-1 pr-3"
               >
                 <PickerAccount
                   ref={walletRef}

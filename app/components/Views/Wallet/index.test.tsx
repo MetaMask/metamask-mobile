@@ -505,30 +505,20 @@ describe('Wallet', () => {
     expect(scanButton).toBeDefined();
   });
 
-  it('renders wallet safe area wrapper with wallet-safe-area testID when wallet content is shown', () => {
+  it('renders wallet safe area wrapper with wallet-safe-area testID', () => {
     // @ts-expect-error Wallet is used as Stack.Screen component; navigation props are provided by the navigator
     render(Wallet);
-    const walletContainer = RNScreen.queryByTestId(
-      WalletViewSelectorsIDs.WALLET_CONTAINER,
-    );
-    if (walletContainer) {
-      expect(
-        RNScreen.getByTestId(WalletViewSelectorsIDs.WALLET_SAFE_AREA),
-      ).toBeOnTheScreen();
-    }
+    expect(
+      RNScreen.getByTestId(WalletViewSelectorsIDs.WALLET_SAFE_AREA),
+    ).toBeOnTheScreen();
   });
 
-  it('renders HeaderRoot with wallet-header-root testID when wallet content is shown', () => {
+  it('renders HeaderRoot with wallet-header-root testID', () => {
     // @ts-expect-error Wallet is used as Stack.Screen component; navigation props are provided by the navigator
     render(Wallet);
-    const walletContainer = RNScreen.queryByTestId(
-      WalletViewSelectorsIDs.WALLET_CONTAINER,
-    );
-    if (walletContainer) {
-      expect(
-        RNScreen.getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
-      ).toBeOnTheScreen();
-    }
+    expect(
+      RNScreen.getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+    ).toBeOnTheScreen();
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {

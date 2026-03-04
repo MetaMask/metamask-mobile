@@ -27,15 +27,12 @@ const styleSheet = (params: {
       ...(style as ViewStyle),
       flexDirection: 'row',
       borderWidth: 0,
-      padding: 8,
     },
     basePressed: {
       ...(style as ViewStyle),
       flexDirection: 'row',
       borderWidth: 0,
-      borderRadius: 8,
-      padding: 8,
-
+      borderRadius: 2,
       backgroundColor: colors.background.pressed,
     },
     accountAddressLabel: {
