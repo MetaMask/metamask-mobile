@@ -205,9 +205,8 @@ function BuildQuote() {
       paymentMethods.length === 0 &&
       hasSeenLoadingRef.current &&
       selectedProvider.id === prevProviderIdRef.current &&
-      (tokenStateIsSettled
-        ? selectedToken?.assetId
-        : undefined) === prevSettledAssetIdRef.current
+      (tokenStateIsSettled ? selectedToken?.assetId : undefined) ===
+        prevSettledAssetIdRef.current
     ) {
       return true;
     }
