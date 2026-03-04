@@ -475,8 +475,8 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
   const {
     marketData,
-    isLoading: isSearchFetching,
-    isFetching: isSearchRefetching,
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching,
     error,
     refetch,
   } = usePredictMarketData({
@@ -485,10 +485,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
     pageSize: 20,
   });
 
-  const isSearchLoading =
+  const isSearchBusy =
     isDebouncing ||
-    isSearchFetching ||
-    (isSearchRefetching && (!marketData || marketData.length === 0));
+    isSearchLoading ||
+    (isSearchFetching && (!marketData || marketData.length === 0));
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -557,7 +557,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       </Box>
 
       <Box twClassName="flex-1">
-        {isSearchLoading ? (
+        {isSearchBusy ? (
           <Box twClassName="px-4 pt-4">
             <PredictMarketSkeleton testID="search-skeleton-1" />
             <PredictMarketSkeleton testID="search-skeleton-2" />

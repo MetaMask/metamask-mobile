@@ -17,7 +17,7 @@ export const predictMarketsKeys = {
     [
       ...predictMarketsKeys.all(),
       params.category,
-      params.q ?? '',
+      params.q,
       params.pageSize ?? 20,
       params.customQueryParams ?? '',
     ] as const,
