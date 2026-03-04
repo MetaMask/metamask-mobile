@@ -122,6 +122,7 @@ const mockMarket: PredictMarketType = {
       name: 'Seattle Seahawks',
       logo: '',
       abbreviation: 'SEA',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#002244',
       alias: 'Seahawks',
     },
@@ -130,6 +131,7 @@ const mockMarket: PredictMarketType = {
       name: 'Denver Broncos',
       logo: '',
       abbreviation: 'DEN',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#FB4F14',
       alias: 'Broncos',
     },

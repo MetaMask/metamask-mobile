@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   primaryButton: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#007AFF',
     padding: 10,
     borderRadius: 5,
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButton: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#6C757D',
     padding: 10,
     borderRadius: 5,

@@ -22,6 +22,7 @@ describe('ChartLegend', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#4459FF',
       data: [
         { timestamp: 1640995200000, value: 0.5 },
@@ -34,6 +35,7 @@ describe('ChartLegend', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#4459FF',
       data: [
         { timestamp: 1640995200000, value: 0.5 },
@@ -43,6 +45,7 @@ describe('ChartLegend', () => {
     },
     {
       label: 'Outcome B',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#FF6B6B',
       data: [
         { timestamp: 1640995200000, value: 0.3 },
@@ -132,6 +135,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty Series',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [],
         },
@@ -203,6 +207,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [],
         },
@@ -217,6 +222,7 @@ describe('ChartLegend', () => {
       const seriesWithSinglePoint: ChartSeries[] = [
         {
           label: 'Single Point',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [{ timestamp: 1640995200000, value: 0.42 }],
         },
@@ -250,6 +256,7 @@ describe('ChartLegend', () => {
       const seriesWithSmallValues: ChartSeries[] = [
         {
           label: 'Small',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [{ timestamp: 1640995200000, value: 0.001 }],
         },
@@ -267,6 +274,7 @@ describe('ChartLegend', () => {
       const seriesWithLargeValues: ChartSeries[] = [
         {
           label: 'Large',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [{ timestamp: 1640995200000, value: 999.99 }],
         },
@@ -303,6 +311,7 @@ describe('ChartLegend', () => {
       const seriesWithDifferentLengths: ChartSeries[] = [
         {
           label: 'Long',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#4459FF',
           data: [
             { timestamp: 1, value: 0.1 },
@@ -312,6 +321,7 @@ describe('ChartLegend', () => {
         },
         {
           label: 'Short',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF6B6B',
           data: [{ timestamp: 1, value: 0.5 }],
         },

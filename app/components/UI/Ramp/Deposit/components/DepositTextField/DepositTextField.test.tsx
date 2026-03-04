@@ -12,7 +12,9 @@ const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
 const mockTheme = {
   colors: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     text: { muted: '#888888' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     error: { default: '#FF0000' },
   },
   themeAppearance: 'light',

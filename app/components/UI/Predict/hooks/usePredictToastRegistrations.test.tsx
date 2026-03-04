@@ -37,8 +37,11 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       success: { default: '#00ff00' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       error: { default: '#ff0000' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       accent04: { normal: '#ffffff' },
     },
   }),

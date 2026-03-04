@@ -33,13 +33,12 @@ jest.mock('react-native-svg', () => {
   };
 });
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: { default: '#000000' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 const mockXFunction = (index: number) => index * 10 + 50;
 const mockYFunction = (value: number) => 200 - value * 2;
@@ -47,6 +46,7 @@ const mockYFunction = (value: number) => 200 - value * 2;
 const mockNonEmptySeries: GameChartSeries[] = [
   {
     label: 'Team A',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#FF0000',
     data: [
       { timestamp: 1704067200000, value: 50 },
@@ -56,6 +56,7 @@ const mockNonEmptySeries: GameChartSeries[] = [
   },
   {
     label: 'Team B',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#0000FF',
     data: [
       { timestamp: 1704067200000, value: 50 },
@@ -151,6 +152,7 @@ describe('EndpointDots', () => {
 
     it('handles series with empty data array', () => {
       const emptyDataSeries: GameChartSeries[] = [
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         { label: 'Empty', color: '#000', data: [] },
       ];
 
@@ -177,6 +179,7 @@ describe('EndpointDots', () => {
       const differentLengthSeries: GameChartSeries[] = [
         {
           label: 'Primary',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [
             { timestamp: 1704067200000, value: 50 },
@@ -188,6 +191,7 @@ describe('EndpointDots', () => {
         },
         {
           label: 'Overlay',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [
             { timestamp: 1704067200000, value: 50 },
@@ -226,11 +230,13 @@ describe('EndpointDots', () => {
       const closeValuesSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 50 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 51 }],
         },
@@ -248,11 +254,13 @@ describe('EndpointDots', () => {
       const farApartSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 20 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 80 }],
         },
@@ -270,11 +278,13 @@ describe('EndpointDots', () => {
       const firstAboveSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 71 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 70 }],
         },
@@ -291,11 +301,13 @@ describe('EndpointDots', () => {
       const firstBelowSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 30 }],
         },
         {
           label: 'Team B',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#0000FF',
           data: [{ timestamp: 1704067200000, value: 31 }],
         },
@@ -314,6 +326,7 @@ describe('EndpointDots', () => {
       const decimalSeries: GameChartSeries[] = [
         {
           label: 'Team A',
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           color: '#FF0000',
           data: [{ timestamp: 1704067200000, value: 55.7 }],
         },

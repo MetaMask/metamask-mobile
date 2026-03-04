@@ -21,6 +21,7 @@ const createMockApiTeam = (
   name: 'Seattle Seahawks',
   logo: 'https://example.com/sea.png',
   abbreviation: 'SEA',
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   color: '#002244',
   alias: 'Seahawks',
   ...overrides,
@@ -285,6 +286,7 @@ describe('gameParser', () => {
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         color: '#002244',
         alias: 'Seahawks',
       });
@@ -296,6 +298,7 @@ describe('gameParser', () => {
         name: 'Custom Team',
         logo: 'https://custom.com/logo.png',
         abbreviation: 'CUS',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         color: '#FFFFFF',
         alias: 'Customs',
       });
@@ -306,6 +309,7 @@ describe('gameParser', () => {
       expect(result.name).toBe('Custom Team');
       expect(result.logo).toBe('https://custom.com/logo.png');
       expect(result.abbreviation).toBe('CUS');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(result.color).toBe('#FFFFFF');
       expect(result.alias).toBe('Customs');
     });
@@ -317,6 +321,7 @@ describe('gameParser', () => {
       name: 'Seattle Seahawks',
       logo: 'https://example.com/sea.png',
       abbreviation: 'SEA',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#002244',
       alias: 'Seahawks',
     };
@@ -326,6 +331,7 @@ describe('gameParser', () => {
       name: 'Denver Broncos',
       logo: 'https://example.com/den.png',
       abbreviation: 'DEN',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#FB4F14',
       alias: 'Broncos',
     };

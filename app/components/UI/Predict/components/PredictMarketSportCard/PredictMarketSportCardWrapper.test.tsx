@@ -104,6 +104,7 @@ const mockMarket: PredictMarketType = {
       name: 'Team A',
       logo: '',
       abbreviation: 'TA',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#FF0000',
       alias: 'Team A',
     },
@@ -112,6 +113,7 @@ const mockMarket: PredictMarketType = {
       name: 'Team B',
       logo: '',
       abbreviation: 'TB',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#0000FF',
       alias: 'Team B',
     },

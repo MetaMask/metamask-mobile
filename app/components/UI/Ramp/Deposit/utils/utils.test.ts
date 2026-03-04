@@ -11,7 +11,8 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import { darkTheme, lightTheme } from '@metamask/design-tokens';
+import { darkTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { MOCK_ETH_TOKEN } from '../testUtils/constants';
 
@@ -214,7 +215,7 @@ describe('hasDepositOrderField', () => {
 describe('generateThemeParameters', () => {
   it('should generate correct theme parameters for light mode', () => {
     const themeAppearance = AppThemeKey.light;
-    const colors = lightTheme.colors;
+    const colors = mockTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
       themeColor: colors.primary.default,
