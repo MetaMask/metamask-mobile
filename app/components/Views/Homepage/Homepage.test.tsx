@@ -13,8 +13,23 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
+    useFocusEffect: (callback: () => void) => {
+      const React = jest.requireActual('react');
+      React.useEffect(callback, [callback]);
+    },
   };
 });
+
+const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+const mockAbortDetection = jest.fn();
+
+jest.mock('../../hooks/useNftDetection', () => ({
+  useNftDetection: () => ({
+    detectNfts: mockDetectNfts,
+    abortDetection: mockAbortDetection,
+    chainIdsToDetectNftsFor: [],
+  }),
+}));
 
 // Mock feature flags - enable all sections
 jest.mock('../../UI/Perps', () => ({
