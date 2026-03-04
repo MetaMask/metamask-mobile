@@ -150,7 +150,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "error": null,
         "lastFetchedAt": null,
         "location": "UNKNOWN",
-        "status": "loading",
+        "status": "idle",
       },
       "KeyringController": {
         "isUnlocked": true,
@@ -1011,7 +1011,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "error": null,
         "lastFetchedAt": null,
         "location": "UNKNOWN",
-        "status": "loading",
+        "status": "idle",
       },
       "KeyringController": {
         "isUnlocked": true,

@@ -451,7 +451,7 @@
   },
   "GeolocationController": {
     "location": "UNKNOWN",
-    "status": "loading",
+    "status": "idle",
     "lastFetchedAt": null,
     "error": null
   },
