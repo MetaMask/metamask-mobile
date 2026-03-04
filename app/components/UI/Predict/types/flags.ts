@@ -29,6 +29,7 @@ export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  fakOrdersEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

@@ -445,7 +445,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -1881,7 +1881,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -3347,7 +3347,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -4713,7 +4713,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -6179,7 +6179,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -8579,7 +8579,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -10028,7 +10028,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -11540,7 +11540,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",
@@ -12954,7 +12954,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                               "textAlign": "center",

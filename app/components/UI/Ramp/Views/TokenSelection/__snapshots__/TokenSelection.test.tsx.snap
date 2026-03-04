@@ -832,7 +832,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                         {
                                           "color": "#131416",
                                           "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
+                                          "fontSize": 20,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1850,7 +1850,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2150,7 +2150,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2450,7 +2450,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2750,7 +2750,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3050,7 +3050,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4170,7 +4170,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4470,7 +4470,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4770,7 +4770,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5070,7 +5070,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5370,7 +5370,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }

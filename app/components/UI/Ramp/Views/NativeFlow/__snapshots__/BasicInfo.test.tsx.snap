@@ -177,7 +177,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Bold",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                   "marginBottom": 4,
@@ -1069,7 +1069,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Bold",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                   "marginBottom": 4,
@@ -2127,7 +2127,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Bold",
-                  "fontSize": 18,
+                  "fontSize": 20,
                   "letterSpacing": 0,
                   "lineHeight": 24,
                   "marginBottom": 4,
