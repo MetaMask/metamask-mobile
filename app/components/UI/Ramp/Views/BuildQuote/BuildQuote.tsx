@@ -158,7 +158,7 @@ function BuildQuote() {
   // { data: [], isLoading: false }, which is indistinguishable from "finished
   // loading with empty result". We must only treat an empty list as a real
   // signal after we've witnessed at least one loading cycle.
-  const paymentMethodsFetchedRef = useRef(false);
+  const hasSeenLoadingRef = useRef(false);
   const prevProviderIdRef = useRef(selectedProvider?.id);
   const prevSettledAssetIdRef = useRef<string | undefined>(undefined);
 
@@ -170,13 +170,13 @@ function BuildQuote() {
     const tokenChanged = settledAssetId !== prevSettledAssetIdRef.current;
 
     if (providerChanged || tokenChanged) {
-      paymentMethodsFetchedRef.current = false;
+      hasSeenLoadingRef.current = false;
       prevProviderIdRef.current = selectedProvider?.id;
       prevSettledAssetIdRef.current = settledAssetId;
     }
 
     if (paymentMethodsLoading) {
-      paymentMethodsFetchedRef.current = true;
+      hasSeenLoadingRef.current = true;
     }
   });
 
@@ -196,10 +196,18 @@ function BuildQuote() {
     // the default Redux state { data: [], isLoading: false } which looks
     // identical to "loaded empty" — only treat it as unavailable once we've
     // seen a real loading cycle for this provider/token.
+    //
+    // Check that loading has finished AND the ref confirms we witnessed a load
+    // cycle for the current provider/token. This prevents false positives when
+    // the ref is stale during provider/token transitions.
     if (
-      paymentMethodsFetchedRef.current &&
       !paymentMethodsLoading &&
-      paymentMethods.length === 0
+      paymentMethods.length === 0 &&
+      hasSeenLoadingRef.current &&
+      selectedProvider.id === prevProviderIdRef.current &&
+      (tokenStateIsSettled
+        ? selectedToken?.assetId
+        : undefined) === prevSettledAssetIdRef.current
     ) {
       return true;
     }
@@ -207,6 +215,7 @@ function BuildQuote() {
     return false;
   }, [
     selectedProvider,
+    selectedToken?.assetId,
     params?.assetId,
     tokenStateIsSettled,
     paymentMethodsLoading,
