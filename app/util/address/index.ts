@@ -365,7 +365,9 @@ export function getInternalAccountByAddress(
     internalAccounts: { accounts },
     accountIdByAddress,
   } = Engine.context.AccountsController.state;
-  return accounts[accountIdByAddress[address]];
+  const id =
+    accountIdByAddress[address] ?? accountIdByAddress[address.toLowerCase()];
+  return id ? accounts[id] : undefined;
 }
 
 /**
