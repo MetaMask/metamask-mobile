@@ -211,6 +211,7 @@ export const TokenListItemV2 = React.memo(
     );
 
     const merklClaimData = useMerklBonusClaim(asset);
+    const { claimRewards } = merklClaimData;
     const { shouldShowBonusClaimCta } = useMerklClaimCtaVisibility();
 
     const hasClaimableBonus = useMemo(
@@ -231,14 +232,14 @@ export const TokenListItemV2 = React.memo(
           })
           .build(),
       );
-      merklClaimData.claimRewards();
+      claimRewards();
     }, [
       trackEvent,
       createEventBuilder,
       asset?.chainId,
       asset?.symbol,
       networkName,
-      merklClaimData,
+      claimRewards,
     ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
