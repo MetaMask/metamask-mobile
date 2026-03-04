@@ -11,7 +11,7 @@ index b0caa94ceaa9afaa6c112947a328887e580f76a2..76b0442a7367f39d8ae9300825815edd
      ) => Promise<void>
  
 diff --git a/index.js b/index.js
-index d69afb678b3d06760ad59831457cfd5c51fdb89b..72a5e6a011ed73144b2c582f570c4090042f3757 100644
+index d69afb678b3d06760ad59831457cfd5c51fdb89b..8d5ecb060a91f137c865ed21f891b640d3cc65fe 100644
 --- a/index.js
 +++ b/index.js
 @@ -41,11 +41,19 @@ const FilesystemStorage = {
@@ -32,7 +32,7 @@ index d69afb678b3d06760ad59831457cfd5c51fdb89b..72a5e6a011ed73144b2c582f570c4090
 +        if (!callback) {
 +          throw error;
 +        }
-+        callback && callback(error);
++        callback(error);
 +      });
 +  },
  
