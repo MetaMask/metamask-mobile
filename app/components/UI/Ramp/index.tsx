@@ -140,7 +140,6 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useHydrateRampsController();
   useFetchRampNetworks();
   useRampsSmartRouting();
   const dispatch = useDispatch();
