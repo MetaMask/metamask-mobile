@@ -331,8 +331,8 @@ describe('TrendingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders HeaderRoot with Explore title', () => {
-    const { getByTestId, getByText } = render(
+  it('renders HeaderRoot', () => {
+    const { getByTestId } = render(
       <NavigationContainer>
         <TrendingView />
       </NavigationContainer>,
@@ -341,7 +341,6 @@ describe('TrendingView', () => {
     expect(
       getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
     ).toBeOnTheScreen();
-    expect(getByText('Explore')).toBeOnTheScreen();
   });
 
   it('renders search bar button', () => {

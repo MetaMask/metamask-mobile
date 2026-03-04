@@ -41,23 +41,33 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
-  itForPlatforms(
-    'renders Explore screen with HeaderRoot and SafeAreaView',
-    async () => {
-      const { getByTestId, getByText } = renderTrendingViewWithRoutes();
+  itForPlatforms('renders Explore screen wrapped in SafeAreaView', async () => {
+    const { getByTestId } = renderTrendingViewWithRoutes();
 
-      await waitFor(() => {
-        expect(
-          getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
-        ).toBeOnTheScreen();
-      });
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
+      ).toBeOnTheScreen();
+    });
+  });
 
+  itForPlatforms('renders HeaderRoot on Explore screen', async () => {
+    const { getByTestId } = renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
       ).toBeOnTheScreen();
+    });
+  });
+
+  itForPlatforms('renders Explore title on Explore screen', async () => {
+    const { getByText } = renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
       expect(getByText('Explore')).toBeOnTheScreen();
-    },
-  );
+    });
+  });
 
   itForPlatforms(
     'user sees trending tokens section with mocked data',
