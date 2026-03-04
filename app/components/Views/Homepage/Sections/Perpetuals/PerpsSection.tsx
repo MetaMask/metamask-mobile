@@ -21,12 +21,14 @@ import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
+import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsLivePositions,
   usePerpsLiveOrders,
   usePerpsMarkets,
 } from '../../../../UI/Perps/hooks';
+import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
@@ -57,6 +59,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const tw = useTailwind();
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const title = strings('homepage.sections.perpetuals');
+  const { error: connectionError, reconnectWithNewContext } =
+    usePerpsConnection();
   const { track } = usePerpsEventTracking();
 
   const { positions, isInitialLoading: positionsLoading } =
@@ -179,17 +183,21 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   useImperativeHandle(
     ref,
     () => ({
-      refresh: () => {
+      refresh: async () => {
+        if (connectionError) {
+          await reconnectWithNewContext({ force: true });
+          return;
+        }
         refreshSparklines();
-        return Promise.resolve();
       },
     }),
-    [refreshSparklines],
+    [connectionError, reconnectWithNewContext, refreshSparklines],
   );
 
   const handleViewAllPerps = useCallback(() => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
+      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
     });
   }, [navigation]);
 
@@ -212,6 +220,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             maxLeverage: position.maxLeverage,
           },
           initialTab: 'position',
+          source: 'section_position',
         },
       });
     },
@@ -222,11 +231,25 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
       });
     },
     [navigation],
   );
+
+  if (connectionError) {
+    return (
+      <Box gap={3}>
+        <SectionTitle title={title} onPress={handleViewAllPerps} />
+        <ErrorState
+          title={strings('homepage.error.unable_to_load', {
+            section: title.toLowerCase(),
+          })}
+          onRetry={() => reconnectWithNewContext({ force: true })}
+        />
+      </Box>
+    );
+  }
 
   return (
     <Box gap={3}>
@@ -279,8 +302,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               ))}
               <ViewMoreCard
                 onPress={handleViewAllPerps}
-                twClassName="w-[180px] h-[140px]"
-                activeOpacity={0.7}
+                twClassName="w-[180px] flex-1"
                 testID="perps-view-more-card"
               />
             </ScrollView>

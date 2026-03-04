@@ -103,7 +103,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% annual bonus that you can claim daily.`,
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
       ),
     ).toBeOnTheScreen();
   });
@@ -474,7 +474,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct bonus title text', () => {
+  it('renders CTA with correct boost title text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -507,7 +507,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct bonus description text', () => {
+  it('renders CTA with correct boost description text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -537,7 +537,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     // Assert
     expect(
       getByText(
-        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% annual bonus that you can claim daily.`,
+        `Convert your stablecoins to mUSD and receive up to a ${MUSD_CONVERSION_APY}% bonus.`,
       ),
     ).toBeOnTheScreen();
   });

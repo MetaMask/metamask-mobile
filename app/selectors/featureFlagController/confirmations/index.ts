@@ -9,12 +9,28 @@ export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
 export const SLIPPAGE_DEFAULT = 0.005;
 
+export interface PreferredToken {
+  address: string;
+  chainId: string;
+  successRate: number;
+}
+
+export interface PreferredTokensConfig {
+  default: PreferredToken[];
+  overrides: Record<string, PreferredToken[]>;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
   bufferStep: number;
   bufferSubsequent: number;
   slippage: number;
+}
+
+export interface MetaMaskPayTokensFlags {
+  preferredTokens: PreferredTokensConfig;
+  minimumRequiredTokenBalance: number;
 }
 
 export interface PayPostQuoteConfig {
@@ -71,6 +87,29 @@ export const selectMetaMaskPayFlags = createSelector(
   },
 );
 
+export const selectMetaMaskPayTokensFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayTokensFlags => {
+    const payTokenFlags = (featureFlags as Record<string, Json>)
+      ?.confirmations_pay_tokens as
+      | Record<string, Json | PreferredTokensConfig>
+      | undefined;
+
+    return {
+      preferredTokens: {
+        default:
+          ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
+            ?.default as PreferredToken[]) ?? [],
+        overrides:
+          ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
+            ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
+      minimumRequiredTokenBalance:
+        (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
+    };
+  },
+);
+
 interface RawPayPostQuoteFlag {
   default?: PayPostQuoteConfig;
   overrides?: Record<string, PayPostQuoteConfig>;
@@ -119,6 +158,16 @@ export const selectPayQuoteConfig = createSelector(
     };
   },
 );
+
+export function getPreferredTokensForTransactionType(
+  preferredTokens: PreferredTokensConfig,
+  transactionType?: string,
+): PreferredToken[] {
+  if (transactionType && preferredTokens.overrides[transactionType]) {
+    return preferredTokens.overrides[transactionType];
+  }
+  return preferredTokens.default;
+}
 
 /**
  * Selector to get the allow list for non-zero unused approvals from remote feature flags.

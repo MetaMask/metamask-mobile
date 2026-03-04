@@ -60,6 +60,7 @@ import {
   parsePolymarketPositions,
   parsePolymarketActivity,
   priceValid,
+  refreshBalanceAllowance,
   submitClobOrder,
   decimalPlaces,
   roundNormal,
@@ -698,6 +699,100 @@ describe('polymarket utils', () => {
 
       expect(typeof result).toBe('string');
       expect(result.startsWith('0x')).toBe(true);
+    });
+  });
+
+  describe('refreshBalanceAllowance', () => {
+    beforeEach(() => {
+      mockFetch.mockReset();
+      (global.crypto as any).createHmac.mockReturnValue({
+        update: jest.fn().mockReturnThis(),
+        digest: jest.fn().mockReturnValue('mock-digest-base64'),
+      });
+    });
+
+    it('sends COLLATERAL asset_type for BUY orders', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/balance-allowance/update?'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('asset_type=COLLATERAL');
+      expect(calledUrl).toContain('signature_type=2');
+      expect(calledUrl).not.toContain('token_id=');
+    });
+
+    it('sends CONDITIONAL asset_type with token_id for SELL orders', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.SELL,
+        outcomeTokenId: 'token-456',
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('asset_type=CONDITIONAL');
+      expect(calledUrl).toContain('token_id=token-456');
+      expect(calledUrl).toContain('signature_type=2');
+    });
+
+    it('calls CLOB_ENDPOINT with L2 auth headers', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toMatch(/^https:\/\/clob\.polymarket\.com/);
+      const calledOptions = mockFetch.mock.calls[0][1] as RequestInit;
+      expect(calledOptions.headers).toEqual(
+        expect.objectContaining({
+          POLY_ADDRESS: mockAddress,
+        }),
+      );
+    });
+
+    it('does not throw when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 });
+
+      await expect(
+        refreshBalanceAllowance({
+          address: mockAddress,
+          apiKey: mockApiKey,
+          side: Side.BUY,
+          outcomeTokenId: 'token-123',
+        }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('uses custom signatureType when provided', async () => {
+      mockFetch.mockResolvedValue({ ok: true });
+
+      await refreshBalanceAllowance({
+        address: mockAddress,
+        apiKey: mockApiKey,
+        side: Side.BUY,
+        outcomeTokenId: 'token-123',
+        signatureType: SignatureType.EOA,
+      });
+
+      const calledUrl = mockFetch.mock.calls[0][0] as string;
+      expect(calledUrl).toContain('signature_type=0');
     });
   });
 
