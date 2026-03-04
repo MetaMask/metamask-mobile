@@ -1061,7 +1061,7 @@ const AppFlow = () => (
       component={AddNetworkFlow}
       options={{
         animationEnabled: true,
-        cardStyle: { flex: 1, backgroundColor: importedColors.white },
+        cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
         gestureEnabled: true,
       }}
     />
@@ -1071,7 +1071,7 @@ const AppFlow = () => (
         component={AddNetworkFlow}
         options={{
           animationEnabled: true,
-          cardStyle: { flex: 1, backgroundColor: importedColors.white },
+          cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
           gestureEnabled: true,
         }}
       />
