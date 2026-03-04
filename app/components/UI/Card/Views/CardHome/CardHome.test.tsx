@@ -5709,7 +5709,7 @@ describe('CardHome Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigates to cashback screen and tracks analytics on press', () => {
+    it('navigates to cashback screen on press', () => {
       // Given: authenticated international user with verified KYC
       setupMockSelectors({
         isAuthenticated: true,
@@ -5723,12 +5723,33 @@ describe('CardHome Component', () => {
         kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
       });
 
-      // When: component renders and user taps cashback item
+      // When: user taps cashback item
       render();
       fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
 
-      // Then: navigates to cashback route and tracks event
+      // Then: navigates to cashback route
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('tracks analytics event on press', () => {
+      // Given: authenticated international user with verified KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: user taps cashback item
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
+
+      // Then: tracks cashback button event
       expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
