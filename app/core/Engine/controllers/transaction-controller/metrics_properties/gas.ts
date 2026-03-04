@@ -11,6 +11,7 @@ import type {
   TransactionMetricsBuilderRequest,
 } from '../types';
 import type { RootState } from '../../../../../reducers';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 
 export function getGasMetricsProperties({
   transactionMeta,
@@ -82,8 +83,7 @@ function getNativeBalance(
   chainId: string,
   address: string,
 ): BigNumber {
-  const accountsByChainId =
-    state.engine?.backgroundState?.AccountTrackerController?.accountsByChainId;
+  const accountsByChainId = selectAccountsByChainId(state);
 
   const account = accountsByChainId?.[chainId]?.[address?.toLowerCase()];
 
