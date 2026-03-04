@@ -33,6 +33,7 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
+import useHydrateRampsController from './hooks/useHydrateRampsController';
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
@@ -139,6 +140,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
+  useHydrateRampsController();
   useFetchRampNetworks();
   useRampsSmartRouting();
   const dispatch = useDispatch();
