@@ -37,6 +37,7 @@ import Button, {
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
@@ -309,6 +310,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </BadgeWrapper>
 
         <Text
+          testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
@@ -571,6 +573,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
         {showCloseButton && (
           <Button
+            testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

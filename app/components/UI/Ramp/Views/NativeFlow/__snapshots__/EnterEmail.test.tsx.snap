@@ -173,6 +173,7 @@ exports[`V2EnterEmail matches snapshot 1`] = `
                     "opacity": 1,
                   }
                 }
+                testID="ramps-enter-email-input"
                 value=""
               />
             </View>
@@ -217,6 +218,7 @@ exports[`V2EnterEmail matches snapshot 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="ramps-enter-email-send-button"
         >
           <Text
             accessibilityRole="text"
