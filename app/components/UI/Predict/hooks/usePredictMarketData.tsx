@@ -13,6 +13,20 @@ import { PredictCategory, PredictMarket } from '../types';
  *
  * Backed by React Query's `useInfiniteQuery` — handles pagination, retry with
  * exponential back-off, caching, and deduplication automatically.
+ *
+ * Why this hook does NOT return the raw useInfiniteQuery result:
+ *
+ * This hook is consumed by 4 call sites across 3 files (PredictTabContent,
+ * PredictSearchOverlay, PredictHomeFeaturedList, and the Trending View
+ * sections config). Every consumer depends on `marketData` — the flattened,
+ * deduplicated list of markets across all loaded pages. Returning the raw
+ * InfiniteData<PredictMarket[]> would force each consumer to independently
+ * flatten pages and deduplicate by ID, duplicating non-trivial logic.
+ *
+ * The hook also centralizes structured error logging (useEffect that reports
+ * to Logger with tags), a guarded `fetchMore` that prevents redundant fetches,
+ * and simplified boolean flags (`hasMore`, `isFetchingMore`) that keep
+ * component code readable.
  */
 export const usePredictMarketData = ({
   category = 'trending',
