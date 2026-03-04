@@ -11,8 +11,6 @@ import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSh
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -100,8 +98,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectedAccountsModal.tapSelectAllNetworksButton();
         await ConnectedAccountsModal.tapDeselectAllNetworksButton();
 
-        // await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        // await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );

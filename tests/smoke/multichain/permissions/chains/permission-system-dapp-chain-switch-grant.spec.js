@@ -12,8 +12,6 @@ import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAc
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
