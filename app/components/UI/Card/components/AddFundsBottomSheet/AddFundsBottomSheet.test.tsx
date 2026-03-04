@@ -51,27 +51,13 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      text: {
-        alternative: 'rgb(102, 102, 102)',
-      },
-    },
-  })),
-  mockTheme: {
-    colors: {
-      background: {
-        default: 'rgb(255, 255, 255)',
-      },
-      text: {
-        default: 'rgb(0, 0, 0)',
-        alternative: 'rgb(102, 102, 102)',
-      },
-    },
-    themeAppearance: 'light',
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+    mockTheme,
+  };
+});
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({

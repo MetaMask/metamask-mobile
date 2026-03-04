@@ -19,20 +19,12 @@ jest.mock('../../../../../core/Authentication/hooks/useAuthentication', () =>
   jest.fn(),
 );
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      text: {
-        muted: 'rgb(153, 153, 153)',
-        default: 'rgb(0, 0, 0)',
-        alternative: 'rgb(102, 102, 102)',
-      },
-      error: {
-        default: 'rgb(255, 0, 0)',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
