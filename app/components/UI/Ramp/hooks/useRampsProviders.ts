@@ -86,6 +86,9 @@ export function useRampsProviders(): UseRampsProvidersResult {
       if (preferred) {
         setSelectedProvider(preferred);
       }
+      if (hasRunWithEmptyOrdersRef.current && hasOrders) {
+        hasRunWithEmptyOrdersRef.current = false;
+      }
     }
 
     if (!hasOrders) {
