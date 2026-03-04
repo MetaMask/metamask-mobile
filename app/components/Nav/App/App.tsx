@@ -126,6 +126,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import { RampsBootstrap } from '../../UI/Ramp';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -1168,6 +1169,7 @@ const App: React.FC = () => {
 
   return (
     <WebSocketHealthToastProvider>
+      <RampsBootstrap />
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />

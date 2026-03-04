@@ -33,10 +33,9 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
-import useDetectGeolocation from './hooks/useDetectGeolocation';
-import useHydrateRampsController from './hooks/useHydrateRampsController';
-import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+
+export { default as RampsBootstrap } from './RampsBootstrap';
 import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
 
@@ -141,10 +140,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useHydrateRampsController();
   useFetchRampNetworks();
-  useDetectGeolocation();
-  useRampsSmartRouting();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
