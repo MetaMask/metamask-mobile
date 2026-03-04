@@ -183,13 +183,20 @@ for file in "${CHANGED_FILES[@]}"; do
     fi
 
     # Rule: inline useABTest variants object must include control.
-    if [[ "$line" =~ useABTest[[:space:]]*\( ]] && [[ "$line" =~ \{ ]]; then
+    # Only apply when the second argument is an inline object literal:
+    # useABTest(flagKey, { ... })
+    # Do not apply when variants are passed by reference:
+    # useABTest(flagKey, VARIANTS)
+    if [[ "$line" =~ useABTest[[:space:]]*\( ]]; then
       window="$line"
       for ((j=i+1; j<added_count && j<=i+20; j++)); do
         window+=$'\n'"${added_lines[$j]}"
       done
-      if grep -Eq 'useABTest[[:space:]]*\(' <<< "$window" && ! grep -Eq 'control[[:space:]]*:' <<< "$window"; then
-        FAILURES+=("$file: inline useABTest variants object is missing control.")
+      normalized_window="$(printf '%s' "$window" | tr '\n' ' ')"
+      if grep -Eq 'useABTest[[:space:]]*\([^,]+,[[:space:]]*\{' <<< "$normalized_window"; then
+        if ! grep -Eq 'control[[:space:]]*:' <<< "$window"; then
+          FAILURES+=("$file: inline useABTest variants object is missing control.")
+        fi
       fi
     fi
 
