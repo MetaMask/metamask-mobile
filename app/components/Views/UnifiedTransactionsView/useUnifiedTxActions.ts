@@ -72,8 +72,6 @@ export function useUnifiedTxActions() {
   );
   const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
   const [cancelIsOpen, setCancelIsOpen] = useState(false);
-  const [speedUp1559IsOpen, setSpeedUp1559IsOpen] = useState(false);
-  const [cancel1559IsOpen, setCancel1559IsOpen] = useState(false);
   const [speedUpConfirmDisabled, setSpeedUpConfirmDisabled] = useState(false);
   const [cancelConfirmDisabled, setCancelConfirmDisabled] = useState(false);
   const [existingTx, setExistingTx] = useState<TransactionMeta | null>(null);
@@ -89,19 +87,21 @@ export function useUnifiedTxActions() {
     setRetryErrorMsg(msg);
   };
 
-  const onSpeedUpCompleted = useCallback(() => {
-    setSpeedUp1559IsOpen(false);
+  const closeSpeedUpCancelModal = useCallback(() => {
     setSpeedUpIsOpen(false);
-    setSpeedUpTxId(null);
-    setExistingTx(null);
-  }, []);
-
-  const onCancelCompleted = useCallback(() => {
-    setCancel1559IsOpen(false);
     setCancelIsOpen(false);
+    setSpeedUpTxId(null);
     setCancelTxId(null);
     setExistingTx(null);
   }, []);
+
+  const onSpeedUpCompleted = useCallback(() => {
+    closeSpeedUpCancelModal();
+  }, [closeSpeedUpCancelModal]);
+
+  const onCancelCompleted = useCallback(() => {
+    closeSpeedUpCancelModal();
+  }, [closeSpeedUpCancelModal]);
 
   const signLedgerTransaction = useCallback(
     async (transaction: LedgerSignRequest) => {
@@ -149,7 +149,6 @@ export function useUnifiedTxActions() {
   const onSpeedUpAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
       setSpeedUpIsOpen(false);
-      setSpeedUp1559IsOpen(false);
       return;
     }
     if (!tx) {
@@ -167,7 +166,6 @@ export function useUnifiedTxActions() {
   const onCancelAction = (open: boolean, tx?: TransactionMeta) => {
     if (!open) {
       setCancelIsOpen(false);
-      setCancel1559IsOpen(false);
       return;
     }
     if (!tx) {
@@ -232,8 +230,7 @@ export function useUnifiedTxActions() {
       onSpeedUpCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setSpeedUp1559IsOpen(false);
-      setSpeedUpIsOpen(false);
+      closeSpeedUpCancelModal();
     }
   };
 
@@ -269,8 +266,7 @@ export function useUnifiedTxActions() {
       onCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
-      setCancel1559IsOpen(false);
-      setCancelIsOpen(false);
+      closeSpeedUpCancelModal();
     }
   };
 
@@ -300,8 +296,6 @@ export function useUnifiedTxActions() {
     retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
-    speedUp1559IsOpen,
-    cancel1559IsOpen,
     speedUpConfirmDisabled,
     cancelConfirmDisabled,
     existingTx,

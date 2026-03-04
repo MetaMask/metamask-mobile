@@ -60,8 +60,6 @@ const mockDefaultUnifiedTxActionsReturn = {
   retryErrorMsg: '',
   speedUpIsOpen: false,
   cancelIsOpen: false,
-  speedUp1559IsOpen: false,
-  cancel1559IsOpen: false,
   speedUpConfirmDisabled: false,
   cancelConfirmDisabled: false,
   existingTx: null,
@@ -111,14 +109,22 @@ jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
-    CancelSpeedupModal: ({ isCancel }: { isCancel: boolean }) =>
-      ReactActual.createElement(
-        Text,
-        {
-          testID: isCancel ? 'cancel-modal' : 'speedup-modal',
-        },
-        isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
-      ),
+    CancelSpeedupModal: ({
+      isVisible,
+      isCancel,
+    }: {
+      isVisible: boolean;
+      isCancel: boolean;
+    }) =>
+      isVisible
+        ? ReactActual.createElement(
+            Text,
+            {
+              testID: isCancel ? 'cancel-modal' : 'speedup-modal',
+            },
+            isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
+          )
+        : null,
   };
 });
 jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');

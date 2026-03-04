@@ -1563,10 +1563,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onSpeedUpCompleted();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
+      cancelIsOpen: false,
     });
     expect(instance.speedUpTxId).toBeNull();
+    expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
 
@@ -1578,10 +1579,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.onCancelCompleted();
 
     expect(instance.setState).toHaveBeenCalledWith({
-      cancel1559IsOpen: false,
+      speedUpIsOpen: false,
       cancelIsOpen: false,
     });
     expect(instance.cancelTxId).toBeNull();
+    expect(instance.speedUpTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
 
@@ -2077,27 +2079,30 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.existingTx = { id: 'tx-1', chainId: '0x1' };
 
-    // When both closed: no modal
+    // When both closed: modal mounted but not visible (exit animation can run)
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = false;
     let listResult = instance.renderList();
     let listWrapper = shallow(listResult);
-    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(0);
+    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(false);
 
-    // When speed up open: one modal, isCancel false
+    // When speed up open: one modal, isVisible true, isCancel false
     instance.state.speedUpIsOpen = true;
     instance.state.cancelIsOpen = false;
     listResult = instance.renderList();
     listWrapper = shallow(listResult);
     expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
     expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
 
-    // When cancel open: one modal, isCancel true
+    // When cancel open: one modal, isVisible true, isCancel true
     instance.state.speedUpIsOpen = false;
     instance.state.cancelIsOpen = true;
     listResult = instance.renderList();
     listWrapper = shallow(listResult);
     expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
+    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
     expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
   });
 
@@ -2111,8 +2116,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       ready: true,
-      speedUp1559IsOpen: false,
-      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };
