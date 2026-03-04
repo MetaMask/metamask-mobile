@@ -1,11 +1,13 @@
 import { TransactionStatus } from '@metamask/transaction-controller';
-import { useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 
 interface UsePredictPayWithAnyTokenTrackingParams {
   transactionId?: string;
+  onConfirm?: () => void;
+  onFail?: (errorMessage?: string) => void;
 }
 
 function getTransactionErrorMessage(
@@ -38,22 +40,63 @@ function getTransactionErrorMessage(
 
 export function usePredictPayWithAnyTokenTracking({
   transactionId,
+  onConfirm,
+  onFail,
 }: UsePredictPayWithAnyTokenTrackingParams) {
+  const trackedTransactionIdRef = useRef<string | undefined>(transactionId);
+  const hasCalledConfirmRef = useRef(false);
+  const hasCalledFailRef = useRef(false);
+
   const transactionMeta = useSelector((state: RootState) =>
     transactionId ? selectTransactionMetadataById(state, transactionId) : null,
   );
 
   const status = transactionMeta?.status;
   const errorMessage = getTransactionErrorMessage(transactionMeta ?? null);
+  const isConfirmed = status === TransactionStatus.confirmed;
+  const isFailed =
+    status === TransactionStatus.failed ||
+    status === TransactionStatus.rejected;
+  const isProcessing = transactionId && !isConfirmed && !isFailed;
 
-  return useMemo(
-    () => ({
-      isConfirmed: status === TransactionStatus.confirmed,
-      hasFailed:
-        status === TransactionStatus.failed ||
-        status === TransactionStatus.rejected,
-      errorMessage,
-    }),
-    [errorMessage, status],
-  );
+  useEffect(() => {
+    if (trackedTransactionIdRef.current === transactionId) {
+      return;
+    }
+
+    trackedTransactionIdRef.current = transactionId;
+    hasCalledConfirmRef.current = false;
+    hasCalledFailRef.current = false;
+  }, [transactionId]);
+
+  useEffect(() => {
+    if (
+      !transactionId ||
+      !isConfirmed ||
+      !onConfirm ||
+      hasCalledConfirmRef.current
+    ) {
+      return;
+    }
+
+    hasCalledConfirmRef.current = true;
+    onConfirm();
+  }, [isConfirmed, onConfirm, transactionId]);
+
+  useEffect(() => {
+    if (!transactionId || !isFailed || !onFail || hasCalledFailRef.current) {
+      return;
+    }
+
+    hasCalledFailRef.current = true;
+    onFail(errorMessage);
+  }, [isFailed, onFail, errorMessage, transactionId]);
+
+  return {
+    isConfirmed,
+    isFailed,
+    errorMessage,
+    isProcessing,
+    status,
+  };
 }

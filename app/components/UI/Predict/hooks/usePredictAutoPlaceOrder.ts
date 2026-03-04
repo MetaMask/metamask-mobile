@@ -1,20 +1,10 @@
-import { useEffect, useState } from 'react';
-import { OrderPreview, PlaceOrderParams } from '../providers/types';
+import { useCallback, useState } from 'react';
 import { usePredictPayWithAnyTokenTracking } from './usePredictPayWithAnyTokenTracking';
-
-type AutoPlacePhase = 'idle' | 'initialized' | 'order_placed' | 'failed';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { PredictNavigationParamList } from '../types/navigation';
 
 interface UsePredictAutoPlaceOrderParams {
-  amount?: number;
-  transactionId?: string;
-  canPlaceBet: boolean;
-  preview?: OrderPreview | null;
-  analyticsProperties: PlaceOrderParams['analyticsProperties'];
-  placeOrder: (params: PlaceOrderParams) => Promise<unknown>;
-  setCurrentValue: (value: number) => void;
-  setCurrentValueUSDString: (value: string) => void;
-  setIsInputFocused: (value: boolean) => void;
-  onDepositFailed?: (errorMessage?: string) => Promise<void> | void;
+  handlePlaceOrder: () => Promise<void>;
 }
 
 interface UsePredictAutoPlaceOrderResult {
@@ -22,116 +12,38 @@ interface UsePredictAutoPlaceOrderResult {
 }
 
 export function usePredictAutoPlaceOrder({
-  amount,
-  transactionId,
-  canPlaceBet,
-  preview,
-  analyticsProperties,
-  placeOrder,
-  setCurrentValue,
-  setCurrentValueUSDString,
-  setIsInputFocused,
-  onDepositFailed,
+  handlePlaceOrder,
 }: UsePredictAutoPlaceOrderParams): UsePredictAutoPlaceOrderResult {
-  const shouldAutoPlaceOrder = typeof amount === 'number' && amount > 0;
+  const route =
+    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
+  const { transactionId } = route.params;
 
-  const [isAutoPlaceLoading, setIsAutoPlaceLoading] = useState(
-    () => shouldAutoPlaceOrder,
-  );
-  const [phase, setPhase] = useState<AutoPlacePhase>(
-    shouldAutoPlaceOrder ? 'idle' : 'initialized',
-  );
+  const [isAutoPlaceLoading, setIsAutoPlaceLoading] = useState(false);
 
-  const {
-    isConfirmed: isAutoPlaceDepositConfirmed,
-    hasFailed: hasAutoPlaceDepositFailed,
-    errorMessage: autoPlaceDepositErrorMessage,
-  } = usePredictPayWithAnyTokenTracking({
-    transactionId: shouldAutoPlaceOrder ? transactionId : undefined,
+  const [autoPlaceOrderDone, setAutoPlaceOrderDone] = useState(false);
+
+  const executeAutoPlaceOrder = useCallback(async () => {
+    try {
+      setIsAutoPlaceLoading(true);
+      await handlePlaceOrder();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsAutoPlaceLoading(false);
+      setAutoPlaceOrderDone(true);
+    }
+  }, [handlePlaceOrder, setIsAutoPlaceLoading]);
+
+  const handleTransactionConfirmed = useCallback(() => {
+    if (!isAutoPlaceLoading && !autoPlaceOrderDone) {
+      executeAutoPlaceOrder();
+    }
+  }, [autoPlaceOrderDone, executeAutoPlaceOrder, isAutoPlaceLoading]);
+
+  usePredictPayWithAnyTokenTracking({
+    transactionId,
+    onConfirm: handleTransactionConfirmed,
   });
-
-  useEffect(() => {
-    if (phase !== 'idle' || typeof amount !== 'number' || amount <= 0) {
-      return;
-    }
-
-    setPhase('initialized');
-    setCurrentValue(amount);
-    setCurrentValueUSDString(amount.toString());
-    setIsInputFocused(false);
-  }, [
-    phase,
-    amount,
-    setCurrentValue,
-    setCurrentValueUSDString,
-    setIsInputFocused,
-  ]);
-
-  useEffect(() => {
-    if (!shouldAutoPlaceOrder) {
-      setIsAutoPlaceLoading(false);
-      return;
-    }
-
-    if (!transactionId || hasAutoPlaceDepositFailed) {
-      setIsAutoPlaceLoading(false);
-    }
-  }, [transactionId, hasAutoPlaceDepositFailed, shouldAutoPlaceOrder]);
-
-  useEffect(() => {
-    if (
-      !shouldAutoPlaceOrder ||
-      !hasAutoPlaceDepositFailed ||
-      phase === 'failed'
-    ) {
-      return;
-    }
-
-    setPhase('failed');
-    setIsAutoPlaceLoading(false);
-    const retryResult = onDepositFailed?.(autoPlaceDepositErrorMessage);
-    if (retryResult) {
-      Promise.resolve(retryResult).catch(() => undefined);
-    }
-  }, [
-    autoPlaceDepositErrorMessage,
-    hasAutoPlaceDepositFailed,
-    onDepositFailed,
-    phase,
-    shouldAutoPlaceOrder,
-  ]);
-
-  useEffect(() => {
-    if (!shouldAutoPlaceOrder || phase === 'order_placed') {
-      return;
-    }
-
-    if (!isAutoPlaceDepositConfirmed || !canPlaceBet || !preview) {
-      return;
-    }
-
-    setPhase('order_placed');
-    const executeAutoPlaceOrder = async () => {
-      try {
-        await placeOrder({
-          analyticsProperties,
-          preview,
-        });
-      } finally {
-        setIsAutoPlaceLoading(false);
-      }
-    };
-
-    executeAutoPlaceOrder().catch(() => undefined);
-  }, [
-    analyticsProperties,
-    canPlaceBet,
-    isAutoPlaceDepositConfirmed,
-    phase,
-    placeOrder,
-    preview,
-    shouldAutoPlaceOrder,
-  ]);
 
   return { isAutoPlaceLoading };
 }

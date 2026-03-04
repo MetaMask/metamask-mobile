@@ -29,7 +29,6 @@ import Button, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from '../../components/PredictBuyActionButton';
@@ -43,10 +42,10 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
-import { PredictTradeStatus } from '../../constants/eventNames';
 import { MINIMUM_BET } from '../../constants/transactions';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -55,6 +54,7 @@ import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags'
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
+import { usePredictPayWithAnyTokenTracking } from '../../hooks/usePredictPayWithAnyTokenTracking';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePreviousValue } from '../../hooks/usePreviousValue';
@@ -71,23 +71,12 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint, amount, transactionId } =
+  const { market, outcome, outcomeToken, entryPoint, transactionId } =
     route.params;
-  const shouldPreserveSelectedPaymentToken = Boolean(transactionId);
 
-  const autoPlaceAmount =
-    typeof amount === 'number' && amount > 0 ? amount : undefined;
-
-  const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
-    autoPlaceAmount ? autoPlaceAmount.toString() : '',
-  );
-  const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
   const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
     useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-
-  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -100,6 +89,15 @@ const PredictBuyPreview = () => {
   const { deposit } = usePredictDeposit();
 
   const {
+    currentValue,
+    setCurrentValue,
+    currentValueUSDString,
+    setCurrentValueUSDString,
+    isInputFocused,
+    setIsInputFocused,
+  } = usePredictBuyInputState();
+
+  const {
     placeOrder,
     isLoading,
     error: placeOrderError,
@@ -108,15 +106,12 @@ const PredictBuyPreview = () => {
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
-  const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
-    shouldPreserveActiveOrderOnUnmountRef.current = true;
-  }, []);
-  const isMountedRef = useRef(true);
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
+
+  const isMountedRef = useRef(true);
+
   const triggerPayWithAnyTokenFlow = useCallback(
     async (params: Parameters<typeof triggerPayWithAnyToken>[0]) => {
-      markShouldPreserveActiveOrderOnUnmount();
-
       if (isMountedRef.current) {
         setIsPayWithAnyTokenLoading(true);
       }
@@ -129,7 +124,7 @@ const PredictBuyPreview = () => {
         }
       }
     },
-    [markShouldPreserveActiveOrderOnUnmount, triggerPayWithAnyToken],
+    [setIsPayWithAnyTokenLoading, triggerPayWithAnyToken],
   );
 
   const handleFeesInfoPress = useCallback(() => {
@@ -178,17 +173,32 @@ const PredictBuyPreview = () => {
     [],
   );
 
-  const handleAutoPlaceDepositFailed = async (depositErrorMessage?: string) => {
-    await triggerPayWithAnyTokenFlow({
+  const handleDepositFailed = useCallback(
+    async (depositErrorMessage?: string) => {
+      await triggerPayWithAnyTokenFlow({
+        market,
+        outcome,
+        outcomeToken,
+        isInputFocused,
+        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
+        transactionError:
+          depositErrorMessage ?? strings('predict.deposit.error_description'),
+      });
+    },
+    [
       market,
       outcome,
       outcomeToken,
       isInputFocused,
-      ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-      transactionError:
-        depositErrorMessage ?? strings('predict.deposit.error_description'),
-    });
-  };
+      currentValue,
+      triggerPayWithAnyTokenFlow,
+    ],
+  );
+
+  const { isProcessing } = usePredictPayWithAnyTokenTracking({
+    transactionId,
+    onFail: handleDepositFailed,
+  });
 
   const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
@@ -239,34 +249,6 @@ const PredictBuyPreview = () => {
     [isOrderNotFilled, previewError, placeOrderError],
   );
 
-  // Track Predict Trade Transaction with initiated status when screen mounts
-  useEffect(() => {
-    const controller = Engine.context.PredictController;
-    const preserveRef = shouldPreserveActiveOrderOnUnmountRef;
-
-    controller.setActiveOrder({
-      market,
-      outcome,
-      outcomeToken,
-    });
-    if (!shouldPreserveSelectedPaymentToken) {
-      controller.setSelectedPaymentToken(null);
-    }
-
-    controller.trackPredictOrderEvent({
-      status: PredictTradeStatus.INITIATED,
-      analyticsProperties,
-      sharePrice: outcomeToken?.price,
-    });
-    return () => {
-      if (!preserveRef.current) {
-        controller.clearActiveOrder();
-      }
-    };
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const { toWin, isRateLimited, metamaskFee, providerFee, total } = useMemo(
     () => ({
       toWin: preview?.minAmountReceived ?? 0,
@@ -303,19 +285,20 @@ const PredictBuyPreview = () => {
     ],
   );
 
+  const onPlaceBet = useCallback(async () => {
+    if (!preview || isBelowMinimum) return;
+
+    await placeOrder({
+      analyticsProperties,
+      preview,
+    });
+  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
+
   const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
-    amount,
-    transactionId,
-    canPlaceBet,
-    preview,
-    analyticsProperties,
-    placeOrder,
-    setCurrentValue,
-    setCurrentValueUSDString,
-    setIsInputFocused,
-    onDepositFailed: handleAutoPlaceDepositFailed,
+    handlePlaceOrder: onPlaceBet,
   });
-  const isPlacingOrder = isLoading || isAutoPlaceLoading;
+
+  const isPlacingOrder = isLoading || isAutoPlaceLoading || !!isProcessing;
   const canPlaceBetAction = canPlaceBet && !isAutoPlaceLoading;
 
   const rewardsFeeAmountUsd =
@@ -327,15 +310,6 @@ const PredictBuyPreview = () => {
       dispatch(StackActions.pop());
     }
   }, [dispatch, result]);
-
-  const onPlaceBet = useCallback(async () => {
-    if (!preview || isBelowMinimum) return;
-
-    await placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
