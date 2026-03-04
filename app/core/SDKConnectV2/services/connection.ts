@@ -28,6 +28,24 @@ const REJECTION_CODES: ReadonlySet<number> = new Set([
 ]);
 
 /**
+ * Message patterns that indicate a user rejection even when the original
+ * error code has been lost. The SnapKeyring strips the 4001 code from
+ * approval rejections and re-throws a plain Error, which serializeError
+ * then wraps with the fallback code -32603. We match on the message to
+ * recover the user-rejection intent.
+ */
+const REJECTION_MESSAGE_PATTERNS: readonly string[] = [
+  'request rejected by user or snap',
+  'user rejected',
+];
+
+const isRejectionMessage = (message: unknown): boolean => {
+  if (typeof message !== 'string') return false;
+  const lower = message.toLowerCase();
+  return REJECTION_MESSAGE_PATTERNS.some((pattern) => lower.includes(pattern));
+};
+
+/**
  * Standard JSON-RPC internal error range: -32603, and server errors -32000 to -32099.
  */
 const isInternalError = (code: number): boolean =>
@@ -127,7 +145,7 @@ export class Connection {
             message: errMessage,
           });
 
-          if (REJECTION_CODES.has(errCode)) {
+          if (REJECTION_CODES.has(errCode) || isRejectionMessage(errMessage)) {
             this.hostApp.showConfirmationRejectionError(this.info);
           } else if (isInternalError(errCode)) {
             this.hostApp.showInternalError(this.info);

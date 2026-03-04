@@ -601,6 +601,70 @@ describe('Connection', () => {
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
     });
 
+    it('shows rejection toast when SnapKeyring strips the code but message contains rejection text', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const snapKeyringRejectionPayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'Request rejected by user or snap.',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(snapKeyringRejectionPayload);
+
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+      expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows rejection toast when error message contains "User rejected" regardless of code', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const wrappedRejectionPayload = {
+        data: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: {
+            code: -32603,
+            message: 'User rejected the request',
+          },
+        },
+      };
+
+      onBridgeResponseCallback(wrappedRejectionPayload);
+
+      expect(mockHostApp.showConfirmationRejectionError).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+      expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+    });
+
     it('logs error payload at warn level when error toast is shown', async () => {
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
 
