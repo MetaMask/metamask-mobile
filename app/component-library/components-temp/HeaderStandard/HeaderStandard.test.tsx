@@ -7,7 +7,7 @@ import { Text } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import HeaderCompactStandard from './HeaderCompactStandard';
+import HeaderStandard from './HeaderStandard';
 
 const CONTAINER_TEST_ID = 'header-compact-standard-container';
 const TITLE_TEST_ID = 'header-compact-standard-title';
@@ -16,23 +16,21 @@ const CLOSE_BUTTON_TEST_ID = 'header-compact-standard-close-button';
 const START_ACCESSORY_TEST_ID = 'start-accessory-wrapper';
 const END_ACCESSORY_TEST_ID = 'end-accessory-wrapper';
 
-describe('HeaderCompactStandard', () => {
+describe('HeaderStandard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('rendering', () => {
     it('renders with title', () => {
-      const { getByText } = render(
-        <HeaderCompactStandard title="Test Title" />,
-      );
+      const { getByText } = render(<HeaderStandard title="Test Title" />);
 
       expect(getByText('Test Title')).toBeOnTheScreen();
     });
 
     it('renders title with testID when provided via titleProps', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Test Title"
           titleProps={{ testID: TITLE_TEST_ID }}
         />,
@@ -43,7 +41,7 @@ describe('HeaderCompactStandard', () => {
 
     it('renders container with testID when provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard title="Test Title" testID={CONTAINER_TEST_ID} />,
+        <HeaderStandard title="Test Title" testID={CONTAINER_TEST_ID} />,
       );
 
       expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
@@ -51,9 +49,9 @@ describe('HeaderCompactStandard', () => {
 
     it('renders custom children instead of title', () => {
       const { getByText, queryByText } = render(
-        <HeaderCompactStandard title="Ignored Title">
+        <HeaderStandard title="Ignored Title">
           <Text>Custom Content</Text>
-        </HeaderCompactStandard>,
+        </HeaderStandard>,
       );
 
       expect(getByText('Custom Content')).toBeOnTheScreen();
@@ -62,9 +60,9 @@ describe('HeaderCompactStandard', () => {
 
     it('renders children when both title and children provided', () => {
       const { getByText, queryByText } = render(
-        <HeaderCompactStandard title="Title Text">
+        <HeaderStandard title="Title Text">
           <Text>Children Text</Text>
-        </HeaderCompactStandard>,
+        </HeaderStandard>,
       );
 
       expect(getByText('Children Text')).toBeOnTheScreen();
@@ -73,23 +71,21 @@ describe('HeaderCompactStandard', () => {
 
     it('renders subtitle when provided', () => {
       const { getByText } = render(
-        <HeaderCompactStandard title="Test Title" subtitle="Test Subtitle" />,
+        <HeaderStandard title="Test Title" subtitle="Test Subtitle" />,
       );
 
       expect(getByText('Test Subtitle')).toBeOnTheScreen();
     });
 
     it('does not render subtitle when not provided', () => {
-      const { queryByText } = render(
-        <HeaderCompactStandard title="Test Title" />,
-      );
+      const { queryByText } = render(<HeaderStandard title="Test Title" />);
 
       expect(queryByText('Test Subtitle')).not.toBeOnTheScreen();
     });
 
     it('renders subtitle with testID when provided via subtitleProps', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Test Title"
           subtitle="Test Subtitle"
           subtitleProps={{ testID: 'subtitle-test-id' }}
@@ -101,7 +97,7 @@ describe('HeaderCompactStandard', () => {
 
     it('renders both title and subtitle together', () => {
       const { getByText } = render(
-        <HeaderCompactStandard title="Main Title" subtitle="Supporting Text" />,
+        <HeaderStandard title="Main Title" subtitle="Supporting Text" />,
       );
 
       expect(getByText('Main Title')).toBeOnTheScreen();
@@ -111,7 +107,7 @@ describe('HeaderCompactStandard', () => {
     it('renders title when passed as React node', () => {
       const TITLE_NODE_TEST_ID = 'custom-title-node';
       const { getByTestId, getByText } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title={<Text testID={TITLE_NODE_TEST_ID}>Custom Title Node</Text>}
         />,
       );
@@ -123,7 +119,7 @@ describe('HeaderCompactStandard', () => {
     it('renders subtitle when passed as React node', () => {
       const SUBTITLE_NODE_TEST_ID = 'custom-subtitle-node';
       const { getByTestId, getByText } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Page Title"
           subtitle={
             <Text testID={SUBTITLE_NODE_TEST_ID}>Custom Subtitle Node</Text>
@@ -139,7 +135,7 @@ describe('HeaderCompactStandard', () => {
       const TITLE_NODE_TEST_ID = 'title-node';
       const SUBTITLE_NODE_TEST_ID = 'subtitle-node';
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title={<Text testID={TITLE_NODE_TEST_ID}>Node Title</Text>}
           subtitle={<Text testID={SUBTITLE_NODE_TEST_ID}>Node Subtitle</Text>}
         />,
@@ -153,7 +149,7 @@ describe('HeaderCompactStandard', () => {
   describe('back button', () => {
     it('renders back button when onBack provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onBack={jest.fn()}
           backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
@@ -165,7 +161,7 @@ describe('HeaderCompactStandard', () => {
 
     it('renders back button when backButtonProps provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           backButtonProps={{ onPress: jest.fn(), testID: BACK_BUTTON_TEST_ID }}
         />,
@@ -177,7 +173,7 @@ describe('HeaderCompactStandard', () => {
     it('calls onBack when back button pressed', () => {
       const onBack = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onBack={onBack}
           backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
@@ -192,7 +188,7 @@ describe('HeaderCompactStandard', () => {
     it('calls backButtonProps.onPress when back button pressed', () => {
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           backButtonProps={{ onPress, testID: BACK_BUTTON_TEST_ID }}
         />,
@@ -207,7 +203,7 @@ describe('HeaderCompactStandard', () => {
       const onBack = jest.fn();
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onBack={onBack}
           backButtonProps={{ onPress, testID: BACK_BUTTON_TEST_ID }}
@@ -222,7 +218,7 @@ describe('HeaderCompactStandard', () => {
 
     it('does not render start accessory when no back button props provided', () => {
       const { queryByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           startAccessoryWrapperProps={{ testID: START_ACCESSORY_TEST_ID }}
         />,
@@ -234,7 +230,7 @@ describe('HeaderCompactStandard', () => {
     it('renders startButtonIconProps when provided', () => {
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           startButtonIconProps={{
             iconName: IconName.Menu,
@@ -251,7 +247,7 @@ describe('HeaderCompactStandard', () => {
       const onBack = jest.fn();
       const onPress = jest.fn();
       const { getByTestId, queryByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onBack={onBack}
           backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
@@ -271,7 +267,7 @@ describe('HeaderCompactStandard', () => {
   describe('close button', () => {
     it('renders close button when onClose provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onClose={jest.fn()}
           closeButtonProps={{ testID: CLOSE_BUTTON_TEST_ID }}
@@ -283,7 +279,7 @@ describe('HeaderCompactStandard', () => {
 
     it('renders close button when closeButtonProps provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           closeButtonProps={{
             onPress: jest.fn(),
@@ -298,7 +294,7 @@ describe('HeaderCompactStandard', () => {
     it('calls onClose when close button pressed', () => {
       const onClose = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onClose={onClose}
           closeButtonProps={{ testID: CLOSE_BUTTON_TEST_ID }}
@@ -313,7 +309,7 @@ describe('HeaderCompactStandard', () => {
     it('calls closeButtonProps.onPress when close button pressed', () => {
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           closeButtonProps={{ onPress, testID: CLOSE_BUTTON_TEST_ID }}
         />,
@@ -328,7 +324,7 @@ describe('HeaderCompactStandard', () => {
       const onClose = jest.fn();
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onClose={onClose}
           closeButtonProps={{ onPress, testID: CLOSE_BUTTON_TEST_ID }}
@@ -343,7 +339,7 @@ describe('HeaderCompactStandard', () => {
 
     it('does not render end accessory when no close button props provided', () => {
       const { queryByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           endAccessoryWrapperProps={{ testID: END_ACCESSORY_TEST_ID }}
         />,
@@ -356,7 +352,7 @@ describe('HeaderCompactStandard', () => {
   describe('props forwarding', () => {
     it('renders start accessory when onBack is provided', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           onBack={jest.fn()}
           backButtonProps={{ testID: BACK_BUTTON_TEST_ID }}
@@ -369,7 +365,7 @@ describe('HeaderCompactStandard', () => {
 
     it('forwards endButtonIconProps and adds close button', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Title"
           endButtonIconProps={[
             { iconName: IconName.Search, onPress: jest.fn() },
@@ -386,7 +382,7 @@ describe('HeaderCompactStandard', () => {
 
     it('accepts custom testID', () => {
       const { getByTestId } = render(
-        <HeaderCompactStandard title="Title" testID="custom-header" />,
+        <HeaderStandard title="Title" testID="custom-header" />,
       );
 
       expect(getByTestId('custom-header')).toBeOnTheScreen();

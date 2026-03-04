@@ -18,7 +18,7 @@ import {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import {
   MultichainNetworkConfiguration,
   SupportedCaipChainId,
@@ -83,7 +83,7 @@ export default function NetworkListBottomSheet({
       )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('networks.select_network')}
         onClose={() => {
           sheetRef.current?.onCloseBottomSheet(() => {

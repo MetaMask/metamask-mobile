@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
@@ -383,7 +383,7 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
         includesTopInset

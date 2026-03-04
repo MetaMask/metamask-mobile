@@ -10,7 +10,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../../component-library/components-temp/HeaderStandard';
 
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
@@ -29,7 +29,7 @@ function SsnInfoModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('deposit.ssn_info_modal.title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

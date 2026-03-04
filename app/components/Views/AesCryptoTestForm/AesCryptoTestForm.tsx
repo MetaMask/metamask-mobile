@@ -3,7 +3,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import {
   Encryptor,
   ENCRYPTION_LIBRARY,
@@ -142,7 +142,7 @@ const AesCryptoTestForm = () => {
       style={styles.container}
       testID={aesCryptoFormSafeArea}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.aes_crypto_test_form_title')}
         onBack={() => navigation.goBack()}
         includesTopInset

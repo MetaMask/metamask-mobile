@@ -22,9 +22,9 @@ jest.mock(
   },
 );
 
-// Mock HeaderCompactStandard
+// Mock HeaderStandard
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../../component-library/components-temp/HeaderStandard',
   () => {
     const ReactNative = jest.requireActual('react-native');
     const { View, Text, TouchableOpacity } = ReactNative;

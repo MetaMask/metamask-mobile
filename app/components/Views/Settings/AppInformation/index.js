@@ -29,7 +29,7 @@ import { fontStyles } from '../../../../styles/common';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { AboutMetaMaskSelectorsIDs } from './AboutMetaMask.testIds';
 import { isQa } from '../../../../util/test/utils';
@@ -207,7 +207,7 @@ class AppInformation extends PureComponent {
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={aboutTitle}
           onBack={() => this.props.navigation.goBack()}

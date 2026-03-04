@@ -9,7 +9,7 @@ import Text, {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 
 import PaymentMethod from '../PaymentMethod';
 import useAnalytics from '../../../hooks/useAnalytics';
@@ -101,7 +101,7 @@ function PaymentMethodSelectorModal() {
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={title}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

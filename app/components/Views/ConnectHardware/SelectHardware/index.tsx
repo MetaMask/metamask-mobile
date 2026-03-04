@@ -10,7 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -157,7 +157,7 @@ const SelectHardwareWallet = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
-      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
+      <HeaderStandard includesTopInset onBack={navigation.goBack} />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
         bottomAccessory={

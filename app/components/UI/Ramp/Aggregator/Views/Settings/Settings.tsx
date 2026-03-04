@@ -16,7 +16,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 
 import { strings } from '../../../../../../../locales/i18n';
 import useAnalytics from '../../../hooks/useAnalytics';
@@ -57,7 +57,7 @@ function Settings() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={RAMP_SETTINGS_HEADER_TEST_ID}
         title={strings('app_settings.fiat_on_ramp.title')}
         onBack={handleBack}

@@ -33,7 +33,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import Engine from '../../../core/Engine';
 import { selectFullPageAccountListEnabledFlag } from '../../../selectors/featureFlagController/fullPageAccountList';
 import { store } from '../../../store';
@@ -354,7 +354,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               animatedStyle,
             ]}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={strings('accounts.accounts_title')}
               onBack={closeModal}
             />
@@ -390,7 +390,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       onOpen={onBottomSheetOpen}
       keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           screen === AccountSelectorScreens.AddAccountActions
             ? strings('account_actions.add_account')

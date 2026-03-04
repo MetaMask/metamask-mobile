@@ -121,7 +121,7 @@ describe('ExperimentalSettings', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('renders inline HeaderCompactStandard with title and back button', () => {
+  it('renders inline HeaderStandard with title and back button', () => {
     const { getByTestId, getByText } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>

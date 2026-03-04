@@ -19,7 +19,7 @@ import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -201,7 +201,7 @@ export default class WalletConnectSessions extends PureComponent {
         style={styles.wrapper}
         testID={ExperimentalSelectorsIDs.CONTAINER}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('experimental_settings.wallet_connect_dapps')}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{

@@ -22,7 +22,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
@@ -450,7 +450,7 @@ const FeatureFlagOverride: React.FC = () => {
       testID="feature-flag-override-screen"
       edges={['top', 'left', 'right']}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title="Feature Flag Override"
         onBack={handleGoBack}
         includesTopInset={false}

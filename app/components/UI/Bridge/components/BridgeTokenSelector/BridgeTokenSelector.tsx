@@ -19,7 +19,7 @@ import {
 } from '@react-navigation/native';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { getHeaderStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderStandard';
 import { FlatList } from 'react-native-gesture-handler';
 import { NetworkPills } from './NetworkPills';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -108,7 +108,7 @@ export const BridgeTokenSelector: React.FC = () => {
   // Set navigation options for header
   useEffect(() => {
     navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
+      getHeaderStandardNavbarOptions({
         title: strings('bridge.select_token'),
         onBack: () => navigation.goBack(),
         includesTopInset: true,

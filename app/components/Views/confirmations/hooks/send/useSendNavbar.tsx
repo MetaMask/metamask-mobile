@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import getHeaderStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderStandard/getHeaderStandardNavbarOptions';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSendActions } from './useSendActions';
@@ -49,7 +49,7 @@ export function useSendNavbar() {
   }, [navigation, sendStackState]);
 
   return {
-    Amount: getHeaderCompactStandardNavbarOptions({
+    Amount: getHeaderStandardNavbarOptions({
       title: strings('send.title'),
       onBack: handleBackPress,
       onClose: handleCancelPress,
@@ -57,13 +57,13 @@ export function useSendNavbar() {
       closeButtonProps: { testID: 'send-navbar-close-button' },
       includesTopInset: true,
     }),
-    Asset: getHeaderCompactStandardNavbarOptions({
+    Asset: getHeaderStandardNavbarOptions({
       onBack: handleCancelPress,
       backButtonProps: { testID: 'send-navbar-back-button' },
       title: strings('send.title'),
       includesTopInset: true,
     }),
-    Recipient: getHeaderCompactStandardNavbarOptions({
+    Recipient: getHeaderStandardNavbarOptions({
       title: strings('send.title'),
       onBack: handleBackPress,
       onClose: handleCancelPress,

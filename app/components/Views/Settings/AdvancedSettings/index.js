@@ -44,7 +44,7 @@ import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
 import { ResetAccountModal } from './ResetAccountModal/ResetAccountModal';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../component-library/components-temp/HeaderStandard';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -338,7 +338,7 @@ class AdvancedSettings extends PureComponent {
 
     return (
       <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('app_settings.advanced_title')}
           onBack={() => this.props.navigation.goBack()}
           includesTopInset

@@ -7,7 +7,7 @@ import BottomSheet, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../component-library/components-temp/HeaderStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -146,7 +146,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-time-bottom-sheet"
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('trending.time')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}

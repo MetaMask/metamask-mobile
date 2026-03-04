@@ -38,7 +38,7 @@ describe('BackupAndSyncSettings', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders HeaderCompactStandard with backup and sync title', () => {
+  it('renders HeaderStandard with backup and sync title', () => {
     const { getByTestId } = renderWithProvider(<BackupAndSyncSettings />);
 
     const header = getByTestId(BackupAndSyncSettingsSelectorsIDs.HEADER);

@@ -19,7 +19,7 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -189,7 +189,7 @@ export function CancelSpeedupModal({
         shouldNavigateBack={false}
         style={styles.bottomSheetDialogSheet}
       >
-        <HeaderCompactStandard title={title} onClose={close} />
+        <HeaderStandard title={title} onClose={close} />
         <Box style={tw.style('px-3')}>
           <ScrollView>
             <Box gap={4}>

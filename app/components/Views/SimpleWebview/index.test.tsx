@@ -4,10 +4,10 @@ import SimpleWebview from './';
 import { useNavigation } from '@react-navigation/native';
 import Share from 'react-native-share';
 import Logger from '../../../util/Logger';
-import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import getHeaderStandardNavbarOptions from '../../../component-library/components-temp/HeaderStandard/getHeaderStandardNavbarOptions';
 
 jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions',
+  '../../../component-library/components-temp/HeaderStandard/getHeaderStandardNavbarOptions',
   () => jest.fn(() => ({})),
 );
 
@@ -44,14 +44,13 @@ describe('SimpleWebview', () => {
     render(<SimpleWebview />);
 
     expect(mockNavigation.setOptions).toHaveBeenCalled();
-    expect(getHeaderCompactStandardNavbarOptions).toHaveBeenCalled();
+    expect(getHeaderStandardNavbarOptions).toHaveBeenCalled();
   });
 
   it('calls Share.open when share button is pressed', () => {
     render(<SimpleWebview />);
 
-    const call = (getHeaderCompactStandardNavbarOptions as jest.Mock).mock
-      .calls[0][0];
+    const call = (getHeaderStandardNavbarOptions as jest.Mock).mock.calls[0][0];
     const shareButton = call.endButtonIconProps[0];
     shareButton.onPress();
 
@@ -64,8 +63,7 @@ describe('SimpleWebview', () => {
 
     render(<SimpleWebview />);
 
-    const call = (getHeaderCompactStandardNavbarOptions as jest.Mock).mock
-      .calls[0][0];
+    const call = (getHeaderStandardNavbarOptions as jest.Mock).mock.calls[0][0];
     const shareButton = call.endButtonIconProps[0];
     shareButton.onPress();
 

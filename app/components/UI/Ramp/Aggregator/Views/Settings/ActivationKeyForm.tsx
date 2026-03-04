@@ -12,7 +12,7 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../../../../component-library/components-temp/HeaderStandard';
 
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -75,7 +75,7 @@ function ActivationKeyForm() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
         title={title}
         onBack={handleBack}

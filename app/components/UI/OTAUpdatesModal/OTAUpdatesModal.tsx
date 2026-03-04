@@ -21,7 +21,7 @@ import { useMetrics } from '../../hooks/useMetrics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandard from '../../../component-library/components-temp/HeaderStandard';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
@@ -96,16 +96,13 @@ const OTAUpdatesModal = () => {
       shouldNavigateBack
       style={tw.style('bg-default')}
     >
-      <HeaderCompactStandard
-        twClassName="px-4"
-        onClose={() => dismissBottomSheet()}
-      >
+      <HeaderStandard twClassName="px-4" onClose={() => dismissBottomSheet()}>
         <Image
           style={tw.style('h-8')}
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderCompactStandard>
+      </HeaderStandard>
       <Box twClassName="px-6 pt-2 items-center">
         <Box twClassName="items-center py-6">
           <Box twClassName="items-center mb-6">

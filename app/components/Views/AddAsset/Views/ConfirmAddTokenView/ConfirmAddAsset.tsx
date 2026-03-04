@@ -4,7 +4,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import getHeaderStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderStandard/getHeaderStandardNavbarOptions';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -59,7 +59,7 @@ const ConfirmAddAsset = () => {
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
+      getHeaderStandardNavbarOptions({
         title: strings(`add_asset.title`),
         onBack: () => navigation.goBack(),
         includesTopInset: true,
