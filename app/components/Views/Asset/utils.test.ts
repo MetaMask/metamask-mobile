@@ -4,7 +4,7 @@ import { SolScope } from '@metamask/keyring-api';
 
 describe('getIsSwapsAssetAllowed', () => {
   describe('EVM assets', () => {
-    it('should return true for ETH assets', () => {
+    it('returns true for ETH assets', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: true,
@@ -16,7 +16,7 @@ describe('getIsSwapsAssetAllowed', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for native assets', () => {
+    it('returns true for native assets', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -28,7 +28,19 @@ describe('getIsSwapsAssetAllowed', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for tokens from search discovery', () => {
+    it('returns true for native assets on unsupported custom chains', () => {
+      const result = getIsSwapsAssetAllowed({
+        asset: {
+          isETH: false,
+          isNative: true,
+          address: '0x0',
+          chainId: '0x1234',
+        },
+      });
+      expect(result).toBe(true);
+    });
+
+    it('returns true for tokens from search discovery', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -41,7 +53,7 @@ describe('getIsSwapsAssetAllowed', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true for EVM tokens on supported chains', () => {
+    it('returns true for EVM tokens on supported chains', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -53,7 +65,7 @@ describe('getIsSwapsAssetAllowed', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for EVM tokens on unsupported custom chains', () => {
+    it('returns true for EVM tokens on unsupported custom chains', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,
@@ -62,12 +74,12 @@ describe('getIsSwapsAssetAllowed', () => {
           chainId: '0x1234',
         },
       });
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 
   describe('Solana assets', () => {
-    it('should return true for Solana assets', () => {
+    it('returns true for Solana assets', () => {
       const result = getIsSwapsAssetAllowed({
         asset: {
           isETH: false,

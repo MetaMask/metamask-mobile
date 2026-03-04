@@ -269,7 +269,7 @@ describe('TokenDetails', () => {
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
     });
 
-    it('does not show sticky buttons for unsupported custom-network assets', () => {
+    it('shows sticky buttons for unsupported custom-network assets', () => {
       mockRouteParams.mockReturnValueOnce({
         address: '0x6b175474e89094c44da98b954eedeac495271d0f',
         chainId: '0x1234',
@@ -282,9 +282,27 @@ describe('TokenDetails', () => {
         balance: '10.5',
       });
 
-      const { queryByTestId } = render(<TokenDetails />);
+      const { getByTestId } = render(<TokenDetails />);
 
-      expect(queryByTestId('bottomsheetfooter')).toBeNull();
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
+    });
+
+    it('shows sticky buttons for unsupported custom-network native assets', () => {
+      mockRouteParams.mockReturnValueOnce({
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1234',
+        symbol: 'CUSTOM',
+        decimals: 18,
+        name: 'Custom Native',
+        image: 'https://example.com/custom.png',
+        isETH: false,
+        isNative: true,
+        balance: '10.5',
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('bottomsheetfooter')).toBeOnTheScreen();
     });
 
     it('shows both Buy and Sell buttons when token has balance > 0', () => {

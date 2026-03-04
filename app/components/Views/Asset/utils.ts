@@ -1,7 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,tron)
 import { SolScope, TrxScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF(keyring-snaps,tron)
-import { isBridgeAllowed } from '../../UI/Bridge/utils';
 
 export const getIsSwapsAssetAllowed = ({
   asset,
@@ -14,7 +13,9 @@ export const getIsSwapsAssetAllowed = ({
     isFromSearch?: boolean;
   };
 }) => {
-  let isSwapsAssetAllowed = isBridgeAllowed(asset.chainId);
+  // Keep swap entry points visible for all assets.
+  // Unsupported source chains fall back to ETH mainnet in useSwapBridgeNavigation.
+  let isSwapsAssetAllowed = true;
 
   // Solana Swaps
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
