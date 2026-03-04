@@ -19,7 +19,7 @@ export const getPriceImpactViewData = (priceImpactValue?: string) => {
     };
   }
 
-  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD) {
+  if (priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD) {
     return {
       textColor: TextColor.Error,
       icon: {
@@ -29,7 +29,7 @@ export const getPriceImpactViewData = (priceImpactValue?: string) => {
     };
   }
 
-  if (priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD) {
+  if (priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD) {
     return {
       textColor: TextColor.Warning,
       icon: {

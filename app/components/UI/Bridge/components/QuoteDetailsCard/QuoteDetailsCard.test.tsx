@@ -666,7 +666,7 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('Price impact')).toBeTruthy();
-    expect(getByText('25.0%')).toBeTruthy();
+    expect(getByText('25%')).toBeTruthy();
     expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 

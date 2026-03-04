@@ -50,6 +50,7 @@ import {
 } from '../../../../../component-library/components/Texts/Text';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { formatPriceImpact } from '../../utils/formatPriceImpact';
 
 if (
   Platform.OS === 'android' &&
@@ -367,7 +368,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             value={{
               icon: priceImactViewData.icon,
               label: {
-                text: formattedQuoteData.priceImpact,
+                text: formatPriceImpact(formattedQuoteData.priceImpact),
                 variant: TextVariantLegacy.BodyMD,
                 color: priceImactViewData.textColor,
               },

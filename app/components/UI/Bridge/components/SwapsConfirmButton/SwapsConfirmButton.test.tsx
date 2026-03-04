@@ -1297,7 +1297,7 @@ describe('SwapsConfirmButton', () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MetaMaskWallet}
+          location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state: mockState },
       );
@@ -1310,7 +1310,7 @@ describe('SwapsConfirmButton', () => {
         Routes.BRIDGE.MODALS.ROOT,
         expect.objectContaining({
           params: expect.objectContaining({
-            location: MetaMetricsSwapsEventSource.MetaMaskWallet,
+            location: MetaMetricsSwapsEventSource.MainView,
           }),
         }),
       );

@@ -11,6 +11,7 @@ import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
+import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 export const PriceImpactModal = () => {
   const [loading, setLoading] = useState(false);
@@ -40,11 +41,12 @@ export const PriceImpactModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    confirmBridge();
-    sheetRef.current?.onCloseBottomSheet();
+    await confirmBridge();
   }, [confirmBridge]);
 
   const warningIcon = priceImpactViewData.icon;
+
+  useModalCloseOnQuoteExpiry();
 
   return (
     <BottomSheet ref={sheetRef}>

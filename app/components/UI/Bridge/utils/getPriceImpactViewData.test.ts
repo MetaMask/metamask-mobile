@@ -6,7 +6,7 @@ describe('getPriceImpactViewData', () => {
   it.each([
     { priceImpact: undefined },
     { priceImpact: '-0.06%' },
-    { priceImpact: '5.00%' },
+    { priceImpact: '4.99%' },
     { priceImpact: 'invalid' },
   ])(
     'returns alternative text color and no icon for $priceImpact',
@@ -18,7 +18,11 @@ describe('getPriceImpactViewData', () => {
     },
   );
 
-  it.each([{ priceImpact: '5.01%' }, { priceImpact: '25.00%' }])(
+  it.each([
+    { priceImpact: '5.00%' },
+    { priceImpact: '5.01%' },
+    { priceImpact: '24.99%' },
+  ])(
     'returns warning text color and warning icon for $priceImpact',
     ({ priceImpact }) => {
       expect(getPriceImpactViewData(priceImpact)).toEqual({
@@ -28,10 +32,13 @@ describe('getPriceImpactViewData', () => {
     },
   );
 
-  it('returns error text color and danger icon for price impact above error threshold', () => {
-    expect(getPriceImpactViewData('25.01%')).toEqual({
-      textColor: TextColor.Error,
-      icon: { name: IconName.Danger, color: TextColor.Error },
-    });
-  });
+  it.each([{ priceImpact: '25.00%' }, { priceImpact: '25.01%' }])(
+    'returns error text color and danger icon for $priceImpact',
+    ({ priceImpact }) => {
+      expect(getPriceImpactViewData(priceImpact)).toEqual({
+        textColor: TextColor.Error,
+        icon: { name: IconName.Danger, color: TextColor.Error },
+      });
+    },
+  );
 });
