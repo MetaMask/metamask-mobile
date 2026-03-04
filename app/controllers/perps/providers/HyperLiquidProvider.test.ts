@@ -300,6 +300,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 // Create shared mock platform dependencies for provider tests
 const mockPlatformDependencies: PerpsPlatformDependencies =
   createMockInfrastructure();
+
 const mockMessenger = createMockMessenger();
 
 /**

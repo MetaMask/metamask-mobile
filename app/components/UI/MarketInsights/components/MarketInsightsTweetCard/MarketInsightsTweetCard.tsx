@@ -16,25 +16,24 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import type { MarketInsightsTweetCardProps } from './MarketInsightsTweetCard.types';
-import { formatRelativeTime } from '../../utils/marketInsightsFormatting';
+import {
+  getNormalizedHandle,
+  formatRelativeTime,
+} from '../../utils/marketInsightsFormatting';
 
-// MarketInsightsTweetCard renders a social media post card.
 const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
   tweet,
   onPress,
   testID,
 }) => {
   const tw = useTailwind();
-  const relativeTime = useMemo(
-    () => formatRelativeTime(tweet.date, { nowLabel: 'now' }),
-    [tweet.date],
-  );
+  const timeAgo = useMemo(() => formatRelativeTime(tweet.date), [tweet.date]);
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) =>
-        tw.style('rounded-2xl bg-muted p-3', pressed && 'opacity-80')
+        tw.style('rounded-2xl bg-muted p-4', pressed && 'opacity-80')
       }
       testID={testID}
     >
@@ -53,19 +52,35 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={1}
+          twClassName="flex-1"
         >
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            {tweet.author}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {getNormalizedHandle(tweet.author)}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {relativeTime}
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {'•'}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {timeAgo}
           </Text>
         </Box>
         <Icon
           name={IconName.X}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
+          size={IconSize.Md}
+          color={IconColor.IconDefault}
         />
       </Box>
     </Pressable>

@@ -44,8 +44,30 @@ const RWA_TOKENS_SEARCH_RESPONSE = {
   ],
 };
 
+/**
+ * Geolocation mock returning a non-restricted country (AR) so the RWA/Stocks
+ * section is visible in CI. useRwaTokens hides Stocks when isGeoRestricted
+ * (missing or ONDO_RESTRICTED_COUNTRIES). useDetectGeolocation can overwrite
+ * fixture state; mocking ensures the app always gets AR if it fetches geo.
+ */
+const TRENDING_GEOLOCATION_MOCKS_GET = [
+  {
+    urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+    responseCode: 200,
+    response: 'AR',
+    priority: 1001,
+  },
+  {
+    urlEndpoint: 'https://on-ramp.api.cx.metamask.io/geolocation',
+    responseCode: 200,
+    response: 'AR',
+    priority: 1001,
+  },
+];
+
 export const TRENDING_API_MOCKS: MockEventsObject = {
   GET: [
+    ...TRENDING_GEOLOCATION_MOCKS_GET,
     {
       urlEndpoint:
         /https:\/\/price\.api\.cx\.metamask\.io\/v3\/historical-prices.*/,
