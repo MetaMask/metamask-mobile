@@ -74,6 +74,7 @@ export const testSpecificMock: TestSpecificMock = async (
 ) => {
   await setupSpotPricesMock(mockServer);
 
+  // ── SSE path (bridge-controller SSE feature flag ON) ──────────────────────
   // Catch-all for getQuoteStream with no slippage param (initial render before
   // useInitialSlippage fires). Registered first so specific mocks below at
   // priority 999 take precedence. Prevents real network calls that cause
@@ -89,7 +90,7 @@ export const testSpecificMock: TestSpecificMock = async (
     1, // lower priority than the specific mocks below (999)
   );
 
-  // Mock ETH->USDC with default 2% slippage
+  // Mock ETH->USDC with default 2% slippage (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
@@ -97,7 +98,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->USDC with 3.5% custom slippage
+  // Mock ETH->USDC with 3.5% custom slippage (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
@@ -105,7 +106,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->DAI
+  // Mock ETH->DAI (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
@@ -113,7 +114,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock USDC->USDT
+  // Mock USDC->USDT (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
@@ -121,7 +122,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // No quote when destination is mUSD
+  // No quote when destination is mUSD (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
@@ -129,7 +130,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock USDC->ETH (ETH native token address is 0x0000...0000)
+  // Mock USDC->ETH (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
@@ -137,7 +138,7 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock ETH->WETH (wrapped native)
+  // Mock ETH->WETH (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
@@ -145,11 +146,93 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock WETH->ETH (same-chain unwrap for E2E)
+  // Mock WETH->ETH (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
     response: toSSEResponse(GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE),
+    responseCode: 200,
+  });
+
+  // ── JSON path (bridge-controller SSE feature flag OFF) ─────────────────────
+  // The bridge controller falls back to fetchBridgeQuotes → /getQuote? (no
+  // "Stream" suffix) returning plain JSON when sse.enabled is false (e.g. local
+  // dev with BRIDGE_USE_DEV_APIS=true). Use /\/getQuote\?/i so the regex matches
+  // "getQuote?" but NOT "getQuoteStream?".
+
+  // Catch-all for getQuote (no slippage / initial render)
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: /\/getQuote\?/i,
+      response: GET_QUOTE_ETH_USDC_RESPONSE,
+      responseCode: 200,
+    },
+    1, // lower priority than specific mocks below (999)
+  );
+
+  // Mock ETH->USDC with default 2% slippage (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
+    response: GET_QUOTE_ETH_USDC_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock ETH->USDC with 3.5% custom slippage (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
+    response: GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
+    responseCode: 200,
+  });
+
+  // Mock ETH->DAI (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    response: GET_QUOTE_ETH_DAI_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock USDC->USDT (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
+    response: GET_QUOTE_USDC_USDT_RESPONSE,
+    responseCode: 200,
+  });
+
+  // No quote when destination is mUSD (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+    response: [],
+    responseCode: 200,
+  });
+
+  // Mock USDC->ETH (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    response: GET_QUOTE_USDC_ETH_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock ETH->WETH (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
+    response: GET_QUOTE_ETH_WETH_RESPONSE,
+    responseCode: 200,
+  });
+
+  // Mock WETH->ETH (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    response: GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE,
     responseCode: 200,
   });
 
@@ -185,11 +268,19 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock USDC->GOOGLON
+  // Mock USDC->GOOGLON (SSE)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /getQuoteStream.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
     response: toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
+    responseCode: 200,
+  });
+
+  // Mock USDC->GOOGLON (JSON)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /\/getQuote\?.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
+    response: GET_QUOTE_USDC_GOOGLON_RESPONSE,
     responseCode: 200,
   });
 
