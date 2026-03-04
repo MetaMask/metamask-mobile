@@ -176,26 +176,6 @@ export function useUnifiedTxActions() {
     setCancelIsOpen(true);
   };
 
-  const getParamsToSend = (
-    params?: SpeedUpCancelParams,
-  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
-    if (params?.error) {
-      return undefined;
-    }
-    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
-    if (
-      params &&
-      'gasPrice' in params &&
-      (params.gasPrice === '0x0' || parseInt(String(params.gasPrice), 16) === 0)
-    ) {
-      return getCancelOrSpeedupValues();
-    }
-    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
-      return params;
-    }
-    return getCancelOrSpeedupValues();
-  };
-
   const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
     try {
       if (params && 'error' in params && params.error) {
@@ -205,8 +185,12 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
+      const gasValues =
+        params && ('maxFeePerGas' in params || 'gasPrice' in params)
+          ? params
+          : getCancelOrSpeedupValues();
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -222,7 +206,7 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, getParamsToSend(params));
+      await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
@@ -239,8 +223,12 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
+      const gasValues =
+        params && ('maxFeePerGas' in params || 'gasPrice' in params)
+          ? params
+          : getCancelOrSpeedupValues();
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -257,7 +245,7 @@ export function useUnifiedTxActions() {
 
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getParamsToSend(params),
+        gasValues,
       );
       onCancelCompleted();
     } catch (error: unknown) {

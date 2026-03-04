@@ -468,25 +468,6 @@ class Transactions extends PureComponent {
     this.existingTx = null;
   };
 
-  getParamsToSend = (transactionObject) => {
-    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
-    if (
-      transactionObject &&
-      transactionObject.gasPrice !== undefined &&
-      (transactionObject.gasPrice === '0x0' ||
-        parseInt(String(transactionObject.gasPrice), 16) === 0)
-    ) {
-      return this.getCancelOrSpeedupValues();
-    }
-    if (
-      transactionObject &&
-      (transactionObject.maxFeePerGas || transactionObject.gasPrice)
-    ) {
-      return transactionObject;
-    }
-    return this.getCancelOrSpeedupValues();
-  };
-
   onScroll = (event) => {
     const { nativeEvent } = event;
     const { contentOffset } = nativeEvent;
@@ -527,7 +508,10 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const params =
+        transactionObject?.maxFeePerGas || transactionObject?.gasPrice
+          ? transactionObject
+          : this.getCancelOrSpeedupValues();
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
@@ -603,7 +587,10 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
-      const params = this.getParamsToSend(transactionObject);
+      const params =
+        transactionObject?.maxFeePerGas || transactionObject?.gasPrice
+          ? transactionObject
+          : this.getCancelOrSpeedupValues();
       if (isLedgerAccount) {
         const isEip1559 = params?.maxFeePerGas && params?.maxPriorityFeePerGas;
         await this.signLedgerTransaction({
