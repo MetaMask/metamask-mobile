@@ -51,16 +51,13 @@ jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-const mockTheme = {
-  colors: {
-    success: { default: '#00ff00', muted: '#00ff0033' },
-    error: { default: '#ff0000', muted: '#ff000033' },
-  },
-};
-
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => mockTheme),
-}));
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),

@@ -176,10 +176,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
