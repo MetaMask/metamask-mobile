@@ -107,7 +107,7 @@ describe('HeaderStandard', () => {
     it('renders title when passed as React node', () => {
       const TITLE_NODE_TEST_ID = 'custom-title-node';
       const { getByTestId, getByText } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title={<Text testID={TITLE_NODE_TEST_ID}>Custom Title Node</Text>}
         />,
       );
@@ -119,7 +119,7 @@ describe('HeaderStandard', () => {
     it('renders subtitle when passed as React node', () => {
       const SUBTITLE_NODE_TEST_ID = 'custom-subtitle-node';
       const { getByTestId, getByText } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title="Page Title"
           subtitle={
             <Text testID={SUBTITLE_NODE_TEST_ID}>Custom Subtitle Node</Text>
@@ -135,7 +135,7 @@ describe('HeaderStandard', () => {
       const TITLE_NODE_TEST_ID = 'title-node';
       const SUBTITLE_NODE_TEST_ID = 'subtitle-node';
       const { getByTestId } = render(
-        <HeaderCompactStandard
+        <HeaderStandard
           title={<Text testID={TITLE_NODE_TEST_ID}>Node Title</Text>}
           subtitle={<Text testID={SUBTITLE_NODE_TEST_ID}>Node Subtitle</Text>}
         />,
