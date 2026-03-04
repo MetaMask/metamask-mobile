@@ -24,8 +24,6 @@ import styleSheet from './TokenNotAvailableModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -38,7 +36,6 @@ export const createTokenNotAvailableModalNavigationDetails =
   );
 
 function TokenNotAvailableModal() {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId } = useParams<TokenNotAvailableModalParams>();
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -51,22 +48,11 @@ function TokenNotAvailableModal() {
 
   const handleChangeToken = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-        screen: Routes.RAMP.TOKEN_SELECTION,
-      });
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION);
     });
   }, [navigation]);
 
   const handleChangeProvider = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_CHANGE_PROVIDER_BUTTON_CLICKED)
-        .addProperties({
-          current_provider: selectedProvider?.name,
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     sheetRef.current?.onCloseBottomSheet(() => {
       navigation.navigate(
         ...createProviderSelectionModalNavigationDetails({
@@ -75,13 +61,7 @@ function TokenNotAvailableModal() {
         }),
       );
     });
-  }, [
-    navigation,
-    assetId,
-    selectedProvider?.name,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [navigation, assetId]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-// eslint-disable-next-line import/no-namespace
-import * as UseAnalyticsModule from '../../hooks/useAnalytics/useAnalytics';
 import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
@@ -30,7 +28,6 @@ import * as RefreshTokensModule from './util/refreshTokens';
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => ({
@@ -280,98 +277,6 @@ describe('Tokens', () => {
         expect(mockRemoveNonEvmToken).toHaveBeenCalled(),
     },
   ];
-
-  describe('Position Screen Viewed Analytics', () => {
-    let mockTrackEvent: jest.Mock;
-    let mockAddProperties: jest.Mock;
-
-    beforeEach(() => {
-      mockTrackEvent = jest.fn();
-      mockAddProperties = jest.fn().mockReturnThis();
-      jest.spyOn(UseAnalyticsModule, 'useAnalytics').mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: jest.fn(() => {
-          const mockEvent: AnalyticsTrackingEvent = {
-            name: '',
-            properties: {},
-            sensitiveProperties: {},
-            saveDataRecording: false,
-            get isAnonymous(): boolean {
-              return false;
-            },
-            get hasProperties(): boolean {
-              return false;
-            },
-          };
-          return {
-            addProperties: mockAddProperties,
-            addSensitiveProperties: jest.fn().mockReturnThis(),
-            removeProperties: jest.fn().mockReturnThis(),
-            removeSensitiveProperties: jest.fn().mockReturnThis(),
-            setSaveDataRecording: jest.fn().mockReturnThis(),
-            build: jest.fn(() => mockEvent),
-          };
-        }),
-        isEnabled: jest.fn(),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-        getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
-        getAnalyticsId: jest.fn(),
-      });
-    });
-
-    it('tracks Position Screen Viewed when isFullView is true and tokens are loaded', async () => {
-      renderComponent(initialState, true);
-
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockAddProperties).toHaveBeenCalledWith(
-          expect.objectContaining({
-            item_count: 3,
-            location: 'homepage',
-            is_empty: false,
-            screen_type: 'tokens',
-          }),
-        );
-      });
-    });
-
-    it('tracks Position Screen Viewed with is_empty true when no tokens are present', async () => {
-      const { mockSelectSortedAssetsBySelectedAccountGroup } =
-        arrangeMockSelectors();
-      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
-
-      renderComponent(initialState, true);
-
-      await waitFor(() => {
-        expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockAddProperties).toHaveBeenCalledWith(
-          expect.objectContaining({
-            item_count: 0,
-            is_empty: true,
-            screen_type: 'tokens',
-          }),
-        );
-      });
-    });
-
-    it('does not track Position Screen Viewed when isFullView is false', async () => {
-      renderComponent(initialState, false);
-
-      await waitFor(() => {
-        expect(mockAddProperties).not.toHaveBeenCalledWith(
-          expect.objectContaining({
-            screen_type: 'tokens',
-            location: 'homepage',
-          }),
-        );
-      });
-    });
-  });
 
   it.each(removeTokenTests)(
     'performs token removal - $type',

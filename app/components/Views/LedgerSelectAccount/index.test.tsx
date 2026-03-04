@@ -94,8 +94,9 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(() => ({
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   })),

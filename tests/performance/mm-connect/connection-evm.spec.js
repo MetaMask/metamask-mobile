@@ -1,12 +1,11 @@
-import { test } from '../../framework/fixtures/performance';
-import TimerHelper from '../../framework/TimerHelper';
+import { test } from 'appwright';
 
 import { login } from '../../framework/utils/Flows.js';
 import {
-  switchToMobileBrowser,
+  launchMobileBrowser,
   navigateToDapp,
   refreshMobileBrowser,
-  launchMobileBrowser,
+  switchToMobileBrowser,
 } from '../../framework/utils/MobileBrowser.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import BrowserPlaygroundDapp from '../../../wdio/screen-objects/BrowserPlaygroundDapp.js';
@@ -24,7 +23,6 @@ import {
   cleanupAdbReverse,
   waitForDappServerReady,
   unlockIfLockScreenVisible,
-  ensureAccountGroupsFinishedLoading,
 } from './utils.js';
 
 const DAPP_NAME = 'MetaMask MultiChain API Test Dapp';
@@ -60,7 +58,6 @@ test.afterAll(async () => {
 
 test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser Playground', async ({
   device,
-  performanceTracker,
 }) => {
   const platform = device.getPlatform?.() || 'android';
   const useBrowserStackLocal =
@@ -83,35 +80,8 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     shouldWaitForQuiescence: false,
   });
 
-  const connectTimer = new TimerHelper(
-    'Time from tapping Connect (Legacy) to dapp confirming EVM connected state',
-    { ios: 20000, android: 30000 },
-    device,
-  );
-  const signTimer = new TimerHelper(
-    'Time from tapping Personal Sign to dapp displaying signature response',
-    { ios: 12000, android: 18000 },
-    device,
-  );
-  const switchChainTimer = new TimerHelper(
-    'Time from tapping Switch to Polygon to dapp confirming chain ID 0x89',
-    { ios: 12000, android: 18000 },
-    device,
-  );
-  const refreshReconnectTimer = new TimerHelper(
-    'Time from refreshing browser to dapp confirming EVM still connected',
-    { ios: 8000, android: 12000 },
-    device,
-  );
-  const reconnectTimer = new TimerHelper(
-    'Time from tapping Connect (Legacy) after disconnect to dapp confirming reconnected',
-    { ios: 20000, android: 30000 },
-    device,
-  );
-
   await AppwrightHelpers.withNativeAction(device, async () => {
     await login(device);
-    await ensureAccountGroupsFinishedLoading(device);
     await launchMobileBrowser(device);
     await navigateToDapp(device, DAPP_URL, DAPP_NAME);
   });
@@ -120,7 +90,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   await AppwrightHelpers.withWebAction(
     device,
     async () => {
-      connectTimer.start();
       await BrowserPlaygroundDapp.tapConnectLegacy();
     },
     DAPP_URL,
@@ -143,10 +112,8 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     device,
     async () => {
       await BrowserPlaygroundDapp.assertConnected(true);
-      connectTimer.stop();
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
-      signTimer.start();
       await BrowserPlaygroundDapp.tapPersonalSign();
     },
     DAPP_URL,
@@ -168,7 +135,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
         // Account 1 signed the message
         '0x361c13288b4ab02d50974efddf9e4e7ca651b81c298b614be908c4754abb1dd8328224645a1a8d0fab561c4b855c7bdcebea15db5ae8d1778a1ea791dbd05c2a1b',
       );
-      signTimer.stop();
       await BrowserPlaygroundDapp.tapSendTransaction();
     },
     DAPP_URL,
@@ -189,7 +155,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     async () => {
       // Note: Error message may differ slightly in browser playground
       await BrowserPlaygroundDapp.assertResponseValue('denied');
-      switchChainTimer.start();
       await BrowserPlaygroundDapp.tapSwitchToPolygon();
     },
     DAPP_URL,
@@ -209,7 +174,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     device,
     async () => {
       await BrowserPlaygroundDapp.assertChainIdValue('0x89');
-      switchChainTimer.stop();
       await BrowserPlaygroundDapp.tapSendTransaction();
     },
     DAPP_URL,
@@ -263,7 +227,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
   );
 
   await AppwrightHelpers.withNativeAction(device, async () => {
-    refreshReconnectTimer.start();
     await refreshMobileBrowser(device);
   });
   await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -272,7 +235,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     device,
     async () => {
       await BrowserPlaygroundDapp.assertConnected(true);
-      refreshReconnectTimer.stop();
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
       await BrowserPlaygroundDapp.tapPersonalSign();
@@ -302,7 +264,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     async () => {
       await BrowserPlaygroundDapp.tapDisconnect();
       await BrowserPlaygroundDapp.assertConnected(false);
-      reconnectTimer.start();
       await BrowserPlaygroundDapp.tapConnectLegacy();
     },
     DAPP_URL,
@@ -321,7 +282,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
     device,
     async () => {
       await BrowserPlaygroundDapp.assertConnected(true);
-      reconnectTimer.stop();
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_3_ADDRESS);
       await BrowserPlaygroundDapp.tapPersonalSign();
@@ -404,14 +364,6 @@ test('@metamask/connect-evm - Connect via EVM Legacy Connection to Local Browser
       await BrowserPlaygroundDapp.assertChainIdValue('0x1');
     },
     DAPP_URL,
-  );
-
-  performanceTracker.addTimers(
-    connectTimer,
-    signTimer,
-    switchChainTimer,
-    refreshReconnectTimer,
-    reconnectTimer,
   );
 
   //

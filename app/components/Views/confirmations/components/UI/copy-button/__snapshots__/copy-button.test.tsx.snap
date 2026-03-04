@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`CopyButton should match snapshot 1`] = `
 <TouchableOpacity
@@ -21,7 +21,7 @@ exports[`CopyButton should match snapshot 1`] = `
   testID="copyButtonTestId"
 >
   <SvgMock
-    color="#66676a"
+    color="#686e7d"
     fill="currentColor"
     height={20}
     name="Copy"

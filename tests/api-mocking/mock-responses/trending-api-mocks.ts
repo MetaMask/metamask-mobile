@@ -1,14 +1,5 @@
 import { MockEventsObject } from '../../framework';
 
-/**
- * Minimal HTML returned for favicon fetch mocks.
- * The favicon utility (app/util/favicon/index.ts) makes GET requests to
- * site origins to extract <link rel="icon"> tags from the HTML source.
- * These mocks prevent unmocked live requests during E2E tests.
- */
-const FAVICON_HTML =
-  '<html><head><link rel="icon" href="/favicon.ico"></head><body></body></html>';
-
 const TRENDING_TOKENS_RESPONSE = [
   {
     assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -44,30 +35,8 @@ const RWA_TOKENS_SEARCH_RESPONSE = {
   ],
 };
 
-/**
- * Geolocation mock returning a non-restricted country (AR) so the RWA/Stocks
- * section is visible in CI. useRwaTokens hides Stocks when isGeoRestricted
- * (missing or ONDO_RESTRICTED_COUNTRIES). useDetectGeolocation can overwrite
- * fixture state; mocking ensures the app always gets AR if it fetches geo.
- */
-const TRENDING_GEOLOCATION_MOCKS_GET = [
-  {
-    urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-    responseCode: 200,
-    response: 'AR',
-    priority: 1001,
-  },
-  {
-    urlEndpoint: 'https://on-ramp.api.cx.metamask.io/geolocation',
-    responseCode: 200,
-    response: 'AR',
-    priority: 1001,
-  },
-];
-
 export const TRENDING_API_MOCKS: MockEventsObject = {
   GET: [
-    ...TRENDING_GEOLOCATION_MOCKS_GET,
     {
       urlEndpoint:
         /https:\/\/price\.api\.cx\.metamask\.io\/v3\/historical-prices.*/,
@@ -100,27 +69,6 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
           },
         ],
       },
-      priority: 1000,
-    },
-    // Favicon fetch mocks — the useFavicon hook fetches site HTML to extract
-    // <link rel="icon"> tags. Without these mocks the requests leak to live
-    // servers and cause "unmocked request" test failures.
-    {
-      urlEndpoint: 'https://portfolio.metamask.io/',
-      responseCode: 200,
-      response: FAVICON_HTML,
-      priority: 1000,
-    },
-    {
-      urlEndpoint: 'https://uniswap.org/',
-      responseCode: 200,
-      response: FAVICON_HTML,
-      priority: 1000,
-    },
-    {
-      urlEndpoint: 'https://app.uniswap.org/',
-      responseCode: 200,
-      response: FAVICON_HTML,
       priority: 1000,
     },
     {

@@ -195,7 +195,6 @@ class TrendingView {
 
     await Gestures.tap(quickActionButton, {
       elemDescription: `Tap QuickAction button for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after horizontal scroll
     });
   }
 
@@ -218,7 +217,6 @@ class TrendingView {
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
-      checkStability: true, // Wait for element to stop moving after scroll
     });
   }
 

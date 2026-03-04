@@ -23,7 +23,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
     style={
       [
         {
-          "backgroundColor": "#0a0d135c",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -73,7 +73,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -110,7 +110,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -157,7 +157,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
@@ -189,7 +189,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#131416",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",

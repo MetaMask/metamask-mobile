@@ -68,7 +68,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -156,7 +156,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -182,7 +182,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -214,7 +214,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -277,7 +277,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -390,7 +390,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -416,7 +416,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -448,7 +448,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -511,7 +511,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -599,7 +599,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -688,7 +688,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -714,7 +714,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -771,7 +771,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -885,7 +885,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -911,7 +911,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -968,7 +968,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -1056,7 +1056,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -1144,7 +1144,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1170,7 +1170,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1202,7 +1202,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1265,7 +1265,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -1378,7 +1378,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1404,7 +1404,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1436,7 +1436,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1499,7 +1499,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -1587,7 +1587,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "flexDirection": "row",
           }
         }
@@ -1675,7 +1675,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1701,7 +1701,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1733,7 +1733,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1796,7 +1796,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"
@@ -1909,7 +1909,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -1935,7 +1935,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#66676a",
+                          "color": "#686e7d",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1967,7 +1967,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#131416",
+                          "color": "#121314",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -2030,7 +2030,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
             testID="multichain-account-cell-menu"
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="MoreVertical"

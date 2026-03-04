@@ -31,6 +31,12 @@ jest.mock('../../hooks/useTransakController', () => ({
   }),
 }));
 
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => ({
+  __esModule: true,
+  default: () => mockTrackEvent,
+}));
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
     (..._args: unknown[]) =>

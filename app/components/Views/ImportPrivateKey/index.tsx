@@ -23,8 +23,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import TitleStandard from '../../../component-library/components-temp/TitleStandard';
+import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
@@ -154,57 +153,56 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderCompactStandard
+          <HeaderStackedStandard
             includesTopInset
             backButtonProps={{
               onPress: dismiss,
               testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
             }}
-          />
-          <TitleStandard
-            title={strings('import_private_key.title')}
-            bottomAccessory={
-              <View style={styles.descriptionContainer}>
-                {isSRP ? (
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('import_private_key.description_srp')}{' '}
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Primary}
-                      onPress={learnMore}
-                    >
-                      {strings('import_private_key.learn_more')}
-                    </Text>
-                  </Text>
-                ) : (
-                  <>
+            titleStandardProps={{
+              title: strings('import_private_key.title'),
+              bottomAccessory: (
+                <View style={styles.descriptionContainer}>
+                  {isSRP ? (
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
                     >
-                      {strings('import_private_key.description_one')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
-                      onPress={learnMore}
-                    >
+                      {strings('import_private_key.description_srp')}{' '}
                       <Text
                         variant={TextVariant.BodyMD}
                         color={TextColor.Primary}
+                        onPress={learnMore}
                       >
-                        {strings('import_private_key.learn_more')}{' '}
+                        {strings('import_private_key.learn_more')}
                       </Text>
-                      {strings('import_private_key.learn_more_here')}
                     </Text>
-                  </>
-                )}
-              </View>
-            }
-            twClassName="px-4 pt-1 pb-3"
+                  ) : (
+                    <>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('import_private_key.description_one')}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodyMD}
+                        color={TextColor.Alternative}
+                        onPress={learnMore}
+                      >
+                        <Text
+                          variant={TextVariant.BodyMD}
+                          color={TextColor.Primary}
+                        >
+                          {strings('import_private_key.learn_more')}{' '}
+                        </Text>
+                        {strings('import_private_key.learn_more_here')}
+                      </Text>
+                    </>
+                  )}
+                </View>
+              ),
+            }}
           />
           <View style={styles.bottom}>
             <TextInput

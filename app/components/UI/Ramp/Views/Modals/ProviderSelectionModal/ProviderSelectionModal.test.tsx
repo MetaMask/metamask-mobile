@@ -14,27 +14,9 @@ const mockGetQuotes = jest.mocked(Engine.context.RampsController.getQuotes);
 const mockGoBack = jest.fn();
 const mockSetSelectedProvider = jest.fn();
 
-const mockNavigationState = {
-  routes: [
-    { name: Routes.RAMP.MODALS.PAYMENT_SELECTION, key: 'payment' },
-    { name: Routes.RAMP.MODALS.PROVIDER_SELECTION, key: 'provider' },
-  ],
-  index: 1,
-  key: 'modals',
-  routeNames: [
-    Routes.RAMP.MODALS.PAYMENT_SELECTION,
-    Routes.RAMP.MODALS.PROVIDER_SELECTION,
-  ],
-  type: 'stack' as const,
-  stale: false as const,
-};
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
-  useNavigationState: (
-    selector: (state: typeof mockNavigationState) => unknown,
-  ) => selector(mockNavigationState),
 }));
 
 const mockUseParams = jest.fn<ProviderSelectionModalParams, []>(() => ({

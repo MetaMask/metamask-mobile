@@ -45,22 +45,10 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
-const mockAddOrder = jest.fn();
-const mockRefreshOrder = jest.fn();
-
-jest.mock('./useRampsOrders', () => ({
-  useRampsOrders: () => ({
-    addOrder: mockAddOrder,
-    refreshOrder: mockRefreshOrder,
-    orders: [],
-    getOrderById: jest.fn(),
-    removeOrder: jest.fn(),
-    getOrderFromCallback: jest.fn(),
-  }),
-}));
-
-jest.mock('../utils/v2OrderToast', () => ({
-  showV2OrderToast: jest.fn(),
+const mockHandleNewOrder = jest.fn();
+jest.mock('../Deposit/hooks/useHandleNewOrder', () => ({
+  __esModule: true,
+  default: () => mockHandleNewOrder,
 }));
 
 const mockTrackEvent = jest.fn();
@@ -309,15 +297,9 @@ describe('useTransakRouting', () => {
       });
       mockTransakCreateOrder.mockResolvedValue({
         id: 'order-123',
-        providerOrderId: 'order-123',
         walletAddress: '0xabc',
       });
-      mockRefreshOrder.mockResolvedValue({
-        providerOrderId: 'order-123',
-        cryptoCurrency: { symbol: 'ETH' },
-        cryptoAmount: '0.05',
-        status: 'Pending',
-      });
+      mockHandleNewOrder.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useTransakRouting());
 
@@ -373,10 +355,8 @@ describe('useTransakRouting', () => {
     });
 
     it('handles 401 error by logging out and navigating to enter email', async () => {
-      const error = new Error('Unauthorized') as Error & {
-        httpStatus: number;
-      };
-      error.httpStatus = 401;
+      const error = new Error('Unauthorized') as Error & { status: number };
+      error.status = 401;
       mockGetUserDetails.mockRejectedValue(error);
       mockLogoutFromProvider.mockResolvedValue(undefined);
 

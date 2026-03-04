@@ -375,16 +375,7 @@ export const DEFAULT_MOCKS = {
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
   ],
-  PUT: [
-    ...(USER_STORAGE_MOCK.PUT || []),
-    // Profile accounts sync — triggered by onboarded fixture state
-    {
-      urlEndpoint:
-        /^https:\/\/authentication\.api\.cx\.metamask\.io\/api\/v2\/profile\/accounts$/,
-      responseCode: 200,
-      response: {},
-    },
-  ],
+  PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],
   PATCH: [],
 };

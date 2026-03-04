@@ -23,21 +23,14 @@ import { debounce } from 'lodash';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
-import { BigNumber } from 'ethers';
 
 export const DEBOUNCE_WAIT = 300;
-
-interface UseBridgeQuoteRequestOptions {
-  latestSourceAtomicBalance?: BigNumber;
-}
 
 /**
  * Hook for handling bridge quote request updates
  * @returns {Function} A debounced function to update quote parameters
  */
-export const useBridgeQuoteRequest = (
-  options: UseBridgeQuoteRequestOptions = {},
-) => {
+export const useBridgeQuoteRequest = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -46,23 +39,12 @@ export const useBridgeQuoteRequest = (
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
-  const { latestSourceAtomicBalance } = options;
-  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 
-  const latestSourceBalance = useLatestBalance(
-    hasLatestSourceBalanceOverride
-      ? {}
-      : {
-          address: sourceToken?.address,
-          decimals: sourceToken?.decimals,
-          chainId: sourceToken?.chainId,
-          balance: sourceToken?.balance,
-        },
-  );
-
-  const sourceAtomicBalance = hasLatestSourceBalanceOverride
-    ? latestSourceAtomicBalance
-    : latestSourceBalance?.atomicBalance;
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
 
   // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing
@@ -71,7 +53,7 @@ export const useBridgeQuoteRequest = (
   const insufficientBal = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
-    latestAtomicBalance: sourceAtomicBalance,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
     ignoreGasFees: true,
   });
 

@@ -7,6 +7,7 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsProvider, PerpsPlatformDependencies } from '../types';
 import { generateDepositId } from '../utils/idUtils';
 import { generateERC20TransferData } from '../utils/transferData';
@@ -36,7 +37,7 @@ jest.mock('@metamask/controller-utils', () => {
 describe('DepositService', () => {
   let mockProvider: jest.Mocked<PerpsProvider>;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockMessenger: ReturnType<typeof createMockMessenger>;
+  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
   let service: DepositService;
   const mockEvmAccount = createMockEvmAccount();
   const mockDepositId = 'deposit-123';
@@ -163,7 +164,7 @@ describe('DepositService', () => {
       expect(result.transaction.data).toMatch(/^0xa9059cbb/);
     });
 
-    it('retrieves EVM account from messenger via accountTree action', async () => {
+    it('retrieves EVM account from selected account group via messenger', async () => {
       await service.prepareTransaction({
         provider: mockProvider,
       });

@@ -11,9 +11,8 @@ import {
 } from '../../../selectors/keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import type { UseAnalyticsHook } from '../../hooks/useAnalytics/useAnalytics.types';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 import {
   ImportNewSecretRecoveryPhraseOptions,
   ImportNewSecretRecoveryPhraseReturnType,
@@ -97,8 +96,9 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn(),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('react', () => ({
@@ -193,10 +193,10 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       },
     );
 
-    jest.mocked(useAnalytics).mockReturnValue({
+    (useMetrics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-    } as unknown as UseAnalyticsHook);
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
 
     mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
 
@@ -426,7 +426,7 @@ describe('ImportNewSecretRecoveryPhrase', () => {
     );
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      AnalyticsEventBuilder.createEventBuilder(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
       )
         .addProperties({

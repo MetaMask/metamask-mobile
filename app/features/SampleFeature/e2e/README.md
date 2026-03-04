@@ -11,7 +11,7 @@ The Sample Feature is a development/testing feature that demonstrates:
 - Form validation and error handling
 - Navigation patterns within the app
 - UI component library usage and styling
-- Analytics tracking
+- Metametrics tracking
 - Unit testing
 - End-to-end testing
 

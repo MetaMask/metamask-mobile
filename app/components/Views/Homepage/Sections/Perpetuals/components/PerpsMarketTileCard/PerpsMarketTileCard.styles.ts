@@ -19,7 +19,8 @@ const styleSheet = (params: {
     },
     content: {
       flex: 1,
-      padding: 16,
+      paddingTop: 12,
+      paddingHorizontal: 12,
     },
     topRow: {
       flexDirection: 'row',
@@ -35,20 +36,8 @@ const styleSheet = (params: {
       alignItems: 'center',
       gap: 6,
     },
-    tokenLogoWrapper: {
-      position: 'relative' as const,
-    },
-    favoriteBadge: {
-      position: 'absolute' as const,
-      top: -6,
-      right: -6,
-      backgroundColor: theme.colors.background.alternative,
-      borderRadius: 12,
-      padding: 3,
-    },
     sparklineContainer: {
       marginTop: 'auto' as const,
-      marginBottom: 16,
     },
     shimmerOverlay: {
       ...StyleSheet.absoluteFillObject,

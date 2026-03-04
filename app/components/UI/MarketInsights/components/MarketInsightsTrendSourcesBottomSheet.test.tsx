@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MarketInsightsTrendSourcesBottomSheet from './MarketInsightsTrendSourcesBottomSheet';
@@ -38,7 +39,15 @@ jest.mock(
 );
 
 describe('MarketInsightsTrendSourcesBottomSheet', () => {
-  it('renders article and tweet sources and triggers source callback', () => {
+  beforeEach(() => {
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders article and tweet sources and opens their URLs', () => {
     const onClose = jest.fn();
     const onSourcePress = jest.fn();
     const articleUrl = 'https://www.coindesk.com/article';
@@ -79,9 +88,11 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
 
     fireEvent.press(getByText('coindesk.com'));
     expect(onSourcePress).toHaveBeenCalledWith(articleUrl);
+    expect(Linking.openURL).toHaveBeenCalledWith(articleUrl);
 
     fireEvent.press(getByText('@adam3us'));
     expect(onSourcePress).toHaveBeenCalledWith(tweetUrl);
+    expect(Linking.openURL).toHaveBeenCalledWith(tweetUrl);
   });
 
   it('renders safely when hidden and has no callbacks', () => {

@@ -6,13 +6,16 @@ import {
   Text,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+} from '../../../../../../component-library/components/Buttons/Button';
 import type {
   PredictMarket,
   PredictOutcome,
@@ -26,19 +29,34 @@ interface PredictMarketCardProps {
 const MAX_OUTCOMES_DISPLAYED = 2;
 
 /**
- * Format price as percentage (e.g., 0.55 -> "55%")
+ * Format price as cents (e.g., 0.55 -> "55¢")
  */
 const formatPrice = (price: number): string => {
-  const pct = Math.round(price * 100);
-  return `${pct}%`;
+  const cents = Math.round(price * 100);
+  return `${cents}¢`;
 };
 
 /**
- * OutcomeRow - Single outcome row with image, name, and percentage
+ * Format end date to short format (e.g., "Jan 8")
+ */
+const formatDate = (dateString?: string): string | null => {
+  if (!dateString) return null;
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return null;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * OutcomeRow - Single outcome row with image, name, and price button
  */
 const OutcomeRow: React.FC<{
   outcome: PredictOutcome;
-}> = ({ outcome }) => {
+  onPress: () => void;
+}> = ({ outcome, onPress }) => {
   const tw = useTailwind();
   const yesToken = outcome.tokens?.[0];
   const price = yesToken?.price ?? 0;
@@ -50,11 +68,11 @@ const OutcomeRow: React.FC<{
       gap={3}
     >
       {/* Outcome image */}
-      <Box twClassName="w-6 h-6 rounded-lg overflow-hidden bg-background-alternative">
+      <Box twClassName="w-8 h-8 rounded-lg overflow-hidden bg-background-alternative">
         {outcome.image ? (
           <Image
             source={{ uri: outcome.image }}
-            style={tw.style('w-6 h-6')}
+            style={tw.style('w-8 h-8')}
             resizeMode="cover"
           />
         ) : null}
@@ -64,6 +82,7 @@ const OutcomeRow: React.FC<{
       <Box twClassName="flex-1">
         <Text
           variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
         >
@@ -71,17 +90,20 @@ const OutcomeRow: React.FC<{
         </Text>
       </Box>
 
-      {/* Percentage */}
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {formatPrice(price)}
-      </Text>
+      {/* Price button */}
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Sm}
+        label={formatPrice(price)}
+        onPress={onPress}
+      />
     </Box>
   );
 };
 
 /**
  * Compact prediction market card for homepage carousel.
- * Shows title and top 2 outcomes with prices.
+ * Shows title, date, and top 2 outcomes with prices.
  */
 const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
   const navigation =
@@ -93,6 +115,11 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
       params: { marketId: market.id },
     });
   }, [navigation, market.id]);
+
+  const formattedDate = useMemo(
+    () => formatDate(market.endDate),
+    [market.endDate],
+  );
 
   // Get top outcomes to display
   const displayOutcomes = useMemo(() => {
@@ -123,25 +150,38 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({ market }) => {
   return (
     <TouchableOpacity onPress={handlePress}>
       <Box
-        twClassName="w-[240px] rounded-2xl bg-background-muted flex-1"
+        twClassName="w-[280px] rounded-2xl bg-background-muted"
         padding={4}
-        gap={6}
-        justifyContent={BoxJustifyContent.Between}
+        gap={3}
       >
-        {/* Header: Title */}
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={2}
-        >
-          {market.title}
-        </Text>
+        {/* Header: Title + Date */}
+        <Box gap={1}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={2}
+          >
+            {market.title}
+          </Text>
+          {formattedDate && (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {formattedDate}
+            </Text>
+          )}
+        </Box>
 
         {/* Outcomes */}
         <Box gap={2}>
           {displayOutcomes.map((outcome) => (
-            <OutcomeRow key={outcome.id} outcome={outcome} />
+            <OutcomeRow
+              key={outcome.id}
+              outcome={outcome}
+              onPress={handlePress}
+            />
           ))}
         </Box>
       </Box>

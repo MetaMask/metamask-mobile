@@ -64,7 +64,6 @@ jest.mock('../../hooks/useMetrics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
-jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('../Ramp/hooks/useRampNavigation');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({
@@ -465,7 +464,7 @@ describe('FundActionMenu', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          button_text: 'Deposit',
+          text: 'Deposit',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'DEPOSIT',
@@ -491,7 +490,7 @@ describe('FundActionMenu', () => {
           MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
-          button_text: 'Buy',
+          text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'BUY',
@@ -540,7 +539,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
-          button_text: 'Buy',
+          text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
           ramp_type: 'BUY',

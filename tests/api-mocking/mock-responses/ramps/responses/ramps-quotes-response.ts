@@ -6,12 +6,7 @@
 // controller auto-selects it (RampsController.mjs:952).
 // Returning multiple quotes breaks auto-selection and leaves the Continue
 // button disabled.
-
-export type ProviderType = 'native' | 'aggregator';
-
-export const createRampsQuoteResponse = (
-  providerType: ProviderType = 'native',
-) => ({
+export const RAMPS_QUOTE_RESPONSE = {
   success: [
     {
       provider: '/providers/transak-staging',
@@ -45,11 +40,11 @@ export const createRampsQuoteResponse = (
           denomSymbol: '$',
         },
         fiatId: '/currencies/fiat/usd',
-        amountIn: providerType === 'native' ? 100 : 15,
-        amountOut: providerType === 'native' ? 0.02455598 : 0.00355373,
+        amountIn: 15,
+        amountOut: 0.00355373,
         exchangeRate: 4072.34318439678,
         networkFee: 0.02,
-        providerFee: providerType === 'native' ? 23.33 : 3.5,
+        providerFee: 3.5,
         extraFee: 0,
         receiver: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
         paymentMethod: '/payments/debit-credit-card',
@@ -61,7 +56,7 @@ export const createRampsQuoteResponse = (
       providerInfo: {
         id: '/providers/transak-staging',
         name: 'Transak (Staging)',
-        type: providerType,
+        type: 'aggregator',
         environmentType: 'STAGING',
         description:
           'Per Transak: "The fastest and securest way to buy 100+ cryptocurrencies on 75+ blockchains. Pay via Apple Pay, UPI, bank transfer or use your debit or credit card. Trusted by 2+ million global users. Transak empowers wallets, gaming, DeFi, NFTs, Exchanges, and DAOs across 125+ countries."',
@@ -137,4 +132,4 @@ export const createRampsQuoteResponse = (
   ],
   error: [],
   customActions: [],
-});
+};

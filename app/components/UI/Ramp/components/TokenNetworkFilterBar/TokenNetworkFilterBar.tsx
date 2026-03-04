@@ -22,7 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 interface TokenNetworkFilterBarProps {
   networks: CaipChainId[];
   networkFilter: CaipChainId[] | null;
-  setNetworkFilter: (filter: CaipChainId[] | null) => void;
+  setNetworkFilter: React.Dispatch<React.SetStateAction<CaipChainId[] | null>>;
 }
 
 function TokenNetworkFilterBar({

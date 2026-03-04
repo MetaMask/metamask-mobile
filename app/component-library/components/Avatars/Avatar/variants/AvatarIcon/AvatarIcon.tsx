@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `AvatarIcon` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React from 'react';
 
@@ -14,11 +18,6 @@ import stylesheet from './AvatarIcon.styles';
 import { AvatarIconProps } from './AvatarIcon.types';
 import { DEFAULT_AVATARICON_SIZE } from './AvatarIcon.constants';
 
-/**
- * @deprecated Please update your code to use `AvatarIcon` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarIcon/README.md}
- */
 const AvatarIcon = ({
   size = DEFAULT_AVATARICON_SIZE,
   name,

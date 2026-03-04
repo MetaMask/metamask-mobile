@@ -38,7 +38,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
             <TouchableOpacity>
               <Icon
                 allowFontScaling={false}
-                color="#131416"
+                color="#121314"
                 name="arrow-back"
                 size={24}
               />
@@ -178,7 +178,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             {
-                              "color": "#babbbe",
+                              "color": "#b7bbc8",
                             }
                           }
                         />
@@ -234,7 +234,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             {
-                              "color": "#babbbe",
+                              "color": "#b7bbc8",
                             }
                           }
                         />

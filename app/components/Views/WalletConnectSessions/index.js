@@ -2,14 +2,15 @@ import React, { PureComponent } from 'react';
 import {
   Alert,
   ScrollView,
+  SafeAreaView,
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import WebsiteIcon from '../../UI/WebsiteIcon';
 import ActionSheet from '@metamask/react-native-actionsheet';
 import Logger from '../../../util/Logger';
@@ -19,7 +20,6 @@ import WC2Manager, {
   isWC2Enabled,
 } from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -87,9 +87,27 @@ export default class WalletConnectSessions extends PureComponent {
 
   sessionToRemove = null;
 
+  updateNavBar = () => {
+    const { navigation } = this.props;
+    const colors = this.context.colors || mockTheme.colors;
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        strings('experimental_settings.wallet_connect_dapps'),
+        navigation,
+        false,
+        colors,
+      ),
+    );
+  };
+
   componentDidMount() {
+    this.updateNavBar();
     this.loadSessions();
   }
+
+  componentDidUpdate = () => {
+    this.updateNavBar();
+  };
 
   loadSessions = async () => {
     let sessions = [];
@@ -197,20 +215,9 @@ export default class WalletConnectSessions extends PureComponent {
 
     return (
       <SafeAreaView
-        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={ExperimentalSelectorsIDs.CONTAINER}
       >
-        <HeaderCompactStandard
-          title={strings('experimental_settings.wallet_connect_dapps')}
-          onBack={() => this.props.navigation.goBack()}
-          backButtonProps={{
-            testID:
-              ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_BACK_BUTTON,
-          }}
-          testID={ExperimentalSelectorsIDs.WALLET_CONNECT_SESSIONS_HEADER}
-          includesTopInset
-        />
         <ScrollView
           style={styles.wrapper}
           contentContainerStyle={styles.scrollviewContent}

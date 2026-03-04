@@ -820,7 +820,6 @@
         }
       }
     },
-    "requests": {},
-    "orders": []
+    "requests": {}
   }
 }

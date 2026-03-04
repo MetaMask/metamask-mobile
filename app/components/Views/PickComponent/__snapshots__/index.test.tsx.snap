@@ -34,7 +34,7 @@ exports[`PickComponent should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#949596",
+            "borderColor": "#b7bbc8",
             "borderRadius": 99,
             "borderWidth": 2,
             "height": 20,
@@ -54,7 +54,7 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -124,7 +124,7 @@ exports[`PickComponent should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,

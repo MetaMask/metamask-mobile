@@ -108,12 +108,14 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
 
+const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
-jest.mock('../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
-    isEnabled: jest.fn().mockReturnValue(true),
-  },
+jest.mock('../../../core/Analytics/MetaMetrics', () => ({
+  getInstance: () => ({
+    isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
+    updateDataRecordingFlag: jest.fn(),
+  }),
 }));
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {

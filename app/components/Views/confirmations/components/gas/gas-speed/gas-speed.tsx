@@ -5,15 +5,12 @@ import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
 } from '@metamask/transaction-controller';
-import { useSelector } from 'react-redux';
 
 import Text from '../../../../../../component-library/components/Texts/Text/Text';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectTransactionMetadataById } from '../../../../../../selectors/transactionController';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { toHumanSeconds } from '../../../utils/time';
-import type { RootState } from '../../../../../../reducers';
 
 const getText = (userFeeLevel: UserFeeLevel | GasFeeEstimateLevel) => {
   switch (userFeeLevel) {
@@ -57,33 +54,20 @@ const getEstimatedTime = (
   return ` ~ ${humanizedWaitTime}`;
 };
 
-export interface GasSpeedProps {
-  /** When provided, use this transaction (from selectTransactionMetadataById) instead of the approval-flow transaction. */
-  transactionId?: string | null;
-}
-
-export const GasSpeed = ({ transactionId }: GasSpeedProps = {}) => {
-  const transactionMetaFromRequest = useTransactionMetadataRequest();
-  const transactionMetaFromId = useSelector((state: RootState) =>
-    transactionId
-      ? selectTransactionMetadataById(state, transactionId)
-      : undefined,
-  );
-
-  const transactionMeta = transactionId
-    ? transactionMetaFromId
-    : transactionMetaFromRequest;
+export const GasSpeed = () => {
+  const transactionMeta = useTransactionMetadataRequest();
   const { gasFeeEstimates } = useGasFeeEstimates(
-    transactionMeta?.networkClientId ?? '',
+    transactionMeta?.networkClientId || '',
   );
   const networkGasFeeEstimates = gasFeeEstimates as GasFeeEstimates;
 
-  const userFeeLevel = (transactionMeta?.userFeeLevel ??
-    GasFeeEstimateLevel.Medium) as UserFeeLevel | GasFeeEstimateLevel;
-
-  if (!transactionMeta) {
+  if (!transactionMeta?.userFeeLevel) {
     return null;
   }
+
+  const userFeeLevel = transactionMeta.userFeeLevel as
+    | UserFeeLevel
+    | GasFeeEstimateLevel;
 
   const isGasPriceEstimateSelected =
     transactionMeta.gasFeeEstimates?.type === GasFeeEstimateType.GasPrice &&

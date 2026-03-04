@@ -1,5 +1,5 @@
 import { test as base } from 'appwright';
-import { PerformanceTracker } from '../../../reporters/PerformanceTracker';
+import { PerformanceTracker } from '../../../reporters/PerformanceTracker.js';
 import {
   QualityGatesValidator,
   markQualityGateFailure,

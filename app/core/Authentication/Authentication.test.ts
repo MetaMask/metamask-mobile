@@ -730,7 +730,7 @@ describe('Authentication', () => {
       jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
     });
 
-    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC or DEVICE_AUTHENTICATION', async () => {
+    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
 
       const passcodeResult =
@@ -782,48 +782,6 @@ describe('Authentication', () => {
 
       const result = await Authentication.requestBiometricsAccessControlForIOS(
         AUTHENTICATION_TYPE.BIOMETRIC,
-      );
-
-      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
-      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
-        disableDeviceFallback: true,
-      });
-    });
-
-    it('returns authType when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync succeeds', async () => {
-      jest.replaceProperty(Platform, 'OS', 'ios');
-      mockAuthenticateAsync.mockResolvedValue({ success: true });
-
-      const result = await Authentication.requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      expect(result).toBe(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
-      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
-        disableDeviceFallback: true,
-      });
-    });
-
-    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync returns success false', async () => {
-      jest.replaceProperty(Platform, 'OS', 'ios');
-      mockAuthenticateAsync.mockResolvedValue({ success: false });
-
-      const result = await Authentication.requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
-      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
-        disableDeviceFallback: true,
-      });
-    });
-
-    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync throws', async () => {
-      jest.replaceProperty(Platform, 'OS', 'ios');
-      mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
-
-      const result = await Authentication.requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       );
 
       expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);

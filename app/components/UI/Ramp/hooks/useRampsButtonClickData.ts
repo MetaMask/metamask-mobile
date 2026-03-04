@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Order } from '@consensys/on-ramp-sdk';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   getOrders,
   getRampRoutingDecision,
   UnifiedRampRoutingType,
 } from '../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 import {
-  completedOrdersFromFiatOrders,
-  completedOrdersFromRampsOrders,
-} from '../utils/determinePreferredProvider';
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../constants/on-ramp';
+import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 
 export interface RampsButtonClickData {
   ramp_routing?: UnifiedRampRoutingType;
@@ -21,7 +22,6 @@ export interface RampsButtonClickData {
 
 export function useRampsButtonClickData(): RampsButtonClickData {
   const orders = useSelector(getOrders);
-  const controllerOrders = useSelector(selectRampsOrders);
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
@@ -51,19 +51,36 @@ export function useRampsButtonClickData(): RampsButtonClickData {
   }, []);
 
   const data = useMemo(() => {
-    const orderCount = orders.length + controllerOrders.length;
+    const orderCount = orders.length;
 
-    const completedOrders = [
-      ...completedOrdersFromFiatOrders(orders),
-      ...completedOrdersFromRampsOrders(controllerOrders),
-    ];
+    // Get preferred provider from last completed order (matching useRampsSmartRouting pattern)
+    const completedOrders = orders.filter(
+      (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
+    );
 
     let preferredProvider: string | undefined;
     if (completedOrders.length > 0) {
-      const [mostRecent] = [...completedOrders].sort(
-        (a, b) => b.completedAt - a.completedAt,
+      const [lastCompletedOrder] = completedOrders.sort(
+        (a, b) => b.createdAt - a.createdAt,
       );
-      preferredProvider = mostRecent.providerId;
+
+      if (
+        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+      ) {
+        const orderData =
+          lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+            ? (lastCompletedOrder.data as RampsOrder)
+            : (lastCompletedOrder.data as Order);
+        preferredProvider = orderData?.provider?.id;
+      } else if (
+        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
+        lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK
+      ) {
+        preferredProvider = 'TRANSAK';
+      } else {
+        preferredProvider = lastCompletedOrder.provider;
+      }
     }
 
     return {
@@ -72,7 +89,7 @@ export function useRampsButtonClickData(): RampsButtonClickData {
       preferred_provider: preferredProvider,
       order_count: orderCount,
     };
-  }, [orders, controllerOrders, rampRoutingDecision, isAuthenticated]);
+  }, [orders, rampRoutingDecision, isAuthenticated]);
 
   return data;
 }

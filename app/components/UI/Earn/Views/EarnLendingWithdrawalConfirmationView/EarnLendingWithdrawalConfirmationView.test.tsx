@@ -1,5 +1,4 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
-import { mockTheme } from '../../../../../util/theme';
 import { useRoute } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
@@ -235,7 +234,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       expect.any(Object), // theme.colors
       {
         hasCancelButton: false,
-        backgroundColor: mockTheme.colors.background.alternative,
+        backgroundColor: '#f3f5f9',
       },
       {
         backButtonEvent: {

@@ -36,7 +36,7 @@ exports[`Options should render options correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#949596",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "paddingBottom": 5,

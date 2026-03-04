@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
 import Text, {
   TextVariant,
@@ -25,38 +25,17 @@ import {
   TRANSAK_URL,
 } from '../../Deposit/constants/constants';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../util/navigation/navUtils';
-import { createV2EnterEmailNavDetails } from './EnterEmail';
-import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-
-export interface V2VerifyIdentityParams {
-  amount?: string;
-  currency?: string;
-  assetId?: string;
-}
-
-export const createV2VerifyIdentityNavDetails =
-  createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
   const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(
-      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
-    );
-  }, [navigation, amount, currency, assetId]);
+    navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
+  }, [navigation]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -64,107 +43,27 @@ const V2VerifyIdentity = () => {
         navigation,
         { title: strings('deposit.verify_identity.navbar_title') },
         theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Verify Identity',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
       ),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
-
-  const hasTrackedScreenViewRef = useRef(false);
-  useEffect(() => {
-    if (hasTrackedScreenViewRef.current) return;
-    hasTrackedScreenViewRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+  }, [navigation, theme]);
 
   const handleSubmit = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_TERMS_CONSENT_CLICKED)
-        .addProperties({
-          location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     navigateToEnterEmail();
-  }, [navigateToEnterEmail, trackEvent, createEventBuilder]);
+  }, [navigateToEnterEmail]);
 
   const handleTransakLink = useCallback(() => {
-    let urlDomain: string = TRANSAK_URL;
-    try {
-      urlDomain = new URL(TRANSAK_URL).hostname;
-    } catch {
-      // use TRANSAK_URL as fallback for analytics if parse fails
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Verify Identity',
-          external_link_description: 'Transak',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     Linking.openURL(TRANSAK_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, []);
 
   const handlePrivacyPolicyLink = useCallback(() => {
-    let urlDomain: string = CONSENSYS_PRIVACY_POLICY_URL;
-    try {
-      urlDomain = new URL(CONSENSYS_PRIVACY_POLICY_URL).hostname;
-    } catch {
-      // use raw URL as fallback for analytics if parse fails
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Verify Identity',
-          external_link_description: 'Privacy Policy',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     Linking.openURL(CONSENSYS_PRIVACY_POLICY_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, []);
 
   const handleTransakTermsLink = useCallback(() => {
-    const termsUrl =
-      regionIsoCode === 'US' ? TRANSAK_TERMS_URL_US : TRANSAK_TERMS_URL_WORLD;
-    let urlDomain: string = termsUrl;
-    try {
-      urlDomain = new URL(termsUrl).hostname;
-    } catch {
-      // use termsUrl as fallback for analytics if parse fails
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Verify Identity',
-          external_link_description: 'Transak Terms',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
+    Linking.openURL(
+      regionIsoCode === 'US' ? TRANSAK_TERMS_URL_US : TRANSAK_TERMS_URL_WORLD,
     );
-    Linking.openURL(termsUrl);
-  }, [regionIsoCode, trackEvent, createEventBuilder]);
+  }, [regionIsoCode]);
 
   return (
     <ScreenLayout>
@@ -196,7 +95,7 @@ const V2VerifyIdentity = () => {
               <Text
                 style={styles.linkText}
                 onPress={handlePrivacyPolicyLink}
-                testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_1}
+                testID="privacy-policy-link-1"
               >
                 {strings(
                   'deposit.verify_identity.description_3_privacy_policy',
@@ -229,14 +128,13 @@ const V2VerifyIdentity = () => {
               color={TextColor.Muted}
               style={styles.linkText}
               onPress={handlePrivacyPolicyLink}
-              testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_2}
+              testID="privacy-policy-link-2"
             >
               {strings('deposit.verify_identity.agreement_text_privacy_policy')}
             </Text>
             {strings('deposit.verify_identity.agreement_text_part2')}
           </Text>
           <Button
-            testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.verify_identity.button')}

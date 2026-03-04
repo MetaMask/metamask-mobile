@@ -8,7 +8,6 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import {
@@ -18,8 +17,9 @@ import {
 import { DappVariants } from '../../../framework/Constants';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
-import WalletView from '../../../page-objects/wallet/WalletView';
+import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
@@ -92,6 +92,12 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          );
+        },
       },
       async () => {
         await loginToApp();
@@ -110,14 +116,13 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           );
         }
 
-        await Browser.tapCloseBrowserButton();
-        await Assertions.expectElementToBeVisible(
-          TabBarComponent.tabBarWalletButton,
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToNotBeVisible(
+          ToastModal.notificationTitle,
         );
-        await TabBarComponent.tapWallet();
-        await WalletView.tapIdenticon();
-        await AccountListBottomSheet.tapAccountByNameV2('Account 2');
-        await navigateToBrowserView();
+
+        await AccountListBottomSheet.tapAccountByName('Account 2');
 
         const connectedAccountsAfter = await TestDApp.getConnectedAccounts();
         if (
@@ -171,6 +176,12 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeatureMultichainAccountsAccountDetailsV2(false),
+          );
+        },
       },
       async () => {
         await loginToApp();
@@ -185,17 +196,17 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
         }
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectTextDisplayed('Account 1');
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
         await Assertions.expectElementToNotBeVisible(
           ToastModal.notificationTitle,
         );
 
-        await ConnectedAccountsModal.tapPermissionsSummaryTab();
-        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        await NetworkConnectMultiSelector.selectNetworkChainPermission(
-          'Ethereum Main Network',
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapNetworksPicker();
+        await Assertions.expectElementToBeVisible(
+          NetworkListModal.networkScroll,
         );
-        await NetworkConnectMultiSelector.tapUpdateButton();
+        await NetworkListModal.changeNetworkTo('Localhost');
 
         const connectedChainIdAfter = await TestDApp.getConnectedChainId();
         if (connectedChainIdAfter !== '0x539') {

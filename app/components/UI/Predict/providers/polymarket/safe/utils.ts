@@ -44,18 +44,15 @@ import {
   DOMAIN_SEPARATOR_TYPEHASH,
   MASTER_COPY_ADDRESS,
   outcomeTokenSpenders,
-  PERMIT2_ADDRESS,
   PROXY_CREATION_CODE,
   SAFE_FACTORY_ADDRESS,
   SAFE_FACTORY_NAME,
-  SAFE_MSG_TYPEHASH,
   SAFE_MULTISEND_ADDRESS,
   SAFE_TX_TYPEHASH,
   usdcSpenders,
 } from './constants';
 import {
   OperationType,
-  Permit2FeeAuthorization,
   SafeFeeAuthorization,
   SafeTransaction,
   SplitSignature,
@@ -172,41 +169,6 @@ const getNonce = async ({
   }
 
   return BigInt(res);
-};
-
-export const getPermit2Nonce = async ({
-  safeAddress,
-}: {
-  safeAddress: string;
-}): Promise<string> => {
-  const { NetworkController } = Engine.context;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    numberToHex(POLYGON_MAINNET_CHAIN_ID),
-  );
-  const ethQuery = new EthQuery(
-    NetworkController.getNetworkClientById(networkClientId).provider,
-  );
-  const nonceBitmapInterface = new Interface([
-    'function nonceBitmap(address, uint256) view returns (uint256)',
-  ]);
-  const res = (await query(ethQuery, 'call', [
-    {
-      to: PERMIT2_ADDRESS,
-      data: nonceBitmapInterface.encodeFunctionData('nonceBitmap', [
-        safeAddress,
-        0,
-      ]),
-    },
-  ])) as Hex;
-  const bitmap = res === '0x' ? 0n : BigInt(res);
-  let bitPos = 0n;
-  while (bitPos < 256n && ((bitmap >> bitPos) & 1n) === 1n) {
-    bitPos += 1n;
-  }
-  if (bitPos === 256n) {
-    throw new Error('No available Permit2 nonce found in nonce bitmap word 0');
-  }
-  return ((0n << 8n) | bitPos).toString();
 };
 
 const getTransactionHash = ({
@@ -347,91 +309,6 @@ export const createSafeFeeAuthorization = async ({
     authorization: {
       tx,
       sig,
-    },
-  };
-};
-
-export const createPermit2FeeAuthorization = async ({
-  safeAddress,
-  signer,
-  amount,
-  spender,
-}: {
-  safeAddress: Hex;
-  signer: Signer;
-  amount: bigint;
-  spender: string;
-}): Promise<Permit2FeeAuthorization> => {
-  const nonce = await getPermit2Nonce({ safeAddress });
-  const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
-  const token = MATIC_CONTRACTS.collateral;
-
-  const domain = {
-    name: 'Permit2',
-    chainId: POLYGON_MAINNET_CHAIN_ID,
-    verifyingContract: PERMIT2_ADDRESS,
-  };
-  const types = {
-    PermitTransferFrom: [
-      { name: 'permitted', type: 'TokenPermissions' },
-      { name: 'spender', type: 'address' },
-      { name: 'nonce', type: 'uint256' },
-      { name: 'deadline', type: 'uint256' },
-    ],
-    TokenPermissions: [
-      { name: 'token', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-    ],
-  };
-  const message = {
-    permitted: { token, amount: amount.toString() },
-    spender,
-    nonce,
-    deadline,
-  };
-
-  const { _TypedDataEncoder } = ethers.utils;
-  const permit2Hash = _TypedDataEncoder.hash(domain, types, message);
-
-  const safeDomainSeparator = keccak256(
-    new AbiCoder().encode(
-      ['bytes32', 'uint256', 'address'],
-      [DOMAIN_SEPARATOR_TYPEHASH, POLYGON_MAINNET_CHAIN_ID, safeAddress],
-    ),
-  );
-
-  const encodedPermit2Hash = new AbiCoder().encode(['bytes32'], [permit2Hash]);
-  const safeMessageHash = keccak256(
-    new AbiCoder().encode(
-      ['bytes32', 'bytes32'],
-      [SAFE_MSG_TYPEHASH, keccak256(encodedPermit2Hash)],
-    ),
-  );
-
-  const finalHash = keccak256(
-    solidityPack(
-      ['bytes1', 'bytes1', 'bytes32', 'bytes32'],
-      ['0x19', '0x01', safeDomainSeparator, safeMessageHash],
-    ),
-  ) as Hex;
-
-  const rsvSignature = await signTransactionHash(signer, finalHash);
-  const signature = abiEncodePacked(
-    { type: 'uint256', value: rsvSignature.r },
-    { type: 'uint256', value: rsvSignature.s },
-    { type: 'uint8', value: rsvSignature.v },
-  );
-
-  return {
-    type: 'safe-permit2',
-    authorization: {
-      permit: {
-        permitted: { token, amount: amount.toString() },
-        nonce,
-        deadline,
-      },
-      spender,
-      signature,
     },
   };
 };
@@ -605,16 +482,10 @@ export const aggregateTransaction = (
   return transaction;
 };
 
-export const createAllowancesSafeTransaction = (options?: {
-  extraUsdcSpenders?: string[];
-}) => {
+export const createAllowancesSafeTransaction = () => {
   const safeTxns: SafeTransaction[] = [];
-  const allUsdcSpenders = [
-    ...usdcSpenders,
-    ...(options?.extraUsdcSpenders ?? []),
-  ];
 
-  for (const spender of allUsdcSpenders) {
+  for (const spender of usdcSpenders) {
     safeTxns.push({
       to: MATIC_CONTRACTS.collateral,
       data: encodeApprove({
@@ -705,14 +576,12 @@ export const getSafeTransactionCallData = async ({
 
 export const getProxyWalletAllowancesTransaction = async ({
   signer,
-  extraUsdcSpenders,
 }: {
   signer: Signer;
-  extraUsdcSpenders?: string[];
 }) => {
   try {
     const safeAddress = computeProxyAddress(signer.address);
-    const safeTxn = createAllowancesSafeTransaction({ extraUsdcSpenders });
+    const safeTxn = createAllowancesSafeTransaction();
     const callData = await getSafeTransactionCallData({
       signer,
       safeAddress,
@@ -755,17 +624,10 @@ export const getProxyWalletAllowancesTransaction = async ({
   }
 };
 
-export const hasAllowances = async ({
-  address,
-  extraUsdcSpenders = [],
-}: {
-  address: string;
-  extraUsdcSpenders?: string[];
-}) => {
+export const hasAllowances = async ({ address }: { address: string }) => {
   const allowanceCalls = [];
   const isApprovedForAllCalls = [];
-  const allUsdcSpenders = [...usdcSpenders, ...extraUsdcSpenders];
-  for (const spender of allUsdcSpenders) {
+  for (const spender of usdcSpenders) {
     allowanceCalls.push(
       getAllowance({
         tokenAddress: MATIC_CONTRACTS.collateral,
@@ -788,19 +650,6 @@ export const hasAllowances = async ({
     allowanceResults.every((allowance) => allowance > 0) &&
     isApprovedForAllResults.every((isApproved) => isApproved)
   );
-};
-
-export const hasPermit2Allowance = async ({
-  address,
-}: {
-  address: string;
-}): Promise<boolean> => {
-  const allowance = await getAllowance({
-    tokenAddress: MATIC_CONTRACTS.collateral,
-    owner: address,
-    spender: PERMIT2_ADDRESS,
-  });
-  return allowance > 0;
 };
 
 export const createClaimSafeTransaction = (

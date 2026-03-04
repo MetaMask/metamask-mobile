@@ -23,8 +23,8 @@ exports[`SrpInput renders default settings correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#b4b4b528",
-      "borderColor": "#b4b4b566",
+      "backgroundColor": "#3c4d9d0f",
+      "borderColor": "#b7bbc866",
       "borderRadius": 12,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -59,7 +59,7 @@ exports[`SrpInput renders default settings correctly 1`] = `
           "backgroundColor": "#ffffff",
           "borderColor": "transparent",
           "borderWidth": 1,
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "fontWeight": "400",

@@ -217,7 +217,6 @@ describe('WebSocketManager', () => {
 
       manager.subscribeToGame('123', callback);
       mockWebSocketInstances[0].simulateOpen();
-      mockGameCacheInstance.updateGame.mockClear();
       mockWebSocketInstances[0].simulateMessage({
         gameId: 456,
         score: '7-0',
@@ -228,25 +227,6 @@ describe('WebSocketManager', () => {
       });
 
       expect(callback).not.toHaveBeenCalled();
-    });
-
-    it('does not update cache for unrelated gameId', () => {
-      const manager = WebSocketManager.getInstance();
-      const callback = jest.fn();
-
-      manager.subscribeToGame('123', callback);
-      mockWebSocketInstances[0].simulateOpen();
-      mockGameCacheInstance.updateGame.mockClear();
-      mockWebSocketInstances[0].simulateMessage({
-        gameId: 456,
-        score: '7-0',
-        elapsed: '05:00',
-        period: 'Q1',
-        live: true,
-        ended: false,
-      });
-
-      expect(mockGameCacheInstance.updateGame).not.toHaveBeenCalled();
     });
 
     it('calls multiple callbacks for same gameId', () => {

@@ -5,15 +5,16 @@ import {
 } from '.';
 import { RootState } from '../../reducers';
 import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
-import { analytics } from '../../util/analytics/analytics';
+import { MetaMetrics } from '../../core/Analytics';
 
 jest.mock('../featureFlagController/legalNotices');
-jest.mock('../../util/analytics/analytics');
+jest.mock('../../core/Analytics');
 
 const mockSelectIsPna25FlagEnabled =
   selectIsPna25FlagEnabled as jest.MockedFunction<
     typeof selectIsPna25FlagEnabled
   >;
+const mockMetaMetrics = MetaMetrics as jest.Mocked<typeof MetaMetrics>;
 
 describe('legalNotices selectors', () => {
   beforeEach(() => {
@@ -109,7 +110,9 @@ describe('legalNotices selectors', () => {
       }) as RootState;
 
     beforeEach(() => {
-      jest.mocked(analytics.isEnabled).mockReturnValue(true);
+      mockMetaMetrics.getInstance.mockReturnValue({
+        isEnabled: jest.fn().mockReturnValue(true),
+      } as never);
     });
 
     it('returns false when onboarding is not completed', () => {
@@ -139,10 +142,12 @@ describe('legalNotices selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when analytics is disabled', () => {
+    it('returns false when MetaMetrics is disabled', () => {
       const state = createMockState({});
       mockSelectIsPna25FlagEnabled.mockReturnValue(true);
-      jest.mocked(analytics.isEnabled).mockReturnValue(false);
+      mockMetaMetrics.getInstance.mockReturnValue({
+        isEnabled: jest.fn().mockReturnValue(false),
+      } as never);
 
       const result = selectShouldShowPna25Notice(state);
 

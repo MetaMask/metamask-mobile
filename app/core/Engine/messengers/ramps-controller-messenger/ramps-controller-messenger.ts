@@ -1,7 +1,4 @@
-import {
-  RampsControllerMessenger,
-  type RampsControllerOrderStatusChangedEvent,
-} from '@metamask/ramps-controller';
+import { RampsControllerMessenger } from '@metamask/ramps-controller';
 import {
   Messenger,
   MessengerActions,
@@ -91,7 +88,7 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
     RemoteFeatureFlagControllerGetStateAction,
-    RampsControllerOrderStatusChangedEvent,
+    never,
     RootMessenger
   >({
     namespace: 'RampsControllerInit',
@@ -100,7 +97,7 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     actions: ['RemoteFeatureFlagController:getState'],
-    events: ['RampsController:orderStatusChanged'],
+    events: [],
     messenger,
   });
 

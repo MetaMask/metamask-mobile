@@ -48,7 +48,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
           testID="sheet-header-back-button"
         >
           <SvgMock
-            color="#131416"
+            color="#121314"
             fill="currentColor"
             height={20}
             name="ArrowLeft"
@@ -66,9 +66,9 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Bold",
-            "fontSize": 20,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -153,7 +153,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -357,7 +357,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#121314",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -377,7 +377,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                 accessible={true}
                 style={
                   {
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "bottom": 0,
                     "flexDirection": "row",
                     "left": 0,
@@ -448,7 +448,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                           {
                             "alignItems": "center",
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#949596",
+                            "borderColor": "#b7bbc8",
                             "borderRadius": 4,
                             "borderWidth": 2,
                             "height": 20,
@@ -517,7 +517,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#131416",
+                            "color": "#121314",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -573,7 +573,7 @@ exports[`NetworkConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#131416",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",

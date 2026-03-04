@@ -1,10 +1,5 @@
 import { useMemo } from 'react';
-import {
-  Hex,
-  isCaipChainId,
-  isCaipAssetType,
-  isHexString,
-} from '@metamask/utils';
+import { Hex, isCaipChainId, isCaipAssetType } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
 import { useRampTokens } from './useRampTokens';
 import { useRampsTokens } from './useRampsTokens';
@@ -16,17 +11,6 @@ import { getDecimalChainId } from '../../../../util/networks';
 export interface UseTokenBuyabilityResult {
   isBuyable: boolean;
   isLoading: boolean;
-}
-
-interface UseTokensBuyabilityResult {
-  buyabilityByTokenKey: Record<string, boolean>;
-  isLoading: boolean;
-}
-
-interface BuyabilityTokenSource {
-  assetId?: string;
-  chainId?: string;
-  tokenSupported?: boolean;
 }
 
 /**
@@ -47,105 +31,44 @@ function buildRampAssetId(token: TokenI): string | undefined {
   }
 }
 
-function getTokenCaipChainId(token: TokenI): string {
-  if (!token.chainId) {
-    return 'unknown-chain';
-  }
-
-  if (isCaipChainId(token.chainId)) {
-    return token.chainId;
-  }
-
-  if (isHexString(token.chainId)) {
-    return toEvmCaipChainId(token.chainId as Hex);
-  }
-
-  return token.chainId;
-}
-
-export function getTokenBuyabilityKey(token: TokenI): string {
-  const caipChainId = getTokenCaipChainId(token);
-  return `${caipChainId}:${token.address.toLowerCase()}`;
-}
-
-function getIsTokenBuyable(
-  token: TokenI,
-  rampsTokens: BuyabilityTokenSource[] | null,
-): boolean {
-  if (!rampsTokens) {
-    return false;
-  }
-
-  const chainId = getTokenCaipChainId(token);
-  const assetId = buildRampAssetId(token);
-  const isNative = token.isNative ?? false;
-
-  const match = rampsTokens.find((rampToken) => {
-    if (!rampToken.assetId) {
-      return false;
-    }
-
-    if (isNative) {
-      return (
-        rampToken.chainId === chainId && rampToken.assetId.includes('/slip44:')
-      );
-    }
-
-    return assetId
-      ? rampToken.assetId.toLowerCase() === assetId.toLowerCase()
-      : false;
-  });
-
-  return match?.tokenSupported ?? false;
-}
-
 /**
- * Hook that determines if tokens can be bought via ramp services.
+ * Hook that determines if a token can be bought via ramp services.
  * When unified V2 is enabled, checks against the RampsController's token list.
  * When V2 is disabled, uses the legacy token cache API.
  */
-export const useTokensBuyability = (
-  tokens: TokenI[],
-): UseTokensBuyabilityResult => {
+export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
   const isV2Enabled = useRampsUnifiedV2Enabled();
   const { allTokens: legacyAllTokens, isLoading: legacyLoading } =
-    useRampTokens({
-      fetchOnMount: !isV2Enabled,
-    });
+    useRampTokens();
   const { tokens: controllerTokens, isLoading: controllerLoading } =
     useRampsTokens();
 
   const isLoading = isV2Enabled ? controllerLoading : legacyLoading;
 
-  const rampsTokens = isV2Enabled
-    ? controllerTokens?.allTokens
-    : legacyAllTokens;
-  const buyabilityByTokenKey = useMemo(
-    () =>
-      tokens.reduce<Record<string, boolean>>((accumulator, token) => {
-        const tokenKey = getTokenBuyabilityKey(token);
-        accumulator[tokenKey] = getIsTokenBuyable(token, rampsTokens ?? null);
-        return accumulator;
-      }, {}),
-    [tokens, rampsTokens],
-  );
+  const isBuyable = useMemo(() => {
+    const tokens = isV2Enabled ? controllerTokens?.allTokens : legacyAllTokens;
+    if (!tokens) return false;
 
-  return { buyabilityByTokenKey, isLoading };
-};
+    const chainId = isCaipChainId(token.chainId)
+      ? token.chainId
+      : toEvmCaipChainId(token.chainId as Hex);
+    const assetId = buildRampAssetId(token);
+    const isNative = token.isNative ?? false;
 
-/**
- * Hook that determines if a token can be bought via ramp services.
- * Wrapper around useTokensBuyability for backwards compatibility.
- */
-export const useTokenBuyability = (token: TokenI): UseTokenBuyabilityResult => {
-  const memoizedTokens = useMemo(() => [token], [token]);
+    const match = tokens.find((tok) => {
+      if (!tok.assetId) return false;
+      if (isNative) {
+        return tok.chainId === chainId && tok.assetId.includes('/slip44:');
+      }
+      return assetId
+        ? tok.assetId.toLowerCase() === assetId.toLowerCase()
+        : false;
+    });
 
-  const { buyabilityByTokenKey, isLoading } =
-    useTokensBuyability(memoizedTokens);
+    return match?.tokenSupported ?? false;
+  }, [isV2Enabled, controllerTokens, legacyAllTokens, token]);
 
-  const tokenKey = getTokenBuyabilityKey(token);
-
-  return { isBuyable: buyabilityByTokenKey[tokenKey] ?? false, isLoading };
+  return { isBuyable, isLoading };
 };
 
 export default useTokenBuyability;

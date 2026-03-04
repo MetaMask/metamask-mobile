@@ -3,7 +3,6 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import PopularTokenRow from './PopularTokenRow';
 import type { PopularToken } from '../hooks/usePopularTokens';
-import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
@@ -161,7 +160,6 @@ describe('PopularTokenRow', () => {
         address: '0xabcdef1234567890abcdef1234567890abcdef12',
         symbol: 'USDC',
         isNative: false,
-        source: TokenDetailsSource.MobileTokenList,
       });
     });
 
@@ -180,7 +178,6 @@ describe('PopularTokenRow', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         isNative: true,
-        source: TokenDetailsSource.MobileTokenList,
       });
     });
 
@@ -199,26 +196,7 @@ describe('PopularTokenRow', () => {
         address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
         symbol: 'SOL',
         isNative: true,
-        source: TokenDetailsSource.MobileTokenList,
       });
-    });
-
-    it('passes source as MobileTokenList for analytics tracking', () => {
-      const token = createMockToken({
-        assetId: 'eip155:1/erc20:0xabcdef1234567890abcdef1234567890abcdef12',
-        symbol: 'USDC',
-      });
-
-      renderWithProvider(<PopularTokenRow token={token} />);
-
-      fireEvent.press(screen.getByText('Test Token'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        'Asset',
-        expect.objectContaining({
-          source: TokenDetailsSource.MobileTokenList,
-        }),
-      );
     });
 
     it('does not navigate for invalid CAIP-19 format', () => {
@@ -267,7 +245,6 @@ describe('PopularTokenRow', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'BNB',
         isNative: true,
-        source: TokenDetailsSource.MobileTokenList,
       });
     });
 

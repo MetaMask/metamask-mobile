@@ -22,7 +22,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -40,7 +40,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Medium",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -62,7 +62,7 @@ exports[`BottomSheetFooter should render snapshot correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flex": 1,
         "flexDirection": "row",
