@@ -76,19 +76,26 @@ export const test = base.extend<PerformanceFixtures>({
     }
 
     if (metrics) {
-      const sentToSentry = await publishPerformanceScenarioToSentry({
-        metrics,
-        testTitle: testInfo.title,
-        projectName: testInfo.project?.name ?? 'unknown',
-        testFilePath: testInfo.file,
-        tags: testTags,
-        status: testInfo.status,
-        retry: testInfo.retry,
-        workerIndex: testInfo.workerIndex,
-      });
+      try {
+        const sentToSentry = await publishPerformanceScenarioToSentry({
+          metrics,
+          testTitle: testInfo.title,
+          projectName: testInfo.project?.name ?? 'unknown',
+          testFilePath: testInfo.file,
+          tags: testTags,
+          status: testInfo.status,
+          retry: testInfo.retry,
+          workerIndex: testInfo.workerIndex,
+        });
 
-      if (sentToSentry) {
-        console.log(`📡 Scenario "${testInfo.title}" sent to Sentry`);
+        if (sentToSentry) {
+          console.log(`📡 Scenario "${testInfo.title}" sent to Sentry`);
+        }
+      } catch (error) {
+        console.error(
+          `❌ Failed to publish scenario "${testInfo.title}" to Sentry:`,
+          (error as Error).message,
+        );
       }
     }
 
