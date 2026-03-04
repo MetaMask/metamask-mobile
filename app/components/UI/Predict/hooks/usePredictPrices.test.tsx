@@ -450,7 +450,7 @@ describe('usePredictPrices', () => {
       });
     });
 
-    it('fetches when enabled changes from true to false to true', async () => {
+    it('fetches when enabled changes from false to true', async () => {
       const { Wrapper } = createWrapper();
 
       const { result, rerender } = renderHook(
