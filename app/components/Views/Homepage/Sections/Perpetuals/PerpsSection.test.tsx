@@ -349,11 +349,11 @@ describe('PerpsSection', () => {
 
     renderWithProvider(<PerpsSection />);
 
-    const roeElements = screen.getAllByText('+9.4%');
+    const roeElements = screen.getAllByText('+9.40%');
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('navigates to perps home on title press', () => {
+  it('navigates to perps home on title press with home_section source', () => {
     renderWithProvider(<PerpsSection />);
 
     fireEvent.press(screen.getByText('Perpetuals'));
@@ -715,7 +715,7 @@ describe('PerpsSection', () => {
       expect(screen.getByText('View more')).toBeOnTheScreen();
     });
 
-    it('navigates to perps home when "View more" card is pressed', () => {
+    it('navigates to perps home with home_screen source when "View more" card is pressed', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),

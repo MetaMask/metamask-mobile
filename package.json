@@ -176,7 +176,6 @@
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/bridge-controller@npm:^67.1.1": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
     "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
-    "@metamask/assets-controllers@npm:^99.4.0": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch",
     "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478"
   },
   "dependencies": {
@@ -203,7 +202,7 @@
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
     "@metamask/assets-controller": "^2.0.0",
-    "@metamask/assets-controllers": "patch:@metamask/assets-controllers@npm%3A100.0.3#~/.yarn/patches/@metamask-assets-controllers-npm-100.0.3-ea172b88c9.patch",
+    "@metamask/assets-controllers": "^100.1.0",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
     "@metamask/bridge-controller": "^67.4.0",
@@ -298,7 +297,7 @@
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^62.19.0",
     "@metamask/transaction-pay-controller": "^16.1.2",
-    "@metamask/tron-wallet-snap": "^1.21.1",
+    "@metamask/tron-wallet-snap": "1.22.1",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
