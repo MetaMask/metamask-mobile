@@ -43,7 +43,6 @@ export function PriceImpactFooter({
             size={ButtonSize.Lg}
             onPress={onConfirm}
             isFullWidth
-            isLoading={loading}
             disabled={loading}
           >
             {strings('bridge.cancel')}

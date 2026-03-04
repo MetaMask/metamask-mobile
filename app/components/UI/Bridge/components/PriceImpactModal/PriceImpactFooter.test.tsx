@@ -188,6 +188,36 @@ describe('PriceImpactFooter', () => {
         expect(cancelButton.props.accessibilityState?.disabled).toBe(true);
       });
 
+      it('does not fire onCancel when Proceed is pressed while loading', () => {
+        const { getByText } = render(
+          <PriceImpactFooter
+            type={PriceImpactModalType.Execution}
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+            loading
+          />,
+        );
+
+        fireEvent.press(getByText(strings('bridge.proceed')));
+
+        expect(onCancel).not.toHaveBeenCalled();
+      });
+
+      it('does not fire onConfirm when Cancel is pressed while loading', () => {
+        const { getByText } = render(
+          <PriceImpactFooter
+            type={PriceImpactModalType.Execution}
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+            loading
+          />,
+        );
+
+        fireEvent.press(getByText(strings('bridge.cancel')));
+
+        expect(onConfirm).not.toHaveBeenCalled();
+      });
+
       it('does not mark buttons as disabled when not loading', () => {
         const { getAllByRole } = render(
           <PriceImpactFooter
@@ -204,6 +234,24 @@ describe('PriceImpactFooter', () => {
         // disabled; the key is absent (undefined) when the button is enabled.
         expect(proceedButton.props.accessibilityState?.disabled).not.toBe(true);
         expect(cancelButton.props.accessibilityState?.disabled).not.toBe(true);
+      });
+
+      it('sets busy accessibilityState on the Proceed button but not on the Cancel button', () => {
+        const { getAllByRole } = render(
+          <PriceImpactFooter
+            type={PriceImpactModalType.Execution}
+            onConfirm={onConfirm}
+            onCancel={onCancel}
+            loading
+          />,
+        );
+
+        const [proceedButton, cancelButton] = getAllByRole('button');
+
+        // Proceed (onCancel) shows a loading spinner — accessibilityState.busy = true
+        expect(proceedButton.props.accessibilityState?.busy).toBe(true);
+        // Cancel (onConfirm) is disabled but has no loading spinner
+        expect(cancelButton.props.accessibilityState?.busy).not.toBe(true);
       });
     });
   });

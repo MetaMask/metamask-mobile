@@ -3,6 +3,8 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { PriceImpactModal } from './index';
 import { PriceImpactModalType } from './constants';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { TextColor } from '../../../../../component-library/components/Texts/Text';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 // Mock BottomSheet
 jest.mock(
@@ -170,10 +172,11 @@ const mockToken = {
 const defaultParams = {
   type: PriceImpactModalType.Info,
   token: mockToken,
-  location: MetaMetricsSwapsEventSource.BridgePage,
+  location: MetaMetricsSwapsEventSource.MainView,
 };
 
 const defaultViewData = {
+  textColor: TextColor.Alternative,
   icon: undefined,
 };
 
@@ -263,7 +266,8 @@ describe('PriceImpactModal', () => {
 
     it('passes priceImpact to PriceImpactDescription when warningIcon is present', () => {
       mockGetPriceImpactViewData.mockReturnValue({
-        icon: { name: 'Danger', color: 'red' },
+        textColor: TextColor.Error,
+        icon: { name: IconName.Danger, color: TextColor.Error },
       } as ReturnType<typeof getPriceImpactViewData>);
       mockUseBridgeQuoteData.mockReturnValue({
         formattedQuoteData: { priceImpact: '5%' },
@@ -279,6 +283,7 @@ describe('PriceImpactModal', () => {
 
     it('passes undefined priceImpact to PriceImpactDescription when warningIcon is absent', () => {
       mockGetPriceImpactViewData.mockReturnValue({
+        textColor: TextColor.Alternative,
         icon: undefined,
       } as ReturnType<typeof getPriceImpactViewData>);
       mockUseBridgeQuoteData.mockReturnValue({
@@ -295,15 +300,16 @@ describe('PriceImpactModal', () => {
 
     it('passes warningIconName and warningIconColor to PriceImpactHeader from view data', () => {
       mockGetPriceImpactViewData.mockReturnValue({
-        icon: { name: 'Danger', color: 'orange' },
+        textColor: TextColor.Warning,
+        icon: { name: IconName.Warning, color: TextColor.Warning },
       } as ReturnType<typeof getPriceImpactViewData>);
 
       render(<PriceImpactModal />);
 
       expect(mockPriceImpactHeader).toHaveBeenCalledWith(
         expect.objectContaining({
-          warningIconName: 'Danger',
-          warningIconColor: 'orange',
+          warningIconName: IconName.Warning,
+          warningIconColor: TextColor.Warning,
         }),
         expect.anything(),
       );
@@ -382,7 +388,7 @@ describe('PriceImpactModal', () => {
 
       expect(mockUseBridgeConfirm).toHaveBeenCalledWith(
         expect.objectContaining({
-          location: MetaMetricsSwapsEventSource.BridgePage,
+          location: MetaMetricsSwapsEventSource.MainView,
         }),
       );
     });
