@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { OrderPreview, PreviewOrderParams, Side } from '../types';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
+import Logger from '../../../../util/Logger';
 
 const mockPreviewOrder = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
@@ -16,6 +17,16 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'predict.error_messages.preview_failed': 'Failed to preview order',
+      'predict.error_messages.unknown_error': 'An unknown error occurred',
+    };
+    return translations[key] || key;
+  },
 }));
 
 const createWrapper = () => {
@@ -291,7 +302,7 @@ describe('usePredictOrderPreview', () => {
   });
 
   describe('error handling', () => {
-    it('handles preview calculation errors', async () => {
+    it('handles preview calculation errors with localized message', async () => {
       const { Wrapper } = createWrapper();
       mockPreviewOrder.mockRejectedValue(new Error('Failed to calculate'));
 
@@ -309,16 +320,24 @@ describe('usePredictOrderPreview', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
+        expect(result.current.error).toBe('Failed to preview order');
       });
 
       expect(result.current.preview).toBeNull();
       expect(result.current.isLoading).toBe(false);
 
+      // Verify Sentry logging via Logger
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: { feature: 'Predict', component: 'usePredictOrderPreview' },
+        }),
+      );
+
       consoleErrorSpy.mockRestore();
     });
 
-    it('handles non-Error exceptions', async () => {
+    it('handles non-Error exceptions with localized message', async () => {
       const { Wrapper } = createWrapper();
       mockPreviewOrder.mockRejectedValue('String error');
 
@@ -336,7 +355,43 @@ describe('usePredictOrderPreview', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBeTruthy();
+        expect(result.current.error).toBe('Failed to preview order');
+      });
+
+      expect(result.current.isLoading).toBe(false);
+
+      // Verify Logger is called even for non-Error exceptions
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: { feature: 'Predict', component: 'usePredictOrderPreview' },
+        }),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('handles known error codes with specific localized message', async () => {
+      const { Wrapper } = createWrapper();
+      mockPreviewOrder.mockRejectedValue(
+        new Error('PREDICT_PREVIEW_FAILED'),
+      );
+
+      const consoleErrorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined);
+
+      const { result } = renderHook(
+        () => usePredictOrderPreview(defaultParams),
+        { wrapper: Wrapper },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Failed to preview order');
       });
 
       expect(result.current.isLoading).toBe(false);
@@ -392,6 +447,44 @@ describe('usePredictOrderPreview', () => {
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marketId: 'market-2' }),
       );
+    });
+
+    it('keeps previous data when parameters change (placeholderData)', async () => {
+      const { Wrapper } = createWrapper();
+      let currentSize = 100;
+      const { result, rerender } = renderHook(
+        () => usePredictOrderPreview({ ...defaultParams, size: currentSize }),
+        { wrapper: Wrapper },
+      );
+
+      // Wait for initial data to load
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(mockPreview);
+      });
+
+      // Change params - new query key means cache miss, but placeholderData keeps the old value
+      const updatedPreview = { ...mockPreview, maxAmountSpent: 200 };
+      mockPreviewOrder.mockResolvedValue(updatedPreview);
+      currentSize = 200;
+      rerender({});
+
+      // Advance past debounce
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Preview should not flash to null - it should either be the old or new value
+      expect(result.current.preview).not.toBeNull();
+      expect(result.current.isLoading).toBe(false);
+
+      // Eventually resolves to the new value
+      await waitFor(() => {
+        expect(result.current.preview).toEqual(updatedPreview);
+      });
     });
   });
 
