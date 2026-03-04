@@ -4,6 +4,9 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../types/navigation';
 import { PredictTradeStatus } from '../constants/eventNames';
 import { parseAnalyticsProperties } from '../utils/analytics';
+import { useSelector } from 'react-redux';
+import { selectPredictActiveOrder } from '../selectors/predictController';
+import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 
 export const usePredictBuyInputState = () => {
   const route =
@@ -11,8 +14,12 @@ export const usePredictBuyInputState = () => {
   // Track Predict Trade Transaction with initiated status when screen mounts
   const { PredictController } = Engine.context;
 
+  const activeOrder = useSelector(selectPredictActiveOrder);
+
   const { market, outcome, outcomeToken, entryPoint, amount, transactionId } =
     route.params;
+
+  const activeTransactionMeta = useTransactionMetadataRequest();
 
   const autoPlaceAmount =
     typeof amount === 'number' && amount > 0 ? amount : undefined;
@@ -21,21 +28,25 @@ export const usePredictBuyInputState = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
     autoPlaceAmount ? autoPlaceAmount.toString() : '',
   );
-  const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
+  const [isInputFocused, setIsInputFocused] = useState(
+    activeOrder?.isInputFocused ?? false,
+  );
 
-  const isRegularBuy = !transactionId;
+  const isPayWithAnyToken = !!activeTransactionMeta?.id || !!transactionId;
 
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
+    if (activeOrder && isPayWithAnyToken) {
+      return;
+    }
+
+    // TODO: Move this logic to the place where we route the user to the buy preview screen
     PredictController.setActiveOrder({
       market,
       outcome,
       outcomeToken,
     });
-    if (isRegularBuy) {
-      PredictController.setSelectedPaymentToken(null);
-    }
-
+    PredictController.setSelectedPaymentToken(null);
     PredictController.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties: parseAnalyticsProperties(

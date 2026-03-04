@@ -14,7 +14,6 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
 import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
 import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
 import PredictBuyActionButton from '../../components/PredictBuyActionButton';
@@ -56,6 +55,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import PredictFeeSummary from '../../components/PredictFeeSummary/PredictFeeSummary';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet/PredictFeeBreakdownSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
 
 export function PredictPayWithAnyTokenInfo() {
   const activeOrder = useSelector(selectPredictActiveOrder);
@@ -69,11 +69,6 @@ export function PredictPayWithAnyTokenInfo() {
   const outcome = activeOrder?.outcome;
   const outcomeToken = activeOrder?.outcomeToken;
   const transactionError = activeOrder?.transactionError;
-  const initialInputFocused = activeOrder?.isInputFocused;
-  const prefilledAmountUsd =
-    activeOrder?.amountUsd && activeOrder.amountUsd > 0
-      ? activeOrder.amountUsd
-      : 0;
 
   useClearConfirmationOnBackSwipe();
 
@@ -93,16 +88,17 @@ export function PredictPayWithAnyTokenInfo() {
     usePredictBalance();
   const { deposit } = usePredictDeposit();
 
-  const [currentValue, setCurrentValue] = useState(prefilledAmountUsd);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState(
-    prefilledAmountUsd > 0 ? prefilledAmountUsd.toString() : '',
-  );
+  const {
+    currentValue,
+    setCurrentValue,
+    currentValueUSDString,
+    setCurrentValueUSDString,
+    isInputFocused,
+    setIsInputFocused,
+  } = usePredictBuyInputState();
+
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(
-    typeof initialInputFocused === 'boolean'
-      ? initialInputFocused
-      : prefilledAmountUsd <= 0,
-  );
+
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string>();
 
@@ -126,13 +122,6 @@ export function PredictPayWithAnyTokenInfo() {
   const previousValue = usePreviousValue(currentValue);
   const isUserInputChange =
     isCalculating && currentValue > 0 && currentValue !== (previousValue ?? 0);
-
-  useEffect(
-    () => () => {
-      Engine.context.PredictController.clearActiveOrder();
-    },
-    [],
-  );
 
   const isBelowMinimum = useMemo(
     () => currentValue > 0 && currentValue < MINIMUM_BET,
@@ -271,12 +260,6 @@ export function PredictPayWithAnyTokenInfo() {
     setIsConfirming(true);
     setConfirmError(undefined);
 
-    if (isPredictBalanceSelected) {
-      redirectToBuyPreview({ includeTransactionId: false });
-      setIsConfirming(false);
-      return;
-    }
-
     try {
       redirectToBuyPreview({ includeTransactionId: true });
       await onApprovalConfirm({
@@ -292,12 +275,7 @@ export function PredictPayWithAnyTokenInfo() {
       );
       setIsConfirming(false);
     }
-  }, [
-    isConfirming,
-    isPredictBalanceSelected,
-    onApprovalConfirm,
-    redirectToBuyPreview,
-  ]);
+  }, [isConfirming, onApprovalConfirm, redirectToBuyPreview]);
 
   const canPlaceBet = useMemo(
     () =>
