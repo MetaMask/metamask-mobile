@@ -10,10 +10,14 @@ import {
 } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
+import { createDeepEqualSelector } from '../util';
 import {
+  createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
   selectAssetsBySelectedAccountGroup,
+  selectEnabledNetworks,
   selectSortedAssetsBySelectedAccountGroup,
+  selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectTronResourcesBySelectedAccountGroup,
 } from './assets-list';
 import I18n from '../../../locales/i18n';
@@ -686,6 +690,100 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 
     // Only TRX is in the list after filtering
     expect(tronAssets).toHaveLength(1);
+  });
+});
+
+describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
+  it('returns selector that filters by custom enabled-networks selector', () => {
+    const onlyMainnetSelector = createDeepEqualSelector(
+      [selectEnabledNetworks],
+      (enabled) => enabled.filter((id) => id === '0x1'),
+    );
+    const customSelectSorted =
+      createSelectSortedAssetsBySelectedAccountGroup(onlyMainnetSelector);
+    const state = mockState();
+    const result = customSelectSorted(state);
+
+    expect(result.every((item) => item.chainId === '0x1')).toBe(true);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          isStaked: true,
+        },
+        {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          isStaked: false,
+        },
+        {
+          address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+          chainId: '0x1',
+          isStaked: false,
+        },
+        {
+          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]),
+    );
+  });
+
+  it('returns same shape as default selectSortedAssetsBySelectedAccountGroup when using selectEnabledNetworks', () => {
+    const state = mockState();
+    const defaultResult = selectSortedAssetsBySelectedAccountGroup(state);
+    const customResult =
+      createSelectSortedAssetsBySelectedAccountGroup()(state);
+    expect(customResult).toEqual(defaultResult);
+  });
+});
+
+describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
+  it('filters assets by explicit chain IDs (CAIP-2 and Hex)', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      state,
+      chainIds,
+    );
+
+    const chainIdsInResult = [...new Set(result.map((r) => r.chainId))];
+    expect(chainIdsInResult.sort()).toEqual(['0x1', '0xa']);
+    expect(
+      result.every((r) => r.chainId === '0x1' || r.chainId === '0xa'),
+    ).toBe(true);
+  });
+
+  it('returns only mainnet assets when chainIds is [eip155:1]', () => {
+    const state = mockState();
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      'eip155:1',
+    ]);
+
+    expect(result.every((item) => item.chainId === '0x1')).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty array when chainIds is empty', () => {
+    const state = mockState();
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      state,
+      [],
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('includes both 0x1 and eip155:1 in allowed set so EVM assets are included', () => {
+    const state = mockState();
+    const byCaip = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      'eip155:1',
+    ]);
+    const byHex = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      '0x1',
+    ]);
+    expect(byCaip).toEqual(byHex);
   });
 });
 

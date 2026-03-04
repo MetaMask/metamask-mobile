@@ -181,6 +181,7 @@ import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1087,6 +1088,8 @@ const Wallet = ({
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
+  const { listPopularEvmNetworks } = useNetworkEnablement();
+
   // Enable parent scroll when homepage redesign or sections feature flags are enabled
   const shouldEnableParentScroll =
     isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
@@ -1360,9 +1363,15 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  const chainIds = useMemo(
+    (): Hex[] => listPopularEvmNetworks(),
+    // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularEvmNetworks, networkConfigurations],
+  );
+
   const content = (
     <>
-      <AssetPollingProvider />
       <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
@@ -1398,15 +1407,21 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} />
+          <>
+            <AssetPollingProvider />
+            <Homepage ref={homepageRef} />
+          </>
         ) : (
-          <WalletTokensTabView
-            ref={walletTokensTabViewRef}
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-          />
+          <>
+            <AssetPollingProvider chainIds={chainIds} />
+            <WalletTokensTabView
+              ref={walletTokensTabViewRef}
+              navigation={navigation}
+              onChangeTab={onChangeTab}
+              defiEnabled={defiEnabled}
+              collectiblesEnabled={collectiblesEnabled}
+            />
+          </>
         )}
       </>
     </>

@@ -37,6 +37,17 @@ jest.mock('../../UI/Predict/views/PredictTabView', () => ({
   default: jest.fn(() => null),
 }));
 
+// Mock AssetPollingProvider to assert chainIds when homepage sections are disabled
+const mockAssetPollingProvider = jest.fn<null, [{ chainIds?: string[] }]>(
+  () => null,
+);
+jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: (props: { chainIds?: string[] }) => {
+    mockAssetPollingProvider(props as { chainIds?: string[] });
+    return null;
+  },
+}));
+
 // Mock remoteFeatureFlag util to ensure version check passes
 jest.mock('../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -208,6 +219,7 @@ jest.mock('../../../core/Engine', () => {
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
+        listPopularEvmNetworks: jest.fn(() => ['0x1']),
       },
     },
   };
@@ -474,6 +486,21 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
+  });
+
+  it('passes popular EVM chain IDs to AssetPollingProvider when homepage sections are disabled', () => {
+    mockAssetPollingProvider.mockClear();
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    render(Wallet);
+    // When homepage sections flag is off, Wallet renders AssetPollingProvider with chainIds from listPopularEvmNetworks (Engine mock returns ['0x1'])
+    const calls = mockAssetPollingProvider.mock.calls as [
+      { chainIds?: string[] },
+    ][];
+    const callWithChainIds = calls.find(
+      ([props]) => props?.chainIds !== undefined,
+    );
+    expect(callWithChainIds).toBeDefined();
+    expect(callWithChainIds?.[0]?.chainIds).toEqual(['0x1']);
   });
   it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
