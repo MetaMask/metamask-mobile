@@ -6,13 +6,6 @@ import { usePredictPositions } from './usePredictPositions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
 
-const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
 const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
   address: MOCK_ADDRESS,
   type: 'eip155:eoa',
@@ -94,7 +87,6 @@ const createWrapper = () => {
 describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
     mockGetPositions.mockResolvedValue([]);
   });
 

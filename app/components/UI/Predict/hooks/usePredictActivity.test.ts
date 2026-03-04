@@ -20,13 +20,6 @@ jest.mock('../utils/accounts', () => ({
   })),
 }));
 
-const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
@@ -54,7 +47,6 @@ describe('usePredictActivity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetActivity.mockResolvedValue([]);
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
   it('fetches activity automatically on mount', async () => {
@@ -109,18 +101,5 @@ describe('usePredictActivity', () => {
 
     expect(mockGetActivity).toHaveBeenCalledTimes(2);
     expect(result.current.isRefetching).toBe(false);
-  });
-
-  it('ensures polygon network before running query', async () => {
-    const { Wrapper } = createWrapper();
-    const { result } = renderHook(() => usePredictActivity(), {
-      wrapper: Wrapper,
-    });
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
   });
 });
