@@ -454,11 +454,12 @@ exports[`ShowTokenId should render correctly 1`] = `
                             <View
                               style={
                                 {
-                                  "color": "#131416",
-                                  "fontFamily": "Geist-Bold",
-                                  "fontSize": 20,
-                                  "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "height": 32,
+                                  "justifyContent": "space-between",
+                                  "marginBottom": 8,
+                                  "marginTop": 16,
                                 }
                               }
                             >

@@ -455,13 +455,16 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                               </View>
                               <View
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 20,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "display": "flex",
+                                      "flexBasis": "0%",
+                                      "flexGrow": 1,
+                                      "flexShrink": 1,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 <Text
