@@ -84,14 +84,23 @@ describe('CardController selectors', () => {
   });
 
   describe('when CardController state is undefined', () => {
-    it('returns fallback values', () => {
-      const state = {
-        engine: { backgroundState: {} },
-      } as unknown as RootState;
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
 
+    it('returns null for selectedCountry', () => {
       expect(selectCardSelectedCountry(state)).toBeNull();
+    });
+
+    it('returns null for activeProviderId', () => {
       expect(selectCardActiveProviderId(state)).toBeNull();
+    });
+
+    it('returns false for isAuthenticated', () => {
       expect(selectIsCardAuthenticated(state)).toBe(false);
+    });
+
+    it('returns empty array for cardholderAccounts', () => {
       expect(selectCardholderAccounts(state)).toStrictEqual([]);
     });
   });
