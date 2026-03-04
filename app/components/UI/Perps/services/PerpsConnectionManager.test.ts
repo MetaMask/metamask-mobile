@@ -1146,45 +1146,4 @@ describe('PerpsConnectionManager', () => {
       expect(m.wasOffline).toBe(true);
     });
   });
-
-  describe('getActiveProviderName', () => {
-    it('returns activeProvider from PerpsController state', () => {
-      // Arrange
-      (
-        Engine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        activeProvider: 'hyperliquid',
-      };
-
-      // Act
-      const result = PerpsConnectionManager.getActiveProviderName();
-
-      // Assert
-      expect(result).toBe('hyperliquid');
-    });
-
-    it('returns undefined when Engine access throws', () => {
-      // Arrange — remove PerpsController so property access throws
-      const original = Engine.context.PerpsController;
-      Object.defineProperty(Engine.context, 'PerpsController', {
-        get: () => {
-          throw new Error('Engine not initialized');
-        },
-        configurable: true,
-      });
-
-      // Act
-      const result = PerpsConnectionManager.getActiveProviderName();
-
-      // Assert
-      expect(result).toBeUndefined();
-
-      // Cleanup
-      Object.defineProperty(Engine.context, 'PerpsController', {
-        value: original,
-        configurable: true,
-        writable: true,
-      });
-    });
-  });
 });
