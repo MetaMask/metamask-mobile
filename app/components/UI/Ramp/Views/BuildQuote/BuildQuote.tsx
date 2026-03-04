@@ -135,6 +135,7 @@ function BuildQuote() {
     selectedProvider,
     selectedToken,
     getWidgetUrl,
+    paymentMethods,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -149,16 +150,35 @@ function BuildQuote() {
     }
   }, [selectedProvider]);
 
-  const isTokenUnavailable = useMemo(
-    () =>
-      !!(
-        selectedProvider &&
-        params?.assetId &&
-        selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[params.assetId]
-      ),
-    [selectedProvider, params?.assetId],
-  );
+  const tokenStateIsSettled =
+    !params?.assetId || selectedToken?.assetId === params.assetId;
+
+  const isTokenUnavailable = useMemo(() => {
+    if (!selectedProvider || !tokenStateIsSettled) return false;
+
+    // Explicit signal from provider metadata
+    if (
+      params?.assetId &&
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[params.assetId]
+    ) {
+      return true;
+    }
+
+    // API returned no payment methods after a completed fetch — the token
+    // isn't supported by this provider in this region even if metadata says so.
+    if (!paymentMethodsLoading && paymentMethods.length === 0) {
+      return true;
+    }
+
+    return false;
+  }, [
+    selectedProvider,
+    params?.assetId,
+    tokenStateIsSettled,
+    paymentMethodsLoading,
+    paymentMethods,
+  ]);
 
   const hasShownTokenUnavailableRef = useRef(false);
 
@@ -229,30 +249,34 @@ function BuildQuote() {
     debouncedPollingAmount > 0
   );
 
-  const quoteFetchParams = useMemo(
-    () =>
-      selectedToken?.assetId &&
-      walletAddress &&
-      selectedPaymentMethod &&
-      selectedProvider
-        ? {
-            assetId: selectedToken.assetId,
-            amount: debouncedPollingAmount,
-            walletAddress,
-            redirectUrl: getRampCallbackBaseUrl(),
-            paymentMethods: [selectedPaymentMethod.id],
-            providers: [selectedProvider.id],
-            forceRefresh: true,
-          }
-        : null,
-    [
-      selectedToken?.assetId,
-      debouncedPollingAmount,
+  const quoteFetchParams = useMemo(() => {
+    if (
+      !selectedToken?.assetId ||
+      !walletAddress ||
+      !selectedPaymentMethod ||
+      !selectedProvider ||
+      !tokenStateIsSettled
+    ) {
+      return null;
+    }
+
+    return {
+      assetId: selectedToken.assetId,
+      amount: debouncedPollingAmount,
       walletAddress,
-      selectedPaymentMethod,
-      selectedProvider,
-    ],
-  );
+      redirectUrl: getRampCallbackBaseUrl(),
+      paymentMethods: [selectedPaymentMethod.id],
+      providers: [selectedProvider.id],
+      forceRefresh: true,
+    };
+  }, [
+    selectedToken?.assetId,
+    tokenStateIsSettled,
+    debouncedPollingAmount,
+    walletAddress,
+    selectedPaymentMethod,
+    selectedProvider,
+  ]);
 
   const {
     data: quotesResponse,
