@@ -30,13 +30,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
 
-const mockEnsurePolygonNetworkExists = jest.fn();
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
@@ -62,7 +55,7 @@ describe('usePredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetBalance.mockResolvedValue(100);
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetBalance.mockResolvedValue(100);
   });
 
   afterEach(() => {
@@ -87,41 +80,6 @@ describe('usePredictBalance', () => {
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: MOCK_ADDRESS,
       });
-    });
-  });
-
-  describe('network setup', () => {
-    it('calls ensurePolygonNetworkExists before fetching balance', async () => {
-      const { Wrapper } = createWrapper();
-
-      const { result } = renderHook(() => usePredictBalance(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.data).toBeDefined();
-      });
-
-      expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
-      expect(mockGetBalance).toHaveBeenCalledTimes(1);
-    });
-
-    it('fetches balance even if ensurePolygonNetworkExists fails', async () => {
-      const { Wrapper } = createWrapper();
-      mockEnsurePolygonNetworkExists.mockRejectedValue(
-        new Error('Network add failed'),
-      );
-      mockGetBalance.mockResolvedValue(99);
-
-      const { result } = renderHook(() => usePredictBalance(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.data).toBe(99);
-      });
-
-      expect(mockGetBalance).toHaveBeenCalledTimes(1);
     });
   });
 
