@@ -22,7 +22,7 @@ Follow the playbook strictly and keep implementation decisions consistent with r
 4. Let `useABTest` own `Experiment Viewed`; do not add manual duplicate exposure tracking.
 5. Use `active_ab_tests: [{ key, value }]` only when assignment is active.
 6. Do not add new payloads under `ab_tests`.
-7. Add or update tests for variant behavior and analytics payload context.
+7. Add or update tests when A/B behavior or analytics integration changes; copy/config-only changes may skip new tests with a short rationale.
 8. Update docs when adding reusable A/B implementation patterns.
 
 ## Required Output Contract

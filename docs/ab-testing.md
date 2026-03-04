@@ -398,6 +398,9 @@ No, not when using `useABTest`. The hook emits it automatically for active assig
 **Q: Do I need a per-test Segment schema key?**  
 No. Use the shared `active_ab_tests` array of `{ key, value }`.
 
+**Q: Do copy-only or config-only A/B changes need new unit tests?**  
+Not always. Use risk-based scope: add tests when behavior or analytics wiring changes; for copy/config-only changes, you can skip new tests and include a brief rationale in your PR/agent response.
+
 ---
 
 ## Related Files

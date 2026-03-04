@@ -51,11 +51,13 @@ only when the assignment is active.
 
 ## Step 4: Test Expectations
 
-Cover at least:
+Use risk-based scope:
 
-1. variant selection behavior (`control` fallback and treatment path)
-2. analytics payload context (`active_ab_tests` shape and gating by active assignment)
-3. no regression in existing event payload fields
+1. If A/B behavior or analytics integration changed, cover at least:
+   - variant selection behavior (`control` fallback and treatment path)
+   - analytics payload context (`active_ab_tests` shape and gating by active assignment)
+   - no regression in existing event payload fields
+2. If the change is copy/config-only (no behavior/analytics wiring change), new tests can be skipped with a brief rationale in the response.
 
 ## Step 5: Compliance Check
 

@@ -14,7 +14,7 @@ Rules:
   - Fail: Malformed literal active_ab_tests objects missing key/value
   - Fail: Inline useABTest variants object missing control
   - Warn: Flag key naming mismatch for Abtest keys
-  - Warn: A/B implementation files changed without test-file changes
+  - Warn: Risky A/B integration changes without test-file updates
 EOF
 }
 
@@ -212,7 +212,7 @@ get_scan_content() {
 
 FAILURES=()
 WARNINGS=()
-AB_IMPL_FILES=()
+AB_RISKY_CHANGE_FILES=()
 TEST_CHANGED=0
 
 CHANGED_FILES=()
@@ -260,8 +260,8 @@ for file in "${CHANGED_FILES[@]}"; do
   scan_content="$(get_scan_content "$file")"
   [[ -z "$scan_content" ]] && continue
 
-  if grep -Eq 'useABTest\(|active_ab_tests|Abtest|abTestConfig' <<< "$scan_content"; then
-    AB_IMPL_FILES+=("$file")
+  if grep -Eq 'useABTest\(|active_ab_tests[[:space:]]*:|ab_tests[[:space:]]*:|trackEvent\(|createEventBuilder\(|MetaMetricsEvents\.|EXPERIMENT_VIEWED|Experiment Viewed' <<< "$added"; then
+    AB_RISKY_CHANGE_FILES+=("$file")
   fi
 
   # Rule: no new ab_tests payload additions in checked code diffs.
@@ -345,8 +345,8 @@ for file in "${CHANGED_FILES[@]}"; do
   done
 done
 
-if [[ ${#AB_IMPL_FILES[@]} -gt 0 && "$TEST_CHANGED" -eq 0 ]]; then
-  WARNINGS+=("A/B implementation files changed without any test-file updates.")
+if [[ ${#AB_RISKY_CHANGE_FILES[@]} -gt 0 && "$TEST_CHANGED" -eq 0 ]]; then
+  WARNINGS+=("Risky A/B integration changes were detected without any test-file updates. For copy/config-only changes, document rationale in your response.")
 fi
 
 echo "A/B compliance check summary"
