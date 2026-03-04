@@ -356,6 +356,7 @@ describe('AccountBackupStep1', () => {
       // Verify navigation to OnboardingSuccess
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
+        accountType: 'metamask',
       });
 
       // Get the onConfirm function from the modal params

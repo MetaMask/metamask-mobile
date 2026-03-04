@@ -171,6 +171,7 @@ const AccountBackupStep1 = (props) => {
         onContinue: () => {
           navigation.dispatch(resetAction);
         },
+        accountType: 'metamask',
       });
     }
   };

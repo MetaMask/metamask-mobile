@@ -631,6 +631,7 @@ describe('ManualBackupStep1', () => {
         'OptinMetrics',
         expect.objectContaining({
           onContinue: expect.any(Function),
+          accountType: 'metamask',
         }),
       );
     });

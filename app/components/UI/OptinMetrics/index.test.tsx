@@ -195,6 +195,91 @@ describe('OptinMetrics', () => {
     });
   });
 
+  describe('account_type property in events', () => {
+    it('includes account_type in ANALYTICS_PREFERENCE_SELECTED when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: 'imported' },
+      );
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.objectContaining({
+              is_metrics_opted_in: true,
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: 'imported',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('includes account_type in METRICS_OPT_OUT when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: 'metamask' },
+      );
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+              account_type: 'metamask',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('does not include account_type when accountType route param is not provided', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.not.objectContaining({
+              account_type: expect.anything(),
+            }),
+          }),
+        );
+      });
+    });
+  });
+
   describe('Basic usage data collection checkbox', () => {
     it('should display basic usage checkbox title', () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });

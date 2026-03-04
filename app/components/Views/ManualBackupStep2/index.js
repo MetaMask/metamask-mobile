@@ -147,6 +147,7 @@ const ManualBackupStep2 = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
+            accountType: 'metamask',
           });
         }
       }

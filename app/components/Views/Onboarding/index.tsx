@@ -27,7 +27,10 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  saveOnboardingEvent as saveEvent,
+  setAccountType,
+} from '../../../actions/onboarding';
 import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
@@ -350,6 +353,7 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
+      dispatch(setAccountType('metamask'));
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
         account_type: 'metamask',
       });
@@ -357,7 +361,7 @@ const Onboarding = () => {
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -384,12 +388,13 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
+      dispatch(setAccountType('imported'));
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
         account_type: 'imported',
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -680,10 +685,12 @@ const Onboarding = () => {
       });
 
       if (createWallet) {
+        dispatch(setAccountType(`metamask_${provider}`));
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
           account_type: `metamask_${provider}`,
         });
       } else {
+        dispatch(setAccountType(`imported_${provider}`));
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
           account_type: `imported_${provider}`,
         });
@@ -734,6 +741,7 @@ const Onboarding = () => {
       handleLoginError,
       handlePostSocialLogin,
       handleExistingUser,
+      dispatch,
     ],
   );
 

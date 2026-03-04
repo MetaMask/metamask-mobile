@@ -112,6 +112,7 @@ export const handleSkipBackup = async ({
       onContinue: () => {
         navigation.dispatch(resetAction);
       },
+      accountType: 'metamask',
     });
   }
 };

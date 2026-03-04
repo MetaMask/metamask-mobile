@@ -484,6 +484,7 @@ const ImportFromSecretRecoveryPhrase = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
+            accountType: 'imported',
           });
         }
       } catch (error) {

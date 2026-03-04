@@ -3,6 +3,7 @@ import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
 export const SET_COMPLETED_ONBOARDING = 'SET_COMPLETED_ONBOARDING';
+export const SET_ACCOUNT_TYPE = 'SET_ACCOUNT_TYPE';
 
 interface SaveEventAction {
   type: typeof SAVE_EVENT;
@@ -18,10 +19,16 @@ export interface SetCompletedOnboardingAction {
   completedOnboarding: boolean;
 }
 
+interface SetAccountTypeAction {
+  type: typeof SET_ACCOUNT_TYPE;
+  accountType: string;
+}
+
 export type OnboardingActionTypes =
   | SaveEventAction
   | ClearEventsAction
-  | SetCompletedOnboardingAction;
+  | SetCompletedOnboardingAction
+  | SetAccountTypeAction;
 
 export function saveOnboardingEvent(
   eventArgs: [ITrackingEvent],
@@ -44,5 +51,12 @@ export function setCompletedOnboarding(
   return {
     type: SET_COMPLETED_ONBOARDING,
     completedOnboarding,
+  };
+}
+
+export function setAccountType(accountType: string): SetAccountTypeAction {
+  return {
+    type: SET_ACCOUNT_TYPE,
+    accountType,
   };
 }

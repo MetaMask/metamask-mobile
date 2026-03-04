@@ -415,6 +415,7 @@ describe('ManualBackupStep2', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
+        accountType: 'metamask',
       });
     });
 
