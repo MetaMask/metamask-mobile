@@ -6,7 +6,6 @@ import {
   getTimestampInMs,
 } from '../../../components/PredictDetailsChart/utils';
 import { usePredictPriceHistory } from '../../../hooks/usePredictPriceHistory';
-import { getPredictChartSeriesColor } from '../../../constants/colors';
 import {
   PredictMarketStatus,
   PredictPriceHistoryInterval,
@@ -186,25 +185,34 @@ export const useChartData = ({
     isPriceHistoryFetching,
   ]);
 
-  const chartData: ChartSeries[] = useMemo(
-    () =>
-      chartOutcomeTokenIds.map((_tokenId, index) => ({
-        label:
-          chartOpenOutcomes[index]?.groupItemTitle ||
-          chartOpenOutcomes[index]?.title ||
-          `Outcome ${index + 1}`,
-        color: getPredictChartSeriesColor(
-          index,
-          chartOutcomeTokenIds.length,
-          colors,
-        ),
-        data: (priceHistories[index] ?? []).map((point) => ({
-          timestamp: point.timestamp,
-          value: Number((point.price * 100).toFixed(2)),
-        })),
+  const chartData: ChartSeries[] = useMemo(() => {
+    const palette = [
+      colors.primary.default,
+      colors.error.default,
+      colors.success.default,
+    ];
+    return chartOutcomeTokenIds.map((_tokenId, index) => ({
+      label:
+        chartOpenOutcomes[index]?.groupItemTitle ||
+        chartOpenOutcomes[index]?.title ||
+        `Outcome ${index + 1}`,
+      color:
+        chartOutcomeTokenIds.length === 1
+          ? colors.success.default
+          : (palette[index] ?? colors.success.default),
+      data: (priceHistories[index] ?? []).map((point) => ({
+        timestamp: point.timestamp,
+        value: Number((point.price * 100).toFixed(2)),
       })),
-    [chartOutcomeTokenIds, chartOpenOutcomes, priceHistories, colors],
-  );
+    }));
+  }, [
+    chartOutcomeTokenIds,
+    chartOpenOutcomes,
+    priceHistories,
+    colors.primary.default,
+    colors.error.default,
+    colors.success.default,
+  ]);
 
   const chartEmptyLabel = hasAnyOutcomeToken
     ? (errors.find(Boolean) ?? undefined)

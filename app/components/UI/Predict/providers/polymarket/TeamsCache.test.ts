@@ -1,6 +1,5 @@
 import { TeamsCache } from './TeamsCache';
 import { PolymarketApiTeam } from './types';
-import { getPredictTeamColorOverride } from '../../constants/colors';
 
 jest.mock('./utils', () => ({
   getPolymarketEndpoints: jest.fn().mockReturnValue({
@@ -278,17 +277,6 @@ describe('TeamsCache', () => {
 
       expect(team).toBeDefined();
       expect(team?.name).toBe('Seattle Seahawks');
-    });
-
-    it('applies known Predict team color overrides', () => {
-      const cache = TeamsCache.getInstance();
-
-      const sea = cache.getTeam('nfl', 'SEA');
-      const den = cache.getTeam('nfl', 'DEN');
-
-      expect(sea?.color).toBe(getPredictTeamColorOverride('SEA'));
-      // Team without override should keep API-provided color
-      expect(den?.color).toBe(mockNflTeams[1].color);
     });
   });
 
