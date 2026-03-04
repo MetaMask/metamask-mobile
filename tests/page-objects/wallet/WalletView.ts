@@ -27,8 +27,15 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;
 
-  get container(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_CONTAINER,
+        ),
+    });
   }
 
   get earnButton(): DetoxElement {
@@ -210,6 +217,15 @@ class WalletView {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.CAROUSEL_SLIDE_CLOSE_BUTTON(id),
     );
+  }
+
+  async isVisible(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const container = await asPlaywrightElement(this.container);
+        await container.waitForDisplayed();
+      },
+    });
   }
 
   async tapCurrentMainWalletAccountActions(): Promise<void> {

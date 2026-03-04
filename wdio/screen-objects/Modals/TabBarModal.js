@@ -17,6 +17,7 @@ class TabBarModal {
 
   }
 
+  // Migrated to TabBarComponent.ts (tests/page-objects/wallet/TabBarComponent.ts)
   get walletButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
@@ -25,6 +26,7 @@ class TabBarModal {
     }
   }
 
+  // Migrated to TabBarComponent.ts (tests/page-objects/wallet/TabBarComponent.ts)
   get browserButton() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.BROWSER);
@@ -65,6 +67,7 @@ class TabBarModal {
     }
   }
 
+  // Migrated to TabBarComponent.ts (tests/page-objects/wallet/TabBarComponent.ts)
   async tapWalletButton() {
     if (!this._device) {
       const walletButton = await this.walletButton;
@@ -87,6 +90,7 @@ class TabBarModal {
     }
   }
 
+  // Migrated to TabBarComponent.ts (tests/page-objects/wallet/TabBarComponent.ts)
   async tapBrowserButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.browserButton);

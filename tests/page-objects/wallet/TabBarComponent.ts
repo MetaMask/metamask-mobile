@@ -1,19 +1,38 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
-import { Assertions, Utilities } from '../../framework';
+import { Assertions, PlaywrightGestures, Utilities } from '../../framework';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
   }
 
-  get tabBarWalletButton(): DetoxElement {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+  get tabBarWalletButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TabBarSelectorIDs.WALLET),
+      appium: () => PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET),
+    });
+  }
+
+  get tabBarBrowserButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TabBarSelectorIDs.BROWSER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TabBarSelectorIDs.BROWSER),
+    });
   }
 
   get tabBarActionButton(): DetoxElement {
@@ -41,23 +60,39 @@ class TabBarComponent {
     await Gestures.waitAndTap(homeButton);
   }
 
+  async tapBrowser(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.tabBarBrowserButton, {
+      description: 'Tab Bar - Browser Button',
+    });
+  }
+
   async tapWallet(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await Gestures.waitAndTap(this.tabBarWalletButton, {
-          timeout: 2000,
-        });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.executeWithRetry(
+          async () => {
+            await Gestures.waitAndTap(
+              Matchers.getElementByID(TabBarSelectorIDs.WALLET),
+              { timeout: 2000 },
+            );
+            await Assertions.expectElementToBeVisible(WalletView.container, {
+              timeout: 500,
+            });
+          },
+          {
+            // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+            maxRetries: 15,
+            timeout: 45000,
+            description: 'Tap Wallet Button with Validation',
+          },
+        );
       },
-      {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
-        maxRetries: 15,
-        timeout: 45000,
-        description: 'Tap Wallet Button with Validation',
+      appium: async () => {
+        const walletBtn = await asPlaywrightElement(this.tabBarWalletButton);
+        await walletBtn.waitForDisplayed();
+        await walletBtn.click();
       },
-    );
+    });
   }
 
   async tapActions(): Promise<void> {
@@ -73,19 +108,27 @@ class TabBarComponent {
   }
 
   async tapSettings(): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        // Navigate to Wallet first (where the hamburger menu lives)
-        await Gestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(SettingsView.title);
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.executeWithRetry(
+          async () => {
+            // Navigate to Wallet first (where the hamburger menu lives)
+            await Gestures.waitAndTap(this.tabBarWalletButton as DetoxElement);
+            await Assertions.expectElementToBeVisible(WalletView.container);
+            await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
+            await Assertions.expectElementToBeVisible(SettingsView.title);
+          },
+          {
+            timeout: 45000,
+            description: 'Tap Settings Button',
+          },
+        );
       },
-      {
-        timeout: 45000,
-        description: 'Tap Settings Button',
+      appium: async () => {
+        const settingsBtn = await asPlaywrightElement(this.tabBarSettingButton);
+        await PlaywrightGestures.tap(settingsBtn);
       },
-    );
+    });
   }
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(

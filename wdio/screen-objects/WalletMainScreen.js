@@ -61,6 +61,7 @@ class WalletMainScreen {
     }
   }
 
+  // Migrated to WalletView.ts (tests/page-objects/wallet/WalletView.ts)
   get WalletScreenContainer() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
@@ -280,6 +281,7 @@ class WalletMainScreen {
     return element.isDisplayed();
   }
 
+  // Migrated to WalletView.ts (tests/page-objects/wallet/WalletView.ts)
   async isVisible() {
     const container = await this.WalletScreenContainer;
     await appwrightExpect(container).toBeVisible();
