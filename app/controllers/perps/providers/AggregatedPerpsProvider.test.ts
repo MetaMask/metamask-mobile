@@ -1,6 +1,12 @@
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
-import type { PerpsProvider, Position, MarketInfo, Order } from '../types';
+import type {
+  PerpsProvider,
+  PerpsProviderType,
+  Position,
+  MarketInfo,
+  Order,
+} from '../types';
 import { WebSocketConnectionState } from '../types';
 
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
@@ -769,8 +775,8 @@ describe('AggregatedPerpsProvider', () => {
       // Arrange — provider without the optional method
       const noWsProvider = createMockProvider('no-ws');
       const testProvider = new AggregatedPerpsProvider({
-        providers: new Map([['no-ws', noWsProvider]]),
-        defaultProvider: 'no-ws',
+        providers: new Map([['no-ws' as PerpsProviderType, noWsProvider]]),
+        defaultProvider: 'no-ws' as PerpsProviderType,
         infrastructure: mockInfrastructure,
       });
 
@@ -802,8 +808,8 @@ describe('AggregatedPerpsProvider', () => {
       // Arrange
       const noWsProvider = createMockProvider('no-ws');
       const testProvider = new AggregatedPerpsProvider({
-        providers: new Map([['no-ws', noWsProvider]]),
-        defaultProvider: 'no-ws',
+        providers: new Map([['no-ws' as PerpsProviderType, noWsProvider]]),
+        defaultProvider: 'no-ws' as PerpsProviderType,
         infrastructure: mockInfrastructure,
       });
       const listener = jest.fn();
@@ -844,8 +850,8 @@ describe('AggregatedPerpsProvider', () => {
       // Arrange — provider without reconnect
       const noWsProvider = createMockProvider('no-ws');
       const testProvider = new AggregatedPerpsProvider({
-        providers: new Map([['no-ws', noWsProvider]]),
-        defaultProvider: 'no-ws',
+        providers: new Map([['no-ws' as PerpsProviderType, noWsProvider]]),
+        defaultProvider: 'no-ws' as PerpsProviderType,
         infrastructure: mockInfrastructure,
       });
 
