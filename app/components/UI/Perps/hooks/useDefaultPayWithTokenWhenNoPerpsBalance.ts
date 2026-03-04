@@ -1,14 +1,17 @@
-import {
-  type PerpsSelectedPaymentToken,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
-} from '@metamask/perps-controller';
+import type { PerpsSelectedPaymentToken } from '@metamask/perps-controller';
 import type { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { PERPS_MIN_BALANCE_THRESHOLD } from '../constants/perpsConfig';
+import {
+  getPerpsProviderChainId,
+  PERPS_MIN_BALANCE_THRESHOLD,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
-import { selectPerpsAccountState } from '../selectors/perpsController';
+import {
+  selectPerpsAccountState,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { usePerpsNetwork } from './index';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
@@ -22,6 +25,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   const allowlistAssets = useSelector(
     selectPerpsPayWithAnyTokenAllowlistAssets,
   );
+  const activeProvider = useSelector(selectPerpsProvider);
   const currentNetwork = usePerpsNetwork();
   const paymentTokens = usePerpsPaymentTokens();
 
@@ -38,13 +42,21 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     }
 
     const allowSet = new Set(allowlistAssets);
-    const hyperliquidChainId =
-      currentNetwork === 'testnet'
-        ? HYPERLIQUID_TESTNET_CHAIN_ID
-        : HYPERLIQUID_MAINNET_CHAIN_ID;
+    const effectiveProvider =
+      activeProvider === 'aggregated' || activeProvider === undefined
+        ? PROVIDER_CONFIG.DefaultProvider
+        : activeProvider;
+    const perpsProviderChainId = getPerpsProviderChainId(
+      effectiveProvider,
+      currentNetwork,
+    );
 
     const allowlistTokens = paymentTokens.filter((token) => {
-      if (token.chainId === hyperliquidChainId) return false;
+      if (
+        perpsProviderChainId !== undefined &&
+        token.chainId === perpsProviderChainId
+      )
+        return false;
       const key = `${token.chainId}.${(token.address ?? '').toLowerCase()}`;
       return allowSet.has(key);
     });
@@ -72,6 +84,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   }, [
     perpsAccount?.availableBalance,
     allowlistAssets,
+    activeProvider,
     currentNetwork,
     paymentTokens,
   ]);
