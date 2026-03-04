@@ -73,9 +73,9 @@ exports[`Staking Earnings displays pooled-staking maintenance banner when featur
             {
               "color": "#131416",
               "fontFamily": "Geist-Regular",
-              "fontSize": 16,
+              "fontSize": 14,
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
