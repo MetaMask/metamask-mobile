@@ -83,12 +83,11 @@ export const ExploreFeed: React.FC = () => {
 
   const homeSections = useHomeSections();
 
-  // Track which sections have empty data and which are loading
+  // Track which sections have empty data (for QuickActions empty state)
   const { sectionsWithState: emptySections, callbacks: emptyStateCallbacks } =
     useSectionStateTracker(homeSections);
 
-  const { callbacks: loadingStateCallbacks } =
-    useSectionStateTracker(homeSections);
+  const noopLoadingState = useCallback((_isLoading: boolean) => undefined, []);
 
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
@@ -241,7 +240,7 @@ export const ExploreFeed: React.FC = () => {
                   sectionId={section.id}
                   refreshConfig={refreshConfig}
                   toggleSectionEmptyState={emptyStateCallbacks[section.id]}
-                  toggleSectionLoadingState={loadingStateCallbacks[section.id]}
+                  toggleSectionLoadingState={noopLoadingState}
                 />
               );
 
