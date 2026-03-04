@@ -314,9 +314,7 @@ const Checkout = () => {
         />
       }
       style={styles.headerWithoutPadding}
-    >
-      {headerTitle}
-    </BottomSheetHeader>
+    />
   );
 
   if (error) {
