@@ -44,7 +44,6 @@ const createMockToken = (overrides?: Partial<RampsToken>): RampsToken => ({
 
 const mockTokenNetworkInfo = {
   networkName: 'Ethereum Mainnet',
-  networkImageSource: { uri: 'https://example.com/eth.png' },
 };
 
 const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
@@ -376,11 +375,8 @@ describe('BuildQuote', () => {
         goBack: mockGoBack,
       }),
       expect.objectContaining({
-        tokenName: 'USD Coin',
         tokenSymbol: 'USDC',
-        tokenIconUrl: 'https://example.com/usdc.png',
         networkName: 'Ethereum Mainnet',
-        networkImageSource: { uri: 'https://example.com/eth.png' },
         onSettingsPress: expect.any(Function),
       }),
     );
@@ -421,11 +417,8 @@ describe('BuildQuote', () => {
         goBack: mockGoBack,
       }),
       expect.objectContaining({
-        tokenName: undefined,
         tokenSymbol: undefined,
-        tokenIconUrl: undefined,
         networkName: undefined,
-        networkImageSource: undefined,
         onSettingsPress: expect.any(Function),
       }),
     );

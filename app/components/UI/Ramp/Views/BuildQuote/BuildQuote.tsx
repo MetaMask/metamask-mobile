@@ -328,11 +328,8 @@ function BuildQuote() {
   useEffect(() => {
     navigation.setOptions(
       getRampsBuildQuoteNavbarOptions(navigation, {
-        tokenName: selectedToken?.name,
         tokenSymbol: selectedToken?.symbol,
-        tokenIconUrl: selectedToken?.iconUrl,
         networkName: networkInfo?.networkName ?? undefined,
-        networkImageSource: networkInfo?.networkImageSource,
         onSettingsPress: () => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
