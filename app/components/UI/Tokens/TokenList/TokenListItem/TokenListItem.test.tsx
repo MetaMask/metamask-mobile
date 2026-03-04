@@ -166,13 +166,6 @@ jest.mock(
   }),
 );
 
-const mockShouldShowBonusClaimCta = jest.fn(() => false);
-jest.mock('../../../Earn/hooks/useMerklClaimCtaVisibility', () => ({
-  useMerklClaimCtaVisibility: () => ({
-    shouldShowBonusClaimCta: mockShouldShowBonusClaimCta,
-  }),
-}));
-
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
@@ -323,7 +316,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    shouldShowBonusClaim?: boolean;
     claimableReward?: string | null;
     hasPendingClaim?: boolean;
     isClaiming?: boolean;
@@ -339,7 +331,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    shouldShowBonusClaim = false,
     claimableReward = null,
     hasPendingClaim = false,
     isClaiming = false,
@@ -357,7 +348,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isClaiming,
       claimRewards: mockClaimRewards,
     });
-    mockShouldShowBonusClaimCta.mockReturnValue(shouldShowBonusClaim);
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -1246,10 +1236,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" CTA when shouldShowBonusClaimCta returns true', () => {
+    it('shows "Claim bonus" CTA when claimableReward exists and no pending claim', () => {
       prepareMocks({
         asset: claimableAsset,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1265,12 +1254,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
     });
 
-    it('hides "Claim bonus" CTA when shouldShowBonusClaimCta returns false', () => {
+    it('hides "Claim bonus" CTA when claimableReward is null', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 2.0,
-        shouldShowBonusClaim: false,
-        claimableReward: '1000000000000000000',
+        claimableReward: null,
       });
 
       const { queryByText, getByText } = renderWithProvider(
@@ -1289,7 +1277,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('calls claimRewards when "Claim bonus" CTA is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1316,7 +1303,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1363,7 +1349,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('shows Spinner instead of text when isClaiming is true', () => {
       prepareMocks({
         asset: claimableAsset,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
         isClaiming: true,
       });
@@ -1388,7 +1373,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('passes asset to useMerklBonusClaim hook', () => {
       prepareMocks({
         asset: claimableAsset,
-        shouldShowBonusClaim: true,
       });
 
       renderWithProvider(

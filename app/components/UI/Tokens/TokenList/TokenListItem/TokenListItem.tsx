@@ -55,7 +55,6 @@ import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetwork
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
 import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
-import { useMerklClaimCtaVisibility } from '../../../Earn/hooks/useMerklClaimCtaVisibility';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -161,13 +160,9 @@ export const TokenListItem = React.memo(
     );
 
     const merklClaimData = useMerklBonusClaim(asset);
-    const { claimRewards } = merklClaimData;
-    const { shouldShowBonusClaimCta } = useMerklClaimCtaVisibility();
+    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
-    const hasClaimableBonus = useMemo(
-      () => shouldShowBonusClaimCta(asset, merklClaimData),
-      [asset, merklClaimData, shouldShowBonusClaimCta],
-    );
+    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
     const handleClaimBonus = useCallback(() => {
       trackEvent(

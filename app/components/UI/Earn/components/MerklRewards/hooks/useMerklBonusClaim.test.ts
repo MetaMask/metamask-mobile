@@ -6,11 +6,11 @@ import { AGLAMERKL_ADDRESS_MAINNET } from '../constants';
 
 const mockClaimRewards = jest.fn().mockResolvedValue(undefined);
 
-const mockUseMerklRewards = jest.fn(() => ({
+const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
   claimableReward: null as string | null,
 }));
 jest.mock('./useMerklRewards', () => ({
-  useMerklRewards: (...args: unknown[]) => mockUseMerklRewards(...args),
+  useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
   isTokenEligibleForMerklRewards:
     jest.requireActual('./useMerklRewards').isTokenEligibleForMerklRewards,
 }));
@@ -22,13 +22,14 @@ jest.mock('./usePendingMerklClaim', () => ({
   usePendingMerklClaim: () => mockUsePendingMerklClaim(),
 }));
 
-const mockUseMerklClaim = jest.fn(() => ({
+const mockUseMerklClaimTransaction = jest.fn((_asset?: unknown) => ({
   claimRewards: mockClaimRewards,
   isClaiming: false,
   error: null,
 }));
-jest.mock('./useMerklClaim', () => ({
-  useMerklClaim: (...args: unknown[]) => mockUseMerklClaim(...args),
+jest.mock('./useMerklClaimTransaction', () => ({
+  useMerklClaimTransaction: (...args: [unknown]) =>
+    mockUseMerklClaimTransaction(...args),
 }));
 
 let mockIsMerklCampaignClaimingEnabled = true;
@@ -60,6 +61,7 @@ const eligibleAsset: TokenI = {
   balance: '1',
   balanceFiat: '$1.00',
   isNative: false,
+  isETH: false,
   isStaked: false,
   image: '',
   aggregators: [],
@@ -75,6 +77,7 @@ const ineligibleAsset: TokenI = {
   balance: '1',
   balanceFiat: '$1.00',
   isNative: false,
+  isETH: false,
   isStaked: false,
   image: '',
   aggregators: [],
@@ -125,7 +128,7 @@ describe('useMerklBonusClaim', () => {
     renderHook(() => useMerklBonusClaim(ineligibleAsset));
 
     expect(mockUseMerklRewards).toHaveBeenCalledWith({ asset: undefined });
-    expect(mockUseMerklClaim).toHaveBeenCalledWith(undefined);
+    expect(mockUseMerklClaimTransaction).toHaveBeenCalledWith(undefined);
   });
 
   it('passes eligible asset to underlying hooks', () => {
@@ -134,13 +137,13 @@ describe('useMerklBonusClaim', () => {
     expect(mockUseMerklRewards).toHaveBeenCalledWith({
       asset: eligibleAsset,
     });
-    expect(mockUseMerklClaim).toHaveBeenCalledWith(eligibleAsset);
+    expect(mockUseMerklClaimTransaction).toHaveBeenCalledWith(eligibleAsset);
   });
 
   it('returns composed data from underlying hooks for eligible asset', () => {
     mockUseMerklRewards.mockReturnValue({ claimableReward: '1.50' });
     mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim: true });
-    mockUseMerklClaim.mockReturnValue({
+    mockUseMerklClaimTransaction.mockReturnValue({
       claimRewards: mockClaimRewards,
       isClaiming: true,
       error: null,

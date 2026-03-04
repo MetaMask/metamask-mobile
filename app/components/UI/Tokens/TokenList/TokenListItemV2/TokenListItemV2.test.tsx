@@ -178,13 +178,6 @@ jest.mock(
   }),
 );
 
-const mockShouldShowBonusClaimCta = jest.fn(() => false);
-jest.mock('../../../Earn/hooks/useMerklClaimCtaVisibility', () => ({
-  useMerklClaimCtaVisibility: () => ({
-    shouldShowBonusClaimCta: mockShouldShowBonusClaimCta,
-  }),
-}));
-
 jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
@@ -335,7 +328,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    shouldShowBonusClaim?: boolean;
     claimableReward?: string | null;
     tokenMarketData?: Record<string, Record<string, { price: number }>>;
     currencyRatesData?: Record<string, { conversionRate: number }>;
@@ -355,7 +347,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    shouldShowBonusClaim = false,
     claimableReward = null,
     tokenMarketData,
     currencyRatesData,
@@ -376,7 +367,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       isClaiming: false,
       claimRewards: mockClaimRewards,
     });
-    mockShouldShowBonusClaimCta.mockReturnValue(shouldShowBonusClaim);
 
     // Stock token mocks
     mockIsStockToken.mockReturnValue(isStockToken);
@@ -1218,11 +1208,10 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" replacing percentage when shouldShowBonusClaimCta returns true', () => {
+    it('shows "Claim bonus" replacing percentage when claimableReward exists', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1243,7 +1232,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1303,7 +1291,6 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 5.0,
-        shouldShowBonusClaim: true,
         claimableReward: '1000000000000000000',
       });
 
@@ -1332,12 +1319,11 @@ describe('TokenListItemV2 - Component Rendering Tests for Coverage', () => {
       expect(mockClaimRewards).toHaveBeenCalledTimes(1);
     });
 
-    it('falls back to percentage when shouldShowBonusClaimCta returns false', () => {
+    it('falls back to percentage when claimableReward is null', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 1.5,
-        shouldShowBonusClaim: false,
-        claimableReward: '1000000000000000000',
+        claimableReward: null,
       });
 
       const { queryByText, getByText } = renderWithProvider(

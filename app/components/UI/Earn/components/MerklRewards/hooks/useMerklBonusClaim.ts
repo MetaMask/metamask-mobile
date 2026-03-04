@@ -7,7 +7,7 @@ import {
   isTokenEligibleForMerklRewards,
 } from './useMerklRewards';
 import { usePendingMerklClaim } from './usePendingMerklClaim';
-import { useMerklClaim } from './useMerklClaim';
+import { useMerklClaimTransaction } from './useMerklClaimTransaction';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../../selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../hooks/useMusdConversionEligibility';
 
@@ -32,7 +32,7 @@ const DEFAULT_MERKL_CLAIM_DATA: MerklClaimData = {
 };
 
 /**
- * Combines `useMerklRewards`, `usePendingMerklClaim`, and `useMerklClaim`
+ * Combines `useMerklRewards`, `usePendingMerklClaim`, and `useMerklClaimTransaction`
  * into a single hook that can be called unconditionally in token list items.
  *
  * For ineligible or geo-blocked assets, `undefined` is passed to the underlying
@@ -71,7 +71,7 @@ export const useMerklBonusClaim = (
 
   const { claimableReward } = useMerklRewards({ asset: eligibleAsset });
   const { hasPendingClaim } = usePendingMerklClaim();
-  const { claimRewards, isClaiming } = useMerklClaim(eligibleAsset);
+  const { claimRewards, isClaiming } = useMerklClaimTransaction(eligibleAsset);
 
   return useMemo(() => {
     if (!isEligible) {
