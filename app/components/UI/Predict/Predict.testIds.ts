@@ -171,6 +171,20 @@ export const PredictActivityDetailsSelectorsIDs = {
 } as const;
 
 // ========================================
+// PREDICT SEARCH SELECTORS
+// ========================================
+
+export const PredictSearchSelectorsIDs = {
+  SEARCH_BUTTON: 'predict-search-button',
+  CLEAR_BUTTON: 'clear-button',
+  ERROR_STATE: 'predict-error-state',
+} as const;
+
+export const getPredictSearchSelector = {
+  resultCard: (index: number) => `predict-search-result-${index}`,
+};
+
+// ========================================
 // PREDICT BALANCE SELECTORS
 // ========================================
 
