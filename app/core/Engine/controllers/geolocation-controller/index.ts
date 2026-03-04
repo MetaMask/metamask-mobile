@@ -1,6 +1,7 @@
 import {
   GeolocationController,
   getDefaultGeolocationControllerState,
+  UNKNOWN_LOCATION,
   type GeolocationControllerMessenger,
 } from '@metamask/geolocation-controller';
 import type { ControllerInitFunction } from '../../types';
@@ -28,9 +29,18 @@ export const geolocationControllerInit: ControllerInitFunction<
 
   // Eagerly fetch geolocation on Engine start so the value is available
   // to all consumers (Ramp, Perps, Rewards, Card) before they need it.
-  controller.getGeolocation().catch(() => {
-    // Intentionally swallowed — geolocation is best-effort
-  });
+  // Skip when the persisted/fixture state already has a known location to
+  // avoid overwriting it (all controller state fields are non-persistent, so
+  // a known location only exists when hydrated from E2E fixtures or redux).
+  const hasKnownLocation =
+    geolocationControllerState.location !== UNKNOWN_LOCATION &&
+    geolocationControllerState.location !== '';
+
+  if (!hasKnownLocation) {
+    controller.getGeolocation().catch(() => {
+      // Intentionally swallowed — geolocation is best-effort
+    });
+  }
 
   return { controller };
 };

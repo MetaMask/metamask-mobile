@@ -6,10 +6,6 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type {
-  KeyringControllerGetStateAction,
-  KeyringControllerSignTypedMessageAction,
-} from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';

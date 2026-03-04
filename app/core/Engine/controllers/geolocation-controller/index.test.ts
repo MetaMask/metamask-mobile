@@ -23,9 +23,9 @@ jest.mock('@metamask/geolocation-controller', () => {
   };
 });
 
-function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<GeolocationControllerMessenger>
-> {
+function getInitRequestMock(
+  overrides?: Partial<ControllerInitRequest<GeolocationControllerMessenger>>,
+): jest.Mocked<ControllerInitRequest<GeolocationControllerMessenger>> {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -34,6 +34,7 @@ function getInitRequestMock(): jest.Mocked<
     ...buildControllerInitRequestMock(baseMessenger),
     controllerMessenger: getGeolocationControllerMessenger(baseMessenger),
     initMessenger: undefined,
+    ...overrides,
   };
 }
 
@@ -59,8 +60,45 @@ describe('geolocationControllerInit', () => {
     );
   });
 
-  it('triggers getGeolocation on init for eager fetch', () => {
+  it('triggers eager fetch when location is UNKNOWN', () => {
     const { controller } = geolocationControllerInit(getInitRequestMock());
     expect(controller.getGeolocation).toHaveBeenCalled();
+  });
+
+  it('skips eager fetch when persisted state has a known location', () => {
+    const { controller } = geolocationControllerInit(
+      getInitRequestMock({
+        persistedState: {
+          GeolocationController: {
+            location: 'US',
+            status: 'complete',
+            lastFetchedAt: Date.now(),
+            error: null,
+          },
+        },
+      }),
+    );
+    expect(controller.getGeolocation).not.toHaveBeenCalled();
+  });
+
+  it('hydrates controller state from persisted state', () => {
+    const persistedLocation = {
+      location: 'FR',
+      status: 'complete' as const,
+      lastFetchedAt: 1234567890,
+      error: null,
+    };
+    geolocationControllerInit(
+      getInitRequestMock({
+        persistedState: { GeolocationController: persistedLocation },
+      }),
+    );
+
+    const ControllerMock = jest.mocked(GeolocationController);
+    expect(ControllerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: persistedLocation,
+      }),
+    );
   });
 });
