@@ -26,6 +26,13 @@ export interface UsePredictPriceHistoryResult {
  *
  * Internally creates one React Query per marketId so each market is
  * cached and refetched independently.
+ *
+ * NOTE: This hook intentionally returns a curated interface rather than
+ * the raw useQueries result. Multiple consumers (useChartData, PredictGameChart)
+ * depend on the same derived shape: null-coalesced priceHistories, a
+ * consolidated isFetching flag, per-query error-message extraction, and a
+ * batched refetch helper. Returning the raw result would duplicate this
+ * non-trivial logic in every consumer and couple them to React Query internals.
  */
 export const usePredictPriceHistory = (
   options: UsePredictPriceHistoryOptions,
