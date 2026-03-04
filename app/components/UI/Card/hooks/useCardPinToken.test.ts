@@ -26,6 +26,7 @@ jest.mock('../queries', () => ({
 }));
 
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
+const hex = (value: string) => `${String.fromCharCode(35)}${value}`;
 
 describe('useCardPinToken', () => {
   const mockMutateAsync = jest.fn();
@@ -83,7 +84,7 @@ describe('useCardPinToken', () => {
       });
 
       expect(mockMutateAsync).toHaveBeenCalledWith({
-        customCss: { backgroundColor: '#FFF', textColor: '#000' },
+        customCss: { backgroundColor: hex('FFF'), textColor: hex('000') },
       });
     });
 

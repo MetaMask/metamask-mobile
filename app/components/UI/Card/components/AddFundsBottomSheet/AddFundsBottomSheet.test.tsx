@@ -55,18 +55,18 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
       text: {
-        alternative: '#666666',
+        alternative: 'rgb(102, 102, 102)',
       },
     },
   })),
   mockTheme: {
     colors: {
       background: {
-        default: '#ffffff',
+        default: 'rgb(255, 255, 255)',
       },
       text: {
-        default: '#000000',
-        alternative: '#666666',
+        default: 'rgb(0, 0, 0)',
+        alternative: 'rgb(102, 102, 102)',
       },
     },
     themeAppearance: 'light',

@@ -52,7 +52,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../../../../images/stacked-cards.png', () => 1);
 
 jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: { background: { default: '#fff' } } }),
+  useTheme: () => ({ colors: { background: { default: 'rgb(255, 255, 255)' } } }),
 }));
 
 const createTestStore = (initialState = {}) =>

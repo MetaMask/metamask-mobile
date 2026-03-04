@@ -3987,10 +3987,10 @@ describe('CardSDK', () => {
       });
 
       const customCss = {
-        cardBackgroundColor: '#FF5C16',
-        cardTextColor: '#FFFFFF',
-        panBackgroundColor: '#EFEFEF',
-        panTextColor: '#000000',
+        cardBackgroundColor: 'rgb(255, 92, 22)',
+        cardTextColor: 'rgb(255, 255, 255)',
+        panBackgroundColor: 'rgb(239, 239, 239)',
+        panTextColor: 'rgb(0, 0, 0)',
       };
 
       // When: generateCardDetailsToken is called with custom CSS
@@ -4137,8 +4137,8 @@ describe('CardSDK', () => {
       });
 
       const customCss = {
-        backgroundColor: '#FFFFFF',
-        textColor: '#000000',
+        backgroundColor: 'rgb(255, 255, 255)',
+        textColor: 'rgb(0, 0, 0)',
       };
 
       const result = await cardSDK.generateCardPinToken({ customCss });

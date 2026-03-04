@@ -25,11 +25,11 @@ describe('pinTokenMutationFn', () => {
 
     const mutationFn = pinTokenMutationFn(mockSdk);
     const result = await mutationFn({
-      customCss: { backgroundColor: '#FFFFFF', textColor: '#000000' },
+      customCss: { backgroundColor: 'rgb(255, 255, 255)', textColor: 'rgb(0, 0, 0)' },
     });
 
     expect(mockSdk.generateCardPinToken).toHaveBeenCalledWith({
-      customCss: { backgroundColor: '#FFFFFF', textColor: '#000000' },
+      customCss: { backgroundColor: 'rgb(255, 255, 255)', textColor: 'rgb(0, 0, 0)' },
     });
     expect(result).toEqual(mockResponse);
   });

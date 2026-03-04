@@ -39,10 +39,10 @@ jest.mock('../../util/metrics', () => ({
 jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
-      icon: { default: '#000' },
-      success: { default: '#00ff00' },
-      error: { default: '#ff0000' },
-      background: { default: '#fff' },
+      icon: { default: 'rgb(0, 0, 0)' },
+      success: { default: 'rgb(0, 255, 0)' },
+      error: { default: 'rgb(255, 0, 0)' },
+      background: { default: 'rgb(255, 255, 255)' },
     },
   })),
 }));

@@ -56,11 +56,11 @@ jest.mock('../../hooks/useCardProviderAuthentication', () => ({
 jest.mock('../../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
-      background: { default: '#FFFFFF' },
-      text: { primary: '#000000', alternative: '#666666' },
-      primary: { default: '#037DD6' },
-      error: { default: '#D73A49', muted: '#FEF2F2' },
-      border: { default: '#E1E4E8' },
+      background: { default: 'rgb(255, 255, 255)' },
+      text: { primary: 'rgb(0, 0, 0)', alternative: 'rgb(102, 102, 102)' },
+      primary: { default: 'rgb(3, 125, 214)' },
+      error: { default: 'rgb(215, 58, 73)', muted: 'rgb(254, 242, 242)' },
+      border: { default: 'rgb(225, 228, 232)' },
     },
   }),
 }));

@@ -23,12 +23,12 @@ jest.mock('../../../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
       text: {
-        muted: '#999999',
-        default: '#000000',
-        alternative: '#666666',
+        muted: 'rgb(153, 153, 153)',
+        default: 'rgb(0, 0, 0)',
+        alternative: 'rgb(102, 102, 102)',
       },
       error: {
-        default: '#FF0000',
+        default: 'rgb(255, 0, 0)',
       },
     },
   })),
