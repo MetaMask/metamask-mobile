@@ -29,12 +29,13 @@ import Logger from '../../../../util/Logger';
  * handles overlapping matches correctly.
  */
 const ACM_ERRORS_REGEX = {
-  CANCEL: /cancel/i,
+  CANCEL: /user\s+cancel|cancelled|16:\s*\[.*\]\s*cancel/i,
   NO_CREDENTIAL: /no credential/i,
   NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
   ONE_TAP_FAILURE: /failure response from one tap/i,
-  NO_PROVIDER_DEPENDENCIES: /no provider dependencies found/i,
+  NO_PROVIDER_DEPENDENCIES:
+    /no provider dependencies|provider.{0,20}not available|provider.{0,20}configuration/i,
 };
 
 /**

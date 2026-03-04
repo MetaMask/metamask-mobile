@@ -484,17 +484,29 @@ const Onboarding = () => {
   );
 
   const handleOAuthLoginError = useCallback(
-    (error: Error): void => {
-      // If user has already consented to analytics, report error using regular Sentry
+    (error: Error, provider?: string, isFallback?: boolean): void => {
+      const platform = Platform.OS;
+      const errorCode =
+        error instanceof OAuthError ? String(error.code) : 'unknown';
+
       if (metrics.isEnabled()) {
         captureException(error, {
           tags: {
             view: 'Onboarding',
             context: 'OAuth login failed - user consented to analytics',
+            oauth_platform: platform,
+            oauth_provider: provider ?? 'unknown',
+            oauth_error_code: errorCode,
+            oauth_is_fallback: String(isFallback ?? false),
           },
+          fingerprint: [
+            'oauth-login-error',
+            platform,
+            provider ?? 'unknown',
+            errorCode,
+          ],
         });
       } else {
-        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
         setState((prevState) => ({
           ...prevState,
           loading: false,
@@ -532,7 +544,10 @@ const Onboarding = () => {
           error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
           // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
           // required provider dependencies. Fallback to browser-based OAuth.
-          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies ||
+          (error.code === OAuthErrorType.UnknownError &&
+            Platform.OS === 'android' &&
+            socialConnectionType === 'google')
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -573,7 +588,11 @@ const Onboarding = () => {
               }
               // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
-                handleOAuthLoginError(fallbackError);
+                handleOAuthLoginError(
+                  fallbackError,
+                  socialConnectionType,
+                  true,
+                );
               } else {
                 // Wrap unexpected errors as OAuthError to ensure they're properly handled
                 const wrappedError = new OAuthError(
@@ -582,7 +601,7 @@ const Onboarding = () => {
                     : 'Browser fallback failed with unknown error',
                   OAuthErrorType.UnknownError,
                 );
-                handleOAuthLoginError(wrappedError);
+                handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
               return;
             }
@@ -590,7 +609,7 @@ const Onboarding = () => {
           return;
         }
         // unexpected oauth login error
-        handleOAuthLoginError(error);
+        handleOAuthLoginError(error, socialConnectionType, false);
         return;
       }
 
