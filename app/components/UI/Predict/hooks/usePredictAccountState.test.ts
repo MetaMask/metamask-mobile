@@ -2,6 +2,7 @@ import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { usePredictAccountState } from './usePredictAccountState';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -10,6 +11,10 @@ jest.mock('../../../../core/Engine', () => ({
       getAccountState: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -147,7 +152,7 @@ describe('usePredictAccountState', () => {
   });
 
   describe('network management', () => {
-    it('calls ensurePolygonNetworkExists on mount', async () => {
+    it('calls ensurePolygonNetworkExists before fetching', async () => {
       const { Wrapper } = createWrapper();
       renderHook(() => usePredictAccountState(), {
         wrapper: Wrapper,
@@ -156,6 +161,12 @@ describe('usePredictAccountState', () => {
       await waitFor(() => {
         expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
       });
+
+      // Ensure network setup was called before getAccountState
+      const networkCallOrder =
+        mockEnsurePolygonNetworkExists.mock.invocationCallOrder[0];
+      const fetchCallOrder = mockGetAccountState.mock.invocationCallOrder[0];
+      expect(networkCallOrder).toBeLessThan(fetchCallOrder);
     });
 
     it('continues loading account state when ensurePolygonNetworkExists fails', async () => {
@@ -174,6 +185,33 @@ describe('usePredictAccountState', () => {
 
       expect(result.current.data?.address).toEqual(mockAccountState.address);
       expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe('error logging', () => {
+    it('logs error via Logger.error when query fails', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockRejectedValue(
+        new Error('Failed to load account state'),
+      );
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBeTruthy();
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'Predict',
+            component: 'usePredictAccountState',
+          }),
+        }),
+      );
     });
   });
 
