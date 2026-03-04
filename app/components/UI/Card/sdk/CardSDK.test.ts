@@ -13,6 +13,7 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CardType,
   CreateOnboardingConsentRequest,
   UserResponse,
   DelegationSettingsNetwork,
@@ -20,6 +21,8 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawResponse,
 } from '../types';
+import { CARD_DETAILS_CSS } from '../hooks/useCardDetailsToken';
+import { PIN_CSS } from '../hooks/useCardPinToken';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import AppConstants from '../../../../core/AppConstants';
@@ -3986,12 +3989,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockTokenResponse),
       });
 
-      const customCss = {
-        cardBackgroundColor: 'rgb(255, 92, 22)',
-        cardTextColor: 'rgb(255, 255, 255)',
-        panBackgroundColor: 'rgb(239, 239, 239)',
-        panTextColor: 'rgb(0, 0, 0)',
-      };
+      const customCss = CARD_DETAILS_CSS[CardType.VIRTUAL];
 
       // When: generateCardDetailsToken is called with custom CSS
       const result = await cardSDK.generateCardDetailsToken({ customCss });
@@ -4136,10 +4134,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockPinTokenResponse),
       });
 
-      const customCss = {
-        backgroundColor: 'rgb(255, 255, 255)',
-        textColor: 'rgb(0, 0, 0)',
-      };
+      const customCss = PIN_CSS.light;
 
       const result = await cardSDK.generateCardPinToken({ customCss });
 

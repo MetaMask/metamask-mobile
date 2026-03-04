@@ -36,16 +36,13 @@ jest.mock('../../util/metrics', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      icon: { default: 'rgb(0, 0, 0)' },
-      success: { default: 'rgb(0, 255, 0)' },
-      error: { default: 'rgb(255, 0, 0)' },
-      background: { default: 'rgb(255, 255, 255)' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {

@@ -53,17 +53,22 @@ jest.mock('../../hooks/useCardProviderAuthentication', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: 'rgb(255, 255, 255)' },
-      text: { primary: 'rgb(0, 0, 0)', alternative: 'rgb(102, 102, 102)' },
-      primary: { default: 'rgb(3, 125, 214)' },
-      error: { default: 'rgb(215, 58, 73)', muted: 'rgb(254, 242, 242)' },
-      border: { default: 'rgb(225, 228, 232)' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => ({
+      ...actual.mockTheme,
+      colors: {
+        ...actual.mockTheme.colors,
+        text: {
+          ...actual.mockTheme.colors.text,
+          primary: actual.mockTheme.colors.text.default,
+        },
+      },
+    }),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {

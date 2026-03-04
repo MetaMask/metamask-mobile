@@ -119,17 +119,13 @@ jest.mock('../../sdk', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      success: { default: 'rgb(0, 255, 0)', muted: 'rgba(0, 255, 0, 0.2)' },
-      error: { default: 'rgb(255, 0, 0)', muted: 'rgba(255, 0, 0, 0.2)' },
-      background: { default: 'rgb(255, 255, 255)' },
-      text: { default: 'rgb(0, 0, 0)' },
-      border: { default: 'rgb(204, 204, 204)' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 const mockToastRef = {
   current: {
