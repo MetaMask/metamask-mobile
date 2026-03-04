@@ -1266,6 +1266,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
+        source: 'trade_action',
       });
     });
 
@@ -1301,6 +1302,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
+        source: 'trade_action',
       });
     });
 
