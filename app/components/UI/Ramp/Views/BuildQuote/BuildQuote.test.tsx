@@ -161,6 +161,7 @@ const defaultUserRegion: MockUserRegion = {
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
+let mockPaymentMethods: unknown[] = [];
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -185,6 +186,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     selectedProvider: mockSelectedProvider,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     getWidgetUrl: mockGetWidgetUrl,
+    paymentMethods: mockPaymentMethods,
     paymentMethodsLoading: false,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
@@ -261,6 +263,9 @@ describe('BuildQuote', () => {
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedPaymentMethod = null;
+    mockPaymentMethods = [
+      { id: '/payments/debit-credit-card', name: 'Debit/Credit Card' },
+    ];
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -1596,6 +1601,36 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('navigates to token unavailable modal when payment methods are empty after loading', async () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+      mockPaymentMethods = [];
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
         }),
       );
     });
