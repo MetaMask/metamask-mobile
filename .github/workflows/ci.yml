@@ -430,6 +430,7 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -446,7 +447,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -466,6 +467,7 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
+        !github.event.pull_request.head.repo.fork &&
         (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
         !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
@@ -487,7 +489,7 @@ jobs:
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -506,7 +508,7 @@ jobs:
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -523,7 +525,7 @@ jobs:
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -542,7 +544,7 @@ jobs:
   # TODO: Remove continue-on-error once fixture validation is stable
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
