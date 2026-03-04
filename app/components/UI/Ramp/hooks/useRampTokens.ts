@@ -12,10 +12,29 @@ import Logger from '../../../../util/Logger';
 
 const SDK_VERSION = '2.1.5';
 
+/** Cache TTL: tokens list is considered fresh for 5 minutes. */
+const TOKENS_CACHE_TTL_MS = 5 * 60 * 1000;
+
 const TOKEN_API_URL = {
   STAGING: 'https://on-ramp-cache.uat-api.cx.metamask.io',
   PRODUCTION: 'https://on-ramp-cache.api.cx.metamask.io',
 } as const;
+
+type TokensCacheEntry =
+  | { result: TokenCacheAPIResponse; cachedAt: number }
+  | { promise: Promise<TokenCacheAPIResponse>; cachedAt: number };
+
+/** Module-level cache to deduplicate identical tokens API requests (e.g. multiple TokenListItems on homepage). */
+const tokensCache = new Map<string, TokensCacheEntry>();
+
+function isCacheEntryExpired(cachedAt: number): boolean {
+  return Date.now() - cachedAt > TOKENS_CACHE_TTL_MS;
+}
+
+/** Clears the tokens cache. Exported for test isolation. */
+export function __clearRampTokensCache(): void {
+  tokensCache.clear();
+}
 
 /**
  * Determines the base URL for the token cache API based on the MetaMask environment.
@@ -94,20 +113,50 @@ export function useRampTokens(
       return;
     }
 
+    const cacheKey = `${detectedGeolocation.toLowerCase()}-${rampRoutingDecision}`;
+    const cached = tokensCache.get(cacheKey);
+
+    if (cached && 'result' in cached) {
+      if (isCacheEntryExpired(cached.cachedAt)) {
+        tokensCache.delete(cacheKey);
+      } else {
+        setRawTopTokens(cached.result.topTokens);
+        setRawAllTokens(cached.result.allTokens);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    if (cached && 'promise' in cached) {
+      if (isCacheEntryExpired(cached.cachedAt)) {
+        tokensCache.delete(cacheKey);
+      } else {
+        try {
+          const response = await cached.promise;
+          setRawTopTokens(response.topTokens);
+          setRawAllTokens(response.allTokens);
+          setError(null);
+        } catch (requestError) {
+          const errorObject = requestError as Error;
+          setError(errorObject);
+        } finally {
+          setIsLoading(false);
+        }
+        return;
+      }
+    }
+
     try {
       setError(null);
       setIsLoading(true);
 
-      // Determine base URL based on environment
       const baseUrl = getBaseUrl();
-
-      // Map routing decision to action parameter
       const action =
         rampRoutingDecision === UnifiedRampRoutingType.AGGREGATOR
           ? 'buy'
           : 'deposit';
 
-      // Build URL using URL and searchParams
       const url = new URL(
         `/regions/${detectedGeolocation.toLowerCase()}/tokens`,
         baseUrl,
@@ -115,14 +164,19 @@ export function useRampTokens(
       url.searchParams.set('action', action);
       url.searchParams.set('sdk', SDK_VERSION);
 
-      // Fetch tokens from API
-      const response = (await handleFetch(
+      const now = Date.now();
+      const promise = handleFetch(
         url.toString(),
-      )) as TokenCacheAPIResponse;
+      ) as Promise<TokenCacheAPIResponse>;
+      tokensCache.set(cacheKey, { promise, cachedAt: now });
+
+      const response = await promise;
+      tokensCache.set(cacheKey, { result: response, cachedAt: Date.now() });
 
       setRawTopTokens(response.topTokens);
       setRawAllTokens(response.allTokens);
     } catch (requestError) {
+      tokensCache.delete(cacheKey);
       const errorObject = requestError as Error;
       setError(errorObject);
       Logger.error(errorObject, 'useRampTokens::fetchTokens failed');

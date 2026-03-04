@@ -25,6 +25,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useFocusEffect: (callback: () => void) => callback(),
   };
 });
 
@@ -44,6 +45,10 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
     refresh: jest.fn(),
     isRefreshing: false,
   })),
+}));
+
+jest.mock('../../../../UI/Perps/hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 jest.mock('react-native-skeleton-placeholder', () => {

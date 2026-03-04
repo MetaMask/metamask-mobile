@@ -8,7 +8,11 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  type NavigationProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -21,7 +25,9 @@ import {
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
+import FadingScrollContainer, {
+  type ScrollRenderProps,
+} from '../../components/FadingScrollContainer';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -52,24 +58,76 @@ const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
 
+/** Key fields that affect position card display; skip re-render if unchanged */
+function positionDisplayKey(p: Position): string {
+  return `${p.symbol}:${p.entryPrice ?? ''}:${p.size ?? ''}:${p.unrealizedPnl ?? ''}:${p.takeProfitPrice ?? ''}:${p.stopLossPrice ?? ''}`;
+}
+
 /**
- * PerpsSection — single "Perpetuals" section on the homepage.
- *
- * Shows open positions + limit orders when the user has any,
- * otherwise shows a trending markets tile carousel with sparkline charts.
- *
- * Must be rendered inside PerpsConnectionProvider + PerpsStreamProvider.
+ * Memoized wrapper so the inline onPress closure doesn't defeat React.memo
+ * on PerpsPositionCard. Re-renders only when this position's display data changed.
  */
-const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
-  ({ sectionIndex, totalSectionsLoaded }, ref) => {
-    const sectionViewRef = useRef<View>(null);
+const PositionCardItem = React.memo<{
+  position: Position;
+  tpSlLoading: boolean;
+  onPositionPress: (position: Position) => void;
+}>(
+  ({ position, tpSlLoading, onPositionPress }) => {
+    const handlePress = useCallback(
+      () => onPositionPress(position),
+      [onPositionPress, position],
+    );
+
+    return (
+      <PerpsPositionCard
+        position={position}
+        compact
+        compactVariant="position"
+        tpSlLoading={tpSlLoading}
+        onPress={handlePress}
+        testID={`perps-position-row-${position.symbol}`}
+      />
+    );
+  },
+  (prev, next) =>
+    prev.tpSlLoading === next.tpSlLoading &&
+    prev.onPositionPress === next.onPositionPress &&
+    positionDisplayKey(prev.position) === positionDisplayKey(next.position),
+);
+
+/** Props for the content block that depends on positions/orders (isolates re-renders) */
+interface PerpsSectionContentProps {
+  allCarouselMarkets: PerpsMarketDataWithVolumeNumber[];
+  watchlistSymbolSet: Set<string>;
+  marketsLoading: boolean;
+  sparklines: Record<string, number[] | undefined>;
+  handleViewAllPerps: () => void;
+  handlePositionPress: (position: Position) => void;
+  handleTilePress: (market: PerpsMarketData) => void;
+  /** For useHomeViewedEvent; when omitted, view event is not tracked */
+  sectionRef?: React.RefObject<View> | null;
+  sectionIndex?: number;
+  totalSectionsLoaded?: number;
+}
+
+/**
+ * Content subtree that owns positions/orders hooks so that position updates
+ * only re-render this subtree, not the section title or parent.
+ */
+const PerpsSectionContent = React.memo<PerpsSectionContentProps>(
+  ({
+    allCarouselMarkets,
+    watchlistSymbolSet,
+    marketsLoading,
+    sparklines,
+    handleViewAllPerps,
+    handlePositionPress,
+    handleTilePress,
+    sectionRef,
+    sectionIndex,
+    totalSectionsLoaded,
+  }) => {
     const tw = useTailwind();
-    const navigation =
-      useNavigation<NavigationProp<PerpsNavigationParamList>>();
-    const title = strings('homepage.sections.perpetuals');
-    const { error: connectionError, reconnectWithNewContext } =
-      usePerpsConnection();
-    const { track } = usePerpsEventTracking();
 
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
@@ -125,9 +183,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const tpSlReady = anyPositionHasTpSl || tpSlSettled;
 
-    const { markets, isLoading: marketsLoading } = usePerpsMarkets();
-    const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
-
     const displayPositions = useMemo(
       () => positions.slice(0, MAX_ITEMS),
       [positions],
@@ -141,10 +196,123 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-    // When user has no positions/orders, keep skeleton visible until markets
-    // load so the section doesn't flash empty while trending tiles are fetched.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
-    const showTrending = !showSkeleton && !hasItems && !marketsLoading;
+
+    const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
+    useHomeViewedEvent({
+      sectionRef: sectionRef ?? null,
+      isLoading: isLoadingSection,
+      sectionName: HomeSectionNames.PERPS,
+      sectionIndex: sectionIndex ?? -1,
+      totalSectionsLoaded: totalSectionsLoaded ?? 0,
+      isEmpty: !hasItems && allCarouselMarkets.length === 0,
+      itemCount: hasItems ? displayPositions.length + displayOrders.length : 0,
+    });
+
+    const renderCarousel = useCallback(
+      (scrollProps: ScrollRenderProps) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-2.5')}
+          testID="homepage-trending-perps-carousel"
+          {...scrollProps}
+        >
+          {allCarouselMarkets.map((market) => (
+            <PerpsMarketTileCard
+              key={market.symbol}
+              market={market}
+              sparklineData={sparklines[market.symbol]}
+              showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
+              onPress={handleTilePress}
+            />
+          ))}
+          <ViewMoreCard
+            onPress={handleViewAllPerps}
+            twClassName="w-[180px] h-[140px]"
+            activeOpacity={0.7}
+            testID="perps-view-more-card"
+          />
+        </ScrollView>
+      ),
+      [
+        tw,
+        allCarouselMarkets,
+        sparklines,
+        watchlistSymbolSet,
+        handleTilePress,
+        handleViewAllPerps,
+      ],
+    );
+
+    if (showSkeleton || pendingTrending) {
+      return (
+        <SectionRow>
+          <PerpsPositionSkeleton />
+        </SectionRow>
+      );
+    }
+
+    if (hasItems) {
+      return (
+        <SectionRow>
+          <Box testID="homepage-perps-positions">
+            {displayPositions.map((position) => (
+              <PositionCardItem
+                key={position.symbol}
+                position={position}
+                tpSlLoading={!tpSlReady}
+                onPositionPress={handlePositionPress}
+              />
+            ))}
+            {displayOrders.map((order) => (
+              <PerpsCard
+                key={order.orderId}
+                order={order}
+                testID={`perps-order-row-${order.orderId}`}
+              />
+            ))}
+          </Box>
+        </SectionRow>
+      );
+    }
+
+    if (allCarouselMarkets.length > 0) {
+      return <FadingScrollContainer>{renderCarousel}</FadingScrollContainer>;
+    }
+
+    return null;
+  },
+);
+
+PerpsSectionContent.displayName = 'PerpsSectionContent';
+
+/**
+ * PerpsSection — single "Perpetuals" section on the homepage.
+ *
+ * Shows open positions + limit orders when the user has any,
+ * otherwise shows a trending markets tile carousel with sparkline charts.
+ *
+ * Must be rendered inside PerpsConnectionProvider + PerpsStreamProvider.
+ * Positions/orders live in PerpsSectionContent so throttle updates don't
+ * re-render the section title.
+ */
+const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
+  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const sectionViewRef = useRef<View>(null);
+    const navigation =
+      useNavigation<NavigationProp<PerpsNavigationParamList>>();
+    const title = strings('homepage.sections.perpetuals');
+    const { error: connectionError, reconnectWithNewContext } =
+      usePerpsConnection();
+    const { track } = usePerpsEventTracking();
+
+    const {
+      markets,
+      isLoading: marketsLoading,
+      refresh: refreshMarkets,
+    } = usePerpsMarkets();
+    const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
 
     const safeWatchlistSymbols = useMemo(
       () => watchlistSymbols ?? [],
@@ -185,11 +353,17 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
-      [showTrending, allCarouselMarkets],
+      () => allCarouselMarkets.map((m) => m.symbol),
+      [allCarouselMarkets],
     );
     const { sparklines, refresh: refreshSparklines } =
       useHomepageSparklines(carouselSymbols);
+
+    useFocusEffect(
+      useCallback(() => {
+        refreshMarkets();
+      }, [refreshMarkets]),
+    );
 
     useImperativeHandle(
       ref,
@@ -200,9 +374,10 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             return;
           }
           refreshSparklines();
+          await refreshMarkets();
         },
       }),
-      [connectionError, reconnectWithNewContext, refreshSparklines],
+      [connectionError, reconnectWithNewContext, refreshSparklines, refreshMarkets],
     );
 
     const handleViewAllPerps = useCallback(() => {
@@ -248,21 +423,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [navigation],
     );
 
-    // Pass null while loading so the hook uses the immediate-fire path and
-    // does not fire from viewport visibility with stale itemCount/isEmpty.
-    const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
-    const willRender = !isLoadingSection;
-
-    useHomeViewedEvent({
-      sectionRef: willRender ? sectionViewRef : null,
-      isLoading: isLoadingSection,
-      sectionName: HomeSectionNames.PERPS,
-      sectionIndex,
-      totalSectionsLoaded,
-      isEmpty: !hasItems && trendingMarkets.length === 0,
-      itemCount: hasItems ? displayPositions.length + displayOrders.length : 0,
-    });
-
     if (connectionError) {
       return (
         <View ref={sectionViewRef}>
@@ -283,61 +443,18 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       <View ref={sectionViewRef}>
         <Box gap={3}>
           <SectionTitle title={title} onPress={handleViewAllPerps} />
-          {showSkeleton || pendingTrending ? (
-            <SectionRow>
-              <PerpsPositionSkeleton />
-            </SectionRow>
-          ) : hasItems ? (
-            <SectionRow>
-              <Box testID="homepage-perps-positions">
-                {displayPositions.map((position) => (
-                  <PerpsPositionCard
-                    key={position.symbol}
-                    position={position}
-                    compact
-                    compactVariant="position"
-                    tpSlLoading={!tpSlReady}
-                    onPress={() => handlePositionPress(position)}
-                    testID={`perps-position-row-${position.symbol}`}
-                  />
-                ))}
-                {displayOrders.map((order) => (
-                  <PerpsCard
-                    key={order.orderId}
-                    order={order}
-                    testID={`perps-order-row-${order.orderId}`}
-                  />
-                ))}
-              </Box>
-            </SectionRow>
-          ) : allCarouselMarkets.length > 0 ? (
-            <FadingScrollContainer>
-              {(scrollProps) => (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={tw.style('px-4 gap-2.5')}
-                  testID="homepage-trending-perps-carousel"
-                  {...scrollProps}
-                >
-                  {allCarouselMarkets.map((market) => (
-                    <PerpsMarketTileCard
-                      key={market.symbol}
-                      market={market}
-                      sparklineData={sparklines[market.symbol]}
-                      showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                      onPress={handleTilePress}
-                    />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAllPerps}
-                    twClassName="w-[180px] flex-1"
-                    testID="perps-view-more-card"
-                  />
-                </ScrollView>
-              )}
-            </FadingScrollContainer>
-          ) : null}
+          <PerpsSectionContent
+            allCarouselMarkets={allCarouselMarkets}
+            watchlistSymbolSet={watchlistSymbolSet}
+            marketsLoading={marketsLoading}
+            sparklines={sparklines}
+            handleViewAllPerps={handleViewAllPerps}
+            handlePositionPress={handlePositionPress}
+            handleTilePress={handleTilePress}
+            sectionRef={sectionViewRef}
+            sectionIndex={sectionIndex}
+            totalSectionsLoaded={totalSectionsLoaded}
+          />
         </Box>
       </View>
     );
