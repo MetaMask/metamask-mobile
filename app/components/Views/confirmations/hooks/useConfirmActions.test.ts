@@ -29,6 +29,7 @@ const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockShowHardwareWalletError = jest.fn();
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
+const mockIsUserCancellation = jest.fn().mockReturnValue(false);
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: mockEnsureDeviceReady,
@@ -36,7 +37,7 @@ jest.mock('../../../../core/HardwareWallet', () => ({
     showAwaitingConfirmation: mockShowAwaitingConfirmation,
     hideAwaitingConfirmation: mockHideAwaitingConfirmation,
   }),
-  isUserCancellation: jest.fn().mockReturnValue(false),
+  isUserCancellation: (...args: unknown[]) => mockIsUserCancellation(...args),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -84,6 +85,8 @@ describe('useConfirmAction', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    setupLedgerMocks(false);
 
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
@@ -299,6 +302,137 @@ describe('useConfirmAction', () => {
       handleErrors: false,
     });
     await flushPromises();
+  });
+
+  it('navigates to wallet view when onReject is called with navigateToHome', async () => {
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+    result?.current?.onReject(undefined, false, true);
+    await flushPromises();
+    expect(navigateMock).toHaveBeenCalledWith('WalletView');
+  });
+
+  it('shows hardware wallet error and rejects when Ledger signing fails', async () => {
+    setupLedgerMocks(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    (Engine.acceptPendingApproval as jest.Mock).mockRejectedValueOnce(
+      new Error('signing failed'),
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockHideAwaitingConfirmation).toHaveBeenCalled();
+    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(expect.any(Error));
+    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips error UI when Ledger signing fails with user cancellation', async () => {
+    setupLedgerMocks(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    mockIsUserCancellation.mockReturnValue(true);
+    (Engine.acceptPendingApproval as jest.Mock).mockRejectedValueOnce(
+      new Error('user rejected'),
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockHideAwaitingConfirmation).toHaveBeenCalled();
+    expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
+    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onTransactionConfirm with onError for Ledger transaction path', async () => {
+    setupLedgerMocks(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+    const mockOnTransactionConfirm = jest.fn().mockResolvedValue(undefined);
+    useTransactionConfirmMock.mockReturnValue({
+      onConfirm: mockOnTransactionConfirm,
+    });
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockOnTransactionConfirm).toHaveBeenCalledWith({
+      onError: expect.any(Function),
+    });
+    expect(mockHideAwaitingConfirmation).toHaveBeenCalled();
+  });
+
+  it('invokes rejectOnce via cancel callback from showAwaitingConfirmation', async () => {
+    setupLedgerMocks(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+
+    let cancelCallback: (() => void) | undefined;
+    mockShowAwaitingConfirmation.mockImplementation(
+      (_type: string, onCancel: () => void) => {
+        cancelCallback = onCancel;
+      },
+    );
+
+    // Make signing hang so we can trigger cancel while it's pending
+    (Engine.acceptPendingApproval as jest.Mock).mockReturnValueOnce(
+      new Promise(() => {}),
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    // Don't await — signing is pending
+    void result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(cancelCallback).toBeDefined();
+    cancelCallback?.();
+    await flushPromises();
+
+    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+  });
+
+  it('prevents double rejection when cancel and error both trigger', async () => {
+    setupLedgerMocks(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
+
+    let cancelCallback: (() => void) | undefined;
+    mockShowAwaitingConfirmation.mockImplementation(
+      (_type: string, onCancel: () => void) => {
+        cancelCallback = onCancel;
+      },
+    );
+    (Engine.acceptPendingApproval as jest.Mock).mockRejectedValueOnce(
+      new Error('fail'),
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: personalSignatureConfirmationState,
+    });
+
+    await result?.current?.onConfirm();
+    await flushPromises();
+
+    // catch block already called rejectOnce (fire-and-forget)
+    await flushPromises();
+    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
+
+    // cancel callback should be a no-op now
+    cancelCallback?.();
+    await flushPromises();
+    expect(Engine.rejectPendingApproval).toHaveBeenCalledTimes(1);
   });
 
   it('navigates to transactions view when confirming batch transaction', async () => {

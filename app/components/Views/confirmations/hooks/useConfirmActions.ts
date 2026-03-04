@@ -81,16 +81,36 @@ export const useConfirmActions = () => {
 
   const hasRejectedRef = useRef(false);
 
+  const executeApproval = useCallback(async () => {
+    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
+    await onRequestConfirm({
+      waitForResult,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+
+    if (approvalType === ApprovalType.TransactionBatch) {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    } else {
+      navigation.goBack();
+    }
+
+    if (isSignatureReq && approvalRequest?.id) {
+      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
+    }
+  }, [
+    approvalType,
+    onRequestConfirm,
+    navigation,
+    isSignatureReq,
+    approvalRequest?.id,
+    captureSignatureMetrics,
+  ]);
+
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
       hasRejectedRef.current = false;
-
-      const deviceId = await getDeviceId();
-      const isReady = await ensureDeviceReady(deviceId);
-
-      if (!isReady) {
-        return;
-      }
 
       const rejectOnce = () => {
         if (hasRejectedRef.current) return;
@@ -98,12 +118,19 @@ export const useConfirmActions = () => {
         onReject();
       };
 
-      const operationType = isTransactionReq ? 'transaction' : 'message';
-      showAwaitingConfirmation(operationType, () => {
-        rejectOnce();
-      });
-
       try {
+        const deviceId = await getDeviceId();
+        const isReady = await ensureDeviceReady(deviceId);
+
+        if (!isReady) {
+          return;
+        }
+
+        const operationType = isTransactionReq ? 'transaction' : 'message';
+        showAwaitingConfirmation(operationType, () => {
+          rejectOnce();
+        });
+
         if (isTransactionReq) {
           await onTransactionConfirm({
             onError: (err) => {
@@ -111,24 +138,9 @@ export const useConfirmActions = () => {
             },
           });
         } else {
-          const waitForResult = approvalType !== ApprovalType.TransactionBatch;
-          await onRequestConfirm({
-            waitForResult,
-            deleteAfterResult: true,
-            handleErrors: false,
-          });
-
-          if (approvalType === ApprovalType.TransactionBatch) {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
-          } else {
-            navigation.goBack();
-          }
-
-          if (isSignatureReq && approvalRequest?.id) {
-            captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-            PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
-          }
+          await executeApproval();
         }
+
         hideAwaitingConfirmation();
       } catch (err) {
         hideAwaitingConfirmation();
@@ -152,37 +164,14 @@ export const useConfirmActions = () => {
       return;
     }
 
-    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
-
-    await onRequestConfirm({
-      waitForResult,
-      deleteAfterResult: true,
-      handleErrors: false,
-    });
-
-    if (approvalType === ApprovalType.TransactionBatch) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      return;
-    }
-
-    navigation.goBack();
-
-    if (isSignatureReq && approvalRequest?.id) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
-    }
+    await executeApproval();
   }, [
     isLedgerAccount,
     isSigningQRObject,
     isTransactionReq,
-    onRequestConfirm,
-    navigation,
-    isSignatureReq,
     setScannerVisible,
     onTransactionConfirm,
-    captureSignatureMetrics,
-    approvalType,
-    approvalRequest?.id,
+    executeApproval,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
