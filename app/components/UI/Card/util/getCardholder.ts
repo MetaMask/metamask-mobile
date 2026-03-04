@@ -27,9 +27,12 @@ export const getCardholder = async ({
       cardFeatureFlag,
     });
 
-    const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
-    const geoLocation =
-      Engine.context.GeolocationController?.state?.location ?? 'UNKNOWN';
+    const [cardCaipAccountIds, geoLocation] = await Promise.all([
+      cardSDK.isCardHolder(caipAccountIds),
+      Engine.controllerMessenger
+        .call('GeolocationController:getGeolocation')
+        .catch(() => 'UNKNOWN'),
+    ]);
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;
