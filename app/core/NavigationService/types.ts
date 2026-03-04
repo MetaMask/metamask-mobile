@@ -250,7 +250,7 @@ export interface RootStackParamList extends ParamListBase {
   RampAmountInput:
     | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
     | undefined;
-  RampModals: undefined;
+  RampModals: NestedNavigationParams | undefined;
   RampTokenSelectorModal: undefined;
   RampFiatSelectorModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;

@@ -251,12 +251,9 @@ const V2BasicInfo = (): JSX.Element => {
   }, [logoutFromProvider, navigation]);
 
   const handleSsnInfoPress = useCallback(() => {
-    navigation.navigate(
-      Routes.RAMP.MODALS.ID as never,
-      {
-        screen: Routes.RAMP.MODALS.SSN_INFO,
-      } as never,
-    );
+    navigation.navigate(Routes.RAMP.MODALS.ID, {
+      screen: Routes.RAMP.MODALS.SSN_INFO,
+    });
   }, [navigation]);
 
   const focusNextField = useCallback(
