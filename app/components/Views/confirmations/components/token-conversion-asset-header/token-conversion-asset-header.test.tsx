@@ -108,13 +108,13 @@ describe('TokenConversionAssetHeader', () => {
     jest.resetAllMocks();
   });
 
-  it('renders skeleton when loading', () => {
+  it('renders skeleton alongside hidden content for measurement when loading', () => {
     mockUseIsTransactionPayLoading.mockReturnValue(true);
 
     const token = createMockToken();
     const formatFiat = createMockFormatFiat();
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <TokenConversionAssetHeader
         inputToken={token}
         outputToken={token}
@@ -127,11 +127,11 @@ describe('TokenConversionAssetHeader', () => {
       getByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
-    ).toBeNull();
+      getByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT),
+    ).toBeOnTheScreen();
     expect(
-      queryByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
-    ).toBeNull();
+      getByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT),
+    ).toBeOnTheScreen();
   });
 
   it('renders asset header with quote source and target totals when not loading', () => {
