@@ -22,6 +22,7 @@ export const selectRampsControllerState = (state: RootState) =>
 
 /**
  * Default resource state for when the controller state is unavailable.
+ * Includes status defaulting to 'idle' for tolerance with migrated state.
  */
 const createDefaultResourceState = <TData, TSelected = null>(
   data: TData,
@@ -31,6 +32,7 @@ const createDefaultResourceState = <TData, TSelected = null>(
   selected,
   isLoading: false,
   error: null,
+  status: 'idle',
 });
 
 /**
@@ -43,50 +45,73 @@ export const selectUserRegion = createSelector(
 );
 
 /**
- * Selects the countries resource state (data, isLoading, error).
+ * Selects the countries resource state (data, isLoading, error, status).
  */
 export const selectCountries = createSelector(
   selectRampsControllerState,
-  (rampsControllerState): ResourceState<Country[]> =>
-    rampsControllerState?.countries ??
-    createDefaultResourceState<Country[]>([]),
+  (rampsControllerState): ResourceState<Country[]> => {
+    const countries = rampsControllerState?.countries;
+    if (!countries) {
+      return createDefaultResourceState<Country[]>([]);
+    }
+    // Tolerate missing status from pre-migration state
+    return { ...countries, status: countries.status ?? 'idle' };
+  },
 );
 
 /**
- * Selects the providers resource state (data, selected, isLoading, error).
+ * Selects the providers resource state (data, selected, isLoading, error, status).
  */
 export const selectProviders = createSelector(
   selectRampsControllerState,
-  (rampsControllerState): ResourceState<Provider[], Provider | null> =>
-    rampsControllerState?.providers ??
-    createDefaultResourceState<Provider[], Provider | null>([], null),
+  (rampsControllerState): ResourceState<Provider[], Provider | null> => {
+    const providers = rampsControllerState?.providers;
+    if (!providers) {
+      return createDefaultResourceState<Provider[], Provider | null>([], null);
+    }
+    // Tolerate missing status from pre-migration state
+    return { ...providers, status: providers.status ?? 'idle' };
+  },
 );
 
 /**
- * Selects the tokens resource state (data, selected, isLoading, error).
+ * Selects the tokens resource state (data, selected, isLoading, error, status).
  */
 export const selectTokens = createSelector(
   selectRampsControllerState,
   (
     rampsControllerState,
-  ): ResourceState<TokensResponse | null, RampsToken | null> =>
-    rampsControllerState?.tokens ??
-    createDefaultResourceState<TokensResponse | null, RampsToken | null>(
-      null,
-      null,
-    ),
+  ): ResourceState<TokensResponse | null, RampsToken | null> => {
+    const tokens = rampsControllerState?.tokens;
+    if (!tokens) {
+      return createDefaultResourceState<
+        TokensResponse | null,
+        RampsToken | null
+      >(null, null);
+    }
+    // Tolerate missing status from pre-migration state
+    return { ...tokens, status: tokens.status ?? 'idle' };
+  },
 );
 
 /**
- * Selects the payment methods resource state (data, selected, isLoading, error).
+ * Selects the payment methods resource state (data, selected, isLoading, error, status).
  */
 export const selectPaymentMethods = createSelector(
   selectRampsControllerState,
   (
     rampsControllerState,
-  ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
-    rampsControllerState?.paymentMethods ??
-    createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+  ): ResourceState<PaymentMethod[], PaymentMethod | null> => {
+    const paymentMethods = rampsControllerState?.paymentMethods;
+    if (!paymentMethods) {
+      return createDefaultResourceState<PaymentMethod[], PaymentMethod | null>(
+        [],
+        null,
+      );
+    }
+    // Tolerate missing status from pre-migration state
+    return { ...paymentMethods, status: paymentMethods.status ?? 'idle' };
+  },
 );
 
 /**
@@ -102,11 +127,31 @@ export const selectRampsOrders = createSelector(
  */
 export const selectTransak = createSelector(
   selectRampsControllerState,
-  (rampsControllerState): TransakState =>
-    rampsControllerState?.nativeProviders?.transak ?? {
-      isAuthenticated: false,
-      userDetails: createDefaultResourceState(null),
-      buyQuote: createDefaultResourceState(null),
-      kycRequirement: createDefaultResourceState(null),
-    },
+  (rampsControllerState): TransakState => {
+    const transak = rampsControllerState?.nativeProviders?.transak;
+    if (!transak) {
+      return {
+        isAuthenticated: false,
+        userDetails: createDefaultResourceState(null),
+        buyQuote: createDefaultResourceState(null),
+        kycRequirement: createDefaultResourceState(null),
+      };
+    }
+    // Tolerate missing status from pre-migration state on sub-states
+    return {
+      ...transak,
+      userDetails: {
+        ...transak.userDetails,
+        status: transak.userDetails.status ?? 'idle',
+      },
+      buyQuote: {
+        ...transak.buyQuote,
+        status: transak.buyQuote.status ?? 'idle',
+      },
+      kycRequirement: {
+        ...transak.kycRequirement,
+        status: transak.kycRequirement.status ?? 'idle',
+      },
+    };
+  },
 );

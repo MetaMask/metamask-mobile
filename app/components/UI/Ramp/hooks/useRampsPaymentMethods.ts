@@ -29,6 +29,10 @@ export interface UseRampsPaymentMethodsResult {
    * The error message if the request failed, or null.
    */
   error: string | null;
+  /**
+   * The current status of the payment methods resource: 'idle' | 'loading' | 'success' | 'error'.
+   */
+  status: 'idle' | 'loading' | 'success' | 'error';
 }
 
 /**
@@ -43,6 +47,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     selected: selectedPaymentMethod,
     isLoading,
     error,
+    status,
   } = useSelector(selectPaymentMethods);
 
   const setSelectedPaymentMethod = useCallback(
@@ -59,6 +64,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     setSelectedPaymentMethod,
     isLoading,
     error,
+    status,
   };
 }
 

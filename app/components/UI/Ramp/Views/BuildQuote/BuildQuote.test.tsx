@@ -163,6 +163,7 @@ let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
 let mockPaymentMethods: unknown[] = [];
 let mockPaymentMethodsLoading = false;
+let mockPaymentMethodsStatus: 'idle' | 'loading' | 'success' | 'error' = 'idle';
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -189,6 +190,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     getWidgetUrl: mockGetWidgetUrl,
     paymentMethods: mockPaymentMethods,
     paymentMethodsLoading: mockPaymentMethodsLoading,
+    paymentMethodsStatus: mockPaymentMethodsStatus,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
 }));
@@ -268,6 +270,7 @@ describe('BuildQuote', () => {
       { id: '/payments/debit-credit-card', name: 'Debit/Credit Card' },
     ];
     mockPaymentMethodsLoading = false;
+    mockPaymentMethodsStatus = 'idle';
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -1623,11 +1626,13 @@ describe('BuildQuote', () => {
       mockSelectedProvider = provider;
       mockPaymentMethods = [];
       mockPaymentMethodsLoading = true;
+      mockPaymentMethodsStatus = 'loading';
 
       const { rerender } = renderWithTheme(<BuildQuote />);
 
       // Simulate fetch completing with empty result
       mockPaymentMethodsLoading = false;
+      mockPaymentMethodsStatus = 'success';
       rerender(
         <ThemeContext.Provider value={mockTheme}>
           <BuildQuote />

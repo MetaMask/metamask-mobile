@@ -63,6 +63,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { RequestStatus } from '@metamask/ramps-controller';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -137,6 +138,7 @@ function BuildQuote() {
     getWidgetUrl,
     paymentMethods,
     paymentMethodsLoading,
+    paymentMethodsStatus,
     selectedPaymentMethod,
   } = useRampsController();
 
@@ -153,33 +155,6 @@ function BuildQuote() {
   const tokenStateIsSettled =
     !params?.assetId || selectedToken?.assetId === params.assetId;
 
-  // Track whether a payment methods fetch has been initiated (and completed)
-  // for the current provider/token. The default Redux state is
-  // { data: [], isLoading: false }, which is indistinguishable from "finished
-  // loading with empty result". We must only treat an empty list as a real
-  // signal after we've witnessed at least one loading cycle.
-  const hasSeenLoadingRef = useRef(false);
-  const prevProviderIdRef = useRef(selectedProvider?.id);
-  const prevSettledAssetIdRef = useRef<string | undefined>(undefined);
-
-  useEffect(() => {
-    const providerChanged = selectedProvider?.id !== prevProviderIdRef.current;
-    const settledAssetId = tokenStateIsSettled
-      ? selectedToken?.assetId
-      : undefined;
-    const tokenChanged = settledAssetId !== prevSettledAssetIdRef.current;
-
-    if (providerChanged || tokenChanged) {
-      hasSeenLoadingRef.current = false;
-      prevProviderIdRef.current = selectedProvider?.id;
-      prevSettledAssetIdRef.current = settledAssetId;
-    }
-
-    if (paymentMethodsLoading) {
-      hasSeenLoadingRef.current = true;
-    }
-  });
-
   const isTokenUnavailable = useMemo(() => {
     if (!selectedProvider || !tokenStateIsSettled) return false;
 
@@ -192,21 +167,11 @@ function BuildQuote() {
       return true;
     }
 
-    // API returned no payment methods after a completed fetch. Guard against
-    // the default Redux state { data: [], isLoading: false } which looks
-    // identical to "loaded empty" — only treat it as unavailable once we've
-    // seen a real loading cycle for this provider/token.
-    //
-    // Check that loading has finished AND the ref confirms we witnessed a load
-    // cycle for the current provider/token. This prevents false positives when
-    // the ref is stale during provider/token transitions.
+    // API returned no payment methods after a successful fetch.
+    // The status field distinguishes 'idle' (never fetched) from 'success' (fetched empty).
     if (
-      !paymentMethodsLoading &&
-      paymentMethods.length === 0 &&
-      hasSeenLoadingRef.current &&
-      selectedProvider.id === prevProviderIdRef.current &&
-      (tokenStateIsSettled ? selectedToken?.assetId : undefined) ===
-        prevSettledAssetIdRef.current
+      paymentMethodsStatus === RequestStatus.SUCCESS &&
+      paymentMethods.length === 0
     ) {
       return true;
     }
@@ -214,10 +179,9 @@ function BuildQuote() {
     return false;
   }, [
     selectedProvider,
-    selectedToken?.assetId,
     params?.assetId,
     tokenStateIsSettled,
-    paymentMethodsLoading,
+    paymentMethodsStatus,
     paymentMethods,
   ]);
 
