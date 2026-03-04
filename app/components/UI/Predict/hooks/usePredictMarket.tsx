@@ -2,10 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 
 /**
- * Hook to fetch detailed Predict market information.
- *
- * Backed by React Query — results are cached, deduplicated, and
- * automatically revalidated on stale-while-revalidate semantics.
+ * Hook to fetch detailed Predict market information
  */
 export const usePredictMarket = ({
   id,
