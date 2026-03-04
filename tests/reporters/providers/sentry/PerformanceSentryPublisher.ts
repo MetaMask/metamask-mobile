@@ -12,6 +12,11 @@ const ENV_SENTRY_ENABLED = 'E2E_PERFORMANCE_SENTRY_ENABLED';
 const ENV_SENTRY_SAMPLE_RATE = 'E2E_PERFORMANCE_SENTRY_SAMPLE_RATE';
 const ENV_SENTRY_ENVIRONMENT = 'E2E_PERFORMANCE_SENTRY_ENVIRONMENT';
 const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
+const MAX_MEASUREMENT_KEY_LENGTH = 64;
+const RESERVED_MEASUREMENT_KEYS = [
+  'scenario_total_time_ms',
+  'scenario_total_threshold_ms',
+] as const;
 
 interface PublishPerformanceScenarioOptions {
   metrics: MetricsOutput;
@@ -28,6 +33,7 @@ interface ParsedSentryDsn {
   dsn: string;
   endpoint: string;
   projectId: string;
+  publicKey: string;
 }
 
 interface TimerMeasurement {
@@ -91,20 +97,31 @@ function createUniqueMeasurementKey(
   name: string,
   usedKeys: Set<string>,
 ): string {
-  const baseKey = sanitizeMeasurementKey(name).slice(0, 64);
+  const baseKey = sanitizeMeasurementKey(name).slice(
+    0,
+    MAX_MEASUREMENT_KEY_LENGTH,
+  );
   if (!usedKeys.has(baseKey)) {
     usedKeys.add(baseKey);
     return baseKey;
   }
 
   let suffix = 2;
-  while (usedKeys.has(`${baseKey}_${suffix}`)) {
+  while (true) {
+    const suffixToken = `_${suffix}`;
+    const maxBaseLength = Math.max(
+      1,
+      MAX_MEASUREMENT_KEY_LENGTH - suffixToken.length,
+    );
+    const collisionKey = `${baseKey.slice(0, maxBaseLength)}${suffixToken}`;
+
+    if (!usedKeys.has(collisionKey)) {
+      usedKeys.add(collisionKey);
+      return collisionKey;
+    }
+
     suffix += 1;
   }
-
-  const finalKey = `${baseKey}_${suffix}`;
-  usedKeys.add(finalKey);
-  return finalKey;
 }
 
 function parseSentryDsn(dsn: string): ParsedSentryDsn | null {
@@ -112,19 +129,27 @@ function parseSentryDsn(dsn: string): ParsedSentryDsn | null {
     const parsedUrl = new URL(dsn);
     const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
     const projectId = pathSegments[pathSegments.length - 1];
+    const publicKey = parsedUrl.username;
 
-    if (!projectId || !parsedUrl.username) {
+    if (!projectId || !publicKey) {
       return null;
     }
 
     const pathPrefixSegments = pathSegments.slice(0, -1);
     const pathPrefix =
       pathPrefixSegments.length > 0 ? `/${pathPrefixSegments.join('/')}` : '';
+    const endpointUrl = new URL(
+      `${pathPrefix}/api/${projectId}/envelope/`,
+      `${parsedUrl.protocol}//${parsedUrl.host}`,
+    );
+    endpointUrl.searchParams.set('sentry_key', publicKey);
+    endpointUrl.searchParams.set('sentry_version', '7');
 
     return {
       dsn,
       projectId,
-      endpoint: `${parsedUrl.protocol}//${parsedUrl.host}${pathPrefix}/api/${projectId}/envelope/`,
+      publicKey,
+      endpoint: endpointUrl.toString(),
     };
   } catch {
     return null;
@@ -186,7 +211,7 @@ export async function publishPerformanceScenarioToSentry(
   const endTimestamp = Date.now() / 1000;
   const startTimestamp = endTimestamp - totalDurationMs / 1000;
 
-  const usedMeasurementKeys = new Set<string>();
+  const usedMeasurementKeys = new Set<string>(RESERVED_MEASUREMENT_KEYS);
   const timerMeasurements: TimerMeasurement[] = options.metrics.steps.map(
     (step) => ({
       key: createUniqueMeasurementKey(step.name, usedMeasurementKeys),
