@@ -9430,14 +9430,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478":
-  version: 10.0.0-preview-225638478
-  resolution: "@metamask-previews/ramps-controller@npm:10.0.0-preview-225638478"
+"@metamask/ramps-controller@npm:^10.2.0":
+  version: 10.2.0
+  resolution: "@metamask/ramps-controller@npm:10.2.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/dc093dacbe55ee20cbb50cc9b1c9649469b4c115f35db6b0f7a020610742955c6f35ee5e1f74ba079769c481c0210316ffd23e775bd03b1e83798530aaf142cb
+  checksum: 10/4c9e10f3948a4e0f44f3a98fd2a7a220585e74793ad4cc899b27be6ea3c428c76fb95b0987697a0dd62a98221868ce2bfb3e40495cef00f4909e5dd88dec152e
   languageName: node
   linkType: hard
 
@@ -35452,7 +35452,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^10.0.0"
+    "@metamask/ramps-controller": "npm:^10.2.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
