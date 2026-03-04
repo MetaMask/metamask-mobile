@@ -585,4 +585,300 @@ describe('useRampTokens', () => {
       expect(result.current.allTokens).toHaveLength(1);
     });
   });
+
+  describe('tokens cache', () => {
+    it('returns cached result on second mount with same region and routing (no second fetch)', async () => {
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch.mockResolvedValue(mockResponse);
+
+      const state = createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca');
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.isLoading).toBe(false);
+        expect(result1.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('deduplicates in-flight requests when two hooks share same region and routing', async () => {
+      type MockResponse = ReturnType<typeof createMockResponse>;
+      const deferred: { resolve: (value: MockResponse) => void } = {
+        resolve: jest.fn(),
+      };
+      const fetchPromise = new Promise<MockResponse>((resolve) => {
+        deferred.resolve = resolve;
+      });
+      mockHandleFetch.mockReturnValue(fetchPromise);
+
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      const state = createMockState(UnifiedRampRoutingType.DEPOSIT, 'uk');
+
+      const { result: result1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state,
+        },
+      );
+
+      await waitFor(() => {
+        expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+      });
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state,
+        },
+      );
+
+      deferred.resolve(mockResponse);
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result2.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches separately for different routing decision (different cache key)', async () => {
+      const responseAgg = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      const responseDep = createMockResponse(
+        [createMockToken({ symbol: 'BTC' })],
+        [createMockToken({ symbol: 'BTC' })],
+      );
+      mockHandleFetch
+        .mockResolvedValueOnce(responseAgg)
+        .mockResolvedValueOnce(responseDep);
+
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(responseAgg.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(responseDep.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('fetches separately for different region (different cache key)', async () => {
+      const responseUs = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      const responseUk = createMockResponse(
+        [createMockToken({ symbol: 'BTC' })],
+        [createMockToken({ symbol: 'BTC' })],
+      );
+      mockHandleFetch
+        .mockResolvedValueOnce(responseUs)
+        .mockResolvedValueOnce(responseUk);
+
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(responseUs.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'uk'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(responseUk.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('refetches when cache entry is expired (TTL exceeded)', async () => {
+      jest.useFakeTimers();
+      const response1 = createMockResponse(
+        [createMockToken({ symbol: 'A' })],
+        [createMockToken({ symbol: 'A' })],
+      );
+      const response2 = createMockResponse(
+        [createMockToken({ symbol: 'B' })],
+        [createMockToken({ symbol: 'B' })],
+      );
+      mockHandleFetch
+        .mockResolvedValueOnce(response1)
+        .mockResolvedValueOnce(response2);
+
+      const state = createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca');
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(response1.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(response2.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+
+      jest.useRealTimers();
+    });
+
+    it('deletes cache entry on fetch error and refetches on next mount', async () => {
+      const mockError = new Error('Network error');
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch
+        .mockRejectedValueOnce(mockError)
+        .mockResolvedValueOnce(mockResponse);
+
+      const state = createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca');
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.error).toEqual(mockError);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result2.current.error).toBeNull();
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('refetches after __clearRampTokensCache when same params are used again', async () => {
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch.mockResolvedValue(mockResponse);
+
+      const state = createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca');
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+
+      unmount1();
+      __clearRampTokensCache();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        { state },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('uses same cache key for same region regardless of case (normalizes to lowercase)', async () => {
+      const mockResponse = createMockResponse(
+        [createMockToken({ symbol: 'ETH' })],
+        [createMockToken({ symbol: 'ETH' })],
+      );
+      mockHandleFetch.mockResolvedValue(mockResponse);
+
+      const { result: result1, unmount: unmount1 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'US-CA'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result1.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+      unmount1();
+
+      const { result: result2 } = renderHookWithProvider(
+        () => useRampTokens(),
+        {
+          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result2.current.topTokens).toEqual(mockResponse.topTokens);
+      });
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+  });
 });
