@@ -57,7 +57,6 @@ import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken
 import { usePredictPayWithAnyTokenTracking } from '../../hooks/usePredictPayWithAnyTokenTracking';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
@@ -95,6 +94,8 @@ const PredictBuyPreview = () => {
     setCurrentValueUSDString,
     isInputFocused,
     setIsInputFocused,
+    isUserInputChange,
+    setIsUserInputChange,
   } = usePredictBuyInputState();
 
   const {
@@ -216,6 +217,12 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  useEffect(() => {
+    if (!isCalculating) {
+      setIsUserInputChange(false);
+    }
+  }, [isCalculating, setIsUserInputChange]);
+
   const {
     retrySheetRef,
     retrySheetVariant,
@@ -239,10 +246,6 @@ const PredictBuyPreview = () => {
       isBalanceLoading,
     },
   });
-
-  const previousValue = usePreviousValue(currentValue);
-  const isUserInputChange =
-    isCalculating && currentValue > 0 && currentValue !== (previousValue ?? 0);
 
   const errorMessage = useMemo(
     () => (isOrderNotFilled ? undefined : (previewError ?? placeOrderError)),

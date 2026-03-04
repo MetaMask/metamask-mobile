@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { SetStateAction, useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../types/navigation';
@@ -24,13 +24,16 @@ export const usePredictBuyInputState = () => {
   const autoPlaceAmount =
     typeof amount === 'number' && amount > 0 ? amount : undefined;
 
-  const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
+  const [currentValue, setCurrentValueState] = useState(
+    () => autoPlaceAmount ?? 0,
+  );
   const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
     autoPlaceAmount ? autoPlaceAmount.toString() : '',
   );
   const [isInputFocused, setIsInputFocused] = useState(
     activeOrder?.isInputFocused ?? false,
   );
+  const [isUserInputChange, setIsUserInputChange] = useState(false);
 
   const isPayWithAnyToken = !!activeTransactionMeta?.id || !!transactionId;
 
@@ -60,6 +63,21 @@ export const usePredictBuyInputState = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const setCurrentValue = useCallback((value: SetStateAction<number>) => {
+    setCurrentValueState((previousValue) => {
+      const nextValue =
+        typeof value === 'function'
+          ? (value as (prevState: number) => number)(previousValue)
+          : value;
+
+      if (nextValue !== previousValue) {
+        setIsUserInputChange(nextValue > 0);
+      }
+
+      return nextValue;
+    });
+  }, []);
+
   return {
     currentValue,
     setCurrentValue,
@@ -67,5 +85,7 @@ export const usePredictBuyInputState = () => {
     setCurrentValueUSDString,
     isInputFocused,
     setIsInputFocused,
+    isUserInputChange,
+    setIsUserInputChange,
   };
 };

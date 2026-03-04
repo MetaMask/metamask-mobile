@@ -48,7 +48,6 @@ import { useTransactionMetadataRequest } from '../../../../Views/confirmations/h
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -95,6 +94,8 @@ export function PredictPayWithAnyTokenInfo() {
     setCurrentValueUSDString,
     isInputFocused,
     setIsInputFocused,
+    isUserInputChange,
+    setIsUserInputChange,
   } = usePredictBuyInputState();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
@@ -119,9 +120,11 @@ export function PredictPayWithAnyTokenInfo() {
     autoRefreshTimeout: 1000,
   });
 
-  const previousValue = usePreviousValue(currentValue);
-  const isUserInputChange =
-    isCalculating && currentValue > 0 && currentValue !== (previousValue ?? 0);
+  useEffect(() => {
+    if (!isCalculating) {
+      setIsUserInputChange(false);
+    }
+  }, [isCalculating, setIsUserInputChange]);
 
   const isBelowMinimum = useMemo(
     () => currentValue > 0 && currentValue < MINIMUM_BET,
@@ -178,7 +181,7 @@ export function PredictPayWithAnyTokenInfo() {
       }
 
       redirectToBuyPreview({ includeTransactionId: false });
-      void onReject(undefined, true);
+      onReject(undefined, true);
     },
     [onReject, redirectToBuyPreview],
   );
@@ -276,6 +279,14 @@ export function PredictPayWithAnyTokenInfo() {
       setIsConfirming(false);
     }
   }, [isConfirming, onApprovalConfirm, redirectToBuyPreview]);
+
+  useEffect(
+    () => () => {
+      if (isConfirming) return;
+      onReject(undefined, true);
+    },
+    [isConfirming, onReject],
+  );
 
   const canPlaceBet = useMemo(
     () =>
