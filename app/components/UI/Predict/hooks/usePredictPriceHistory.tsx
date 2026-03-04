@@ -21,11 +21,10 @@ export interface UsePredictPriceHistoryResult {
   refetch: () => Promise<void>;
 }
 
-// Returns a curated interface (flattened priceHistories, consolidated isFetching,
-// per-query errors, batched refetch) rather than raw useQueries — both consumers
-// (useChartData, PredictGameChart) depend on this derived shape.
 /**
- * Hook to fetch and manage price history data for multiple markets
+ * Hook to fetch and manage price history data for multiple markets.
+ * Returns a curated interface (flattened histories, consolidated isFetching,
+ * batched refetch) shared by useChartData and PredictGameChart.
  */
 export const usePredictPriceHistory = (
   options: UsePredictPriceHistoryOptions,
