@@ -10,7 +10,6 @@ import Assertions from '../../../../framework/Assertions';
 import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
-import PermissionSummaryBottomSheet from '../../../../page-objects/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
