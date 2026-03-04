@@ -12,6 +12,23 @@ import {
 } from '@metamask/perps-controller';
 
 /**
+ * Create a mock EVM account (KeyringAccount)
+ */
+export const createMockEvmAccount = () => ({
+  id: '00000000-0000-0000-0000-000000000000',
+  address: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+  type: 'eip155:eoa' as const,
+  options: {},
+  scopes: ['eip155:1'],
+  methods: ['eth_signTransaction', 'eth_sign'],
+  metadata: {
+    name: 'Test Account',
+    importTime: Date.now(),
+    keyring: { type: 'HD Key Tree' },
+  },
+});
+
+/**
  * Create a mock PerpsPlatformDependencies instance.
  * Returns a type-safe mock with jest.Mock functions for all methods.
  * Uses `as unknown as jest.Mocked<PerpsPlatformDependencies>` pattern
@@ -53,11 +70,6 @@ export const createMockInfrastructure =
         clearAllChannels: jest.fn(),
       },
 
-      // === Rewards (no standard messenger action in core) ===
-      rewards: {
-        getFeeDiscount: jest.fn().mockResolvedValue(0),
-      },
-
       // === Feature Flags (platform-specific version gating) ===
       featureFlags: {
         validateVersionGated: jest.fn().mockReturnValue(undefined),
@@ -75,6 +87,11 @@ export const createMockInfrastructure =
       cacheInvalidator: {
         invalidate: jest.fn(),
         invalidateAll: jest.fn(),
+      },
+
+      // === Rewards (DI — no RewardsController in Core yet) ===
+      rewards: {
+        getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
       },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
@@ -159,23 +176,6 @@ export const createMockServiceContext = (
     getState: jest.fn(() => createMockPerpsControllerState()),
   },
   ...overrides,
-});
-
-/**
- * Create a mock EVM account (KeyringAccount)
- */
-export const createMockEvmAccount = () => ({
-  id: '00000000-0000-0000-0000-000000000000',
-  address: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
-  type: 'eip155:eoa' as const,
-  options: {},
-  scopes: ['eip155:1'],
-  methods: ['eth_signTransaction', 'eth_sign'],
-  metadata: {
-    name: 'Test Account',
-    importTime: Date.now(),
-    keyring: { type: 'HD Key Tree' },
-  },
 });
 
 /**
