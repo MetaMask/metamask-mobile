@@ -127,7 +127,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {strings('market_insights.fixed_footer_disclaimer')}
+              {strings('market_insights.footer_disclaimer')}
             </Text>
             <Text
               variant={TextVariant.BodySm}
