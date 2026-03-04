@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
@@ -79,8 +79,12 @@ export const useConfirmActions = () => {
     ],
   );
 
+  const hasRejectedRef = useRef(false);
+
   const onConfirm = useCallback(async () => {
     if (isLedgerAccount) {
+      hasRejectedRef.current = false;
+
       const deviceId = await getDeviceId();
       const isReady = await ensureDeviceReady(deviceId);
 
@@ -88,10 +92,15 @@ export const useConfirmActions = () => {
         return;
       }
 
+      const rejectOnce = () => {
+        if (hasRejectedRef.current) return;
+        hasRejectedRef.current = true;
+        onReject();
+      };
+
       const operationType = isTransactionReq ? 'transaction' : 'message';
       showAwaitingConfirmation(operationType, () => {
-        // User pressed Reject in the bottom sheet
-        onReject();
+        rejectOnce();
       });
 
       try {
@@ -128,7 +137,7 @@ export const useConfirmActions = () => {
           showHardwareWalletError(err);
         }
 
-        onReject();
+        rejectOnce();
       }
       return;
     }
