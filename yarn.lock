@@ -9999,7 +9999,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-button@npm:^3.0.0":
+"@metamask/react-native-button@npm:3.0.0":
   version: 3.0.0
   resolution: "@metamask/react-native-button@npm:3.0.0"
   dependencies:
@@ -10007,6 +10007,17 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10/a8b9aa074b6246508cb8019ebf7907c025d646c2b408938575752f2ea66db0836cc104af04bd8e90d81dc62631508c815a2c25643371de758b0ae2529f8b67c9
+  languageName: node
+  linkType: hard
+
+"@metamask/react-native-button@patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch":
+  version: 3.0.0
+  resolution: "@metamask/react-native-button@patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch::version=3.0.0&hash=a35efc"
+  dependencies:
+    prop-types: "npm:^15.5.10"
+  peerDependencies:
+    react-native: "*"
+  checksum: 10/798c84dec2d16c0b1952534c3728809e73e2f491ccc93b3bc961631a574df1dd1971811801a8878af19ed7c9fd8de8852e12a9675bb8f613343f45f7ef19401e
   languageName: node
   linkType: hard
 
@@ -36020,7 +36031,7 @@ __metadata:
     "@metamask/ramps-controller": "npm:^8.1.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.0.2#~/.yarn/patches/@metamask-react-native-acm-npm-1.0.2-05c439b649.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
-    "@metamask/react-native-button": "npm:^3.0.0"
+    "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
     "@metamask/react-native-webview": "npm:^14.6.0"
@@ -36341,7 +36352,7 @@ __metadata:
     redux-devtools-expo-dev-plugin: "npm:^1.0.0"
     redux-mock-store: "npm:1.5.4"
     redux-persist: "npm:6.0.0"
-    redux-persist-filesystem-storage: "npm:^4.2.0"
+    redux-persist-filesystem-storage: "patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch"
     redux-saga: "npm:^1.3.0"
     redux-saga-test-plan: "npm:^4.0.6"
     redux-thunk: "npm:^2.4.2"
@@ -42274,12 +42285,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-persist-filesystem-storage@npm:^4.2.0":
+"redux-persist-filesystem-storage@npm:4.2.0":
   version: 4.2.0
   resolution: "redux-persist-filesystem-storage@npm:4.2.0"
   dependencies:
     react-native-blob-util: "npm:^0.18.0"
   checksum: 10/c2edeb92b72874ab08c7a34e9dae8a06ac13c4a5b238d92e798ec0355027a99eb0c27c6b4c95b8c0efda8123a50f9c232e7a215a97726f07dc4af73a991ac343
+  languageName: node
+  linkType: hard
+
+"redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch":
+  version: 4.2.0
+  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=26b865"
+  dependencies:
+    react-native-blob-util: "npm:^0.18.0"
+  checksum: 10/7502cf71e2df7e0ed4714664899bd0e3955902bc88e186768f2767b1ba2a8f1b0dbcf24247f0f0c00fb69ee587907c620345bb5341f2ebf3aea7400aa53901fc
   languageName: node
   linkType: hard
 
