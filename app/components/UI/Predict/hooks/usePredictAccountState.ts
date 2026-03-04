@@ -14,12 +14,7 @@ interface UsePredictAccountStateOptions {
 
 /**
  * Fetches the Predict account state (address, deployment status, allowances).
- *
- * Ensures the Polygon network exists before the query runs, following the same
- * pattern used by usePredictBalance, usePredictPositions, and usePredictActivity.
- *
- * Returns the raw UseQueryResult so consumers can use the standard React Query
- * API (data, isLoading, isFetching, error, refetch, etc.) directly.
+ * Ensures the Polygon network exists before the query runs.
  */
 export function usePredictAccountState(
   options: UsePredictAccountStateOptions = {},
