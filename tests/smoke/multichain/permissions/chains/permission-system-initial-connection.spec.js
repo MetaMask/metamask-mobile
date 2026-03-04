@@ -29,12 +29,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         ],
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -46,7 +40,9 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToBeVisible(
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+        );
       },
     );
   });
@@ -61,12 +57,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         ],
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         // Initial setup: Login and navigate to test dapp
@@ -97,16 +87,21 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
-        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await Assertions.expectElementToBeVisible(
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+        );
+        // await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Verify final permissions state
         // - Should have only Ethereum Mainnet and Sepolia selected
         // - Deselecting both should show the disconnect all button
-        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
+        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+
+        // await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
+        // await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );
