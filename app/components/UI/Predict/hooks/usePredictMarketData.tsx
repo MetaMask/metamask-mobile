@@ -10,23 +10,8 @@ import { PredictCategory, PredictMarket } from '../types';
 
 /**
  * Hook to fetch and manage market data for a specific category with infinite scroll.
- *
- * Backed by React Query's `useInfiniteQuery` — handles pagination, retry with
- * exponential back-off, caching, and deduplication automatically.
- *
- * Why this hook does NOT return the raw useInfiniteQuery result:
- *
- * This hook is consumed by 4 call sites across 3 files (PredictTabContent,
- * PredictSearchOverlay, PredictHomeFeaturedList, and the Trending View
- * sections config). Every consumer depends on `marketData` — the flattened,
- * deduplicated list of markets across all loaded pages. Returning the raw
- * InfiniteData<PredictMarket[]> would force each consumer to independently
- * flatten pages and deduplicate by ID, duplicating non-trivial logic.
- *
- * The hook also centralizes structured error logging (useEffect that reports
- * to Logger with tags), a guarded `fetchMore` that prevents redundant fetches,
- * and simplified boolean flags (`hasMore`, `isFetchingMore`) that keep
- * component code readable.
+ * Returns flattened, deduplicated marketData rather than raw useInfiniteQuery
+ * to avoid duplicating page-flattening logic across 4 consumers.
  */
 export const usePredictMarketData = ({
   category = 'trending',
