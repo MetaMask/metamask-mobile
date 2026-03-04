@@ -929,10 +929,13 @@ export const conversionUtil = (
 export const toHexadecimal = (
   decimal?: number | string | bigint | null,
 ): string => {
+  if (decimal == null) {
+    return '0';
+  }
   if (typeof decimal === 'bigint') {
     return decimal.toString(16);
   }
-  if (decimal !== typeof 'string') {
+  if (typeof decimal !== 'string') {
     decimal = String(decimal);
   }
   if (decimal.startsWith('0x')) return decimal;

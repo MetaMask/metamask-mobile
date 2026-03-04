@@ -654,7 +654,7 @@ describe('Number utils :: renderFiat', () => {
 });
 
 describe('toHexadecimal', () => {
-  it('should convert to hexadecimal', () => {
+  it('converts string and number to hexadecimal', () => {
     expect(toHexadecimal('001')).toEqual('1');
     expect(toHexadecimal('0x01')).toEqual('0x01');
     expect(toHexadecimal(2)).toEqual('2');
@@ -662,6 +662,11 @@ describe('toHexadecimal', () => {
     expect(
       toHexadecimal('123456789012345678901234567890123456789012345678'),
     ).toEqual('159ffe6f22fd5cc42c524df6fd5e28d0de38f34e');
+  });
+
+  it('returns "0" for null and undefined', () => {
+    expect(toHexadecimal(null)).toEqual('0');
+    expect(toHexadecimal(undefined)).toEqual('0');
   });
 });
 
