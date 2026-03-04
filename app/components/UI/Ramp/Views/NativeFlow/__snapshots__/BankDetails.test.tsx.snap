@@ -88,7 +88,7 @@ exports[`V2BankDetails matches snapshot when order is null (loading) 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -414,7 +414,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while cancel 
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -827,7 +827,7 @@ exports[`V2BankDetails matches snapshot with both buttons disabled while confirm
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1240,7 +1240,7 @@ exports[`V2BankDetails matches snapshot with order data and depositOrder from re
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -1663,7 +1663,7 @@ exports[`V2BankDetails renders IBAN and BIC fields when present 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -2066,7 +2066,7 @@ exports[`V2BankDetails when shouldUpdate is false matches snapshot showing bank 
                   {
                     "color": "#121314",
                     "fontFamily": "Geist-Bold",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }

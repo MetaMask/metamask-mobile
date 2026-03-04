@@ -73,7 +73,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -87,9 +87,9 @@ exports[`BlockaidBanner should render correctly 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -225,7 +225,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -239,9 +239,9 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -377,7 +377,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -391,9 +391,9 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -538,7 +538,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           {
             "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -552,9 +552,9 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           {
             "color": "#131416",
             "fontFamily": "Geist-Regular",
-            "fontSize": 16,
+            "fontSize": 14,
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -630,7 +630,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -644,9 +644,9 @@ exports[`BlockaidBanner should render something does not look right with contact
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >

@@ -32,6 +32,7 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
+import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 
 export interface V2VerifyIdentityParams {
   amount?: string;
@@ -195,7 +196,7 @@ const V2VerifyIdentity = () => {
               <Text
                 style={styles.linkText}
                 onPress={handlePrivacyPolicyLink}
-                testID="privacy-policy-link-1"
+                testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_1}
               >
                 {strings(
                   'deposit.verify_identity.description_3_privacy_policy',
@@ -228,13 +229,14 @@ const V2VerifyIdentity = () => {
               color={TextColor.Muted}
               style={styles.linkText}
               onPress={handlePrivacyPolicyLink}
-              testID="privacy-policy-link-2"
+              testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_2}
             >
               {strings('deposit.verify_identity.agreement_text_privacy_policy')}
             </Text>
             {strings('deposit.verify_identity.agreement_text_part2')}
           </Text>
           <Button
+            testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.verify_identity.button')}

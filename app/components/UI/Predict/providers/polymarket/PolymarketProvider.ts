@@ -102,6 +102,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  refreshBalanceAllowance,
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
@@ -185,6 +186,48 @@ export class PolymarketProvider implements PredictProvider {
         },
       },
     };
+  }
+
+  #hasPermit2Config(params: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+  }): boolean {
+    return (
+      params.permit2Enabled === true &&
+      Array.isArray(params.executors) &&
+      params.executors.length > 0
+    );
+  }
+
+  #shouldUseFakOrderType({
+    permit2Enabled,
+    executors,
+    fakOrdersEnabled,
+  }: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+    fakOrdersEnabled: boolean;
+  }): boolean {
+    return (
+      this.#hasPermit2Config({ permit2Enabled, executors }) &&
+      fakOrdersEnabled === true
+    );
+  }
+
+  async #isPermit2AllowanceReady(ownerAddress: string): Promise<boolean> {
+    const safeAddress =
+      this.#accountStateByAddress.get(ownerAddress)?.address ??
+      computeProxyAddress(ownerAddress);
+
+    try {
+      return await hasPermit2Allowance({ address: safeAddress });
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Permit2 allowance check failed', {
+        error,
+        ownerAddress,
+      });
+      return false;
+    }
   }
 
   public async getMarketDetails({
@@ -977,19 +1020,49 @@ export class PolymarketProvider implements PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview> {
-    const { feeCollection } = this.#getFeatureFlags();
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
     const basePreview = await previewOrder({ ...params, feeCollection });
+
+    // Determine intended order type from feature flags.
+    // FAK is used when Permit2 config is active and FAK orders are enabled.
+    // The Permit2 allowance check is only needed when fees must be collected.
+    let orderType = OrderType.FOK;
+
+    const couldUseFak = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    });
+
+    if (couldUseFak) {
+      const hasFees =
+        basePreview.fees !== undefined && basePreview.fees.totalFee > 0;
+      if (hasFees) {
+        // TODO: remove this once placeOrder guarantees Permit2 allowance
+        // is set automatically before order submission.
+        const permit2Ready = await this.#isPermit2AllowanceReady(
+          params.signer.address,
+        );
+        if (permit2Ready) {
+          orderType = OrderType.FAK;
+        }
+      } else {
+        // No fees to collect via Permit2 — FAK can be used directly.
+        orderType = OrderType.FAK;
+      }
+    }
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
+          orderType,
           rateLimited: true,
         };
       }
     }
 
-    return basePreview;
+    return { ...basePreview, orderType };
   }
 
   public async placeOrder(
@@ -1143,34 +1216,21 @@ export class PolymarketProvider implements PredictProvider {
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
 
-      const clobOrder = {
-        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
-        owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
-      };
-
-      const body = JSON.stringify(clobOrder);
-
-      const headers = await getL2Headers({
-        l2HeaderArgs: {
-          method: 'POST',
-          requestPath: `/order`,
-          body,
-        },
-        address: clobOrder.order.signer ?? '',
-        apiKey: signerApiKey,
+      // Determine fees, permit2, and order type BEFORE building clobOrder
+      // so the HMAC signature covers the correct orderType.
+      const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+      const shouldUsePermit2 = this.#hasPermit2Config({
+        permit2Enabled: fees?.permit2Enabled,
+        executors: fees?.executors,
       });
-
-      const shouldUsePermit2 =
-        fees?.permit2Enabled === true &&
-        Array.isArray(fees.executors) &&
-        fees.executors.length > 0;
 
       let feeAuthorization:
         | SafeFeeAuthorization
         | Permit2FeeAuthorization
         | undefined;
       let executor: string | undefined;
+      let orderType: OrderType = OrderType.FOK;
+      let permit2FeeReady = false;
 
       if (fees !== undefined && fees.totalFee > 0) {
         const safeAddress = computeProxyAddress(signer.address);
@@ -1178,14 +1238,17 @@ export class PolymarketProvider implements PredictProvider {
           parseUnits(fees.totalFee.toString(), 6).toString(),
         );
 
-        if (shouldUsePermit2 && fees.executors) {
-          const permit2Ready = await hasPermit2Allowance({
-            address: safeAddress,
-          });
+        if (shouldUsePermit2) {
+          const executors = fees.executors ?? [];
+          const permit2Ready = await this.#isPermit2AllowanceReady(
+            signer.address,
+          );
 
           if (permit2Ready) {
-            executor =
-              fees.executors[Math.floor(Math.random() * fees.executors.length)];
+            permit2FeeReady = true;
+            const randomIndex = new Uint32Array(1);
+            global.crypto.getRandomValues(randomIndex);
+            executor = executors[randomIndex[0] % executors.length];
             feeAuthorization = await createPermit2FeeAuthorization({
               safeAddress,
               signer,
@@ -1208,6 +1271,57 @@ export class PolymarketProvider implements PredictProvider {
             to: fees.collector,
           });
         }
+      }
+
+      // Determine order type independently of fee authorization.
+      // FAK depends on feature flags only; the Permit2 allowance check
+      // is only needed when fees must be collected via Permit2.
+      if (
+        this.#shouldUseFakOrderType({
+          permit2Enabled: feeCollection.permit2Enabled,
+          executors: feeCollection.executors,
+          fakOrdersEnabled,
+        })
+      ) {
+        const hasFees = fees !== undefined && fees.totalFee > 0;
+        if (!hasFees || permit2FeeReady) {
+          orderType = OrderType.FAK;
+        }
+      }
+
+      const clobOrder = {
+        order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
+        owner: signerApiKey.apiKey,
+        orderType,
+      };
+
+      const body = JSON.stringify(clobOrder);
+
+      const headers = await getL2Headers({
+        l2HeaderArgs: {
+          method: 'POST',
+          requestPath: `/order`,
+          body,
+        },
+        address: clobOrder.order.signer ?? '',
+        apiKey: signerApiKey,
+      });
+
+      // TEMPORARY WORKAROUND: Refresh balance/allowance on Polymarket's CLOB
+      // before submitting the order. See refreshBalanceAllowance docs for details.
+      try {
+        await refreshBalanceAllowance({
+          address: signer.address,
+          apiKey: signerApiKey,
+          side,
+          outcomeTokenId,
+        });
+      } catch (refreshError) {
+        // Best-effort — don't block order submission if the refresh fails
+        DevLogger.log(
+          'PolymarketProvider: Pre-order balance/allowance refresh failed',
+          refreshError,
+        );
       }
 
       const { success, response, error } = await submitClobOrder({
