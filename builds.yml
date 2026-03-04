@@ -375,7 +375,6 @@ builds:
       <<: *public_envs
       METAMASK_ENVIRONMENT: 'production'
       METAMASK_BUILD_TYPE: 'qa'
-      DIGEST_API_URL: 'https://digest-api.dev-api.cx.metamask.io/api/v1'
     secrets:
       <<: *secrets
       # QA uses QA Segment project
