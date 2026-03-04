@@ -256,7 +256,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -278,7 +281,10 @@ describe('collectibles selectors', () => {
         },
       );
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
       expect(result).toEqual({});
     });
 
@@ -297,7 +303,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
       expect(result).toEqual({});
     });
 
@@ -320,7 +329,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -347,7 +359,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
       expect(result).toEqual(allNfts[mockAddress]);
     });
 
@@ -366,7 +381,10 @@ describe('collectibles selectors', () => {
       });
 
       // The selector should return empty object when EIP155 namespace is missing
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
       expect(result).toEqual({});
     });
 
@@ -381,7 +399,10 @@ describe('collectibles selectors', () => {
         [KnownCaipNamespace.Eip155]: {},
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
       expect(result).toEqual({});
     });
 
@@ -401,7 +422,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result1 = multichainCollectiblesByEnabledNetworksSelector(state1);
+      const result1 = multichainCollectiblesByEnabledNetworksSelector(
+        state1,
+        undefined,
+      );
       expect(result1).toEqual({
         '0x1': mockNfts,
       });
@@ -412,7 +436,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result2 = multichainCollectiblesByEnabledNetworksSelector(state2);
+      const result2 = multichainCollectiblesByEnabledNetworksSelector(
+        state2,
+        undefined,
+      );
       expect(result2).toEqual({
         '0x1': [{ ...mockNfts[0], tokenId: '100', name: 'Different NFT' }],
       });
@@ -436,7 +463,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      const result = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
 
       expect(result).toEqual({
         '0x1': mockNfts,
@@ -444,6 +474,48 @@ describe('collectibles selectors', () => {
       });
       expect((result as Record<string, unknown>)['0xa86a']).toBeUndefined();
       expect((result as Record<string, unknown>)['0x38']).toBeUndefined();
+    });
+
+    it('filters by preferredChainIds when passed (e.g. listPopularNetworks), fallback to enabled when not', () => {
+      const allNfts = {
+        [mockAddress]: {
+          '0x1': mockNfts,
+          '0x89': [{ ...mockNfts[0], tokenId: '3' }],
+          '0xa86a': [{ ...mockNfts[0], tokenId: '4' }],
+        },
+      };
+
+      const state = createMockState({}, allNfts, mockAddress, {
+        [KnownCaipNamespace.Eip155]: {
+          '0x1': true,
+          '0x89': false,
+          '0xa86a': true,
+        },
+      });
+
+      const withPreferred = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        ['eip155:1', '0x89'],
+      );
+      expect(withPreferred).toEqual({
+        '0x1': mockNfts,
+        '0x89': [{ ...mockNfts[0], tokenId: '3' }],
+      });
+      expect(
+        (withPreferred as Record<string, unknown>)['0xa86a'],
+      ).toBeUndefined();
+
+      const withoutPreferred = multichainCollectiblesByEnabledNetworksSelector(
+        state,
+        undefined,
+      );
+      expect(withoutPreferred).toEqual({
+        '0x1': mockNfts,
+        '0xa86a': [{ ...mockNfts[0], tokenId: '4' }],
+      });
+      expect(
+        (withoutPreferred as Record<string, unknown>)['0x89'],
+      ).toBeUndefined();
     });
   });
 });

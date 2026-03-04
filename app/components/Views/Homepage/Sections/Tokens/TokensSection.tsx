@@ -15,7 +15,8 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectSortedAssetsBySelectedAccountGroupForChainIds } from '../../../../../selectors/assets/assets-list';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import { TokenListItemV2 } from '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2';
@@ -23,7 +24,11 @@ import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenB
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import {
+  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
+} from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
@@ -43,7 +48,17 @@ const MAX_TOKENS_DISPLAYED = 5;
 const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const navigation = useNavigation();
   const isZeroBalanceAccount = useIsZeroBalanceAccount();
-  const sortedTokenKeys = useSelector(selectSortedAssetsBySelectedAccountGroup);
+  const { listPopularNetworks } = useNetworkEnablement();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const popularChainIds = useMemo(
+    () => listPopularNetworks(),
+    // Re-run when network config changes so listPopularNetworks() reflects add/remove network.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularNetworks, networkConfigurations],
+  );
+  const sortedTokenKeys = useSelector((state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIds(state, popularChainIds),
+  );
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
   );

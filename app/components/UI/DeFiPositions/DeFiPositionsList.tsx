@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
   selectDeFiPositionsByAddress,
-  selectDefiPositionsByEnabledNetworks,
+  selectDefiPositionsByChainIds,
 } from '../../../selectors/defiPositionsController';
 import styleSheet from './DeFiPositionsList.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
@@ -13,6 +13,9 @@ import {
   selectPrivacyMode,
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { RootState } from '../../../reducers';
 import { toHex } from '@metamask/controller-utils';
 import { sortAssets } from '../Tokens/util';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
@@ -47,8 +50,16 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
   const hasTrackedScreenViewRef = useRef(false);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
-  const defiPositionsByEnabledNetworks = useSelector(
-    selectDefiPositionsByEnabledNetworks,
+  const { listPopularEvmNetworks } = useNetworkEnablement();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const popularEvmChainIds = useMemo(
+    () => listPopularEvmNetworks(),
+    // Re-run when network config changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularEvmNetworks, networkConfigurations],
+  );
+  const defiPositionsByChainIds = useSelector((state: RootState) =>
+    selectDefiPositionsByChainIds(state, popularEvmChainIds),
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const isHomepageRedesignV1Enabled = useSelector(
@@ -60,7 +71,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
       return defiPositions;
     }
 
-    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+    const chainFilteredDeFiPositions = defiPositionsByChainIds as {
       [key: Hex]: GroupedDeFiPositions;
     };
 
@@ -89,7 +100,7 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
     };
 
     return sortAssets(defiPositionsList, defiSortConfig);
-  }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
+  }, [defiPositions, tokenSortConfig, defiPositionsByChainIds]);
 
   useEffect(() => {
     if (

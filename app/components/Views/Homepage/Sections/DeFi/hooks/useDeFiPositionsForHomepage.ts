@@ -5,9 +5,12 @@ import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
 import {
   selectDeFiPositionsByAddress,
-  selectDefiPositionsByEnabledNetworks,
+  selectDefiPositionsByChainIds,
 } from '../../../../../../selectors/defiPositionsController';
 import { selectTokenSortConfig } from '../../../../../../selectors/preferencesController';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { RootState } from '../../../../../../reducers';
 import { sortAssets } from '../../../../../UI/Tokens/util';
 
 /**
@@ -49,8 +52,16 @@ export const useDeFiPositionsForHomepage = (
 ): UseDeFiPositionsForHomepageResult => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
-  const defiPositionsByEnabledNetworks = useSelector(
-    selectDefiPositionsByEnabledNetworks,
+  const { listPopularEvmNetworks } = useNetworkEnablement();
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const popularEvmChainIds = useMemo(
+    () => listPopularEvmNetworks(),
+    // Re-run when network config changes so list reflects add/remove network.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularEvmNetworks, networkConfigurations],
+  );
+  const defiPositionsByChainIds = useSelector((state: RootState) =>
+    selectDefiPositionsByChainIds(state, popularEvmChainIds),
   );
 
   const result = useMemo((): UseDeFiPositionsForHomepageResult => {
@@ -74,7 +85,7 @@ export const useDeFiPositionsForHomepage = (
       };
     }
 
-    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+    const chainFilteredDeFiPositions = defiPositionsByChainIds as {
       [key: Hex]: GroupedDeFiPositions;
     };
 
@@ -125,12 +136,7 @@ export const useDeFiPositionsForHomepage = (
       hasError: false,
       isEmpty: limitedPositions.length === 0,
     };
-  }, [
-    defiPositions,
-    defiPositionsByEnabledNetworks,
-    tokenSortConfig,
-    maxPositions,
-  ]);
+  }, [defiPositions, defiPositionsByChainIds, tokenSortConfig, maxPositions]);
 
   return result;
 };

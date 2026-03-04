@@ -8,6 +8,7 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
+import { toHex } from '@metamask/controller-utils';
 import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
@@ -225,7 +226,7 @@ const selectStakedAssets = createDeepEqualSelector(
   },
 );
 
-const selectEnabledNetworks = createDeepEqualSelector(
+export const selectEnabledNetworks = createDeepEqualSelector(
   [selectEnabledNetworksByNamespace],
   (enabledNetworksByNamespace) =>
     Object.values(enabledNetworksByNamespace).flatMap((network) =>
@@ -235,66 +236,157 @@ const selectEnabledNetworks = createDeepEqualSelector(
     ),
 );
 
-export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    selectEnabledNetworks,
-    selectTokenSortConfig,
-    selectStakedAssets,
-  ],
-  (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
-    const assets = Object.entries(bip44Assets)
-      .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+/**
+ * Factory that returns a selector for sorted assets by selected account group.
+ * @param enabledNetworksSelector - Selector that returns the list of enabled network IDs to filter by. Defaults to selectEnabledNetworks.
+ * @returns Memoized selector returning sorted asset keys for the selected account group.
+ */
+export const createSelectSortedAssetsBySelectedAccountGroup = (
+  enabledNetworksSelector = selectEnabledNetworks,
+) =>
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      enabledNetworksSelector,
+      selectTokenSortConfig,
+      selectStakedAssets,
+    ],
+    (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets);
 
-    const stakedAssetsArray = [];
-    for (const asset of assets) {
-      if (asset.isNative) {
-        const stakedAsset = stakedAssets.find(
-          (item) =>
-            item.chainId === asset.chainId &&
-            item.accountId === asset.accountId,
-        );
-        if (stakedAsset) {
-          stakedAssetsArray.push({
-            ...stakedAsset.stakedAsset,
-          } as Asset);
+      const stakedAssetsArray = [];
+      for (const asset of assets) {
+        if (asset.isNative) {
+          const stakedAsset = stakedAssets.find(
+            (item) =>
+              item.chainId === asset.chainId &&
+              item.accountId === asset.accountId,
+          );
+          if (stakedAsset) {
+            stakedAssetsArray.push({
+              ...stakedAsset.stakedAsset,
+            } as Asset);
+          }
         }
       }
+
+      assets.push(...stakedAssetsArray);
+
+      // Current sorting options
+      // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
+      // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
+      const tokensSorted = sortAssetsWithPriority(
+        assets.map((asset) => ({
+          ...asset,
+          tokenFiatAmount: asset.fiat?.balance.toString(),
+        })),
+        tokenSortConfig,
+      );
+
+      // Remove duplicates by creating a unique key for deduplication
+      const uniqueTokensMap = new Map();
+
+      tokensSorted.forEach(
+        ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+          const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+          if (!uniqueTokensMap.has(uniqueKey)) {
+            uniqueTokensMap.set(uniqueKey, {
+              address: assetId || '',
+              chainId: chainId?.toString() || '',
+              isStaked: Boolean(isStaked),
+            });
+          }
+        },
+      );
+
+      return Array.from(uniqueTokensMap.values());
+    },
+  );
+
+/** Default selector using selectEnabledNetworks. Use createSelectSortedAssetsBySelectedAccountGroup(customSelector) for a custom enabled-networks source. */
+export const selectSortedAssetsBySelectedAccountGroup =
+  createSelectSortedAssetsBySelectedAccountGroup();
+
+/**
+ * Builds a set of network IDs for filtering. listPopularNetworks() returns CAIP-2;
+ * asset keys may be Hex for EVM, so we include both forms for eip155:*.
+ */
+function buildAllowedNetworkIdSet(chainIds: string[]): Set<string> {
+  const set = new Set(chainIds);
+  for (const id of chainIds) {
+    if (id.startsWith('eip155:')) {
+      const reference = id.slice(7);
+      if (reference) set.add(toHex(reference) as Hex);
     }
+  }
+  return set;
+}
 
-    assets.push(...stakedAssetsArray);
+/**
+ * Sorted assets by selected account group filtered by an explicit list of chain IDs (e.g. from listPopularNetworks()).
+ * Use when the chain list comes from a hook or callback rather than from state.
+ * @param state - Redux state
+ * @param chainIds - Array of network/chain IDs (CAIP-2 or Hex) to include
+ */
+export const selectSortedAssetsBySelectedAccountGroupForChainIds =
+  createDeepEqualSelector(
+    [
+      selectAssetsBySelectedAccountGroup,
+      (_state: RootState, chainIds: string[]) => chainIds,
+      selectTokenSortConfig,
+      selectStakedAssets,
+    ],
+    (bip44Assets, chainIds, tokenSortConfig, stakedAssets) => {
+      const allowedIds = buildAllowedNetworkIdSet(chainIds);
+      const assets = Object.entries(bip44Assets)
+        .filter(([networkId]) => allowedIds.has(networkId))
+        .flatMap(([_, chainAssets]) => chainAssets);
 
-    // Current sorting options
-    // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
-    // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-    const tokensSorted = sortAssetsWithPriority(
-      assets.map((asset) => ({
-        ...asset,
-        tokenFiatAmount: asset.fiat?.balance.toString(),
-      })),
-      tokenSortConfig,
-    );
-
-    // Remove duplicates by creating a unique key for deduplication
-    const uniqueTokensMap = new Map();
-
-    tokensSorted.forEach(
-      ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-        const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-        if (!uniqueTokensMap.has(uniqueKey)) {
-          uniqueTokensMap.set(uniqueKey, {
-            address: assetId || '',
-            chainId: chainId?.toString() || '',
-            isStaked: Boolean(isStaked),
-          });
+      const stakedAssetsArray = [];
+      for (const asset of assets) {
+        if (asset.isNative) {
+          const stakedAsset = stakedAssets.find(
+            (item) =>
+              item.chainId === asset.chainId &&
+              item.accountId === asset.accountId,
+          );
+          if (stakedAsset) {
+            stakedAssetsArray.push({
+              ...stakedAsset.stakedAsset,
+            } as Asset);
+          }
         }
-      },
-    );
+      }
 
-    return Array.from(uniqueTokensMap.values());
-  },
-);
+      assets.push(...stakedAssetsArray);
+
+      const tokensSorted = sortAssetsWithPriority(
+        assets.map((asset) => ({
+          ...asset,
+          tokenFiatAmount: asset.fiat?.balance.toString(),
+        })),
+        tokenSortConfig,
+      );
+
+      const uniqueTokensMap = new Map();
+      tokensSorted.forEach(
+        ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+          const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+          if (!uniqueTokensMap.has(uniqueKey)) {
+            uniqueTokensMap.set(uniqueKey, {
+              address: assetId || '',
+              chainId: chainId?.toString() || '',
+              isStaked: Boolean(isStaked),
+            });
+          }
+        },
+      );
+
+      return Array.from(uniqueTokensMap.values());
+    },
+  );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(

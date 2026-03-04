@@ -174,6 +174,7 @@ import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
 import { SolScope } from '@metamask/keyring-api';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 import NftGrid from '../../UI/NftGrid/NftGrid';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
@@ -664,6 +665,7 @@ const Wallet = ({
   const chainId = useSelector(selectChainId);
 
   const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
+  const { listPopularEvmNetworks } = useNetworkEnablement();
 
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
@@ -1360,9 +1362,16 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  const chainIds = useMemo(
+    (): Hex[] => listPopularEvmNetworks(),
+    // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularEvmNetworks, networkConfigurations],
+  );
+
   const content = (
     <>
-      <AssetPollingProvider />
+      <AssetPollingProvider chainIds={chainIds} />
       <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert

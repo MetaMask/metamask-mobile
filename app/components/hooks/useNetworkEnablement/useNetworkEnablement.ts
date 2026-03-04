@@ -13,7 +13,10 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 /**
@@ -21,12 +24,16 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
  * Provides methods to enable, disable, toggle, and conditionally enable networks.
  *
  * @returns Network enablement methods and state
+ * Exposes listPopularEvmNetworks, listPopularMultichainNetworks, and listPopularNetworks
+ * from the controller for use in polling, token lists, etc.
+ *
  * @example
  * ```tsx
  * const {
  *   enableNetwork,
  *   tryEnableEvmNetwork,
- *   isNetworkEnabled
+ *   isNetworkEnabled,
+ *   listPopularEvmNetworks,
  * } = useNetworkEnablement();
  *
  * // Direct network operations
@@ -37,6 +44,9 @@ import { selectMultichainAccountsState2Enabled } from '../../../selectors/featur
  *
  * // Check network status
  * const isEnabled = isNetworkEnabled('eip155:1');
+ *
+ * // Popular networks (restricted to configured networks)
+ * const evmChainIds = listPopularEvmNetworks();
  * ```
  */
 export const useNetworkEnablement = () => {
@@ -54,9 +64,28 @@ export const useNetworkEnablement = () => {
     () => Engine.context.NetworkEnablementController,
     [],
   );
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
 
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
+  );
+
+  // Memoize list results so callers get stable array references when the list hasn't changed.
+  // Re-run when network config changes so the list reflects add/remove network.
+  const popularEvmNetworksList = useMemo(
+    () => networkEnablementController.listPopularEvmNetworks(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [networkEnablementController, networkConfigurations],
+  );
+  const popularMultichainNetworksList = useMemo(
+    () => networkEnablementController.listPopularMultichainNetworks(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [networkEnablementController, networkConfigurations],
+  );
+  const popularNetworksList = useMemo(
+    () => networkEnablementController.listPopularNetworks(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [networkEnablementController, networkConfigurations],
   );
 
   const enabledNetworksForCurrentNamespace = useMemo(
@@ -91,6 +120,21 @@ export const useNetworkEnablement = () => {
       networkEnablementController.enableAllPopularNetworks();
     },
     [networkEnablementController],
+  );
+
+  const listPopularEvmNetworks = useCallback(
+    () => popularEvmNetworksList,
+    [popularEvmNetworksList],
+  );
+
+  const listPopularMultichainNetworks = useCallback(
+    () => popularMultichainNetworksList,
+    [popularMultichainNetworksList],
+  );
+
+  const listPopularNetworks = useCallback(
+    () => popularNetworksList,
+    [popularNetworksList],
   );
 
   const hasOneEnabledNetwork = useMemo(
@@ -145,6 +189,9 @@ export const useNetworkEnablement = () => {
     enableNetwork,
     disableNetwork,
     enableAllPopularNetworks,
+    listPopularEvmNetworks,
+    listPopularMultichainNetworks,
+    listPopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
     tryEnableEvmNetwork,

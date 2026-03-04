@@ -9155,7 +9155,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^4.1.0, @metamask/network-enablement-controller@npm:^4.1.1, @metamask/network-enablement-controller@npm:^4.1.2":
+"@metamask/network-enablement-controller@file:../core/packages/network-enablement-controller::locator=metamask%40workspace%3A.":
+  version: 4.1.2
+  resolution: "@metamask/network-enablement-controller@file:../core/packages/network-enablement-controller#../core/packages/network-enablement-controller::hash=40bddd&locator=metamask%40workspace%3A."
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/keyring-api": "npm:^21.5.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/multichain-network-controller": "npm:^3.0.4"
+    "@metamask/network-controller": "npm:^30.0.0"
+    "@metamask/slip44": "npm:^4.3.0"
+    "@metamask/transaction-controller": "npm:^62.19.0"
+    "@metamask/utils": "npm:^11.9.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/7e3cd542b3ca31cae31b22b6b279f567eac5777930250da31cd1fd667b09ff09a5de5e82a35a946b06cb1b65fe414da1008f3dd6f71f0b32327385e7f9f53f50
+  languageName: node
+  linkType: hard
+
+"@metamask/network-enablement-controller@npm:^4.1.0, @metamask/network-enablement-controller@npm:^4.1.2":
   version: 4.1.2
   resolution: "@metamask/network-enablement-controller@npm:4.1.2"
   dependencies:
@@ -35441,7 +35459,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^7.0.1"
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^30.0.0"
-    "@metamask/network-enablement-controller": "npm:^4.1.1"
+    "@metamask/network-enablement-controller": ../core/packages/network-enablement-controller
     "@metamask/notification-services-controller": "npm:^22.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^12.1.0"

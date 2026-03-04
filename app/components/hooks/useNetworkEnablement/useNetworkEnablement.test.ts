@@ -76,6 +76,9 @@ const mockNetworkEnablementController = {
   hasOneEnabledNetwork: jest.fn(),
   enableAllPopularNetworks: jest.fn(),
   enableNetworkInNamespace: jest.fn(),
+  listPopularEvmNetworks: jest.fn(() => []),
+  listPopularMultichainNetworks: jest.fn(() => []),
+  listPopularNetworks: jest.fn(() => []),
 };
 
 describe('useNetworkEnablement', () => {
@@ -147,6 +150,9 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
       expect(result.current).toHaveProperty('tryEnableEvmNetwork');
       expect(result.current).toHaveProperty('enableAllPopularNetworks');
+      expect(result.current).toHaveProperty('listPopularEvmNetworks');
+      expect(result.current).toHaveProperty('listPopularMultichainNetworks');
+      expect(result.current).toHaveProperty('listPopularNetworks');
     });
 
     it('returns functions for network operations', () => {
@@ -155,6 +161,11 @@ describe('useNetworkEnablement', () => {
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
       expect(typeof result.current.enableAllPopularNetworks).toBe('function');
+      expect(typeof result.current.listPopularEvmNetworks).toBe('function');
+      expect(typeof result.current.listPopularMultichainNetworks).toBe(
+        'function',
+      );
+      expect(typeof result.current.listPopularNetworks).toBe('function');
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
       expect(typeof result.current.tryEnableEvmNetwork).toBe('function');
@@ -470,6 +481,9 @@ describe('useNetworkEnablement', () => {
         enableNetwork: expect.any(Function),
         disableNetwork: expect.any(Function),
         enableAllPopularNetworks: expect.any(Function),
+        listPopularEvmNetworks: expect.any(Function),
+        listPopularMultichainNetworks: expect.any(Function),
+        listPopularNetworks: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
         tryEnableEvmNetwork: expect.any(Function),

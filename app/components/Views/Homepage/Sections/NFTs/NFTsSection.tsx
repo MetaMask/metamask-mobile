@@ -1,5 +1,6 @@
 import React, {
   forwardRef,
+  memo,
   useCallback,
   useImperativeHandle,
   useMemo,
@@ -143,4 +144,4 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 });
 
-export default NFTsSection;
+export default memo(NFTsSection);

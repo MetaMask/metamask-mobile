@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
@@ -11,6 +17,7 @@ import {
 } from '../../../../../selectors/assets/balances';
 import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import SensitiveText, {
   SensitiveTextLength,
@@ -33,14 +40,25 @@ const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
+  const { listPopularNetworks } = useNetworkEnablement();
+  const popularChainIds = useMemo(
+    () => listPopularNetworks(),
+    [listPopularNetworks],
+  );
+  const groupBalanceSelector = useMemo(
+    () => selectBalanceBySelectedAccountGroup(popularChainIds),
+    [popularChainIds],
+  );
+  const balanceChange1dSelector = useMemo(
+    () => selectBalanceChangeBySelectedAccountGroup('1d', popularChainIds),
+    [popularChainIds],
+  );
   const privacyMode = useSelector(selectPrivacyMode);
-  const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
+  const groupBalance = useSelector(groupBalanceSelector);
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
   );
-  const balanceChange1d = useSelector(
-    selectBalanceChangeBySelectedAccountGroup('1d'),
-  );
+  const balanceChange1d = useSelector(balanceChange1dSelector);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
