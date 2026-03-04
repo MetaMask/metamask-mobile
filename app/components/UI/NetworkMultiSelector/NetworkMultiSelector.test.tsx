@@ -714,7 +714,6 @@ describe('NetworkMultiSelector', () => {
 
     it('calls useNetworksToUse when multichain is enabled', () => {
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
 
@@ -1132,7 +1131,6 @@ describe('NetworkMultiSelector', () => {
         });
 
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })) // selectedSolanaAccount
         .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount
