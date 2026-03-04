@@ -34,8 +34,6 @@ import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
-
-export { default as RampsBootstrap } from './RampsBootstrap';
 import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
 import { showV2OrderToast } from './utils/v2OrderToast';
 
