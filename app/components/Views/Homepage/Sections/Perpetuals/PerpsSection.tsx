@@ -7,11 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import {
-  useFocusEffect,
-  useNavigation,
-  type NavigationProp,
-} from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -324,17 +320,14 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const carouselSymbols = useMemo(
-    () => allCarouselMarkets.map((m) => m.symbol),
-    [allCarouselMarkets],
+    () =>
+      !marketsLoading && allCarouselMarkets.length > 0
+        ? allCarouselMarkets.map((m) => m.symbol)
+        : [],
+    [allCarouselMarkets, marketsLoading],
   );
   const { sparklines, refresh: refreshSparklines } =
     useHomepageSparklines(carouselSymbols);
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshMarkets();
-    }, [refreshMarkets]),
-  );
 
   useImperativeHandle(
     ref,
