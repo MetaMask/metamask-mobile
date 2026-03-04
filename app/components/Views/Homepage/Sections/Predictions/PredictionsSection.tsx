@@ -9,7 +9,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, TextVariant } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -159,7 +159,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   if (hasError) {
     return (
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionHeader title={title} onPress={handleViewAllPredictions} />
         <ErrorState
           title={strings('homepage.error.unable_to_load', {
             section: title.toLowerCase(),
@@ -174,7 +174,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   if (hasPositions || isLoadingPositions) {
     return (
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionHeader title={title} onPress={handleViewAllPredictions} />
         <Box>
           {isLoadingPositions ? (
             <>
@@ -211,7 +211,7 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   // Render trending markets if no positions
   return (
     <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllPredictions} />
+      <SectionHeader title={title} onPress={handleViewAllPredictions} />
       <FadingScrollContainer>
         {(scrollProps) => (
           <ScrollView

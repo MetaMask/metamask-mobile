@@ -10,7 +10,7 @@ import React, {
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
@@ -130,7 +130,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   return (
     <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllTokens} />
+      <SectionHeader title={title} onPress={handleViewAllTokens} />
       {showTokensError ? (
         <ErrorState
           title={strings('homepage.error.unable_to_load', {
