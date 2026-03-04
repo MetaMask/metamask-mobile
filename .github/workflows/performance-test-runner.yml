@@ -31,6 +31,11 @@ on:
         required: true
         type: string
         description: 'Unified BrowserStack build name for all sessions'
+      sentry_target:
+        required: false
+        type: string
+        default: test
+        description: 'Sentry DSN target: test or real'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -140,11 +145,37 @@ jobs:
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Platform: ${{ inputs.platform }}"
 
+          SENTRY_TARGET="${{ inputs.sentry_target }}"
+          SENTRY_TEST_DSN="${{ secrets.MM_SENTRY_DSN_TEST }}"
+          SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
+          SELECTED_SENTRY_DSN=""
+          SENTRY_ENVIRONMENT="github-actions-performance-e2e"
+
           # Validate that we have a BrowserStack URL
           if [ -z "${{ inputs.browserstack_app_url }}" ]; then
             echo "❌ Error: No ${{ inputs.platform }} BrowserStack URL available"
             exit 1
           fi
+
+          case "$SENTRY_TARGET" in
+            real)
+              SELECTED_SENTRY_DSN="$SENTRY_REAL_DSN"
+              SENTRY_ENVIRONMENT="github-actions-performance-e2e-real"
+              if [ -z "$SELECTED_SENTRY_DSN" ]; then
+                echo "⚠️ MM_SENTRY_DSN is empty. Sentry uploads will be skipped."
+              fi
+              ;;
+            test)
+              SELECTED_SENTRY_DSN="$SENTRY_TEST_DSN"
+              if [ -z "$SELECTED_SENTRY_DSN" ]; then
+                echo "⚠️ MM_SENTRY_DSN_TEST is empty. Sentry uploads will be skipped."
+              fi
+              ;;
+            *)
+              echo "❌ Invalid sentry_target '$SENTRY_TARGET'. Expected 'test' or 'real'."
+              exit 1
+              ;;
+          esac
 
           {
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
@@ -160,8 +191,8 @@ jobs:
             echo "TEST_SRP_2=${{ secrets.TEST_SRP_2 }}"
             echo "TEST_SRP_3=${{ secrets.TEST_SRP_3 }}"
             echo "E2E_PASSWORD=${{ secrets.E2E_PASSWORD }}"
-            echo "E2E_PERFORMANCE_SENTRY_DSN=${{ secrets.MM_SENTRY_DSN_TEST || secrets.MM_SENTRY_DSN }}"
-            echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=github-actions-performance-e2e"
+            echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
+            echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
