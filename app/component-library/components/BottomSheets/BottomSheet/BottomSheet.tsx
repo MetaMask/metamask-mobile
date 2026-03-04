@@ -73,7 +73,13 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const onCloseCB = useCallback(() => {
       if (shouldNavigateBack && !didNavigateBackRef.current) {
         didNavigateBackRef.current = true;
-        navigation.goBack();
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        } else {
+          Logger.log(
+            '[BottomSheet] navigation.goBack skipped (screen not focused)',
+          );
+        }
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
