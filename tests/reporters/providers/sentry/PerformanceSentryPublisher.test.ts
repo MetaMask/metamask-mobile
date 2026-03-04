@@ -161,7 +161,7 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.extra.timer_steps).toHaveLength(2);
   });
 
-  it('preserves reserved aggregate keys and keeps timer keys at max length', async () => {
+  it('protects reserved aggregate keys from timer-key collisions', async () => {
     process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';
     fetchMock.mockResolvedValue({
@@ -169,7 +169,6 @@ describe('PerformanceSentryPublisher', () => {
       status: 200,
     } as Response);
 
-    const longName = 'long_timer_step_name_'.repeat(8);
     const sent = await publishPerformanceScenarioToSentry({
       metrics: createMetrics({
         steps: [
@@ -195,6 +194,47 @@ describe('PerformanceSentryPublisher', () => {
               percentOver: null,
             },
           },
+        ],
+      }),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: ['@PerformanceOnboarding'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 0,
+    });
+
+    expect(sent).toBe(true);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    expect(requestInit).toBeDefined();
+    if (!requestInit) {
+      throw new Error('Expected request init payload for Sentry request');
+    }
+
+    const body = requestInit.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    // Aggregate keys must remain reserved for totals.
+    expect(payload.measurements.scenario_total_time_ms.value).toBe(1300);
+    expect(payload.measurements.scenario_total_threshold_ms.value).toBe(1815);
+    expect(payload.measurements.scenario_total_time_ms_2.value).toBe(111);
+    expect(payload.measurements.scenario_total_threshold_ms_2.value).toBe(222);
+  });
+
+  it('keeps long colliding timer keys within 64 characters', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const longName = 'long_timer_step_name_'.repeat(8);
+    const sent = await publishPerformanceScenarioToSentry({
+      metrics: createMetrics({
+        steps: [
           {
             name: longName,
             duration: 333,
@@ -239,17 +279,12 @@ describe('PerformanceSentryPublisher', () => {
     const [, , payloadLine] = body.split('\n');
     const payload = JSON.parse(payloadLine);
 
-    // Aggregate keys must remain reserved for totals.
-    expect(payload.measurements.scenario_total_time_ms.value).toBe(1300);
-    expect(payload.measurements.scenario_total_threshold_ms.value).toBe(1815);
-    expect(payload.measurements.scenario_total_time_ms_2.value).toBe(111);
-    expect(payload.measurements.scenario_total_threshold_ms_2.value).toBe(222);
-
     const longTimerKeys = payload.extra.timer_steps
       .filter((step: { name: string }) => step.name === longName)
       .map((step: { key: string }) => step.key);
 
     expect(longTimerKeys).toHaveLength(2);
+    expect(new Set(longTimerKeys).size).toBe(2);
     expect(longTimerKeys.some((key: string) => key.endsWith('_2'))).toBe(true);
     expect(longTimerKeys.every((key: string) => key.length <= 64)).toBe(true);
   });
