@@ -2071,10 +2071,9 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "disclaimer": "AI insights. Not financial advice.",
     "a_closer_look": "A closer look",
     "whats_being_said": "What's being said",
-    "fixed_footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "AI summary for information only",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
     "sources_title": "News sources",
@@ -7820,6 +7819,14 @@
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
+    },
+    "show_internal_error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again."
+    },
+    "show_method_error": {
+      "title": "Request failed",
+      "description": "The request could not be completed. Please try again."
     }
   },
   "network_connection_banner": {
