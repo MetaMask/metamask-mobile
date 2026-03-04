@@ -35,7 +35,7 @@ function getInitRequestMock(
     controllerMessenger: getGeolocationControllerMessenger(baseMessenger),
     initMessenger: undefined,
     ...overrides,
-  };
+  } as jest.Mocked<ControllerInitRequest<GeolocationControllerMessenger>>;
 }
 
 describe('geolocationControllerInit', () => {
