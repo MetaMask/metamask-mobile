@@ -343,11 +343,6 @@ export function PredictPayWithAnyTokenInfo() {
     [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
   );
 
-  const title = useMemo(() => market?.title ?? '', [market?.title]);
-  const outcomeGroupTitle = useMemo(
-    () => outcome?.groupItemTitle ?? '',
-    [outcome?.groupItemTitle],
-  );
   const errorMessage = useMemo(
     () => confirmError ?? transactionError ?? previewError,
     [confirmError, transactionError, previewError],
@@ -363,12 +358,9 @@ export function PredictPayWithAnyTokenInfo() {
       edges={['top', 'left', 'right']}
     >
       <PredictBuyPreviewHeader
-        title={title}
-        outcomeImage={outcome?.image}
-        outcomeGroupTitle={outcomeGroupTitle}
-        outcomeToken={outcomeToken}
-        sharePrice={preview?.sharePrice}
-        onBack={onReject}
+        market={market}
+        outcome={outcome}
+        preview={preview}
       />
       <PredictBuyAmountSection
         currentValueUSDString={currentValueUSDString}

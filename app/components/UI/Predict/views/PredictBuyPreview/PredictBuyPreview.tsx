@@ -68,7 +68,7 @@ const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { goBack, dispatch } = useNavigation();
+  const { dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -335,14 +335,6 @@ const PredictBuyPreview = () => {
     [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
   );
 
-  const { title, outcomeGroupTitle } = useMemo(
-    () => ({
-      title: market.title,
-      outcomeGroupTitle: outcome.groupItemTitle ? outcome.groupItemTitle : '',
-    }),
-    [market, outcome],
-  );
-
   useEffect(() => {
     if (result?.success) {
       dispatch(StackActions.pop());
@@ -361,12 +353,9 @@ const PredictBuyPreview = () => {
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
-        title={title}
-        outcomeImage={outcome?.image}
-        outcomeGroupTitle={outcomeGroupTitle}
-        outcomeToken={outcomeToken}
-        sharePrice={preview?.sharePrice}
-        onBack={goBack}
+        market={market}
+        outcome={outcome}
+        preview={preview}
       />
       <PredictBuyAmountSection
         currentValueUSDString={currentValueUSDString}

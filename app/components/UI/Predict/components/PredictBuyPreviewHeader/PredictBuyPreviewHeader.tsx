@@ -10,31 +10,56 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
-import { PredictOutcomeToken } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
+import { OrderPreview, PredictMarket, PredictOutcome } from '../../types';
 import { formatCents } from '../../utils/format';
 
-export interface PredictBuyPreviewHeaderTitleProps {
-  title: string;
-  outcomeImage?: string;
-  outcomeGroupTitle?: string;
-  outcomeToken: PredictOutcomeToken;
-  sharePrice?: number;
+export interface PredictBuyPreviewHeaderProps {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  preview?: OrderPreview | null;
 }
 
+export interface PredictBuyPreviewHeaderTitleProps {
+  market: PredictMarket;
+  outcome: PredictOutcome;
+  preview?: OrderPreview | null;
+}
+
+const getOutcomeTokenLabel = (
+  outcome: PredictOutcome,
+  preview?: OrderPreview | null,
+) => {
+  const selectedOutcomeToken =
+    outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
+    outcome.tokens[0];
+  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
+
+  return {
+    title: selectedOutcomeToken?.title ?? '',
+    sharePrice,
+  };
+};
+
 export function PredictBuyPreviewHeaderTitle({
-  title,
-  outcomeImage,
-  outcomeGroupTitle,
-  outcomeToken,
-  sharePrice,
+  market,
+  outcome,
+  preview,
 }: PredictBuyPreviewHeaderTitleProps) {
   const tw = useTailwind();
+  const { title: outcomeTokenTitle, sharePrice } = getOutcomeTokenLabel(
+    outcome,
+    preview,
+  );
+
   const separator = '·';
-  const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    sharePrice ?? outcomeToken?.price ?? 0,
-  )}`;
+  const outcomeTokenLabel = strings('predict.buy_preview_outcome_at_price', {
+    outcome: outcomeTokenTitle,
+    price: formatCents(sharePrice),
+  });
 
   return (
     <Box
@@ -43,7 +68,7 @@ export function PredictBuyPreviewHeaderTitle({
       twClassName="gap-3"
     >
       <Image
-        source={{ uri: outcomeImage }}
+        source={{ uri: outcome.image }}
         style={tw.style('w-10 h-10 rounded')}
       />
       <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1 min-w-0">
@@ -52,10 +77,10 @@ export function PredictBuyPreviewHeaderTitle({
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {title}
+          {market.title}
         </Text>
         <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-          {!!outcomeGroupTitle && (
+          {!!outcome.groupItemTitle && (
             <>
               <Text
                 variant={TextVariant.BodySm}
@@ -64,7 +89,7 @@ export function PredictBuyPreviewHeaderTitle({
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {outcomeGroupTitle}
+                {outcome.groupItemTitle}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
@@ -79,7 +104,7 @@ export function PredictBuyPreviewHeaderTitle({
             variant={TextVariant.BodySm}
             twClassName="font-medium"
             color={
-              outcomeToken?.title === 'Yes'
+              outcomeTokenTitle === 'Yes'
                 ? TextColor.SuccessDefault
                 : TextColor.ErrorDefault
             }
@@ -94,34 +119,32 @@ export function PredictBuyPreviewHeaderTitle({
   );
 }
 
-export function PredictBuyPreviewHeaderBack({
-  onBack,
-}: {
-  onBack: () => void;
-}) {
+export function PredictBuyPreviewHeaderBack() {
+  const { goBack } = useNavigation();
+
   return (
-    <TouchableOpacity testID="back-button" onPress={onBack}>
+    <TouchableOpacity testID="back-button" onPress={goBack}>
       <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
     </TouchableOpacity>
   );
 }
 
-interface PredictBuyPreviewHeaderProps
-  extends PredictBuyPreviewHeaderTitleProps {
-  onBack: () => void;
-}
-
 const PredictBuyPreviewHeader = ({
-  onBack,
-  ...titleProps
+  market,
+  outcome,
+  preview,
 }: PredictBuyPreviewHeaderProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     twClassName="w-full gap-4 p-4"
   >
-    <PredictBuyPreviewHeaderBack onBack={onBack} />
-    <PredictBuyPreviewHeaderTitle {...titleProps} />
+    <PredictBuyPreviewHeaderBack />
+    <PredictBuyPreviewHeaderTitle
+      market={market}
+      outcome={outcome}
+      preview={preview}
+    />
   </Box>
 );
 
