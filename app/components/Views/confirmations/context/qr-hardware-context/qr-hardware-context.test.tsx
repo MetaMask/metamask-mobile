@@ -52,6 +52,7 @@ jest.mock('../../../../../core/HardwareWallet', () => ({
     hideAwaitingConfirmation: jest.fn(),
     showHardwareWalletError: jest.fn(),
   })),
+  isUserCancellation: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');

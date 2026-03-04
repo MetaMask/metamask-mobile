@@ -386,6 +386,7 @@ describe('useConfirmAction', () => {
 
     // Make signing hang so we can trigger cancel while it's pending
     (Engine.acceptPendingApproval as jest.Mock).mockReturnValueOnce(
+      // eslint-disable-next-line no-empty-function
       new Promise(() => {}),
     );
 
