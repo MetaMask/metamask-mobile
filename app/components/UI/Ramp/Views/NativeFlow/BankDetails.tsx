@@ -20,7 +20,6 @@ import Icon, {
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
-  normalizeProviderCode,
   RampsOrderStatus,
   type TransakDepositOrder,
 } from '@metamask/ramps-controller';
@@ -114,7 +113,10 @@ const V2BankDetails = () => {
         setDepositOrder(updatedDepositOrder);
       }
 
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = (order.provider?.id ?? '').replace(
+        '/providers/',
+        '',
+      );
       await refreshOrder(
         providerCode,
         order.providerOrderId,

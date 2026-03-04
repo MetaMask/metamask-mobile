@@ -8,8 +8,13 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import {
+  addFiatCustomIdData,
+  removeFiatCustomIdData,
+  getRampRoutingDecision,
+} from '../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
+import { CustomIdData } from '../../../../../reducers/fiatOrders/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -50,9 +55,7 @@ interface CheckoutParams {
   userAgent?: string;
   /** V2 callback flow: provider code (e.g., "moonpay", "transak"). */
   providerCode?: string;
-  /** V2: pre-order/custom order ID from BuyWidget. Prefer orderId for new code. */
-  orderId?: string | null;
-  /** @deprecated Use orderId. Kept for backward compatibility. */
+  /** V2: pre-order/custom order ID from BuyWidget. */
   customOrderId?: string | null;
   /** V2 callback flow: wallet address for this order. */
   walletAddress?: string;
@@ -82,14 +85,14 @@ const Checkout = () => {
   const previousUrlRef = useRef<string | null>(null);
   const dispatch = useDispatch();
   const [error, setError] = useState('');
+  const [customIdData, setCustomIdData] = useState<CustomIdData>();
   const isRedirectionHandledRef = useRef(false);
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
-    useRampsOrders();
+  const { addOrder, getOrderFromCallback } = useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isV2Enabled = useRampsUnifiedV2Enabled();
@@ -98,7 +101,6 @@ const Checkout = () => {
     url: uri,
     providerCode,
     providerName,
-    orderId: orderIdParam,
     customOrderId,
     walletAddress,
     network,
@@ -106,7 +108,6 @@ const Checkout = () => {
     onNavigationStateChange,
     callbackKey,
   } = params ?? {};
-  const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
@@ -168,31 +169,21 @@ const Checkout = () => {
   }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
 
   useEffect(() => {
-    // For external-browser flows (e.g. PayPal), addPrecreatedOrder is called in
-    // BuildQuote before opening the external browser; the user never reaches
-    // Checkout. For WebView flows, providerCode and walletAddress are passed,
-    // so we have the data needed to register. Registration only runs when all
-    // required data is present.
-    const canRegister =
-      effectiveOrderId && providerCode && walletAddress && network;
-    if (!canRegister) {
+    if (!hasCallbackFlow || !customOrderId || !walletAddress || !network) {
       return;
     }
-    addPrecreatedOrder({
-      orderId: effectiveOrderId.includes('/orders/')
-        ? effectiveOrderId
-        : `/providers/${providerCode}/orders/${effectiveOrderId}`,
-      providerCode,
-      walletAddress,
+    const data: CustomIdData = {
+      id: customOrderId,
       chainId: network,
-    });
-  }, [
-    effectiveOrderId,
-    providerCode,
-    walletAddress,
-    network,
-    addPrecreatedOrder,
-  ]);
+      account: walletAddress,
+      orderType: 'buy' as CustomIdData['orderType'],
+      createdAt: Date.now(),
+      lastTimeFetched: 0,
+      errorCount: 0,
+    };
+    setCustomIdData(data);
+    dispatch(addFiatCustomIdData(data));
+  }, [customOrderId, walletAddress, network, dispatch, hasCallbackFlow]);
 
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
@@ -226,6 +217,10 @@ const Checkout = () => {
 
         if (!rampsOrder) {
           throw new Error('Order could not be retrieved from callback');
+        }
+
+        if (customIdData) {
+          dispatch(removeFiatCustomIdData(customIdData));
         }
 
         addOrder(rampsOrder);
@@ -262,6 +257,7 @@ const Checkout = () => {
     },
     [
       hasCallbackFlow,
+      customIdData,
       providerCode,
       walletAddress,
       navigation,

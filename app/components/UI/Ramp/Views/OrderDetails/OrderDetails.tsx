@@ -11,10 +11,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import {
-  normalizeProviderCode,
-  RampsOrderStatus,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -113,7 +110,10 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
+      const providerCode = (order.provider?.id ?? '').replace(
+        '/providers/',
+        '',
+      );
       await refreshOrder(
         providerCode,
         order.providerOrderId,
