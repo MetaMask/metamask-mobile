@@ -395,21 +395,25 @@ export const submitClobOrder = async ({
   clobOrder,
   feeAuthorization,
   executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
   executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
   const body: ClobOrderObject & {
     feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
     executor?: string;
+    allowancesTx?: { to: string; data: string };
   } = {
     ...clobOrder,
     feeAuthorization,
     ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
