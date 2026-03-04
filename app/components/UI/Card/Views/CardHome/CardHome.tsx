@@ -84,6 +84,7 @@ import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
 import useCardFreeze from '../../hooks/useCardFreeze';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
+import useCardPinToken from '../../hooks/useCardPinToken';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
 import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 import { CardActions } from '../../util/metrics';
@@ -104,6 +105,7 @@ import {
 import { AddToWalletButton } from '@expensify/react-native-wallet';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
+import { createViewPinBottomSheetNavigationDetails } from '../../components/ViewPinBottomSheet';
 import {
   buildProvisioningUserAddress,
   buildShippingAddress,
@@ -149,6 +151,11 @@ const CardHome = () => {
     imageUrl: cardDetailsImageUrl,
     clearImageUrl: clearCardDetailsImageUrl,
   } = useCardDetailsToken();
+  const {
+    generatePinToken,
+    isLoading: isPinLoading,
+    reset: resetPinToken,
+  } = useCardPinToken();
   const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
   const hasLoadedCardHomeView = useRef(false);
@@ -701,24 +708,6 @@ const CardHome = () => {
     });
   }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
 
-  const isUserEligibleForMetalCard = useMemo(
-    () =>
-      isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      userLocation === 'us' &&
-      userShippingAddress &&
-      cardDetails?.type === CardType.VIRTUAL,
-    [
-      isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
-      isAuthenticated,
-      userLocation,
-      userShippingAddress,
-      cardDetails,
-    ],
-  );
-
   const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -829,6 +818,91 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
   ]);
+
+  const fetchAndShowPin = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VIEW_PIN_BUTTON,
+        })
+        .build(),
+    );
+
+    try {
+      const response = await generatePinToken();
+      navigation.navigate(
+        ...createViewPinBottomSheetNavigationDetails({
+          imageUrl: response.imageUrl,
+        }),
+      );
+    } catch {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.manage_card_options.view_pin_error'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    } finally {
+      resetPinToken();
+    }
+  }, [
+    generatePinToken,
+    navigation,
+    toastRef,
+    resetPinToken,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  const viewPinAction = useCallback(async () => {
+    if (isPinLoading) {
+      return;
+    }
+
+    try {
+      await reauthenticate();
+      await fetchAndShowPin();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        navigation.navigate(
+          ...createPasswordBottomSheetNavigationDetails({
+            onSuccess: () => {
+              fetchAndShowPin();
+            },
+            description: strings(
+              'card.password_bottomsheet.description_view_pin',
+            ),
+          }),
+        );
+        return;
+      }
+
+      if (errorMessage.includes(ReauthenticateErrorType.BIOMETRIC_ERROR)) {
+        return;
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.biometric_verification_required'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [isPinLoading, reauthenticate, fetchAndShowPin, navigation, toastRef]);
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
@@ -951,6 +1025,31 @@ const CardHome = () => {
     openOnboardingDelegationAction,
     isCardProvisioning,
   ]);
+
+  const isUserEligibleForMetalCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !cardSetupState.needsSetup &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      userLocation === 'us' &&
+      userShippingAddress &&
+      cardDetails?.type === CardType.VIRTUAL,
+    [
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      userLocation,
+      userShippingAddress,
+      cardDetails,
+      isLoading,
+      cardSetupState,
+      isCardProvisioning,
+    ],
+  );
 
   useEffect(
     () => () => {
@@ -1336,6 +1435,19 @@ const CardHome = () => {
       )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
+        {isUserEligibleForMetalCard && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.order_metal_card',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.order_metal_card_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={orderMetalCardAction}
+            testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+          />
+        )}
         {isAuthenticated && !isLoading && cardDetails && (
           <ManageCardListItem
             title={strings(
@@ -1350,6 +1462,20 @@ const CardHome = () => {
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
+        {isAuthenticated &&
+          !isLoading &&
+          cardDetails &&
+          (userLocation === 'us' || cardDetails.type !== CardType.VIRTUAL) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={viewPinAction}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
         {isAuthenticated &&
           !isLoading &&
           cardDetails?.isFreezable &&
@@ -1413,19 +1539,30 @@ const CardHome = () => {
               onPress={navigateToCardPage}
               testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
             />
-            {isUserEligibleForMetalCard && (
-              <ManageCardListItem
-                title={strings(
-                  'card.card_home.manage_card_options.order_metal_card',
-                )}
-                description={strings(
-                  'card.card_home.manage_card_options.order_metal_card_description',
-                )}
-                rightIcon={IconName.ArrowRight}
-                onPress={orderMetalCardAction}
-                testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
-              />
-            )}
+            {isAuthenticated &&
+              kycStatus?.verificationState === 'VERIFIED' &&
+              userLocation !== 'us' && (
+                <ManageCardListItem
+                  title={strings('card.card_home.manage_card_options.cashback')}
+                  description={strings(
+                    cardDetails?.type === CardType.METAL
+                      ? 'card.card_home.manage_card_options.cashback_description_metal'
+                      : 'card.card_home.manage_card_options.cashback_description',
+                  )}
+                  rightIcon={IconName.ArrowRight}
+                  onPress={() => {
+                    trackEvent(
+                      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                        .addProperties({
+                          action: CardActions.CASHBACK_BUTTON,
+                        })
+                        .build(),
+                    );
+                    navigation.navigate(Routes.CARD.CASHBACK);
+                  }}
+                  testID={CardHomeSelectors.CASHBACK_ITEM}
+                />
+              )}
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.travel_title')}
               description={strings(

@@ -93,15 +93,17 @@ describe('ExploreSearchResults', () => {
             ],
           },
         ],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     const { getByText, getByTestId } = render(
@@ -120,15 +122,17 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [],
         predictions: [],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     const { getByText, queryByText } = render(
@@ -146,15 +150,17 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+      sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
     });
 
     render(<ExploreSearchResults searchQuery="ethereum" />);
@@ -174,15 +180,17 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -203,15 +211,17 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -231,15 +241,17 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: true,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -258,15 +270,17 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -292,18 +306,20 @@ describe('ExploreSearchResults', () => {
       });
       mockUseExploreSearch.mockReturnValue({
         data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
+          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitc===oin' }],
           perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['sites', 'tokens', 'perps', 'predictions'],
+        sectionsOrder: ['sites', 'tokens', 'stocks', 'perps', 'predictions'],
       });
 
       // Act
@@ -325,18 +341,21 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
         sectionsOrder: [
           'sites',
           'tokens',
           'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
+          'stocks',
           'perps',
           'predictions',
         ],

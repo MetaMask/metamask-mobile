@@ -13,11 +13,18 @@ const originalFetch = global.fetch;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let initialState: any;
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSetSmartTransactionsOptInStatus: jest.Mock<any, any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockDismissSmartAccountSuggestionEnabled: jest.Mock<any, any>;
+
+const defaultNavigation = {
+  navigate: mockNavigate,
+  goBack: mockGoBack,
+  setOptions: jest.fn(),
+};
 
 beforeEach(() => {
   initialState = {
@@ -27,6 +34,7 @@ beforeEach(() => {
     },
   };
   mockNavigate.mockClear();
+  mockGoBack.mockClear();
   mockSetSmartTransactionsOptInStatus.mockClear();
 });
 
@@ -87,14 +95,33 @@ jest.mock(
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
     const container = renderWithProvider(
-      <AdvancedSettings
-        navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-      />,
+      <AdvancedSettings navigation={defaultNavigation} />,
       {
         state: initialState,
       },
     );
     expect(container).toMatchSnapshot();
+  });
+
+  it('renders header with correct title', () => {
+    const { getByText } = renderWithProvider(
+      <AdvancedSettings navigation={defaultNavigation} />,
+      { state: initialState },
+    );
+
+    expect(getByText(strings('app_settings.advanced_title'))).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when back button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <AdvancedSettings navigation={defaultNavigation} />,
+      { state: initialState },
+    );
+    const backButton = getByTestId('button-icon');
+
+    fireEvent.press(backButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   describe('Smart Transactions Opt In', () => {
@@ -107,9 +134,7 @@ describe('AdvancedSettings', () => {
 
     it('should render option to dismiss smart account upgrade', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
@@ -123,9 +148,7 @@ describe('AdvancedSettings', () => {
 
     it('should update dismissSmartAccountSuggestionEnabled when dismiss smart account upgrade is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
@@ -142,9 +165,7 @@ describe('AdvancedSettings', () => {
 
     it('should render smart transactions opt in switch on by default', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },
@@ -158,9 +179,7 @@ describe('AdvancedSettings', () => {
 
     it('should update smartTransactionsOptInStatus when smart transactions opt in is pressed', async () => {
       const { findByLabelText } = renderWithProvider(
-        <AdvancedSettings
-          navigation={{ navigate: mockNavigate, setOptions: jest.fn() }}
-        />,
+        <AdvancedSettings navigation={defaultNavigation} />,
         {
           state: initialState,
         },

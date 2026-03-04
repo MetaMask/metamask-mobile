@@ -215,9 +215,32 @@ class FixtureBuilder {
     this.fixture.state.browser.tabs[0].url = `http://localhost:${getMockServerPortForFixture()}/health-check`;
 
     // 3. Ganache port for localhost network RPC URL
-    this.fixture.state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-      '0x539'
-    ].rpcEndpoints[0].url = `http://localhost:${getGanachePortForFixture()}`;
+    const networkConfigs =
+      this.fixture.state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId;
+    if (!networkConfigs['0x539']) {
+      const networkClientId = `networkClientId${
+        Object.keys(networkConfigs).length + 1
+      }`;
+      networkConfigs['0x539'] = {
+        blockExplorerUrls: ['https://localhost'],
+        chainId: '0x539',
+        defaultBlockExplorerUrlIndex: 0,
+        defaultRpcEndpointIndex: 0,
+        name: 'Localhost',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId,
+            name: 'Localhost default RPC',
+            type: 'custom',
+            url: '',
+          },
+        ],
+      };
+    }
+    networkConfigs['0x539'].rpcEndpoints[0].url =
+      `http://localhost:${getGanachePortForFixture()}`;
 
     return this;
   }
@@ -458,6 +481,9 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
+    this.fixture.state.fiatOrders.detectedGeolocation =
+      selectedRegion.countryIsoCode;
+
     return this;
   }
 
@@ -470,6 +496,18 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
+    return this;
+  }
+
+  /**
+   * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
+   * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
+   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withDetectedGeolocation(countryCode: string) {
+    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
+    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
     return this;
   }
 
@@ -1062,6 +1100,34 @@ class FixtureBuilder {
       ],
       vault:
         '{"cipher":"0ItM5QzNA6pT0De09iJtURXuNiwwoeZnf7vt/Mx7P05EDzh+5m9agA4w2JrPM0favpgKpL6AlZ81CebDkVSdE5OSBon37N1Xs5F0DEbJxdw0NjmeDZaZlAHNcr7XJiXDsRW+Udz67y6DO8S1MdC2Ju/qthj04nEdaofDHR6qEtM5OYLYG9LHsf/UzqtAwe/5LHbaJtQCvM2JLLfk0BQTg9s5Fce5Nk6YkPHQ1JlUc9WXNRv90Iyclwh08lIr93A6RHNlzSYHRyfpGE5lZv5Soe2m5ZlOKBCDUQFLWjh5vCqFHMaMpMkfrqhdNBaZvHERCpppp2FARn0ufmWsn4/KJdCrxL438BRufDaXdbG8KfrEHmx9r10YjBAv3GFDUYahene8GyuwP/OTvL9i4PfN6CUGaS5sLY4kWBFFDIASlCahtMatp23+G+4I1z0x2O2XOIMiegqqkXZU/uXuDoAeSQ7jTuKzoE4rCXm67DXepECoBCrX1/gWwRQ9hLeyz4KpYfmL05tN0fzWEiMeCi50gpy0Da6QYzPoWyYYURFbE5iPU7XIqww/RtIpzw3UBCtAGuohsxf/hkK27SNcN4k1eW+Bym6G1H7BjhQSFAft2/mi4fuOHsUX+seu3Wqy3uhE0/fu0fazqX4NloiHZbDXq90CCnIUn+owW8ORsSSRO4NywjXARdeU3VtW8j25E7Q37vJ9OIoLqVE9GVyDCN7Gdn88eaBUk14qe5YzYrx3K9KSbz3MVcPmYKaZFR1+qeLWPDVzYFsZHcrGQuSgY33qF9KuI2PAZUuzwA1xroHZxZlGIH5JJSvglHKxNLkK57PK5Y6tb0EGjrVFYUhc/xvCQoMHq20aRGHqqhKL2Ij3ASnSdkTvE1Q1pb3/NpO4NVHxowocYjWGQbp7RHGm1h6BwenzGdli/4XX8iocnjkz4dkzlkXyTwmvh9enyt1bAo6ZpiLNTIMYV2Uvc4E8xP+KRoBXHhTuwHqWbu/jTg6byZjh3bJ4CcXk/CB26ymLzH5GaY4wTTpZnkhUYXa/jW1TexvwnVkD5rzin1S7wYv4Qq3cnLP+J1MwOcjl+94eHYvxVk5xBd3hBt1QDINDEfClzHvq4aV3GSuQXMRlKWcnOmtUzpcrHAmiR4hk4w5E3mCgcJeP3MJo3819Do1vWMLXEUpZfT5Z65Q/HAGpaxh9YZ9yuZkJ+rQe1AX6+hMjG0r+IDtY+MtJ0/AjBwic2H5O7w/7Ztkoy9mLTidR4U0eAWxRMo+/Xx8/gEiJk4pxB/jQbyLFCr8+XySmyx0BnVLyE1sYMb9xXrd7ivm2k0iBtUDtM51frR12m60zT90ecxCxwniwuRGZgf1R/ZI2nBru1begmchDGguDbtmv9wO88USFYXLBP24LiJLJw+1TxooFCAz7r78FPW4wuvBonzCEQnJPSZm9wK7Z/ymmz3RMoBhPobrkp0afX8YY2EpExrMF5yUwrQdg8qld6B9kQWz69C8+wn5YOjTgDp1q2oNF4adC21Mz3klldzpk7JAO+KWe4tAJJj8HicP+IBe2PW9SheBM3Xb77SF0q/SKe1suriYh4d5lVcM2lWY1ryky5upw","iv":"0df9d14eb4d5c6729eacff6ba9cda8dd","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"5Dedq0Jg6wCFJ9whKIeUzP6yePVlUFO1aY2ZlmR+q3A="}',
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          'ba5f627c-8ca6-42a7-86ea-505ac0eafd02': {
+            address: DEFAULT_FIXTURE_ACCOUNT_2,
+            id: 'ba5f627c-8ca6-42a7-86ea-505ac0eafd02',
+            metadata: {
+              name: 'Account 2',
+              importTime: 1684232000457,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+      },
     });
     return this;
   }
@@ -1740,6 +1806,13 @@ class FixtureBuilder {
       enabledNetworkMap: data,
       nativeAssetIdentifiers: {},
     };
+
+    if (
+      !this.fixture.state.engine.backgroundState.NetworkEnablementController
+    ) {
+      this.fixture.state.engine.backgroundState.NetworkEnablementController =
+        {};
+    }
 
     merge(
       this.fixture.state.engine.backgroundState.NetworkEnablementController,
