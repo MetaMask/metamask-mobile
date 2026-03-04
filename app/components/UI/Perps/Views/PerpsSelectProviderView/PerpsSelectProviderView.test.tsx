@@ -26,6 +26,17 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+// Configurable option for the sheet mock — set per-test to drive onOptionSelect
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let mockSheetOption: any = {
+  id: 'myx-mainnet',
+  providerId: 'myx',
+  isTestnet: false,
+  name: 'MYX',
+  network: 'Mainnet',
+  description: '',
+};
+
 // Mock the sheet component so we can inspect the props passed to it
 jest.mock(
   '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet',
@@ -41,16 +52,7 @@ jest.mock(
           <TouchableOpacity
             testID="btn-select-option"
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            onPress={() =>
-              onOptionSelect({
-                id: selectedOptionId,
-                providerId: 'myx',
-                isTestnet: false,
-                name: 'MYX',
-                network: 'Mainnet',
-                description: '',
-              })
-            }
+            onPress={() => onOptionSelect(mockSheetOption)}
           />
           <Text testID="selected-option-id">{selectedOptionId}</Text>
         </View>
@@ -79,6 +81,15 @@ beforeEach(() => {
   });
   mockSwitchProvider.mockResolvedValue({ success: true });
   mockToggleTestnet.mockResolvedValue({ success: true });
+  // Default: select myx (provider changes, no network change)
+  mockSheetOption = {
+    id: 'myx-mainnet',
+    providerId: 'myx',
+    isTestnet: false,
+    name: 'MYX',
+    network: 'Mainnet',
+    description: '',
+  };
 });
 
 describe('PerpsSelectProviderView', () => {
@@ -126,48 +137,46 @@ describe('PerpsSelectProviderView', () => {
     expect(mockSwitchProvider).toHaveBeenCalledWith('myx');
   });
 
-  it('does not call switchProvider when same provider and same network', async () => {
-    // selectedOptionId = 'hyperliquid-mainnet', option has providerId myx so it will switch
-    // To test no-op: mock option with same provider + same network
-    const { getByTestId, rerender } = render(<PerpsSelectProviderView />);
+  it('does not call switchProvider or toggleTestnet when nothing changes', async () => {
+    // Same provider, same network → no-op
+    mockSheetOption = {
+      id: 'hyperliquid-mainnet',
+      providerId: 'hyperliquid',
+      isTestnet: false,
+      name: 'HyperLiquid',
+      network: 'Mainnet',
+      description: '',
+    };
 
-    // Override sheet mock to call onOptionSelect with same provider/network
-    jest.mock(
-      '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet',
-      () => {
-        const { View, TouchableOpacity } = jest.requireActual('react-native');
-        return {
-          __esModule: true,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          default: ({ onClose, onOptionSelect, testID }: any) => (
-            <View testID={testID}>
-              <TouchableOpacity testID="btn-close" onPress={onClose} />
-              <TouchableOpacity
-                testID="btn-select-option"
-                onPress={() =>
-                  onOptionSelect({
-                    id: 'hyperliquid-mainnet',
-                    providerId: 'hyperliquid',
-                    isTestnet: false,
-                    name: 'HyperLiquid',
-                    network: 'Mainnet',
-                    description: '',
-                  })
-                }
-              />
-            </View>
-          ),
-        };
-      },
-    );
-    rerender(<PerpsSelectProviderView />);
+    const { getByTestId } = render(<PerpsSelectProviderView />);
 
     await act(async () => {
       getByTestId('btn-select-option').props.onPress();
     });
 
-    // Since the original mock still fires with myx, we just verify the initial test is consistent
-    expect(mockSwitchProvider).toHaveBeenCalled();
+    expect(mockSwitchProvider).not.toHaveBeenCalled();
+    expect(mockToggleTestnet).not.toHaveBeenCalled();
+  });
+
+  it('calls toggleTestnet when only network changes (same provider)', async () => {
+    // Same provider, different network → only toggleTestnet
+    mockSheetOption = {
+      id: 'hyperliquid-testnet',
+      providerId: 'hyperliquid',
+      isTestnet: true,
+      name: 'HyperLiquid',
+      network: 'Testnet',
+      description: '',
+    };
+
+    const { getByTestId } = render(<PerpsSelectProviderView />);
+
+    await act(async () => {
+      getByTestId('btn-select-option').props.onPress();
+    });
+
+    expect(mockSwitchProvider).not.toHaveBeenCalled();
+    expect(mockToggleTestnet).toHaveBeenCalled();
   });
 
   it('logs error when switchProvider fails', async () => {
@@ -183,6 +192,33 @@ describe('PerpsSelectProviderView', () => {
       getByTestId('btn-select-option').props.onPress();
     });
 
+    expect(Logger.error).toHaveBeenCalled();
+  });
+
+  it('logs error when toggleTestnet fails', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger');
+    mockToggleTestnet.mockResolvedValue({
+      success: false,
+      error: 'Toggle failed',
+    });
+
+    // Network-only change: same provider, different isTestnet
+    mockSheetOption = {
+      id: 'hyperliquid-testnet',
+      providerId: 'hyperliquid',
+      isTestnet: true,
+      name: 'HyperLiquid',
+      network: 'Testnet',
+      description: '',
+    };
+
+    const { getByTestId } = render(<PerpsSelectProviderView />);
+
+    await act(async () => {
+      getByTestId('btn-select-option').props.onPress();
+    });
+
+    expect(mockToggleTestnet).toHaveBeenCalled();
     expect(Logger.error).toHaveBeenCalled();
   });
 });

@@ -143,4 +143,19 @@ describe('PerpsProviderSelectorBadge', () => {
     expect(badge.props.accessibilityLabel).toContain('MYX');
     expect(badge.props.accessibilityLabel).toContain('Mainnet');
   });
+
+  it('renders testnet dot and warning styling when on testnet', () => {
+    mockUseSelector.mockReturnValue('testnet');
+    mockUsePerpsProvider.mockReturnValue({
+      activeProvider: 'hyperliquid',
+      isMultiProviderEnabled: true,
+    });
+
+    const { getByTestId } = render(
+      <PerpsProviderSelectorBadge testID="badge" />,
+    );
+
+    const badge = getByTestId('badge');
+    expect(badge.props.accessibilityLabel).toContain('Testnet');
+  });
 });
