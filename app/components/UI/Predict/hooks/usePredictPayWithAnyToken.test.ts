@@ -3,13 +3,14 @@ import React from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Engine from '../../../../core/Engine';
 import { PredictBuyPreviewParams } from '../types/navigation';
-import { ConfirmationLoader } from '../../Views/confirmations/components/confirm/confirm-component';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 const mockGoBack = jest.fn();
 const mockPayWithAnyTokenConfirmation = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -24,7 +25,7 @@ jest.mock('./usePredictTrading', () => ({
   }),
 }));
 
-jest.mock('../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: () => ({
     navigateToConfirmation: mockNavigateToConfirmation,
   }),
@@ -60,6 +61,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
         toastRef: {
           current: {
             showToast: mockShowToast,
+            closeToast: mockCloseToast,
           },
         },
       },
@@ -110,7 +112,6 @@ describe('usePredictPayWithAnyToken', () => {
       loader: ConfirmationLoader.CustomAmount,
       headerShown: false,
       replace: true,
-      animationEnabled: false,
     });
     expect(
       Engine.context.PredictController.clearActiveOrder,

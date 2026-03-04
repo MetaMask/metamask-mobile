@@ -37,7 +37,7 @@ const analyticsProperties = {
   marketId: 'market-1',
 } as PlaceOrderParams['analyticsProperties'];
 
-const createParams = () => ({
+const createParams = (): Parameters<typeof usePredictAutoPlaceOrder>[0] => ({
   amount: 25,
   transactionId: 'tx-1',
   canPlaceBet: true,

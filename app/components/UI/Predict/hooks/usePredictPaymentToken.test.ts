@@ -11,7 +11,6 @@ let mockTransactionMeta: { id: string } | null = null;
 const mockSetPayToken = jest.fn();
 
 jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
 
@@ -40,6 +39,10 @@ describe('usePredictPaymentToken', () => {
     jest.mocked(useSelector).mockImplementation(() => mockSelectedPaymentToken);
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('does not call onTokenSelected on initial render', () => {
     const onTokenSelected = jest.fn();
 
@@ -50,8 +53,12 @@ describe('usePredictPaymentToken', () => {
 
   it('calls onTokenSelected when token changes from predict balance to token', async () => {
     const onTokenSelected = jest.fn();
-    const { rerender } = renderHook(() =>
-      usePredictPaymentToken({ onTokenSelected }),
+    const { rerender } = renderHook(
+      ({ onTokenSelected: selectedCallback }) =>
+        usePredictPaymentToken({ onTokenSelected: selectedCallback }),
+      {
+        initialProps: { onTokenSelected },
+      },
     );
 
     mockSelectedPaymentToken = {
@@ -60,7 +67,7 @@ describe('usePredictPaymentToken', () => {
     };
 
     await act(async () => {
-      rerender();
+      rerender({ onTokenSelected });
     });
 
     expect(onTokenSelected).toHaveBeenCalledWith('0x1234', '0x1234');
@@ -73,14 +80,18 @@ describe('usePredictPaymentToken', () => {
     };
 
     const onTokenSelected = jest.fn();
-    const { rerender } = renderHook(() =>
-      usePredictPaymentToken({ onTokenSelected }),
+    const { rerender } = renderHook(
+      ({ onTokenSelected: selectedCallback }) =>
+        usePredictPaymentToken({ onTokenSelected: selectedCallback }),
+      {
+        initialProps: { onTokenSelected },
+      },
     );
 
     mockSelectedPaymentToken = null;
 
     await act(async () => {
-      rerender();
+      rerender({ onTokenSelected });
     });
 
     expect(onTokenSelected).toHaveBeenCalledWith(null, 'predict-balance');
@@ -88,12 +99,16 @@ describe('usePredictPaymentToken', () => {
 
   it('does not call onTokenSelected when token selection does not change', async () => {
     const onTokenSelected = jest.fn();
-    const { rerender } = renderHook(() =>
-      usePredictPaymentToken({ onTokenSelected }),
+    const { rerender } = renderHook(
+      ({ onTokenSelected: selectedCallback }) =>
+        usePredictPaymentToken({ onTokenSelected: selectedCallback }),
+      {
+        initialProps: { onTokenSelected },
+      },
     );
 
     await act(async () => {
-      rerender();
+      rerender({ onTokenSelected });
     });
 
     expect(onTokenSelected).not.toHaveBeenCalled();

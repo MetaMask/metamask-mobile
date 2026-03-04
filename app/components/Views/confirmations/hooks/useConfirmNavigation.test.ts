@@ -128,7 +128,6 @@ describe('useConfirmNavigation', () => {
       headerShown: false,
       loader: ConfirmationLoader.CustomAmount,
       replace: true,
-      animationEnabled: false,
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
