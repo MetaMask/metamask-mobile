@@ -13,7 +13,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,18 +28,15 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { formatPrice } from '../../utils/format';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
-  shouldShowRewardsRow?: boolean;
-  accountOptedIn?: boolean | null;
-  rewardsAccountScope?: InternalAccount | null;
-  estimatedPoints?: number | null;
-  isLoadingRewards?: boolean;
-  hasRewardsError?: boolean;
+  rewardsFeeAmountUsd?: number;
+  rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
 }
 
@@ -49,14 +45,19 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   loading = false,
   handleFeesInfoPress,
   total,
-  shouldShowRewardsRow = false,
-  accountOptedIn = null,
-  rewardsAccountScope = null,
-  estimatedPoints = 0,
-  isLoadingRewards = false,
-  hasRewardsError = false,
+  rewardsFeeAmountUsd,
+  rewardsLoadingOverride = false,
 }) => {
   const tw = useTailwind();
+  const {
+    shouldShowRewardsRow,
+    accountOptedIn,
+    rewardsAccountScope,
+    estimatedPoints,
+    isLoading: isLoadingRewards,
+    hasError: hasRewardsError,
+  } = usePredictRewards(rewardsFeeAmountUsd);
+  const isRewardsLoading = rewardsLoadingOverride || isLoadingRewards;
 
   const rowClassName = 'flex-row justify-between items-center min-h-[20px]';
   const shouldRenderRewardsRow =
@@ -166,7 +167,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                     <RewardsAnimations
                       value={estimatedPoints ?? 0}
                       state={
-                        isLoadingRewards
+                        isRewardsLoading
                           ? RewardAnimationState.Loading
                           : hasRewardsError
                             ? RewardAnimationState.ErrorState
@@ -175,9 +176,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                     />
                   ) : rewardsAccountScope ? (
                     <AddRewardsAccount account={rewardsAccountScope} />
-                  ) : (
-                    <></>
-                  )}
+                  ) : null}
                 </Box>
               ),
               ...(hasRewardsError && {

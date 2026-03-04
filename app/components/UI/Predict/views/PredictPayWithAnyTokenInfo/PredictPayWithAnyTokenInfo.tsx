@@ -26,7 +26,6 @@ import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/Pr
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { usePredictTransactionErrorDismissal } from '../../hooks/usePredictTransactionErrorDismissal';
 import { selectPredictActiveOrder } from '../../selectors/predictController';
 import { Side } from '../../types';
@@ -260,6 +259,9 @@ export function PredictPayWithAnyTokenInfo() {
   }, [isPredictBalanceSelected, payTotals]);
 
   const totalWithDepositFee = total + depositFeeUsd;
+  const rewardsFeeAmountUsd = previewError
+    ? undefined
+    : (preview?.fees?.totalFee ?? 0);
 
   const handleConfirm = useCallback(async () => {
     if (isConfirming) {
@@ -326,23 +328,6 @@ export function PredictPayWithAnyTokenInfo() {
     [isPredictBalanceSelected, balance, payToken?.balanceUsd],
   );
 
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    rewardsAccountScope,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  const shouldShowRewardsRow = useMemo(
-    () =>
-      isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null,
-    [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
-  );
-
   const errorMessage = useMemo(
     () => confirmError ?? transactionError ?? previewError,
     [confirmError, transactionError, previewError],
@@ -395,12 +380,7 @@ export function PredictPayWithAnyTokenInfo() {
           disabled={isInputFocused}
           loading={isPayFeesLoading}
           total={totalWithDepositFee}
-          shouldShowRewardsRow={shouldShowRewardsRow}
-          rewardsAccountScope={rewardsAccountScope}
-          accountOptedIn={isAccountOptedIntoRewards}
-          estimatedPoints={estimatedRewardsPoints}
-          isLoadingRewards={isRewardsLoading}
-          hasRewardsError={isRewardsError}
+          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
           handleFeesInfoPress={handleFeesInfoPress}
         />
         <PredictBuyActionButton

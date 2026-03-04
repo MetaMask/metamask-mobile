@@ -57,7 +57,6 @@ import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
 import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -76,10 +75,29 @@ const PredictBuyPreview = () => {
     route.params;
   const shouldPreserveSelectedPaymentToken = Boolean(transactionId);
 
+  const autoPlaceAmount =
+    typeof amount === 'number' && amount > 0 ? amount : undefined;
+
+  const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
+  const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
+    autoPlaceAmount ? autoPlaceAmount.toString() : '',
+  );
+  const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
+  const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
+    useState(false);
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
+  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
+
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
     [market, outcomeToken, entryPoint],
   );
+
+  const { data: balance = 0, isLoading: isBalanceLoading } =
+    usePredictBalance();
+
+  const { deposit } = usePredictDeposit();
 
   const {
     placeOrder,
@@ -90,21 +108,6 @@ const PredictBuyPreview = () => {
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
-  const { data: balance = 0, isLoading: isBalanceLoading } =
-    usePredictBalance();
-  const autoPlaceAmount =
-    typeof amount === 'number' && amount > 0 ? amount : undefined;
-  const [currentValue, setCurrentValue] = useState(() => autoPlaceAmount ?? 0);
-  const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
-    autoPlaceAmount ? autoPlaceAmount.toString() : '',
-  );
-  const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
-  const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
-    useState(false);
-
-  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-
-  const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
   const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
     shouldPreserveActiveOrderOnUnmountRef.current = true;
   }, []);
@@ -315,25 +318,9 @@ const PredictBuyPreview = () => {
   const isPlacingOrder = isLoading || isAutoPlaceLoading;
   const canPlaceBetAction = canPlaceBet && !isAutoPlaceLoading;
 
-  const {
-    enabled: isRewardsEnabled,
-    isLoading: isRewardsLoading,
-    accountOptedIn: isAccountOptedIntoRewards,
-    rewardsAccountScope,
-    estimatedPoints: estimatedRewardsPoints,
-    hasError: isRewardsError,
-  } = usePredictRewards(
-    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
-  );
-
-  const isLoadingRewardsState =
-    (isCalculating && isUserInputChange) || isRewardsLoading;
-
-  const shouldShowRewardsRow = useMemo(
-    () =>
-      isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null,
-    [isRewardsEnabled, currentValue, isAccountOptedIntoRewards],
-  );
+  const rewardsFeeAmountUsd =
+    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
+  const rewardsLoadingOverride = isCalculating && isUserInputChange;
 
   useEffect(() => {
     if (result?.success) {
@@ -391,12 +378,8 @@ const PredictBuyPreview = () => {
           disabled={isInputFocused}
           loading={isPayWithAnyTokenLoading}
           total={total}
-          shouldShowRewardsRow={shouldShowRewardsRow}
-          rewardsAccountScope={rewardsAccountScope}
-          accountOptedIn={isAccountOptedIntoRewards}
-          estimatedPoints={estimatedRewardsPoints}
-          isLoadingRewards={isLoadingRewardsState}
-          hasRewardsError={isRewardsError}
+          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+          rewardsLoadingOverride={rewardsLoadingOverride}
           handleFeesInfoPress={handleFeesInfoPress}
         />
         <PredictBuyActionButton

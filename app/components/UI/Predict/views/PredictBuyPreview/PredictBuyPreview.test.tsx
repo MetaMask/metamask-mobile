@@ -70,12 +70,13 @@ let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
 let mockTotalFeePercentage = 4;
+let mockPreviewOutcomeTokenId = 'outcome-token-789';
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: {
       marketId: 'market-123',
       outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
+      outcomeTokenId: mockPreviewOutcomeTokenId,
       timestamp: Date.now(),
       side: 'BUY',
       sharePrice: 0.5,
@@ -147,11 +148,14 @@ let mockRewardsLoading = false;
 let mockAccountOptedIn: boolean | null = null;
 let mockEstimatedPoints: number | null = null;
 let mockRewardsError = false;
+let mockRewardsAccountScope = null;
 jest.mock('../../hooks/usePredictRewards', () => ({
   usePredictRewards: (_?: number) => ({
     enabled: mockRewardsEnabled,
     isLoading: mockRewardsLoading,
     accountOptedIn: mockAccountOptedIn,
+    rewardsAccountScope: mockRewardsAccountScope,
+    shouldShowRewardsRow: mockRewardsEnabled,
     estimatedPoints: mockEstimatedPoints,
     hasError: mockRewardsError,
   }),
@@ -284,11 +288,13 @@ describe('PredictBuyPreview', () => {
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
     mockTotalFeePercentage = 4;
+    mockPreviewOutcomeTokenId = 'outcome-token-789';
     mockRewardsEnabled = false;
     mockRewardsLoading = false;
     mockAccountOptedIn = null;
     mockEstimatedPoints = null;
     mockRewardsError = false;
+    mockRewardsAccountScope = null;
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
     mockTriggerPayWithAnyToken.mockResolvedValue(undefined);
@@ -487,14 +493,20 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcomeToken: {
-            id: 'outcome-token-no',
-            title: 'No',
-            price: 0.6,
+          outcome: {
+            ...mockRoute.params.outcome,
+            tokens: [
+              {
+                id: 'outcome-token-790',
+                title: 'No',
+                price: 0.5,
+              },
+            ],
           },
         },
       };
       mockUseRoute.mockReturnValue(noOutcomeRoute);
+      mockPreviewOutcomeTokenId = 'outcome-token-790';
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
@@ -506,14 +518,20 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcomeToken: {
-            id: 'outcome-token-custom',
-            title: 'Maybe',
-            price: 0.75,
+          outcome: {
+            ...mockRoute.params.outcome,
+            tokens: [
+              {
+                id: 'outcome-token-custom',
+                title: 'Maybe',
+                price: 0.75,
+              },
+            ],
           },
         },
       };
       mockUseRoute.mockReturnValue(customOutcomeRoute);
+      mockPreviewOutcomeTokenId = 'outcome-token-custom';
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
@@ -2098,14 +2116,20 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcomeToken: {
-            id: 'outcome-token-no',
-            title: 'No',
-            price: 0.35,
+          outcome: {
+            ...mockRoute.params.outcome,
+            tokens: [
+              {
+                id: 'outcome-token-no',
+                title: 'No',
+                price: 0.35,
+              },
+            ],
           },
         },
       };
       mockUseRoute.mockReturnValue(routeWithNoOutcome);
+      mockPreviewOutcomeTokenId = 'outcome-token-no';
       mockBalance = 1000;
       mockBalanceLoading = false;
 
