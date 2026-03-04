@@ -117,6 +117,7 @@ export const mockedEngine = {
         error: [],
         customActions: [],
       }),
+      getBuyWidgetData: jest.fn(),
       getWidgetUrl: jest.fn(),
     },
   },

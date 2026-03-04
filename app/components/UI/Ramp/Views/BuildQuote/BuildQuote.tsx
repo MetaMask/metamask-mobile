@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -44,6 +45,7 @@ import {
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
+import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import Logger from '../../../../../util/Logger';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
@@ -134,7 +136,8 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
-    getWidgetUrl,
+    getBuyWidgetData,
+    addPrecreatedOrder,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
@@ -520,31 +523,55 @@ function BuildQuote() {
 
     setIsContinueLoading(true);
     try {
-      const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
+      const buyWidget = await getBuyWidgetData(selectedQuote);
 
-      if (fetchedWidgetUrl) {
-        const providerCode = selectedQuote.provider.startsWith('/providers/')
-          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-          : selectedQuote.provider;
+      if (buyWidget?.url) {
+        const effectiveOrderId = buyWidget.orderId?.trim() || null;
+        const providerCode = normalizeProviderCode(selectedQuote.provider);
         const chainId = selectedToken?.chainId as CaipChainId | undefined;
         const network = chainId?.includes(':')
           ? chainId.split(':')[1] || ''
           : chainId || '';
+        const effectiveWallet = walletAddress ?? undefined;
+        const isCustomAction = (selectedQuote as { isCustomAction?: boolean })
+          .isCustomAction;
+        const useExternalBrowser =
+          isCustomAction || buyWidget.browser === 'IN_APP_OS_BROWSER';
 
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: fetchedWidgetUrl,
-            providerName:
-              selectedProvider?.name || getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-            providerCode,
-            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-            walletAddress: walletAddress ?? undefined,
-            network,
-            currency,
-            cryptocurrency: selectedToken?.symbol || '',
-          }),
-        );
+        if (useExternalBrowser) {
+          if (effectiveOrderId && effectiveWallet) {
+            addPrecreatedOrder({
+              orderId: effectiveOrderId.includes('/orders/')
+                ? effectiveOrderId
+                : `/providers/${providerCode}/orders/${effectiveOrderId}`,
+              providerCode,
+              walletAddress: effectiveWallet,
+              chainId: network || undefined,
+            });
+          }
+          if (await InAppBrowser.isAvailable()) {
+            await InAppBrowser.open(buyWidget.url);
+          } else {
+            await Linking.openURL(buyWidget.url);
+          }
+        } else {
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              url: buyWidget.url,
+              providerName:
+                selectedProvider?.name || getQuoteProviderName(selectedQuote),
+              userAgent: getQuoteBuyUserAgent(selectedQuote),
+              providerCode,
+              providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+              walletAddress: effectiveWallet,
+              network,
+              currency,
+              cryptocurrency: selectedToken?.symbol || '',
+              orderId: effectiveOrderId ?? undefined,
+              customOrderId: effectiveOrderId ?? undefined,
+            }),
+          );
+        }
       } else {
         Logger.error(
           new Error('No widget URL available for aggregator provider'),
@@ -573,7 +600,8 @@ function BuildQuote() {
     walletAddress,
     currency,
     navigation,
-    getWidgetUrl,
+    getBuyWidgetData,
+    addPrecreatedOrder,
     amountAsNumber,
     selectedPaymentMethod,
     transakCheckExistingToken,

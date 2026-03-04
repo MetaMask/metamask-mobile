@@ -10,7 +10,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
+      getBuyWidgetData: jest.fn(),
     },
   },
 }));
@@ -44,13 +44,14 @@ describe('useRampsQuotes', () => {
   });
 
   describe('return value structure', () => {
-    it('returns getQuotes and getWidgetUrl functions', () => {
+    it('returns getQuotes, getBuyWidgetData, and getWidgetUrl functions', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
       });
 
       expect(typeof result.current.getQuotes).toBe('function');
+      expect(typeof result.current.getBuyWidgetData).toBe('function');
       expect(typeof result.current.getWidgetUrl).toBe('function');
     });
 
@@ -93,8 +94,8 @@ describe('useRampsQuotes', () => {
     });
   });
 
-  describe('getWidgetUrl', () => {
-    it('calls Engine.context.RampsController.getWidgetUrl with quote', async () => {
+  describe('getBuyWidgetData', () => {
+    it('calls Engine.context.RampsController.getBuyWidgetData with quote', async () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsQuotes(), {
         wrapper: wrapper(store),
@@ -111,16 +112,49 @@ describe('useRampsQuotes', () => {
       } as Quote;
 
       (
-        Engine.context.RampsController.getWidgetUrl as jest.Mock
-      ).mockResolvedValue('https://global.transak.com/?apiKey=test');
+        Engine.context.RampsController.getBuyWidgetData as jest.Mock
+      ).mockResolvedValue({ url: 'https://global.transak.com/?apiKey=test' });
 
       await act(async () => {
-        await result.current.getWidgetUrl(testQuote);
+        await result.current.getBuyWidgetData(testQuote);
       });
 
-      expect(Engine.context.RampsController.getWidgetUrl).toHaveBeenCalledWith(
-        testQuote,
-      );
+      expect(
+        Engine.context.RampsController.getBuyWidgetData,
+      ).toHaveBeenCalledWith(testQuote);
+    });
+  });
+
+  describe('getWidgetUrl', () => {
+    it('returns url from getBuyWidgetData for backward compatibility', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsQuotes(), {
+        wrapper: wrapper(store),
+      });
+
+      const testQuote: Quote = {
+        provider: '/providers/test',
+        quote: {
+          amountIn: 100,
+          amountOut: 0.05,
+          paymentMethod: '/payments/card',
+          buyURL: 'https://on-ramp.uat-api.cx.metamask.io/test/buy-widget',
+        },
+      } as Quote;
+
+      (
+        Engine.context.RampsController.getBuyWidgetData as jest.Mock
+      ).mockResolvedValue({ url: 'https://global.transak.com/?apiKey=test' });
+
+      let url: string | null = null;
+      await act(async () => {
+        url = await result.current.getWidgetUrl(testQuote);
+      });
+
+      expect(url).toBe('https://global.transak.com/?apiKey=test');
+      expect(
+        Engine.context.RampsController.getBuyWidgetData,
+      ).toHaveBeenCalledWith(testQuote);
     });
   });
 
