@@ -536,16 +536,14 @@ const UnifiedTransactionsView = ({
     retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
-    speedUpConfirmDisabled,
-    cancelConfirmDisabled,
+    confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,
-    onSpeedUpCompleted,
-    onCancelCompleted,
+    onSpeedUpCancelCompleted,
     speedUpTransaction,
     cancelTransaction,
     signQRTransaction,
@@ -684,10 +682,8 @@ const UnifiedTransactionsView = ({
           isCancel={cancelIsOpen}
           tx={existingTx}
           onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
-          onClose={cancelIsOpen ? onCancelCompleted : onSpeedUpCompleted}
-          confirmDisabled={
-            cancelIsOpen ? cancelConfirmDisabled : speedUpConfirmDisabled
-          }
+          onClose={onSpeedUpCancelCompleted}
+          confirmDisabled={confirmDisabled}
         />
         <RetryModal
           onCancelPress={() => toggleRetry(undefined)}
