@@ -102,7 +102,6 @@ exports[`InputStepper complete component snapshot renders complete component cor
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="Enter value"
           placeholderTextColor="#66676a"
@@ -330,7 +329,6 @@ exports[`InputStepper complete component snapshot renders with description 1`] =
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -531,7 +529,6 @@ exports[`InputStepper description row should render InputStepperDescriptionRow 1
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -732,7 +729,6 @@ exports[`InputStepper input renders correct style when value character length is
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -933,7 +929,6 @@ exports[`InputStepper input renders correct style when value character length is
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -1134,7 +1129,6 @@ exports[`InputStepper input renders correct style when value character length is
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -1335,7 +1329,6 @@ exports[`InputStepper input renders correct style when value character length is
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -1536,7 +1529,6 @@ exports[`InputStepper input renders correct style when value character length is
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -1737,7 +1729,6 @@ exports[`InputStepper minus button renders correct style of minus button when di
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -1938,7 +1929,6 @@ exports[`InputStepper minus button renders correct style of minus button when en
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -2139,7 +2129,6 @@ exports[`InputStepper plus button renders correct style of plus button when disa
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"
@@ -2340,7 +2329,6 @@ exports[`InputStepper plus button renders correct style of plus button when enab
           caretHidden={false}
           editable={true}
           onBlur={[Function]}
-          onChangeText={[Function]}
           onFocus={[Function]}
           placeholder="0"
           placeholderTextColor="#66676a"

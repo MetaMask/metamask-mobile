@@ -142,7 +142,6 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                       autoFocus={true}
                       editable={true}
                       onBlur={[Function]}
-                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholderTextColor="#66676a"
                       pointerEvents="none"
@@ -161,7 +160,6 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
-                      value=""
                     />
                   </TouchableOpacity>
                 </View>
@@ -322,7 +320,6 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                       autoFocus={true}
                       editable={true}
                       onBlur={[Function]}
-                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholderTextColor="#66676a"
                       pointerEvents="none"
@@ -341,7 +338,6 @@ exports[`SnapUIDateTimePicker renders a date picker 1`] = `
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--date-input"
-                      value=""
                     />
                   </TouchableOpacity>
                 </View>
@@ -487,7 +483,6 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                       autoFocus={true}
                       editable={true}
                       onBlur={[Function]}
-                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholderTextColor="#66676a"
                       pointerEvents="none"
@@ -506,7 +501,6 @@ exports[`SnapUIDateTimePicker renders a date time picker 1`] = `
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
-                      value=""
                     />
                   </TouchableOpacity>
                 </View>
@@ -652,7 +646,6 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                       autoFocus={true}
                       editable={true}
                       onBlur={[Function]}
-                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholderTextColor="#66676a"
                       pointerEvents="none"
@@ -671,7 +664,6 @@ exports[`SnapUIDateTimePicker renders a time picker 1`] = `
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--time-input"
-                      value=""
                     />
                   </TouchableOpacity>
                 </View>
@@ -832,7 +824,6 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                       autoFocus={true}
                       editable={true}
                       onBlur={[Function]}
-                      onChangeText={[Function]}
                       onFocus={[Function]}
                       placeholderTextColor="#66676a"
                       pointerEvents="none"
@@ -851,7 +842,6 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                         }
                       }
                       testID="snap-ui-renderer__date-time-picker--datetime-input"
-                      value=""
                     />
                   </TouchableOpacity>
                 </View>

@@ -202,7 +202,6 @@ exports[`EditAccountName should render correctly 1`] = `
             multiline={false}
             numberOfLines={1}
             onBlur={[Function]}
-            onChangeText={[Function]}
             onFocus={[Function]}
             placeholder="0x49a016E6736F9Ad381605c...72A6"
             placeholderTextColor="#66676a"
@@ -222,7 +221,6 @@ exports[`EditAccountName should render correctly 1`] = `
               }
             }
             testID="input"
-            value=""
           />
         </View>
       </View>
