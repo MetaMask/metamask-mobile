@@ -486,6 +486,7 @@ class PerpsConnectionManagerClass {
             this.isInitialized = false;
             this.isConnecting = false;
             this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            this.isPreloading = false; // Reset in-flight preload guard on disconnect
             this.clearError(); // Clear any errors on disconnect
 
             await Engine.context.PerpsController.disconnect();
