@@ -1,6 +1,7 @@
 import React from 'react';
 import { useColorScheme } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
+import { getPredictHelmetFacemaskColor } from '../../constants/colors';
 
 interface PredictSportTeamHelmetProps {
   color: string; // Team primary color (hex)
@@ -23,7 +24,7 @@ const PredictSportTeamHelmet: React.FC<PredictSportTeamHelmetProps> = ({
   testID,
 }) => {
   const colorScheme = useColorScheme();
-  const facemaskColor = colorScheme === 'dark' ? 'white' : 'black';
+  const facemaskColor = getPredictHelmetFacemaskColor(colorScheme === 'dark');
 
   const transform = flipped
     ? `scale(-1, 1) translate(-${VIEWBOX_WIDTH}, 0)`
