@@ -1,4 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
@@ -7,6 +8,7 @@ import { UnrealizedPnL } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { usePredictPositions } from './usePredictPositions';
 
 export interface UseUnrealizedPnLOptions {
@@ -50,6 +52,8 @@ export const useUnrealizedPnL = (
   const [error, setError] = useState<string | null>(null);
   const isInitialMount = useRef(true);
 
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
