@@ -94,6 +94,7 @@ jest.mock('react-native-background-timer', () => ({
 }));
 
 // Import non-singleton modules first
+import { addEventListener as mockNetInfoAddEventListener } from '@react-native-community/netinfo';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
@@ -130,11 +131,18 @@ const resetManager = (manager: unknown) => {
     hasPreloaded: boolean;
     isPreloading: boolean;
     prewarmCleanups: (() => void)[];
+    netInfoUnsubscribe: (() => void) | null;
+    wasOffline: boolean;
   };
   // Call unsubscribe if it exists before resetting
   if (m.unsubscribeFromStore) {
     m.unsubscribeFromStore();
   }
+  if (m.netInfoUnsubscribe) {
+    m.netInfoUnsubscribe();
+    m.netInfoUnsubscribe = null;
+  }
+  m.wasOffline = false;
   // Clean up any prewarm subscriptions
   m.prewarmCleanups.forEach((cleanup) => cleanup());
   m.prewarmCleanups = [];
@@ -981,6 +989,161 @@ describe('PerpsConnectionManager', () => {
 
       // Cleanup
       m.pendingReconnectPromise = null;
+    });
+  });
+
+  describe('performActualDisconnection — grace period expiry', () => {
+    beforeEach(async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.disconnect.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      // Clear cache mock calls from connect/prewarm so we can assert specifically
+      Object.values(mockStreamManagerInstance).forEach(({ clearCache }) =>
+        clearCache.mockClear(),
+      );
+    });
+
+    it('clears all stream channel caches when grace period fires', async () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        isInitialized: boolean;
+        connectionRefCount: number;
+        isPreloading: boolean;
+        performActualDisconnection: () => Promise<void>;
+      };
+      m.connectionRefCount = 0;
+
+      // Act
+      await m.performActualDisconnection();
+
+      // Assert
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.prices.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.oiCaps.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.fills.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.topOfBook.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.candles.clearCache).toHaveBeenCalled();
+    });
+
+    it('resets isPreloading flag so next connect can prewarm', async () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+        isPreloading: boolean;
+        performActualDisconnection: () => Promise<void>;
+      };
+      m.connectionRefCount = 0;
+      m.isPreloading = true;
+
+      // Act
+      await m.performActualDisconnection();
+
+      // Assert
+      expect(m.isPreloading).toBe(false);
+    });
+
+    it('resets connection state flags after disconnecting', async () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+        performActualDisconnection: () => Promise<void>;
+      };
+      m.connectionRefCount = 0;
+
+      // Act
+      await m.performActualDisconnection();
+
+      // Assert
+      const state = PerpsConnectionManager.getConnectionState();
+      expect(state.isConnected).toBe(false);
+      expect(state.isInitialized).toBe(false);
+      expect(state.isConnecting).toBe(false);
+    });
+
+    it('skips disconnection when reference count is still positive', async () => {
+      // Arrange — refCount > 0 means another consumer reconnected during grace period
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+        performActualDisconnection: () => Promise<void>;
+      };
+      m.connectionRefCount = 1;
+
+      // Act
+      await m.performActualDisconnection();
+
+      // Assert — controller not called, caches not cleared
+      expect(mockPerpsController.disconnect).not.toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('NetInfo isInternetReachable null handling', () => {
+    type NetInfoCallback = (state: {
+      isInternetReachable: boolean | null;
+      isConnected: boolean | null;
+    }) => void;
+
+    const mockAddEventListener = mockNetInfoAddEventListener as jest.Mock;
+
+    let capturedCallback: NetInfoCallback | null = null;
+
+    beforeEach(async () => {
+      // Set up to capture the listener, then connect so it registers
+      mockAddEventListener.mockImplementation((cb: NetInfoCallback) => {
+        capturedCallback = cb;
+        return jest.fn();
+      });
+      mockPerpsController.init.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+    });
+
+    it('treats isInternetReachable null as online when isConnected is true', () => {
+      // Arrange — start disconnected so wasOffline is not set by online path
+      const m = PerpsConnectionManager as unknown as {
+        wasOffline: boolean;
+        isConnected: boolean;
+      };
+      m.isConnected = false; // not connected — online path won't clear wasOffline
+      m.wasOffline = false;
+
+      // Act — null isInternetReachable falls back to isConnected=true → isOnline=true
+      // Since isOnline=true and !wasOffline, the "set wasOffline=true" branch is skipped
+      capturedCallback?.({ isInternetReachable: null, isConnected: true });
+
+      // Assert — wasOffline stays false (not offline path, and not connected to clear it)
+      expect(m.wasOffline).toBe(false);
+    });
+
+    it('treats isInternetReachable null as offline when isConnected is false', () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as { wasOffline: boolean };
+      m.wasOffline = false;
+
+      // Act — null isInternetReachable falls back to isConnected=false → offline
+      capturedCallback?.({ isInternetReachable: null, isConnected: false });
+
+      // Assert
+      expect(m.wasOffline).toBe(true);
+    });
+
+    it('treats isInternetReachable false as offline', () => {
+      // Arrange
+      const m = PerpsConnectionManager as unknown as { wasOffline: boolean };
+      m.wasOffline = false;
+
+      // Act
+      capturedCallback?.({ isInternetReachable: false, isConnected: true });
+
+      // Assert
+      expect(m.wasOffline).toBe(true);
     });
   });
 
