@@ -35,6 +35,8 @@ export function getPredictControllerMessenger(
       'KeyringController:signTypedMessage',
       'KeyringController:signPersonalMessage',
       'RemoteFeatureFlagController:getState',
+      'NetworkController:addNetwork',
+      'NetworkEnablementController:enableNetwork',
     ],
     events: [
       'TransactionController:transactionSubmitted',

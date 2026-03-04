@@ -63,6 +63,34 @@ describe('PredictController.getActivity', () => {
       ]),
     );
 
+    rootMessenger.registerActionHandler(
+      'NetworkController:getState',
+      jest.fn().mockReturnValue({
+        selectedNetworkClientId: 'mainnet',
+        networkConfigurationsByChainId: {
+          '0x89': { chainId: '0x89', name: 'Polygon' },
+        },
+      }),
+    );
+
+    rootMessenger.registerActionHandler(
+      'NetworkController:addNetwork',
+      jest.fn(),
+    );
+
+    rootMessenger.registerActionHandler(
+      'NetworkEnablementController:enableNetwork',
+      jest.fn(),
+    );
+
+    rootMessenger.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      jest.fn().mockReturnValue({
+        remoteFeatureFlags: {},
+        cacheTimestamp: Date.now(),
+      }),
+    );
+
     const messenger = new Messenger<
       'PredictController',
       AllPredictControllerMessengerActions,
@@ -77,6 +105,10 @@ describe('PredictController.getActivity', () => {
       actions: [
         'AccountsController:getSelectedAccount',
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        'NetworkController:getState',
+        'NetworkController:addNetwork',
+        'NetworkEnablementController:enableNetwork',
+        'RemoteFeatureFlagController:getState',
       ],
       events: ['TransactionController:transactionStatusUpdated'],
       messenger,

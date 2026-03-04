@@ -8,7 +8,7 @@ import {
   StateMetadata,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { ORIGIN_METAMASK, toHex } from '@metamask/controller-utils';
 import {
   PersonalMessageParams,
   SignTypedDataVersion,
@@ -20,7 +20,16 @@ import {
   NetworkControllerGetStateAction,
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerAddNetworkAction,
+  RpcEndpointType,
+  type NetworkState,
 } from '@metamask/network-controller';
+import { type NetworkEnablementControllerActions } from '@metamask/network-enablement-controller';
+
+type NetworkEnablementControllerEnableNetworkAction = Extract<
+  NetworkEnablementControllerActions,
+  { type: 'NetworkEnablementController:enableNetwork' }
+>;
 import {
   TransactionControllerTransactionStatusUpdatedEvent,
   TransactionControllerEstimateGasAction,
@@ -98,6 +107,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import {
   MATIC_CONTRACTS,
+  POLYGON_MAINNET_CHAIN_ID,
+  POLYGON_MAINNET_CAIP_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 import {
@@ -116,6 +127,10 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
+
+/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
  * State shape for PredictController
@@ -275,7 +290,9 @@ type AllowedActions =
   | TransactionControllerEstimateGasAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | NetworkControllerAddNetworkAction
+  | NetworkEnablementControllerEnableNetworkAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -353,6 +370,16 @@ export class PredictController extends BaseController<
         }),
       );
     });
+
+    this.ensurePolygonNetworkExists().catch((error) => {
+      DevLogger.log('PredictController: Error ensuring Polygon network', {
+        error:
+          error instanceof Error
+            ? error.message
+            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        timestamp: new Date().toISOString(),
+      });
+    });
   }
 
   /**
@@ -411,6 +438,69 @@ export class PredictController extends BaseController<
       signPersonalMessage: (_params: PersonalMessageParams) =>
         this.messenger.call('KeyringController:signPersonalMessage', _params),
     };
+  }
+
+  /**
+   * Ensures the Polygon network exists and is enabled.
+   * Called eagerly in the constructor and as a pre-flight check before
+   * any Polygon-dependent operation (balance, positions, activity, etc.).
+   * Self-healing: if a user removes the network mid-session, the next
+   * operation that needs it will re-add it.
+   */
+  async ensurePolygonNetworkExists(): Promise<void> {
+    const chainId = toHex(POLYGON_MAINNET_CHAIN_ID);
+
+    // Check if network already exists
+    const { networkConfigurationsByChainId } = this.messenger.call(
+      'NetworkController:getState',
+    ) as NetworkState;
+
+    if (networkConfigurationsByChainId[chainId]) {
+      return;
+    }
+
+    try {
+      this.messenger.call('NetworkController:addNetwork', {
+        chainId,
+        blockExplorerUrls: ['https://polygonscan.com'],
+        defaultRpcEndpointIndex: 0,
+        defaultBlockExplorerUrlIndex: 0,
+        name: 'Polygon',
+        nativeCurrency: 'POL',
+        rpcEndpoints: [
+          {
+            url: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
+            name: 'Polygon',
+            type: RpcEndpointType.Custom,
+          },
+        ],
+      });
+
+      // Enable the newly added network
+      this.messenger.call(
+        'NetworkEnablementController:enableNetwork',
+        POLYGON_MAINNET_CAIP_CHAIN_ID,
+      );
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('ensurePolygonNetworkExists', {
+          action: 'add_polygon_network',
+          chainId,
+          caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+        }),
+      );
+
+      // Still try to enable the network (it might already exist)
+      try {
+        this.messenger.call(
+          'NetworkEnablementController:enableNetwork',
+          POLYGON_MAINNET_CAIP_CHAIN_ID,
+        );
+      } catch (_enableError) {
+        // Swallow — best-effort enablement
+      }
+    }
   }
 
   private resolveFeatureFlags(): PredictFeatureFlags {
@@ -817,6 +907,8 @@ export class PredictController extends BaseController<
    * Get user positions
    */
   async getPositions(params: GetPositionsParams): Promise<PredictPosition[]> {
+    await this.ensurePolygonNetworkExists();
+
     // Start Sentry trace for get positions operation
     const traceId = `get-positions-${Date.now()}`;
     let traceData:
@@ -900,6 +992,8 @@ export class PredictController extends BaseController<
    * Get user activity
    */
   async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
+    await this.ensurePolygonNetworkExists();
+
     // Start Sentry trace for get activity operation
     const traceId = `get-activity-${Date.now()}`;
     let traceData:
@@ -1400,6 +1494,8 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    await this.ensurePolygonNetworkExists();
+
     const startTime = performance.now();
     const { analyticsProperties, preview } = params;
 
@@ -1569,6 +1665,8 @@ export class PredictController extends BaseController<
   async claimWithConfirmation(
     _params: ClaimParams = {},
   ): Promise<PredictClaim> {
+    await this.ensurePolygonNetworkExists();
+
     // Start Sentry trace for claim operation
     const traceId = `claim-${Date.now()}`;
     let traceData:
@@ -1861,6 +1959,8 @@ export class PredictController extends BaseController<
   public async depositWithConfirmation(
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
+    await this.ensurePolygonNetworkExists();
+
     const provider = this.provider;
 
     try {
@@ -2221,6 +2321,8 @@ export class PredictController extends BaseController<
   public async getAccountState(
     params: GetAccountStateParams = {},
   ): Promise<AccountState> {
+    await this.ensurePolygonNetworkExists();
+
     // Start Sentry trace for get account state operation
     const traceId = `get-account-state-${Date.now()}`;
     let traceData: { success: boolean; error?: string } | undefined;
@@ -2271,6 +2373,8 @@ export class PredictController extends BaseController<
   }
 
   public async getBalance(params: GetBalanceParams): Promise<number> {
+    await this.ensurePolygonNetworkExists();
+
     // Start Sentry trace for get balance operation
     const traceId = `get-balance-${Date.now()}`;
     let traceData:
@@ -2343,6 +2447,8 @@ export class PredictController extends BaseController<
   public async prepareWithdraw(
     _params: PrepareWithdrawParams = {},
   ): Promise<Result<string>> {
+    await this.ensurePolygonNetworkExists();
+
     try {
       const provider = this.provider;
 
