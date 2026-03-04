@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import { useHeadlessRamps } from './useHeadlessRamps';
+import { useRampsController } from './useRampsController';
 import { createHeadlessBuyNavDetails } from '../Views/HeadlessBuy/HeadlessBuy';
 import { createRampsOrderDetailsNavDetails } from '../Views/OrderDetails/OrderDetails';
 
@@ -25,9 +26,18 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockSetSelectedToken = jest.fn();
+const mockGetQuotes = jest.fn();
+const mockSelectedProvider = { id: '/providers/moonpay', name: 'MoonPay' };
+const mockSelectedToken = {
+  assetId: 'eip155:1/slip44:60',
+  chainId: 'eip155:1',
+};
 jest.mock('./useRampsController', () => ({
   useRampsController: jest.fn(() => ({
     setSelectedToken: mockSetSelectedToken,
+    selectedProvider: mockSelectedProvider,
+    selectedToken: mockSelectedToken,
+    getQuotes: mockGetQuotes,
     paymentMethods: [{ id: 'card', name: 'Card' }],
     paymentMethodsLoading: false,
     paymentMethodsError: null,
@@ -44,6 +54,16 @@ jest.mock('../Views/HeadlessBuy/HeadlessBuy', () => ({
 
 jest.mock('../Views/OrderDetails/OrderDetails', () => ({
   createRampsOrderDetailsNavDetails: jest.fn(),
+}));
+
+let mockRampAccountAddress: string | null = '0x1234567890abcdef';
+jest.mock('./useRampAccountAddress', () => ({
+  __esModule: true,
+  default: () => mockRampAccountAddress ?? '',
+}));
+
+jest.mock('../utils/getRampCallbackBaseUrl', () => ({
+  getRampCallbackBaseUrl: () => 'https://callback.example.com',
 }));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -123,7 +143,7 @@ describe('useHeadlessRamps', () => {
   });
 
   describe('return value structure', () => {
-    it('returns paymentMethods, isLoading, error, openBuyModal, order, goToBuyOrder', () => {
+    it('returns paymentMethods, isLoading, error, getQuote, openBuyModal, order, goToBuyOrder', () => {
       const store = createMockStore();
       const { result } = renderHook(
         () => useHeadlessRamps({ assetId: 'eip155:1/slip44:60' }),
@@ -136,6 +156,7 @@ describe('useHeadlessRamps', () => {
         error: null,
         order: null,
       });
+      expect(typeof result.current.getQuote).toBe('function');
       expect(typeof result.current.openBuyModal).toBe('function');
       expect(typeof result.current.goToBuyOrder).toBe('function');
     });
@@ -205,6 +226,149 @@ describe('useHeadlessRamps', () => {
         amount: 100,
       });
       expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+    });
+  });
+
+  describe('getQuote', () => {
+    beforeEach(() => {
+      mockGetQuotes.mockResolvedValue({
+        success: [
+          {
+            provider: '/providers/moonpay',
+            quote: { amountIn: 100, paymentMethod: 'card' },
+          },
+        ],
+        sorted: [],
+        error: [],
+      });
+    });
+
+    it('throws when assetId is not provided to hook', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useHeadlessRamps(), {
+        wrapper: wrapper(store),
+      });
+
+      await expect(
+        result.current.getQuote({ amount: 100, paymentMethodId: 'card' }),
+      ).rejects.toThrow(
+        'useHeadlessRamps: assetId is required to fetch a quote',
+      );
+    });
+
+    it('throws when wallet address is not available', async () => {
+      const original = mockRampAccountAddress;
+      try {
+        mockRampAccountAddress = '';
+
+        const store = createMockStore();
+        const { result } = renderHook(
+          () => useHeadlessRamps({ assetId: 'eip155:1/slip44:60' }),
+          { wrapper: wrapper(store) },
+        );
+
+        await expect(
+          result.current.getQuote({ amount: 100, paymentMethodId: 'card' }),
+        ).rejects.toThrow(
+          'useHeadlessRamps: wallet address is required to fetch a quote',
+        );
+      } finally {
+        mockRampAccountAddress = original;
+      }
+    });
+
+    it('throws when selectedProvider is not set', async () => {
+      (
+        useRampsController as jest.MockedFunction<typeof useRampsController>
+      ).mockReturnValueOnce({
+        setSelectedToken: mockSetSelectedToken,
+        selectedProvider: null,
+        selectedToken: mockSelectedToken,
+        getQuotes: mockGetQuotes,
+        paymentMethods: [],
+        paymentMethodsLoading: false,
+        paymentMethodsError: null,
+        tokensLoading: false,
+        tokensError: null,
+        providersLoading: false,
+        providersError: null,
+        userRegion: null,
+        setUserRegion: jest.fn(),
+        setSelectedProvider: jest.fn(),
+        providers: [],
+        countries: [],
+        countriesLoading: false,
+        countriesError: null,
+        selectedPaymentMethod: null,
+        setSelectedPaymentMethod: jest.fn(),
+        orders: [],
+        getOrderById: jest.fn(),
+        addOrder: jest.fn(),
+        removeOrder: jest.fn(),
+        refreshOrder: jest.fn(),
+        getOrderFromCallback: jest.fn(),
+        getWidgetUrl: jest.fn(),
+      } as ReturnType<typeof useRampsController>);
+
+      const store = createMockStore();
+      const { result } = renderHook(
+        () => useHeadlessRamps({ assetId: 'eip155:1/slip44:60' }),
+        { wrapper: wrapper(store) },
+      );
+
+      await expect(
+        result.current.getQuote({ amount: 100, paymentMethodId: 'card' }),
+      ).rejects.toThrow(
+        'useHeadlessRamps: selectedProvider is required to fetch a quote',
+      );
+    });
+
+    it('calls getQuotes and returns the matching quote', async () => {
+      const store = createMockStore();
+      const { result } = renderHook(
+        () => useHeadlessRamps({ assetId: 'eip155:1/slip44:60' }),
+        { wrapper: wrapper(store) },
+      );
+
+      const quote = await result.current.getQuote({
+        amount: 100,
+        paymentMethodId: 'card',
+      });
+
+      expect(mockGetQuotes).toHaveBeenCalledWith({
+        assetId: 'eip155:1/slip44:60',
+        amount: 100,
+        walletAddress: '0x1234567890abcdef',
+        redirectUrl: 'https://callback.example.com',
+        paymentMethods: ['card'],
+        providers: ['/providers/moonpay'],
+        forceRefresh: true,
+      });
+      expect(quote).toEqual({
+        provider: '/providers/moonpay',
+        quote: { amountIn: 100, paymentMethod: 'card' },
+      });
+    });
+
+    it('returns null when no quotes in response', async () => {
+      mockGetQuotes.mockResolvedValue({
+        success: [],
+        sorted: [],
+        error: [],
+      });
+
+      const store = createMockStore();
+      const { result } = renderHook(
+        () => useHeadlessRamps({ assetId: 'eip155:1/slip44:60' }),
+        { wrapper: wrapper(store) },
+      );
+
+      const quote = await result.current.getQuote({
+        amount: 100,
+        paymentMethodId: 'card',
+      });
+
+      expect(quote).toBeNull();
     });
   });
 

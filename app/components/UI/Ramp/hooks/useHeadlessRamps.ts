@@ -1,14 +1,18 @@
+import type { CaipChainId } from '@metamask/utils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   type RampsOrder,
   type PaymentMethod,
+  type Quote,
   RampsOrderStatus as Status,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
 import { useRampsController } from './useRampsController';
+import useRampAccountAddress from './useRampAccountAddress';
 import { createHeadlessBuyNavDetails } from '../Views/HeadlessBuy/HeadlessBuy';
 import { createRampsOrderDetailsNavDetails } from '../Views/OrderDetails/OrderDetails';
+import { getRampCallbackBaseUrl } from '../utils/getRampCallbackBaseUrl';
 
 interface UseHeadlessRampsParams {
   assetId?: string;
@@ -21,6 +25,10 @@ interface UseHeadlessRampsResult {
   isLoading: boolean;
   error: string | null;
   openBuyModal: (params: { paymentMethodId: string; amount: number }) => void;
+  getQuote: (params: {
+    amount: number;
+    paymentMethodId: string;
+  }) => Promise<Quote | null>;
   order: RampsOrder | null;
   goToBuyOrder: (orderId: string) => void;
 }
@@ -29,11 +37,12 @@ interface UseHeadlessRampsResult {
  * Hook for external teams to initiate a headless ramps buy flow.
  *
  * Pre-fetches payment methods for a given assetId, exposes `openBuyModal`
- * to launch the headless checkout flow, and provides order status updates
- * via the `order` field.
+ * to launch the headless checkout flow, `getQuote` to fetch a single quote
+ * for the selected provider, and provides order status updates via the
+ * `order` field.
  *
  * @param params - Configuration with `assetId` to pre-select.
- * @returns Payment methods, loading state, error, and actions.
+ * @returns Payment methods, loading state, error, getQuote, openBuyModal, and actions.
  */
 export function useHeadlessRamps({
   assetId,
@@ -50,6 +59,9 @@ export function useHeadlessRamps({
 
   const {
     setSelectedToken,
+    selectedProvider,
+    selectedToken,
+    getQuotes,
     paymentMethods,
     paymentMethodsLoading,
     paymentMethodsError,
@@ -59,6 +71,11 @@ export function useHeadlessRamps({
     providersError,
   } = useRampsController();
 
+  const walletAddress =
+    useRampAccountAddress(
+      (selectedToken?.chainId as CaipChainId | undefined) ?? null,
+    ) ?? '';
+
   useEffect(() => {
     if (assetId) {
       setSelectedToken(assetId);
@@ -67,6 +84,53 @@ export function useHeadlessRamps({
 
   const isLoading = tokensLoading || providersLoading || paymentMethodsLoading;
   const error = tokensError || providersError || paymentMethodsError || null;
+
+  const getQuote = useCallback(
+    async ({
+      amount,
+      paymentMethodId,
+    }: {
+      amount: number;
+      paymentMethodId: string;
+    }): Promise<Quote | null> => {
+      if (!assetId) {
+        throw new Error(
+          'useHeadlessRamps: assetId is required to fetch a quote',
+        );
+      }
+      if (!selectedProvider) {
+        throw new Error(
+          'useHeadlessRamps: selectedProvider is required to fetch a quote',
+        );
+      }
+      if (!walletAddress) {
+        throw new Error(
+          'useHeadlessRamps: wallet address is required to fetch a quote',
+        );
+      }
+
+      const response = await getQuotes({
+        assetId,
+        amount,
+        walletAddress,
+        redirectUrl: getRampCallbackBaseUrl(),
+        paymentMethods: [paymentMethodId],
+        providers: [selectedProvider.id],
+        forceRefresh: true,
+      });
+
+      if (!response.success?.length) return null;
+
+      const match = response.success.find(
+        (q) =>
+          q.provider === selectedProvider.id &&
+          (q.quote?.paymentMethod === paymentMethodId ||
+            !q.quote?.paymentMethod),
+      );
+      return match ?? response.success[0] ?? null;
+    },
+    [assetId, selectedProvider, walletAddress, getQuotes],
+  );
 
   const openBuyModal = useCallback(
     (modalParams: { paymentMethodId: string; amount: number }) => {
@@ -126,6 +190,7 @@ export function useHeadlessRamps({
     paymentMethods,
     isLoading,
     error,
+    getQuote,
     openBuyModal,
     order,
     goToBuyOrder,
