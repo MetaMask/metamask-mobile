@@ -212,9 +212,9 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                 {
                   "color": "#131416",
                   "fontFamily": "Geist-Regular",
-                  "fontSize": 16,
+                  "fontSize": 14,
                   "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "lineHeight": 22,
                 }
               }
             >

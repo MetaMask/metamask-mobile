@@ -69,6 +69,18 @@ jest.mock('../utils/accounts', () => ({
   })),
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
 jest.mock('../../../../store', () => ({
   store: {
     getState: jest.fn(() => ({})),
