@@ -16,6 +16,14 @@ Use these two mechanisms together:
 - [Remote Feature Flags Documentation](https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md)
 - [Perps A/B Testing Guide](./perps/perps-ab-testing.md)
 
+## Agent Skill Entrypoint
+
+Use the canonical cross-harness A/B testing skill:
+
+- `.ai/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+- `.ai/skills/ab-testing-implementation/references/ab-testing-playbook.md`
+- Compliance check: `bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
+
 ---
 
 ## How Variant Assignment Works

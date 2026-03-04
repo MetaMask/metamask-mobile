@@ -194,3 +194,22 @@ If the user asks to implement a ticket directly from Jira:
 
 ## Test Guidelines
 When working on tests, read tests/AGENTS.md for testing conventions.
+
+## A/B Testing Agent Standard
+
+For A/B test implementation or review tasks, use the canonical skill source:
+
+- `.ai/skills/ab-testing-implementation/SKILL.md`
+- `.ai/skills/ab-testing-implementation/references/ab-testing-playbook.md`
+
+Harness entrypoints:
+
+- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`)
+- Claude: `.claude/commands/create-ab-test.md` (`/create-ab-test`)
+- Windsurf and other harnesses: start prompts with `Follow .ai/skills/ab-testing-implementation/references/ab-testing-playbook.md and apply docs/ab-testing.md.`
+
+Compliance check command:
+
+```bash
+bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
+```
