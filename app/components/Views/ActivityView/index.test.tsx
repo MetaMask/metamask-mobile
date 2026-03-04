@@ -414,7 +414,7 @@ describe('ActivityView', () => {
 
       expect(
         getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders HeaderRoot with Activity title when showBackButton is false', () => {
@@ -423,11 +423,13 @@ describe('ActivityView', () => {
       const { getByTestId, getByText, queryByTestId } =
         renderComponent(mockInitialState);
 
-      expect(getByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeTruthy();
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT),
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
       ).toBeNull();
-      expect(getByText('Activity')).toBeTruthy();
+      expect(getByText('Activity')).toBeOnTheScreen();
     });
 
     it('renders HeaderCompactStandard with back button when showBackButton is true', () => {
@@ -437,8 +439,8 @@ describe('ActivityView', () => {
 
       expect(
         getByTestId(ActivitiesViewSelectorsIDs.HEADER_COMPACT_STANDARD),
-      ).toBeTruthy();
-      expect(getByTestId('activity-view-back-button')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
     });
 
     it('does not render HeaderRoot when showBackButton is true', () => {
