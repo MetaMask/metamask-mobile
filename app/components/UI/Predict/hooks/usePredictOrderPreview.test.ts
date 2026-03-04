@@ -373,9 +373,7 @@ describe('usePredictOrderPreview', () => {
 
     it('handles known error codes with specific localized message', async () => {
       const { Wrapper } = createWrapper();
-      mockPreviewOrder.mockRejectedValue(
-        new Error('PREDICT_PREVIEW_FAILED'),
-      );
+      mockPreviewOrder.mockRejectedValue(new Error('PREDICT_PREVIEW_FAILED'));
 
       const consoleErrorSpy = jest
         .spyOn(console, 'error')
@@ -447,44 +445,6 @@ describe('usePredictOrderPreview', () => {
       expect(mockPreviewOrder).toHaveBeenCalledWith(
         expect.objectContaining({ marketId: 'market-2' }),
       );
-    });
-
-    it('keeps previous data when parameters change (placeholderData)', async () => {
-      const { Wrapper } = createWrapper();
-      let currentSize = 100;
-      const { result, rerender } = renderHook(
-        () => usePredictOrderPreview({ ...defaultParams, size: currentSize }),
-        { wrapper: Wrapper },
-      );
-
-      // Wait for initial data to load
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      await waitFor(() => {
-        expect(result.current.preview).toEqual(mockPreview);
-      });
-
-      // Change params - new query key means cache miss, but placeholderData keeps the old value
-      const updatedPreview = { ...mockPreview, maxAmountSpent: 200 };
-      mockPreviewOrder.mockResolvedValue(updatedPreview);
-      currentSize = 200;
-      rerender({});
-
-      // Advance past debounce
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      // Preview should not flash to null - it should either be the old or new value
-      expect(result.current.preview).not.toBeNull();
-      expect(result.current.isLoading).toBe(false);
-
-      // Eventually resolves to the new value
-      await waitFor(() => {
-        expect(result.current.preview).toEqual(updatedPreview);
-      });
     });
   });
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { OrderPreview, PreviewOrderParams } from '../types';
 import { predictQueries } from '../queries';
 import { parseErrorMessage, ensureError } from '../utils/predictErrorHandler';
@@ -60,14 +60,16 @@ export function usePredictOrderPreview(
   const query = useQuery({
     ...predictQueries.orderPreview.options(debouncedParams),
     enabled: hasValidSize,
-    placeholderData: keepPreviousData,
     refetchInterval:
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
   const preview = query.data ?? null;
   const error = query.error
-    ? parseErrorMessage({ error: query.error, defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED })
+    ? parseErrorMessage({
+        error: query.error,
+        defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
+      })
     : null;
   const isLoading = preview === null && !error;
   const isCalculating = query.isFetching;
@@ -75,10 +77,19 @@ export function usePredictOrderPreview(
   useEffect(() => {
     if (!query.error) return;
     Logger.error(ensureError(query.error), {
-      tags: { feature: PREDICT_CONSTANTS.FEATURE_NAME, component: 'usePredictOrderPreview' },
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictOrderPreview',
+      },
       context: {
         name: 'usePredictOrderPreview',
-        data: { method: 'previewOrder', action: 'order_preview', operation: 'order_management', side: debouncedParams.side, marketId: debouncedParams.marketId },
+        data: {
+          method: 'previewOrder',
+          action: 'order_preview',
+          operation: 'order_management',
+          side: debouncedParams.side,
+          marketId: debouncedParams.marketId,
+        },
       },
     });
   }, [query.error, debouncedParams.side, debouncedParams.marketId]);
