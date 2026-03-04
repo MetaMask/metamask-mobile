@@ -5,6 +5,10 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import {
@@ -22,6 +26,7 @@ import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 180;
 const SPARKLINE_HEIGHT = 80;
+const SPARKLINE_STROKE_WIDTH = 2;
 const TOKEN_LOGO_SIZE = 40;
 const SHIMMER_PULSE_DURATION = 900;
 const LIVE_PRICES_THROTTLE_MS = 3000;
@@ -41,6 +46,7 @@ const TileCardInner: React.FC<
   cardWidth = DEFAULT_CARD_WIDTH,
   cardHeight = DEFAULT_CARD_HEIGHT,
   livePrices,
+  showFavoriteTag = false,
   testID = 'perps-market-tile-card',
 }) => {
   const { styles, theme } = useStyles(styleSheet, { cardWidth, cardHeight });
@@ -135,11 +141,25 @@ const TileCardInner: React.FC<
             </Text>
           </View>
 
-          <PerpsTokenLogo
-            symbol={market.symbol}
-            size={TOKEN_LOGO_SIZE}
-            recyclingKey={market.symbol}
-          />
+          <View style={styles.tokenLogoWrapper}>
+            <PerpsTokenLogo
+              symbol={market.symbol}
+              size={TOKEN_LOGO_SIZE}
+              recyclingKey={market.symbol}
+            />
+            {showFavoriteTag && (
+              <View
+                style={styles.favoriteBadge}
+                testID={`favorite-badge-${market.symbol}`}
+              >
+                <Icon
+                  name={IconName.StarFilled}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </View>
+            )}
+          </View>
         </View>
       </View>
 
@@ -148,6 +168,7 @@ const TileCardInner: React.FC<
           <SparklineChart
             data={sparklineData}
             width={sparklineWidth}
+            strokeWidth={SPARKLINE_STROKE_WIDTH}
             height={SPARKLINE_HEIGHT}
             color={sparklineColor}
             gradientId={`sparkline-${market.symbol}`}

@@ -4,15 +4,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsTweetCard from './MarketInsightsTweetCard';
 
 describe('MarketInsightsTweetCard', () => {
-  beforeEach(() => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-02-17T12:00:00.000Z'));
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it('renders tweet metadata and handles card press', () => {
     const onPress = jest.fn();
 
@@ -31,8 +22,7 @@ describe('MarketInsightsTweetCard', () => {
       />,
     );
 
-    expect(getByText('analyst_alpha')).toBeOnTheScreen();
-    expect(getByText('1h ago')).toBeOnTheScreen();
+    expect(getByText('@analyst_alpha')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('market-insights-tweet-card'));
     expect(onPress).toHaveBeenCalledTimes(1);

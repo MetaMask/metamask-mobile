@@ -14,10 +14,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
@@ -35,7 +32,6 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectAbTestContext,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -58,8 +54,6 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
@@ -90,6 +84,7 @@ import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.ts
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -100,7 +95,6 @@ const BridgeView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const keypadRef = useRef<SwapsKeypadRef>(null);
 
   // Needed to get gas fee estimates
@@ -113,7 +107,6 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const abTestContext = useSelector(selectAbTestContext);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const { isStockToken } = useRWAToken();
@@ -283,40 +276,7 @@ const BridgeView = () => {
     navigation.setOptions(getBridgeNavbar(navigation, bridgeViewMode, colors));
   }, [navigation, bridgeViewMode, colors]);
 
-  const hasTrackedPageView = useRef(false);
-  useEffect(() => {
-    const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
-
-    if (shouldTrackPageView) {
-      hasTrackedPageView.current = true;
-      const pageViewedProperties = {
-        chain_id_source: getDecimalChainId(sourceToken.chainId),
-        chain_id_destination: getDecimalChainId(destToken?.chainId),
-        token_symbol_source: sourceToken.symbol,
-        token_symbol_destination: destToken?.symbol,
-        token_address_source: sourceToken.address,
-        token_address_destination: destToken?.address,
-        ...(abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout && {
-          ab_tests: {
-            assetsASSETS2493AbtestTokenDetailsLayout:
-              abTestContext.assetsASSETS2493AbtestTokenDetailsLayout,
-          },
-        }),
-      };
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
-          .addProperties(pageViewedProperties)
-          .build(),
-      );
-    }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    bridgeViewMode,
-    abTestContext,
-  ]);
+  useTrackSwapPageViewed();
 
   // Reset isErrorBannerVisible when error state changes
   useEffect(() => {
