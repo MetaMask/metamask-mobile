@@ -36,15 +36,14 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import TitleStandard from '../../../component-library/components-temp/TitleStandard';
+import HeaderStackedStandard from '../../../component-library/components-temp/HeaderStackedStandard';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
 import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import useMetrics from '../../hooks/useMetrics/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
@@ -88,7 +87,7 @@ const ImportNewSecretRecoveryPhrase = () => {
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
   const hdKeyrings = useSelector(selectHDKeyrings);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -243,7 +242,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
   const content = (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
-      <HeaderCompactStandard
+      <HeaderStackedStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -256,26 +255,29 @@ const ImportNewSecretRecoveryPhrase = () => {
             testID: 'qr-code-button',
           },
         ]}
-      />
-      <TitleStandard
-        testID={ImportSRPIDs.SCREEN_TITLE_ID}
-        title={strings('import_new_secret_recovery_phrase.import_wallet_title')}
-        bottomAccessory={
-          <View style={styles.subtitleContainer}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('import_new_secret_recovery_phrase.enter_srp_subtitle')}
-            </Text>
-            <ButtonIcon
-              iconName={IconName.Info}
-              iconProps={{
-                color: IconColor.IconAlternative,
-              }}
-              onPress={showWhatIsSeedPhrase}
-              testID="info-icon"
-            />
-          </View>
-        }
-        twClassName="px-4 pt-1 pb-3"
+        titleStandardProps={{
+          testID: ImportSRPIDs.SCREEN_TITLE_ID,
+          title: strings(
+            'import_new_secret_recovery_phrase.import_wallet_title',
+          ),
+          bottomAccessory: (
+            <View style={styles.subtitleContainer}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings(
+                  'import_new_secret_recovery_phrase.enter_srp_subtitle',
+                )}
+              </Text>
+              <ButtonIcon
+                iconName={IconName.Info}
+                iconProps={{
+                  color: IconColor.IconAlternative,
+                }}
+                onPress={showWhatIsSeedPhrase}
+                testID="info-icon"
+              />
+            </View>
+          ),
+        }}
       />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}

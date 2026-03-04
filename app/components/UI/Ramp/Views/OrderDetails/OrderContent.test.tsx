@@ -3,7 +3,12 @@ import { fireEvent, act, screen } from '@testing-library/react-native';
 import OrderContent from './OrderContent';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../constants/on-ramp';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 
@@ -11,6 +16,10 @@ const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getProviderName: jest.fn(() => 'Transak'),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -28,10 +37,7 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
-const mockOrder: RampsOrder = {
-  id: '/providers/transak/orders/abc123',
-  isOnlyLink: false,
-  success: true,
+const mockRampsOrderData: Partial<RampsOrder> = {
   providerOrderId: 'transak_order_abc123',
   providerOrderLink: 'https://transak.com/order/abc',
   fiatAmount: 100,
@@ -47,16 +53,23 @@ const mockOrder: RampsOrder = {
   statusDescription: 'Card purchases typically take a few minutes',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provider: { id: '/providers/transak', name: 'Transak', links: [] } as any,
+};
+
+const mockOrder: FiatOrder = {
+  id: '/providers/transak/orders/abc123',
+  provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
   createdAt: 1700000000000,
-  txHash: '',
-  walletAddress: '0x1234',
-  status: RampsOrderStatus.Completed,
-  network: { chainId: '1', name: 'Ethereum' },
-  canBeUpdated: false,
-  idHasExpired: false,
+  amount: 100,
+  currency: 'USD',
+  cryptoAmount: 0.05,
+  cryptocurrency: 'ETH',
+  fee: 2.5,
+  state: FIAT_ORDER_STATES.COMPLETED,
+  account: '0x1234',
+  network: '1',
   excludeFromPurchases: false,
-  timeDescriptionPending: '',
   orderType: 'BUY',
+  data: mockRampsOrderData as RampsOrder,
 };
 
 describe('OrderContent', () => {
@@ -65,7 +78,7 @@ describe('OrderContent', () => {
   });
 
   function renderOrder(
-    order: RampsOrder,
+    order: FiatOrder,
     props?: { showCloseButton?: boolean },
   ) {
     return renderWithProvider(<OrderContent order={order} {...props} />, {
@@ -79,10 +92,10 @@ describe('OrderContent', () => {
   });
 
   it('renders loading state when order has no amount', () => {
-    const pendingOrder: RampsOrder = {
+    const pendingOrder: FiatOrder = {
       ...mockOrder,
-      fiatAmount: 0,
-      status: RampsOrderStatus.Pending,
+      amount: 0,
+      state: FIAT_ORDER_STATES.PENDING,
     };
     renderOrder(pendingOrder);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -94,7 +107,9 @@ describe('OrderContent', () => {
     if (copyButton) {
       fireEvent.press(copyButton);
     }
-    expect(Clipboard.setString).toHaveBeenCalledWith('transak_order_abc123');
+    expect(Clipboard.setString).toHaveBeenCalledWith(
+      '/providers/transak/orders/abc123',
+    );
   });
 
   it('opens provider link with InAppBrowser when available', async () => {
@@ -140,22 +155,22 @@ describe('OrderContent', () => {
   });
 
   it('renders correct status text for each order state', () => {
-    renderOrder({ ...mockOrder, status: RampsOrderStatus.Completed });
+    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.COMPLETED });
     expect(screen.getByText('Complete')).toBeOnTheScreen();
   });
 
   it('renders failed status', () => {
-    renderOrder({ ...mockOrder, status: RampsOrderStatus.Failed });
+    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.FAILED });
     expect(screen.getByText('Failed')).toBeOnTheScreen();
   });
 
   it('renders cancelled status', () => {
-    renderOrder({ ...mockOrder, status: RampsOrderStatus.Cancelled });
+    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.CANCELLED });
     expect(screen.getByText('Cancelled')).toBeOnTheScreen();
   });
 
   it('renders processing status for pending orders', () => {
-    renderOrder({ ...mockOrder, status: RampsOrderStatus.Pending });
+    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.PENDING });
     expect(screen.getByText('Processing')).toBeOnTheScreen();
   });
 
@@ -167,9 +182,12 @@ describe('OrderContent', () => {
   });
 
   it('does not render info row when statusDescription is absent', () => {
-    const orderWithoutDescription: RampsOrder = {
+    const orderWithoutDescription: FiatOrder = {
       ...mockOrder,
-      statusDescription: undefined,
+      data: {
+        ...mockRampsOrderData,
+        statusDescription: undefined,
+      } as RampsOrder,
     };
     renderOrder(orderWithoutDescription);
     expect(

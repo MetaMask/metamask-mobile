@@ -3,25 +3,34 @@ import React, {
   useCallback,
   useImperativeHandle,
   useMemo,
-  useState,
 } from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, Image, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import SectionCard from '../../components/SectionCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
-import { CollectiblesEmptyState } from '../../../../UI/CollectiblesEmptyState/CollectiblesEmptyState';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
+import gemIcon from './assets/gem.png';
 
 const MAX_NFTS_DISPLAYED = 6;
 const NFTS_PER_ROW = 3;
@@ -82,12 +91,8 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     navigation.navigate(Routes.WALLET.NFTS_FULL_VIEW);
   }, [navigation]);
 
-  const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
-
   const handleImportNfts = useCallback(() => {
-    setIsAddNFTEnabled(false);
     navigation.navigate('AddAsset', { assetType: 'collectible' });
-    setTimeout(() => setIsAddNFTEnabled(true), 1000);
   }, [navigation]);
 
   return (
@@ -133,11 +138,45 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
           <NftSkeletonRow />
         </SectionRow>
       ) : (
-        <CollectiblesEmptyState
-          onAction={handleImportNfts}
-          actionButtonProps={{ isDisabled: !isAddNFTEnabled }}
-          twClassName="mx-auto mt-2"
-        />
+        <SectionRow>
+          <TouchableOpacity onPress={handleImportNfts} activeOpacity={0.7}>
+            <SectionCard>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={4}
+              >
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  justifyContent={BoxJustifyContent.Center}
+                  twClassName="w-10 h-10"
+                >
+                  <Image
+                    source={gemIcon}
+                    // eslint-disable-next-line react-native/no-inline-styles
+                    style={{ width: 40, height: 40 }}
+                    resizeMode="contain"
+                  />
+                </Box>
+                <Box twClassName="flex-1">
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {strings('homepage.sections.import_nfts')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('homepage.sections.import_nfts_description')}
+                  </Text>
+                </Box>
+              </Box>
+            </SectionCard>
+          </TouchableOpacity>
+        </SectionRow>
       )}
     </Box>
   );

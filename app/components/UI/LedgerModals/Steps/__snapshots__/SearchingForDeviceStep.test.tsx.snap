@@ -34,7 +34,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 22,
           "letterSpacing": 0,
@@ -65,7 +65,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -79,7 +79,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -94,7 +94,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -109,7 +109,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -124,7 +124,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -139,7 +139,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -154,7 +154,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -227,7 +227,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 22,
           "letterSpacing": 0,
@@ -258,7 +258,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -272,7 +272,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -287,7 +287,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -302,7 +302,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -317,7 +317,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -332,7 +332,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,
@@ -347,7 +347,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 16,
           "letterSpacing": 0,

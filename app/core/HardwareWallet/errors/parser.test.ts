@@ -352,16 +352,6 @@ describe('parseErrorByType', () => {
       expect(result.code).toBe(ErrorCode.ConnectionTimeout);
     });
 
-    it('parses scan timeout message containing "unlocked" as ConnectionTimeout, not AuthenticationDeviceLocked', () => {
-      const error = new Error(
-        'Scan timeout: No Ledger devices found. Make sure your Ledger is unlocked and Bluetooth is enabled on the device.',
-      );
-
-      const result = parseErrorByType(error, walletType);
-
-      expect(result.code).toBe(ErrorCode.ConnectionTimeout);
-    });
-
     it('parses "bluetooth" with "off" message', () => {
       const error = new Error('Bluetooth is off');
 

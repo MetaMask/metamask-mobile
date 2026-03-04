@@ -5,6 +5,7 @@
  * Portable: no mobile-specific imports.
  * Logger is injected as optional parameter for platform-agnostic error reporting.
  */
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
   toCaipAccountId,
@@ -14,23 +15,6 @@ import {
 
 import type { PerpsLogger } from '../types';
 import { ensureError } from './errorUtils';
-
-/**
- * Converts a numeric or hex chain ID to a CAIP-2 chain ID string.
- * e.g. '0x1' → 'eip155:1', '42161' → 'eip155:42161'
- *
- * @param chainId - Numeric string or hex string chain ID.
- * @returns CAIP-2 formatted chain ID.
- */
-function formatChainIdToCaip(chainId: string): string {
-  const decimal = chainId.startsWith('0x')
-    ? parseInt(chainId, 16)
-    : parseInt(chainId, 10);
-  if (isNaN(decimal)) {
-    throw new Error(`Invalid chain ID: ${chainId}`);
-  }
-  return `eip155:${decimal}`;
-}
 
 /**
  * Formats an address to CAIP-10 account ID format
@@ -51,7 +35,7 @@ export const formatAccountToCaipAccountId = (
   logger?: PerpsLogger,
 ): CaipAccountId | null => {
   try {
-    const caipChainId = formatChainIdToCaip(chainId) as `${string}:${string}`;
+    const caipChainId = formatChainIdToCaip(chainId);
     const { namespace, reference } = parseCaipChainId(caipChainId);
 
     // Normalize EVM addresses to checksummed format for consistent CAIP IDs

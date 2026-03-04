@@ -1,7 +1,7 @@
 import React from 'react';
+import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
-import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -81,9 +81,8 @@ jest.mock('../../hooks/useRampsController', () => ({
   useRampsController: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useDebouncedValue', () => ({
-  useDebouncedValue: <T,>(value: T) => value,
-}));
+const mockTrackEvent = jest.fn();
+jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockGetNetworkName = jest.fn();
 jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
@@ -175,17 +174,11 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   it('renders correctly and matches snapshot (legacy)', () => {
@@ -284,11 +277,10 @@ describe('TokenSelection Component', () => {
       error: null,
     });
 
-    const { getByTestId } = renderWithProvider(TokenSelection);
+    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
+    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
 
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
+    expect(activityIndicator).toBeDefined();
   });
 
   it('displays loading indicator while fetching tokens (V2 enabled)', () => {
@@ -316,59 +308,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
-    const { getByTestId } = renderWithProvider(TokenSelection);
+    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
+    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
 
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-  });
-
-  it('displays loading when tokens not yet loaded (V2, null tokens and no error)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    mockUseRampsController.mockReturnValue({
-      tokens: null,
-      selectedToken: null,
-      setSelectedToken: jest.fn(),
-      tokensLoading: false,
-      tokensError: null,
-      userRegion: null,
-      setUserRegion: jest.fn(),
-      selectedProvider: null,
-      setSelectedProvider: jest.fn(),
-      providers: [],
-      providersLoading: false,
-      providersError: null,
-      countries: [],
-      countriesLoading: false,
-      countriesError: null,
-      paymentMethods: [],
-      selectedPaymentMethod: null,
-      setSelectedPaymentMethod: jest.fn(),
-      paymentMethodsLoading: false,
-      paymentMethodsError: null,
-      getQuotes: jest.fn(),
-      getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
-    });
-
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
+    expect(activityIndicator).toBeDefined();
   });
 
   it('displays error message when token fetch fails (legacy)', () => {
@@ -410,12 +355,6 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -475,12 +414,6 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
@@ -550,12 +483,6 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -629,12 +556,6 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -648,6 +569,27 @@ describe('TokenSelection Component', () => {
         searchString: '   ',
       }),
     );
+  });
+
+  it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
+    fireEvent.press(firstToken);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
+      ramp_type: 'UNIFIED BUY',
+      region: 'US',
+      chain_id: mockTokens[0].chainId,
+      currency_destination: mockTokens[0].assetId,
+      currency_destination_symbol: mockTokens[0].symbol,
+      currency_destination_network: 'Ethereum Mainnet',
+      currency_source: '',
+      is_authenticated: false,
+      token_caip19: mockTokens[0].assetId,
+      token_symbol: mockTokens[0].symbol,
+      ramp_routing: UnifiedRampRoutingType.DEPOSIT,
+    });
   });
 
   it('filters tokens to only include those for configured networks (V2 enabled)', () => {
@@ -689,12 +631,6 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
-      orders: [],
-      getOrderById: jest.fn(),
-      addOrder: jest.fn(),
-      removeOrder: jest.fn(),
-      refreshOrder: jest.fn(),
-      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);

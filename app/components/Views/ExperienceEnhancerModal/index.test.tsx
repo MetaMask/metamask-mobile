@@ -8,17 +8,6 @@ import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../constants/urls';
 import ExperienceEnhancerModal from './';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    addTraitsToUser: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn(),
-    })),
-  }),
-}));
-
 // Mock the BottomSheet component
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',

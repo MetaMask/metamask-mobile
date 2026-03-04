@@ -2,174 +2,233 @@ import { renderHook } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useMusdRampAvailability } from './useMusdRampAvailability';
-import {
-  MUSD_BUYABLE_CHAIN_IDS,
-  MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-} from '../constants/musd';
-import {
-  getTokenBuyabilityKey,
-  useTokensBuyability,
-} from '../../Ramp/hooks/useTokenBuyability';
-import { TokenI } from '../../Tokens/types';
+import { useRampTokens, RampsToken } from '../../Ramp/hooks/useRampTokens';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../constants/musd';
 
-jest.mock('../../Ramp/hooks/useTokenBuyability', () => {
-  const actual = jest.requireActual('../../Ramp/hooks/useTokenBuyability');
-  return {
-    ...actual,
-    useTokensBuyability: jest.fn(),
-  };
-});
+jest.mock('../../Ramp/hooks/useRampTokens');
 
-const mockUseTokensBuyability = useTokensBuyability as jest.MockedFunction<
-  typeof useTokensBuyability
+const mockUseRampTokens = useRampTokens as jest.MockedFunction<
+  typeof useRampTokens
 >;
 
 describe('useMusdRampAvailability', () => {
-  const getMusdToken = (chainId: Hex): TokenI => ({
-    address: MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId],
-    chainId,
-    symbol: MUSD_TOKEN.symbol,
-    name: MUSD_TOKEN.name,
-    decimals: MUSD_TOKEN.decimals,
-    image: '',
-    logo: undefined,
-    balance: '0',
-    isETH: false,
-    isNative: false,
-  });
+  const createMusdRampToken = (
+    chainId: Hex,
+    tokenSupported = true,
+  ): RampsToken => {
+    const assetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId].toLowerCase();
+    const caipChainId = assetId.split('/')[0] as `${string}:${string}`;
+    return {
+      assetId: assetId as `${string}:${string}/${string}:${string}`,
+      symbol: 'MUSD',
+      chainId: caipChainId,
+      tokenSupported,
+      name: 'MetaMask USD',
+      decimals: 6,
+      iconUrl: 'https://example.com/musd.png',
+    };
+  };
 
-  const MAINNET_MUSD_KEY = getTokenBuyabilityKey(
-    getMusdToken(CHAIN_IDS.MAINNET as Hex),
-  );
-  const LINEA_MUSD_KEY = getTokenBuyabilityKey(
-    getMusdToken(CHAIN_IDS.LINEA_MAINNET as Hex),
-  );
-
-  const setBuyability = (
-    buyabilityByTokenKey: Record<string, boolean> = {},
-  ) => {
-    mockUseTokensBuyability.mockReturnValue({
-      buyabilityByTokenKey,
-      isLoading: false,
-    });
+  const defaultRampTokens = {
+    topTokens: null,
+    allTokens: [
+      createMusdRampToken(CHAIN_IDS.MAINNET as Hex),
+      createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex),
+    ],
+    isLoading: false,
+    error: null,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
-    setBuyability({
-      [MAINNET_MUSD_KEY]: true,
-      [LINEA_MUSD_KEY]: true,
+    mockUseRampTokens.mockReturnValue(defaultRampTokens);
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  describe('hook structure', () => {
+    it('returns object with all required properties', () => {
+      const { result } = renderHook(() => useMusdRampAvailability());
+
+      expect(result.current).toHaveProperty('isMusdBuyableOnChain');
+      expect(result.current).toHaveProperty('isMusdBuyableOnAnyChain');
+      expect(result.current).toHaveProperty('getIsMusdBuyable');
+    });
+
+    it('returns getIsMusdBuyable as a function', () => {
+      const { result } = renderHook(() => useMusdRampAvailability());
+
+      expect(typeof result.current.getIsMusdBuyable).toBe('function');
     });
   });
 
-  it('returns false for all mUSD buyable chains when no tokens are buyable', () => {
-    setBuyability({});
+  describe('isMusdBuyableOnChain', () => {
+    it('returns empty object when allTokens is null', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: null,
+      });
 
-    const { result } = renderHook(() => useMusdRampAvailability());
+      const { result } = renderHook(() => useMusdRampAvailability());
 
-    MUSD_BUYABLE_CHAIN_IDS.forEach((chainId) => {
-      expect(result.current.isMusdBuyableOnChain[chainId]).toBe(false);
-    });
-    expect(result.current.isMusdBuyableOnAnyChain).toBe(false);
-  });
-
-  it('marks remaining chains as not buyable when buyability results are missing', () => {
-    setBuyability({ [MAINNET_MUSD_KEY]: true });
-
-    const { result } = renderHook(() => useMusdRampAvailability());
-
-    expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.MAINNET]).toBe(true);
-    expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.LINEA_MAINNET]).toBe(
-      false,
-    );
-  });
-
-  it('returns true when at least one chain has buyable mUSD', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: false,
-      [LINEA_MUSD_KEY]: true,
+      expect(result.current.isMusdBuyableOnChain).toEqual({});
     });
 
-    const { result } = renderHook(() => useMusdRampAvailability());
+    it('returns buyability status for each chain', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
+        ],
+      });
 
-    expect(result.current.isMusdBuyableOnAnyChain).toBe(true);
-  });
+      const { result } = renderHook(() => useMusdRampAvailability());
 
-  it('returns chain-specific buyability when a single chain is selected', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: true,
-      [LINEA_MUSD_KEY]: false,
+      expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.MAINNET]).toBe(true);
+      expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.LINEA_MAINNET]).toBe(
+        false,
+      );
     });
 
-    const { result } = renderHook(() => useMusdRampAvailability());
+    it('returns false for chain when token not supported', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
+        ],
+      });
 
-    const isMusdBuyable = result.current.getIsMusdBuyable(
-      CHAIN_IDS.MAINNET as Hex,
-      false,
-    );
+      const { result } = renderHook(() => useMusdRampAvailability());
 
-    expect(isMusdBuyable).toBe(true);
+      expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.MAINNET]).toBe(
+        false,
+      );
+      expect(result.current.isMusdBuyableOnChain[CHAIN_IDS.LINEA_MAINNET]).toBe(
+        false,
+      );
+    });
   });
 
-  it('returns false when selected chain is not buyable', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: true,
-      [LINEA_MUSD_KEY]: false,
+  describe('isMusdBuyableOnAnyChain', () => {
+    it('returns true when at least one chain has buyable mUSD', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, true),
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdRampAvailability());
+
+      expect(result.current.isMusdBuyableOnAnyChain).toBe(true);
     });
 
-    const { result } = renderHook(() => useMusdRampAvailability());
+    it('returns false when no chains have buyable mUSD', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
+        ],
+      });
 
-    const isMusdBuyable = result.current.getIsMusdBuyable(
-      CHAIN_IDS.LINEA_MAINNET as Hex,
-      false,
-    );
+      const { result } = renderHook(() => useMusdRampAvailability());
 
-    expect(isMusdBuyable).toBe(false);
+      expect(result.current.isMusdBuyableOnAnyChain).toBe(false);
+    });
+
+    it('returns false when allTokens is empty', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [],
+      });
+
+      const { result } = renderHook(() => useMusdRampAvailability());
+
+      expect(result.current.isMusdBuyableOnAnyChain).toBe(false);
+    });
   });
 
-  it('returns false when no chain is selected and popular networks filter is inactive', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: true,
-      [LINEA_MUSD_KEY]: true,
+  describe('getIsMusdBuyable', () => {
+    it('returns isMusdBuyableOnAnyChain when popular networks filter is active', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, false),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, true),
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdRampAvailability());
+      const isMusdBuyable = result.current.getIsMusdBuyable(null, true);
+
+      expect(isMusdBuyable).toBe(true);
     });
 
-    const { result } = renderHook(() => useMusdRampAvailability());
+    it('returns chain-specific buyability when single chain selected', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
+        ],
+      });
 
-    const isMusdBuyable = result.current.getIsMusdBuyable(null, false);
+      const { result } = renderHook(() => useMusdRampAvailability());
+      const isMusdBuyable = result.current.getIsMusdBuyable(
+        CHAIN_IDS.MAINNET as Hex,
+        false,
+      );
 
-    expect(isMusdBuyable).toBe(false);
+      expect(isMusdBuyable).toBe(true);
+    });
+
+    it('returns false when selected chain not buyable', () => {
+      mockUseRampTokens.mockReturnValue({
+        ...defaultRampTokens,
+        allTokens: [
+          createMusdRampToken(CHAIN_IDS.MAINNET as Hex, true),
+          createMusdRampToken(CHAIN_IDS.LINEA_MAINNET as Hex, false),
+        ],
+      });
+
+      const { result } = renderHook(() => useMusdRampAvailability());
+      const isMusdBuyable = result.current.getIsMusdBuyable(
+        CHAIN_IDS.LINEA_MAINNET as Hex,
+        false,
+      );
+
+      expect(isMusdBuyable).toBe(false);
+    });
+
+    it('returns false when no chain selected and popular networks filter is inactive', () => {
+      const { result } = renderHook(() => useMusdRampAvailability());
+      const isMusdBuyable = result.current.getIsMusdBuyable(null, false);
+
+      expect(isMusdBuyable).toBe(false);
+    });
+
+    it('returns false for unknown chain ID', () => {
+      const { result } = renderHook(() => useMusdRampAvailability());
+      const isMusdBuyable = result.current.getIsMusdBuyable(
+        '0x999' as Hex,
+        false,
+      );
+
+      expect(isMusdBuyable).toBe(false);
+    });
   });
 
-  it('returns false for an unknown chain ID', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: true,
-      [LINEA_MUSD_KEY]: true,
+  describe('integration with useRampTokens', () => {
+    it('calls useRampTokens hook', () => {
+      renderHook(() => useMusdRampAvailability());
+
+      expect(mockUseRampTokens).toHaveBeenCalled();
     });
-
-    const { result } = renderHook(() => useMusdRampAvailability());
-
-    const isMusdBuyable = result.current.getIsMusdBuyable(
-      '0x999' as Hex,
-      false,
-    );
-
-    expect(isMusdBuyable).toBe(false);
-  });
-
-  it('uses aggregate buyability when popular networks filter is active even with selected chain', () => {
-    setBuyability({
-      [MAINNET_MUSD_KEY]: false,
-      [LINEA_MUSD_KEY]: true,
-    });
-
-    const { result } = renderHook(() => useMusdRampAvailability());
-
-    const isMusdBuyable = result.current.getIsMusdBuyable(
-      CHAIN_IDS.MAINNET as Hex,
-      true,
-    );
-
-    expect(isMusdBuyable).toBe(true);
   });
 });

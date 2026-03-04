@@ -198,14 +198,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock styles/common
-jest.mock('../../../../../styles/common', () => {
-  const { brandColor } = jest.requireActual('@metamask/design-tokens');
-  return {
-    colors: {
-      white: brandColor.white,
-    },
-  };
-});
+jest.mock('../../../../../styles/common', () => ({
+  colors: {
+    white: '#FFFFFF',
+  },
+}));
 
 describe('KYCFailed Component', () => {
   const mockNavigate = jest.fn();

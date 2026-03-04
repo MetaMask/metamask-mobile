@@ -3,8 +3,8 @@ import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from './mapBaanxApiUrl';
 
 describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
   const originalBaanxUrl = process.env.BAANX_API_URL;
-  const originalBuildsEnabled =
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+  const originalGitHubActions = process.env.GITHUB_ACTIONS;
+  const originalE2e = process.env.E2E;
 
   afterEach(() => {
     if (originalBaanxUrl !== undefined) {
@@ -12,17 +12,22 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
     } else {
       delete process.env.BAANX_API_URL;
     }
-    if (originalBuildsEnabled !== undefined) {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY =
-        originalBuildsEnabled;
+    if (originalGitHubActions !== undefined) {
+      process.env.GITHUB_ACTIONS = originalGitHubActions;
     } else {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+      delete process.env.GITHUB_ACTIONS;
+    }
+    if (originalE2e !== undefined) {
+      process.env.E2E = originalE2e;
+    } else {
+      delete process.env.E2E;
     }
   });
 
-  describe('when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (builds.yml path)', () => {
+  describe('when GITHUB_ACTIONS (builds.yml path)', () => {
     beforeEach(() => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      process.env.GITHUB_ACTIONS = 'true';
+      delete process.env.E2E;
     });
 
     it('returns BAANX_API_URL from environment when set', () => {
@@ -48,11 +53,23 @@ describe('getDefaultBaanxApiBaseUrlForMetaMaskEnv', () => {
       const result2 = getDefaultBaanxApiBaseUrlForMetaMaskEnv('production');
       expect(result1).toBe(result2);
     });
+
+    it('uses metaMaskEnv when E2E is true (E2E path)', () => {
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+      process.env.BAANX_API_URL = 'https://build-time.api';
+      expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('production')).toBe(
+        AppConstants.BAANX_API_URL.PRD,
+      );
+      expect(getDefaultBaanxApiBaseUrlForMetaMaskEnv('dev')).toBe(
+        AppConstants.BAANX_API_URL.DEV,
+      );
+    });
   });
 
-  describe('when not BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (Bitrise / .js.env path)', () => {
+  describe('when not GITHUB_ACTIONS (Bitrise / .js.env path)', () => {
     beforeEach(() => {
-      delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+      delete process.env.GITHUB_ACTIONS;
     });
 
     it('returns AppConstants.BAANX_API_URL.PRD for production/rc', () => {

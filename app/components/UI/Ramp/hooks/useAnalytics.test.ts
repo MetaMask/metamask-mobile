@@ -25,7 +25,7 @@ describe('useAnalytics', () => {
     const testEvent = 'RAMPS_BUTTON_CLICKED';
     const testEventParams = {
       location: 'Amount to Buy Screen',
-      button_text: 'Buy',
+      text: 'Buy',
       ramp_type: 'BUY',
       region: 'US',
     } as const;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { FlatList, TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -7,8 +7,8 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
+import OrderListItem from '../../components/OrderListItem';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
@@ -16,7 +16,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { getOrders } from '../../../../../../reducers/fiatOrders';
+import { FiatOrder, getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
@@ -25,187 +25,29 @@ import {
   ButtonSize as ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useRampsOrders } from '../../../hooks/useRampsOrders';
-import {
-  mergeDisplayOrders,
-  type DisplayOrder,
-} from '../../../utils/displayOrder';
-import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import ListItem from '../../../../../../component-library/components/List/ListItem';
-import ListItemColumn, {
-  WidthType,
-} from '../../../../../../component-library/components/List/ListItemColumn';
-import ListItemColumnEnd from '../../components/ListItemColumnEnd';
-import {
-  getOrderRowTestId,
-  getOrderRowCryptoAmountTestId,
-  getOrderRowFiatAmountTestId,
-  type RampsOrderTypeSlug,
-} from './OrdersList.testIds';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
-function getStatusColorAndText(
-  status: string,
-  orderType: string,
-): [TextColor, string] {
-  let statusColor;
-  switch (status) {
-    case 'CANCELLED':
-    case 'FAILED':
-      statusColor = TextColor.Error;
-      break;
-    case 'COMPLETED':
-      statusColor = TextColor.Success;
-      break;
-    case 'PENDING':
-      statusColor = TextColor.Primary;
-      break;
-    case 'CREATED':
-    default:
-      statusColor = TextColor.Default;
-      break;
-  }
-
-  let statusText;
-  switch (status) {
-    case 'CANCELLED':
-      statusText = strings('fiat_on_ramp_aggregator.order_status_cancelled');
-      break;
-    case 'FAILED':
-      statusText = strings('fiat_on_ramp_aggregator.order_status_failed');
-      break;
-    case 'COMPLETED':
-      statusText = strings('fiat_on_ramp_aggregator.order_status_completed');
-      break;
-    case 'PENDING':
-      statusText =
-        orderType === 'BUY'
-          ? strings('fiat_on_ramp_aggregator.order_status_pending')
-          : strings('fiat_on_ramp_aggregator.order_status_processing');
-      break;
-    case 'CREATED':
-    default:
-      statusText = strings('fiat_on_ramp_aggregator.order_status_pending');
-      break;
-  }
-
-  return [statusColor, statusText];
-}
-
-function getOrderTypeSlug(orderType: string): RampsOrderTypeSlug {
-  if (orderType === 'DEPOSIT') return 'deposit';
-  if (orderType === 'SELL') return 'sell';
-  return 'buy';
-}
-
-function DisplayOrderListItem({
-  item,
-  index,
-}: {
-  item: DisplayOrder;
-  index: number;
-}) {
-  const isBuy = item.orderType === 'BUY' || item.orderType === 'DEPOSIT';
-  const [statusColor, statusText] = getStatusColorAndText(
-    item.status,
-    item.orderType,
-  );
-  const typeSlug = getOrderTypeSlug(item.orderType);
-
-  const title = item.providerName
-    ? `${item.providerName}: ${strings(
-        isBuy
-          ? 'fiat_on_ramp_aggregator.purchased_currency'
-          : 'fiat_on_ramp_aggregator.sold_currency',
-        { currency: item.cryptoCurrencySymbol },
-      )}`
-    : strings(
-        isBuy
-          ? 'fiat_on_ramp_aggregator.purchased_currency'
-          : 'fiat_on_ramp_aggregator.sold_currency',
-        { currency: item.cryptoCurrencySymbol },
-      );
-
-  return (
-    <ListItem
-      topAccessory={
-        <Text variant={TextVariant.BodySM}>{toDateFormat(item.createdAt)}</Text>
-      }
-      topAccessoryGap={10}
-    >
-      <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMD}>{title}</Text>
-        <Text variant={TextVariant.BodySMBold} color={statusColor}>
-          {statusText}
-        </Text>
-      </ListItemColumn>
-
-      <ListItemColumnEnd>
-        <Text
-          testID={getOrderRowCryptoAmountTestId(typeSlug, index)}
-          variant={TextVariant.BodyMD}
-        >
-          {item.cryptoAmount} {item.cryptoCurrencySymbol}
-        </Text>
-        <Text
-          testID={getOrderRowFiatAmountTestId(typeSlug, index)}
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-        >
-          {item.fiatAmount == null
-            ? '...'
-            : addCurrencySymbol(
-                renderFiat(Number(item.fiatAmount), ''),
-                item.fiatCurrencyCode,
-              )}
-        </Text>
-      </ListItemColumnEnd>
-    </ListItem>
-  );
-}
-
-/**
- * Merges legacy FiatOrder[] from Redux with V2 RampsOrder[] from controller into a single list
- * Routes to the appropriate detail screen based on order source.
- */
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
-  const allLegacyOrders = useSelector(getOrders);
-  const { orders: v2Orders } = useRampsOrders();
+  const allOrders = useSelector(getOrders);
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
   const { goToDeposit } = useRampNavigation();
   const tw = useTailwind();
-
-  const displayOrders = useMemo(
-    () => mergeDisplayOrders(allLegacyOrders, v2Orders),
-    [allLegacyOrders, v2Orders],
-  );
-
-  const filteredOrders = useMemo(
-    () =>
-      displayOrders.filter((order) => {
-        if (currentFilter === 'PURCHASE') {
-          return (
-            order.orderType === OrderOrderTypeEnum.Buy ||
-            order.orderType === 'DEPOSIT' ||
-            order.orderType === 'BUY'
-          );
-        }
-        if (currentFilter === 'SELL') {
-          return order.orderType === OrderOrderTypeEnum.Sell;
-        }
-        return true;
-      }),
-    [displayOrders, currentFilter],
-  );
+  const orders = allOrders.filter((order) => {
+    if (currentFilter === 'PURCHASE') {
+      return (
+        order.orderType === OrderOrderTypeEnum.Buy ||
+        order.orderType === 'DEPOSIT'
+      );
+    }
+    if (currentFilter === 'SELL') {
+      return order.orderType === OrderOrderTypeEnum.Sell;
+    }
+    return true;
+  });
 
   const handleNavigateToAggregatorTxDetails = useCallback(
     (orderId: string) => {
@@ -231,74 +73,44 @@ function OrdersList() {
 
   const handleNavigateToDepositTxDetails = useCallback(
     (orderId: string) => {
-      const order = allLegacyOrders.find((o) => o.id === orderId);
+      const order = orders.find((o) => o.id === orderId);
 
+      // CREATED state means the order is at the bank details step,
+      // which requires the DepositSDKProvider context for cancel/confirm actions
       if (
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
         goToDeposit();
-      } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+      } else {
         navigation.navigate(
-          ...createDepositOrderDetailsNavDetails({
+          ...createRampsOrderDetailsNavDetails({
             orderId,
           }),
         );
-      } else {
-        handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToDeposit,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [navigation, orders, goToDeposit],
   );
 
-  const handleItemPress = useCallback(
-    (item: DisplayOrder) => {
-      if (item.source === 'v2') {
-        handleNavigateToRampsTxDetails(item.id);
-        return;
-      }
-
-      const legacyOrder = allLegacyOrders.find((o) => o.id === item.id);
-      if (!legacyOrder) return;
-
-      if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-        handleNavigateToDepositTxDetails(item.id);
-      } else if (legacyOrder.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-        handleNavigateToRampsTxDetails(item.id);
-      } else {
-        handleNavigateToAggregatorTxDetails(item.id);
-      }
-    },
-    [
-      allLegacyOrders,
-      handleNavigateToAggregatorTxDetails,
-      handleNavigateToRampsTxDetails,
-      handleNavigateToDepositTxDetails,
-    ],
-  );
-
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: DisplayOrder;
-    index: number;
-  }) => (
+  const renderItem = ({ item }: { item: FiatOrder }) => (
     <TouchableHighlight
-      testID={getOrderRowTestId(getOrderTypeSlug(item.orderType), index + 1)}
       accessibilityRole="button"
       accessible
       style={styles.row}
-      onPress={() => handleItemPress(item)}
+      onPress={
+        item.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR
+          ? () => handleNavigateToAggregatorTxDetails(item.id)
+          : item.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+            ? () => handleNavigateToRampsTxDetails(item.id)
+            : item.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
+              ? () => handleNavigateToDepositTxDetails(item.id)
+              : undefined
+      }
       underlayColor={colors.background.alternative}
       activeOpacity={1}
     >
-      <DisplayOrderListItem item={item} index={index + 1} />
+      <OrderListItem order={item} />
     </TouchableHighlight>
   );
 
@@ -338,9 +150,9 @@ function OrdersList() {
           </ScrollView>
         </Box>
       }
-      data={filteredOrders}
+      data={orders}
       renderItem={renderItem}
-      keyExtractor={(item) => `${item.source}-${item.id}`}
+      keyExtractor={(item) => item.id}
       ListEmptyComponent={
         <Box twClassName="w-full items-center py-10">
           <TabEmptyState

@@ -118,9 +118,7 @@ describe('TokenNotAvailableModal', () => {
     fireEvent.press(getByText('Change token'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
-      screen: Routes.RAMP.TOKEN_SELECTION,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION);
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {

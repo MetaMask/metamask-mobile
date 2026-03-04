@@ -564,27 +564,6 @@ catch (error) {
 9. **Use `Logger.error()` with context** for all error logging (see Error Logging Best Practices)
 10. **Use `ensureError()` helper** to normalize caught errors before logging
 
-## Connection Error Screen Monitoring
-
-### Sentry Filter
-
-```
-component:PerpsConnectionManager action:connection_connection
-```
-
-Use this to isolate genuine perps connection failures. You can also use `feature:perps` as a broader filter — the `feature` tag is set on all perps errors and already excludes Polymarket noise.
-
-Fires on initial `connect()` failures and programmatic `reconnectWithNewContext()` calls. User-initiated retries from the error screen only add a Sentry breadcrumb (no new event) to avoid noise.
-
-### MixPanel
-
-| Event                  | Key Properties                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `PERPS_SCREEN_VIEWED`  | `screen_name: connection_error`, `error_message`, `retry_attempts`                    |
-| `PERPS_UI_INTERACTION` | `action: connection_retry` or `connection_go_back`, `error_message`, `attempt_number` |
-
----
-
 ## Related Files
 
 - **Trace utilities**: `app/util/trace.ts`

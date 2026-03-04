@@ -334,7 +334,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#0a0d135c",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -444,9 +444,9 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Bold",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -467,7 +467,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -490,9 +490,9 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Medium",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -504,9 +504,9 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Medium",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginLeft": 8,
@@ -555,7 +555,7 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -930,7 +930,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#0a0d135c",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -980,7 +980,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1040,9 +1040,9 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Bold",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1063,7 +1063,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1086,9 +1086,9 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Medium",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -1100,9 +1100,9 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Medium",
-                                    "fontSize": 20,
+                                    "fontSize": 18,
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                     "marginLeft": 8,
@@ -1151,7 +1151,7 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,

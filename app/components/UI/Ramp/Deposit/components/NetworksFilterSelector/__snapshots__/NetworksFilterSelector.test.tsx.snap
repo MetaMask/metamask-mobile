@@ -226,7 +226,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -393,7 +393,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -468,7 +468,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#949596",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -544,7 +544,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -580,7 +580,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is a subset
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
@@ -743,7 +743,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#949596",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -819,7 +819,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -894,7 +894,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#949596",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -970,7 +970,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1045,7 +1045,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#949596",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -1121,7 +1121,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1157,7 +1157,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is null 1`]
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,
@@ -1412,7 +1412,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1579,7 +1579,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1746,7 +1746,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1782,7 +1782,7 @@ exports[`NetworksFilterSelector renders correctly when networkFilter is the same
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 48,

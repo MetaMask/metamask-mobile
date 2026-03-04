@@ -71,9 +71,9 @@ exports[`BlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -85,11 +85,11 @@ exports[`BlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
-          "fontSize": 14,
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -223,9 +223,9 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -237,11 +237,11 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
-          "fontSize": 14,
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -375,9 +375,9 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -389,11 +389,11 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
-          "fontSize": 14,
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -536,9 +536,9 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
-            "fontSize": 16,
+            "fontSize": 18,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -550,11 +550,11 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
-            "fontSize": 14,
+            "fontSize": 16,
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -628,9 +628,9 @@ exports[`BlockaidBanner should render something does not look right with contact
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -642,11 +642,11 @@ exports[`BlockaidBanner should render something does not look right with contact
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
-          "fontSize": 14,
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

@@ -1,7 +1,4 @@
-// Providers V2 response — staging providers: Transak (native) + MoonPay (aggregator).
-// Transak uses the native SDK flow; MoonPay uses the WebView/widget aggregator flow.
-// Note: provider.type here is informational catalog metadata. Flow routing is NOT
-// driven by this field — it is determined at the quote level (quote.providerInfo.type).
+// Providers V2 response — staging providers: Transak (default) + Moonpay.
 // determinePreferredProvider() auto-selects Transak (matches "transak" in id/name).
 export const RAMPS_PROVIDERS_RESPONSE = {
   providers: [
@@ -59,7 +56,7 @@ export const RAMPS_PROVIDERS_RESPONSE = {
         },
         recurringBuy: {},
       },
-      type: 'native',
+      type: 'aggregator',
       supportedCryptoCurrencies: {
         'eip155:1/slip44:60': true,
       },

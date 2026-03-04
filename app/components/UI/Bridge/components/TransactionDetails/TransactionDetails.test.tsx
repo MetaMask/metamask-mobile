@@ -143,31 +143,6 @@ describe('BridgeTransactionDetails', () => {
     expect(getByText(/view on block explorer/i)).toBeTruthy();
   });
 
-  it('navigates to block explorer modal for cross-chain bridge with evmTxMeta', () => {
-    const { getByText } = renderScreen(
-      () => (
-        <BridgeTransactionDetails
-          route={{ params: { evmTxMeta: mockEVMTx } }}
-        />
-      ),
-      {
-        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
-      },
-      { state: mockState },
-    );
-
-    const blockExplorerButton = getByText(/view on block explorer/i);
-    fireEvent.press(blockExplorerButton);
-
-    // Should navigate to bridge modal stack, not directly to webview
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
-      params: expect.objectContaining({
-        evmTxMeta: mockEVMTx,
-      }),
-    });
-  });
-
   it('navigates directly to browser for same-chain swaps with multiChainTx', () => {
     const { getByText } = renderScreen(
       () => (
@@ -184,12 +159,12 @@ describe('BridgeTransactionDetails', () => {
     const blockExplorerButton = getByText(/view on block explorer/i);
     fireEvent.press(blockExplorerButton);
 
-    // Should navigate to webview, not to the modal
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: expect.objectContaining({
-        url: expect.stringContaining('solana-tx-hash-123'),
+    // Should navigate to browser, not to the modal
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BROWSER.VIEW,
+      expect.objectContaining({
+        newTabUrl: expect.stringContaining('solana-tx-hash-123'),
       }),
-    });
+    );
   });
 });

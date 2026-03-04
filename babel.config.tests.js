@@ -13,6 +13,9 @@ const newOverrides = [
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
+      'app/components/UI/Predict/selectors/featureFlags/index.ts',
+      'app/selectors/featureFlagController/legalNotices/index.ts',
+      'app/selectors/featureFlagController/networkBlacklist/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/core/Engine/controllers/gator-permissions-controller/gator-permissions-controller-init.ts',
@@ -29,8 +32,6 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.test.ts',
-      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.ts',
-      'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.ts',
       'app/components/UI/Ramp/hooks/useRampsSmartRouting.test.ts',
       'app/components/UI/Ramp/hooks/useRampTokens.ts',

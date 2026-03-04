@@ -130,7 +130,7 @@ exports[`V2OrderProcessing matches snapshot when order is pending 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#131416",
+                  "backgroundColor": "#121314",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",

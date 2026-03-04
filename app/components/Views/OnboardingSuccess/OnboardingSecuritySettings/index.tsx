@@ -29,10 +29,7 @@ const SecuritySettings = () => {
       <NetworkDetailsCheckSettings />
       {shouldShowSocialLoginFeatures && (
         <>
-          <MetaMetricsAndDataCollectionSection
-            hideMarketingSection
-            analyticsLocation="onboarding_default_settings"
-          />
+          <MetaMetricsAndDataCollectionSection hideMarketingSection />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
         </>
       )}

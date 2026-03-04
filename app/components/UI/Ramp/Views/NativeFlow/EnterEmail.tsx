@@ -25,11 +25,9 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -49,7 +47,7 @@ const V2EnterEmail = () => {
   const [validationError, setValidationError] = useState(false);
 
   const { styles, theme } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackEvent = useAnalytics();
   const { sendUserOtp } = useTransakController();
 
   useEffect(() => {
@@ -58,33 +56,9 @@ const V2EnterEmail = () => {
         navigation,
         { title: strings('deposit.enter_email.navbar_title') },
         theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Enter Email',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
       ),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
-
-  const hasTrackedScreenViewRef = useRef(false);
-  useEffect(() => {
-    if (hasTrackedScreenViewRef.current) return;
-    hasTrackedScreenViewRef.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-        .addProperties({
-          location: 'Enter Email',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+  }, [navigation, theme]);
 
   const emailInputRef = useRef<TextInput>(null);
 
@@ -109,13 +83,9 @@ const V2EnterEmail = () => {
           throw new Error('State token is required for OTP verification');
         }
 
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-            })
-            .build(),
-        );
+        trackEvent('RAMPS_EMAIL_SUBMITTED', {
+          ramp_type: 'DEPOSIT',
+        });
         navigation.navigate(
           ...createV2OtpCodeNavDetails({
             email,
@@ -134,7 +104,7 @@ const V2EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, navigation, sendUserOtp, trackEvent, createEventBuilder, params]);
+  }, [email, navigation, sendUserOtp, trackEvent, params]);
 
   return (
     <ScreenLayout>
@@ -150,7 +120,6 @@ const V2EnterEmail = () => {
             </Text>
 
             <TextField
-              testID={EnterEmailSelectorsIDs.EMAIL_INPUT}
               autoComplete="email"
               keyboardType="email-address"
               placeholder={strings('deposit.enter_email.input_placeholder')}
@@ -178,7 +147,6 @@ const V2EnterEmail = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <Button
-            testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
             label={strings('deposit.enter_email.submit_button')}

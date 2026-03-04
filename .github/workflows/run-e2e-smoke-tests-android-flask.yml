@@ -44,23 +44,8 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
-      - name: Restore .metamask folder
-        id: restore-metamask
-        uses: actions/cache@v4
-        with:
-          path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
-
-      - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
-        run: yarn install:foundryup
       - name: Setup project
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn setup:github-ci --no-build-ios
+        run: yarn setup:github-ci --no-build-ios
 
       - name: Configure Keystore
         uses: MetaMask/github-tools/.github/actions/configure-keystore@v1

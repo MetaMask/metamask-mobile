@@ -14,7 +14,7 @@ exports[`PlotLine render matches snapshot 1`] = `
   }
   stroke={
     {
-      "payload": 4284901226,
+      "payload": 4285034109,
       "type": 0,
     }
   }

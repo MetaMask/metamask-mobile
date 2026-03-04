@@ -10,8 +10,9 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 
 import { SamplePetNamesForm } from './SamplePetNamesForm';
 import Engine from '../../../../../core/Engine';
+import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
-import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder.ts';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -21,25 +22,44 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+// Mock the useSamplePetNames hook
 jest.mock('../../hooks/useSamplePetNames', () => ({
   useSamplePetNames: jest.fn(),
 }));
 
-import { useSamplePetNames } from '../../hooks/useSamplePetNames';
+jest.mock('../../../../../components/hooks/useMetrics/useMetrics');
 
-const mockAnalytics = jest.mocked(useAnalytics)();
+import { useSamplePetNames } from '../../hooks/useSamplePetNames';
 
 const mockUseSamplePetNames = useSamplePetNames as jest.MockedFunction<
   typeof useSamplePetNames
 >;
+
+const mockTrackEvent = jest.fn();
 
 describe('SamplePetNamesForm', () => {
   let alertSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock return value - no existing pet names
     mockUseSamplePetNames.mockReturnValue({ petNames: [] });
+    // Create spy on Alert.alert
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
+
+    (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -110,16 +130,15 @@ describe('SamplePetNamesForm', () => {
 
     // Assert
     await waitFor(() => {
-      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
-      expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-        SAMPLE_FEATURE_EVENTS.PETNAME_ADDED,
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: SAMPLE_FEATURE_EVENTS.PETNAME_ADDED.category,
+          properties: {
+            totalPetNames: 0,
+            chainId: '0x1',
+          },
+        }),
       );
-      const builder = jest.mocked(mockAnalytics.createEventBuilder).mock
-        .results[0].value;
-      expect(builder.addProperties).toHaveBeenCalledWith({
-        totalPetNames: 0,
-        chainId: '0x1',
-      });
     });
   });
 
@@ -227,16 +246,15 @@ describe('SamplePetNamesForm', () => {
 
     // Assert
     await waitFor(() => {
-      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
-      expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-        SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED,
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: SAMPLE_FEATURE_EVENTS.PETNAME_UPDATED.category,
+          properties: {
+            totalPetNames: 1,
+            chainId: '0x1',
+          },
+        }),
       );
-      const builder = jest.mocked(mockAnalytics.createEventBuilder).mock
-        .results[0].value;
-      expect(builder.addProperties).toHaveBeenCalledWith({
-        totalPetNames: 1,
-        chainId: '0x1',
-      });
     });
   });
 });

@@ -23,7 +23,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -67,7 +67,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -112,7 +112,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -156,7 +156,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -201,7 +201,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -245,7 +245,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",
@@ -300,7 +300,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#b4b4b528",
+        "backgroundColor": "#3c4d9d0f",
         "borderColor": "transparent",
         "borderRadius": 12,
         "borderWidth": 1,
@@ -344,7 +344,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#131416",
+        "backgroundColor": "#121314",
         "borderRadius": 12,
         "flexBasis": 0,
         "flexDirection": "row",

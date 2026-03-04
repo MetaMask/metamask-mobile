@@ -341,7 +341,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#0a0d135c",
+                                "backgroundColor": "#3f434a66",
                                 "bottom": 0,
                                 "left": 0,
                                 "position": "absolute",
@@ -465,7 +465,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 testID="update-needed-modal-close-button"
                               >
                                 <SvgMock
-                                  color="#131416"
+                                  color="#121314"
                                   fill="currentColor"
                                   height={20}
                                   name="Close"
@@ -520,7 +520,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -536,7 +536,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -568,7 +568,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,

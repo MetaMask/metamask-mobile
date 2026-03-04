@@ -105,21 +105,9 @@ module.exports = {
       },
     },
     {
-      // Temporary rollout strategy:
-      // Keep color-no-hex disabled for all tests by default, then re-enable it
-      // for specific folders in small PR batches. Once migration is complete,
-      // remove this override and enforce across all tests in:
-      // - app/components/
-      // - app/component-library/
       files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'off',
-      },
-    },
-    {
-      files: ['app/components/UI/Card/**/*.{js,jsx,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
       },
     },
     {

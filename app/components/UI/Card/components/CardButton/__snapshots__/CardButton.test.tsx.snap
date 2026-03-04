@@ -379,7 +379,7 @@ exports[`CardButton Component renders and matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "color": "#131416",
+                              "color": "#121314",
                               "height": 24,
                               "width": 24,
                             },

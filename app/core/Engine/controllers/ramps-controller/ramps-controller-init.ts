@@ -6,8 +6,6 @@ import {
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { hasMinimumRequiredVersion } from '../../../../components/UI/Ramp/utils/hasMinimumRequiredVersion';
-import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
-import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
 interface RampsUnifiedBuyV2Config {
   active?: boolean;
@@ -68,26 +66,13 @@ export const rampsControllerInit: ControllerInitFunction<
   const isV2Enabled = getIsRampsUnifiedBuyV2Enabled(initMessenger);
 
   if (isV2Enabled) {
-    initMessenger.subscribe(
-      'RampsController:orderStatusChanged',
-      handleOrderStatusChangedForNotifications,
-    );
-
-    initMessenger.subscribe(
-      'RampsController:orderStatusChanged',
-      handleOrderStatusChangedForMetrics,
-    );
-
-    // Start init immediately so tokens (and providers) load on app start.
-    // init() is async and does not block controller creation.
-    controller
-      .init()
-      .then(() => {
-        controller.startOrderPolling();
-      })
-      .catch(() => {
+    // Initialize controller at app startup (non-blocking)
+    // Defer to next tick to avoid affecting initial state snapshot
+    Promise.resolve().then(() => {
+      controller.init().catch(() => {
         // Initialization failed - error state will be available via selectors
       });
+    });
   }
 
   return {

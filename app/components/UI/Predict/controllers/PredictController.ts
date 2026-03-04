@@ -79,7 +79,6 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
-  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -107,7 +106,7 @@ import {
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
 import {
-  PredictFeatureFlags,
+  PredictFeeCollection,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
@@ -328,9 +327,7 @@ export class PredictController extends BaseController<
       state: { ...getDefaultPredictControllerState(), ...state },
     });
 
-    this.provider = new PolymarketProvider({
-      getFeatureFlags: () => this.resolveFeatureFlags(),
-    });
+    this.provider = new PolymarketProvider();
 
     this.messenger.subscribe(
       'TransactionController:transactionStatusUpdated',
@@ -413,51 +410,6 @@ export class PredictController extends BaseController<
     };
   }
 
-  private resolveFeatureFlags(): PredictFeatureFlags {
-    const remoteFeatureFlagState = this.messenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    const flags = remoteFeatureFlagState.remoteFeatureFlags;
-
-    const liveSportsFlag =
-      unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
-      DEFAULT_LIVE_SPORTS_FLAG;
-    const liveSportsLeagues = liveSportsFlag.enabled
-      ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
-      : [];
-
-    const rawMarketHighlightsFlag =
-      unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
-        flags.predictMarketHighlights,
-      );
-    const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
-      rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
-    );
-    const marketHighlightsFlag =
-      isHighlightsFlagValid && rawMarketHighlightsFlag
-        ? rawMarketHighlightsFlag
-        : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
-
-    const feeCollection =
-      unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
-        flags.predictFeeCollection,
-      ) ?? DEFAULT_FEE_COLLECTION_FLAG;
-
-    const fakOrdersEnabled =
-      validatedVersionGatedFeatureFlag(
-        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-          flags.predictFakOrders,
-        ),
-      ) ?? false;
-
-    return {
-      feeCollection,
-      liveSportsLeagues,
-      marketHighlightsFlag,
-      fakOrdersEnabled,
-    };
-  }
-
   private getEvmAccountAddress(): string {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
@@ -515,28 +467,58 @@ export class PredictController extends BaseController<
     });
 
     try {
-      const featureFlags = this.resolveFeatureFlags();
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      const liveSportsFlag =
+        unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(
+          remoteFeatureFlagState.remoteFeatureFlags.predictLiveSports,
+        ) ?? DEFAULT_LIVE_SPORTS_FLAG;
 
-      const allMarkets = await this.provider.getMarkets(params);
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+        : [];
+
+      const rawMarketHighlightsFlag =
+        unwrapRemoteFeatureFlag<PredictMarketHighlightsFlag>(
+          remoteFeatureFlagState.remoteFeatureFlags.predictMarketHighlights,
+        );
+
+      const isHighlightsFlagValid = validatedVersionGatedFeatureFlag(
+        rawMarketHighlightsFlag as unknown as VersionGatedFeatureFlag,
+      );
+
+      const marketHighlightsFlag: PredictMarketHighlightsFlag =
+        isHighlightsFlagValid && rawMarketHighlightsFlag
+          ? rawMarketHighlightsFlag
+          : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
+
+      const paramsWithLiveSports = { ...params, liveSportsLeagues };
+
+      const allMarkets = await this.provider.getMarkets(paramsWithLiveSports);
 
       let markets = allMarkets.filter(
         (market): market is PredictMarket => market !== undefined,
       );
 
       const isFirstPage = !params.offset || params.offset === 0;
-      const highlights = featureFlags.marketHighlightsFlag.highlights ?? [];
       const shouldFetchHighlights =
-        highlights.length > 0 && isFirstPage && params.category && !params.q;
+        isHighlightsFlagValid && isFirstPage && params.category && !params.q;
 
       if (shouldFetchHighlights) {
         const highlightedMarketIds =
-          highlights.find((h) => h.category === params.category)?.markets ?? [];
+          (marketHighlightsFlag.highlights ?? []).find(
+            (h) => h.category === params.category,
+          )?.markets ?? [];
 
         if (highlightedMarketIds.length > 0) {
           const provider = this.provider;
 
           const fetchedHighlightedMarkets =
-            (await provider.getMarketsByIds?.(highlightedMarketIds)) ?? [];
+            (await provider.getMarketsByIds?.(
+              highlightedMarketIds,
+              liveSportsLeagues,
+            )) ?? [];
 
           const highlightedMarkets = fetchedHighlightedMarkets.filter(
             (market) => market.status === 'open',
@@ -626,8 +608,21 @@ export class PredictController extends BaseController<
 
     try {
       const provider = this.provider;
+
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      const liveSportsFlag =
+        unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(
+          remoteFeatureFlagState.remoteFeatureFlags.predictLiveSports,
+        ) ?? DEFAULT_LIVE_SPORTS_FLAG;
+      const liveSportsLeagues = liveSportsFlag.enabled
+        ? filterSupportedLeagues(liveSportsFlag.leagues ?? [])
+        : [];
+
       const market = await provider.getMarketDetails({
         marketId: resolvedMarketId,
+        liveSportsLeagues,
       });
 
       this.update((state) => {
@@ -1047,7 +1042,6 @@ export class PredictController extends BaseController<
     failureReason,
     sharePrice,
     pnl,
-    orderType,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1056,7 +1050,6 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
-    orderType?: PredictOrderType;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1109,9 +1102,6 @@ export class PredictController extends BaseController<
       }),
       ...(analyticsProperties.gameClock && {
         [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
-      }),
-      ...(orderType && {
-        [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
     };
 
@@ -1380,9 +1370,17 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
 
+      const remoteFeatureFlagState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      const feeCollection =
+        unwrapRemoteFeatureFlag<PredictFeeCollection>(
+          remoteFeatureFlagState.remoteFeatureFlags.predictFeeCollection,
+        ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+
       const signer = this.getSigner();
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({ ...params, signer, feeCollection });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1442,7 +1440,6 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
-        orderType: preview.orderType,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1503,7 +1500,6 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
-        orderType: preview.orderType,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1523,7 +1519,6 @@ export class PredictController extends BaseController<
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
-        orderType: preview.orderType,
       });
 
       // Update error state for Sentry integration

@@ -334,7 +334,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#0a0d135c",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -422,7 +422,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b4b4b566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -471,7 +471,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 700,
@@ -511,7 +511,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -549,7 +549,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "backgroundColor": "#ffffff",
-                                  "borderColor": "#949596",
+                                  "borderColor": "#b7bbc8",
                                   "borderRadius": 4,
                                   "borderWidth": 0,
                                   "flexDirection": "row",
@@ -563,7 +563,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#131416",
+                                    "color": "#121314",
                                     "fontFamily": "Geist-Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -575,7 +575,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                 Mock Account Name
                               </Text>
                               <SvgMock
-                                color="#131416"
+                                color="#121314"
                                 fill="currentColor"
                                 height={16}
                                 name="ArrowDown"
@@ -756,7 +756,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -775,7 +775,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -811,7 +811,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                         accessible={true}
                                         style={
                                           {
-                                            "backgroundColor": "#b4b4b528",
+                                            "backgroundColor": "#3c4d9d0f",
                                             "bottom": 0,
                                             "flexDirection": "row",
                                             "left": 0,
@@ -937,7 +937,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -956,7 +956,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1103,7 +1103,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1122,7 +1122,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1269,7 +1269,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1288,7 +1288,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1435,7 +1435,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1454,7 +1454,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1601,7 +1601,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1620,7 +1620,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1767,7 +1767,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1786,7 +1786,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,
@@ -1933,7 +1933,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#131416",
+                                                      "color": "#121314",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 16,
                                                       "fontWeight": 400,
@@ -1952,7 +1952,7 @@ exports[`AccountSelector renders correctly and matches snapshot 1`] = `
                                                 style={
                                                   [
                                                     {
-                                                      "color": "#66676a",
+                                                      "color": "#686e7d",
                                                       "fontFamily": "Geist-Medium",
                                                       "fontSize": 14,
                                                       "fontWeight": 400,

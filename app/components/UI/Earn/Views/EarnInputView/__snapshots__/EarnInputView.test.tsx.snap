@@ -425,7 +425,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -466,7 +466,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -545,7 +545,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#66676a",
+                                          "color": "#686e7d",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
@@ -575,7 +575,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       testID="LendingMaxSafeWithdrawalTooltipIcon"
                                     >
                                       <SvgMock
-                                        color="#66676a"
+                                        color="#686e7d"
                                         fill="currentColor"
                                         height={20}
                                         name="Question"
@@ -594,7 +594,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -660,7 +660,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#121314",
                                           "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
@@ -674,7 +674,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#babbbe",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
@@ -698,7 +698,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#b4b4b566",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 16,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -714,7 +714,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     accessibilityRole="none"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -725,7 +725,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     0 USD
                                   </Text>
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={16}
                                     name="SwapVertical"
@@ -744,7 +744,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "borderColor": "#b4b4b566",
+                                  "borderColor": "#b7bbc866",
                                   "padding": 16,
                                   "paddingBottom": 8,
                                 }
@@ -773,7 +773,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -788,7 +788,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -808,7 +808,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -823,7 +823,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -843,7 +843,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -858,7 +858,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -878,7 +878,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -890,7 +890,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={16}
                               name="Sparkle"
@@ -907,7 +907,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -966,7 +966,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -981,7 +981,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1018,7 +1018,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1033,7 +1033,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1070,7 +1070,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1085,7 +1085,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1136,7 +1136,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1151,7 +1151,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1188,7 +1188,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1203,7 +1203,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1240,7 +1240,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1255,7 +1255,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1306,7 +1306,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1321,7 +1321,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1358,7 +1358,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1373,7 +1373,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1410,7 +1410,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1425,7 +1425,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1476,7 +1476,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1493,7 +1493,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1530,7 +1530,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -1545,7 +1545,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -1600,7 +1600,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "height": 32,
                                         "width": 32,
                                       },
@@ -1632,7 +1632,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
@@ -2098,7 +2098,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "height": 24,
                                         "width": 24,
                                       },
@@ -2139,7 +2139,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 400,
@@ -2218,7 +2218,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#66676a",
+                                          "color": "#686e7d",
                                           "fontFamily": "Geist-Medium",
                                           "fontSize": 14,
                                           "letterSpacing": 0,
@@ -2248,7 +2248,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       testID="LendingMaxSafeWithdrawalTooltipIcon"
                                     >
                                       <SvgMock
-                                        color="#66676a"
+                                        color="#686e7d"
                                         fill="currentColor"
                                         height={20}
                                         name="Question"
@@ -2267,7 +2267,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "letterSpacing": 0,
@@ -2333,7 +2333,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#131416",
+                                          "color": "#121314",
                                           "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
@@ -2347,7 +2347,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#babbbe",
+                                          "color": "#b7bbc8",
                                           "fontFamily": "Geist-Bold",
                                           "fontSize": 32,
                                           "letterSpacing": 0,
@@ -2371,7 +2371,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#b4b4b566",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 16,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -2387,7 +2387,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     accessibilityRole="none"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2398,7 +2398,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     0 USD
                                   </Text>
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={16}
                                     name="SwapVertical"
@@ -2417,7 +2417,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             <View
                               style={
                                 {
-                                  "borderColor": "#b4b4b566",
+                                  "borderColor": "#b7bbc866",
                                   "padding": 16,
                                   "paddingBottom": 8,
                                 }
@@ -2446,7 +2446,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -2461,7 +2461,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2481,7 +2481,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -2496,7 +2496,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2516,7 +2516,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -2531,7 +2531,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2551,7 +2551,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#b4b4b528",
+                                "backgroundColor": "#3c4d9d0f",
                                 "borderRadius": 20,
                                 "flex": 1,
                                 "flexDirection": "row",
@@ -2563,7 +2563,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             }
                           >
                             <SvgMock
-                              color="#131416"
+                              color="#121314"
                               fill="currentColor"
                               height={16}
                               name="Sparkle"
@@ -2580,7 +2580,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               accessibilityRole="none"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Medium",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2639,7 +2639,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2654,7 +2654,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2691,7 +2691,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2706,7 +2706,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2743,7 +2743,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2758,7 +2758,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2809,7 +2809,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2824,7 +2824,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2861,7 +2861,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2876,7 +2876,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2913,7 +2913,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2928,7 +2928,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -2979,7 +2979,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -2994,7 +2994,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -3031,7 +3031,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -3046,7 +3046,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -3083,7 +3083,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -3098,7 +3098,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -3149,7 +3149,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -3166,7 +3166,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -3203,7 +3203,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 12,
                                       "height": 48,
                                       "justifyContent": "center",
@@ -3218,7 +3218,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 32,
                                         "fontWeight": "500",
@@ -3273,7 +3273,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                   style={
                                     [
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "height": 32,
                                         "width": 32,
                                       },
@@ -3305,7 +3305,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#131416",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,

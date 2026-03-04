@@ -25,14 +25,6 @@ jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
 
-jest.mock('./usePushNotifications', () => ({
-  usePushNotificationsToggle: jest.fn(),
-}));
-
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
 describe('useNotifications - useListNotifications()', () => {
   const arrangeMocks = () => {
     const mockFetchNotifications = jest.spyOn(Actions, 'fetchNotifications');
@@ -84,7 +76,7 @@ describe('useNotifications - useEnableNotifications()', () => {
   const arrangeMocks = () => {
     const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
     const mockUsePushNotificationsToggle = jest
-      .mocked(UsePushNotifications.usePushNotificationsToggle)
+      .spyOn(UsePushNotifications, 'usePushNotificationsToggle')
       .mockReturnValue({
         data: true,
         loading: false,
@@ -146,7 +138,7 @@ describe('useNotifications - useDisableNotifications()', () => {
   const arrangeMocks = () => {
     const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
     const mockUsePushNotificationsToggle = jest
-      .mocked(UsePushNotifications.usePushNotificationsToggle)
+      .spyOn(UsePushNotifications, 'usePushNotificationsToggle')
       .mockReturnValue({
         data: true,
         loading: false,

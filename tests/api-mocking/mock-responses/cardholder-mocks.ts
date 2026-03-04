@@ -312,13 +312,4 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     },
     responseCode: 200,
   });
-
-  // Card dashboard — opened in an in-app browser by card tests
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /^https:\/\/card\.metamask\.io(\/.*)?$/,
-    response:
-      '<html><head><title>Card</title></head><body>Card Dashboard</body></html>',
-    responseCode: 200,
-  });
 };

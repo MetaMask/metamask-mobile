@@ -31,7 +31,6 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
-const mockRequestBiometricsAccessControlForIOS = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -43,8 +42,6 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
-    requestBiometricsAccessControlForIOS:
-      mockRequestBiometricsAccessControlForIOS,
   }),
 }));
 
@@ -165,9 +162,6 @@ describe('OAuthRehydration', () => {
     mockComponentAuthenticationType.mockResolvedValue({
       currentAuthType: 'password',
     });
-    mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
-      AUTHENTICATION_TYPE.PASSWORD,
-    );
     mockUseNetInfo.mockReturnValue({
       isConnected: true,
       isInternetReachable: true,
@@ -196,9 +190,6 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
-      expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
     });
 
     it('tracks rehydration analytics on successful login', async () => {

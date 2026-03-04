@@ -105,7 +105,6 @@ describe('SRPQuiz', () => {
         {
           shouldUpdateNav: true,
           keyringId,
-          skipQuiz: true,
         },
       );
     });

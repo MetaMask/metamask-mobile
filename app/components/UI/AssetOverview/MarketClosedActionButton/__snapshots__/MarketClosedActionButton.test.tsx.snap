@@ -46,7 +46,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 12,
           "marginHorizontal": 16,
         },
@@ -65,7 +65,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
       }
     >
       <SvgMock
-        color="#66676a"
+        color="#686e7d"
         fill="currentColor"
         height={24}
         name="AfterHours"
@@ -85,7 +85,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "flexShrink": 0,
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
@@ -100,7 +100,7 @@ exports[`MarketClosedActionButton renders correctly 1`] = `
         Test Button
       </Text>
       <SvgMock
-        color="#66676a"
+        color="#686e7d"
         fill="currentColor"
         height={24}
         name="Add"

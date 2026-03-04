@@ -163,7 +163,7 @@ const OrderDetails = () => {
       } catch (fetchError) {
         Logger.error(fetchError as Error, {
           message: 'FiatOrders::OrderDetails error while processing order',
-          orderId: order.id,
+          order,
         });
         setError((fetchError as Error).message || 'An error as occurred');
       } finally {

@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 
 // Hex colors required by the external card details API
 /* eslint-disable @metamask/design-tokens/color-no-hex */
-export const CARD_DETAILS_CSS = {
+const CARD_DETAILS_CSS = {
   [CardType.VIRTUAL]: {
     cardBackgroundColor: '#FF5C16',
     cardTextColor: '#FFFFFF',

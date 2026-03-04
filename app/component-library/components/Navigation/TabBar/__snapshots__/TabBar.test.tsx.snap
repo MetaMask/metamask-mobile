@@ -8,7 +8,7 @@ exports[`TabBar renders correctly 1`] = `
         {
           "alignItems": "flex-end",
           "backgroundColor": "#ffffff",
-          "borderColor": "#b4b4b566",
+          "borderColor": "#b7bbc866",
           "borderTopWidth": 1,
           "display": "flex",
           "flexDirection": "row",
@@ -92,7 +92,7 @@ exports[`TabBar renders correctly 1`] = `
         testID="tab-bar-item-Wallet"
       >
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Home"
@@ -110,7 +110,7 @@ exports[`TabBar renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "flexShrink": 0,
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
@@ -193,7 +193,7 @@ exports[`TabBar renders correctly 1`] = `
         testID="tab-bar-item-Browser"
       >
         <SvgMock
-          color="#66676a"
+          color="#686e7d"
           fill="currentColor"
           height={24}
           name="Explore"
@@ -211,7 +211,7 @@ exports[`TabBar renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "flexShrink": 0,
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
@@ -294,7 +294,7 @@ exports[`TabBar renders correctly 1`] = `
         testID="tab-bar-item-Actions"
       >
         <SvgMock
-          color="#66676a"
+          color="#686e7d"
           fill="currentColor"
           height={24}
           name="SwapVertical"
@@ -312,7 +312,7 @@ exports[`TabBar renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "flexShrink": 0,
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
@@ -395,7 +395,7 @@ exports[`TabBar renders correctly 1`] = `
         testID="tab-bar-item-Activity"
       >
         <SvgMock
-          color="#66676a"
+          color="#686e7d"
           fill="currentColor"
           height={24}
           name="Activity"
@@ -413,7 +413,7 @@ exports[`TabBar renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "flexShrink": 0,
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
@@ -496,7 +496,7 @@ exports[`TabBar renders correctly 1`] = `
         testID="tab-bar-item-Setting"
       >
         <SvgMock
-          color="#66676a"
+          color="#686e7d"
           fill="currentColor"
           height={24}
           name="Setting"
@@ -514,7 +514,7 @@ exports[`TabBar renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#66676a",
+              "color": "#686e7d",
               "flexShrink": 0,
               "fontFamily": "Geist-Medium",
               "fontSize": 12,
