@@ -56,6 +56,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       headerTitleContainer: { flex: 1 },
       headerUnitToggle: { flexDirection: 'row' },
       headerUnitButton: { padding: 8 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       headerUnitButtonActive: { backgroundColor: '#000' },
       depthBandButton: { padding: 8 },
       depthBandButtonPressed: { opacity: 0.7 },
@@ -74,6 +75,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       },
       depthBandSheetContent: { padding: 16 },
       depthBandOption: { padding: 16 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       depthBandOptionSelected: { backgroundColor: '#eee' },
     },
   })),

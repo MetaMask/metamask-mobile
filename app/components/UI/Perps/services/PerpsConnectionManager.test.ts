@@ -867,6 +867,7 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   describe('DEX Abstraction Cache Clearing (PR #25334)', () => {
     beforeEach(() => {
       jest.clearAllMocks();

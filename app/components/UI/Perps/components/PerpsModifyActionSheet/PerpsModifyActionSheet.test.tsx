@@ -12,6 +12,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       actionItemBorder: {},
       actionIconContainer: {},
       actionTextContainer: {},
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       iconColor: { color: '#000000' },
     },
   }),

@@ -47,7 +47,9 @@ jest.mock('../../../../hooks/useStyles', () => ({
         bottom: 0,
         opacity: 0.15,
       },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       bidDepthBar: { right: 0, backgroundColor: '#28a745' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       askDepthBar: { left: 0, backgroundColor: '#dc3545' },
       totalColumn: { flex: 1, zIndex: 1 },
       totalColumnRight: { flex: 1, alignItems: 'flex-end', zIndex: 1 },
@@ -80,9 +82,13 @@ jest.mock('../../../../hooks/useStyles', () => ({
     },
     theme: {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#ffffff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         border: { muted: '#e0e0e0' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         success: { default: '#28a745' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         error: { default: '#dc3545' },
       },
     },

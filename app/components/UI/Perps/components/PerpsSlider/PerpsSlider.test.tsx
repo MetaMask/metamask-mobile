@@ -77,11 +77,14 @@ jest.mock('./PerpsSlider.styles', () => () => ({
   container: { paddingVertical: 8 },
   sliderContainer: { flexDirection: 'row', alignItems: 'center' },
   trackContainer: { flex: 1, position: 'relative', paddingBottom: 30 },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   track: { height: 6, backgroundColor: '#e1e1e1', borderRadius: 3 },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   progress: { height: 6, backgroundColor: '#0066cc', borderRadius: 3 },
   thumb: {
     width: 21,
     height: 21,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#ffffff',
     borderRadius: 10.5,
     position: 'absolute',
@@ -95,6 +98,7 @@ jest.mock('./PerpsSlider.styles', () => () => ({
   percentageDot: {
     width: 5,
     height: 5,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#666',
     borderRadius: 2.5,
     position: 'absolute',
@@ -102,8 +106,10 @@ jest.mock('./PerpsSlider.styles', () => () => ({
   percentageDot25: { left: '25%' },
   percentageDot50: { left: '50%' },
   percentageDot75: { left: '75%' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   percentageText: { color: '#666', fontSize: 12, fontWeight: '500' },
   quickValuesRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   quickValueButton: { padding: 8, backgroundColor: '#f0f0f0' },
   gradientProgress: { flex: 1, borderRadius: 3 },
 }));
@@ -120,11 +126,14 @@ describe('PerpsSlider', () => {
     container: { paddingVertical: 8 },
     sliderContainer: { flexDirection: 'row', alignItems: 'center' },
     trackContainer: { flex: 1, position: 'relative', paddingBottom: 30 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     track: { height: 6, backgroundColor: '#e1e1e1', borderRadius: 3 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     progress: { height: 6, backgroundColor: '#0066cc', borderRadius: 3 },
     thumb: {
       width: 21,
       height: 21,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#ffffff',
       borderRadius: 10.5,
       position: 'absolute',
@@ -138,6 +147,7 @@ describe('PerpsSlider', () => {
     percentageDot: {
       width: 5,
       height: 5,
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#666',
       borderRadius: 2.5,
       position: 'absolute',
@@ -145,8 +155,10 @@ describe('PerpsSlider', () => {
     percentageDot25: { left: '25%' },
     percentageDot50: { left: '50%' },
     percentageDot75: { left: '75%' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     percentageText: { color: '#666', fontSize: 12, fontWeight: '500' },
     quickValuesRow: { flexDirection: 'row', justifyContent: 'space-around' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     quickValueButton: { padding: 8, backgroundColor: '#f0f0f0' },
     gradientProgress: { flex: 1, borderRadius: 3 },
   };

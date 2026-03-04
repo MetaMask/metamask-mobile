@@ -98,7 +98,9 @@ describe('chartConfig', () => {
     it('returns colors object with positive and negative properties', () => {
       // Arrange
       const mockColors = {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         success: { default: '#00ff00' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         error: { default: '#ff0000' },
       } as Parameters<typeof getCandlestickColors>[0];
 
@@ -106,7 +108,9 @@ describe('chartConfig', () => {
       const colors = getCandlestickColors(mockColors);
 
       // Assert
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(colors).toHaveProperty('positive', '#00ff00');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(colors).toHaveProperty('negative', '#ff0000');
     });
   });

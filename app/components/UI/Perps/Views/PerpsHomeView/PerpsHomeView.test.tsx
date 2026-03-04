@@ -195,7 +195,9 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
     theme: {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         primary: { default: '#0000ff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         icon: { default: '#000000' },
       },
     },

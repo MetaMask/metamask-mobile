@@ -13,6 +13,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
     theme: {
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         border: { muted: '#CCCCCC' },
       },
     },
