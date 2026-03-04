@@ -482,6 +482,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     }
 
     const controller = Engine.context.PerpsController;
+    if (!controller) return () => undefined;
 
     // Increment cycle ID to detect stale promises from previous prewarm cycles
     // This prevents subscription leaks when user navigates: Perps → away → back quickly
@@ -1315,6 +1316,8 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
+    // Note: uses state.isTestnet directly. If PROVIDER_CONFIG.MYX_TESTNET_ONLY is
+    // ever re-enabled, this key would diverge from PerpsController.#providerIsTestnet().
     const currentNetworkKey = `${currentProviderId}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
 
     // Invalidate cache if provider OR network changed

@@ -22,9 +22,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PerpsHomeHeaderProps } from './PerpsHomeHeader.types';
 import styleSheet from './PerpsHomeHeader.styles';
-import { selectPerpsMYXProviderEnabledFlag } from '../../selectors/featureFlags';
 import { selectPerpsNetwork } from '../../selectors/perpsController';
 import { PerpsProviderSelectorBadge } from '../PerpsProviderSelector';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 
 /**
  * PerpsHomeHeader Component
@@ -69,7 +69,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
-  const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
+  const { isMultiProviderEnabled } = usePerpsProvider();
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
 
@@ -157,12 +157,12 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               >
                 {title || strings('perps.title')}
               </Text>
-              {isMYXProviderEnabled && (
+              {isMultiProviderEnabled && (
                 <PerpsProviderSelectorBadge
                   testID={testID ? `${testID}-provider-badge` : undefined}
                 />
               )}
-              {isTestnet && !isMYXProviderEnabled && (
+              {isTestnet && !isMultiProviderEnabled && (
                 <View
                   style={styles.testnetBadge}
                   testID={testID ? `${testID}-testnet-badge` : undefined}
