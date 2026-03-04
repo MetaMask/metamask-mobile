@@ -3,9 +3,16 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { useRampsProviders } from './useRampsProviders';
-import { type Provider as RampProvider } from '@metamask/ramps-controller';
+import {
+  type Provider as RampProvider,
+  RampsOrderStatus,
+  type RampsOrder,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { determinePreferredProvider } from '../utils/determinePreferredProvider';
+import {
+  determinePreferredProvider,
+  completedOrdersFromRampsOrders,
+} from '../utils/determinePreferredProvider';
 import { getOrders, type FiatOrder } from '../../../../reducers/fiatOrders';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -69,7 +76,10 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-const createMockStore = (providersState = {}) =>
+const createMockStore = (
+  providersState: Record<string, unknown> = {},
+  rampsState: { orders?: unknown[] } = {},
+) =>
   configureStore({
     reducer: {
       engine: () => ({
@@ -82,7 +92,7 @@ const createMockStore = (providersState = {}) =>
               error: null,
               ...providersState,
             },
-            orders: [],
+            orders: rampsState.orders ?? [],
           },
         },
       }),
@@ -257,11 +267,163 @@ describe('useRampsProviders', () => {
       expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
     });
 
-    it('does not call determinePreferredProvider when selectedProvider is already set', () => {
+    it('does not call determinePreferredProvider when selectedProvider is already set and orders are empty', () => {
       const store = createMockStore({
         data: mockProviders,
         selected: mockProviders[0],
       });
+      mockDeterminePreferredProvider.mockClear();
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(mockDeterminePreferredProvider).not.toHaveBeenCalled();
+    });
+
+    it('re-evaluates when orders appear after initial evaluation with empty orders', () => {
+      const mockCompletedOrder: RampsOrder = {
+        id: '/providers/provider-2/orders/order-1',
+        providerOrderId: 'order-1',
+        provider: { id: 'provider-2', name: 'Provider 2' },
+        status: RampsOrderStatus.Completed,
+        createdAt: 1000,
+      } as RampsOrder;
+
+      const initialRampsState = {
+        providers: {
+          data: mockProviders,
+          selected: null as RampProvider | null,
+          isLoading: false,
+          error: null,
+        },
+        orders: [] as RampsOrder[],
+      };
+
+      const rampsReducer = (
+        state: typeof initialRampsState | undefined,
+        action: { type: string; payload?: unknown },
+      ) => {
+        const s = state ?? initialRampsState;
+        if (
+          action.type === 'ramps/SET_ORDERS' &&
+          Array.isArray(action.payload)
+        ) {
+          return { ...s, orders: action.payload as RampsOrder[] };
+        }
+        if (
+          action.type === 'ramps/SET_SELECTED_PROVIDER' &&
+          action.payload &&
+          typeof action.payload === 'object' &&
+          'id' in (action.payload as object)
+        ) {
+          return {
+            ...state,
+            providers: {
+              ...state.providers,
+              selected: action.payload as RampProvider,
+            },
+          };
+        }
+        return s;
+      };
+
+      const defaultEngineState = {
+        backgroundState: { RampsController: initialRampsState },
+      };
+      const engineReducer = (
+        state: typeof defaultEngineState | undefined,
+        action: { type: string; payload?: unknown },
+      ) => {
+        const s = state ?? defaultEngineState;
+        return {
+          backgroundState: {
+            RampsController: rampsReducer(
+              s.backgroundState.RampsController,
+              action,
+            ),
+          },
+        };
+      };
+
+      const storeWithReducer = configureStore({
+        reducer: {
+          engine: engineReducer,
+          fiatOrders: () => ({ orders: [] }),
+        },
+      });
+
+      const mockCompletedOrdersFromRampsOrders =
+        completedOrdersFromRampsOrders as jest.MockedFunction<
+          typeof completedOrdersFromRampsOrders
+        >;
+      mockCompletedOrdersFromRampsOrders.mockImplementation((orders) =>
+        orders
+          .filter((o) => o.status === RampsOrderStatus.Completed)
+          .map((o) => ({
+            providerId: o.provider?.id ?? '',
+            completedAt: o.createdAt,
+          })),
+      );
+
+      mockDeterminePreferredProvider
+        .mockReturnValueOnce(mockProviders[0])
+        .mockReturnValueOnce(mockProviders[1]);
+
+      const { rerender } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(storeWithReducer),
+      });
+
+      expect(mockDeterminePreferredProvider).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id);
+
+      act(() => {
+        storeWithReducer.dispatch({
+          type: 'ramps/SET_ORDERS',
+          payload: [mockCompletedOrder],
+        });
+      });
+
+      rerender({});
+
+      expect(mockDeterminePreferredProvider).toHaveBeenCalled();
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id);
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenLastCalledWith(mockProviders[1].id);
+    });
+
+    it('does not re-evaluate when orders were already present on first run', () => {
+      const mockCompletedOrder: RampsOrder = {
+        id: '/providers/provider-2/orders/order-1',
+        providerOrderId: 'order-1',
+        provider: { id: 'provider-2', name: 'Provider 2' },
+        status: RampsOrderStatus.Completed,
+        createdAt: 1000,
+      } as RampsOrder;
+
+      const mockCompletedOrdersFromRampsOrders =
+        completedOrdersFromRampsOrders as jest.MockedFunction<
+          typeof completedOrdersFromRampsOrders
+        >;
+      mockCompletedOrdersFromRampsOrders.mockImplementation((orders) =>
+        orders
+          .filter((o) => o.status === RampsOrderStatus.Completed)
+          .map((o) => ({
+            providerId: o.provider?.id ?? '',
+            completedAt: o.createdAt,
+          })),
+      );
+
+      const store = createMockStore(
+        { data: mockProviders, selected: mockProviders[1] },
+        { orders: [mockCompletedOrder] },
+      );
+
       mockDeterminePreferredProvider.mockClear();
 
       renderHook(() => useRampsProviders(), {

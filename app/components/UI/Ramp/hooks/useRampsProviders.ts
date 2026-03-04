@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectProviders,
@@ -71,11 +71,25 @@ export function useRampsProviders(): UseRampsProvidersResult {
     [],
   );
 
+  const hasRunWithEmptyOrdersRef = useRef(false);
+
   useEffect(() => {
-    if (providers.length > 0 && !selectedProvider) {
-      setSelectedProvider(
-        determinePreferredProvider(completedOrders, providers),
-      );
+    if (providers.length === 0) return;
+
+    const hasOrders = completedOrders.length > 0;
+
+    const shouldEvaluate =
+      !selectedProvider || (hasRunWithEmptyOrdersRef.current && hasOrders);
+
+    if (shouldEvaluate) {
+      const preferred = determinePreferredProvider(completedOrders, providers);
+      if (preferred) {
+        setSelectedProvider(preferred);
+      }
+    }
+
+    if (!hasOrders) {
+      hasRunWithEmptyOrdersRef.current = true;
     }
   }, [providers, selectedProvider, setSelectedProvider, completedOrders]);
 
