@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictBetButtons from './PredictBetButtons';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 const createDefaultProps = (overrides = {}) => ({
   yesLabel: 'Yes',
@@ -107,10 +108,8 @@ describe('PredictBetButtons', () => {
       const props = createDefaultProps({
         yesLabel: 'SEA',
         noLabel: 'DEN',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        yesTeamColor: '#002244',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        noTeamColor: '#FB4F14',
+        yesTeamColor: TEST_HEX_COLORS.TEAM_SEA,
+        noTeamColor: TEST_HEX_COLORS.TEAM_DEN,
       });
 
       renderWithProvider(<PredictBetButtons {...props} />);

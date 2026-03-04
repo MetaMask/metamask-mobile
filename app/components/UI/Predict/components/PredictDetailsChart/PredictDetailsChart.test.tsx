@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictDetailsChart, { ChartSeries } from './PredictDetailsChart';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-svg-charts', () => ({
   LineChart: jest.fn(({ children, data, svg, ...props }) => {
@@ -80,8 +81,7 @@ describe('PredictDetailsChart', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome 1',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#28C76F',
+      color: TEST_HEX_COLORS.CHART_SUCCESS,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -94,8 +94,7 @@ describe('PredictDetailsChart', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#4459FF',
+      color: TEST_HEX_COLORS.CHART_PRIMARY,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -105,8 +104,7 @@ describe('PredictDetailsChart', () => {
     },
     {
       label: 'Outcome B',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#CA3542',
+      color: TEST_HEX_COLORS.CHART_ERROR,
       data: [
         { timestamp: 1640995200000, value: 0.3 },
         { timestamp: 1640998800000, value: 0.2 },
@@ -179,8 +177,7 @@ describe('PredictDetailsChart', () => {
 
     it('renders empty state when no data provided', () => {
       const { queryByText } = setupTest({
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] }],
         isLoading: false,
       });
 
@@ -190,8 +187,7 @@ describe('PredictDetailsChart', () => {
     it('renders custom empty label when provided', () => {
       const customLabel = 'No data available';
       const { getByText } = setupTest({
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        data: [{ label: 'Empty', color: '#000', data: [] }],
+        data: [{ label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] }],
         emptyLabel: customLabel,
       });
 
@@ -227,8 +223,7 @@ describe('PredictDetailsChart', () => {
         ...mockMultipleSeries,
         {
           label: 'Outcome C',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#F0B034',
+          color: TEST_HEX_COLORS.CHART_WARNING,
           data: [
             { timestamp: 1640995200000, value: 0.1 },
             { timestamp: 1640998800000, value: 0.15 },
@@ -236,8 +231,7 @@ describe('PredictDetailsChart', () => {
         },
         {
           label: 'Outcome D',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#00FF00',
+          color: TEST_HEX_COLORS.PURE_GREEN,
           data: [
             { timestamp: 1640995200000, value: 0.05 },
             { timestamp: 1640998800000, value: 0.1 },
@@ -287,8 +281,7 @@ describe('PredictDetailsChart', () => {
       const singlePointData: ChartSeries[] = [
         {
           label: 'Outcome',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [{ timestamp: 1640995200000, value: 0.5 }],
         },
       ];
@@ -304,8 +297,7 @@ describe('PredictDetailsChart', () => {
       const emptyData: ChartSeries[] = [
         {
           label: 'Empty',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [],
         },
       ];
@@ -329,8 +321,7 @@ describe('PredictDetailsChart', () => {
       const sameValueData: ChartSeries[] = [
         {
           label: 'Same',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: 0.5 },
             { timestamp: 1640998800000, value: 0.5 },
@@ -360,8 +351,7 @@ describe('PredictDetailsChart', () => {
       const largeData: ChartSeries[] = [
         {
           label: 'Large',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: 1000000 },
             { timestamp: 1640998800000, value: 2000000 },
@@ -377,8 +367,7 @@ describe('PredictDetailsChart', () => {
       const negativeData: ChartSeries[] = [
         {
           label: 'Negative',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: [
             { timestamp: 1640995200000, value: -0.5 },
             { timestamp: 1640998800000, value: -0.3 },
@@ -394,8 +383,7 @@ describe('PredictDetailsChart', () => {
       const largeDataset: ChartSeries[] = [
         {
           label: 'Large Dataset',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#28C76F',
+          color: TEST_HEX_COLORS.CHART_SUCCESS,
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: 1640995200000 + i * 3600000,
             value: Math.random(),
@@ -449,8 +437,7 @@ describe('PredictDetailsChart', () => {
         const longLabelSeries: ChartSeries[] = [
           {
             label: 'This is a very long outcome label that exceeds limit',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -458,8 +445,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Short Label',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1640995200000, value: 0.3 },
               { timestamp: 1640998800000, value: 0.4 },
@@ -480,8 +466,7 @@ describe('PredictDetailsChart', () => {
         const specialCharSeries: ChartSeries[] = [
           {
             label: 'Outcome #1 (Test) - Result',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1640995200000, value: 0.5 },
               { timestamp: 1640998800000, value: 0.6 },
@@ -489,8 +474,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Normal Label',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1640995200000, value: 0.3 },
               { timestamp: 1640998800000, value: 0.4 },
@@ -527,8 +511,7 @@ describe('PredictDetailsChart', () => {
         const crossingSeries: ChartSeries[] = [
           {
             label: 'Series A',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.3 },
               { timestamp: 2, value: 0.7 },
@@ -536,8 +519,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series B',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.7 },
               { timestamp: 2, value: 0.3 },
@@ -556,8 +538,7 @@ describe('PredictDetailsChart', () => {
         const closeSeries: ChartSeries[] = [
           {
             label: 'Close A',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.501 },
@@ -565,8 +546,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Close B',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.502 },
               { timestamp: 2, value: 0.503 },
@@ -594,8 +574,7 @@ describe('PredictDetailsChart', () => {
         const fullRangeSeries: ChartSeries[] = [
           {
             label: 'Full Range',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: Array.from({ length: 50 }, (_, i) => ({
               timestamp: 1640995200000 + i * 3600000,
               value: 0.3 + (i / 50) * 0.4, // Values from 0.3 to 0.7
@@ -622,14 +601,12 @@ describe('PredictDetailsChart', () => {
         const coloredSeries: ChartSeries[] = [
           {
             label: 'Blue',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#0000FF',
+            color: TEST_HEX_COLORS.PURE_BLUE,
             data: [{ timestamp: 1, value: 0.5 }],
           },
           {
             label: 'Red',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF0000',
+            color: TEST_HEX_COLORS.PURE_RED,
             data: [{ timestamp: 1, value: 0.5 }],
           },
         ];
@@ -654,8 +631,7 @@ describe('PredictDetailsChart', () => {
         const threeSeries: ChartSeries[] = [
           {
             label: 'Series 1',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#4459FF',
+            color: TEST_HEX_COLORS.CHART_PRIMARY,
             data: [
               { timestamp: 1, value: 0.5 },
               { timestamp: 2, value: 0.6 },
@@ -663,8 +639,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 2',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#FF6B6B',
+            color: TEST_HEX_COLORS.CHART_CORAL,
             data: [
               { timestamp: 1, value: 0.3 },
               { timestamp: 2, value: 0.4 },
@@ -672,8 +647,7 @@ describe('PredictDetailsChart', () => {
           },
           {
             label: 'Series 3',
-            // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-            color: '#F0B034',
+            color: TEST_HEX_COLORS.CHART_WARNING,
             data: [
               { timestamp: 1, value: 0.2 },
               { timestamp: 2, value: 0.25 },
@@ -736,8 +710,7 @@ describe('PredictDetailsChart', () => {
           data: [
             {
               label: 'Dedup Series',
-              // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-              color: '#123456',
+              color: TEST_HEX_COLORS.EXAMPLE,
               data: axisData,
             },
           ],
