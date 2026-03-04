@@ -33,7 +33,7 @@ const PerpsSectionWithProvider = forwardRef<
   }
 
   return (
-    <PerpsConnectionProvider key={selectedAddress}>
+    <PerpsConnectionProvider key={selectedAddress} suppressErrorView>
       <PerpsStreamProvider>
         <PerpsSection
           ref={ref}

@@ -20,16 +20,19 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selecto
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import { TokenListItemV2 } from '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2';
+import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
+import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
+import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import useHomepageSectionViewedEvent, {
   HomepageSectionNames,
 } from '../../hooks/useHomepageSectionViewedEvent';
@@ -40,10 +43,6 @@ interface TokensSectionProps {
 }
 
 const MAX_TOKENS_DISPLAYED = 5;
-
-// No-op functions for TokenListItem props we don't need in the homepage section
-const noopShowRemoveMenu = () => undefined;
-const noopSetShowScamWarningModal = () => undefined;
 
 /**
  * TokensSection - Displays user's token balances on the homepage
@@ -66,6 +65,15 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
+
+    const {
+      removeTokenState,
+      showRemoveMenu,
+      removeToken,
+      handleClose: handleCloseRemoveTokenBottomSheet,
+      showScamWarningModal,
+      setShowScamWarningModal,
+    } = useRemoveToken();
 
     const evmNetworkConfigurationsByChainId = useSelector(
       selectEvmNetworkConfigurationsByChainId,
@@ -91,8 +99,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
       [sortedTokenKeys],
     );
-
-    const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
@@ -126,6 +132,8 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     ]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+    const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
     useHomepageSectionViewedEvent({
       sectionRef: sectionViewRef,
@@ -170,14 +178,23 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                 <ListItemComponent
                   key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
                   assetKey={tokenKey}
-                  showRemoveMenu={noopShowRemoveMenu}
-                  setShowScamWarningModal={noopSetShowScamWarningModal}
+                  showRemoveMenu={showRemoveMenu}
+                  setShowScamWarningModal={setShowScamWarningModal}
                   privacyMode={privacyMode}
                   showPercentageChange
                 />
               ))}
             </SectionRow>
           )}
+          <ScamWarningModal
+            showScamWarningModal={showScamWarningModal}
+            setShowScamWarningModal={setShowScamWarningModal}
+          />
+          <RemoveTokenBottomSheet
+            isVisible={removeTokenState.isVisible}
+            onClose={handleCloseRemoveTokenBottomSheet}
+            onRemove={removeToken}
+          />
         </Box>
       </View>
     );

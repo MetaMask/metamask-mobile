@@ -3,23 +3,15 @@ import React, {
   useCallback,
   useImperativeHandle,
   useRef,
-  useState,
 } from 'react';
-import {
-  ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  View,
-  StyleSheet,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { ScrollView, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box, TextVariant } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
+import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
@@ -35,7 +27,6 @@ import {
   PredictPositionRowSkeleton,
 } from './components';
 import ViewMoreCard from '../../components/ViewMoreCard';
-import { colorWithOpacity } from '../../../../../util/colors';
 import type { PredictPosition } from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
@@ -65,27 +56,10 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
-// Fade overlay width
-const FADE_WIDTH = 40;
-
 interface PredictionsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
 }
-
-const styles = StyleSheet.create({
-  scrollContainer: {
-    position: 'relative',
-  },
-  fadeOverlay: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: FADE_WIDTH,
-    pointerEvents: 'none',
-  },
-});
 
 /**
  * PredictionsSection - Displays prediction content on the homepage
@@ -102,15 +76,11 @@ const PredictionsSection = forwardRef<
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const tw = useTailwind();
-  const { colors } = useTheme();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const title = strings('homepage.sections.predictions');
   const { claim } = usePredictClaim();
-
-  // Track scroll position for fade effect
-  const [fadeOpacity, setFadeOpacity] = useState(1);
 
   // Fetch both positions and markets
   const {
@@ -146,6 +116,10 @@ const PredictionsSection = forwardRef<
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
+  // Use ref so refresh always reads the latest value without stale closures
+  const hasPositionsRef = useRef(hasPositions);
+  hasPositionsRef.current = hasPositions;
+
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
   const hasError =
@@ -178,10 +152,6 @@ const PredictionsSection = forwardRef<
     itemCount,
   });
 
-  // Use ref so refresh always reads the latest value without stale closures
-  const hasPositionsRef = useRef(hasPositions);
-  hasPositionsRef.current = hasPositions;
-
   // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
     if (hasPositionsRef.current) {
@@ -202,32 +172,6 @@ const PredictionsSection = forwardRef<
       screen: Routes.PREDICT.MARKET_LIST,
     });
   }, [navigation]);
-
-  // Handle scroll to update fade opacity
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const scrollableWidth = contentSize.width - layoutMeasurement.width;
-
-      // No scrollable content — hide fade
-      if (scrollableWidth <= 0) {
-        setFadeOpacity(0);
-        return;
-      }
-
-      const distanceFromEnd = scrollableWidth - contentOffset.x;
-
-      // Fade out the overlay as we approach the end (within 100px)
-      const fadeThreshold = 100;
-      const newOpacity = Math.min(
-        1,
-        Math.max(0, distanceFromEnd / fadeThreshold),
-      );
-      setFadeOpacity(newOpacity);
-    },
-    [],
-  );
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
@@ -311,46 +255,35 @@ const PredictionsSection = forwardRef<
     <View ref={sectionViewRef}>
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <View style={styles.scrollContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
-            snapToOffsets={SNAP_OFFSETS}
-            decelerationRate="fast"
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            {isLoadingMarkets ? (
-              SKELETON_KEYS.map((key) => (
-                <PredictMarketCardSkeleton key={key} />
-              ))
-            ) : (
-              <>
-                {markets.map((market) => (
-                  <PredictMarketCard key={market.id} market={market} />
-                ))}
-                <ViewMoreCard
-                  onPress={handleViewAllPredictions}
-                  twClassName="w-[180px] flex-1"
-                  textVariant={TextVariant.BodyLg}
-                />
-              </>
-            )}
-          </ScrollView>
-          {/* Fade overlay on the right edge */}
-          {fadeOpacity > 0 && (
-            <LinearGradient
-              colors={[
-                colorWithOpacity(colors.background.default, 0),
-                colors.background.default,
-              ]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.fadeOverlay, { opacity: fadeOpacity }]}
-            />
+        <FadingScrollContainer>
+          {(scrollProps) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              snapToOffsets={SNAP_OFFSETS}
+              decelerationRate="fast"
+              {...scrollProps}
+            >
+              {isLoadingMarkets ? (
+                SKELETON_KEYS.map((key) => (
+                  <PredictMarketCardSkeleton key={key} />
+                ))
+              ) : (
+                <>
+                  {markets.map((market) => (
+                    <PredictMarketCard key={market.id} market={market} />
+                  ))}
+                  <ViewMoreCard
+                    onPress={handleViewAllPredictions}
+                    twClassName="w-[180px] h-[180px]"
+                    textVariant={TextVariant.BodyLg}
+                  />
+                </>
+              )}
+            </ScrollView>
           )}
-        </View>
+        </FadingScrollContainer>
       </Box>
     </View>
   );

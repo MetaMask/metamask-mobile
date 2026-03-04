@@ -52,6 +52,19 @@ jest.mock('../../UI/Perps/hooks', () => ({
   })),
 }));
 
+jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 jest.mock(
   '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
