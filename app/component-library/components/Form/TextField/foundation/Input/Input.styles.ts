@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle } from 'react-native';
+import { Platform, StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -25,8 +25,13 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
     isDisabled,
     isStateStylesDisabled,
     isFocused,
-    isPlaceholderVisible,
+    value = '',
+    placeholder,
   } = vars;
+
+  const hasPlaceholder = placeholder != null && placeholder !== '';
+  const isPlaceholderVisible =
+    hasPlaceholder && (value === '' || value == null);
 
   const stateObj = isStateStylesDisabled
     ? {
@@ -51,7 +56,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
-        ...(isPlaceholderVisible && { lineHeight: 0 }),
+        ...(Platform.OS === 'ios' && isPlaceholderVisible && { lineHeight: 0 }),
       },
       style,
     ) as TextStyle,

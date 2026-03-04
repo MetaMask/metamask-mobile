@@ -43,17 +43,14 @@ const Input = React.forwardRef<TextInput, InputProps>(
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
 
-    const hasPlaceholder = placeholder != null && placeholder !== '';
-    const isPlaceholderVisible =
-      hasPlaceholder && (value === '' || value == null);
-
     const { styles, theme } = useStyles(styleSheet, {
       style,
       textVariant,
       isStateStylesDisabled,
       isDisabled,
       isFocused,
-      isPlaceholderVisible,
+      value: value ?? '',
+      placeholder,
     });
 
     const onBlurHandler = useCallback(

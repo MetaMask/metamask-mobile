@@ -49,7 +49,8 @@ const Input = React.forwardRef<
       isDisabled,
       isFocused,
       inputStyle,
-      isPlaceholderVisible: false,
+      value: '',
+      placeholder: undefined,
     });
 
     const onBlurHandler = useCallback(
