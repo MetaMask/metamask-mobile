@@ -58,17 +58,26 @@ const selectPerpsBalances = createSelector(
 
 const selectIsFirstTimePerpsUser = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectIsFirstTimeUser(perpsControllerState),
+  (perpsControllerState) => {
+    if (!perpsControllerState) return true;
+    return selectIsFirstTimeUser(perpsControllerState);
+  },
 );
 
 const selectPerpsWatchlistMarkets = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectWatchlistMarkets(perpsControllerState),
+  (perpsControllerState) => {
+    if (!perpsControllerState) return [];
+    return selectWatchlistMarkets(perpsControllerState);
+  },
 );
 
 const selectPerpsMarketFilterPreferences = createSelector(
   selectPerpsControllerState,
-  (perpsControllerState) => selectMarketFilterPreferences(perpsControllerState),
+  (perpsControllerState) => {
+    if (!perpsControllerState) return undefined;
+    return selectMarketFilterPreferences(perpsControllerState);
+  },
 );
 
 /**
@@ -102,9 +111,10 @@ const selectPerpsInitializationState = createSelector(
 
 // Factory function to create selector for specific market
 export const createSelectIsWatchlistMarket = (symbol: string) =>
-  createSelector(selectPerpsControllerState, (perpsControllerState) =>
-    selectIsWatchlistMarket(perpsControllerState, symbol),
-  );
+  createSelector(selectPerpsControllerState, (perpsControllerState) => {
+    if (!perpsControllerState) return false;
+    return selectIsWatchlistMarket(perpsControllerState, symbol);
+  });
 
 export {
   selectPerpsProvider,
