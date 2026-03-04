@@ -484,10 +484,9 @@ const Onboarding = () => {
   );
 
   const handleOAuthLoginError = useCallback(
-    (error: Error, provider?: string, isFallback?: boolean): void => {
+    (error: OAuthError, provider: string, isFallback: boolean): void => {
       const platform = Platform.OS;
-      const errorCode =
-        error instanceof OAuthError ? String(error.code) : 'unknown';
+      const errorCode = String(error.code);
 
       if (metrics.isEnabled()) {
         captureException(error, {
@@ -495,16 +494,11 @@ const Onboarding = () => {
             view: 'Onboarding',
             context: 'OAuth login failed - user consented to analytics',
             oauth_platform: platform,
-            oauth_provider: provider ?? 'unknown',
+            oauth_provider: provider,
             oauth_error_code: errorCode,
-            oauth_is_fallback: String(isFallback ?? false),
+            oauth_is_fallback: String(isFallback),
           },
-          fingerprint: [
-            'oauth-login-error',
-            platform,
-            provider ?? 'unknown',
-            errorCode,
-          ],
+          fingerprint: ['oauth-login-error', platform, provider, errorCode],
         });
       } else {
         setState((prevState) => ({
