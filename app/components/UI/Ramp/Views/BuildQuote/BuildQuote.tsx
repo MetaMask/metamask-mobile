@@ -153,6 +153,33 @@ function BuildQuote() {
   const tokenStateIsSettled =
     !params?.assetId || selectedToken?.assetId === params.assetId;
 
+  // Track whether a payment methods fetch has been initiated (and completed)
+  // for the current provider/token. The default Redux state is
+  // { data: [], isLoading: false }, which is indistinguishable from "finished
+  // loading with empty result". We must only treat an empty list as a real
+  // signal after we've witnessed at least one loading cycle.
+  const paymentMethodsFetchedRef = useRef(false);
+  const prevProviderIdRef = useRef(selectedProvider?.id);
+  const prevSettledAssetIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    const providerChanged = selectedProvider?.id !== prevProviderIdRef.current;
+    const settledAssetId = tokenStateIsSettled
+      ? selectedToken?.assetId
+      : undefined;
+    const tokenChanged = settledAssetId !== prevSettledAssetIdRef.current;
+
+    if (providerChanged || tokenChanged) {
+      paymentMethodsFetchedRef.current = false;
+      prevProviderIdRef.current = selectedProvider?.id;
+      prevSettledAssetIdRef.current = settledAssetId;
+    }
+
+    if (paymentMethodsLoading) {
+      paymentMethodsFetchedRef.current = true;
+    }
+  });
+
   const isTokenUnavailable = useMemo(() => {
     if (!selectedProvider || !tokenStateIsSettled) return false;
 
@@ -165,9 +192,15 @@ function BuildQuote() {
       return true;
     }
 
-    // API returned no payment methods after a completed fetch — the token
-    // isn't supported by this provider in this region even if metadata says so.
-    if (!paymentMethodsLoading && paymentMethods.length === 0) {
+    // API returned no payment methods after a completed fetch. Guard against
+    // the default Redux state { data: [], isLoading: false } which looks
+    // identical to "loaded empty" — only treat it as unavailable once we've
+    // seen a real loading cycle for this provider/token.
+    if (
+      paymentMethodsFetchedRef.current &&
+      !paymentMethodsLoading &&
+      paymentMethods.length === 0
+    ) {
       return true;
     }
 

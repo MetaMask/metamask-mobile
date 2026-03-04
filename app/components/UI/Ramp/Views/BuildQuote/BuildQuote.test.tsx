@@ -162,6 +162,7 @@ let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
 let mockPaymentMethods: unknown[] = [];
+let mockPaymentMethodsLoading = false;
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -187,7 +188,7 @@ jest.mock('../../hooks/useRampsController', () => ({
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     getWidgetUrl: mockGetWidgetUrl,
     paymentMethods: mockPaymentMethods,
-    paymentMethodsLoading: false,
+    paymentMethodsLoading: mockPaymentMethodsLoading,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
 }));
@@ -266,6 +267,7 @@ describe('BuildQuote', () => {
     mockPaymentMethods = [
       { id: '/payments/debit-credit-card', name: 'Debit/Credit Card' },
     ];
+    mockPaymentMethodsLoading = false;
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -1606,6 +1608,46 @@ describe('BuildQuote', () => {
     });
 
     it('navigates to token unavailable modal when payment methods are empty after loading', async () => {
+      const provider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+      mockSelectedProvider = provider;
+      mockPaymentMethods = [];
+      mockPaymentMethodsLoading = true;
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      // Simulate fetch completing with empty result
+      mockPaymentMethodsLoading = false;
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when payment methods have not loaded yet', () => {
       mockSelectedProvider = {
         id: '/providers/transak',
         name: 'Transak',
@@ -1618,19 +1660,16 @@ describe('BuildQuote', () => {
           [MOCK_ASSET_ID]: true,
         },
       };
+      // Default Redux state: data=[], isLoading=false — no fetch has occurred yet
       mockPaymentMethods = [];
+      mockPaymentMethodsLoading = false;
 
       renderWithTheme(<BuildQuote />);
 
-      await act(async () => {
-        await flushPromises();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
-          params: { assetId: MOCK_ASSET_ID },
         }),
       );
     });
