@@ -50,7 +50,7 @@ exports[`Banner should render correctly 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -64,9 +64,9 @@ exports[`Banner should render correctly 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -126,7 +126,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -140,9 +140,9 @@ exports[`Banner should render correctly with a close button 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -282,7 +282,7 @@ exports[`Banner should render correctly with a start accessory 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -296,9 +296,9 @@ exports[`Banner should render correctly with a start accessory 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -358,7 +358,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -372,9 +372,9 @@ exports[`Banner should render correctly with an action button 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >

@@ -48,6 +48,7 @@ const getStories = () => {
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
     "./app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx": require("../app/component-library/components-temp/HeaderCompactStandard/HeaderCompactStandard.stories.tsx"),
+    "./app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx": require("../app/component-library/components-temp/HeaderRoot/HeaderRoot.stories.tsx"),
     "./app/component-library/components-temp/HeaderSearch/HeaderSearch.stories.tsx": require("../app/component-library/components-temp/HeaderSearch/HeaderSearch.stories.tsx"),
     "./app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx": require("../app/component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),

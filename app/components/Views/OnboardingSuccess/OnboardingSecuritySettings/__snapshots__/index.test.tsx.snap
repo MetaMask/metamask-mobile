@@ -34,7 +34,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
               "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }

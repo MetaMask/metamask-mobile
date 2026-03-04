@@ -95,7 +95,7 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           {
             "color": "#131416",
             "fontFamily": "Geist-Bold",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -300,7 +300,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           {
             "color": "#131416",
             "fontFamily": "Geist-Bold",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
