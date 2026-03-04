@@ -134,10 +134,8 @@ describe('useUnrealizedPnL', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.error).toBeTruthy();
+      expect(result.current.error?.message).toBe('Network error');
     });
-
-    expect(result.current.error?.message).toBe('Network error');
     expect(result.current.data).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
   });
