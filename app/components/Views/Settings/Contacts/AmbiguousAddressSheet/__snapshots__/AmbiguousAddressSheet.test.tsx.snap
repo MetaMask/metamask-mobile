@@ -439,6 +439,60 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   "padding": 4,
                                 }
                               }
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "center",
+                                "justifyContent": "center",
+                                "padding": 16,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 30,
+                                    "marginVertical": 2,
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Bold",
+                                    "fontSize": 20,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  },
+                                ]
+                              }
                             >
                               <View
                                 style={

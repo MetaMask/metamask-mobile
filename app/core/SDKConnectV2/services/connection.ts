@@ -18,6 +18,40 @@ import Engine from '../../Engine';
 import NavigationService from '../../NavigationService';
 
 /**
+ * Known user-rejection error codes across ecosystems.
+ * - 4001: EVM standard (EIP-1193)
+ * - 5000: Solana wallet standard (user rejected)
+ */
+const REJECTION_CODES: ReadonlySet<number> = new Set([
+  errorCodes.provider.userRejectedRequest, // 4001
+  5000, // Solana wallet-standard user rejection
+]);
+
+/**
+ * Message patterns that indicate a user rejection even when the original
+ * error code has been lost. The SnapKeyring strips the 4001 code from
+ * approval rejections and re-throws a plain Error, which serializeError
+ * then wraps with the fallback code -32603. We match on the message to
+ * recover the user-rejection intent.
+ */
+const REJECTION_MESSAGE_PATTERNS: readonly string[] = [
+  'request rejected by user or snap',
+  'user rejected',
+];
+
+const isRejectionMessage = (message: unknown): boolean => {
+  if (typeof message !== 'string') return false;
+  const lower = message.toLowerCase();
+  return REJECTION_MESSAGE_PATTERNS.some((pattern) => lower.includes(pattern));
+};
+
+/**
+ * Standard JSON-RPC internal error range: -32603, and server errors -32000 to -32099.
+ */
+const isInternalError = (code: number): boolean =>
+  code === errorCodes.rpc.internal || (code >= -32099 && code <= -32000);
+
+/**
  * Connection is a live, runtime representation of a dApp connection.
  */
 export class Connection {
@@ -100,12 +134,23 @@ export class Connection {
           'error' in responseData && responseData.error !== undefined;
 
         if (isError) {
-          if (
-            responseData.error.code === errorCodes.provider.userRejectedRequest
-          ) {
+          const errCode = responseData.error.code as number;
+          const errMessage =
+            (responseData.error as Record<string, unknown>).message ??
+            (responseData.error as Record<string, unknown>).reason;
+
+          logger.warn('RPC error response', {
+            connectionId: this.id,
+            code: errCode,
+            message: errMessage,
+          });
+
+          if (REJECTION_CODES.has(errCode) || isRejectionMessage(errMessage)) {
             this.hostApp.showConfirmationRejectionError(this.info);
+          } else if (isInternalError(errCode)) {
+            this.hostApp.showInternalError(this.info);
           } else {
-            this.hostApp.showConnectionError(this.info);
+            this.hostApp.showMethodError(this.info);
           }
         } else {
           this.hostApp.showReturnToApp(this.info);

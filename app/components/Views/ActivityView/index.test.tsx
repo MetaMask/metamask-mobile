@@ -190,6 +190,13 @@ jest.mock('../../UI/Ramp/Aggregator/Views/OrdersList', () => {
   };
 });
 
+jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockUnifiedTransactionsView() {
+    return <View testID="unified-transactions-view-mock" />;
+  };
+});
+
 let mockIsEvmSelected = true;
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(() => mockIsEvmSelected),

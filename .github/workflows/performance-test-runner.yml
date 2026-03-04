@@ -87,6 +87,16 @@ jobs:
           command: yarn --immutable
         ## This installs dependencies and creates the node_modules state file
       
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       - name: Setup project
         run: yarn setup:github-ci
         working-directory: '.'
