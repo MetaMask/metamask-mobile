@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage:
   check-ab-testing-compliance.sh --staged
-  check-ab-testing-compliance.sh --files <file1,file2,...>
+  check-ab-testing-compliance.sh --files <file1,file2,...> [--base <git-ref>]
 
 Checks changed files for A/B testing implementation compliance.
 
@@ -20,6 +20,7 @@ EOF
 
 MODE=""
 FILES_ARG=""
+BASE_REF=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -32,6 +33,14 @@ while [[ $# -gt 0 ]]; do
       FILES_ARG="${2:-}"
       if [[ -z "$FILES_ARG" ]]; then
         echo "ERROR: --files requires a comma-separated value."
+        exit 2
+      fi
+      shift 2
+      ;;
+    --base)
+      BASE_REF="${2:-}"
+      if [[ -z "$BASE_REF" ]]; then
+        echo "ERROR: --base requires a git ref (for example origin/main)."
         exit 2
       fi
       shift 2
@@ -53,6 +62,20 @@ if [[ -z "$MODE" ]]; then
   usage
   exit 2
 fi
+
+resolve_default_base_ref() {
+  if [[ "$MODE" != "files" || -n "$BASE_REF" ]]; then
+    return
+  fi
+
+  local candidate
+  for candidate in "origin/main" "main" "HEAD~1"; do
+    if git rev-parse --verify "$candidate" >/dev/null 2>&1; then
+      BASE_REF="$candidate"
+      return
+    fi
+  done
+}
 
 trim() {
   local value="$1"
@@ -100,6 +123,8 @@ collect_files() {
 
 get_added_lines() {
   local file="$1"
+  local base_ref="${2:-}"
+
   if [[ "$MODE" == "staged" ]]; then
     git diff --cached --unified=0 -- "$file" \
       | grep '^+' \
@@ -108,13 +133,45 @@ get_added_lines() {
     return
   fi
 
+  # For explicit files mode, new/untracked files are all "added".
+  if [[ -f "$file" ]] && ! git cat-file -e "HEAD:$file" >/dev/null 2>&1; then
+    cat "$file"
+    return
+  fi
+
+  # Long-term branch-safe behavior: compare against base ref in clean checkouts.
+  if [[ -n "$base_ref" ]] && git rev-parse --verify "$base_ref" >/dev/null 2>&1; then
+    git diff --unified=0 "$base_ref"...HEAD -- "$file" \
+      | grep '^+' \
+      | grep -v '^+++' \
+      | sed 's/^+//' || true
+    return
+  fi
+
+  # Fallback for local, uncommitted edits.
   if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
     git diff --unified=0 HEAD -- "$file" \
       | grep '^+' \
       | grep -v '^+++' \
       | sed 's/^+//' || true
-  elif [[ -f "$file" ]]; then
+  fi
+}
+
+get_scan_content() {
+  local file="$1"
+
+  if [[ "$MODE" == "staged" ]]; then
+    get_added_lines "$file"
+    return
+  fi
+
+  if [[ -f "$file" ]]; then
     cat "$file"
+    return
+  fi
+
+  if git cat-file -e "HEAD:$file" >/dev/null 2>&1; then
+    git show "HEAD:$file"
   fi
 }
 
@@ -128,6 +185,8 @@ while IFS= read -r file; do
   [[ -n "$file" ]] && CHANGED_FILES+=("$file")
 done < <(collect_files)
 
+resolve_default_base_ref
+
 if [[ ${#CHANGED_FILES[@]} -eq 0 || ( ${#CHANGED_FILES[@]} -eq 1 && -z "${CHANGED_FILES[0]}" ) ]]; then
   echo "A/B compliance check: no files to inspect."
   exit 0
@@ -140,13 +199,15 @@ for file in "${CHANGED_FILES[@]}"; do
     TEST_CHANGED=1
   fi
 
-  added="$(get_added_lines "$file")"
-  [[ -z "$added" ]] && continue
   if ! is_code_file "$file"; then
     continue
   fi
 
-  if grep -Eq 'useABTest\(|active_ab_tests|Abtest|abTestConfig' <<< "$added"; then
+  added="$(get_added_lines "$file" "$BASE_REF")"
+  scan_content="$(get_scan_content "$file")"
+  [[ -z "$scan_content" ]] && continue
+
+  if grep -Eq 'useABTest\(|active_ab_tests|Abtest|abTestConfig' <<< "$scan_content"; then
     AB_IMPL_FILES+=("$file")
   fi
 
@@ -160,21 +221,21 @@ for file in "${CHANGED_FILES[@]}"; do
     fi
   done <<< "$added"
 
-  added_lines=()
-  while IFS= read -r added_line; do
-    added_lines+=("$added_line")
-  done <<< "$added"
-  added_count="${#added_lines[@]}"
+  scan_lines=()
+  while IFS= read -r scan_line; do
+    scan_lines+=("$scan_line")
+  done <<< "$scan_content"
+  scan_count="${#scan_lines[@]}"
 
-  for ((i=0; i<added_count; i++)); do
-    line="${added_lines[$i]}"
+  for ((i=0; i<scan_count; i++)); do
+    line="${scan_lines[$i]}"
 
     # Rule: validate literal active_ab_tests payloads include both key and value.
     if [[ "$line" =~ active_ab_tests[[:space:]]*: ]]; then
       if [[ "$line" =~ active_ab_tests[[:space:]]*:[[:space:]]*(\[|\{) ]]; then
         window="$line"
-        for ((j=i+1; j<added_count && j<=i+8; j++)); do
-          window+=$'\n'"${added_lines[$j]}"
+        for ((j=i+1; j<scan_count && j<=i+8; j++)); do
+          window+=$'\n'"${scan_lines[$j]}"
         done
         if ! grep -Eq 'key[[:space:]]*:' <<< "$window" || ! grep -Eq 'value[[:space:]]*:' <<< "$window"; then
           FAILURES+=("$file: malformed literal active_ab_tests object (expected key and value).")
@@ -183,18 +244,30 @@ for file in "${CHANGED_FILES[@]}"; do
     fi
 
     # Rule: inline useABTest variants object must include control.
-    # Only apply when the second argument is an inline object literal:
-    # useABTest(flagKey, { ... })
-    # Do not apply when variants are passed by reference:
-    # useABTest(flagKey, VARIANTS)
+    # Only apply when the second argument is an inline object literal.
     if [[ "$line" =~ useABTest[[:space:]]*\( ]]; then
-      window="$line"
-      for ((j=i+1; j<added_count && j<=i+20; j++)); do
-        window+=$'\n'"${added_lines[$j]}"
+      call_window=""
+      paren_depth=0
+      for ((j=i; j<scan_count; j++)); do
+        segment="${scan_lines[$j]}"
+        if (( j == i )); then
+          segment="useABTest${segment#*useABTest}"
+        fi
+
+        call_window+="${call_window:+$'\n'}${segment}"
+
+        open_count="$(printf '%s' "$segment" | tr -cd '(' | wc -c | tr -d ' ')"
+        close_count="$(printf '%s' "$segment" | tr -cd ')' | wc -c | tr -d ' ')"
+        paren_depth=$((paren_depth + open_count - close_count))
+
+        if (( paren_depth <= 0 )); then
+          break
+        fi
       done
-      normalized_window="$(printf '%s' "$window" | tr '\n' ' ')"
-      if grep -Eq 'useABTest[[:space:]]*\([^,]+,[[:space:]]*\{' <<< "$normalized_window"; then
-        if ! grep -Eq 'control[[:space:]]*:' <<< "$window"; then
+
+      normalized_call="$(printf '%s' "$call_window" | tr '\n' ' ')"
+      if grep -Eq 'useABTest[[:space:]]*\([^,]+,[[:space:]]*\{' <<< "$normalized_call"; then
+        if ! grep -Eq 'control[[:space:]]*:' <<< "$call_window"; then
           FAILURES+=("$file: inline useABTest variants object is missing control.")
         fi
       fi
@@ -225,6 +298,9 @@ fi
 
 echo "A/B compliance check summary"
 echo "Mode: $MODE"
+if [[ "$MODE" == "files" && -n "$BASE_REF" ]]; then
+  echo "Base ref: $BASE_REF"
+fi
 echo "Files inspected: ${#CHANGED_FILES[@]}"
 
 if [[ ${#FAILURES[@]} -gt 0 ]]; then

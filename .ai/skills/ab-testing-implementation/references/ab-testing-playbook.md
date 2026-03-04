@@ -71,6 +71,12 @@ Optional explicit files mode:
 bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --files app/path/to/file.tsx,app/path/to/file.test.ts
 ```
 
+CI or clean-checkout mode (compare listed files against a base branch/ref):
+
+```bash
+bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --files app/path/to/file.tsx --base origin/main
+```
+
 ## Output Contract (Required)
 
 When responding from this playbook, always include:
