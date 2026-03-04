@@ -257,6 +257,116 @@ active_ab_tests: [
 
 ---
 
+## Config Module Pattern (Best Practice)
+
+For any new A/B test, keep test configuration in a dedicated module (for example `abTestConfig.ts`) and import it in both feature UI and tracking hooks.
+
+```typescript
+export const FEATURE_AB_TEST_KEY = 'teamTEAM1234AbtestFeatureName';
+
+export enum FeatureVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export type FeatureVariantConfig = {
+  /* test-specific config shape */
+};
+
+export const FEATURE_VARIANTS: Record<FeatureVariant, FeatureVariantConfig> = {
+  [FeatureVariant.Control]: {
+    /* control config */
+  },
+  [FeatureVariant.Treatment]: {
+    /* treatment config */
+  },
+};
+
+// Optional: additional maps for state-dependent rendering while preserving
+// the same variant keys (control/treatment/etc.)
+export const FEATURE_VARIANTS_ALT_STATE: Record<
+  FeatureVariant,
+  FeatureVariantConfig
+> = {
+  [FeatureVariant.Control]: {
+    /* control alt-state config */
+  },
+  [FeatureVariant.Treatment]: {
+    /* treatment alt-state config */
+  },
+};
+```
+
+Consumption pattern:
+
+1. Resolve assignment via `useABTest(FEATURE_AB_TEST_KEY, FEATURE_VARIANTS)`.
+2. Normalize unknown/fallback assignments to `control` and use the chosen variant map for rendering.
+3. If UI state changes available options, select from an alternate variant map (`*_ALT_STATE`) with the same variant key.
+4. Reuse the same key and variant source in analytics hooks and emit:
+
+```typescript
+active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }];
+```
+
+Example: feature/UI consumption
+
+```typescript
+const { variantName, isActive } = useABTest(
+  FEATURE_AB_TEST_KEY,
+  FEATURE_VARIANTS,
+);
+
+const selectedVariant =
+  variantName === FeatureVariant.Treatment
+    ? FeatureVariant.Treatment
+    : FeatureVariant.Control;
+
+const config = isInAltState
+  ? FEATURE_VARIANTS_ALT_STATE[selectedVariant]
+  : FEATURE_VARIANTS[selectedVariant];
+```
+
+Example: single-test analytics event
+
+```typescript
+trackEvent(
+  createEventBuilder(MetaMetricsEvents.SCREEN_VIEWED)
+    .addProperties({
+      screen: 'feature-screen',
+      ...(isActive && {
+        active_ab_tests: [{ key: FEATURE_AB_TEST_KEY, value: variantName }],
+      }),
+    })
+    .build(),
+);
+```
+
+Example: multiple concurrent tests in one event
+
+```typescript
+const activeABTests = [
+  ...(layoutTest.isActive
+    ? [{ key: LAYOUT_TEST_KEY, value: layoutTest.variantName }]
+    : []),
+  ...(ctaTest.isActive
+    ? [{ key: CTA_TEST_KEY, value: ctaTest.variantName }]
+    : []),
+];
+
+trackEvent(
+  createEventBuilder(MetaMetricsEvents.BUTTON_CLICKED)
+    .addProperties({
+      button_id: 'continue',
+      ...(activeABTests.length > 0 && { active_ab_tests: activeABTests }),
+    })
+    .build(),
+);
+```
+
+This standard keeps flag key, variant labels, UI behavior, and analytics payloads in sync across feature code and events.
+
+---
+
 ## Checklist
 
 - [ ] LaunchDarkly JSON flag created with threshold array
