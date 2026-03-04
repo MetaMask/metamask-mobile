@@ -25,14 +25,14 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
     const articleSources: MarketInsightsSource[] = trend.articles.map(
       (article) => ({
         name: article.source,
-        type: 'news',
+        type: 'article',
         url: article.url || article.source,
       }),
     );
     const tweetSources: MarketInsightsSource[] = (trend.tweets ?? []).map(
       (tweet) => ({
         name: 'X',
-        type: 'social',
+        type: 'tweet',
         url: tweet.url || 'https://x.com',
       }),
     );
