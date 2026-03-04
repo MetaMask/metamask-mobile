@@ -22,6 +22,7 @@ const LedgerConfirmationModal = ({
 }: LedgerConfirmationModalProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasStartedRef = useRef(false);
+  const hasRejectedRef = useRef(false);
 
   const {
     ensureDeviceReady,
@@ -33,6 +34,9 @@ const LedgerConfirmationModal = ({
   // Track rejection for analytics
   const handleRejection = useCallback(
     async (error?: unknown) => {
+      if (hasRejectedRef.current) return;
+      hasRejectedRef.current = true;
+
       // Track analytics for non-user-initiated rejections
       if (error && !isUserCancellation(error)) {
         trackEvent(
