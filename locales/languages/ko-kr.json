@@ -582,6 +582,7 @@
     "ok": "확인",
     "cancel": "취소",
     "error": "오류",
+    "open_settings": "설정",
     "attempting_to_scan_with_wallet_locked": "QR 코드 스캔을 시도 중이십니까? 이를 사용하려면 지갑을 잠금 해제해야 합니다.",
     "attempting_sync_from_wallet_error": "확장 프로그램과 동기화를 시도 중인 것 같습니다. 이를 위해서는 기존 지갑을 지워야 합니다. \n\n지우기를 완료한 후 또는 최신 버전의 앱을 재설치한 후 \"MetaMask 확장 프로그램과 동기화\" 옵션을 선택하십시오. 중요! 지갑을 지우기 전에 계정 시드 구문을 백업했는지 확인하십시오."
   },
