@@ -43,7 +43,7 @@ const PredictBuyBottomContent = ({
             {errorMessage}
           </Text>
         )}
-        <Box twClassName="w-full h-12">{children}</Box>
+        <Box twClassName="w-full">{children}</Box>
         <Box twClassName="text-center items-center flex-row gap-1 justify-center">
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.consent_sheet.disclaimer')}

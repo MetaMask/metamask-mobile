@@ -1,18 +1,3 @@
-import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonSize as ButtonSizeHero,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   RouteProp,
@@ -21,11 +6,11 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, {
-  useState,
-  useRef,
+  useCallback,
   useEffect,
   useMemo,
-  useCallback,
+  useRef,
+  useState,
 } from 'react';
 import {
   ActivityIndicator,
@@ -41,48 +26,43 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { strings } from '../../../../../../locales/i18n';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import Engine from '../../../../../core/Engine';
-import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
-import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
-import { Side } from '../../types';
-import { PredictNavigationParamList } from '../../types/navigation';
-import {
-  PredictTradeStatus,
-  PredictEventValues,
-} from '../../constants/eventNames';
-import { formatCents, formatPrice } from '../../utils/format';
-import PredictAmountDisplay from '../../components/PredictAmountDisplay';
-import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import {
-  TextVariant as LegacyTextVariant,
-  TextColor as LegacyTextColor,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
-import RewardsAnimations, {
-  RewardAnimationState,
-} from '../../../Rewards/components/RewardPointsAnimation';
-import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+import { TraceName } from '../../../../../util/trace';
+import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
+import PredictBuyActionButton from '../../components/PredictBuyActionButton';
+import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
+import PredictBuyBottomContent from '../../components/PredictBuyBottomContent';
+import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
+import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
-import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictFeeSummary from '../../components/PredictFeeSummary/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
-import PredictBuyPreviewHeader from '../../components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import { PredictTradeStatus } from '../../constants/eventNames';
+import { MINIMUM_BET } from '../../constants/transactions';
+import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
-import { strings } from '../../../../../../locales/i18n';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
-import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
-import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
+import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
 import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { usePreviousValue } from '../../hooks/usePreviousValue';
+import { Side } from '../../types';
+import { PredictNavigationParamList } from '../../types/navigation';
+import { parseAnalyticsProperties } from '../../utils/analytics';
+import { formatPrice } from '../../utils/format';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -121,6 +101,9 @@ const PredictBuyPreview = () => {
   const [isInputFocused, setIsInputFocused] = useState(() => !autoPlaceAmount);
   const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
     useState(false);
+
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
+
   const shouldPreserveActiveOrderOnUnmountRef = useRef(false);
   const markShouldPreserveActiveOrderOnUnmount = useCallback(() => {
     shouldPreserveActiveOrderOnUnmountRef.current = true;
@@ -145,6 +128,14 @@ const PredictBuyPreview = () => {
     },
     [markShouldPreserveActiveOrderOnUnmount, triggerPayWithAnyToken],
   );
+
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
 
   const handleTokenSelected = useCallback(
     async (
@@ -335,6 +326,9 @@ const PredictBuyPreview = () => {
     isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0),
   );
 
+  const isLoadingRewardsState =
+    (isCalculating && isUserInputChange) || isRewardsLoading;
+
   const shouldShowRewardsRow = useMemo(
     () =>
       isRewardsEnabled && currentValue > 0 && isAccountOptedIntoRewards != null,
@@ -364,284 +358,6 @@ const PredictBuyPreview = () => {
     });
   }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
 
-  const renderAmount = () => (
-    <ScrollView
-      style={tw.style('flex-col')}
-      contentContainerStyle={tw.style('flex-grow justify-center')}
-      showsVerticalScrollIndicator={false}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="w-full"
-      >
-        <Box twClassName="text-center leading-[72px]">
-          <PredictAmountDisplay
-            amount={currentValueUSDString}
-            onPress={() => keypadRef.current?.handleAmountPress()}
-            isActive={isInputFocused}
-            hasError={false}
-          />
-        </Box>
-        {/* Available balance */}
-        <Box twClassName="text-center mt-2">
-          {isBalanceLoading ? (
-            <Skeleton width={120} height={20} />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
-            </Text>
-          )}
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="mt-2"
-        >
-          <Text
-            variant={TextVariant.BodyLg}
-            twClassName="font-medium"
-            color={TextColor.SuccessDefault}
-          >
-            {`${strings('predict.order.to_win')} `}
-          </Text>
-          {isCalculating && isUserInputChange ? (
-            <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
-          ) : (
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="font-medium"
-              color={TextColor.SuccessDefault}
-            >
-              {formatPrice(toWin, {
-                minimumDecimals: 2,
-                maximumDecimals: 2,
-              })}
-            </Text>
-          )}
-        </Box>
-        <Box twClassName="mt-4 w-full">
-          <PredictPayWithRow />
-        </Box>
-      </Box>
-    </ScrollView>
-  );
-
-  const renderActionButton = () => {
-    if (isPlacingOrder) {
-      return (
-        <Button
-          label={
-            <Box twClassName="flex-row items-center gap-1">
-              <ActivityIndicator size="small" />
-              <Text
-                variant={TextVariant.BodyLg}
-                twClassName="font-medium"
-                color={TextColor.PrimaryInverse}
-              >
-                {`${strings('predict.order.placing_prediction')}...`}
-              </Text>
-            </Box>
-          }
-          variant={ButtonVariants.Primary}
-          onPress={onPlaceBet}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={tw.style('opacity-50')}
-          disabled
-        />
-      );
-    }
-
-    return (
-      <ButtonHero
-        testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        disabled={!canPlaceBetAction}
-        isLoading={isPlacingOrder}
-        size={ButtonSizeHero.Lg}
-        style={tw.style('w-full', isPayWithAnyTokenLoading && 'opacity-50')}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          style={tw.style('text-white font-medium')}
-        >
-          {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
-        </Text>
-      </ButtonHero>
-    );
-  };
-
-  const renderMinimumBetWarning = () => {
-    if (isBalanceLoading || !isBelowMinimum) {
-      return null;
-    }
-
-    return (
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.ErrorDefault}
-        style={tw.style('text-center pb-2')}
-      >
-        {strings('predict.order.prediction_minimum_bet', {
-          amount: formatPrice(MINIMUM_BET, {
-            minimumDecimals: 2,
-            maximumDecimals: 2,
-          }),
-        })}
-      </Text>
-    );
-  };
-
-  const renderBottomContent = () => {
-    if (isInputFocused) {
-      return null;
-    }
-
-    const isLoadingRewardsState =
-      (isCalculating && isUserInputChange) || isRewardsLoading;
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        twClassName="border-t border-muted p-4 pb-0 gap-4"
-      >
-        <TouchableOpacity
-          onPress={handleFeesInfoPress}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={tw.style('py-1')}
-        >
-          <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-col">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {strings('predict.fee_summary.total')}
-              </Text>
-              <Box twClassName="flex-row items-center gap-1">
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('predict.fee_summary.total_incl_fees')}
-                </Text>
-                <Icon
-                  name={IconName.Info}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </Box>
-            </Box>
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {formatPrice(total, { maximumDecimals: 2 })}
-            </Text>
-          </Box>
-        </TouchableOpacity>
-
-        {shouldShowRewardsRow &&
-          (isAccountOptedIntoRewards || rewardsAccountScope) && (
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('predict.fee_summary.estimated_points'),
-                  variant: LegacyTextVariant.BodyMD,
-                  color: LegacyTextColor.Default,
-                },
-                tooltip: {
-                  title: strings('predict.fee_summary.points_tooltip'),
-                  content: `${strings(
-                    'predict.fee_summary.points_tooltip_content_1',
-                  )}\n\n${strings(
-                    'predict.fee_summary.points_tooltip_content_2',
-                  )}`,
-                  size: TooltipSizes.Sm,
-                  iconName: IconNameLegacy.Info,
-                },
-              }}
-              value={{
-                label: (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    gap={1}
-                  >
-                    {isAccountOptedIntoRewards ? (
-                      <RewardsAnimations
-                        value={estimatedRewardsPoints ?? 0}
-                        state={
-                          isLoadingRewardsState
-                            ? RewardAnimationState.Loading
-                            : isRewardsError
-                              ? RewardAnimationState.ErrorState
-                              : RewardAnimationState.Idle
-                        }
-                      />
-                    ) : rewardsAccountScope ? (
-                      <AddRewardsAccount account={rewardsAccountScope} />
-                    ) : (
-                      <></>
-                    )}
-                  </Box>
-                ),
-                ...(isRewardsError && {
-                  tooltip: {
-                    title: strings('predict.fee_summary.points_error'),
-                    content: strings(
-                      'predict.fee_summary.points_error_content',
-                    ),
-                    size: TooltipSizes.Sm,
-                    iconName: IconNameLegacy.Info,
-                  },
-                }),
-              }}
-            />
-          )}
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
-          {errorMessage && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              style={tw.style('text-center pb-2')}
-            >
-              {errorMessage}
-            </Text>
-          )}
-          <Box twClassName="w-full h-12">{renderActionButton()}</Box>
-          <Box twClassName="text-center items-center flex-row gap-1 justify-center">
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.consent_sheet.disclaimer')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              style={tw.style('text-info-default')}
-              onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
-              }}
-            >
-              {strings('predict.consent_sheet.learn_more')}
-            </Text>
-          </Box>
-        </Box>
-      </Box>
-    );
-  };
-
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
@@ -652,8 +368,22 @@ const PredictBuyPreview = () => {
         sharePrice={preview?.sharePrice}
         onBack={goBack}
       />
-      {renderAmount()}
-      {renderMinimumBetWarning()}
+      <PredictBuyAmountSection
+        currentValueUSDString={currentValueUSDString}
+        keypadRef={keypadRef}
+        isInputFocused={isInputFocused}
+        isBalanceLoading={isBalanceLoading}
+        availableBalanceDisplay={formatPrice(balance, {
+          minimumDecimals: 2,
+          maximumDecimals: 2,
+        })}
+        toWin={toWin}
+        isShowingToWinSkeleton={isCalculating && isUserInputChange}
+      />
+      <PredictBuyMinimumError
+        isBalanceLoading={isBalanceLoading}
+        isBelowMinimum={isBelowMinimum}
+      />
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -664,7 +394,32 @@ const PredictBuyPreview = () => {
         setIsInputFocused={setIsInputFocused}
         onAddFunds={deposit}
       />
-      {renderBottomContent()}
+      <PredictBuyBottomContent
+        isInputFocused={isInputFocused}
+        errorMessage={errorMessage}
+      >
+        <PredictFeeSummary
+          disabled={isInputFocused}
+          loading={isPayWithAnyTokenLoading}
+          total={total}
+          shouldShowRewardsRow={shouldShowRewardsRow}
+          rewardsAccountScope={rewardsAccountScope}
+          accountOptedIn={isAccountOptedIntoRewards}
+          estimatedPoints={estimatedRewardsPoints}
+          isLoadingRewards={isLoadingRewardsState}
+          hasRewardsError={isRewardsError}
+          handleFeesInfoPress={handleFeesInfoPress}
+        />
+        <PredictBuyActionButton
+          isLoading={isPlacingOrder}
+          onPress={onPlaceBet}
+          disabled={!canPlaceBetAction}
+          showReducedOpacity={isPayWithAnyTokenLoading}
+          outcomeTokenTitle={outcomeToken?.title}
+          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
+        />
+      </PredictBuyBottomContent>
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}

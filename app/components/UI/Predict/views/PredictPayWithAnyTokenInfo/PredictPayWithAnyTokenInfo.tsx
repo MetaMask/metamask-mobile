@@ -19,7 +19,6 @@ import PredictBuyAmountSection from '../../components/PredictBuyAmountSection';
 import PredictBuyMinimumError from '../../components/PredictBuyMinimumError';
 import PredictBuyActionButton from '../../components/PredictBuyActionButton';
 import PredictBuyBottomContent from '../../components/PredictBuyBottomContent';
-import PredictFeeSummary from '../../components/PredictFeeSummary';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -55,6 +54,9 @@ import { usePreviousValue } from '../../hooks/usePreviousValue';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 import useApprovalRequest from '../../../../Views/confirmations/hooks/useApprovalRequest';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PredictFeeSummary from '../../components/PredictFeeSummary/PredictFeeSummary';
+import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet/PredictFeeBreakdownSheet';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 
 export function PredictPayWithAnyTokenInfo() {
   const activeOrder = useSelector(selectPredictActiveOrder);
@@ -62,6 +64,7 @@ export function PredictPayWithAnyTokenInfo() {
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const { onReject } = useConfirmActions();
+  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const market = activeOrder?.market;
   const outcome = activeOrder?.outcome;
@@ -95,6 +98,7 @@ export function PredictPayWithAnyTokenInfo() {
   const [currentValueUSDString, setCurrentValueUSDString] = useState(
     prefilledAmountUsd > 0 ? prefilledAmountUsd.toString() : '',
   );
+  const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(
     typeof initialInputFocused === 'boolean'
       ? initialInputFocused
@@ -233,6 +237,14 @@ export function PredictPayWithAnyTokenInfo() {
     updateTokenAmountCallback,
   ]);
 
+  const handleFeesInfoPress = useCallback(() => {
+    setIsFeeBreakdownVisible(true);
+  }, []);
+
+  const handleFeeBreakdownClose = useCallback(() => {
+    setIsFeeBreakdownVisible(false);
+  }, []);
+
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const shouldWaitForPayFees = !isPredictBalanceSelected;
@@ -368,24 +380,6 @@ export function PredictPayWithAnyTokenInfo() {
         toWin={toWin}
         isShowingToWinSkeleton={isCalculating && isUserInputChange}
       />
-      {!isInputFocused && (
-        <PredictFeeSummary
-          disabled={isInputFocused}
-          loading={isPayFeesLoading}
-          total={totalWithDepositFee}
-          metamaskFee={metamaskFee}
-          providerFee={providerFee}
-          depositFee={depositFeeUsd}
-          shouldShowRewardsRow={shouldShowRewardsRow}
-          rewardsAccountScope={rewardsAccountScope}
-          accountOptedIn={isAccountOptedIntoRewards}
-          estimatedPoints={estimatedRewardsPoints}
-          isLoadingRewards={
-            (isCalculating && isUserInputChange) || isRewardsLoading
-          }
-          hasRewardsError={isRewardsError}
-        />
-      )}
       <PredictBuyMinimumError
         isBalanceLoading={isBalanceLoading}
         isBelowMinimum={isBelowMinimum}
@@ -404,6 +398,18 @@ export function PredictPayWithAnyTokenInfo() {
         isInputFocused={isInputFocused}
         errorMessage={errorMessage ?? undefined}
       >
+        <PredictFeeSummary
+          disabled={isInputFocused}
+          loading={isPayFeesLoading}
+          total={total}
+          shouldShowRewardsRow={shouldShowRewardsRow}
+          rewardsAccountScope={rewardsAccountScope}
+          accountOptedIn={isAccountOptedIntoRewards}
+          estimatedPoints={estimatedRewardsPoints}
+          isLoadingRewards={isRewardsLoading}
+          hasRewardsError={isRewardsError}
+          handleFeesInfoPress={handleFeesInfoPress}
+        />
         <PredictBuyActionButton
           isLoading={isConfirming}
           onPress={handleConfirm}
@@ -413,6 +419,19 @@ export function PredictPayWithAnyTokenInfo() {
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
         />
       </PredictBuyBottomContent>
+      {isFeeBreakdownVisible && (
+        <PredictFeeBreakdownSheet
+          ref={feeBreakdownSheetRef}
+          providerFee={providerFee}
+          metamaskFee={metamaskFee}
+          depositFee={depositFeeUsd}
+          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          contractCount={preview?.minAmountReceived ?? 0}
+          betAmount={currentValue}
+          total={totalWithDepositFee}
+          onClose={handleFeeBreakdownClose}
+        />
+      )}
     </SafeAreaView>
   );
 }

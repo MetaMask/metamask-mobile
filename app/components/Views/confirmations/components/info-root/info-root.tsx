@@ -69,6 +69,8 @@ const ConfirmationInfoComponentMap = {
         return PerpsDepositInfo;
       case TransactionType.perpsDepositAndOrder:
         return PerpsOrderView;
+      case PREDICT_DEPOSIT_AND_ORDER_TYPE:
+        return PredictPayWithAnyTokenInfo;
       // Default to contract interaction as generic transaction confirmation
       case TransactionType.lendingDeposit:
       case TransactionType.lendingWithdraw:

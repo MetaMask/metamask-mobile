@@ -120,6 +120,11 @@ export function PayWithModal() {
           return;
         }
 
+        if (isPredictPayContext) {
+          onPredictPaymentTokenChange(token);
+          return;
+        }
+
         // Ensure the token is tracked by TokensController so the pay
         // controller can resolve its metadata (symbol, decimals, balance).
         // This is needed for zero-balance tokens from the catalog.
@@ -162,13 +167,13 @@ export function PayWithModal() {
     },
     [
       close,
+      isPredictPayContext,
       isWithdraw,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       setPayToken,
       transactionMeta,
-      isPredictPayContext,
     ],
   );
 
