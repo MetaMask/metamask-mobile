@@ -74,7 +74,6 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
-  hasPermit2Allowance,
 } from './safe/utils';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
@@ -212,22 +211,6 @@ export class PolymarketProvider implements PredictProvider {
       this.#hasPermit2Config({ permit2Enabled, executors }) &&
       fakOrdersEnabled === true
     );
-  }
-
-  async #isPermit2AllowanceReady(ownerAddress: string): Promise<boolean> {
-    const safeAddress =
-      this.#accountStateByAddress.get(ownerAddress)?.address ??
-      computeProxyAddress(ownerAddress);
-
-    try {
-      return await hasPermit2Allowance({ address: safeAddress });
-    } catch (error) {
-      DevLogger.log('PolymarketProvider: Permit2 allowance check failed', {
-        error,
-        ownerAddress,
-      });
-      return false;
-    }
   }
 
   public async getMarketDetails({
@@ -1256,6 +1239,7 @@ export class PolymarketProvider implements PredictProvider {
       // This uses the feature flag (not per-order fees) so it works for
       // both BUY orders (with fees) and SELL orders (no fees).
       let allowancesTx: { to: string; data: string } | undefined;
+      let permit2AllowanceReady = false;
 
       if (feeCollection.permit2Enabled) {
         try {
@@ -1263,17 +1247,20 @@ export class PolymarketProvider implements PredictProvider {
             ownerAddress: signer.address,
           });
 
-          if (!accountState.hasAllowances) {
+          if (accountState.hasAllowances) {
+            permit2AllowanceReady = true;
+          } else {
             const allowanceTx = await getProxyWalletAllowancesTransaction({
               signer,
               extraUsdcSpenders: [PERMIT2_ADDRESS],
             });
 
             allowancesTx = allowanceTx.params;
+            permit2AllowanceReady = true;
           }
         } catch (allowanceError) {
-          // Log but don't block the order — the relay will process
-          // the order without the allowances pre-set.
+          // Log but don't block the order — the relay will fall back
+          // to FOK if FAK isn't viable without allowances.
           DevLogger.log(
             'PolymarketProvider: Failed to generate allowances transaction',
             { error: allowanceError },
@@ -1290,8 +1277,9 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       // Determine order type: FAK when Permit2 config is active and
-      // FAK orders are enabled. Since we always use Permit2 fee auth
-      // when permit2 is enabled, FAK is available for all orders.
+      // FAK orders are enabled. For orders with fees, the relay also
+      // needs Permit2 allowances (either already on-chain or via
+      // the attached allowancesTx).
       if (
         this.#shouldUseFakOrderType({
           permit2Enabled: feeCollection.permit2Enabled,
@@ -1300,7 +1288,7 @@ export class PolymarketProvider implements PredictProvider {
         })
       ) {
         const hasFees = fees !== undefined && fees.totalFee > 0;
-        if (!hasFees || permit2FeeReady) {
+        if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
           orderType = OrderType.FAK;
         }
       }
