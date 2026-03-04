@@ -213,7 +213,7 @@ describe('useTransactionConfirm', () => {
     expect(onError).toHaveBeenCalledWith(testError);
   });
 
-  it('does not throw when onError is not provided', async () => {
+  it('still navigates on error when onError is not provided', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
@@ -221,6 +221,8 @@ describe('useTransactionConfirm', () => {
     await act(async () => {
       await expect(result.current.onConfirm()).resolves.toBeUndefined();
     });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('does nothing when transactionMetadata is missing', async () => {

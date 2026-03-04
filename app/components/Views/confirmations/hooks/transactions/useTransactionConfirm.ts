@@ -125,7 +125,6 @@ export function useTransactionConfirm() {
       } catch (error) {
         log('Error confirming transaction', error);
         options?.onError?.(error);
-        return;
       }
 
       // Perps deposit-and-order: caller handles navigation (e.g. order flow)
