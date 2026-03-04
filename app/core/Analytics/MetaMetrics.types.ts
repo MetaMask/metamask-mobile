@@ -4,6 +4,31 @@ import type {
   SegmentClient,
 } from '@segment/analytics-react-native';
 import { PublicInterface } from '@metamask/utils';
+import type { ITrackingEvent } from '../../util/analytics/analytics.types';
+
+// Re-export all types from new locations so team-owned consumers keep working.
+export type {
+  DataDeleteDate,
+  DataDeleteRegulationId,
+  IDeleteRegulationResponse,
+  IDeleteRegulationStatus,
+  IDeleteRegulationStatusResponse,
+} from '../../util/analytics/analyticsDataDeletion.types';
+export {
+  DataDeleteResponseStatus,
+  DataDeleteStatus,
+} from '../../util/analytics/analyticsDataDeletion.types';
+export type {
+  IMetaMetricsEvent,
+  ITrackingEvent,
+  JsonMap,
+  JsonValue,
+} from '../../util/analytics/analytics.types';
+export {
+  isTrackingEvent,
+  MonetizedPrimitive,
+  MetaMetricsRequestedThrough,
+} from '../../util/analytics/analytics.types';
 
 /**
  * Segment client restricted to the interface used by MetaMetrics
@@ -55,121 +80,4 @@ export interface IMetaMetrics {
   flush(): Promise<void>;
 
   getMetaMetricsId(): Promise<string>;
-}
-
-/**
- * represents values that can be passed as properties to the event tracking function
- * It's a proxy type to the JsonValue type from Segment SDK in order to decouple the SDK from the app
- */
-export type JsonValue =
-  | boolean
-  | number
-  | string
-  | null
-  | JsonValue[]
-  | JsonMap
-  | undefined;
-
-/**
- * represents the map object used to pass properties to the event tracking function
- * It's a proxy type to the JsonMap type from Segment SDK in order to decouple the SDK from the app
- */
-export interface JsonMap {
-  [key: string]: JsonValue;
-  [index: number]: JsonValue;
-}
-
-/**
- * type guard to check if the event is a new ITrackingEvent
- */
-export const isTrackingEvent = (
-  event: IMetaMetricsEvent | ITrackingEvent,
-): event is ITrackingEvent =>
-  (event as ITrackingEvent).saveDataRecording !== undefined;
-
-/*
- * new event properties structure with two distinct properties lists
- */
-export interface ITrackingEvent {
-  readonly name: string;
-  properties: JsonMap;
-  sensitiveProperties: JsonMap;
-  saveDataRecording: boolean;
-  get isAnonymous(): boolean;
-  get hasProperties(): boolean;
-}
-/**
- * legacy MetaMetrics event interface
- */
-export interface IMetaMetricsEvent {
-  category: string;
-  properties?: {
-    name?: string;
-    action?: string;
-  };
-}
-
-/**
- * deletion task possible status
- * @see https://docs.segmentapis.com/tag/Deletion-and-Suppression#operation/getRegulation
- */
-export enum DataDeleteStatus {
-  failed = 'FAILED',
-  finished = 'FINISHED',
-  initialized = 'INITIALIZED',
-  invalid = 'INVALID',
-  notSupported = 'NOT_SUPPORTED',
-  partialSuccess = 'PARTIAL_SUCCESS',
-  running = 'RUNNING',
-  unknown = 'UNKNOWN',
-}
-
-/**
- * deletion task possible response status
- */
-export enum DataDeleteResponseStatus {
-  ok = 'ok',
-  error = 'error',
-}
-
-export interface IDeleteRegulationResponse {
-  status: DataDeleteResponseStatus;
-  error?: string;
-}
-
-export interface IDeleteRegulationStatusResponse {
-  status: DataDeleteResponseStatus;
-  dataDeleteStatus: DataDeleteStatus;
-}
-
-export type DataDeleteDate = string | undefined;
-export type DataDeleteRegulationId = string | undefined;
-
-export interface IDeleteRegulationStatus {
-  deletionRequestDate?: DataDeleteDate;
-  hasCollectedDataSinceDeletionRequest: boolean;
-  dataDeletionRequestStatus: DataDeleteStatus;
-}
-
-/**
- * Monetized primitives associated with a transaction.
- * Only propagated when the transaction involves a monetized primitive.
- */
-export enum MonetizedPrimitive {
-  Swaps = 'swaps',
-  Perps = 'perps',
-  Ramps = 'ramps',
-  Predict = 'predict',
-  MmPay = 'mm_pay',
-}
-
-/**
- * The API type used to perform a request to MetaMask Mobile
- * @description Indicates whether the request came through the Ethereum Provider API or the Multichain API
- * @see MetaMetricsRequestedThrough.EthereumProvider - Standard EIP-1193 provider API
- * @see MetaMetricsRequestedThrough.MultichainApi - MetaMask's Multichain API
- */
-export enum MetaMetricsRequestedThrough {
-  EthereumProvider = 'ethereum_provider',
-  MultichainApi = 'multichain_api',
 }

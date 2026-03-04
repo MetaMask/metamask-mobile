@@ -3,7 +3,7 @@ import { merge } from 'lodash';
 import { createProjectLogger } from '@metamask/utils';
 
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-import { IMetaMetricsEvent } from '../../../../Analytics/MetaMetrics.types';
+import { IMetaMetricsEvent } from '../../../../../util/analytics/analytics.types';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { generateEvent, retryIfEngineNotInitialized } from '../utils';
 import type {

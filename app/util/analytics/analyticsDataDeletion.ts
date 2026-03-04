@@ -13,7 +13,7 @@ import {
   type IDeleteRegulationResponse,
   type IDeleteRegulationStatus,
   type IDeleteRegulationStatusResponse,
-} from '../../core/Analytics/MetaMetrics.types';
+} from './analyticsDataDeletion.types';
 import { analytics } from './analytics';
 
 const SEGMENT_HEADERS = {
