@@ -339,6 +339,12 @@ const RewardsDashboard: React.FC = () => {
           title={strings('rewards.main_title')}
           includesTopInset
           endButtonIconProps={[
+            {
+              iconName: IconName.Setting,
+              onPress: () => navigation.navigate(Routes.REWARDS_SETTINGS_VIEW),
+              disabled: !subscriptionId,
+              testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
+            },
             ...(showPreviousSeasonSummary === false
               ? [
                   {
@@ -350,12 +356,6 @@ const RewardsDashboard: React.FC = () => {
                   },
                 ]
               : []),
-            {
-              iconName: IconName.Setting,
-              onPress: () => navigation.navigate(Routes.REWARDS_SETTINGS_VIEW),
-              disabled: !subscriptionId,
-              testID: REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
-            },
           ]}
         />
         <Box twClassName="flex-1 gap-4">

@@ -121,10 +121,12 @@ const RewardsEnvironmentToggle: React.FC = () => {
           <HeaderCompactStandard
             title={strings('rewards.settings.environment_selector')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
+            closeButtonProps={{ testID: 'environment-sheet-close-button' }}
           />
           {ENV_OPTIONS.map((env) => (
             <ListItemSelect
               key={env}
+              testID={`environment-option-${env}`}
               onPress={() => handleEnvSelect(env)}
               isSelected={env === currentEnv}
               isDisabled={false}

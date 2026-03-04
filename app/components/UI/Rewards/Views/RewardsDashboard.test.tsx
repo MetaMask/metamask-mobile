@@ -476,86 +476,6 @@ jest.mock('../../../../component-library/components-temp/Tabs', () => {
   };
 });
 
-// Mock TabBar
-jest.mock('../../../../component-library/components-temp/TabBar', () => ({
-  __esModule: true,
-  default: function MockTabBar({
-    tabs,
-    activeTab,
-    goToPage,
-    style,
-    tabStyle,
-    underlineStyle,
-  }: {
-    tabs: { key: string; label: string; index: number }[];
-    activeTab: number;
-    goToPage: (index: number) => void;
-    style: Record<string, unknown>;
-    tabStyle: Record<string, unknown>;
-    underlineStyle: Record<string, unknown>;
-  }) {
-    const ReactActual = jest.requireActual('react');
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-    return ReactActual.createElement(
-      View,
-      { testID: 'tab-bar', style },
-      tabs?.map((tab, index) =>
-        ReactActual.createElement(
-          TouchableOpacity,
-          {
-            key: tab.key,
-            testID: `tab-${index}`,
-            onPress: () => goToPage(index),
-            style: tabStyle,
-          },
-          ReactActual.createElement(
-            Text,
-            {
-              style: {
-                fontWeight: activeTab === index ? 'bold' : 'normal',
-              },
-            },
-            tab.label,
-          ),
-        ),
-      ),
-      ReactActual.createElement(View, { style: underlineStyle }),
-    );
-  },
-}));
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-
-  return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
-    ButtonIcon: ({
-      iconName,
-      disabled,
-      testID,
-      onPress,
-    }: {
-      iconName: string;
-      size: string;
-      disabled: boolean;
-      testID: string;
-      onPress: () => void;
-    }) =>
-      ReactActual.createElement(
-        TouchableOpacity,
-        {
-          testID,
-          disabled,
-          onPress,
-        },
-        ReactActual.createElement(Text, null, `Icon: ${iconName}`),
-      ),
-  };
-});
-
 // Mock Alert
 const mockAlert = jest.fn();
 jest.spyOn(Alert, 'alert').mockImplementation(mockAlert);
@@ -950,12 +870,17 @@ describe('RewardsDashboard', () => {
       expect(getByText('Rewards')).toBeOnTheScreen();
     });
 
-    it('renders settings and referral buttons in header', () => {
+    it('renders settings button in header', () => {
       const { getByTestId } = render(<RewardsDashboard />);
 
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('renders referral button in header', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON),
       ).toBeOnTheScreen();
@@ -964,15 +889,23 @@ describe('RewardsDashboard', () => {
 
   describe('navigation', () => {
     it('should navigate to referral view when referral button is pressed', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
       fireEvent.press(referralButton);
 
-      // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REFERRAL_REWARDS_VIEW);
+    });
+
+    it('navigates to Rewards settings when settings button is pressed', () => {
+      const { getByTestId } = render(<RewardsDashboard />);
+      const settingsButton = getByTestId(
+        REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
+      );
+      fireEvent.press(settingsButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_SETTINGS_VIEW);
     });
   });
 
@@ -1324,49 +1257,49 @@ describe('RewardsDashboard', () => {
     });
 
     it('should disable referral button when user is not opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
-
-      // Assert
-      expect(referralButton.props.disabled).toBe(true);
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(true);
     });
 
     it('should disable settings button when user is not opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
-
-      // Assert
-      expect(settingsButton.props.disabled).toBe(true);
+      const isDisabled =
+        settingsButton.props.disabled === true ||
+        settingsButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(true);
     });
   });
 
   describe('button states when opted in', () => {
     it('should enable referral button when user is opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const referralButton = getByTestId(
         REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON,
       );
-
-      // Assert
-      expect(referralButton.props.disabled).toBe(false);
+      const isDisabled =
+        referralButton.props.disabled === true ||
+        referralButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
 
     it('should enable settings button when user is opted in', () => {
-      // Act
       const { getByTestId } = render(<RewardsDashboard />);
       const settingsButton = getByTestId(
         REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON,
       );
-
-      // Assert
-      expect(settingsButton.props.disabled).toBe(false);
+      const isDisabled =
+        settingsButton.props.disabled === true ||
+        settingsButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(false);
     });
   });
 

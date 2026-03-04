@@ -90,8 +90,11 @@ jest.mock(
           [key: string]: unknown;
         },
         ref: React.Ref<unknown>,
-      ) =>
-        ReactActual.createElement(
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: () => onClose?.(),
+        }));
+        return ReactActual.createElement(
           View,
           {
             testID: 'bottom-sheet',
@@ -100,7 +103,8 @@ jest.mock(
             ...props,
           },
           children,
-        ),
+        );
+      },
     );
 
     return {
@@ -330,6 +334,15 @@ describe('RewardOptInAccountGroupModal', () => {
       if (onClose) {
         onClose();
       }
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls navigation.goBack when header close button is pressed', () => {
+      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+
+      const closeButton = getByTestId('header-close-button');
+      fireEvent.press(closeButton);
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });

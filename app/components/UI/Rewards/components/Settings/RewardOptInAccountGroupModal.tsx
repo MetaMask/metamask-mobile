@@ -376,6 +376,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
         <HeaderCompactStandard
           title={accountGroupContext?.metadata.name}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
+          closeButtonProps={{ testID: 'header-close-button' }}
         />
       )}
 

@@ -94,13 +94,15 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
   },
 }));
 
-// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  build: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(),
-    })),
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
   }),
   MetaMetricsEvents: {
     REWARDS_SETTINGS_VIEWED: 'REWARDS_SETTINGS_VIEWED',
@@ -243,12 +245,12 @@ describe('RewardsSettingsView', () => {
 
   describe('Metrics tracking', () => {
     it('tracks settings viewed event on mount', () => {
-      // Act
       renderWithNavigation(<RewardsSettingsView />);
 
-      // Assert - Metrics tracking is handled by the component internally
-      // The component should render without errors and track the event
-      expect(true).toBe(true); // Placeholder assertion since we can't easily test the internal tracking
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'REWARDS_SETTINGS_VIEWED',
+      );
     });
   });
 });
