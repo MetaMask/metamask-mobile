@@ -18,7 +18,7 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../Ledger/Ledger';
-import { isDisconnectError } from '../../Ledger/ledgerErrors';
+import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
@@ -343,7 +343,10 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       try {
         return await this.#doEnsureDeviceReady(deviceId);
       } catch (error) {
-        if (isDisconnectError(error) && attempt < MAX_DISCONNECT_RETRIES) {
+        if (
+          this.#isTransientBleError(error) &&
+          attempt < MAX_DISCONNECT_RETRIES
+        ) {
           DevLogger.log(
             `[LedgerBluetoothAdapter] Transient BLE error during check (attempt ${attempt}/${MAX_DISCONNECT_RETRIES}), retrying...`,
           );
@@ -436,7 +439,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         verifyError,
       );
 
-      if (isDisconnectError(verifyError)) {
+      if (this.#isTransientBleError(verifyError)) {
         throw verifyError;
       }
 
@@ -641,6 +644,21 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         );
       }
     }
+  }
+
+  /**
+   * Check if error is a transient BLE error that can be retried
+   * (disconnects during app switch, pairing failures during reconnect, etc.)
+   */
+  #isTransientBleError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    const transientBleErrorNames: readonly string[] = [
+      ...DISCONNECT_ERROR_NAMES,
+      'PairingFailed',
+      'PeerRemovedPairing',
+      'BleError',
+    ];
+    return transientBleErrorNames.includes(error.name);
   }
 
   /**
