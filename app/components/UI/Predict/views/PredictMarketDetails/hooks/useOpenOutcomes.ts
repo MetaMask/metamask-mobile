@@ -42,21 +42,22 @@ export const useOpenOutcomes = ({
   );
 
   // fetch real-time prices once after market loads
-  const { prices } = usePredictPrices({
+  const { data: prices } = usePredictPrices({
     queries: priceQueries,
     enabled: !isMarketFetching && priceQueries.length > 0,
   });
 
   // create open outcomes with updated prices from real-time data
   const openOutcomes = useMemo(() => {
-    if (!prices.results.length) {
+    const priceResults = prices?.results ?? [];
+    if (!priceResults.length) {
       return openOutcomesBase;
     }
 
     return openOutcomesBase.map((outcome) => ({
       ...outcome,
       tokens: outcome.tokens.map((token) => {
-        const priceResult = prices.results.find(
+        const priceResult = priceResults.find(
           (r) => r.outcomeTokenId === token.id,
         );
         const realTimePrice = priceResult?.entry.sell;

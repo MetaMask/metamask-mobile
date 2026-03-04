@@ -18,11 +18,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
 
-jest.mock('../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn() },
-}));
-
 jest.mock('../utils/predictErrorHandler', () => ({
   ensureError: (err: unknown) =>
     err instanceof Error ? err : new Error(String(err)),
@@ -66,20 +61,20 @@ describe('usePredictPrices', () => {
   });
 
   describe('initial state', () => {
-    it('returns empty prices and not fetching when no queries provided', () => {
+    it('returns undefined data and not fetching when no queries provided', () => {
       const { Wrapper } = createWrapper();
 
       const { result } = renderHook(() => usePredictPrices({ queries: [] }), {
         wrapper: Wrapper,
       });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.data).toBeUndefined();
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
     });
 
-    it('returns empty prices when disabled', () => {
+    it('returns undefined data when disabled', () => {
       const { Wrapper } = createWrapper();
 
       const { result } = renderHook(
@@ -97,7 +92,7 @@ describe('usePredictPrices', () => {
         { wrapper: Wrapper },
       );
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.data).toBeUndefined();
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -136,7 +131,7 @@ describe('usePredictPrices', () => {
           },
         ],
       });
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
     });
@@ -165,8 +160,9 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
-      expect(result.current.error).toBe('Failed to fetch prices');
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Failed to fetch prices');
       expect(result.current.isFetching).toBe(false);
     });
   });
@@ -212,7 +208,7 @@ describe('usePredictPrices', () => {
           },
         ],
       });
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
       expect(result.current.error).toBeNull();
       expect(result.current.isFetching).toBe(false);
     });
@@ -247,7 +243,7 @@ describe('usePredictPrices', () => {
       });
 
       expect(mockGetPrices).toHaveBeenCalledTimes(2);
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
     });
   });
 
@@ -488,7 +484,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('enabled state', () => {
-    it('clears prices when enabled changes from true to false', async () => {
+    it('retains cached data when enabled changes from true to false', async () => {
       const { Wrapper } = createWrapper();
 
       const { result, rerender } = renderHook(
@@ -513,11 +509,12 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
 
       rerender({ enabled: false });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      // React Query keeps cached data when disabled; it just won't refetch
+      expect(result.current.data).toEqual(mockPrices);
       expect(result.current.error).toBeNull();
       expect(result.current.isFetching).toBe(false);
     });
@@ -548,12 +545,13 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
-      expect(result.current.error).toBe('Failed to fetch prices');
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('Failed to fetch prices');
       expect(result.current.isFetching).toBe(false);
     });
 
-    it('handles non-Error exceptions', async () => {
+    it('handles non-Error exceptions (converted by ensureError in queryFn)', async () => {
       mockGetPrices.mockRejectedValueOnce('String error');
 
       const { Wrapper } = createWrapper();
@@ -576,8 +574,9 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
-      expect(result.current.error).toBe('String error');
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.error).toBeInstanceOf(Error);
+      expect(result.current.error?.message).toBe('String error');
     });
 
     it('clears error on successful refetch', async () => {
@@ -601,7 +600,7 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Failed to fetch prices');
+        expect(result.current.error?.message).toBe('Failed to fetch prices');
       });
 
       mockGetPrices.mockResolvedValueOnce(mockPrices);
@@ -613,7 +612,7 @@ describe('usePredictPrices', () => {
       await waitFor(() => {
         expect(result.current.error).toBeNull();
       });
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
     });
   });
 
@@ -644,7 +643,7 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.error).toBe('Network error');
+      expect(result.current.error?.message).toBe('Network error');
       expect(mockGetPrices).toHaveBeenCalledTimes(1);
 
       // React Query's refetchInterval continues polling even after errors
@@ -660,7 +659,7 @@ describe('usePredictPrices', () => {
 
       await waitFor(() => {
         expect(result.current.error).toBeNull();
-        expect(result.current.prices).toEqual(mockPrices);
+        expect(result.current.data).toEqual(mockPrices);
       });
     });
 
@@ -685,10 +684,10 @@ describe('usePredictPrices', () => {
       );
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Network error');
+        expect(result.current.error?.message).toBe('Network error');
       });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.data).toBeUndefined();
 
       mockGetPrices.mockResolvedValueOnce(mockPrices);
 
@@ -699,7 +698,7 @@ describe('usePredictPrices', () => {
       await waitFor(() => {
         expect(result.current.error).toBeNull();
       });
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
     });
   });
 
@@ -715,7 +714,7 @@ describe('usePredictPrices', () => {
         { wrapper: Wrapper },
       );
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.data).toBeUndefined();
       expect(result.current.isFetching).toBe(false);
       expect(result.current.error).toBeNull();
       expect(mockGetPrices).not.toHaveBeenCalled();
@@ -735,7 +734,7 @@ describe('usePredictPrices', () => {
         },
       );
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      expect(result.current.data).toBeUndefined();
 
       rerender({
         queries: [
@@ -751,7 +750,7 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
     });
 
     it('handles transition from non-empty to empty queries', async () => {
@@ -780,11 +779,12 @@ describe('usePredictPrices', () => {
         expect(result.current.isFetching).toBe(false);
       });
 
-      expect(result.current.prices).toEqual(mockPrices);
+      expect(result.current.data).toEqual(mockPrices);
 
       rerender({ queries: [] });
 
-      expect(result.current.prices).toEqual({ providerId: '', results: [] });
+      // React Query retains cached data; the query is just disabled
+      expect(result.current.data).toEqual(mockPrices);
       expect(result.current.isFetching).toBe(false);
     });
   });
