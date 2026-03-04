@@ -341,7 +341,7 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
-      expect(isSmartTransaction()).toBe(false);
+      expect(isSmartTransaction('0x1')).toBe(false);
     });
 
     it('passes isSmartTransaction returning true to pay hook when stxDisabled is false', async () => {
@@ -358,7 +358,7 @@ describe('Transaction Controller Init', () => {
       await hooks?.publish?.(MOCK_TRANSACTION_META);
 
       const { isSmartTransaction } = payHookClassMock.mock.calls[0][0];
-      expect(isSmartTransaction()).toBe(true);
+      expect(isSmartTransaction('0x1')).toBe(true);
     });
   });
 
