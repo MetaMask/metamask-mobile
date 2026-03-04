@@ -8,6 +8,10 @@ import {
 } from '../../../../selectors/networkController';
 
 const REFRESH_TIMEOUT_MS = 5000;
+const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
+
+const isRefreshTimeoutError = (error: unknown): error is Error =>
+  error instanceof Error && error.message === REFRESH_TIMEOUT_ERROR_MESSAGE;
 
 /**
  * Hook to manage balance refresh functionality for the Wallet screen.
@@ -42,12 +46,17 @@ export const useBalanceRefresh = () => {
         ]),
         new Promise((_, reject) =>
           setTimeout(
-            () => reject(new Error('Balance refresh timed out')),
+            () => reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE)),
             REFRESH_TIMEOUT_MS,
           ),
         ),
       ]);
     } catch (error) {
+      if (isRefreshTimeoutError(error)) {
+        Logger.log(REFRESH_TIMEOUT_ERROR_MESSAGE);
+        return;
+      }
+
       Logger.error(error as Error, 'Error refreshing balance');
     }
   }, [evmNetworkConfigurations, nativeCurrencies]);

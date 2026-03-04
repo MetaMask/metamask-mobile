@@ -90,7 +90,7 @@ describe('Browser utils :: onUrlSubmit', () => {
     expect(url).toBe(expectedUrl);
   });
 
-  it('should use Brave Search when Brave is selected', () => {
+  it('use Brave Search when Brave is selected', () => {
     const keyword = 'test';
     const url = processUrlForBrowser(keyword, 'Brave');
     const expectedUrl =

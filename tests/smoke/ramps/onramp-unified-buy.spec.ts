@@ -7,32 +7,69 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import { SmokeRamps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
+import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
+import {
+  setupDepositOnRampMocks,
+  setupBuyOnRampMocks,
+} from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-persona-data';
 import {
   getEventsPayloads,
   EventPayload,
 } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
-import { RampsRegion } from '../../framework/types';
-import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
 
+import { UnifiedRampRoutingType } from '../../../app/reducers/fiatOrders/types';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
+import KYCScreen from '../../page-objects/Ramps/KYCScreen';
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
-const unifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagRampsUnifiedEnabled(true),
+    depositConfig: {
+      active: true,
+      providerApiKey: 'DUMMY_VALUE_FOR_TESTING',
+      entrypoints: { walletActions: true },
+      minimumVersion: '1.0.0',
+    },
+  });
+  await setupDepositOnRampMocks(mockServer, selectedRegion);
+};
+
+const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     remoteFeatureFlagRampsUnifiedEnabled(true),
   );
-  await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+  await setupBuyOnRampMocks(mockServer, selectedRegion);
 };
 
-const tokenToBuy = 'ETH';
+// Deposit order mock (ramps-deposit-order-status-response) returns USD; UI shows $ + formatFiatValue
+const nativeDepositOrder = {
+  token: 'ETH',
+  tokenAmount: '0.02455',
+  totalFiat: '$100 USD',
+  feesFiat: '$23.33 USD',
+  quoteDisplayAmount: '100 USD',
+  provider: 'Transak (Staging)',
+};
+
+const aggregatorBuyOrder = {
+  token: 'ETH',
+  tokenAmount: '0.00355',
+  totalFiat: '$15 USD',
+  feesFiat: '$3.5 USD',
+  quoteDisplayAmount: '$15.00',
+  provider: 'Transak (Staging)',
+};
 
 const eventsToCheck: EventPayload[] = [];
 
@@ -45,9 +82,12 @@ const expectedEventNames = [
   expectedEvents.RampsButtonClicked,
   expectedEvents.RampsTokenSelected,
 ];
-
 describe(SmokeRamps('Onramp Unified Buy'), () => {
-  it('build quote', async () => {
+  beforeEach(async () => {
+    await device.clearKeychain();
+  });
+
+  it('New user native flow: Places ETH DEPOSIT order through Transak', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -56,7 +96,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        testSpecificMock: unifiedBuyV2Mocks,
+        testSpecificMock: newUserUnifiedBuyV2Mocks,
         endTestfn: async ({ mockServer }) => {
           const events = await getEventsPayloads(
             mockServer,
@@ -69,21 +109,118 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await loginToApp();
         await WalletView.tapWalletBuyButton();
         await FundActionMenu.tapUnifiedBuyButton();
-        /*
-        at the time of this code, the dev team is still working on hooking up the quotes logic
-        as of now, you cannot (both manually and via e2e) go past the continue button
-        there is an animated infinite spinner. And as a result detox is hanging here
-        the disable sync allows detox to proceed without hang
-        Once the code is completed, this should be removed and the test shall go past the continue button
-        */
-        await device.disableSynchronization();
-        await TokenSelectScreen.tapTokenByName(tokenToBuy);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
-        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await TokenSelectScreen.tapTokenByName(nativeDepositOrder.token);
 
-        await BuildQuoteView.enterAmount('5', 'unifiedBuy');
+        await BuildQuoteView.tapContinueButton();
 
-        await Assertions.expectTextDisplayed('$15.00');
+        await KYCScreen.tapVerifyIdentityContinueButton();
+
+        await KYCScreen.enterEmail(ONRAMP_PERSONA.email);
+
+        await Assertions.expectElementToBeVisible(KYCScreen.otpScreen, {
+          description: 'OTP code screen is visible before entering code',
+        });
+
+        await KYCScreen.enterOtpCode('000000');
+
+        // Verify order details screen
+        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
+          elemDescription: 'ramps order confirmation screen',
+        });
+        await Assertions.expectElementToHaveText(
+          OrderDetailsView.tokenAmount,
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+        );
+
+        for (const text of [
+          nativeDepositOrder.totalFiat,
+          nativeDepositOrder.feesFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+
+        await OrderDetailsView.tapCloseButton();
+
+        // Verify order in transfers list
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnTransfersTab();
+
+        await Assertions.expectTextDisplayed(
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+        );
+        await ActivitiesView.tapRampsOrder('deposit', 1);
+
+        for (const text of [
+          `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
+          nativeDepositOrder.totalFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+      },
+    );
+  });
+
+  it('Returning User Aggregator Flow: Places ETH BUY order', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder()
+          .withNetworkController(CustomNetworks.Tenderly.Mainnet)
+          .withRampsSelectedRegion(selectedRegion)
+          .withMetaMetricsOptIn()
+          .build(),
+        restartDevice: true,
+        testSpecificMock: returningUserUnifiedBuyV2Mocks,
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(
+            mockServer,
+            expectedEventNames,
+          );
+          eventsToCheck.push(...events);
+        },
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapWalletBuyButton();
+        await FundActionMenu.tapUnifiedBuyButton();
+        await TokenSelectScreen.tapTokenByName(aggregatorBuyOrder.token);
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.enterAmount('15', 'unifiedBuy');
+
+        await BuildQuoteView.tapContinueButton();
+
+        // Verify order details screen
+        await Assertions.expectElementToBeVisible(OrderDetailsView.container, {
+          elemDescription: 'ramps order confirmation screen',
+        });
+        await Assertions.expectElementToHaveText(
+          OrderDetailsView.tokenAmount,
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+        );
+
+        for (const text of [
+          aggregatorBuyOrder.totalFiat,
+          aggregatorBuyOrder.feesFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
+
+        await OrderDetailsView.tapCloseButton();
+
+        // Verify order in transfers list
+        await TabBarComponent.tapActivity();
+        await ActivitiesView.tapOnTransfersTab();
+
+        await Assertions.expectTextDisplayed(
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+        );
+        await ActivitiesView.tapRampsOrder('buy', 1);
+
+        for (const text of [
+          `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
+          aggregatorBuyOrder.totalFiat,
+        ]) {
+          await Assertions.expectTextDisplayed(text);
+        }
       },
     );
   });
@@ -91,7 +228,7 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
   it('validates the segment events from the onramp unified buy test', async () => {
     const softAssert = new SoftAssert();
     for (const ev of expectedEventNames) {
-      const event = eventsToCheck.find((event) => event.event === ev);
+      const event = eventsToCheck.find((e) => e.event === ev);
       await softAssert.checkAndCollect(
         async () => await Assertions.checkIfValueIsDefined(event),
         `${ev}: Should be defined`,
@@ -149,20 +286,22 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       async () =>
         await Assertions.checkIfObjectContains(
           rampsButtonClicked?.properties ?? {},
-          { ramp_type: 'UNIFIED_BUY' },
+          { ramp_type: 'UNIFIED_BUY_2' },
         ),
-      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY`,
+      `Ramps Button Clicked: ramp_type should be UNIFIED_BUY_2`,
     );
-    const rampsButtonClickedRegion = JSON.parse(
-      rampsButtonClicked?.properties?.region as string,
-    ) as RampsRegion;
+    const rampsButtonClickedRegion = rampsButtonClicked?.properties
+      ?.region as string;
+    // The region property is a plain string (e.g. "us-ca") matching the
+    // geolocation endpoint response, not a JSON-serialized object.
+    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfObjectContains(
-          rampsButtonClickedRegion as unknown as Record<string, unknown>,
-          { id: selectedRegion.id, name: selectedRegion.name },
+        await Assertions.checkIfTextMatches(
+          rampsButtonClickedRegion,
+          expectedRegionId,
         ),
-      `Ramps Button Clicked: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
+      `Ramps Button Clicked: region should be ${expectedRegionId}`,
     );
 
     // Ramps Token Selected - Property checks
@@ -190,16 +329,15 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
       `Ramps Token Selected: Should have the correct properties`,
     );
 
-    const rampsTokenSelectedRegion = JSON.parse(
-      rampsTokenSelected?.properties?.region as string,
-    ) as RampsRegion;
+    const rampsTokenSelectedRegion = rampsTokenSelected?.properties
+      ?.region as string;
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfObjectContains(
-          rampsTokenSelectedRegion as unknown as Record<string, unknown>,
-          { id: selectedRegion.id, name: selectedRegion.name },
+        await Assertions.checkIfTextMatches(
+          rampsTokenSelectedRegion,
+          expectedRegionId,
         ),
-      `Ramps Token Selected: region should be ${selectedRegion.name} and ${selectedRegion.id}`,
+      `Ramps Token Selected: region should be ${expectedRegionId}`,
     );
 
     await softAssert.checkAndCollect(
@@ -207,16 +345,16 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
         await Assertions.checkIfObjectContains(
           rampsTokenSelected?.properties ?? {},
           {
-            token_symbol: tokenToBuy,
+            token_symbol: aggregatorBuyOrder.token,
             token_caip19: 'eip155:1/slip44:60',
             currency_destination: 'eip155:1/slip44:60',
-            currency_destination_symbol: tokenToBuy,
+            currency_destination_symbol: aggregatorBuyOrder.token,
             currency_destination_network:
               CustomNetworks.Tenderly.Mainnet.providerConfig.nickname,
             ramp_routing: UnifiedRampRoutingType.DEPOSIT,
           },
         ),
-      `Ramps Token Selected: token_symbol should be ${tokenToBuy}`,
+      `Ramps Token Selected: token_symbol should be ${aggregatorBuyOrder.token}`,
     );
 
     softAssert.throwIfErrors();
