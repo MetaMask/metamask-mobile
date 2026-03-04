@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
-import { createStore } from 'redux';
+import configureStore from 'redux-mock-store';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
 import { NetworkEnablementController } from '@metamask/network-enablement-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -183,13 +183,7 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 // Mock store setup
-const mockStore = createStore(() => ({
-  featureFlags: {
-    multichainAccounts: {
-      enabledMultichainAccounts: true,
-    },
-  },
-}));
+const mockStore = configureStore();
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
@@ -712,7 +706,7 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('calls useNetworksToUse when multichain is enabled', () => {
+    it('calls useNetworksToUse', () => {
       mockUseSelector
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount

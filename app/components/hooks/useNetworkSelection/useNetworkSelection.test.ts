@@ -650,11 +650,9 @@ describe('useNetworkSelection', () => {
       });
     });
 
-    it('selectCustomNetwork with multichain enabled calls MultichainNetworkController', async () => {
-      // Mock multichain enabled
+    it('selectCustomNetwork calls MultichainNetworkController', async () => {
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
         .mockReturnValueOnce([]); // selectInternalAccounts
 
       const customChainId = 'eip155:999' as CaipChainId;
