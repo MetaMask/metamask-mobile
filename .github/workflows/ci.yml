@@ -1,4 +1,5 @@
 name: ci
+
 on:
   push:
     branches: [main]
@@ -35,6 +36,16 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -51,6 +62,7 @@ jobs:
           else
             echo "No changes detected"
           fi
+
   dedupe:
     runs-on: ubuntu-latest
     steps:
@@ -82,6 +94,7 @@ jobs:
             echo "Duplicate dependencies detected; run 'yarn deduplicate' to remove them"
             exit 1
           fi
+
   git-safe-dependencies:
     runs-on: ubuntu-latest
     steps:
@@ -106,6 +119,7 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn git-safe-dependencies
+
   scripts:
     runs-on: ubuntu-latest
     strategy:
@@ -144,309 +158,6 @@ jobs:
           else
             echo "No changes detected"
           fi
-  unit-tests:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
-      # The "10" in this command is the total number of shards. It must be kept
-      # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
-        env:
-          NODE_OPTIONS: --max_old_space_size=20480
-      - name: Rename coverage report to include shard number
-        shell: bash
-        run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-${{ matrix.shard }}
-          path: ./tests/coverage/coverage-${{ matrix.shard }}.json
-          if-no-files-found: error
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          else
-            echo "No changes detected"
-          fi
-  merge-unit-and-component-view-tests:
-    runs-on: ubuntu-latest
-    needs: [unit-tests, cv-test]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
-      - uses: actions/download-artifact@v4
-        with:
-          path: tests/coverage/
-      - name: Gather partial coverage reports into one directory
-        shell: bash
-        run: |
-          mv ./tests/coverage/coverage-*/* ./tests/coverage
-      - run: yarn test:merge-coverage
-      - run: yarn test:validate-coverage
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: ./tests/merged-coverage/lcov.info
-          if-no-files-found: error
-      - name: Require clean working directory
-        shell: bash
-        run: |
-          if ! git diff --exit-code; then
-            echo "Working tree dirty at end of job"
-            exit 1
-          else
-            echo "No changes detected"
-          fi
-  needs_e2e_build:
-    uses: ./.github/workflows/needs-e2e-build.yml
-  cv-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        shard: [1, 2]
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - name: Clean state and following up dependencies installation
-        run: yarn setup:github-ci --node
-      - run: yarn test:view:ci --shard=${{ matrix.shard }}/2
-        env:
-          NODE_OPTIONS: --max-old-space-size=20480
-      - name: Rename coverage report for this shard
-        shell: bash
-        run: |
-          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-test-${{ matrix.shard }}.json
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-cv-test-${{ matrix.shard }}
-          path: ./tests/coverage/
-          if-no-files-found: error
-  merge-cv-test-coverage:
-    runs-on: ubuntu-latest
-    needs: [cv-test]
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-      - name: Install Yarn dependencies with retry
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 10
-          max_attempts: 3
-          retry_wait_seconds: 30
-          command: yarn install --immutable
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-cv-test-*
-          path: tests/coverage-cv-test/
-      - name: Gather CV test shard coverage into one directory
-        shell: bash
-        run: |
-          mkdir -p tests/coverage-cv-test-merged
-          for d in tests/coverage-cv-test/coverage-cv-test-*; do
-            if [ -d "$d" ]; then
-              cp "$d"/*.json tests/coverage-cv-test-merged/ 2>/dev/null || true
-            fi
-          done
-      - name: Generate merged CV test HTML coverage report
-        run: yarn nyc report --temp-dir ./tests/coverage-cv-test-merged --report-dir ./tests/coverage-cv-test-lcov --reporter html
-      - uses: actions/upload-artifact@v4
-        with:
-          name: html-coverage-cv-test
-          path: ./tests/coverage-cv-test-lcov/
-          if-no-files-found: error
-  smart-e2e-selection:
-    name: 'Smart E2E Selection'
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    permissions:
-      contents: read
-      pull-requests: write
-    outputs:
-      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
-      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
-    steps:
-      - name: Checkout for action definition
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            .github/actions/smart-e2e-selection
-          sparse-checkout-cone-mode: false
-          fetch-depth: 1
-
-      - name: Run Smart E2E Selection
-        id: e2e-selection
-        uses: ./.github/actions/smart-e2e-selection
-        with:
-          event-name: ${{ github.event_name }}
-          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
-          google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
-          github-token: ${{ github.token }}
-          pr-number: ${{ github.event.pull_request.number }}
-          repository: ${{ github.repository }}
-          post-comment: 'true'
-          base-ref: ${{ github.event.pull_request.base.ref }}
-
-  # Main E2E tests
-
-  build-android-apks:
-    name: 'Build Android APKs'
-    if: >-
-      ${{
-        github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.android_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
-    uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build_type: 'main'
-      metamask_environment: 'e2e'
-      keystore_target: 'qa'
-    secrets: inherit
-
-  e2e-smoke-tests-android:
-    name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  build-ios-apps:
-    name: 'Build iOS Apps'
-    if: >-
-      ${{
-        github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
-      }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, smart-e2e-selection]
-    uses: ./.github/workflows/build-ios-e2e.yml
-    secrets: inherit
-
-  ios-tests-ready:
-    name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-    needs: [needs_e2e_build, build-ios-apps]
-    steps:
-      - name: iOS build complete
-        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
-
-  e2e-smoke-tests-ios:
-    name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  # Flask E2E tests
-
-  e2e-smoke-tests-android-flask:
-    name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
-
-  e2e-smoke-tests-ios-flask:
-    name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
-    uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
-    with:
-      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
-      selected_tags: >-
-        ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
-          '["ALL"]'
-        }}
-    secrets: inherit
 
   js-bundle-size-check:
     runs-on: ubuntu-latest
@@ -499,11 +210,397 @@ jobs:
           GITHUB_ACTOR: metamaskbot
           GITHUB_TOKEN: ${{ secrets.MOBILE_BUNDLESIZE_TOKEN }}
 
+  check-workflows:
+    name: Check workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download actionlint
+        id: download-actionlint
+        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
+        shell: bash
+      - name: Check workflow files
+        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
+        shell: bash
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      # The "10" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard
+      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json --json --outputFile=tests/results/unit-test-results-${{ matrix.shard }}.json
+        env:
+          NODE_OPTIONS: --max_old_space_size=20480
+      - name: Rename coverage report and extract test count for this shard
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  merge-unit-and-component-view-tests:
+    runs-on: ubuntu-latest
+    needs: [unit-tests, component-view-tests]
+    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: tests/coverage/
+      - name: Aggregate test counts and gather coverage reports
+        shell: bash
+        run: |
+          unit_total=0
+          for file in ./tests/coverage/coverage-unit-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            unit_total=$((unit_total + count))
+          done
+          echo "{\"unit_test_number\": $unit_total}" > unit-test-stats.json
+          echo "Unit test count: $unit_total"
+
+          cv_total=0
+          for file in ./tests/coverage/coverage-cv-*/count.json; do
+            [ -f "$file" ] || continue
+            count=$(jq '.count // 0' "$file")
+            cv_total=$((cv_total + count))
+          done
+          echo "{\"component_view_test_number\": $cv_total}" > cv-test-stats.json
+          echo "CV test count: $cv_total"
+
+          mkdir -p tests/coverage-cv-merged
+          for file in ./tests/coverage/coverage-cv-*/coverage-cv-*.json; do
+            [ -f "$file" ] && cp "$file" ./tests/coverage-cv-merged/
+          done
+
+          find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
+      - run: yarn test:merge-coverage
+      - run: yarn test:validate-coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lcov.info
+          path: ./tests/merged-coverage/lcov.info
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-stats
+          path: ./cv-test-stats.json
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-stats
+          path: ./unit-test-stats.json
+          if-no-files-found: error
+      - name: Generate CV test HTML coverage report
+        run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cv-test-coverage-html
+          path: ./tests/coverage-cv-lcov/
+          if-no-files-found: error
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  component-view-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      - name: Prepare results directory
+        run: mkdir -p tests/results
+      - run: |
+          yarn test:view:ci \
+            --shard=${{ matrix.shard }}/2 \
+            --json \
+            --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
+        env:
+          NODE_OPTIONS: --max-old-space-size=20480
+      - name: Rename coverage report and extract test count for this shard
+        shell: bash
+        run: |
+          mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
+          echo "{\"count\": $count}" > ./tests/coverage/count.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cv-${{ matrix.shard }}
+          path: ./tests/coverage/
+          if-no-files-found: error
+
+  needs_e2e_build:
+    uses: ./.github/workflows/needs-e2e-build.yml
+
+  smart-e2e-selection:
+    name: 'Smart E2E Selection'
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
+    continue-on-error: true
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
+      ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+    steps:
+      - name: Checkout for action definition
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/actions/smart-e2e-selection
+          sparse-checkout-cone-mode: false
+          fetch-depth: 1
+
+      - name: Run Smart E2E Selection
+        id: e2e-selection
+        uses: ./.github/actions/smart-e2e-selection
+        with:
+          event-name: ${{ github.event_name }}
+          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
+          openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
+          google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
+          github-token: ${{ github.token }}
+          pr-number: ${{ github.event.pull_request.number }}
+          repository: ${{ github.repository }}
+          post-comment: 'true'
+          base-ref: ${{ github.event.pull_request.base.ref }}
+
+  # Main E2E tests
+
+  build-android-apks:
+    name: 'Build Android APKs'
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.android_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
+        !github.event.pull_request.head.repo.fork
+      }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, smart-e2e-selection]
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: 'main'
+      metamask_environment: 'e2e'
+      keystore_target: 'qa'
+    secrets: inherit
+
+  e2e-smoke-tests-android:
+    name: 'Android E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  build-ios-apps:
+    name: 'Build iOS Apps'
+    if: >-
+      ${{
+        github.event_name != 'merge_group' &&
+        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
+        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
+        !github.event.pull_request.head.repo.fork
+      }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, smart-e2e-selection]
+    uses: ./.github/workflows/build-ios-e2e.yml
+    secrets: inherit
+
+  ios-tests-ready:
+    name: 'iOS Tests Ready'
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
+    needs: [needs_e2e_build, build-ios-apps]
+    steps:
+      - name: iOS build complete
+        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
+
+  e2e-smoke-tests-ios:
+    name: 'iOS E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  # Flask E2E tests
+
+  e2e-smoke-tests-android-flask:
+    name: 'Android Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, build-android-apks, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android-flask.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  e2e-smoke-tests-ios-flask:
+    name: 'iOS Flask E2E Smoke Tests'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
+    uses: ./.github/workflows/run-e2e-smoke-tests-ios-flask.yml
+    with:
+      changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
+      selected_tags: >-
+        ${{
+          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          '["ALL"]'
+        }}
+    secrets: inherit
+
+  # Fixture validation — ensures committed E2E fixtures match the live app state schema
+  # TODO: Remove continue-on-error once fixture validation is stable
+  validate-e2e-fixtures:
+    name: 'Validate E2E Fixtures'
+    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [needs_e2e_build, ios-tests-ready]
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: validate-e2e-fixtures
+      platform: ios
+      test_suite_tag: 'FixtureValidation'
+      split_number: 1
+      total_splits: 1
+      build_type: 'main'
+      metamask_environment: 'qa'
+    secrets: inherit
+
+  report-fixture-validation:
+    name: 'Report Fixture Validation'
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
+    needs: [validate-e2e-fixtures]
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download fixture validation results
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: test-e2e-validate-e2e-fixtures-junit-results
+          path: fixture-results/
+
+      - name: Report results
+        env:
+          RESULTS_PATH: fixture-results
+          VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/e2e-report-fixture-validation.mjs
+
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    # Temporarily skipped until SonarCloud is fixed
-    if: false
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -513,7 +610,7 @@ jobs:
           node-version-file: '.nvmrc'
       - uses: actions/download-artifact@v4
         with:
-          name: coverage
+          name: lcov.info
           path: coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
@@ -543,11 +640,11 @@ jobs:
             echo "$path"
             git update-index --no-assume-unchanged "$path"
           done
+
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    # Temporarily skipped until SonarCloud is fixed
-    if: false
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -599,18 +696,7 @@ jobs:
               exit 1
             fi
           fi
-  check-workflows:
-    name: Check workflows
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download actionlint
-        id: download-actionlint
-        run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
-        shell: bash
-      - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
-        shell: bash
+
   all-jobs-pass:
     name: All jobs pass
     runs-on: ubuntu-latest
@@ -621,9 +707,10 @@ jobs:
         dedupe,
         scripts,
         unit-tests,
-        cv-test,
+        component-view-tests,
         check-workflows,
         js-bundle-size-check,
+        sonar-cloud-quality-gate-status,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}
@@ -633,10 +720,12 @@ jobs:
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           EVENT_NAME: ${{ github.event_name }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
           # Check results of all required jobs dynamically
           # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On other events (PR, push), all jobs must succeed
+          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
+          # On other events (push to main), all jobs must succeed
 
           FAILED="false"
 
@@ -645,8 +734,8 @@ jobs:
               echo "::error::Job '$job_name' failed with result: $result"
               FAILED="true"
             elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events)"
+              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
+                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
               else
                 echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
                 FAILED="true"
@@ -662,6 +751,7 @@ jobs:
           fi
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
+
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
@@ -717,7 +807,7 @@ jobs:
     name: Log merge group failure
     runs-on: ubuntu-latest
     # Only run this job if the merge group event fails, skip on forks
-    if: ${{ github.event_name == 'merge_group' && failure() && !github.event.repository.fork }}
+    if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:
