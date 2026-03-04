@@ -2,7 +2,7 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 import { useNavigation } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
@@ -78,12 +78,6 @@ const SelectHardwareWallet = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { colors } = useAppThemeFromContext() || mockTheme;
   const styles = createStyle(colors);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const navigateToConnectQRWallet = async () => {
     try {

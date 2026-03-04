@@ -141,12 +141,6 @@ const ImportNewSecretRecoveryPhrase = () => {
     });
   }, [navigation]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   const trackDiscoveryEvent = (discoveredAccountsCount: number) => {
     trackEvent(
       createEventBuilder(

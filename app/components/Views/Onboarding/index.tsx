@@ -207,12 +207,6 @@ const Onboarding = () => {
     disableBackPress();
   }, [animatedTimingStart, notificationAnimated, disableBackPress]);
 
-  const updateNavBar = useCallback((): void => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   const checkIfExistingUser = useCallback(async (): Promise<void> => {
     // Read from Redux state instead of MMKV storage
     if (existingUserProp) {
@@ -890,7 +884,6 @@ const Onboarding = () => {
     });
 
     unsetLoading();
-    updateNavBar();
     mounted.current = true;
     checkIfExistingUser();
     disableNewPrivacyPolicyToast();
@@ -914,10 +907,6 @@ const Onboarding = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
 
   useEffect(() => {
     // When a new user has onboarded and the PNA25 feature flag is on,

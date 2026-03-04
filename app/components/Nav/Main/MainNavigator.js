@@ -259,7 +259,11 @@ const TransactionsHome = () => (
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
     />
-    <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
+    <Stack.Screen
+      name={Routes.RAMP.ORDER_DETAILS}
+      component={OrderDetails}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
@@ -516,7 +520,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
-        options={ManualBackupStep1.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep2"
@@ -910,7 +914,7 @@ const SetPasswordFlow = () => (
     <Stack.Screen
       name="ManualBackupStep1"
       component={ManualBackupStep1}
-      options={ManualBackupStep1.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name="ManualBackupStep2"

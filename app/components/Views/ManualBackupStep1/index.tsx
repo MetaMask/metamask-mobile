@@ -121,26 +121,18 @@ const ManualBackupStep1 = () => {
   );
 
   const updateNavBar = useCallback(() => {
-    // Show back button for settings backup and reminder
     if (settingsBackup || backupFlow) {
       navigation.setOptions(
         getOnboardingNavbarOptions(
           route,
           {
             headerLeft,
-            // Explicitly set headerRight to undefined to prevent any default
-            // header right component from appearing in backup flows
             headerRight: undefined,
           },
           colors,
           false,
         ),
       );
-    } else {
-      // Hide header for onboarding flow
-      navigation.setOptions({
-        headerShown: false,
-      });
     }
   }, [navigation, settingsBackup, backupFlow, colors, route, headerLeft]);
 
