@@ -3,9 +3,20 @@ import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsSection from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 const mockNavigate = jest.fn();
+const mockTrack = jest.fn();
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: mockTrack,
+  })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -83,6 +94,25 @@ jest.mock('../../../../UI/Perps/components/PerpsCard', () => {
     ),
   };
 });
+
+const mockReconnectWithNewContext = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: mockReconnectWithNewContext,
+  })),
+}));
+
+const { usePerpsConnection } = jest.requireMock(
+  '../../../../UI/Perps/hooks/usePerpsConnection',
+);
 
 jest.mock('./hooks/useHomepageSparklines', () => ({
   useHomepageSparklines: jest.fn(() => ({
@@ -319,7 +349,7 @@ describe('PerpsSection', () => {
 
     renderWithProvider(<PerpsSection />);
 
-    const roeElements = screen.getAllByText('+9.4%');
+    const roeElements = screen.getAllByText('+9.40%');
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -330,7 +360,7 @@ describe('PerpsSection', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.PERPS_HOME,
-      params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SCREEN },
+      params: { source: 'home_section' },
     });
   });
 
@@ -363,6 +393,7 @@ describe('PerpsSection', () => {
       params: {
         market: fullMarket,
         initialTab: 'position',
+        source: 'section_position',
       },
     });
   });
@@ -382,8 +413,32 @@ describe('PerpsSection', () => {
       params: {
         market: { symbol: 'BTC', maxLeverage: 50 },
         initialTab: 'position',
+        source: 'section_position',
       },
     });
+  });
+
+  it('fires PERPS_UI_INTERACTION event when a position is pressed', () => {
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(<PerpsSection />);
+
+    fireEvent.press(screen.getByTestId('perps-position-row-BTC'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
+      },
+    );
   });
 
   it('limits items to max 5 (positions first, then orders)', () => {
@@ -613,7 +668,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market },
+        params: { market, source: 'home_section' },
       });
     });
 
@@ -677,7 +732,7 @@ describe('PerpsSection', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
-        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SCREEN },
+        params: { source: 'home_section' },
       });
     });
 
@@ -894,6 +949,96 @@ describe('PerpsSection', () => {
       expect(screen.getByText('BTC')).toBeOnTheScreen();
       expect(screen.queryByTestId('favorite-badge-BTC')).toBeNull();
       expect(screen.queryByTestId('favorite-badge-NONEXISTENT')).toBeNull();
+    });
+  });
+
+  describe('connection error state', () => {
+    it('renders ErrorState with section title when connection fails', () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'CONNECTION_TIMEOUT',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+
+      renderWithProvider(<PerpsSection />);
+
+      expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
+      expect(screen.getByText('Unable to load perpetuals')).toBeOnTheScreen();
+      expect(screen.getByText('Retry')).toBeOnTheScreen();
+    });
+
+    it('calls reconnectWithNewContext with force on retry', () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'CONNECTION_TIMEOUT',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+
+      renderWithProvider(<PerpsSection />);
+
+      fireEvent.press(screen.getByText('Retry'));
+
+      expect(mockReconnectWithNewContext).toHaveBeenCalledWith({
+        force: true,
+      });
+    });
+
+    it('triggers reconnect on pull-to-refresh when connection error exists', async () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'CONNECTION_TIMEOUT',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+
+      const ref = React.createRef<{ refresh: () => Promise<void> }>();
+      renderWithProvider(<PerpsSection ref={ref} />);
+
+      await ref.current?.refresh();
+
+      expect(mockReconnectWithNewContext).toHaveBeenCalledWith({
+        force: true,
+      });
+    });
+
+    it('does not render positions or carousel when connection error exists', () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'NETWORK_ERROR',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(<PerpsSection />);
+
+      expect(
+        screen.queryByTestId('homepage-perps-positions'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('homepage-trending-perps-carousel'),
+      ).toBeNull();
     });
   });
 });
