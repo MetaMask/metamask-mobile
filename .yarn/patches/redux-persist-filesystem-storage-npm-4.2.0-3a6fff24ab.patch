@@ -1,0 +1,32 @@
+diff --git a/index.d.ts b/index.d.ts
+index b0caa94ceaa9afaa6c112947a328887e580f76a2..7e904d11b560f436f47b78675f1c4af7e20f25e6 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -12,6 +12,7 @@ declare module 'redux-persist-filesystem-storage' {
+     setItem: (
+       key: string,
+       value: string,
++      isIOS?: boolean,
+       callback?: (error?: Error) => void,
+     ) => Promise<void>
+ 
+diff --git a/index.js b/index.js
+index d69afb678b3d06760ad59831457cfd5c51fdb89b..d5190f33f3c93944fe3a3ba3ae4ac689b4034886 100644
+--- a/index.js
++++ b/index.js
+@@ -41,10 +41,13 @@ const FilesystemStorage = {
+     onStorageReady = onStorageReadyFactory(options.storagePath);
+   },
+ 
+-  setItem: (key: string, value: string, callback?: (error: ?Error) => void) =>
++  setItem: (key: string, value: string, isIOS: boolean = false, callback?: (error: ?Error) => void) =>
+     ReactNativeBlobUtil.fs
+       .writeFile(pathForKey(key), value, options.encoding)
+-      .then(() => callback && callback())
++      .then(() => {
++        if (isIOS) ReactNativeBlobUtil.ios.excludeFromBackupKey(pathForKey(key));
++        callback && callback();
++      })
+       .catch(error => callback && callback(error)),
+ 
+   getItem: onStorageReady(

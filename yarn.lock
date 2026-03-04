@@ -35775,7 +35775,7 @@ __metadata:
     redux-devtools-expo-dev-plugin: "npm:^1.0.0"
     redux-mock-store: "npm:1.5.4"
     redux-persist: "npm:6.0.0"
-    redux-persist-filesystem-storage: "npm:^4.2.0"
+    redux-persist-filesystem-storage: "patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch"
     redux-saga: "npm:^1.3.0"
     redux-saga-test-plan: "npm:^4.0.6"
     redux-thunk: "npm:^2.4.2"
@@ -41517,12 +41517,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-persist-filesystem-storage@npm:^4.2.0":
+"redux-persist-filesystem-storage@npm:4.2.0":
   version: 4.2.0
   resolution: "redux-persist-filesystem-storage@npm:4.2.0"
   dependencies:
     react-native-blob-util: "npm:^0.18.0"
   checksum: 10/c2edeb92b72874ab08c7a34e9dae8a06ac13c4a5b238d92e798ec0355027a99eb0c27c6b4c95b8c0efda8123a50f9c232e7a215a97726f07dc4af73a991ac343
+  languageName: node
+  linkType: hard
+
+"redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch":
+  version: 4.2.0
+  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=ea4597"
+  dependencies:
+    react-native-blob-util: "npm:^0.18.0"
+  checksum: 10/e3018605100518a8a41da76e7d0f55cb1d96d6f5e81194ff418bf8acf51931935786e87acf13d6478c8573bcc3b3d45613663bcf129dc4644c8fb4db931dfe59
   languageName: node
   linkType: hard
 
