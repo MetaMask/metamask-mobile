@@ -42,6 +42,15 @@ const styleSheet = (params: {
     skeletonTextContainer: {
       gap: 8,
     },
+    skeletonHorizontalBar: {
+      borderRadius: 4,
+    },
+    skeletonHorizontalBarMedium: {
+      borderRadius: 6,
+    },
+    skeletonHorizontalIcon: {
+      borderRadius: 20,
+    },
   });
 };
 

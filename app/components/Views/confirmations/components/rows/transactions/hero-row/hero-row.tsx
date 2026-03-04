@@ -23,23 +23,23 @@ export function HeroRowSkeleton({
           <Skeleton
             width={60}
             height={14}
-            style={styles.skeletonBorderRadiusSmall}
+            style={styles.skeletonHorizontalBar}
           />
           <Skeleton
             width={150}
             height={24}
-            style={styles.skeletonBorderRadiusMedium}
+            style={styles.skeletonHorizontalBarMedium}
           />
           <Skeleton
             width={80}
             height={14}
-            style={styles.skeletonBorderRadiusSmall}
+            style={styles.skeletonHorizontalBar}
           />
         </View>
         <Skeleton
           width={40}
           height={40}
-          style={styles.skeletonBorderRadiusLarge}
+          style={styles.skeletonHorizontalIcon}
         />
       </View>
     );

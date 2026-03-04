@@ -4,6 +4,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -90,7 +91,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
           )}
         </View>
         <View style={styles.iconContainer}>
-          <AvatarTokenWithNetworkBadge />
+          <AvatarTokenWithNetworkBadge size={AvatarSize.Lg} />
         </View>
       </View>
       {isRoundedAmount && (
