@@ -1,10 +1,12 @@
 import React, { ComponentType } from 'react';
+import { RefreshControl } from 'react-native';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
+import { useUnifiedTxActions } from './useUnifiedTxActions';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -53,30 +55,32 @@ jest.mock('../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
   }),
 }));
 
+const mockDefaultUnifiedTxActionsReturn = {
+  retryIsOpen: false,
+  retryErrorMsg: '',
+  speedUpIsOpen: false,
+  cancelIsOpen: false,
+  speedUp1559IsOpen: false,
+  cancel1559IsOpen: false,
+  speedUpConfirmDisabled: false,
+  cancelConfirmDisabled: false,
+  existingTx: null,
+  speedUpTxId: null,
+  cancelTxId: null,
+  toggleRetry: jest.fn(),
+  onSpeedUpAction: jest.fn(),
+  onCancelAction: jest.fn(),
+  onSpeedUpCompleted: jest.fn(),
+  onCancelCompleted: jest.fn(),
+  speedUpTransaction: jest.fn(),
+  cancelTransaction: jest.fn(),
+  signQRTransaction: jest.fn(),
+  signLedgerTransaction: jest.fn(),
+  cancelUnsignedQRTransaction: jest.fn(),
+};
+
 jest.mock('./useUnifiedTxActions', () => ({
-  useUnifiedTxActions: () => ({
-    retryIsOpen: false,
-    retryErrorMsg: '',
-    speedUpIsOpen: false,
-    cancelIsOpen: false,
-    speedUp1559IsOpen: false,
-    cancel1559IsOpen: false,
-    speedUpConfirmDisabled: false,
-    cancelConfirmDisabled: false,
-    existingTx: null,
-    speedUpTxId: null,
-    cancelTxId: null,
-    toggleRetry: jest.fn(),
-    onSpeedUpAction: jest.fn(),
-    onCancelAction: jest.fn(),
-    onSpeedUpCompleted: jest.fn(),
-    onCancelCompleted: jest.fn(),
-    speedUpTransaction: jest.fn(),
-    cancelTransaction: jest.fn(),
-    signQRTransaction: jest.fn(),
-    signLedgerTransaction: jest.fn(),
-    cancelUnsignedQRTransaction: jest.fn(),
-  }),
+  useUnifiedTxActions: jest.fn(() => mockDefaultUnifiedTxActionsReturn),
 }));
 
 jest.mock('./useTransactionAutoScroll', () => ({
@@ -164,6 +168,9 @@ describe('UnifiedTransactionsView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
   });
 
   afterEach(() => {
@@ -313,6 +320,9 @@ describe('UnifiedTransactionsView with transactions', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
   });
 
   it('renders TransactionElement for EVM transactions', () => {
@@ -329,6 +339,91 @@ describe('UnifiedTransactionsView with transactions', () => {
       asComponentType('TransactionElement'),
     );
     expect(transactionElements.length).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('UnifiedTransactionsView - Speed up / Cancel modal', () => {
+  const initialState = {
+    engine: {
+      backgroundState,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('does not render CancelSpeedupModal when both speed up and cancel are closed', () => {
+    const { queryByTestId } = renderWithProvider(<UnifiedTransactionsView />, {
+      state: initialState,
+    });
+
+    expect(queryByTestId('speedup-modal')).toBeNull();
+    expect(queryByTestId('cancel-modal')).toBeNull();
+  });
+
+  it('renders CancelSpeedupModal as speed up when speedUpIsOpen is true', () => {
+    (useUnifiedTxActions as jest.Mock).mockReturnValue({
+      ...mockDefaultUnifiedTxActionsReturn,
+      speedUpIsOpen: true,
+      existingTx: { id: 'tx-1', chainId: '0x1' },
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('speedup-modal')).toBeOnTheScreen();
+    expect(getByText('Speed Up Transaction')).toBeOnTheScreen();
+  });
+
+  it('renders CancelSpeedupModal as cancel when cancelIsOpen is true', () => {
+    (useUnifiedTxActions as jest.Mock).mockReturnValue({
+      ...mockDefaultUnifiedTxActionsReturn,
+      cancelIsOpen: true,
+      existingTx: { id: 'tx-1', chainId: '0x1' },
+    });
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    expect(getByTestId('cancel-modal')).toBeOnTheScreen();
+    expect(getByText('Cancel Transaction')).toBeOnTheScreen();
+  });
+});
+
+describe('UnifiedTransactionsView - refresh', () => {
+  const initialState = {
+    engine: {
+      backgroundState,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('calls updateIncomingTransactions when refresh is triggered', async () => {
+    const { UNSAFE_getByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: initialState },
+    );
+
+    const refreshControl = UNSAFE_getByType(RefreshControl);
+    expect(refreshControl.props.onRefresh).toBeDefined();
+
+    await refreshControl.props.onRefresh();
+
+    expect(updateIncomingTransactions).toHaveBeenCalled();
   });
 });
 
@@ -377,6 +472,9 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
     // Re-set implementations after any prior resetAllMocks() calls
     (mockBuildTrustedAddressSet as jest.Mock).mockReturnValue(
       new Set<string>(),
