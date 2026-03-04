@@ -292,7 +292,7 @@ describe('LedgerBluetoothAdapter', () => {
   });
 
   describe('handleDisconnect (via transport events)', () => {
-    it('calls onDisconnect when restart limit reached after repeated disconnect events', async () => {
+    it('clears transport without calling onDisconnect', async () => {
       await adapter.connect('device-123');
       onDisconnect.mockClear();
 
@@ -301,26 +301,33 @@ describe('LedgerBluetoothAdapter', () => {
       )?.[1];
       expect(disconnectHandler).toBeDefined();
 
-      // Fire 6 disconnect events (limit is 5)
-      for (let i = 0; i < 6; i++) {
-        disconnectHandler?.();
-      }
-
-      expect(onDisconnect).toHaveBeenCalledTimes(1);
-      expect(adapter.isConnected()).toBe(false);
-    });
-
-    it('ignores disconnect event when flow is complete', async () => {
-      await adapter.connect('device-123');
-      adapter.markFlowComplete();
-      onDisconnect.mockClear();
-
-      const disconnectHandler = mockTransportInstance.on.mock.calls.find(
-        (call: [string, () => void]) => call[0] === 'disconnect',
-      )?.[1];
       disconnectHandler?.();
 
       expect(onDisconnect).not.toHaveBeenCalled();
+      expect(adapter.isConnected()).toBe(false);
+    });
+
+    it('ignores stale events from a replaced transport', async () => {
+      await adapter.connect('device-123');
+
+      const oldDisconnectHandler = mockTransportInstance.on.mock.calls.find(
+        (call: [string, () => void]) => call[0] === 'disconnect',
+      )?.[1];
+
+      const newTransport = {
+        on: jest.fn(),
+        close: jest.fn().mockResolvedValue(undefined),
+      };
+      mockedTransportBLE.open.mockResolvedValueOnce(
+        newTransport as unknown as TransportBLE,
+      );
+      await adapter.connect('device-456');
+
+      expect(adapter.isConnected()).toBe(true);
+
+      oldDisconnectHandler?.();
+
+      expect(adapter.isConnected()).toBe(true);
     });
   });
 

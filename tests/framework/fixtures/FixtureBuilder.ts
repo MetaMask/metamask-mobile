@@ -481,6 +481,9 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
+    this.fixture.state.fiatOrders.detectedGeolocation =
+      selectedRegion.countryIsoCode;
+
     return this;
   }
 
@@ -493,6 +496,18 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
+    return this;
+  }
+
+  /**
+   * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
+   * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
+   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withDetectedGeolocation(countryCode: string) {
+    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
+    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
     return this;
   }
 
