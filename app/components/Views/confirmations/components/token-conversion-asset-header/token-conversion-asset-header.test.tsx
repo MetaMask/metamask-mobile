@@ -1,5 +1,6 @@
 import React from 'react';
 import BigNumber from 'bignumber.js';
+import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
@@ -40,12 +41,24 @@ const mockUseTransactionPayTotals = jest.mocked(useTransactionPayTotals);
 const mockUseNetworkName = jest.mocked(useNetworkName);
 
 const mockStyles = {
-  container: {},
+  assetHeaderContainer: {},
+  assetHeaderContainerHorizontal: { flexDirection: 'row' },
+  assetHeaderContainerStacked: { flexDirection: 'column' },
+  assetContainer: {},
+  assetContainerHorizontal: {},
+  assetContainerHorizontalInput: {},
+  assetContainerHorizontalOutput: {},
+  assetContainerStacked: {},
   assetInfo: {},
+  assetInfoHorizontal: {},
+  assetInfoStacked: {},
   assetInfoSkeleton: {},
+  assetDirectionIcon: {},
   assetAmount: {},
   skeletonBorderRadius: {},
   skeletonAvatar: {},
+  measurementContainer: {},
+  hiddenMeasurementContent: { opacity: 0 },
 };
 
 function createMockToken(overrides: Partial<AssetType> = {}): AssetType {
@@ -86,6 +99,19 @@ describe('TokenConversionAssetHeaderSkeleton', () => {
     );
 
     expect(skeleton).toBeOnTheScreen();
+  });
+
+  it('renders skeleton in stacked layout when isStackedLayout is true', () => {
+    const { getByTestId } = renderWithProvider(
+      <TokenConversionAssetHeaderSkeleton isStackedLayout />,
+      { state: initialRootState },
+    );
+
+    const skeleton = getByTestId(
+      TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON,
+    );
+
+    expect(skeleton).toHaveStyle({ flexDirection: 'column' });
   });
 });
 
@@ -300,5 +326,65 @@ describe('TokenConversionAssetHeader', () => {
 
     expect(mockUseNetworkName).toHaveBeenNthCalledWith(1, '0x1');
     expect(mockUseNetworkName).toHaveBeenNthCalledWith(2, '0xe708');
+  });
+
+  it('resolves horizontal layout and dismisses skeleton after amounts are measured without overflow', () => {
+    const token = createMockToken();
+    const formatFiat = createMockFormatFiat();
+
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <TokenConversionAssetHeader
+        inputToken={token}
+        outputToken={token}
+        formatFiat={formatFiat}
+      />,
+      { state: initialRootState },
+    );
+
+    expect(
+      getByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON),
+    ).toBeOnTheScreen();
+
+    fireEvent(getByText('$1234.56'), 'textLayout', {
+      nativeEvent: { lines: [{}] },
+    });
+    fireEvent(getByText('$1230.01'), 'textLayout', {
+      nativeEvent: { lines: [{}] },
+    });
+
+    expect(
+      queryByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON),
+    ).toBeNull();
+    expect(
+      getByTestId(TokenConversionAssetHeaderTestIds.CONTENT_CONTAINER),
+    ).toHaveStyle({ flexDirection: 'row' });
+  });
+
+  it('switches to stacked layout when amount text overflows', () => {
+    const token = createMockToken();
+    const formatFiat = createMockFormatFiat();
+
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <TokenConversionAssetHeader
+        inputToken={token}
+        outputToken={token}
+        formatFiat={formatFiat}
+      />,
+      { state: initialRootState },
+    );
+
+    fireEvent(getByText('$1234.56'), 'textLayout', {
+      nativeEvent: { lines: [{}, {}] },
+    });
+    fireEvent(getByText('$1230.01'), 'textLayout', {
+      nativeEvent: { lines: [{}] },
+    });
+
+    expect(
+      queryByTestId(TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON),
+    ).toBeNull();
+    expect(
+      getByTestId(TokenConversionAssetHeaderTestIds.CONTENT_CONTAINER),
+    ).toHaveStyle({ flexDirection: 'column' });
   });
 });

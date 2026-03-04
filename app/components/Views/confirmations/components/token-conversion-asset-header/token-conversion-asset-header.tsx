@@ -33,6 +33,7 @@ import { useNetworkName } from '../../hooks/useNetworkName';
 
 export const TokenConversionAssetHeaderTestIds = {
   ASSET_HEADER_SKELETON: 'token-conversion-asset-header-skeleton',
+  CONTENT_CONTAINER: 'token-conversion-asset-header-content',
   ASSET_HEADER_INPUT: 'token-conversion-asset-header-input',
   ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
   INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
@@ -188,6 +189,7 @@ export const TokenConversionAssetHeader = ({
 
   const assetHeaderContent = (
     <View
+      testID={TokenConversionAssetHeaderTestIds.CONTENT_CONTAINER}
       style={[
         styles.assetHeaderContainer,
         isStackedLayout
