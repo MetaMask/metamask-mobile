@@ -1,70 +1,40 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import { useEffect } from 'react';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
+import type { AccountState } from '../types';
 
-interface UsePredictWalletParams {
+interface UsePredictAccountStateOptions {
   /**
-   * Whether to load account state on mount
+   * Whether the query is enabled.
    * @default true
    */
-  loadOnMount?: boolean;
+  enabled?: boolean;
 }
 
-export const usePredictAccountState = ({
-  loadOnMount = true,
-}: UsePredictWalletParams = {}) => {
+/**
+ * Fetches the Predict account state (address, deployment status, allowances).
+ *
+ * Ensures the Polygon network exists before the query runs, following the same
+ * pattern used by usePredictBalance, usePredictPositions, and usePredictActivity.
+ *
+ * Returns the raw UseQueryResult so consumers can use the standard React Query
+ * API (data, isLoading, isFetching, error, refetch, etc.) directly.
+ */
+export function usePredictAccountState(
+  options: UsePredictAccountStateOptions = {},
+): UseQueryResult<AccountState, Error> {
+  const { enabled = true } = options;
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
-  const queryClient = useQueryClient();
-  const [isEnabled, setIsEnabled] = useState(loadOnMount);
 
   useEffect(() => {
-    ensurePolygonNetworkExists().catch((networkError: unknown) => {
-      DevLogger.log(
-        'usePredictAccountState: Failed to ensure Polygon network exists',
-        networkError,
-      );
+    ensurePolygonNetworkExists().catch(() => {
+      // Network may already exist — swallow so the query can still proceed.
     });
   }, [ensurePolygonNetworkExists]);
 
-  const query = useQuery({
+  return useQuery({
     ...predictQueries.accountState.options(),
-    enabled: isEnabled,
+    enabled,
   });
-
-  const address = query.data?.address;
-  const isDeployed = !!query.data?.isDeployed;
-  const hasAllowances = !!query.data?.hasAllowances;
-
-  const isLoading = query.isLoading;
-  const isRefreshing = query.isFetching && !query.isLoading;
-
-  const error = query.error
-    ? query.error instanceof Error
-      ? query.error.message
-      : 'Failed to load account state'
-    : null;
-
-  const loadAccountState = useCallback(async () => {
-    setIsEnabled(true);
-    try {
-      await queryClient.fetchQuery({
-        ...predictQueries.accountState.options(),
-        staleTime: 0,
-      });
-    } catch {
-      // Error is captured by the useQuery observer and exposed via query.error
-    }
-  }, [queryClient]);
-
-  return {
-    address,
-    isDeployed,
-    hasAllowances,
-    isLoading,
-    isRefreshing,
-    error,
-    loadAccountState,
-  };
-};
+}

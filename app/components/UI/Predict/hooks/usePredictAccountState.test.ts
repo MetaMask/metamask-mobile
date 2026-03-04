@@ -60,13 +60,13 @@ describe('usePredictAccountState', () => {
       });
 
       expect(mockGetAccountState).toHaveBeenCalledWith({});
-      expect(result.current.address).toEqual(mockAccountState.address);
+      expect(result.current.data?.address).toEqual(mockAccountState.address);
     });
 
-    it('does not load account state on mount when loadOnMount is false', async () => {
+    it('does not load account state when enabled is false', async () => {
       const { Wrapper } = createWrapper();
       const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
+        () => usePredictAccountState({ enabled: false }),
         { wrapper: Wrapper },
       );
 
@@ -76,101 +76,80 @@ describe('usePredictAccountState', () => {
       });
 
       expect(mockGetAccountState).not.toHaveBeenCalled();
-      expect(result.current.address).toBeUndefined();
+      expect(result.current.data).toBeUndefined();
     });
   });
 
-  describe('loadAccountState function', () => {
-    it('loads account state successfully', async () => {
+  describe('data fetching', () => {
+    it('returns account state data on success', async () => {
       const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
 
-      await act(async () => {
-        await result.current.loadAccountState();
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
       });
 
       expect(mockGetAccountState).toHaveBeenCalledWith({});
-      expect(result.current.address).toEqual(mockAccountState.address);
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.data?.address).toEqual(mockAccountState.address);
+      expect(result.current.data?.isDeployed).toBe(true);
+      expect(result.current.data?.hasAllowances).toBe(true);
       expect(result.current.error).toBeNull();
     });
 
-    it('handles errors when loading account state', async () => {
+    it('exposes error when loading fails', async () => {
       const { Wrapper } = createWrapper();
       mockGetAccountState.mockRejectedValue(
         new Error('Failed to load account state'),
       );
 
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBe('Failed to load account state');
+        expect(result.current.error).toBeTruthy();
       });
-      expect(result.current.address).toBeUndefined();
-    });
 
-    it('handles non-Error exceptions', async () => {
-      const { Wrapper } = createWrapper();
-      mockGetAccountState.mockRejectedValue('String error');
-
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
+      expect(result.current.error?.message).toBe(
+        'Failed to load account state',
       );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      await waitFor(() => {
-        expect(result.current.error).toBe('Failed to load account state');
-      });
+      expect(result.current.data).toBeUndefined();
     });
 
-    it('clears previous error on successful load', async () => {
-      const { Wrapper } = createWrapper();
-      // Use persistent rejection so auto-refetches also fail
+    it('clears error on successful refetch', async () => {
+      const { Wrapper, queryClient } = createWrapper();
       mockGetAccountState.mockRejectedValue(new Error('First error'));
 
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
       await waitFor(() => {
-        expect(result.current.error).toBe('First error');
+        expect(result.current.error?.message).toBe('First error');
       });
 
-      // Switch to success for the next load
+      // Switch to success for the refetch
       mockGetAccountState.mockResolvedValue(mockAccountState);
 
       await act(async () => {
-        await result.current.loadAccountState();
+        await queryClient.invalidateQueries({
+          queryKey: ['predict', 'accountState'],
+        });
       });
 
       await waitFor(() => {
         expect(result.current.error).toBeNull();
-        expect(result.current.address).toEqual(mockAccountState.address);
+        expect(result.current.data?.address).toEqual(mockAccountState.address);
       });
     });
+  });
 
+  describe('network management', () => {
     it('calls ensurePolygonNetworkExists on mount', async () => {
       const { Wrapper } = createWrapper();
-      renderHook(() => usePredictAccountState({ loadOnMount: false }), {
+      renderHook(() => usePredictAccountState(), {
         wrapper: Wrapper,
       });
 
@@ -185,95 +164,35 @@ describe('usePredictAccountState', () => {
         new Error('Failed to add Polygon network'),
       );
 
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
-      expect(result.current.address).toEqual(mockAccountState.address);
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.data?.address).toEqual(mockAccountState.address);
       expect(result.current.error).toBeNull();
     });
   });
 
-  describe('computed values', () => {
-    it('returns address from account state', async () => {
+  describe('account state values', () => {
+    it('returns data with address, isDeployed, and hasAllowances', async () => {
       const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
-      expect(result.current.address).toBe(mockAccountState.address);
-    });
-
-    it('returns isDeployed from account state', async () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      await waitFor(() => {
+        expect(result.current.data).toBeDefined();
       });
 
-      expect(result.current.isDeployed).toBe(true);
+      expect(result.current.data?.address).toBe(mockAccountState.address);
+      expect(result.current.data?.isDeployed).toBe(true);
+      expect(result.current.data?.hasAllowances).toBe(true);
     });
 
-    it('returns false for isDeployed when no data loaded', () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current.isDeployed).toBe(false);
-    });
-
-    it('returns hasAllowances from account state', async () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      expect(result.current.hasAllowances).toBe(true);
-    });
-
-    it('returns false for hasAllowances when no data loaded', () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current.hasAllowances).toBe(false);
-    });
-
-    it('returns undefined for address when no data loaded', () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      expect(result.current.address).toBeUndefined();
-    });
-  });
-
-  describe('edge cases', () => {
     it('handles account state with isDeployed false', async () => {
       const { Wrapper } = createWrapper();
       mockGetAccountState.mockResolvedValue({
@@ -281,16 +200,15 @@ describe('usePredictAccountState', () => {
         isDeployed: false,
       });
 
-      const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
-        { wrapper: Wrapper },
-      );
-
-      await act(async () => {
-        await result.current.loadAccountState();
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
       });
 
-      expect(result.current.isDeployed).toBe(false);
+      await waitFor(() => {
+        expect(result.current.data).toBeDefined();
+      });
+
+      expect(result.current.data?.isDeployed).toBe(false);
     });
 
     it('handles account state with hasAllowances false', async () => {
@@ -300,22 +218,31 @@ describe('usePredictAccountState', () => {
         hasAllowances: false,
       });
 
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toBeDefined();
+      });
+
+      expect(result.current.data?.hasAllowances).toBe(false);
+    });
+
+    it('has undefined data when query is disabled', () => {
+      const { Wrapper } = createWrapper();
       const { result } = renderHook(
-        () => usePredictAccountState({ loadOnMount: false }),
+        () => usePredictAccountState({ enabled: false }),
         { wrapper: Wrapper },
       );
 
-      await act(async () => {
-        await result.current.loadAccountState();
-      });
-
-      expect(result.current.hasAllowances).toBe(false);
+      expect(result.current.data).toBeUndefined();
     });
   });
 
   describe('query invalidation', () => {
-    it('refetches when query is invalidated', async () => {
-      const { Wrapper, queryClient } = createWrapper();
+    it('refetches when refetch is called', async () => {
+      const { Wrapper } = createWrapper();
       const { result } = renderHook(() => usePredictAccountState(), {
         wrapper: Wrapper,
       });
@@ -324,24 +251,29 @@ describe('usePredictAccountState', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
+      expect(result.current.data?.address).toBe(mockAccountState.address);
+      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+
       const updatedState = {
         ...mockAccountState,
         address: '0x9876543210987654321098765432109876543210',
       };
       mockGetAccountState.mockResolvedValue(updatedState);
 
-      await queryClient.invalidateQueries({
-        queryKey: ['predict', 'accountState'],
+      await act(async () => {
+        await result.current.refetch();
       });
 
+      expect(mockGetAccountState).toHaveBeenCalledTimes(2);
+
       await waitFor(() => {
-        expect(result.current.address).toBe(updatedState.address);
+        expect(result.current.data?.address).toBe(updatedState.address);
       });
     });
   });
 
   describe('default parameters', () => {
-    it('uses true as default for loadOnMount', async () => {
+    it('enables the query by default', async () => {
       const { Wrapper } = createWrapper();
       renderHook(() => usePredictAccountState(), { wrapper: Wrapper });
 
