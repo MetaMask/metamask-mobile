@@ -848,14 +848,13 @@ describe('PerpsMarketListView', () => {
 
   describe('Navigation', () => {
     it('does not navigate back when canGoBack returns false', () => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
       mockNavigation.canGoBack.mockReturnValue(false);
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
-      // Find close button (first TouchableOpacity after the market rows)
-      const touchableElements = screen.root.findAllByType(TouchableOpacity);
-      const closeButton = touchableElements[0]; // Close button is the first one
-      fireEvent.press(closeButton);
+      const backButton = screen.getByTestId(
+        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+      );
+      fireEvent.press(backButton);
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });

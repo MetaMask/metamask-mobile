@@ -845,14 +845,14 @@ describe('usePerpsMarketListView', () => {
       ).toBe(true);
     });
 
-    it('ignores category filter when searching', () => {
+    it('applies category filter when searching', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
         isSearchVisible: true,
         setIsSearchVisible: jest.fn(),
         toggleSearchVisibility: jest.fn(),
-        filteredMarkets: [mixedMarkets[0]], // Only BTC from search
+        filteredMarkets: [mixedMarkets[0]], // BTC from search
         clearSearch: jest.fn(),
       });
 
@@ -860,9 +860,7 @@ describe('usePerpsMarketListView', () => {
         usePerpsMarketListView({ defaultMarketTypeFilter: 'forex' }),
       );
 
-      // When searching, should show search results regardless of category filter
-      expect(result.current.markets.length).toBe(1);
-      expect(result.current.markets[0].symbol).toBe('BTC');
+      expect(result.current.markets.length).toBe(0);
     });
 
     it('exposes market type filter state', () => {
