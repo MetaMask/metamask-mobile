@@ -708,24 +708,6 @@ const CardHome = () => {
     });
   }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
 
-  const isUserEligibleForMetalCard = useMemo(
-    () =>
-      isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      userLocation === 'us' &&
-      userShippingAddress &&
-      cardDetails?.type === CardType.VIRTUAL,
-    [
-      isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
-      isAuthenticated,
-      userLocation,
-      userShippingAddress,
-      cardDetails,
-    ],
-  );
-
   const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
@@ -1043,6 +1025,31 @@ const CardHome = () => {
     openOnboardingDelegationAction,
     isCardProvisioning,
   ]);
+
+  const isUserEligibleForMetalCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !cardSetupState.needsSetup &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      userLocation === 'us' &&
+      userShippingAddress &&
+      cardDetails?.type === CardType.VIRTUAL,
+    [
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      userLocation,
+      userShippingAddress,
+      cardDetails,
+      isLoading,
+      cardSetupState,
+      isCardProvisioning,
+    ],
+  );
 
   useEffect(
     () => () => {
@@ -1428,6 +1435,19 @@ const CardHome = () => {
       )}
 
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
+        {isUserEligibleForMetalCard && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.order_metal_card',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.order_metal_card_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={orderMetalCardAction}
+            testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+          />
+        )}
         {isAuthenticated && !isLoading && cardDetails && (
           <ManageCardListItem
             title={strings(
@@ -1519,19 +1539,6 @@ const CardHome = () => {
               onPress={navigateToCardPage}
               testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
             />
-            {isUserEligibleForMetalCard && (
-              <ManageCardListItem
-                title={strings(
-                  'card.card_home.manage_card_options.order_metal_card',
-                )}
-                description={strings(
-                  'card.card_home.manage_card_options.order_metal_card_description',
-                )}
-                rightIcon={IconName.ArrowRight}
-                onPress={orderMetalCardAction}
-                testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
-              />
-            )}
             {isAuthenticated &&
               kycStatus?.verificationState === 'VERIFIED' &&
               userLocation !== 'us' && (
