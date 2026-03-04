@@ -1169,6 +1169,7 @@ const App: React.FC = () => {
 
   return (
     <WebSocketHealthToastProvider>
+      {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
       <RampsBootstrap />
       <AppFlow />
       <Toast ref={toastRef} />
