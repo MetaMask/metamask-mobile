@@ -717,7 +717,9 @@ describe('TransactionDetailsSummary', () => {
         ],
       });
 
-      expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
+      // Call #1: relayDeposit send line always uses SEND_HASH
+      // Call #2: musdConversion receive line should fall back to relay deposit hash
+      expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenNthCalledWith(2, {
         chainId: Number(SOURCE_CHAIN_ID_MOCK),
         txHash: SEND_HASH,
       });
