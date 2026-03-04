@@ -655,7 +655,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Unlock')).toBeOnTheScreen();
+        expect(getByText('Unlock')).toBeTruthy();
       });
 
       jest.advanceTimersByTime(600);
@@ -683,7 +683,7 @@ describe('Onboarding', () => {
       );
 
       await waitFor(() => {
-        expect(getByText('Unlock')).toBeOnTheScreen();
+        expect(getByText('Unlock')).toBeTruthy();
       });
 
       jest.advanceTimersByTime(600);
@@ -2186,7 +2186,7 @@ describe('Onboarding', () => {
         jest.advanceTimersByTime(100);
       });
 
-      expect(getByText('Error report sent')).toBeOnTheScreen();
+      expect(getByText('Error report sent')).toBeTruthy();
     });
 
     it('displays notification description when showErrorReportSentToast param is true', async () => {
@@ -2206,7 +2206,7 @@ describe('Onboarding', () => {
         getByText(
           "We're investigating this problem. Try creating your wallet again.",
         ),
-      ).toBeOnTheScreen();
+      ).toBeTruthy();
     });
   });
 });

@@ -787,9 +787,7 @@ const Onboarding = () => {
       <View style={styles.loaderWrapper}>
         <View style={styles.loader}>
           <ActivityIndicator size="small" />
-          <Text variant={TextVariant.BodyMD} style={styles.loadingText}>
-            {loadingMsg}
-          </Text>
+          <Text style={styles.loadingText}>{loadingMsg}</Text>
         </View>
       </View>
     ),
