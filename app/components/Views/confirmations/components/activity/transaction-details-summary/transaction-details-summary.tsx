@@ -369,6 +369,10 @@ function useBridgeReceiveData(
     payChainId ?? '0x0',
   );
 
+  const requiredTransactions = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, transaction.requiredTransactionIds ?? []),
+  );
+
   const sourceNetworkName = useNetworkName(transaction.chainId);
   const targetNetworkName = useNetworkName(chainId);
 
@@ -401,6 +405,18 @@ function useBridgeReceiveData(
     };
 
     if (!transaction.hash || transaction.hash === '0x0') {
+      // For same-chain aggregator routes (e.g. Linea USDT/DAI), the relay
+      // strategy skips polling and sets the musdConversion hash to '0x0'.
+      // Fall back to the relay deposit's on-chain hash, which represents
+      // the actual swap transaction where mUSD was received.
+      const relayDepositTx = requiredTransactions.find((t) =>
+        hasTransactionType(t, [TransactionType.relayDeposit]),
+      );
+
+      if (relayDepositTx?.hash && relayDepositTx.hash !== '0x0') {
+        receiveData.hash = relayDepositTx.hash as Hex;
+      }
+
       return receiveData;
     }
 
