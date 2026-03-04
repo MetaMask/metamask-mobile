@@ -16,7 +16,7 @@ import NetworkMultiSelector from './NetworkMultiSelector';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -115,8 +115,8 @@ jest.mock('../../../util/networks/customNetworks', () => ({
   PopularList: [],
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -216,7 +216,9 @@ describe('NetworkMultiSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
-  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+  const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+    typeof useAnalytics
+  >;
 
   // Shared helper functions for all tests
   const createMockNetwork = (
@@ -459,7 +461,7 @@ describe('NetworkMultiSelector', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
       isEnabled: () => true,
@@ -470,7 +472,7 @@ describe('NetworkMultiSelector', () => {
       getDeleteRegulationCreationDate: jest.fn(),
       getDeleteRegulationId: jest.fn(),
       isDataRecorded: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
     });
   });
 

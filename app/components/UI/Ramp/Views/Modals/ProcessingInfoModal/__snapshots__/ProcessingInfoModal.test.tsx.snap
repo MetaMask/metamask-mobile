@@ -24,7 +24,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -74,7 +74,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#b7bbc866",
+            "borderColor": "#b4b4b566",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -159,7 +159,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
               testID="processing-info-modal-close-button"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={24}
                 name="Close"
@@ -192,7 +192,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#686e7d",
+              "color": "#66676a",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -227,7 +227,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -243,7 +243,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Medium",
                 "fontSize": 16,
                 "letterSpacing": 0,
