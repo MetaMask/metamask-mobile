@@ -19,14 +19,13 @@ import { useTheme } from '../../../../../util/theme';
 import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { selectHasCardholderAccounts } from '../../../../../core/redux/slices/card';
 import { useSelector } from 'react-redux';
 
 const CardWelcome = () => {
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { goBack, navigate } = useNavigation();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const theme = useTheme();

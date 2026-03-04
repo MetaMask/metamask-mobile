@@ -768,7 +768,7 @@ export class RewardsController extends BaseController<
       if (!accounts || accounts.length === 0) {
         await this.performSilentAuth(null, true, true);
       } else {
-        const sortedAccounts = sortAccounts(accounts as InternalAccount[]);
+        const sortedAccounts = sortAccounts(accounts);
 
         try {
           // Prefer to get opt in status in bulk for sorted accounts.

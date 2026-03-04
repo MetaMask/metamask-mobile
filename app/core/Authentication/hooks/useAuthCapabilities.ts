@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { UseAuthCapabilitiesResult } from './useAuthCapabilities.types';
 import { RootState } from '../../../reducers';
-import useAuthentication from './useAuthentication';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { setOsAuthEnabled } from '../../../actions/security';
+import { Authentication } from '../Authentication';
 
 /**
  * Hook that detects device authentication capabilities using expo-local-authentication.
@@ -10,7 +12,6 @@ import useAuthentication from './useAuthentication';
  * Priority: REMEMBER_ME > BIOMETRIC > PASSCODE > PASSWORD
  */
 const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
-  const { getAuthCapabilities } = useAuthentication();
   const [isLoading, setIsLoading] = useState(true);
   const [capabilities, setCapabilities] = useState<
     UseAuthCapabilitiesResult['capabilities'] | null
@@ -21,20 +22,35 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
   const allowLoginWithRememberMe = useSelector(
     (state: RootState) => state.security.allowLoginWithRememberMe,
   );
+  const dispatch = useDispatch();
+
+  const updateOsAuthEnabled = useCallback(() => {
+    dispatch(setOsAuthEnabled(!osAuthEnabled));
+  }, [dispatch, osAuthEnabled]);
 
   const fetchAuthCapabilities = useCallback(async () => {
     setIsLoading(true);
     try {
-      // No need to catch error as it will return default capabilities
-      const result = await getAuthCapabilities({
+      const result = await Authentication.getAuthCapabilities(
         osAuthEnabled,
         allowLoginWithRememberMe,
-      });
+      );
       setCapabilities(result);
+    } catch (error) {
+      // On error, default to no capabilities
+      setCapabilities({
+        isBiometricsAvailable: false,
+        biometricsDisabledOnOS: false,
+        isAuthToggleVisible: false,
+        authToggleLabel: '',
+        osAuthEnabled,
+        allowLoginWithRememberMe,
+        authStorageType: AUTHENTICATION_TYPE.PASSWORD,
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [osAuthEnabled, allowLoginWithRememberMe, getAuthCapabilities]);
+  }, [osAuthEnabled, allowLoginWithRememberMe]);
 
   useEffect(() => {
     fetchAuthCapabilities();
@@ -43,6 +59,8 @@ const useAuthCapabilities = (): UseAuthCapabilitiesResult => {
   return {
     isLoading,
     capabilities,
+    refresh: fetchAuthCapabilities,
+    updateOsAuthEnabled,
   };
 };
 

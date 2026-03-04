@@ -4,7 +4,7 @@ import OrderCompleted from './OrderCompleted';
 import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
@@ -31,11 +31,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
+  MetaMetricsEvents: {
+    CARD_VIEWED: 'Card Viewed',
+    CARD_BUTTON_CLICKED: 'Card Button Clicked',
+  },
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
