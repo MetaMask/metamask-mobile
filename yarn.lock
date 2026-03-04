@@ -21746,7 +21746,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=9b6269":
+"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=60ce03":
   version: 0.1.45
   resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=60ce03"
   dependencies:
@@ -21768,9 +21768,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch":
+"appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=60ce03#~/.yarn/patches/appwright-patch-9fcd858d19.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch::version=0.1.45&hash=0ae41e"
+  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=60ce03#~/.yarn/patches/appwright-patch-9fcd858d19.patch::version=0.1.45&hash=1ec210"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21786,7 +21786,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/6f6e0a22262d1206992b29acefdc03804fd56410f67b4ce1739d6614d872f1634ee75153f4567766187f95ec67928ab61504c307ce13e6521f5b77e8b822451e
+  checksum: 10/bc7600e67239652a3adc9bbc29227d3e99cbf2c639865630b6a6a7bc73849402c60b33808ab0590a196e40fb86ea83294d7f9cec0eae46f17ef3739a8a08bda9
   languageName: node
   linkType: hard
 
@@ -35584,7 +35584,7 @@ __metadata:
     appium-chromium-driver: "npm:^2.0.2"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch"
+    appwright: "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=60ce03#~/.yarn/patches/appwright-patch-9fcd858d19.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.13.5"
