@@ -102,6 +102,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  refreshBalanceAllowance,
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
@@ -1305,6 +1306,23 @@ export class PolymarketProvider implements PredictProvider {
         address: clobOrder.order.signer ?? '',
         apiKey: signerApiKey,
       });
+
+      // TEMPORARY WORKAROUND: Refresh balance/allowance on Polymarket's CLOB
+      // before submitting the order. See refreshBalanceAllowance docs for details.
+      try {
+        await refreshBalanceAllowance({
+          address: signer.address,
+          apiKey: signerApiKey,
+          side,
+          outcomeTokenId,
+        });
+      } catch (refreshError) {
+        // Best-effort — don't block order submission if the refresh fails
+        DevLogger.log(
+          'PolymarketProvider: Pre-order balance/allowance refresh failed',
+          refreshError,
+        );
+      }
 
       const { success, response, error } = await submitClobOrder({
         headers,
