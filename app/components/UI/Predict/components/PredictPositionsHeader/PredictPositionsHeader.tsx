@@ -8,7 +8,11 @@ import {
   ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation , useFocusEffect } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import React, {
   forwardRef,
   useCallback,
@@ -104,8 +108,10 @@ const PredictPositionsHeader = forwardRef<
   const unrealizedPnL = hasPositions ? (pnlData ?? null) : null;
 
   // Invalidate unrealized P&L query when screen comes into focus
-  const pnlQueryKey =
-    predictQueries.unrealizedPnL.keys.byAddress(selectedAddress);
+  const pnlQueryKey = useMemo(
+    () => predictQueries.unrealizedPnL.keys.byAddress(selectedAddress),
+    [selectedAddress],
+  );
   useFocusEffect(
     useCallback(() => {
       queryClient.invalidateQueries({ queryKey: pnlQueryKey });

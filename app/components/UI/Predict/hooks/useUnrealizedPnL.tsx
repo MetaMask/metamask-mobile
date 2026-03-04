@@ -19,9 +19,7 @@ interface UseUnrealizedPnLOptions {
 }
 
 /**
- * Thin wrapper around the unrealizedPnL query that resolves the current
- * EVM account address automatically, matching the pattern used by
- * usePredictBalance and usePredictPositions.
+ * Hook to fetch unrealized P&L data for the current account
  */
 export function useUnrealizedPnL(
   options: UseUnrealizedPnLOptions = {},
