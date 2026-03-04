@@ -15,6 +15,7 @@ import { selectPredictPendingDepositByAddress } from '../selectors/predictContro
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   PredictEventValues,
   PredictTradeStatus,
@@ -32,6 +33,8 @@ export const usePredictDeposit = () => {
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
 
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedInternalAccountAddress = evmAccount?.address ?? '0x0';
 
