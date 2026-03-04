@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import {
@@ -60,9 +61,9 @@ export const usePredictPriceHistory = (
       : 'Failed to fetch price history';
   });
 
-  const refetch = async () => {
+  const refetch = useCallback(async () => {
     await Promise.all(queries.map((q) => q.refetch()));
-  };
+  }, [queries]);
 
   return {
     priceHistories: enabled ? priceHistories : [],
