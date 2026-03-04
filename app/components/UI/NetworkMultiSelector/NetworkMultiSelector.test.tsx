@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Provider, useSelector } from 'react-redux';
-import configureStore from 'redux-mock-store';
+import { createStore } from 'redux';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
 import { NetworkEnablementController } from '@metamask/network-enablement-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -183,7 +183,7 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 // Mock store setup
-const mockStore = configureStore();
+const mockStore = createStore(() => ({}));
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
