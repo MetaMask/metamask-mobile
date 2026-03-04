@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsAdjustMarginActionSheet from './PerpsAdjustMarginActionSheet';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -11,12 +12,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       actionContent: {},
       separator: {},
     },
-    theme: {
-      colors: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        border: { muted: '#CCCCCC' },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 

@@ -72,6 +72,9 @@ jest.mock('../../../../../util/theme', () => {
     mockTheme,
   };
 });
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -304,12 +307,10 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
     container: { paddingHorizontal: 16 },
     priceInfo: { marginTop: 8, marginBottom: 16 },
     priceRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    priceLabel: { fontSize: 14, color: '#666' },
+    priceLabel: { fontSize: 14, color: 'rgb(102, 102, 102)' },
     priceValue: { fontSize: 16, fontWeight: '500' },
     limitPriceDisplay: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      backgroundColor: '#f0f0f0',
+      backgroundColor: 'rgb(240, 240, 240)',
       borderRadius: 12,
       padding: 16,
       marginBottom: 16,
@@ -317,13 +318,11 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
       justifyContent: 'space-between',
     },
     limitPriceValue: { fontSize: 32, fontWeight: '600' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    limitPriceCurrency: { fontSize: 18, color: '#666' },
+    limitPriceCurrency: { fontSize: 18, color: 'rgb(102, 102, 102)' },
     percentageButtonsRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
     percentageButton: {
       flex: 1,
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      backgroundColor: '#fff',
+      backgroundColor: 'rgb(255, 255, 255)',
       borderRadius: 8,
       paddingVertical: 12,
       alignItems: 'center',
@@ -334,21 +333,6 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
 }));
 
 describe('PerpsLimitPriceBottomSheet', () => {
-  const mockTheme = {
-    colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      background: { alternative: '#f0f0f0', default: '#ffffff' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      text: { default: '#000000', muted: '#666666', alternative: '#999999' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      border: { muted: '#e1e1e1' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      primary: { default: '#0066cc' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      error: { default: '#ff0000' },
-    },
-  };
-
   const defaultProps = {
     isVisible: true,
     onClose: jest.fn(),
@@ -360,7 +344,7 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
 
     // Mock stream hooks
     const { usePerpsLivePrices, usePerpsTopOfBook } =

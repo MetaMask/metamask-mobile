@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsModifyActionSheet from './PerpsModifyActionSheet';
 import { type Position } from '@metamask/perps-controller';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -12,8 +13,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       actionItemBorder: {},
       actionIconContainer: {},
       actionTextContainer: {},
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      iconColor: { color: '#000000' },
+      iconColor: { color: mockTheme.colors.text.default },
     },
   }),
 }));

@@ -113,12 +113,9 @@ describe('createTransactionDetailStyles', () => {
     // Arrange
     const incompleteTheme = {
       colors: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        background: { default: '#FFFFFF' },
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        text: { default: '#000000' },
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        success: { default: '#28A745' },
+        background: { default: 'rgb(255, 255, 255)' },
+        text: { default: 'rgb(0, 0, 0)' },
+        success: { default: 'rgb(40, 167, 69)' },
         border: {},
       },
     };

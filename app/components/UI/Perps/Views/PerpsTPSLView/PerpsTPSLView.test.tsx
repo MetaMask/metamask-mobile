@@ -48,6 +48,9 @@ const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
@@ -131,21 +134,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('PerpsTPSLView', () => {
-  const mockTheme = {
-    colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      background: { alternative: '#f0f0f0' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      text: { default: '#000', muted: '#666', alternative: '#888' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      border: { muted: '#e1e1e1' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      primary: { default: '#0376c9' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      error: { default: '#d73847' },
-    },
-  };
-
   const defaultMockReturn = {
     formState: {
       takeProfitPrice: '',
@@ -205,7 +193,7 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
   });

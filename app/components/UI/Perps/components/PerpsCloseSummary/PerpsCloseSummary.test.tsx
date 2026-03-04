@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsCloseSummary from './PerpsCloseSummary';
 import { strings } from '../../../../../../locales/i18n';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -31,14 +32,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
       rewardsContent: {},
       loadingContainer: {},
     },
-    theme: {
-      colors: {
-        icon: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          alternative: '#CCCCCC',
-        },
-      },
-    },
+    theme: mockTheme,
   })),
 }));
 

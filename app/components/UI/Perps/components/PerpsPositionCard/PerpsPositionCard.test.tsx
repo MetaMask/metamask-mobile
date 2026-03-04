@@ -43,9 +43,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: mockUseTheme,
+    mockTheme,
+  };
+});
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock PnL calculations
 jest.mock('../../utils/pnlCalculations', () => ({
@@ -195,24 +202,9 @@ describe('PerpsPositionCard', () => {
     stopLossCount: 0,
   };
 
-  const mockTheme = {
-    colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      background: { section: '#ffffff' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      text: { default: '#000000', muted: '#666666' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      border: { muted: '#e1e1e1' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      success: { default: '#00ff00', muted: '#ccffcc' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      error: { default: '#ff0000', muted: '#ffcccc' },
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     // Reset the PnL calculation mock to default value
     const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
       '../../utils/pnlCalculations',

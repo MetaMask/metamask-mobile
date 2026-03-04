@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsLoader from './PerpsLoader';
 import { PerpsLoaderSelectorsIDs } from '../../Perps.testIds';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock useStyles
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -12,14 +13,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       spinner: {},
       loadingText: {},
     },
-    theme: {
-      colors: {
-        primary: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          default: '#0376C9',
-        },
-      },
-    },
+    theme: mockTheme,
   })),
 }));
 
@@ -62,8 +56,7 @@ describe('PerpsLoader', () => {
     const spinner = getByTestId(PerpsLoaderSelectorsIDs.SPINNER);
     expect(spinner).toBeTruthy();
     expect(spinner.props.size).toBe('large');
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    expect(spinner.props.color).toBe('#0376C9');
+    expect(spinner.props.color).toBe(mockTheme.colors.primary.default);
   });
 
   it('should apply correct styles for inline mode', () => {

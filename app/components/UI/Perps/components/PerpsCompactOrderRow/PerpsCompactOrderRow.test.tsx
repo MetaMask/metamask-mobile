@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsCompactOrderRow from './PerpsCompactOrderRow';
 import { type Order } from '@metamask/perps-controller';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -14,14 +15,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       priceText: {},
       labelText: {},
     },
-    theme: {
-      colors: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        success: { default: '#00FF00' },
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        error: { default: '#FF0000' },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 

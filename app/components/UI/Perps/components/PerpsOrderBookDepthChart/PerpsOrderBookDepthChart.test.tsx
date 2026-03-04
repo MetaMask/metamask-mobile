@@ -3,6 +3,7 @@ import { render } from '@testing-library/react-native';
 import PerpsOrderBookDepthChart from './PerpsOrderBookDepthChart';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { PerpsOrderBookDepthChartSelectorsIDs } from '../../Perps.testIds';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -21,8 +22,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
     styles: {
       container: {
         width: '100%',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        backgroundColor: '#ffffff',
+        backgroundColor: mockTheme.colors.background.default,
         borderRadius: 8,
         overflow: 'hidden',
       },
@@ -52,34 +52,13 @@ jest.mock('../../../../hooks/useStyles', () => ({
         borderRadius: 4,
       },
       bidDot: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        backgroundColor: '#28a745',
+        backgroundColor: mockTheme.colors.success.default,
       },
       askDot: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        backgroundColor: '#dc3545',
+        backgroundColor: mockTheme.colors.error.default,
       },
     },
-    theme: {
-      colors: {
-        background: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          default: '#ffffff',
-        },
-        border: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          default: '#e0e0e0',
-        },
-        success: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          default: '#28a745',
-        },
-        error: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          default: '#dc3545',
-        },
-      },
-    },
+    theme: mockTheme,
   })),
 }));
 

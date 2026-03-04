@@ -69,9 +69,16 @@ jest.mock('react-native-safe-area-context', () => {
 
 // Mock theme
 const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: mockUseTheme,
+    mockTheme,
+  };
+});
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -297,8 +304,7 @@ jest.mock('./PerpsLeverageBottomSheet.styles', () => ({
     emptyPriceInfo: { textAlign: 'center' },
     sliderContainer: { marginVertical: 24 },
     leverageSliderContainer: { height: 40 },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    leverageTrack: { height: 8, backgroundColor: '#e0e0e0' },
+    leverageTrack: { height: 8, backgroundColor: 'rgb(224, 224, 224)' },
     progressContainer: { height: '100%', overflow: 'hidden' },
     gradientStyle: { height: '100%' },
     tickMark: { position: 'absolute', height: 12, width: 2 },
@@ -315,21 +321,6 @@ jest.mock('./PerpsLeverageBottomSheet.styles', () => ({
 }));
 
 describe('PerpsLeverageBottomSheet', () => {
-  const mockTheme = {
-    colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      background: { alternative: '#f0f0f0' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      text: { default: '#000000', muted: '#666666' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      primary: { default: '#0066cc' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      warning: { default: '#ff9800' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      error: { default: '#ff0000' },
-    },
-  };
-
   const defaultProps = {
     isVisible: true,
     onClose: jest.fn(),
@@ -344,7 +335,7 @@ describe('PerpsLeverageBottomSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     // Default mock for usePerpsLivePrices - returns price of 3000
     mockUsePerpsLivePrices.mockReturnValue({
       'BTC-USD': { price: '3000' },

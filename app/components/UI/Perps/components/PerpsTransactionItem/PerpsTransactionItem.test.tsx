@@ -13,6 +13,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { PERPS_SUPPORT_ARTICLES_URLS } from '../../constants/perpsConfig';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock Redux selector
 jest.mock('react-redux', () => ({
@@ -77,13 +78,6 @@ jest.mock('../../hooks', () => ({
   usePerpsEventTracking: jest.fn(),
 }));
 
-const mockColors = {
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  black: '#000000',
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  gray: '#666666',
-};
-
 const mockStyles = StyleSheet.create({
   transactionItem: {
     flexDirection: 'row',
@@ -111,18 +105,18 @@ const mockStyles = StyleSheet.create({
   transactionTitle: {
     fontSize: 16,
     fontWeight: '400',
-    color: mockColors.black,
+    color: mockTheme.colors.text.default,
     marginBottom: 4,
   },
   transactionTitleCentered: {
     fontSize: 16,
     fontWeight: '400',
-    color: mockColors.black,
+    color: mockTheme.colors.text.default,
     marginBottom: 0,
   },
   transactionSubtitle: {
     fontSize: 14,
-    color: mockColors.gray,
+    color: mockTheme.colors.text.alternative,
   },
   rightContent: {
     alignItems: 'flex-end',

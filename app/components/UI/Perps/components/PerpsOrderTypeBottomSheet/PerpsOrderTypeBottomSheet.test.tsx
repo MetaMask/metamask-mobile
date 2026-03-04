@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import { type OrderType } from '@metamask/perps-controller';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -32,17 +33,13 @@ jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
       paddingHorizontal: 16,
       borderRadius: 12,
       marginBottom: 16,
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      backgroundColor: '#f0f0f0',
+      backgroundColor: mockTheme.colors.background.alternative,
       borderWidth: 1,
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      borderColor: '#e1e1e1',
+      borderColor: mockTheme.colors.border.muted,
     },
     optionSelected: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      backgroundColor: '#cce0ff',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      borderColor: '#0066cc',
+      backgroundColor: 'rgb(204, 224, 255)',
+      borderColor: mockTheme.colors.primary.default,
     },
     optionHeader: {
       flexDirection: 'row',
