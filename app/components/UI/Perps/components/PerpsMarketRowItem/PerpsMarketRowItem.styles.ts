@@ -1,12 +1,24 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = (params: { vars: { compact: boolean } }) =>
-  StyleSheet.create({
+const styleSheet = (params: {
+  vars: {
+    compact?: boolean;
+    verticalPadding?: number;
+    rowHeight?: number;
+    isCompact?: boolean;
+  };
+}) => {
+  const isCompact = params.vars.isCompact ?? params.vars.compact ?? false;
+  const verticalPadding = params.vars.verticalPadding ?? (isCompact ? 8 : 16);
+  const rowHeight = params.vars.rowHeight;
+
+  return StyleSheet.create({
     container: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: params.vars.compact ? 8 : 16,
+      paddingVertical: verticalPadding,
+      ...(rowHeight !== undefined && { height: rowHeight }),
     },
     perpIcon: {
       marginRight: 16,
@@ -22,13 +34,13 @@ const styleSheet = (params: { vars: { compact: boolean } }) =>
     tokenHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 6,
     },
     secondRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-      marginTop: 2,
+      marginTop: isCompact ? 0 : 2,
     },
     rightSection: {
       alignItems: 'flex-end',
@@ -38,11 +50,12 @@ const styleSheet = (params: { vars: { compact: boolean } }) =>
       alignItems: 'flex-end',
     },
     price: {
-      marginBottom: 2,
+      marginBottom: isCompact ? 0 : 2,
     },
     priceChange: {
-      marginTop: 2,
+      marginTop: isCompact ? 0 : 2,
     },
   });
+};
 
 export default styleSheet;

@@ -36,8 +36,17 @@ const PerpsMarketRowItem = ({
   displayMetric = 'volume',
   showBadge = false, // We can re-enable this if/when we decide to render the badges for stocks and commodities
   compact = false,
+  verticalPadding,
+  rowHeight,
+  isCompact,
 }: PerpsMarketRowItemProps) => {
-  const { styles } = useStyles(styleSheet, { compact });
+  const resolvedCompact = isCompact ?? compact;
+  const { styles } = useStyles(styleSheet, {
+    compact: resolvedCompact,
+    verticalPadding,
+    rowHeight,
+    isCompact: resolvedCompact,
+  });
 
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({

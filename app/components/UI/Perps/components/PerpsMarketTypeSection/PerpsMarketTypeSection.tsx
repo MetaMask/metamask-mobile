@@ -148,6 +148,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
           sortBy={sortBy}
           onMarketPress={handleMarketPress}
           showBadge={false}
+          contentContainerStyle={styles.marketListContentContainer}
         />
       </View>
     </View>

@@ -45,6 +45,9 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,
+  rowVerticalPadding,
+  rowHeight,
+  rowIsCompact,
   filterKey,
   testID = 'perps-market-list',
 }) => {
@@ -58,9 +61,20 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
         iconSize={iconSize}
         displayMetric={sortBy}
         showBadge={showBadge}
+        verticalPadding={rowVerticalPadding}
+        rowHeight={rowHeight}
+        isCompact={rowIsCompact}
       />
     ),
-    [onMarketPress, iconSize, sortBy, showBadge],
+    [
+      onMarketPress,
+      iconSize,
+      sortBy,
+      showBadge,
+      rowVerticalPadding,
+      rowHeight,
+      rowIsCompact,
+    ],
   );
 
   const renderEmpty = useCallback(

@@ -13,6 +13,7 @@ import Icon, {
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { HeaderBaseVariant } from '../../../../../component-library/components/HeaderBase';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -247,6 +248,9 @@ const PerpsMarketListView = ({
   });
 
   const renderMarketList = () => {
+    // Figma market list rows use compact dimensions.
+    const isCompactMarketRows = true;
+
     // Skeleton List - show immediately while loading
     if (isLoadingMarkets) {
       return (
@@ -349,6 +353,10 @@ const PerpsMarketListView = ({
           onMarketPress={handleMarketPress}
           sortBy={sortBy}
           showBadge={false}
+          iconSize={isCompactMarketRows ? 32 : undefined}
+          rowVerticalPadding={isCompactMarketRows ? 0 : undefined}
+          rowHeight={isCompactMarketRows ? 54 : undefined}
+          rowIsCompact={isCompactMarketRows}
           filterKey={`${marketTypeFilter}-${isSearchVisible ? 'search' : 'list'}`}
           testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST}
         />
@@ -372,7 +380,10 @@ const PerpsMarketListView = ({
         />
       ) : (
         <HeaderCompactStandard
+          variant={HeaderBaseVariant.Display}
           title={title || strings('perps.home.markets')}
+          titleProps={{ style: styles.marketListHeaderTitle }}
+          twClassName="gap-1.5"
           onBack={handleBackPressed}
           backButtonProps={{
             testID: `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
