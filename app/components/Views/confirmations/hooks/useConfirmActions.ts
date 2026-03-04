@@ -115,9 +115,9 @@ export const useConfirmActions = () => {
             navigation.goBack();
           }
 
-          if (isSignatureReq) {
+          if (isSignatureReq && approvalRequest?.id) {
             captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-            PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest?.id);
+            PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
           }
         }
         hideAwaitingConfirmation();
