@@ -48,7 +48,10 @@ jest.mock('../../../../hooks/useStyles', () => ({
         bottom: 0,
         opacity: 0.15,
       },
-      bidDepthBar: { right: 0, backgroundColor: mockTheme.colors.success.default },
+      bidDepthBar: {
+        right: 0,
+        backgroundColor: mockTheme.colors.success.default,
+      },
       askDepthBar: { left: 0, backgroundColor: mockTheme.colors.error.default },
       totalColumn: { flex: 1, zIndex: 1 },
       totalColumnRight: { flex: 1, alignItems: 'flex-end', zIndex: 1 },

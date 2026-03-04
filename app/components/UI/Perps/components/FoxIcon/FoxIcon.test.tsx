@@ -120,14 +120,18 @@ describe('FoxIcon', () => {
 
       // Act & Assert - Should fallback to alternative color
       const xmlContent = getByTestId('fox-icon-xml').props.children;
-      expect(xmlContent).toContain(`fill="${mockTheme.colors.icon.alternative}"`); // Should fallback to alternative color
+      expect(xmlContent).toContain(
+        `fill="${mockTheme.colors.icon.alternative}"`,
+      ); // Should fallback to alternative color
     });
 
     it('handles Primary icon color', () => {
       const { getByTestId } = render(<FoxIcon iconColor={IconColor.Primary} />);
 
       const xmlContent = getByTestId('fox-icon-xml').props.children;
-      expect(xmlContent).toContain(`fill="${mockTheme.colors.primary.default}"`); // Primary color from mock
+      expect(xmlContent).toContain(
+        `fill="${mockTheme.colors.primary.default}"`,
+      ); // Primary color from mock
     });
 
     it('memoizes SVG XML to prevent unnecessary regeneration', () => {

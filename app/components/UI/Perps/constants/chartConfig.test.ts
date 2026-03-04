@@ -106,7 +106,10 @@ describe('chartConfig', () => {
       const colors = getCandlestickColors(mockColors);
 
       // Assert
-      expect(colors).toHaveProperty('positive', mockTheme.colors.success.default);
+      expect(colors).toHaveProperty(
+        'positive',
+        mockTheme.colors.success.default,
+      );
       expect(colors).toHaveProperty('negative', mockTheme.colors.error.default);
     });
   });
