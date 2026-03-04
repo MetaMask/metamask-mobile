@@ -132,7 +132,6 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         style={
           {
             "height": 64,
-            "overflow": "visible",
             "resizeMode": "contain",
             "width": 30,
           }
