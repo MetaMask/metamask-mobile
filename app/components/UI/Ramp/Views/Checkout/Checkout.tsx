@@ -9,6 +9,7 @@ import { useTheme } from '../../../../../util/theme';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { callbackBaseUrl } from '../../Aggregator/sdk';
 import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
+import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -88,11 +89,8 @@ const Checkout = () => {
   const params = useParams<CheckoutParams>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const {
-    addOrder,
-    addPrecreatedOrder,
-    getOrderFromCallback,
-  } = useRampsOrders();
+  const { addOrder, addPrecreatedOrder, getOrderFromCallback } =
+    useRampsOrders();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isV2Enabled = useRampsUnifiedV2Enabled();
@@ -109,7 +107,7 @@ const Checkout = () => {
     onNavigationStateChange,
     callbackKey,
   } = params ?? {};
-  const orderId = orderIdParam ?? customOrderId;
+  const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
   const headerTitle = providerName ?? '';
   const initialUriRef = useRef(uri);
@@ -171,22 +169,27 @@ const Checkout = () => {
   }, [uri, createEventBuilder, trackEvent, rampRoutingDecision]);
 
   useEffect(() => {
-    if (!hasCallbackFlow || !orderId || !walletAddress || !network) {
-      return;
-    }
-    const providerCodeForPolling =
-      providerCode?.startsWith('/providers/') && providerCode
-        ? providerCode.split('/')[2] ?? providerCode
-        : providerCode ?? '';
-    if (providerCodeForPolling) {
-      addPrecreatedOrder({
-        orderId,
-        providerCode: providerCodeForPolling,
-        walletAddress,
-        chainId: network,
-      });
-    }
-  }, [orderId, walletAddress, network, providerCode, hasCallbackFlow, addPrecreatedOrder]);
+    // For external-browser flows (e.g. PayPal), addPrecreatedOrder is called in
+    // BuildQuote; the user never reaches Checkout. For WebView flows,
+    // providerCode and walletAddress are passed, so hasCallbackFlow is true
+    // and we can register. hasCallbackFlow being false means we lack the data
+    // required for addPrecreatedOrder anyway.
+    const canRegister =
+      effectiveOrderId && providerCode && walletAddress && network;
+    if (!canRegister) return;
+    addPrecreatedOrder({
+      orderId: effectiveOrderId,
+      providerCode: normalizeProviderCode(providerCode),
+      walletAddress,
+      chainId: network,
+    });
+  }, [
+    effectiveOrderId,
+    walletAddress,
+    network,
+    providerCode,
+    addPrecreatedOrder,
+  ]);
 
   const handleNavigationStateChange = useCallback(
     async (navState: WebViewNavigation) => {
@@ -255,6 +258,7 @@ const Checkout = () => {
       }
     },
     [
+      dispatch,
       hasCallbackFlow,
       providerCode,
       walletAddress,

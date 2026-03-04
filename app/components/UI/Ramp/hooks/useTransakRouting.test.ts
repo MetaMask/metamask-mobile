@@ -166,6 +166,7 @@ jest.mock('@metamask/ramps-controller', () => ({
       (orderId: string, _env: string) => `transformed-${orderId}`,
     ),
   },
+  normalizeProviderCode: (code: string) => code.replace(/^\/providers\//, ''),
 }));
 
 jest.mock('../Deposit/constants', () => ({

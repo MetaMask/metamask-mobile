@@ -31,6 +31,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
@@ -534,19 +535,20 @@ function BuildQuote() {
         const isCustomAction = Boolean(
           (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
         );
-        const providerCode = selectedQuote.provider.startsWith('/providers/')
-          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-          : selectedQuote.provider;
+        const providerCode = normalizeProviderCode(selectedQuote.provider);
         const chainId = selectedToken?.chainId as CaipChainId | undefined;
         const network = chainId?.includes(':')
           ? chainId.split(':')[1] || ''
           : chainId || '';
         const effectiveWallet = walletAddress ?? '';
 
-        if (isCustomAction) {
-          if (buyWidget.orderId && effectiveWallet) {
+        const useExternalBrowser =
+          isCustomAction || buyWidget.browser === 'IN_APP_OS_BROWSER';
+        if (useExternalBrowser) {
+          const effectiveOrderId = buyWidget.orderId?.trim() || null;
+          if (effectiveOrderId && effectiveWallet) {
             addPrecreatedOrder({
-              orderId: buyWidget.orderId,
+              orderId: effectiveOrderId,
               providerCode,
               walletAddress: effectiveWallet,
               chainId: network || undefined,
@@ -577,7 +579,7 @@ function BuildQuote() {
             network,
             currency,
             cryptocurrency: selectedToken?.symbol || '',
-            orderId: buyWidget.orderId ?? undefined,
+            orderId: buyWidget.orderId?.trim() || undefined,
           }),
         );
       } else {
@@ -622,9 +624,6 @@ function BuildQuote() {
   ]);
 
   const hasAmount = amountAsNumber > 0;
-
-  const quoteMatchesAmount =
-    debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
 
   const quoteMatchesCurrentContext = useMemo(() => {
     if (!selectedQuote || !selectedProvider) return false;
