@@ -167,7 +167,7 @@ describe('NFTsSection', () => {
     expect(mockAbortDetection).toHaveBeenCalledTimes(1);
   });
 
-  it('handles rejected detectNfts gracefully', async () => {
+  it('renders without error when detectNfts rejects', async () => {
     mockDetectNfts.mockRejectedValueOnce(new Error('Aborted'));
 
     renderWithProvider(<NFTsSection />);
