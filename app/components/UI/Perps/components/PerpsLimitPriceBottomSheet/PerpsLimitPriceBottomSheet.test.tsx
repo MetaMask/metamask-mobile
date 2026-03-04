@@ -301,37 +301,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   },
 }));
 
-// Mock styles
-jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
-  createStyles: () => ({
-    container: { paddingHorizontal: 16 },
-    priceInfo: { marginTop: 8, marginBottom: 16 },
-    priceRow: { flexDirection: 'row', justifyContent: 'space-between' },
-    priceLabel: { fontSize: 14, color: 'rgb(102, 102, 102)' },
-    priceValue: { fontSize: 16, fontWeight: '500' },
-    limitPriceDisplay: {
-      backgroundColor: 'rgb(240, 240, 240)',
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    limitPriceValue: { fontSize: 32, fontWeight: '600' },
-    limitPriceCurrency: { fontSize: 18, color: 'rgb(102, 102, 102)' },
-    percentageButtonsRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
-    percentageButton: {
-      flex: 1,
-      backgroundColor: 'rgb(255, 255, 255)',
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: 'center',
-    },
-    keypadContainer: { marginBottom: 16, padding: 0 },
-    footerContainer: { paddingHorizontal: 16, paddingBottom: 24 },
-  }),
-}));
-
 describe('PerpsLimitPriceBottomSheet', () => {
   const defaultProps = {
     isVisible: true,
