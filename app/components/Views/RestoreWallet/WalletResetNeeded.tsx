@@ -14,7 +14,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { useNavigation, StackActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
@@ -29,7 +30,9 @@ const WalletResetNeeded = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
-  const navigation = useNavigation();
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navigation = useNavigation<StackNavigationProp<any>>();
 
   const deviceMetaData = useMemo(() => generateDeviceAnalyticsMetaData(), []);
 
@@ -64,12 +67,10 @@ const WalletResetNeeded = () => {
         .addProperties({ ...deviceMetaData })
         .build(),
     );
-    navigation.dispatch(
-      StackActions.replace(
-        ...createRestoreWalletNavDetails({
-          previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
-        }),
-      ),
+    navigation.replace(
+      ...createRestoreWalletNavDetails({
+        previousScreen: Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
+      }),
     );
   }, [deviceMetaData, navigation, trackEvent, createEventBuilder]);
 

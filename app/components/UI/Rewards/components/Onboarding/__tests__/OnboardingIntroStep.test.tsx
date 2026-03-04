@@ -601,7 +601,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
         },
       );
@@ -688,7 +688,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           onCancel: expect.any(Function),
           cancelLabel:
@@ -870,7 +870,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
         },
       );
@@ -1059,7 +1059,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_go_back',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
         },
       );
@@ -1323,7 +1323,7 @@ describe('OnboardingIntroStep', () => {
           confirmAction: {
             label: 'mocked_rewards.onboarding.not_supported_confirm_retry',
             onPress: expect.any(Function),
-            variant: 'primary',
+            variant: 'Primary',
           },
           onCancel: expect.any(Function),
           cancelLabel:

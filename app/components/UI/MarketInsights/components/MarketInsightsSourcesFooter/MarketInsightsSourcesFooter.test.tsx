@@ -1,60 +1,73 @@
 import React from 'react';
+import { Linking, Pressable } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsSourcesFooter from './MarketInsightsSourcesFooter';
-import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactLib = jest.requireActual('react');
+    const { View: MockView } = jest.requireActual('react-native');
+
+    return ReactLib.forwardRef(
+      (
+        { children }: { children: React.ReactNode },
+        ref: React.Ref<{
+          onOpenBottomSheet: () => void;
+          onCloseBottomSheet: () => void;
+        }>,
+      ) => {
+        ReactLib.useImperativeHandle(ref, () => ({
+          onOpenBottomSheet: jest.fn(),
+          onCloseBottomSheet: jest.fn(),
+        }));
+        return <MockView testID="mock-bottom-sheet">{children}</MockView>;
+      },
+    );
+  },
+);
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  () => {
+    const { View: MockView } = jest.requireActual('react-native');
+    return ({ children }: { children: React.ReactNode }) => (
+      <MockView testID="mock-bottom-sheet-header">{children}</MockView>
+    );
+  },
+);
 
 describe('MarketInsightsSourcesFooter', () => {
-  it('calls sources callback when sources pill is pressed', () => {
-    const onSourcesPress = jest.fn();
+  beforeEach(() => {
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('opens sources sheet and opens source URL when a source is pressed', () => {
     const sources = [
       { name: 'CoinDesk', type: 'news', url: 'https://coindesk.com/article-1' },
       { name: 'The Block', type: 'news', url: 'https://theblock.co/article-2' },
-      { name: 'Decrypt', type: 'news', url: 'https://decrypt.co/article-3' },
-      {
-        name: 'Bitcoin Magazine',
-        type: 'social',
-        url: 'https://bitcoinmagazine.com/article-4',
-      },
-      {
-        name: 'CoinMarketCap',
-        type: 'data',
-        url: 'https://coinmarketcap.com/article-5',
-      },
     ];
 
-    const { getByText } = renderWithProvider(
+    const { UNSAFE_getAllByType, getByText } = renderWithProvider(
       <MarketInsightsSourcesFooter
         sources={sources as never}
-        onSourcesPress={onSourcesPress}
         testID="sources"
       />,
     );
 
-    fireEvent.press(getByText('+1 sources'));
-    expect(onSourcesPress).toHaveBeenCalledTimes(1);
-  });
+    const pressables = UNSAFE_getAllByType(Pressable);
+    fireEvent.press(pressables[0]);
 
-  it('calls thumbs callbacks when thumb buttons are pressed', () => {
-    const onThumbsUp = jest.fn();
-    const onThumbsDown = jest.fn();
-    const sources = [
-      { name: 'CoinDesk', type: 'news', url: 'https://coindesk.com/article-1' },
-    ];
+    expect(getByText('CoinDesk')).toBeOnTheScreen();
 
-    const { getByTestId } = renderWithProvider(
-      <MarketInsightsSourcesFooter
-        sources={sources as never}
-        onThumbsUp={onThumbsUp}
-        onThumbsDown={onThumbsDown}
-        testID="sources"
-      />,
+    fireEvent.press(getByText('CoinDesk'));
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://coindesk.com/article-1',
     );
-
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
-    fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON));
-
-    expect(onThumbsUp).toHaveBeenCalledTimes(1);
-    expect(onThumbsDown).toHaveBeenCalledTimes(1);
   });
 });

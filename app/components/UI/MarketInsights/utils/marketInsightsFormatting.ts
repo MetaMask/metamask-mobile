@@ -2,6 +2,11 @@ export interface RelativeTimeOptions {
   nowLabel?: string;
 }
 
+export interface HighlightedSegment {
+  text: string;
+  highlighted: boolean;
+}
+
 export const getFaviconUrl = (source: string): string => {
   const trimmedSource = source.trim();
 
@@ -37,4 +42,43 @@ export const formatRelativeTime = (
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   return `${diffDays}d ago`;
+};
+
+export const buildHighlightedSegments = (
+  text: string,
+  highlightTerms: string[],
+): HighlightedSegment[] => {
+  const validHighlightTerms = highlightTerms.filter(
+    (term) => term.trim().length > 0,
+  );
+
+  if (validHighlightTerms.length === 0) {
+    return [{ text, highlighted: false }];
+  }
+
+  const escapedTerms = validHighlightTerms.map((term) =>
+    term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  );
+  const pattern = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+
+  const parts: HighlightedSegment[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({
+        text: text.slice(lastIndex, match.index),
+        highlighted: false,
+      });
+    }
+    parts.push({ text: match[0], highlighted: true });
+    lastIndex = pattern.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push({ text: text.slice(lastIndex), highlighted: false });
+  }
+
+  return parts.length > 0 ? parts : [{ text, highlighted: false }];
 };

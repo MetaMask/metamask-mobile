@@ -56,7 +56,6 @@ import type {
   NetworkState,
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
 
@@ -329,27 +328,6 @@ export function isPrivateKeyAccount(account: InternalAccount) {
  */
 export function isEthAddress(address: string): boolean {
   return isValidHexAddress(address as Hex);
-}
-
-/**
- * Checks whether an address is compatible with a destination chain.
- * EVM and Solana are strictly validated; unknown namespaces are permissive.
- *
- * @param address - Address to validate.
- * @param chainId - Destination chain ID (hex or CAIP-2).
- * @returns True when the address is considered valid for the given chain.
- */
-export function isAddressCompatibleWithChainId(
-  address: string,
-  chainId: string,
-): boolean {
-  if (isSolanaChainId(chainId)) {
-    return isSolanaAddress(address);
-  }
-
-  const isEvmChainId =
-    chainId.startsWith('0x') || chainId.startsWith('eip155:');
-  return isEvmChainId ? isEthAddress(address) : true;
 }
 
 /**

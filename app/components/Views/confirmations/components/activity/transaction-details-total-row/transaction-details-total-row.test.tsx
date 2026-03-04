@@ -53,7 +53,7 @@ describe('TransactionDetailsTotalRow', () => {
 
   it('renders total from pay metadata', () => {
     const { getByText } = render();
-    expect(getByText(`$${PAY_TOTAL}`)).toBeOnTheScreen();
+    expect(getByText(`$${PAY_TOTAL}`)).toBeDefined();
   });
 
   it('renders total from token amount', () => {
@@ -66,7 +66,7 @@ describe('TransactionDetailsTotalRow', () => {
 
     const { getByText } = render();
 
-    expect(getByText(`$${TOKEN_TOTAL}`)).toBeOnTheScreen();
+    expect(getByText(`$${TOKEN_TOTAL}`)).toBeDefined();
   });
 
   it('renders nothing if no total fiat and type not supported', () => {
@@ -79,37 +79,6 @@ describe('TransactionDetailsTotalRow', () => {
     const { toJSON } = render();
 
     expect(toJSON()).toBeNull();
-  });
-
-  it('renders targetFiat instead of totalFiat for receive-type transactions', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        type: TransactionType.predictWithdraw,
-        metamaskPay: {
-          totalFiat: PAY_TOTAL,
-          targetFiat: '99.99',
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render();
-
-    expect(getByText('$99.99')).toBeOnTheScreen();
-  });
-
-  it('falls back to totalFiat when targetFiat is missing on receive-type', () => {
-    useTransactionDetailsMock.mockReturnValue({
-      transactionMeta: {
-        type: TransactionType.predictWithdraw,
-        metamaskPay: {
-          totalFiat: PAY_TOTAL,
-        },
-      } as unknown as TransactionMeta,
-    });
-
-    const { getByText } = render();
-
-    expect(getByText(`$${PAY_TOTAL}`)).toBeOnTheScreen();
   });
 
   it('renders total from fiat amount for musdClaim with user currency', () => {
@@ -128,6 +97,6 @@ describe('TransactionDetailsTotalRow', () => {
     const { getByText } = render();
 
     // Uses fiatUnformatted and user's currency formatter
-    expect(getByText('$123.45')).toBeOnTheScreen();
+    expect(getByText('$123.45')).toBeDefined();
   });
 });

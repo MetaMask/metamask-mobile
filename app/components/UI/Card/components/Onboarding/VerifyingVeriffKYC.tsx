@@ -3,8 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { CardScreens } from '../../util/metrics';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
@@ -22,7 +21,7 @@ const POLLING_TIMEOUT_MS = 30000;
  */
 const VerifyingVeriffKYC = () => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { verificationState, startPolling, stopPolling } =

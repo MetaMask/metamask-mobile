@@ -10,7 +10,6 @@ import {
   DepositPaymentMethod,
   DepositRegion,
 } from '@consensys/native-ramps-sdk';
-import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -70,7 +69,7 @@ export interface FiatOrder {
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   forceUpdate?: boolean; // Force update when processing
-  data: Order | WyreOrder | DepositOrder | RampsOrder; // Original provider data
+  data: Order | WyreOrder | DepositOrder; // Original provider data
 }
 
 export interface CustomIdData {

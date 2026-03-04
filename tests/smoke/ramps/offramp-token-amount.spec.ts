@@ -9,7 +9,7 @@ import BuildQuoteView from '../../page-objects/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 describe(SmokeRamps('Off-ramp token amounts'), () => {
   beforeEach(async () => {

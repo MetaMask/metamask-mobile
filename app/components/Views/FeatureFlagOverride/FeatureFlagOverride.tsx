@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -22,7 +21,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
@@ -392,9 +391,18 @@ const FeatureFlagOverride: React.FC = () => {
     return flags;
   }, [featureFlagsList, searchQuery, typeFilter]);
 
-  const handleGoBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  // Set up navigation header
+  useEffect(() => {
+    navigation.setOptions(
+      getNavigationOptionsTitle(
+        'Feature Flag Override',
+        navigation,
+        false,
+        theme.colors,
+        null,
+      ),
+    );
+  }, [navigation, theme.colors]);
 
   const handleToggleFlag = useCallback(
     (key: string, newValue: unknown) => {
@@ -445,144 +453,117 @@ const FeatureFlagOverride: React.FC = () => {
   }, [clearAllOverrides]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      testID="feature-flag-override-screen"
-      edges={['top', 'left', 'right']}
-    >
-      <HeaderCompactStandard
-        title="Feature Flag Override"
-        onBack={handleGoBack}
-        includesTopInset={false}
-        testID="feature-flag-override-header"
-        backButtonProps={{ testID: 'feature-flag-override-header-back' }}
-      />
-      <Box twClassName="flex-1 bg-background-default">
-        <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mb-2"
-          >
-            <Text variant={TextVariant.BodyMd}>Feature Flag Statistics</Text>
-            {(typeFilter !== 'all' || searchQuery) && (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                Showing: {filteredFlags.length} flags
-              </Text>
-            )}
-          </Box>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="flex-wrap gap-2"
-          >
+    <Box twClassName="flex-1 bg-background-default">
+      {/* Header with stats */}
+      <Box twClassName="p-4 bg-background-alternative border-b border-border-muted">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Between}
+          alignItems={BoxAlignItems.Center}
+          twClassName="mb-2"
+        >
+          <Text variant={TextVariant.BodyMd}>Feature Flag Statistics</Text>
+          {(typeFilter !== 'all' || searchQuery) && (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Total: {flagStats.total}
+              Showing: {filteredFlags.length} flags
             </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Boolean: {flagStats.boolean}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Object: {flagStats.object}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              String: {flagStats.string}
-            </Text>
-          </Box>
+          )}
         </Box>
+        <Box flexDirection={BoxFlexDirection.Row} twClassName="flex-wrap gap-2">
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Total: {flagStats.total}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Boolean: {flagStats.boolean}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Object: {flagStats.object}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            String: {flagStats.string}
+          </Text>
+        </Box>
+      </Box>
 
-        {/* Search and controls */}
-        <Box twClassName="p-4 border-b border-border-muted">
-          <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search feature flags..."
-            placeholderTextColor={theme.colors.text.muted}
-            style={[
-              tw.style('border rounded p-3 mb-3'),
-              {
-                borderColor: theme.colors.border.default,
-                color: theme.colors.text.default,
-                backgroundColor: theme.colors.background.default,
-              },
-            ]}
-          />
+      {/* Search and controls */}
+      <Box twClassName="p-4 border-b border-border-muted">
+        <TextInput
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search feature flags..."
+          placeholderTextColor={theme.colors.text.muted}
+          style={[
+            tw.style('border rounded p-3 mb-3'),
+            {
+              borderColor: theme.colors.border.default,
+              color: theme.colors.text.default,
+              backgroundColor: theme.colors.background.default,
+            },
+          ]}
+        />
 
-          <Box twClassName="flex-row justify-between items-start">
-            {/* Filter Buttons */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="gap-2 flex-wrap"
-            >
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Sm}
-                onPress={() =>
-                  setTypeFilter(typeFilter === 'boolean' ? 'all' : 'boolean')
-                }
-              >
-                {typeFilter === 'boolean'
-                  ? `Boolean (${flagStats.boolean})`
-                  : `All (${featureFlagsList.length})`}
-              </Button>
-            </Box>
-
-            {/* Clear All Button */}
+        <Box twClassName="flex-row justify-between items-start">
+          {/* Filter Buttons */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="gap-2 flex-wrap"
+          >
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Sm}
-              onPress={handleClearAllOverrides}
+              onPress={() =>
+                setTypeFilter(typeFilter === 'boolean' ? 'all' : 'boolean')
+              }
             >
-              {`Clear All Overrides (${overrideCount})`}
+              {typeFilter === 'boolean'
+                ? `Boolean (${flagStats.boolean})`
+                : `All (${featureFlagsList.length})`}
             </Button>
           </Box>
-        </Box>
 
-        {/* Feature flags list */}
-        <ScrollView style={tw.style('flex-1 bg-background-default')}>
-          {filteredFlags.length === 0 ? (
-            <Box twClassName="p-8 items-center">
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                twClassName="text-center"
-              >
-                {searchQuery && typeFilter !== 'all'
-                  ? `No ${typeFilter} feature flags match your search.`
-                  : searchQuery
-                    ? 'No feature flags match your search.'
-                    : typeFilter !== 'all'
-                      ? `No ${typeFilter} feature flags available.`
-                      : 'No feature flags available.'}
-              </Text>
-            </Box>
-          ) : (
-            filteredFlags.map((flag) => (
-              <FeatureFlagRow
-                key={flag.key}
-                flag={flag}
-                onToggle={handleToggleFlag}
-              />
-            ))
-          )}
-        </ScrollView>
+          {/* Clear All Button */}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={handleClearAllOverrides}
+          >
+            {`Clear All Overrides (${overrideCount})`}
+          </Button>
+        </Box>
       </Box>
-    </SafeAreaView>
+
+      {/* Feature flags list */}
+      <ScrollView style={tw.style('flex-1 bg-background-default')}>
+        {filteredFlags.length === 0 ? (
+          <Box twClassName="p-8 items-center">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {searchQuery && typeFilter !== 'all'
+                ? `No ${typeFilter} feature flags match your search.`
+                : searchQuery
+                  ? 'No feature flags match your search.'
+                  : typeFilter !== 'all'
+                    ? `No ${typeFilter} feature flags available.`
+                    : 'No feature flags available.'}
+            </Text>
+          </Box>
+        ) : (
+          filteredFlags.map((flag) => (
+            <FeatureFlagRow
+              key={flag.key}
+              flag={flag}
+              onToggle={handleToggleFlag}
+            />
+          ))
+        )}
+      </ScrollView>
+    </Box>
   );
 };
 

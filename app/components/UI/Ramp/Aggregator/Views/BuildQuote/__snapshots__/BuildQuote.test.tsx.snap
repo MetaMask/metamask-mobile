@@ -59,47 +59,8 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -107,24 +68,74 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -178,47 +189,8 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -226,24 +198,74 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -2489,47 +2511,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -2537,24 +2520,74 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -2608,47 +2641,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -2656,24 +2650,74 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -3148,47 +3192,8 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -3196,24 +3201,74 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -3738,47 +3793,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -3786,24 +3802,74 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -3857,47 +3923,8 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -3905,24 +3932,74 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -4397,47 +4474,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -4445,24 +4483,74 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -4516,47 +4604,8 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -4564,24 +4613,74 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -6673,47 +6772,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -6721,24 +6781,74 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -6792,47 +6902,8 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -6840,24 +6911,74 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -7332,47 +7453,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -7380,24 +7462,74 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -7451,47 +7583,8 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -7499,24 +7592,74 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -9588,47 +9731,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -9636,24 +9740,74 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -9707,47 +9861,8 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -9755,24 +9870,74 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -10247,47 +10412,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -10295,24 +10421,74 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -10366,47 +10542,8 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -10414,24 +10551,74 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -12634,47 +12821,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -12682,24 +12830,74 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -12753,47 +12951,8 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -12801,24 +12960,74 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -15014,47 +15223,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -15062,24 +15232,74 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -15133,47 +15353,8 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -15181,24 +15362,74 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -15673,47 +15904,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -15721,24 +15913,74 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -15792,47 +16034,8 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -15840,24 +16043,74 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -17905,47 +18158,8 @@ exports[`BuildQuote View renders correctly 1`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -17953,24 +18167,74 @@ exports[`BuildQuote View renders correctly 1`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -18024,47 +18288,8 @@ exports[`BuildQuote View renders correctly 1`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -18072,24 +18297,74 @@ exports[`BuildQuote View renders correctly 1`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -20335,47 +20610,8 @@ exports[`BuildQuote View renders correctly 2`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -20383,24 +20619,74 @@ exports[`BuildQuote View renders correctly 2`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -22711,47 +22997,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -22759,24 +23006,74 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -22830,47 +23127,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -22878,24 +23136,74 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-configuration-menu-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="Setting"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-configuration-menu-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="Setting"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>
@@ -23370,47 +23678,8 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
               onLayout={[Function]}
             >
               <View
-                accessibilityState={
-                  {
-                    "busy": undefined,
-                    "checked": undefined,
-                    "disabled": false,
-                    "expanded": undefined,
-                    "selected": undefined,
-                  }
-                }
-                accessibilityValue={
-                  {
-                    "max": undefined,
-                    "min": undefined,
-                    "now": undefined,
-                    "text": undefined,
-                  }
-                }
-                accessible={true}
-                collapsable={false}
-                focusable={true}
-                onBlur={[Function]}
-                onClick={[Function]}
-                onFocus={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderRelease={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
                 style={
                   [
-                    {
-                      "alignItems": "center",
-                      "backgroundColor": "transparent",
-                      "borderRadius": 8,
-                      "height": 32,
-                      "justifyContent": "center",
-                      "opacity": 1,
-                      "width": 32,
-                    },
-                    undefined,
                     {
                       "transform": [
                         {
@@ -23418,24 +23687,74 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                         },
                       ],
                     },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
                   ]
                 }
-                testID="deposit-back-navbar-button"
               >
-                <SvgMock
-                  fill="currentColor"
-                  name="ArrowLeft"
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
                   style={
                     [
                       {
-                        "color": "#121314",
-                        "height": 24,
-                        "width": 24,
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
                       },
                       undefined,
                     ]
                   }
-                />
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
               </View>
             </View>
           </View>

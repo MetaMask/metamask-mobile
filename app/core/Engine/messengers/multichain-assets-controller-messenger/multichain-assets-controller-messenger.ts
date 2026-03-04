@@ -30,7 +30,6 @@ export function getMultichainAssetsControllerMessenger(
       'SnapController:handleRequest',
       'SnapController:getAll',
       'AccountsController:listMultichainAccounts',
-      'PhishingController:bulkScanTokens',
     ],
     events: [
       'AccountsController:accountAdded',

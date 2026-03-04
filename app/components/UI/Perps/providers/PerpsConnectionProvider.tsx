@@ -35,8 +35,6 @@ interface PerpsConnectionProviderProps {
   children: React.ReactNode;
   isVisible?: boolean;
   isFullScreen?: boolean;
-  /** When true, silently renders children instead of showing the error view on connection failure. */
-  suppressErrorView?: boolean;
 }
 
 /**
@@ -48,12 +46,7 @@ interface PerpsConnectionProviderProps {
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({
-  children,
-  isVisible,
-  isFullScreen = false,
-  suppressErrorView = false,
-}) => {
+> = ({ children, isVisible, isFullScreen = false }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
@@ -259,9 +252,7 @@ export const PerpsConnectionProvider: React.FC<
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error
-  // When suppressErrorView is true, skip the error view and render children normally
-  // so the consuming section can handle the empty state gracefully (e.g., hide itself)
-  if (connectionState.error && !suppressErrorView) {
+  if (connectionState.error) {
     // Determine if back button should be shown based on navigation context
     // Always show back button when in full screen mode (e.g., stack navigator)
     // Also show it after retry attempts for other contexts

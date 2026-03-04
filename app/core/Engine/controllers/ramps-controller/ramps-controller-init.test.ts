@@ -152,6 +152,18 @@ describe('ramps controller init', () => {
         isLoading: false,
         error: null,
       },
+      quotes: {
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
+      widgetUrl: {
+        data: null,
+        selected: null,
+        isLoading: false,
+        error: null,
+      },
       requests: {},
       nativeProviders: {
         transak: {

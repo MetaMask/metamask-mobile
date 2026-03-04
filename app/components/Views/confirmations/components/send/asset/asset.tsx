@@ -18,9 +18,10 @@ import { NftList } from '../../nft-list';
 
 import {
   AssetType,
-  HighlightedItem as HighlightedItemType,
-  isHighlightedItemInAssetList,
-  isHighlightedItemOutsideAssetList,
+  HighlightedActionListItem,
+  HighlightedAssetListItem,
+  isHighlightedActionListItem,
+  isHighlightedAssetListItem,
   TokenListItem,
 } from '../../../types/token';
 import { NetworkFilter } from '../../network-filter';
@@ -28,7 +29,7 @@ import { useEVMNfts } from '../../../hooks/send/useNfts';
 import { useSendTokens } from '../../../hooks/send/useSendTokens';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
-import { HighlightedItem } from '../../UI/highlighted-item';
+import { HighlightedAction } from '../../UI/highlighted-action';
 
 export interface AssetProps {
   hideNfts?: boolean;
@@ -56,25 +57,25 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   const {
     tokens,
-    highlightedItemsInAssetList,
-    highlightedItemsOutsideAssetList,
+    highlightedAssets,
+    highlightedActions,
   }: {
     tokens: AssetType[];
-    highlightedItemsInAssetList: HighlightedItemType[];
-    highlightedItemsOutsideAssetList: HighlightedItemType[];
+    highlightedAssets: HighlightedAssetListItem[];
+    highlightedActions: HighlightedActionListItem[];
   } = useMemo(() => {
     const mappedTokens: AssetType[] = [];
-    const mappedHighlightedItemsInAssetList: HighlightedItemType[] = [];
-    const mappedHighlightedItemsOutsideAssetList: HighlightedItemType[] = [];
+    const mappedHighlightedAssets: HighlightedAssetListItem[] = [];
+    const mappedHighlightedActions: HighlightedActionListItem[] = [];
 
     tokenItems.forEach((item) => {
-      if (isHighlightedItemOutsideAssetList(item)) {
-        mappedHighlightedItemsOutsideAssetList.push(item);
+      if (isHighlightedActionListItem(item)) {
+        mappedHighlightedActions.push(item);
         return;
       }
 
-      if (isHighlightedItemInAssetList(item)) {
-        mappedHighlightedItemsInAssetList.push(item);
+      if (isHighlightedAssetListItem(item)) {
+        mappedHighlightedAssets.push(item);
         return;
       }
 
@@ -83,8 +84,8 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
     return {
       tokens: mappedTokens,
-      highlightedItemsInAssetList: mappedHighlightedItemsInAssetList,
-      highlightedItemsOutsideAssetList: mappedHighlightedItemsOutsideAssetList,
+      highlightedAssets: mappedHighlightedAssets,
+      highlightedActions: mappedHighlightedActions,
     };
   }, [tokenItems]);
 
@@ -115,14 +116,14 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
     (() => void) | null
   >(null);
 
-  const filteredHighlightedItemsInAssetList = useMemo(() => {
+  const filteredHighlightedAssets = useMemo(() => {
     if (!searchQuery.trim()) {
-      return highlightedItemsInAssetList;
+      return highlightedAssets;
     }
 
     const query = searchQuery.toLowerCase().trim();
 
-    return highlightedItemsInAssetList.filter((item) => {
+    return highlightedAssets.filter((item) => {
       if (item.name.toLowerCase().includes(query)) {
         return true;
       }
@@ -133,7 +134,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
       return false;
     });
-  }, [highlightedItemsInAssetList, searchQuery]);
+  }, [highlightedAssets, searchQuery]);
 
   const handleFilteredTokensChange = useCallback(
     (newFilteredTokens: AssetType[]) => {
@@ -159,8 +160,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
   const hasNoTokenResults =
-    filteredTokens.length === 0 &&
-    filteredHighlightedItemsInAssetList.length === 0;
+    filteredTokens.length === 0 && filteredHighlightedAssets.length === 0;
   const hasNoResults = hasNoTokenResults && filteredNfts.length === 0;
 
   const handleClearAllFilters = useCallback(() => {
@@ -176,13 +176,9 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   useEffect(() => {
     const visibleTokenCount =
-      filteredTokens.length + filteredHighlightedItemsInAssetList.length;
+      filteredTokens.length + filteredHighlightedAssets.length;
     setAssetListSize(visibleTokenCount ? visibleTokenCount.toString() : '');
-  }, [
-    filteredTokens,
-    filteredHighlightedItemsInAssetList.length,
-    setAssetListSize,
-  ]);
+  }, [filteredTokens, filteredHighlightedAssets.length, setAssetListSize]);
 
   useEffect(() => {
     if (searchQuery.length) {
@@ -194,10 +190,10 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
 
   return (
     <Box twClassName="flex-1">
-      {highlightedItemsOutsideAssetList.length > 0 && (
+      {highlightedActions.length > 0 && (
         <Box>
-          {highlightedItemsOutsideAssetList.map((item, index) => (
-            <HighlightedItem
+          {highlightedActions.map((item, index) => (
+            <HighlightedAction
               key={`highlighted-action-${item.name}-${index}`}
               item={item}
             />
@@ -252,7 +248,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
           <>
             {!hideNfts &&
               (filteredTokens.length > 0 ||
-                filteredHighlightedItemsInAssetList.length > 0) && (
+                filteredHighlightedAssets.length > 0) && (
                 <Text
                   twClassName="m-4 mt-2 mb-2"
                   variant={TextVariant.BodyMd}
@@ -264,7 +260,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               )}
             <TokenList
               tokens={filteredTokens}
-              highlightedAssets={filteredHighlightedItemsInAssetList}
+              highlightedAssets={filteredHighlightedAssets}
               onSelect={onTokenSelect}
             />
             {!hideNfts && (

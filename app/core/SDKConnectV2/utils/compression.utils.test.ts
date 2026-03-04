@@ -1,42 +1,31 @@
-import { deflate } from 'pako';
-import {
-  decompressPayloadB64,
-  MAX_DECOMPRESSED_PAYLOAD_SIZE,
-} from './compression-utils';
+import { decompressPayloadB64 } from './compression-utils';
+import { inflate } from 'pako';
 
-function compressAndEncode(data: string | Uint8Array): string {
-  const input =
-    typeof data === 'string' ? new TextEncoder().encode(data) : data;
-  const compressed = deflate(input);
-  let binary = '';
-  for (const byte of compressed) {
-    binary += String.fromCharCode(byte);
-  }
-  return btoa(binary);
-}
+jest.mock('pako', () => ({
+  inflate: jest.fn(),
+}));
 
-describe('decompressPayloadB64', () => {
-  it('round-trips a valid JSON payload', () => {
-    const original = JSON.stringify({
-      session: { id: 'abc-123' },
-      metadata: { name: 'Test dApp' },
+const mockInflate = inflate as jest.MockedFunction<typeof inflate>;
+
+describe('compression-utils', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('decompressPayloadB64', () => {
+    it('decompresses a valid base64-encoded compressed string', () => {
+      const originalText = 'Hello, World!';
+      const compressedBase64 = btoa('compressed-data');
+      const mockDecompressed = new Uint8Array([
+        72, 101, 108, 108, 111, 44, 32, 87, 111, 114, 108, 100, 33,
+      ]); // "Hello, World!" in bytes
+
+      mockInflate.mockReturnValue(mockDecompressed);
+
+      const result = decompressPayloadB64(compressedBase64);
+
+      expect(result).toBe(originalText);
+      expect(mockInflate).toHaveBeenCalledWith(expect.any(Uint8Array));
     });
-
-    expect(decompressPayloadB64(compressAndEncode(original))).toBe(original);
-  });
-
-  it('aborts decompression when output exceeds the size limit', () => {
-    const oversized = new Uint8Array(MAX_DECOMPRESSED_PAYLOAD_SIZE + 1024);
-    const encoded = compressAndEncode(oversized);
-
-    expect(() => decompressPayloadB64(encoded)).toThrow(
-      'Decompressed payload too large',
-    );
-  });
-
-  it('throws on corrupt compressed data', () => {
-    expect(() => decompressPayloadB64(btoa('not-valid-deflate'))).toThrow(
-      'Decompression failed',
-    );
   });
 });

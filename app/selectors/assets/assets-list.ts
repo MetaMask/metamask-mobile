@@ -35,7 +35,6 @@ import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAsse
 import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 
 /**
  * Structured map of Tron resources for efficient access.
@@ -397,15 +396,10 @@ function assetToToken(
       },
     ),
     balanceFiat: asset.fiat
-      ? formatWithThreshold(
-          asset.fiat.balance,
-          oneHundredths,
-          getLocaleLanguageCode(),
-          {
-            style: 'currency',
-            currency: asset.fiat.currency,
-          },
-        )
+      ? formatWithThreshold(asset.fiat.balance, oneHundredths, I18n.locale, {
+          style: 'currency',
+          currency: asset.fiat.currency,
+        })
       : undefined,
     logo:
       asset.accountType.startsWith('eip155') && asset.isNative

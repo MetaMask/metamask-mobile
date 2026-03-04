@@ -1,56 +1,29 @@
-import React from 'react';
-
-import TagColored from './TagColored';
+// Internal dependencies.
+import { default as TagColoredComponent } from './TagColored';
 import { TagColor } from './TagColored.types';
+import { SAMPLE_TAGCOLORED_PROPS } from './TagColored.constants';
 
-const TagColoredMeta = {
+const TagColoredStoryMeta = {
   title: 'Components Temp / TagColored',
-  component: TagColored,
+  component: TagColoredComponent,
   argTypes: {
     color: {
-      options: Object.values(TagColor),
-      control: { type: 'select' },
+      options: TagColor,
+      control: {
+        type: 'select',
+      },
     },
     children: {
-      control: 'text',
+      control: { type: 'text' },
     },
   },
 };
 
-export default TagColoredMeta;
+export default TagColoredStoryMeta;
 
-export const Default = {
+export const TagColored = {
   args: {
-    color: TagColor.Default,
-    children: 'Sample TagColored text',
+    color: SAMPLE_TAGCOLORED_PROPS.color,
+    children: SAMPLE_TAGCOLORED_PROPS.children,
   },
-};
-
-export const Success = {
-  render: () => (
-    <TagColored color={TagColor.Success}>Paid by MetaMask</TagColored>
-  ),
-};
-
-export const Info = {
-  render: () => <TagColored color={TagColor.Info}>Info tag</TagColored>,
-};
-
-export const Danger = {
-  render: () => <TagColored color={TagColor.Danger}>Error</TagColored>,
-};
-
-export const Warning = {
-  render: () => <TagColored color={TagColor.Warning}>Pending</TagColored>,
-};
-
-export const WithNormalCase = {
-  render: () => (
-    <TagColored
-      color={TagColor.Success}
-      labelProps={{ style: { textTransform: 'none' } }}
-    >
-      Paid by MetaMask
-    </TagColored>
-  ),
 };

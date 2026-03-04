@@ -251,47 +251,8 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -299,24 +260,74 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -1669,47 +1680,8 @@ exports[`OrderDetails renders a completed order 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -1717,24 +1689,74 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -3105,47 +3127,8 @@ exports[`OrderDetails renders a created order 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -3153,24 +3136,74 @@ exports[`OrderDetails renders a created order 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -4519,47 +4552,8 @@ exports[`OrderDetails renders a failed order 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -4567,24 +4561,74 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -5937,47 +5981,8 @@ exports[`OrderDetails renders a pending order 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -5985,24 +5990,74 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -7351,47 +7406,8 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -7399,24 +7415,74 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -7750,47 +7816,8 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -7798,24 +7825,74 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -8337,47 +8414,8 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -8385,24 +8423,74 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -9816,47 +9904,8 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -9864,24 +9913,74 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -11298,47 +11397,8 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -11346,24 +11406,74 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -12712,47 +12822,8 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                               onLayout={[Function]}
                             >
                               <View
-                                accessibilityState={
-                                  {
-                                    "busy": undefined,
-                                    "checked": undefined,
-                                    "disabled": false,
-                                    "expanded": undefined,
-                                    "selected": undefined,
-                                  }
-                                }
-                                accessibilityValue={
-                                  {
-                                    "max": undefined,
-                                    "min": undefined,
-                                    "now": undefined,
-                                    "text": undefined,
-                                  }
-                                }
-                                accessible={true}
-                                collapsable={false}
-                                focusable={true}
-                                onBlur={[Function]}
-                                onClick={[Function]}
-                                onFocus={[Function]}
-                                onResponderGrant={[Function]}
-                                onResponderMove={[Function]}
-                                onResponderRelease={[Function]}
-                                onResponderTerminate={[Function]}
-                                onResponderTerminationRequest={[Function]}
-                                onStartShouldSetResponder={[Function]}
                                 style={
                                   [
-                                    {
-                                      "alignItems": "center",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 8,
-                                      "height": 32,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 32,
-                                    },
-                                    undefined,
                                     {
                                       "transform": [
                                         {
@@ -12760,24 +12831,74 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         },
                                       ],
                                     },
+                                    {
+                                      "alignItems": "center",
+                                      "justifyContent": "center",
+                                    },
                                   ]
                                 }
-                                testID="button-icon"
                               >
-                                <SvgMock
-                                  fill="currentColor"
-                                  name="ArrowLeft"
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
-                                        "height": 24,
-                                        "width": 24,
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
                                       },
                                       undefined,
                                     ]
                                   }
-                                />
+                                  testID="button-icon"
+                                >
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="ArrowLeft"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#121314",
+                                          "height": 24,
+                                          "width": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  />
+                                </View>
                               </View>
                             </View>
                           </View>

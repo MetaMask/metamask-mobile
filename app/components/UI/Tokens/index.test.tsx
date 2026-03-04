@@ -21,6 +21,8 @@ import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdC
 // eslint-disable-next-line import/no-namespace
 import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
 // eslint-disable-next-line import/no-namespace
+import * as MultichainAccountsModule from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+// eslint-disable-next-line import/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import/no-namespace
 import * as RefreshTokensModule from './util/refreshTokens';
@@ -126,6 +128,10 @@ const arrangeMockComponents = () => {
 };
 
 const arrangeMockSelectors = () => {
+  const mockSelectMultichainAccountsState2Enabled = jest
+    .spyOn(MultichainAccountsModule, 'selectMultichainAccountsState2Enabled')
+    .mockImplementation(() => true);
+
   const mockSelectSortedAssetsBySelectedAccountGroup = jest
     .spyOn(
       AssetsListSelectorsModule,
@@ -138,6 +144,7 @@ const arrangeMockSelectors = () => {
     ]);
 
   return {
+    mockSelectMultichainAccountsState2Enabled,
     mockSelectSortedAssetsBySelectedAccountGroup,
   };
 };
@@ -245,7 +252,7 @@ describe('Tokens', () => {
 
     // Assert - navigation to add token screen
     await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
+      expect(mockPush).toHaveBeenCalledWith('AddAsset', {
         assetType: 'token',
       }),
     );
