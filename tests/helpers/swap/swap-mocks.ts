@@ -18,6 +18,7 @@ import {
   GET_TOKENS_API_USDC_RESPONSE,
   GET_TOKENS_API_USDT_RESPONSE,
   GET_QUOTE_USDC_GOOGLON_RESPONSE,
+  toSSEResponse,
 } from './constants';
 
 const USDC_MAINNET = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
@@ -73,67 +74,82 @@ export const testSpecificMock: TestSpecificMock = async (
 ) => {
   await setupSpotPricesMock(mockServer);
 
+  // Catch-all for getQuoteStream with no slippage param (initial render before
+  // useInitialSlippage fires). Registered first so specific mocks below at
+  // priority 999 take precedence. Prevents real network calls that cause
+  // Error: Aborted when the bridge controller aborts the in-flight request.
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: /getQuoteStream/i,
+      response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
+      responseCode: 200,
+    },
+    1, // lower priority than the specific mocks below (999)
+  );
+
   // Mock ETH->USDC with default 2% slippage
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
-    response: GET_QUOTE_ETH_USDC_RESPONSE,
+    url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=2/i,
+    response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
     responseCode: 200,
   });
 
   // Mock ETH->USDC with 3.5% custom slippage
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3.5/i,
-    response: GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
+    url: /getQuoteStream.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*slippage=3\.5/i,
+    response: toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE),
     responseCode: 200,
   });
 
   // Mock ETH->DAI
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
-    response: GET_QUOTE_ETH_DAI_RESPONSE,
+    url: /getQuoteStream.*destTokenAddress=0x6B175474E89094C44Da98b954EedeAC495271d0F/i,
+    response: toSSEResponse(GET_QUOTE_ETH_DAI_RESPONSE),
     responseCode: 200,
   });
 
   // Mock USDC->USDT
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
-    response: GET_QUOTE_USDC_USDT_RESPONSE,
+    url: /getQuoteStream.*destTokenAddress=0xdAC17F958D2ee523a2206206994597C13D831ec7/i,
+    response: toSSEResponse(GET_QUOTE_USDC_USDT_RESPONSE),
     responseCode: 200,
   });
 
-  // No need quote when destination is mUSD
+  // No quote when destination is mUSD
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
-    response: [],
+    url: /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+    response: '',
     responseCode: 200,
   });
 
   // Mock USDC->ETH (ETH native token address is 0x0000...0000)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: GET_QUOTE_USDC_ETH_RESPONSE,
+    url: /getQuoteStream.*srcTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    response: toSSEResponse(GET_QUOTE_USDC_ETH_RESPONSE),
     responseCode: 200,
   });
 
   // Mock ETH->WETH (wrapped native)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    response: GET_QUOTE_ETH_WETH_RESPONSE,
+    url: /getQuoteStream.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
+    response: toSSEResponse(GET_QUOTE_ETH_WETH_RESPONSE),
     responseCode: 200,
   });
 
   // Mock WETH->ETH (same-chain unwrap for E2E)
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
-    response: GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE,
+    url: /getQuoteStream.*srcTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2.*destTokenAddress=0x0000000000000000000000000000000000000000/i,
+    response: toSSEResponse(GET_QUOTE_WETH_ETH_SAME_CHAIN_RESPONSE),
     responseCode: 200,
   });
 
@@ -172,8 +188,8 @@ export const testSpecificMock: TestSpecificMock = async (
   // Mock USDC->GOOGLON
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: /getQuote.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
-    response: GET_QUOTE_USDC_GOOGLON_RESPONSE,
+    url: /getQuoteStream.*destTokenAddress=0xba47214edd2bb43099611b208f75e4b42fdcfedc/i,
+    response: toSSEResponse(GET_QUOTE_USDC_GOOGLON_RESPONSE),
     responseCode: 200,
   });
 
