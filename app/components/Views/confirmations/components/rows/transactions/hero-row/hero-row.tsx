@@ -9,8 +9,41 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
 import styleSheet from './hero-row.styles';
 
-export function HeroRowSkeleton() {
-  const { styles } = useStyles(styleSheet, {});
+export function HeroRowSkeleton({
+  layout,
+}: {
+  layout?: 'default' | 'horizontal';
+}) {
+  const { styles } = useStyles(styleSheet, { layout });
+
+  if (layout === 'horizontal') {
+    return (
+      <View style={styles.skeletonHorizontalContainer}>
+        <View style={styles.skeletonTextContainer}>
+          <Skeleton
+            width={60}
+            height={14}
+            style={styles.skeletonBorderRadiusSmall}
+          />
+          <Skeleton
+            width={150}
+            height={24}
+            style={styles.skeletonBorderRadiusMedium}
+          />
+          <Skeleton
+            width={80}
+            height={14}
+            style={styles.skeletonBorderRadiusSmall}
+          />
+        </View>
+        <Skeleton
+          width={40}
+          height={40}
+          style={styles.skeletonBorderRadiusLarge}
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -33,18 +66,27 @@ export function HeroRowSkeleton() {
   );
 }
 
-export const HeroRow = ({ amountWei }: { amountWei?: string }) => {
+interface HeroRowProps {
+  amountWei?: string;
+  layout?: 'default' | 'horizontal';
+}
+
+export const HeroRow = ({ amountWei, layout }: HeroRowProps) => {
   const { isNft, isPending } = useIsNft();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { layout });
 
   return (
     <View
       style={styles.wrapper}
       testID={ConfirmationRowComponentIDs.TOKEN_HERO}
     >
-      {isPending && <HeroRowSkeleton />}
+      {isPending && <HeroRowSkeleton layout={layout} />}
       {!isPending &&
-        (isNft ? <HeroNft /> : <HeroToken amountWei={amountWei} />)}
+        (isNft ? (
+          <HeroNft />
+        ) : (
+          <HeroToken amountWei={amountWei} layout={layout} />
+        ))}
     </View>
   );
 };
