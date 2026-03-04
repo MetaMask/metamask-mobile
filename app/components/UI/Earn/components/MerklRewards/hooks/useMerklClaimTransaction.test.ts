@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useMerklClaim } from './useMerklClaim';
+import { useMerklClaimTransaction } from './useMerklClaimTransaction';
 import { addTransaction } from '../../../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { TokenI } from '../../../../Tokens/types';
@@ -99,7 +99,7 @@ const createMockRewardData = (overrides?: {
   recipient: mockSelectedAddress,
 });
 
-describe('useMerklClaim', () => {
+describe('useMerklClaimTransaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchMerklRewardsForAsset.mockReset();
@@ -136,7 +136,7 @@ describe('useMerklClaim', () => {
   });
 
   it('initializes with correct default values', () => {
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     expect(result.current.isClaiming).toBe(false);
     expect(result.current.error).toBe(null);
@@ -151,7 +151,7 @@ describe('useMerklClaim', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     let claimResult: unknown;
     await act(async () => {
@@ -178,7 +178,7 @@ describe('useMerklClaim', () => {
       return undefined;
     });
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     let claimResult: unknown;
     await act(async () => {
@@ -198,7 +198,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     let claimResult: { txHash: string } | undefined;
     await act(async () => {
@@ -227,7 +227,7 @@ describe('useMerklClaim', () => {
       new Error('Failed to fetch Merkl rewards: 500'),
     );
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -241,7 +241,7 @@ describe('useMerklClaim', () => {
     // fetchMerklRewardsForAsset returns null when no matching reward exists
     mockFetchMerklRewardsForAsset.mockResolvedValueOnce(null);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -256,7 +256,7 @@ describe('useMerklClaim', () => {
       new Error('Network error'),
     );
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     let claimResult: unknown;
     await act(async () => {
@@ -276,7 +276,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     // Start claim and capture promise - isClaiming becomes true synchronously
     let claimPromise: Promise<{ txHash: string } | undefined> | undefined;
@@ -316,7 +316,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(lineaAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(lineaAsset));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -342,7 +342,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-123' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     await act(async () => {
       await result.current.claimRewards();
@@ -364,7 +364,7 @@ describe('useMerklClaim', () => {
       transactionMeta: { id: 'tx-456' },
     } as never);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     let claimResult: { txHash: string } | undefined;
     await act(async () => {
@@ -386,7 +386,7 @@ describe('useMerklClaim', () => {
     );
     mockAddTransaction.mockRejectedValueOnce(userRejectionError);
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     await act(async () => {
       try {
@@ -407,7 +407,7 @@ describe('useMerklClaim', () => {
     // Error without code 4001 should set error state
     mockAddTransaction.mockRejectedValueOnce(new Error('Network error'));
 
-    const { result } = renderHook(() => useMerklClaim(mockAsset));
+    const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
     await act(async () => {
       try {
@@ -424,7 +424,7 @@ describe('useMerklClaim', () => {
 
   describe('undefined asset handling', () => {
     it('initializes with correct default values when asset is undefined', () => {
-      const { result } = renderHook(() => useMerklClaim(undefined));
+      const { result } = renderHook(() => useMerklClaimTransaction(undefined));
 
       expect(result.current.isClaiming).toBe(false);
       expect(result.current.error).toBe(null);
@@ -432,7 +432,7 @@ describe('useMerklClaim', () => {
     });
 
     it('sets error and returns undefined when claimRewards is called with undefined asset', async () => {
-      const { result } = renderHook(() => useMerklClaim(undefined));
+      const { result } = renderHook(() => useMerklClaimTransaction(undefined));
 
       let claimResult: unknown;
       await act(async () => {
@@ -462,7 +462,7 @@ describe('useMerklClaim', () => {
         transactionMeta: { id: 'tx-123' },
       } as never);
 
-      const { result } = renderHook(() => useMerklClaim(mockAsset));
+      const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
       // Start claim
       let claimPromise: Promise<unknown>;
@@ -501,7 +501,7 @@ describe('useMerklClaim', () => {
         transactionMeta: undefined,
       } as never);
 
-      const { result } = renderHook(() => useMerklClaim(mockAsset));
+      const { result } = renderHook(() => useMerklClaimTransaction(mockAsset));
 
       let claimResult: unknown;
       await act(async () => {

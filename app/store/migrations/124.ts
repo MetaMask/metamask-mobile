@@ -1,31 +1,33 @@
-import { captureException } from '@sentry/react-native';
-import { isObject } from '@metamask/utils';
+import { isObject, hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
 
+export const migrationVersion = 124;
+
 /**
- * Migration 124: Change default search engine to Brave
- *
- * All existing users will be migrated to 'Brave' for a privacy-focused,
- * ad-free search experience.
+ * Migration 124: Remove stale cache data and priority token fields from the
+ * Card Redux slice. Data fetching has been migrated to React Query.
  *
  * @param state - The persisted Redux state
  * @returns The migrated Redux state
  */
-export default function migrate(state: unknown) {
-  if (!ensureValidState(state, 124)) {
+const migration = (state: unknown): unknown => {
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  if (!isObject(state.settings)) {
-    captureException(
-      new Error(
-        `FATAL ERROR: Migration 124: Invalid Settings state error: '${typeof state.settings}'`,
-      ),
-    );
+  if (!hasProperty(state, 'card') || !isObject(state.card)) {
     return state;
   }
 
-  state.settings.searchEngine = 'Brave';
+  const card = state.card as Record<string, unknown>;
+
+  delete card.cache;
+  delete card.priorityTokensByAddress;
+  delete card.lastFetchedByAddress;
+  delete card.authenticatedPriorityToken;
+  delete card.authenticatedPriorityTokenLastFetched;
 
   return state;
-}
+};
+
+export default migration;

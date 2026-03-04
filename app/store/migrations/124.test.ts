@@ -1,116 +1,186 @@
-import migrate from './124';
-import { merge } from 'lodash';
-import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
-import mockedEngine from '../../core/__mocks__/MockedEngine';
+import migrate, { migrationVersion } from './124';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
-const mockedCaptureException = jest.mocked(captureException);
 
-jest.mock('../../core/Engine', () => ({
-  init: () => mockedEngine.init(),
-}));
-
-describe('Migration #124 - Update default search engine to Brave', () => {
+describe(`Migration ${migrationVersion}: Remove stale cache and priority token fields from Card state`, () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
-  const invalidStates = [
-    {
-      state: null,
-      errorMessage: "FATAL ERROR: Migration 124: Invalid state error: 'object'",
-      scenario: 'state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: null,
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 124: Invalid engine state error: 'object'",
-      scenario: 'engine state is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: null,
-        },
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 124: Invalid engine backgroundState error: 'object'",
-      scenario: 'backgroundState is invalid',
-    },
-    {
-      state: merge({}, initialRootState, {
-        engine: {
-          backgroundState: {},
-        },
-        settings: null,
-      }),
-      errorMessage:
-        "FATAL ERROR: Migration 124: Invalid Settings state error: 'object'",
-      scenario: 'Settings object is invalid',
-    },
-  ];
+  it('returns state unchanged when ensureValidState fails', () => {
+    const invalidState = 'not an object';
+    const result = migrate(invalidState);
 
-  for (const { errorMessage, scenario, state } of invalidStates) {
-    it(`captures exception if ${scenario}`, async () => {
-      const newState = await migrate(state);
+    expect(result).toBe(invalidState);
+  });
 
-      expect(newState).toStrictEqual(state);
-      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
-      );
+  it('returns state unchanged when card property is missing', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+    };
+
+    const result = migrate(state) as typeof state;
+
+    expect(result).toStrictEqual(state);
+  });
+
+  it('returns state unchanged when card is not an object', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+      card: 'invalid',
+    };
+
+    const result = migrate(state) as typeof state;
+
+    expect(result).toStrictEqual(state);
+  });
+
+  it('removes stale fields from card state', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+      card: {
+        cardholderAccounts: ['0x123'],
+        isLoaded: true,
+        hasViewedCardButton: true,
+        alwaysShowCardButton: false,
+        geoLocation: 'US',
+        isAuthenticated: false,
+        userCardLocation: 'international',
+        isDaimoDemo: false,
+        onboarding: {
+          onboardingId: null,
+          selectedCountry: null,
+          contactVerificationId: null,
+          consentSetId: null,
+        },
+        cache: {
+          data: { 'some-key': { value: 'test' } },
+          timestamps: { 'some-key': 1000 },
+        },
+        priorityTokensByAddress: {
+          '0x123': { address: '0xToken1', symbol: 'USDC' },
+        },
+        lastFetchedByAddress: {
+          '0x123': '2025-08-21T10:00:00Z',
+        },
+        authenticatedPriorityToken: {
+          address: '0xToken1',
+          symbol: 'USDC',
+        },
+        authenticatedPriorityTokenLastFetched: '2025-08-21T10:00:00Z',
+      },
+    };
+
+    const result = migrate(state) as typeof state;
+    const card = result.card as Record<string, unknown>;
+
+    expect(card.cache).toBeUndefined();
+    expect(card.priorityTokensByAddress).toBeUndefined();
+    expect(card.lastFetchedByAddress).toBeUndefined();
+    expect(card.authenticatedPriorityToken).toBeUndefined();
+    expect(card.authenticatedPriorityTokenLastFetched).toBeUndefined();
+  });
+
+  it('preserves other card state fields', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+      card: {
+        cardholderAccounts: ['0x123', '0x456'],
+        isLoaded: true,
+        hasViewedCardButton: true,
+        alwaysShowCardButton: true,
+        geoLocation: 'GB',
+        isAuthenticated: true,
+        userCardLocation: 'us',
+        isDaimoDemo: false,
+        onboarding: {
+          onboardingId: 'test-id',
+          selectedCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+          contactVerificationId: 'ver-123',
+          consentSetId: 'consent-456',
+        },
+        cache: { data: {}, timestamps: {} },
+        priorityTokensByAddress: {},
+        lastFetchedByAddress: {},
+        authenticatedPriorityToken: null,
+        authenticatedPriorityTokenLastFetched: null,
+      },
+    };
+
+    const result = migrate(state) as typeof state;
+    const card = result.card as Record<string, unknown>;
+
+    expect(card.cardholderAccounts).toEqual(['0x123', '0x456']);
+    expect(card.isLoaded).toBe(true);
+    expect(card.hasViewedCardButton).toBe(true);
+    expect(card.alwaysShowCardButton).toBe(true);
+    expect(card.geoLocation).toBe('GB');
+    expect(card.isAuthenticated).toBe(true);
+    expect(card.userCardLocation).toBe('us');
+    expect(card.isDaimoDemo).toBe(false);
+    expect(card.onboarding).toEqual({
+      onboardingId: 'test-id',
+      selectedCountry: { key: 'US', name: 'United States', emoji: '🇺🇸' },
+      contactVerificationId: 'ver-123',
+      consentSetId: 'consent-456',
     });
-  }
-
-  it('updates the search engine from Google to Brave', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'Google',
-      },
-    };
-
-    const expectedState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'Brave',
-      },
-    };
-
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('updates the search engine from DuckDuckGo to Brave', async () => {
-    const oldState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'DuckDuckGo',
+  it('handles card state that already lacks the removed fields', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+      card: {
+        cardholderAccounts: [],
+        isLoaded: false,
+        hasViewedCardButton: false,
+        alwaysShowCardButton: false,
+        geoLocation: 'UNKNOWN',
+        isAuthenticated: false,
+        userCardLocation: 'international',
+        isDaimoDemo: false,
+        onboarding: {
+          onboardingId: null,
+          selectedCountry: null,
+          contactVerificationId: null,
+          consentSetId: null,
+        },
       },
     };
 
-    const expectedState = {
-      engine: {
-        backgroundState: {},
-      },
-      settings: {
-        searchEngine: 'Brave',
-      },
+    const result = migrate(state) as typeof state;
+    const card = result.card as Record<string, unknown>;
+
+    expect(card.cardholderAccounts).toEqual([]);
+    expect(card.isLoaded).toBe(false);
+    expect(card.cache).toBeUndefined();
+    expect(card.priorityTokensByAddress).toBeUndefined();
+    expect(card.lastFetchedByAddress).toBeUndefined();
+    expect(card.authenticatedPriorityToken).toBeUndefined();
+    expect(card.authenticatedPriorityTokenLastFetched).toBeUndefined();
+  });
+
+  it('handles empty card object', () => {
+    const state = {
+      engine: { backgroundState: {} },
+      settings: {},
+      security: {},
+      card: {},
     };
 
-    const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(expectedState);
+    const result = migrate(state) as typeof state;
+
+    expect(result.card).toEqual({});
   });
 });
