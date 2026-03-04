@@ -174,6 +174,12 @@ const getNonce = async ({
   return BigInt(res);
 };
 
+/**
+ * Generate a random Permit2 nonce. Uses a random 32-bit value instead of
+ * reading the on-chain nonce bitmap to avoid an RPC round-trip and prevent
+ * nonce collisions on back-to-back orders whose fee collection hasn't
+ * settled on-chain yet.
+ */
 export const getPermit2Nonce = async (): Promise<string> => {
   const arr = new Uint32Array(1);
   global.crypto.getRandomValues(arr);
