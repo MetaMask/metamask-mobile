@@ -126,6 +126,8 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
     );
     const mockHandleDeeplink = jest.mocked(handleDeeplink);
 
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
+
     return {
       mockOnClickPushNotificationWhenAppClosed,
       mockOnClickPushNotificationWhenAppSuspended,
@@ -285,6 +287,7 @@ describe('SharedDeeplinkManager', () => {
 describe('DeeplinkManager.start Branch deeplink handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({});
   });
 
   it('calls getLatestReferringParams immediately for cold start deeplink check', async () => {
@@ -304,6 +307,28 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
+  it('processes cold start deeplink via ~referring_link when +clicked_branch_link is true', async () => {
+    const mockReferringLink =
+      'https://metamask.app.link/swap?from=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': true,
+      '~referring_link': mockReferringLink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockReferringLink });
+  });
+
+  it('does not process cold start deeplink when params have no usable link', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+is_first_session': false,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
   it('subscribes to Branch deeplink events', async () => {
     DeeplinkManager.start();
     expect(branch.subscribe).toHaveBeenCalled();
@@ -314,8 +339,51 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(branch.subscribe).toHaveBeenCalledWith(expect.any(Function));
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
     const mockUri = 'https://link.metamask.io/home';
-    callback({ uri: mockUri });
-    await new Promise((resolve) => setImmediate(resolve));
+    callback({ uri: mockUri, params: { '+clicked_branch_link': true } });
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('processes deeplink via ~referring_link when opened from deepview (no uri)', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockReferringLink = 'https://link.metamask.io/swap?amount=100';
+    callback({
+      uri: undefined,
+      params: {
+        '+clicked_branch_link': true,
+        '~referring_link': mockReferringLink,
+        '+is_first_session': false,
+      },
+    });
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockReferringLink });
+  });
+
+  it('does not call handleDeeplink on Branch error', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    callback({ error: 'some error', uri: 'https://link.metamask.io/home' });
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('does not call handleDeeplink when no deeplink can be extracted', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    callback({
+      uri: undefined,
+      params: { '+clicked_branch_link': false },
+    });
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('calls handleDeeplink only once per subscribe event', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://link.metamask.io/home';
+    callback({ uri: mockUri, params: { '+clicked_branch_link': true } });
+    // Should be called exactly once, not twice as before
+    const calls = (handleDeeplink as jest.Mock).mock.calls.filter(
+      (call) => call[0].uri === mockUri,
+    );
+    expect(calls).toHaveLength(1);
   });
 });

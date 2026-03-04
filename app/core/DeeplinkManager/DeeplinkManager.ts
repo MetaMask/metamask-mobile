@@ -1,12 +1,37 @@
 'use strict';
 
 import parseDeeplink from './utils/parseDeeplink';
-import branch from 'react-native-branch';
+import branch, { BranchParams } from 'react-native-branch';
 import { Linking } from 'react-native';
 import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
+
+/**
+ * Extract a usable deeplink URI from Branch session data.
+ *
+ * Priority: direct URI > +non_branch_link > ~referring_link.
+ * The ~referring_link fallback handles the deepview case (e.g. X/Twitter in-app browser)
+ * where the app is opened via Branch's webpage rather than a direct Universal Link.
+ */
+function extractDeeplinkFromBranchParams(
+  uri?: string,
+  params?: BranchParams,
+): string | undefined {
+  if (uri) return uri;
+
+  if (!params) return undefined;
+
+  const nonBranchLink = params['+non_branch_link'] as string | undefined;
+  if (nonBranchLink) return nonBranchLink;
+
+  if (params['+clicked_branch_link'] && params['~referring_link']) {
+    return params['~referring_link'] as string;
+  }
+
+  return undefined;
+}
 
 export class DeeplinkManager {
   // singleton instance
@@ -58,23 +83,6 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    const getBranchDeeplink = async (uri?: string) => {
-      if (uri) {
-        handleDeeplink({ uri });
-        return;
-      }
-
-      try {
-        const latestParams = await branch.getLatestReferringParams();
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error getting Branch deeplink');
-      }
-    };
-
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
         handleDeeplink({
@@ -109,20 +117,32 @@ export class DeeplinkManager {
     // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
     // This is a workaround to ensure that the deeplink is processed for iOS cold start.
     // TODO: Remove this once branch.subscribe is called for iOS cold start.
-    getBranchDeeplink();
+    branch
+      .getLatestReferringParams()
+      .then((params) => {
+        const deeplink = extractDeeplinkFromBranchParams(undefined, params);
+        if (deeplink) {
+          handleDeeplink({ uri: deeplink });
+        }
+      })
+      .catch((error: Error) => {
+        Logger.error(error, 'Error getting Branch deeplink on cold start');
+      });
 
     branch.subscribe((opts) => {
-      const { error } = opts;
+      const { error, uri, params } = opts;
       if (error) {
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
+        Logger.error(new Error(error), 'Error subscribing to branch.');
+        return;
       }
-      getBranchDeeplink(opts.uri);
-      //TODO: that async call in the subscribe doesn't look good to me
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
+
+      const deeplink = extractDeeplinkFromBranchParams(uri, params);
+      Logger.log(
+        `Branch subscribe: uri=${uri} clickedBranchLink=${params?.['+clicked_branch_link']} referringLink=${params?.['~referring_link']} resolvedDeeplink=${deeplink}`,
+      );
+      if (deeplink) {
         handleDeeplink({ uri: deeplink });
-      });
+      }
     });
   }
 }
