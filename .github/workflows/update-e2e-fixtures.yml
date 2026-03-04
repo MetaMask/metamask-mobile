@@ -4,6 +4,11 @@
 # an existing user, not fresh post-onboarding state.
 #
 # Trigger via bot command on a PR: @metamaskbot update-mobile-fixture
+# Or manually via Actions tab with workflow_dispatch.
+#
+# NOTE: issue_comment always runs from the default branch (main).
+# To use the workflow version from the PR branch, the issue_comment handler
+# dispatches a workflow_dispatch event on the PR branch, then exits.
 
 name: Update E2E Fixtures
 
@@ -11,15 +16,67 @@ on:
   issue_comment:
     types:
       - created
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to update fixtures for'
+        required: true
+        type: string
 
 jobs:
+  # ── issue_comment dispatcher ──────────────────────────────────────────
+  # Validates the comment, then re-dispatches this workflow on the PR branch.
+  dispatch:
+    name: Dispatch to PR branch
+    if: >-
+      ${{
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request &&
+        startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get PR details
+        id: pr
+        run: |
+          PR_NUMBER="${{ github.event.issue.number }}"
+          IS_FORK=$(gh pr view "${PR_NUMBER}" --json isCrossRepository --jq '.isCrossRepository')
+          BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
+          {
+            echo "PR_NUMBER=${PR_NUMBER}"
+            echo "IS_FORK=${IS_FORK}"
+            echo "BRANCH=${BRANCH}"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dispatch workflow on PR branch
+        if: steps.pr.outputs.IS_FORK == 'false'
+        run: |
+          gh workflow run "Update E2E Fixtures" \
+            --ref "${{ steps.pr.outputs.BRANCH }}" \
+            -f pr_number="${{ steps.pr.outputs.PR_NUMBER }}"
+
+          gh pr comment "${PR_NUMBER}" --body "🔄 **Fixture update started.** Running workflow from branch \`${{ steps.pr.outputs.BRANCH }}\`. [View workflow runs](${ACTIONS_URL})"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
+          ACTIONS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-e2e-fixtures.yml'
+
+  # ── workflow_dispatch: actual fixture update ──────────────────────────
+  # Everything below only runs on workflow_dispatch (from PR branch).
+
   is-fork-pull-request:
-    name: Determine whether this issue comment was on a pull request from a fork
-    if: ${{ github.event.issue.pull_request && startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture') }}
+    name: Validate PR
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
+      PR_NUMBER: ${{ inputs.pr_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -28,29 +85,7 @@ jobs:
         run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
-
-  react-to-comment:
-    name: React to the comment
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: is-fork-pull-request
-    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: React to the comment
-        run: |
-          gh api \
-            --method POST \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "/repos/${REPO}/issues/comments/${COMMENT_ID}/reactions" \
-            -f content='+1'
-        env:
-          COMMENT_ID: ${{ github.event.comment.id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ inputs.pr_number }}
 
   prepare:
     name: Prepare build artifacts
@@ -61,6 +96,7 @@ jobs:
     outputs:
       COMMIT_SHA: ${{ steps.commit-sha.outputs.COMMIT_SHA }}
       BRANCH: ${{ steps.branch.outputs.BRANCH }}
+      PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
     steps:
       - uses: actions/checkout@v4
 
@@ -68,7 +104,7 @@ jobs:
         run: gh pr checkout "${PR_NUMBER}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
 
       - name: Get commit SHA
         id: commit-sha
@@ -79,18 +115,19 @@ jobs:
         run: echo "BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
 
       - name: Download iOS build artifact from CI
         run: |
           COMMIT_SHA_FULL=$(git rev-parse HEAD)
           BRANCH="${{ steps.branch.outputs.BRANCH }}"
+          echo "::group::Checking CI workflow status"
 
           # Get the most recent ci workflow run for this branch
           RUN_INFO=$(gh run list --workflow "ci" --branch "${BRANCH}" --json databaseId,status,conclusion,headSha --limit 1 --jq 'first')
 
           if [ -z "$RUN_INFO" ] || [ "$RUN_INFO" = "null" ]; then
-            echo "::error::No 'ci' workflow run found for branch ${BRANCH}"
+            echo "::error title=No CI workflow found::No 'ci' workflow run found for branch ${BRANCH}. Push a commit to trigger CI first."
             exit 1
           fi
 
@@ -98,29 +135,39 @@ jobs:
           RUN_STATUS=$(echo "$RUN_INFO" | jq -r '.status')
           RUN_CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
           RUN_HEAD_SHA=$(echo "$RUN_INFO" | jq -r '.headSha')
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
 
-          echo "Found run ${RUN_ID} with status: ${RUN_STATUS}, conclusion: ${RUN_CONCLUSION}, headSha: ${RUN_HEAD_SHA}"
-          echo "Current PR HEAD commit: ${COMMIT_SHA_FULL}"
+          echo "CI workflow run: ${RUN_URL}"
+          echo "Status: ${RUN_STATUS}, Conclusion: ${RUN_CONCLUSION}"
+          echo "CI commit: ${RUN_HEAD_SHA}"
+          echo "PR HEAD commit: ${COMMIT_SHA_FULL}"
+          echo "::endgroup::"
 
           if [ "${RUN_HEAD_SHA}" != "${COMMIT_SHA_FULL}" ]; then
-            echo "::error::The latest 'ci' workflow run (commit ${RUN_HEAD_SHA}) does not match the current PR HEAD (commit ${COMMIT_SHA_FULL}). Please ensure CI has run for the latest commit on this branch."
+            echo "::error title=CI not up to date::The latest CI workflow (commit ${RUN_HEAD_SHA:0:7}) does not match the PR HEAD (commit ${COMMIT_SHA_FULL:0:7}). Wait for CI to run on the latest commit, then try again."
             exit 1
           fi
 
           if [ "${RUN_STATUS}" != "completed" ]; then
-            echo "::notice::The latest 'ci' workflow run is still in progress (status: ${RUN_STATUS}). Attempting to download the artifact anyway."
-          elif [ "${RUN_CONCLUSION}" != "success" ]; then
-            echo "::warning::The latest 'ci' workflow run concluded with '${RUN_CONCLUSION}'. The build artifact may still be available, proceeding with download attempt."
-          fi
-
-          echo "Attempting to download iOS app artifact..."
-
-          if ! gh run download "${RUN_ID}" -n main-qa-MetaMask.app -D ios-app-artifact; then
-            echo "::error::Failed to download the 'main-qa-MetaMask.app' artifact. The iOS build job may not have completed yet, or may have failed."
+            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for the 'Build iOS Apps' job to complete, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
             exit 1
           fi
 
-          echo "Successfully downloaded iOS app artifact."
+          if [ "${RUN_CONCLUSION}" != "success" ]; then
+            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The iOS build artifact may not be available. View CI: ${RUN_URL}"
+          fi
+
+          echo "::group::Downloading iOS app artifact"
+          echo "Attempting to download iOS app artifact from CI run ${RUN_ID}..."
+
+          if ! gh run download "${RUN_ID}" -n main-qa-MetaMask.app -D ios-app-artifact; then
+            echo "::endgroup::"
+            echo "::error title=iOS artifact not found::Failed to download 'main-qa-MetaMask.app' artifact. Possible causes:%0A- The 'Build iOS Apps' job has not completed%0A- The iOS build was skipped (no iOS-impacting changes)%0A- The iOS build failed%0A%0ACheck the CI workflow: ${RUN_URL}"
+            exit 1
+          fi
+
+          echo "::endgroup::"
+          echo "✅ Successfully downloaded iOS app artifact."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -201,7 +248,7 @@ jobs:
         timeout-minutes: 30
         run: |
           IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
-            detox test -c ios.sim.main.ci --headless \
+            yarn detox test -c ios.sim.main.ci --headless \
             tests/regression/fixtures/fixture-validation.spec.ts
         env:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
@@ -225,13 +272,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.ACTIONS_WRITE_TOKEN }}
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
       - name: Restore updated fixture
         uses: actions/cache/restore@v4
@@ -271,8 +318,8 @@ jobs:
           fi
         env:
           HAS_CHANGES: ${{ steps.fixture-changes.outputs.HAS_CHANGES }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
   check-status:
     name: Check whether the fixture update succeeded
@@ -309,9 +356,10 @@ jobs:
         run: |
           passed="${{ needs.check-status.outputs.PASSED }}"
           if [[ $passed != "true" ]]; then
-            gh pr comment "${PR_NUMBER}" --body "E2E fixture update failed. You can [review the logs or retry the fixture update here](${ACTION_RUN_URL})"
+            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build iOS Apps' to complete\n- CI workflow was skipped — ensure your PR has iOS-impacting changes or use \`skip-smart-e2e-selection\` label\n- iOS build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
+            gh pr comment "${PR_NUMBER}" --body "$body"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
           ACTION_RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
