@@ -69,26 +69,21 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   if (loading) {
     return (
       <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
-        <Box twClassName={rowClassName}>
-          <Skeleton width={64} height={16} style={tw.style('my-1')} />
-          <Skeleton width={44} height={16} style={tw.style('my-1')} />
-        </Box>
-        <Box twClassName={rowClassName}>
-          <Box twClassName="flex-row items-center">
-            <Skeleton width={36} height={16} style={tw.style('my-1')} />
-            <Box twClassName="ml-1">
-              <Skeleton
-                width={16}
-                height={16}
-                style={tw.style('rounded-full')}
-              />
+        <Box twClassName="py-1">
+          <Box twClassName="flex-row justify-between items-center">
+            <Box twClassName="flex-col">
+              <Skeleton width={52} height={16} style={tw.style('my-1')} />
+              <Box twClassName="flex-row items-center gap-1">
+                <Skeleton width={96} height={14} style={tw.style('my-1')} />
+                <Skeleton
+                  width={16}
+                  height={16}
+                  style={tw.style('rounded-full')}
+                />
+              </Box>
             </Box>
+            <Skeleton width={80} height={24} style={tw.style('my-1')} />
           </Box>
-          <Skeleton width={60} height={16} style={tw.style('my-1')} />
-        </Box>
-        <Box twClassName={rowClassName}>
-          <Skeleton width={40} height={16} style={tw.style('my-1')} />
-          <Skeleton width={64} height={16} style={tw.style('my-1')} />
         </Box>
         {shouldRenderRewardsRow && (
           <Box twClassName={rowClassName}>

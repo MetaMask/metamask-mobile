@@ -249,6 +249,7 @@ export function PredictPayWithAnyTokenInfo() {
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const shouldWaitForPayFees = !isPredictBalanceSelected;
   const isPayFeesLoading = shouldWaitForPayFees && isPayTotalsLoading;
+
   const depositFeeUsd = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -401,7 +402,7 @@ export function PredictPayWithAnyTokenInfo() {
         <PredictFeeSummary
           disabled={isInputFocused}
           loading={isPayFeesLoading}
-          total={total}
+          total={totalWithDepositFee}
           shouldShowRewardsRow={shouldShowRewardsRow}
           rewardsAccountScope={rewardsAccountScope}
           accountOptedIn={isAccountOptedIntoRewards}

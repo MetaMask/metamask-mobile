@@ -3543,6 +3543,83 @@ describe('PredictController', () => {
     });
   });
 
+  describe('payWithAnyTokenConfirmation', () => {
+    it('uses predict deposit transaction when setup transactions are present', async () => {
+      const setupTransaction = {
+        params: {
+          to: '0x1000000000000000000000000000000000000001' as `0x${string}`,
+          data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+        },
+        type: TransactionType.contractInteraction,
+      };
+      const depositTransaction = {
+        params: {
+          to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+          data: '0xa9059cbb000000000000000000000000' as `0x${string}`,
+        },
+        type: TransactionType.predictDeposit,
+      };
+
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [setupTransaction, depositTransaction],
+        chainId: '0x89',
+      });
+
+      (addTransaction as jest.Mock).mockResolvedValue({
+        transactionMeta: {
+          id: 'tx-pay-with-any-token',
+        },
+      });
+
+      await withController(async ({ controller }) => {
+        const result = await controller.payWithAnyTokenConfirmation({});
+
+        expect(result).toEqual({
+          success: true,
+          response: {
+            batchId: 'tx-pay-with-any-token',
+          },
+        });
+
+        expect(addTransaction).toHaveBeenCalledWith(
+          {
+            to: depositTransaction.params.to,
+            from: '0x1234567890123456789012345678901234567890',
+            data: depositTransaction.params.data,
+          },
+          expect.objectContaining({
+            type: 'predictDepositAndOrder',
+          }),
+        );
+      });
+    });
+
+    it('throws when deposit transaction is missing from preparation response', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x1000000000000000000000000000000000000001' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+            type: TransactionType.contractInteraction,
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.payWithAnyTokenConfirmation({}),
+        ).rejects.toThrow(
+          'No predict deposit transaction returned from deposit preparation',
+        );
+
+        expect(addTransaction).not.toHaveBeenCalled();
+      });
+    });
+  });
+
   describe('transactionStatusChanged event', () => {
     const accountAddress = '0x1234567890123456789012345678901234567890';
 

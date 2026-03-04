@@ -2339,7 +2339,8 @@
       "total_incl_fees": "incl. fees",
       "close": "Close",
       "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.",
-      "deposit_fee": "Deposit fee"
+      "deposit_fee": "Deposit fee",
+      "deposit_fee_description": "Fee charged to deposit funds into your prediction balance"
     },
     "error": {
       "title": "Unable to connect to predictions",

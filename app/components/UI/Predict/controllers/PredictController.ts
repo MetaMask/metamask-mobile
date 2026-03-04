@@ -2107,14 +2107,17 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
+      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
+      const predictDepositAndOrderType =
+        'predictDepositAndOrder' as unknown as TransactionType;
+
       // Override transaction types to predictDepositAndOrder so the
       // confirmation routing renders the deposit-and-order info component.
-      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
       const depositAndOrderTransactions = transactions.map((tx) => ({
         ...tx,
         type:
           tx.type === TransactionType.predictDeposit
-            ? ('predictDepositAndOrder' as unknown as TransactionType)
+            ? predictDepositAndOrderType
             : tx.type,
       }));
 
@@ -2144,7 +2147,17 @@ export class PredictController extends BaseController<
         throw new Error(`Network client not found for chain ID: ${chainId}`);
       }
 
-      const tx = depositAndOrderTransactions[0];
+      // Use the actual deposit transaction for the custom pay-with-any-token
+      // flow. Setup transactions (deployment/allowances) can appear earlier.
+      const tx = depositAndOrderTransactions.find(
+        (transaction) => transaction.type === predictDepositAndOrderType,
+      );
+
+      if (!tx) {
+        throw new Error(
+          'No predict deposit transaction returned from deposit preparation',
+        );
+      }
 
       const result = await addTransaction(
         {
