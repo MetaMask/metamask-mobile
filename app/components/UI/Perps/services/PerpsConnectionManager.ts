@@ -468,6 +468,19 @@ class PerpsConnectionManagerClass {
             // Clean up preloaded subscriptions
             this.cleanupPreloadedSubscriptions();
 
+            // Clear all stream caches so subscribers reset to loading state
+            // and hasReceivedFirstUpdate is reset for clean reconnection
+            const streamManager = getStreamManagerInstance();
+            streamManager.positions.clearCache();
+            streamManager.orders.clearCache();
+            streamManager.account.clearCache();
+            streamManager.prices.clearCache();
+            streamManager.marketData.clearCache();
+            streamManager.oiCaps.clearCache();
+            streamManager.fills.clearCache();
+            streamManager.topOfBook.clearCache();
+            streamManager.candles.clearCache();
+
             // Reset state before disconnecting to prevent race conditions
             this.isConnected = false;
             this.isInitialized = false;
