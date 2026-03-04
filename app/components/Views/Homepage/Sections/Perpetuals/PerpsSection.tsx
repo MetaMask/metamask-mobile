@@ -348,7 +348,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
         await refreshMarkets();
       },
     }),
-    [connectionError, reconnectWithNewContext, refreshSparklines, refreshMarkets],
+    [
+      connectionError,
+      reconnectWithNewContext,
+      refreshSparklines,
+      refreshMarkets,
+    ],
   );
 
   const handleViewAllPerps = useCallback(() => {
