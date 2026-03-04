@@ -375,7 +375,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       {Boolean(accountGroupContext?.metadata?.name) && (
         <HeaderCompactStandard
           title={accountGroupContext?.metadata.name}
-          onClose={handleDismiss}
+          onClose={() => sheetRef.current?.onCloseBottomSheet()}
         />
       )}
 

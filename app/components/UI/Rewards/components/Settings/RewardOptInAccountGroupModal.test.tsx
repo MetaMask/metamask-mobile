@@ -71,72 +71,6 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const {
-    Text: RNText,
-    View,
-    TouchableOpacity,
-  } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-      [key: string]: unknown;
-    }) => ReactActual.createElement(View, { testID, ...props }, children),
-    Text: ({
-      children,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      [key: string]: unknown;
-    }) => ReactActual.createElement(RNText, props, children),
-    Button: ({
-      children,
-      onPress,
-      testID,
-      isLoading,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      testID?: string;
-      isLoading?: boolean;
-      [key: string]: unknown;
-    }) =>
-      ReactActual.createElement(
-        TouchableOpacity,
-        {
-          onPress,
-          testID,
-          disabled: isLoading,
-          ...props,
-        },
-        ReactActual.createElement(RNText, {}, children),
-      ),
-    TextVariant: {
-      BodyMd: 'BodyMd',
-      HeadingMd: 'HeadingMd',
-      HeadingSm: 'HeadingSm',
-    },
-    FontWeight: {
-      Medium: 'medium',
-    },
-    ButtonVariant: {
-      Primary: 'primary',
-    },
-    ButtonSize: {
-      Lg: 'lg',
-    },
-  };
-});
-
 // Mock BottomSheet components
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -172,33 +106,6 @@ jest.mock(
     return {
       __esModule: true,
       default: MockBottomSheet,
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        ...props
-      }: {
-        children?: React.ReactNode;
-        [key: string]: unknown;
-      }) =>
-        ReactActual.createElement(
-          View,
-          {
-            testID: 'bottom-sheet-header',
-            ...props,
-          },
-          children,
-        ),
     };
   },
 );
@@ -373,9 +280,9 @@ describe('RewardOptInAccountGroupModal', () => {
     });
 
     it('renders header with account group name', () => {
-      const { getByTestId } = render(<RewardOptInAccountGroupModal />);
+      const { getByText } = render(<RewardOptInAccountGroupModal />);
 
-      expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(getByText('Test Account Group')).toBeOnTheScreen();
     });
 
     it('renders address list', () => {
@@ -515,7 +422,10 @@ describe('RewardOptInAccountGroupModal', () => {
       const { getByTestId } = render(<RewardOptInAccountGroupModal />);
 
       const linkButton = getByTestId('link-account-group-button');
-      expect(linkButton).toHaveProp('disabled', true);
+      const isDisabled =
+        linkButton.props.disabled === true ||
+        linkButton.props.accessibilityState?.disabled === true;
+      expect(isDisabled).toBe(true);
     });
 
     it('updates local state after successful link', async () => {
@@ -812,7 +722,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      expect(queryByTestId('bottom-sheet-header')).toBeNull();
+      expect(queryByTestId('header')).toBeNull();
     });
 
     it('handles account group context without metadata name', () => {
@@ -825,7 +735,7 @@ describe('RewardOptInAccountGroupModal', () => {
 
       const { queryByTestId } = render(<RewardOptInAccountGroupModal />);
 
-      expect(queryByTestId('bottom-sheet-header')).toBeNull();
+      expect(queryByTestId('header')).toBeNull();
     });
 
     it('handles EVM chain ID conversion errors', () => {
