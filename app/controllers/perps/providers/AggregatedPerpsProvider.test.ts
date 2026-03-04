@@ -1,6 +1,7 @@
 import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
 import type { PerpsProvider, Position, MarketInfo, Order } from '../types';
+import { WebSocketConnectionState } from '../types';
 
 import { AggregatedPerpsProvider } from './AggregatedPerpsProvider';
 
@@ -743,6 +744,113 @@ describe('AggregatedPerpsProvider', () => {
       aggregatedProvider.subscribeToOrderBook({ symbol: 'BTC', callback });
 
       expect(mockHLProvider.subscribeToOrderBook).toHaveBeenCalled();
+    });
+  });
+
+  describe('WebSocket', () => {
+    it('delegates getWebSocketConnectionState to default provider', () => {
+      // Arrange
+      (
+        mockHLProvider as jest.Mocked<PerpsProvider> & {
+          getWebSocketConnectionState: jest.Mock;
+        }
+      ).getWebSocketConnectionState = jest
+        .fn()
+        .mockReturnValue(WebSocketConnectionState.Connected);
+
+      // Act
+      const result = aggregatedProvider.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Connected);
+    });
+
+    it('returns Disconnected when provider lacks getWebSocketConnectionState', () => {
+      // Arrange — provider without the optional method
+      const noWsProvider = createMockProvider('no-ws');
+      const testProvider = new AggregatedPerpsProvider({
+        providers: new Map([['no-ws', noWsProvider]]),
+        defaultProvider: 'no-ws',
+        infrastructure: mockInfrastructure,
+      });
+
+      // Act
+      const result = testProvider.getWebSocketConnectionState();
+
+      // Assert
+      expect(result).toBe(WebSocketConnectionState.Disconnected);
+    });
+
+    it('delegates subscribeToConnectionState to default provider', () => {
+      // Arrange
+      const unsubscribe = jest.fn();
+      (
+        mockHLProvider as jest.Mocked<PerpsProvider> & {
+          subscribeToConnectionState: jest.Mock;
+        }
+      ).subscribeToConnectionState = jest.fn().mockReturnValue(unsubscribe);
+      const listener = jest.fn();
+
+      // Act
+      const cleanup = aggregatedProvider.subscribeToConnectionState(listener);
+
+      // Assert
+      expect(cleanup).toBe(unsubscribe);
+    });
+
+    it('calls listener with Disconnected when provider lacks subscribeToConnectionState', () => {
+      // Arrange
+      const noWsProvider = createMockProvider('no-ws');
+      const testProvider = new AggregatedPerpsProvider({
+        providers: new Map([['no-ws', noWsProvider]]),
+        defaultProvider: 'no-ws',
+        infrastructure: mockInfrastructure,
+      });
+      const listener = jest.fn();
+
+      // Act
+      const cleanup = testProvider.subscribeToConnectionState(listener);
+      cleanup();
+
+      // Assert
+      expect(listener).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        0,
+      );
+    });
+
+    it('delegates reconnect to default provider', async () => {
+      // Arrange
+      (
+        mockHLProvider as jest.Mocked<PerpsProvider> & {
+          reconnect: jest.Mock;
+        }
+      ).reconnect = jest.fn().mockResolvedValue(undefined);
+
+      // Act
+      await aggregatedProvider.reconnect();
+
+      // Assert
+      expect(
+        (
+          mockHLProvider as jest.Mocked<PerpsProvider> & {
+            reconnect: jest.Mock;
+          }
+        ).reconnect,
+      ).toHaveBeenCalled();
+    });
+
+    it('does not throw when provider lacks reconnect', async () => {
+      // Arrange — provider without reconnect
+      const noWsProvider = createMockProvider('no-ws');
+      const testProvider = new AggregatedPerpsProvider({
+        providers: new Map([['no-ws', noWsProvider]]),
+        defaultProvider: 'no-ws',
+        infrastructure: mockInfrastructure,
+      });
+
+      // Act & Assert
+      await expect(testProvider.reconnect()).resolves.toBeUndefined();
     });
   });
 });
