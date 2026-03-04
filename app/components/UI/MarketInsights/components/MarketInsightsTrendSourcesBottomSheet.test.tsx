@@ -1,5 +1,4 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MarketInsightsTrendSourcesBottomSheet from './MarketInsightsTrendSourcesBottomSheet';
@@ -39,16 +38,9 @@ jest.mock(
 );
 
 describe('MarketInsightsTrendSourcesBottomSheet', () => {
-  beforeEach(() => {
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  it('renders article and tweet sources and opens their URLs', () => {
+  it('renders article and tweet sources and triggers source callback', () => {
     const onClose = jest.fn();
+    const onSourcePress = jest.fn();
     const articleUrl = 'https://www.coindesk.com/article';
     const tweetUrl = 'https://x.com/adam3us/status/123';
 
@@ -56,6 +48,7 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
       <MarketInsightsTrendSourcesBottomSheet
         isVisible
         onClose={onClose}
+        onSourcePress={onSourcePress}
         trendTitle="Developer debates"
         articles={
           [
@@ -85,9 +78,25 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
     expect(getByText('@adam3us')).toBeOnTheScreen();
 
     fireEvent.press(getByText('coindesk.com'));
-    expect(Linking.openURL).toHaveBeenCalledWith(articleUrl);
+    expect(onSourcePress).toHaveBeenCalledWith(articleUrl);
 
     fireEvent.press(getByText('@adam3us'));
-    expect(Linking.openURL).toHaveBeenCalledWith(tweetUrl);
+    expect(onSourcePress).toHaveBeenCalledWith(tweetUrl);
+  });
+
+  it('renders safely when hidden and has no callbacks', () => {
+    const onClose = jest.fn();
+
+    const { queryByText } = renderWithProvider(
+      <MarketInsightsTrendSourcesBottomSheet
+        isVisible={false}
+        onClose={onClose}
+        trendTitle="Hidden"
+        articles={[] as never}
+        tweets={[] as never}
+      />,
+    );
+
+    expect(queryByText('Hidden')).toBeOnTheScreen();
   });
 });

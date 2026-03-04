@@ -38,7 +38,7 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(
-          PermissionSummaryBottomSheet.addNetworkPermissionContainer,
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
         );
       },
     );
@@ -82,16 +82,19 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await Assertions.expectElementToBeVisible(
-          PermissionSummaryBottomSheet.addNetworkPermissionContainer,
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
         );
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
         // Verify final permissions state
         // - Should have only Ethereum Mainnet and Sepolia selected
         // - Deselecting both should show the disconnect all button
-        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
-        await NetworkConnectMultiSelector.tapUpdateButton();
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
+        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+
+        await Assertions.expectElementToBeVisible(
+          ConnectedAccountsModal.disconnectNetworksButton,
+        );
       },
     );
   });

@@ -23,6 +23,29 @@ import { TokenRwaData } from '@metamask/assets-controllers';
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const STATIC_METAMASK_BASE_URL = 'https://static.cx.metamask.io';
 
+const normalizeAssetIdForImageUrl = (
+  assetId: CaipAssetType,
+  chainId: CaipChainId,
+): CaipAssetType => {
+  if (isNonEvmChainId(chainId)) {
+    return assetId;
+  }
+
+  const {
+    chainId: parsedChainId,
+    assetNamespace,
+    assetReference,
+  } = parseCaipAssetType(assetId);
+
+  if (assetNamespace !== 'erc20') {
+    return assetId;
+  }
+
+  return CaipAssetTypeStruct.create(
+    `${parsedChainId}/${assetNamespace}:${assetReference.toLowerCase()}`,
+  );
+};
+
 export const toAssetId = (
   address: Hex | CaipAssetType | string,
   chainId: CaipChainId,
@@ -59,7 +82,12 @@ export const getAssetImageUrl = (
     return undefined;
   }
 
-  return `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/${assetIdInCaip
+  const normalizedAssetId = normalizeAssetIdForImageUrl(
+    assetIdInCaip,
+    chainIdInCaip,
+  );
+
+  return `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/${normalizedAssetId
     .split(':')
     .join('/')}.png`;
 };

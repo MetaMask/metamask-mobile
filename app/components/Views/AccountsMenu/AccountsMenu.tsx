@@ -2,11 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import {
-  useNavigation,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
   IconName,
@@ -32,6 +28,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -45,17 +42,19 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
+import { useNetworkManagementEnabled } from '../../../selectors/featureFlagController/networkManagement/useNetworkManagementEnabled';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -69,9 +68,9 @@ const AccountsMenu = () => {
     trackEvent(
       createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'AccountsMenu',
-          ramp_type: 'UNIFIED_BUY',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
           ramp_routing: rampsButtonClickData.ramp_routing ?? null,
@@ -88,6 +87,7 @@ const AccountsMenu = () => {
     trackEvent,
     rampGeodetectedRegion,
     rampsButtonClickData,
+    isV2UnifiedEnabled,
   ]);
 
   const onPressNotifications = useCallback(() => {
@@ -121,6 +121,7 @@ const AccountsMenu = () => {
     readNotificationCount,
     isBackupAndSyncEnabled,
   ]);
+  const isNetworkManagementEnabled = useNetworkManagementEnabled();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -140,6 +141,10 @@ const AccountsMenu = () => {
     trackEvent(createEventBuilder(EVENT_NAME.CARD_HOME_CLICKED).build());
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation, trackEvent, createEventBuilder]);
+
+  const onPressNetworks = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS.NETWORKS_MANAGEMENT);
+  }, [navigation]);
 
   const onPressPermissions = useCallback(() => {
     // TODO: Will add events in follow up PR
@@ -449,6 +454,19 @@ const AccountsMenu = () => {
             endAccessory={arrowRightIcon}
             onPress={onPressPermissions}
             testID={AccountsMenuSelectorsIDs.PERMISSIONS}
+          />
+        )}
+
+        {/* Networks Row */}
+        {isNetworkManagementEnabled && (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.Hierarchy} size={IconSize.Lg} />
+            }
+            label={strings('accounts_menu.networks')}
+            endAccessory={arrowRightIcon}
+            onPress={onPressNetworks}
+            testID={AccountsMenuSelectorsIDs.NETWORKS}
           />
         )}
 

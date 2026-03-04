@@ -14,23 +14,18 @@ import {
 import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import {
-  fromTokenMinimalUnit,
-  isNumberValue,
-} from '../../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../../util/number';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-
-import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../../locales/i18n';
-import useFiatFormatter from '../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
+import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -49,7 +44,6 @@ export const useBridgeQuoteData = ({
   const slippage = useSelector(selectSlippage);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const locale = I18n.locale;
-  const fiatFormatter = useFiatFormatter();
   const quotes = useSelector(selectBridgeQuotes);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
@@ -85,68 +79,83 @@ export const useBridgeQuoteData = ({
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
 
   const bestQuote = quotes?.recommendedQuote;
+  const allQuotes = useMemo(
+    () => quotes?.sortedQuotes ?? [],
+    [quotes?.sortedQuotes],
+  );
 
   const activeQuote =
     isExpired && !willRefresh && !isSubmittingTx ? undefined : bestQuote;
 
-  // Validate that the quote's destination asset matches the selected destination token
+  // Validate that the quote's source asset matches the selected source token
+  // This prevents showing stale quote data when user changes source token on the same chain
+  const isQuoteSourceTokenMatch = useMemo(() => {
+    if (!activeQuote || !sourceToken) return false;
+
+    const { srcAsset } = activeQuote.quote;
+
+    const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
+      ? (srcAsset.assetId ?? srcAsset.address)
+      : srcAsset.address;
+
+    const selectedSourceAddress = sourceToken.address;
+    return areAddressesEqual(quoteSourceAddress, selectedSourceAddress);
+  }, [activeQuote, sourceToken]);
+
+  // Helper to validate that a quote's destination asset matches the selected destination token
   // This prevents showing stale quote data (with wrong decimals) when user changes destination token
-  const isQuoteDestTokenMatch = (() => {
-    if (!activeQuote || !destToken) return false;
+  const isQuoteDestTokenMatchForQuote = useCallback(
+    (quote: (typeof allQuotes)[number] | undefined | null): boolean => {
+      if (!quote || !destToken) return false;
 
-    const { destAsset } = activeQuote.quote;
+      const { destAsset } = quote.quote;
 
-    // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
-    // or zero address for native tokens, while destToken.address uses CAIP format
-    // (e.g., "solana:.../token:EPj...").
-    // Use destAsset.assetId (CAIP format) for comparison.
-    // For EVM chains, use the original address comparison.
-    const quoteDestAddress = isNonEvmChainId(destToken.chainId)
-      ? (destAsset.assetId ?? destAsset.address)
-      : destAsset.address;
+      // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
+      // or zero address for native tokens, while destToken.address uses CAIP format
+      // (e.g., "solana:.../token:EPj...").
+      // Use destAsset.assetId (CAIP format) for comparison.
+      // For EVM chains, use the original address comparison.
+      const quoteDestAddress = isNonEvmChainId(destToken.chainId)
+        ? (destAsset.assetId ?? destAsset.address)
+        : destAsset.address;
 
-    const selectedDestAddress = destToken.address;
-    return areAddressesEqual(quoteDestAddress, selectedDestAddress);
-  })();
+      const selectedDestAddress = destToken.address;
+      return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+    },
+    [destToken],
+  );
+
+  const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
+
+  // Filter all quotes to only include valid ones (not expired and matching dest token)
+  const validQuotes = useMemo(
+    () =>
+      isExpired && !willRefresh && !isSubmittingTx
+        ? []
+        : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
+    [
+      isExpired,
+      willRefresh,
+      isSubmittingTx,
+      allQuotes,
+      isQuoteDestTokenMatchForQuote,
+    ],
+  );
 
   const destTokenAmount =
-    activeQuote && destToken && isQuoteDestTokenMatch
+    activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
       ? fromTokenMinimalUnit(
           activeQuote.quote.destTokenAmount,
           destToken.decimals,
         )
       : undefined;
-  const formattedDestTokenAmount = destTokenAmount
-    ? Number(destTokenAmount).toString()
-    : undefined;
 
   const quoteRate =
     Number(sourceAmount) === 0
       ? undefined
       : Number(destTokenAmount) / Number(sourceAmount);
 
-  const getNetworkFee = useCallback(() => {
-    if (!activeQuote?.totalNetworkFee) return '-';
-
-    const { totalNetworkFee } = activeQuote;
-
-    const { amount, valueInCurrency } = totalNetworkFee;
-
-    if (
-      amount == null ||
-      valueInCurrency == null ||
-      !isNumberValue(amount) ||
-      !isNumberValue(valueInCurrency)
-    ) {
-      return '-';
-    }
-
-    const formattedValueInCurrency = fiatFormatter(
-      new BigNumber(valueInCurrency),
-    );
-
-    return formattedValueInCurrency;
-  }, [activeQuote, fiatFormatter]);
+  const networkFee = useFormattedNetworkFee(activeQuote);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
@@ -174,7 +183,7 @@ export const useBridgeQuoteData = ({
       : '--';
 
     return {
-      networkFee: getNetworkFee(),
+      networkFee,
       estimatedTime:
         estimatedProcessingTimeInSeconds >= 60
           ? `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`
@@ -192,9 +201,9 @@ export const useBridgeQuoteData = ({
     quoteRate,
     sourceToken?.symbol,
     destToken?.symbol,
-    getNetworkFee,
     slippage,
     locale,
+    networkFee,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;
@@ -283,7 +292,7 @@ export const useBridgeQuoteData = ({
     quoteFetchError,
     activeQuote,
     quotesLoadingStatus,
-    destTokenAmount: formattedDestTokenAmount,
+    destTokenAmount,
     isLoading,
     formattedQuoteData,
     isNoQuotesAvailable,
@@ -291,5 +300,6 @@ export const useBridgeQuoteData = ({
     isExpired,
     blockaidError,
     shouldShowPriceImpactWarning,
+    validQuotes,
   };
 };

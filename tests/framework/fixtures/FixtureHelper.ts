@@ -658,6 +658,12 @@ export async function withFixtures(
       }
     }
 
+    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
+    if (mockServerInstance) {
+      mockServerInstance.startDraining();
+    }
+
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
       try {
@@ -739,6 +745,13 @@ export async function withFixtures(
           cleanupErrors.push(cleanupError as Error);
         }
       }
+    }
+
+    // Remove the abort filter AFTER all cleanup is complete so late async
+    // "Aborted" rejections from destroyed sockets are still caught.
+    if (mockServerInstance) {
+      logger.info('Removing abort filter after full cleanup');
+      mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

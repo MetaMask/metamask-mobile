@@ -18,6 +18,12 @@ import {
   TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
 } from './BottomSheetFooter.constants';
 
+/**
+ * @deprecated Please update your code to use `BottomSheetFooter` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheets/BottomSheetFooter/README.md}
+ * @since @metamask/design-system-react-native@0.7.0
+ */
 const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
   style,
   buttonsAlignment = DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,

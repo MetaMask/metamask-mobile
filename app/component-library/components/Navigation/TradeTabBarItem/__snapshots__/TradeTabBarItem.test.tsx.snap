@@ -91,7 +91,7 @@ exports[`TradeTabBarItem renders TradeTabBarItem with icon and label 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "flexShrink": 0,
         "fontFamily": "Geist-Medium",
         "fontSize": 12,

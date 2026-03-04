@@ -8,6 +8,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../../flows/browser.flow';
 import {
@@ -17,7 +18,8 @@ import {
 import { DappVariants } from '../../../framework/Constants';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
-import NetworkListModal from '../../../page-objects/Network/NetworkListModal';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../../page-objects/wallet/WalletView';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
@@ -108,13 +110,14 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           );
         }
 
-        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
-        await Assertions.expectElementToNotBeVisible(
-          ToastModal.notificationTitle,
+        await Browser.tapCloseBrowserButton();
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
         );
-
-        await AccountListBottomSheet.tapAccountByName('Account 2');
+        await TabBarComponent.tapWallet();
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapAccountByNameV2('Account 2');
+        await navigateToBrowserView();
 
         const connectedAccountsAfter = await TestDApp.getConnectedAccounts();
         if (
@@ -182,17 +185,17 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
         }
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectTextDisplayed('Account 1');
         await Assertions.expectElementToNotBeVisible(
           ToastModal.notificationTitle,
         );
 
-        await ConnectedAccountsModal.tapManagePermissionsButton();
-        await ConnectedAccountsModal.tapNetworksPicker();
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.networkScroll,
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkConnectMultiSelector.selectNetworkChainPermission(
+          'Ethereum Main Network',
         );
-        await NetworkListModal.changeNetworkTo('Localhost');
+        await NetworkConnectMultiSelector.tapUpdateButton();
 
         const connectedChainIdAfter = await TestDApp.getConnectedChainId();
         if (connectedChainIdAfter !== '0x539') {

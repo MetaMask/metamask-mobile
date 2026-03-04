@@ -63,6 +63,24 @@ jest.mock('./useRampsPaymentMethods', () => ({
   })),
 }));
 
+jest.mock('./useRampsQuotes', () => ({
+  useRampsQuotes: jest.fn(() => ({
+    getQuotes: jest.fn(),
+    getWidgetUrl: jest.fn(),
+  })),
+}));
+
+jest.mock('./useRampsOrders', () => ({
+  useRampsOrders: jest.fn(() => ({
+    orders: [],
+    getOrderById: jest.fn(),
+    addOrder: jest.fn(),
+    removeOrder: jest.fn(),
+    refreshOrder: jest.fn(),
+    getOrderFromCallback: jest.fn(),
+  })),
+}));
+
 const createMockStore = () =>
   configureStore({
     reducer: {
@@ -126,6 +144,15 @@ describe('useRampsController', () => {
     expect(typeof result.current.setSelectedProvider).toBe('function');
     expect(typeof result.current.setSelectedToken).toBe('function');
     expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
+    expect(typeof result.current.getQuotes).toBe('function');
+    expect(typeof result.current.getWidgetUrl).toBe('function');
+
+    expect(result.current.orders).toEqual([]);
+    expect(typeof result.current.getOrderById).toBe('function');
+    expect(typeof result.current.addOrder).toBe('function');
+    expect(typeof result.current.removeOrder).toBe('function');
+    expect(typeof result.current.refreshOrder).toBe('function');
+    expect(typeof result.current.getOrderFromCallback).toBe('function');
   });
 
   it('calls child hooks', () => {

@@ -33,9 +33,9 @@ import stateHasOrder from './utils/stateHasOrder';
 import Routes from '../../../constants/navigation/Routes';
 import getOrderAnalyticsPayload from './utils/getOrderAnalyticsPayload';
 import { NativeRampsSdk } from '@consensys/native-ramps-sdk';
-import useDetectGeolocation from './hooks/useDetectGeolocation';
-import useHydrateRampsController from './hooks/useHydrateRampsController';
-import useRampsSmartRouting from './hooks/useRampsSmartRouting';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { isRampsUnifiedV2Enabled } from './utils/isRampsUnifiedV2Enabled';
+import { showV2OrderToast } from './utils/v2OrderToast';
 
 const POLLING_FREQUENCY = AppConstants.FIAT_ORDERS.POLLING_FREQUENCY;
 
@@ -60,9 +60,19 @@ export async function processFiatOrder(
         trackEvent(event, params);
       }
       InteractionManager.runAfterInteractions(() => {
-        const notificationDetails = getNotificationDetails(updatedOrder);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        const isV2 = isRampsUnifiedV2Enabled(state);
+        if (isV2) {
+          showV2OrderToast({
+            orderId: updatedOrder.id,
+            cryptocurrency: updatedOrder.cryptocurrency,
+            cryptoAmount: updatedOrder.cryptoAmount,
+            status: updatedOrder.state as unknown as RampsOrderStatus,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(updatedOrder);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
     }
@@ -96,9 +106,19 @@ async function processCustomOrderId(
       }
       dispatchAddFiatOrder(fiatOrder);
       InteractionManager.runAfterInteractions(() => {
-        const notificationDetails = getNotificationDetails(fiatOrder);
-        if (notificationDetails) {
-          NotificationManager.showSimpleNotification(notificationDetails);
+        const isV2 = isRampsUnifiedV2Enabled(state);
+        if (isV2) {
+          showV2OrderToast({
+            orderId: fiatOrder.id,
+            cryptocurrency: fiatOrder.cryptocurrency,
+            cryptoAmount: fiatOrder.cryptoAmount,
+            status: fiatOrder.state as unknown as RampsOrderStatus,
+          });
+        } else {
+          const notificationDetails = getNotificationDetails(fiatOrder);
+          if (notificationDetails) {
+            NotificationManager.showSimpleNotification(notificationDetails);
+          }
         }
       });
     });
@@ -118,10 +138,7 @@ const styles = StyleSheet.create({
 });
 
 function FiatOrders() {
-  useHydrateRampsController();
   useFetchRampNetworks();
-  useDetectGeolocation();
-  useRampsSmartRouting();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const navigation = useNavigation();
@@ -201,7 +218,9 @@ function FiatOrders() {
     async () => {
       await Promise.all(
         forceUpdateOrders.map((order) =>
-          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk),
+          processFiatOrder(order, dispatchUpdateFiatOrder, dispatchThunk, {
+            forced: true,
+          }),
         ),
       );
     },
