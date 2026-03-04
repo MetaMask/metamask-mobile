@@ -18,6 +18,7 @@ import {
   encapsulated,
   EncapsulatedElementType,
   asPlaywrightElement,
+  asDetoxElement,
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -678,7 +679,7 @@ class WalletView {
 
   // TODO test this
   async getBalanceText(): Promise<string> {
-    const balanceElement = this.totalBalance;
+    const balanceElement = asDetoxElement(this.totalBalance);
     await Assertions.expectElementToBeVisible(balanceElement);
 
     const elem = await balanceElement;
