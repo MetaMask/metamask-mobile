@@ -112,20 +112,13 @@ const PredictBuyPreview = () => {
 
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
 
-  const isMountedRef = useRef(true);
-
   const triggerPayWithAnyTokenFlow = useCallback(
     async (params: Parameters<typeof triggerPayWithAnyToken>[0]) => {
-      if (isMountedRef.current) {
-        setIsPayWithAnyTokenLoading(true);
-      }
-
       try {
+        setIsPayWithAnyTokenLoading(true);
         await triggerPayWithAnyToken(params);
       } finally {
-        if (isMountedRef.current) {
-          setIsPayWithAnyTokenLoading(false);
-        }
+        setIsPayWithAnyTokenLoading(false);
       }
     },
     [setIsPayWithAnyTokenLoading, triggerPayWithAnyToken],
@@ -148,7 +141,7 @@ const PredictBuyPreview = () => {
         return;
       }
 
-      await triggerPayWithAnyTokenFlow({
+      await triggerPayWithAnyToken({
         market,
         outcome,
         outcomeToken,
@@ -162,20 +155,13 @@ const PredictBuyPreview = () => {
       market,
       outcome,
       outcomeToken,
-      triggerPayWithAnyTokenFlow,
+      triggerPayWithAnyToken,
     ],
   );
 
   usePredictPaymentToken({
     onTokenSelected: handleTokenSelected,
   });
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-    },
-    [],
-  );
 
   const handleDepositFailed = useCallback(
     async (depositErrorMessage?: string) => {
