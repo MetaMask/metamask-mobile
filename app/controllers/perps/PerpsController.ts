@@ -1117,7 +1117,11 @@ export class PerpsController extends BaseController<
     // Get current user address for validation
     let currentAddress: string | null = null;
     try {
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
       currentAddress = evmAccount?.address ?? null;
     } catch {
       // Can't determine current account — trust the cache

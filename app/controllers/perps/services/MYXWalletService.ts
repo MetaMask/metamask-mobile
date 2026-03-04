@@ -83,14 +83,22 @@ export class MYXWalletService {
     ) => Promise<string>;
     provider: null;
   } {
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
 
     return {
       getAddress: async (): Promise<string> => {
-        const currentAccount = getSelectedEvmAccount(this.#messenger);
+        const currentAccount = getSelectedEvmAccount(
+          this.#messenger.call(
+            'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ),
+        );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
         }
@@ -101,7 +109,11 @@ export class MYXWalletService {
         types: Record<string, { name: string; type: string }[]>,
         value: Record<string, unknown>,
       ): Promise<string> => {
-        const currentAccount = getSelectedEvmAccount(this.#messenger);
+        const currentAccount = getSelectedEvmAccount(
+          this.#messenger.call(
+            'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ),
+        );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
         }
@@ -148,7 +160,11 @@ export class MYXWalletService {
       message: Record<string, unknown>;
     }) => Promise<string>;
   } {
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
@@ -158,7 +174,11 @@ export class MYXWalletService {
       account: { address: evmAccount.address },
       chain: { id: chainId },
       signTypedData: async (args): Promise<string> => {
-        const currentAccount = getSelectedEvmAccount(this.#messenger);
+        const currentAccount = getSelectedEvmAccount(
+          this.#messenger.call(
+            'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ),
+        );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
         }
@@ -187,7 +207,11 @@ export class MYXWalletService {
   }
 
   public getUserAddress(): Hex {
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
@@ -199,7 +223,11 @@ export class MYXWalletService {
   }
 
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
     }
