@@ -2,11 +2,6 @@ import React, { useRef } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
@@ -21,6 +16,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -117,80 +115,60 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           twClassName="gap-4 w-full"
         >
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             onPress={onPressContinueWithGoogleAction}
             testID={OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON}
-            label={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-2"
-              >
-                <GoogleIcon
+            startAccessory={
+              <GoogleIcon
+                fill="currentColor"
+                width={24}
+                height={24}
+                name={'google'}
+              />
+            }
+            isFullWidth
+            size={ButtonSize.Lg}
+            style={tw.style('border border-muted', {
+              backgroundColor: colors.text.default,
+            })}
+            textProps={{ style: { color: colors.background.default } }}
+          >
+            {createWallet
+              ? strings('onboarding.continue_with_google')
+              : strings('onboarding.sign_in_with_google')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={onPressContinueWithAppleAction}
+            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
+            startAccessory={
+              isDark ? (
+                <AppleIcon
                   fill="currentColor"
                   width={24}
                   height={24}
-                  name={'google'}
+                  name={'apple'}
                 />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  style={{ color: colors.background.default }}
-                >
-                  {createWallet
-                    ? strings('onboarding.continue_with_google')
-                    : strings('onboarding.sign_in_with_google')}
-                </Text>
-              </Box>
+              ) : (
+                <AppleWhiteIcon
+                  fill="currentColor"
+                  width={24}
+                  height={24}
+                  name={'apple-white'}
+                />
+              )
             }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
             style={tw.style('border border-muted', {
               backgroundColor: colors.text.default,
             })}
-          />
-          <Button
-            variant={ButtonVariants.Secondary}
-            onPress={onPressContinueWithAppleAction}
-            testID={OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON}
-            label={
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-x-2"
-              >
-                {isDark ? (
-                  <AppleIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple'}
-                  />
-                ) : (
-                  <AppleWhiteIcon
-                    fill="currentColor"
-                    width={24}
-                    height={24}
-                    name={'apple-white'}
-                  />
-                )}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  style={{ color: colors.background.default }}
-                >
-                  {createWallet
-                    ? strings('onboarding.continue_with_apple')
-                    : strings('onboarding.sign_in_with_apple')}
-                </Text>
-              </Box>
-            }
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={tw.style('border border-muted', {
-              backgroundColor: colors.text.default,
-            })}
-          />
+            textProps={{ style: { color: colors.background.default } }}
+          >
+            {createWallet
+              ? strings('onboarding.continue_with_apple')
+              : strings('onboarding.sign_in_with_apple')}
+          </Button>
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -214,22 +192,21 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           twClassName="gap-4 w-full"
         >
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             onPress={createWallet ? onPressCreateAction : onPressImportAction}
             testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
-            label={
-              createWallet
-                ? strings('onboarding.continue_with_srp')
-                : strings('onboarding.import_srp')
-            }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
-          />
+          >
+            {createWallet
+              ? strings('onboarding.continue_with_srp')
+              : strings('onboarding.import_srp')}
+          </Button>
         </Box>
         <Box alignItems={BoxAlignItems.Center} twClassName="mt-6">
           <Text
             variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
+            fontWeight={FontWeight.Regular}
             color={TextColor.TextDefault}
             style={tw.style('text-center')}
           >

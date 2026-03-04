@@ -17,7 +17,8 @@ import { useSelector } from 'react-redux';
 import {
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { ReactTestInstance } from 'react-test-renderer';
 
 jest.mock('../../../core/Engine/Engine', () => ({
@@ -144,7 +145,7 @@ describe('OnboardingSuccessComponent', () => {
       />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-    button.props.onPress();
+    fireEvent.press(button);
 
     expect(mockDiscoverAccounts).toHaveBeenCalled();
   });
@@ -213,8 +214,9 @@ describe('OnboardingSuccessComponent', () => {
     );
     const footerText = footerButton.children[0] as ReactTestInstance;
 
-    expect(footerText.props.color).toBe(TextColor.Info);
-    expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
+    expect(footerText.props.color).toBe(TextColor.InfoDefault);
+    expect(footerText.props.variant).toBe(TextVariant.BodyMd);
+    expect(footerText.props.fontWeight).toBe(FontWeight.Medium);
   });
 
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {

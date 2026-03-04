@@ -99,18 +99,24 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -129,43 +135,91 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -180,13 +234,17 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -296,18 +354,24 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -326,43 +390,91 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -377,13 +489,17 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -493,18 +609,24 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -523,43 +645,91 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -574,13 +744,17 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -690,18 +864,24 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -720,43 +900,91 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -771,13 +999,17 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -887,18 +1119,24 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -917,43 +1155,91 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -968,13 +1254,17 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -1084,18 +1374,24 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -1114,43 +1410,91 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -1165,13 +1509,17 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -1281,18 +1629,24 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -1311,43 +1665,91 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -1362,13 +1764,17 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -1478,18 +1884,24 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -1508,43 +1920,91 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -1559,13 +2019,17 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings
@@ -1675,18 +2139,24 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "MMSans-Regular",
-            "fontSize": 32,
-            "letterSpacing": 0,
-            "lineHeight": 40,
-            "marginBottom": 16,
-            "marginLeft": 16,
-            "marginRight": 16,
-            "marginTop": 25,
-            "textAlign": "center",
-          }
+          [
+            {
+              "color": "#121314",
+              "fontFamily": "MMSans-Bold",
+              "fontSize": 32,
+              "fontWeight": 700,
+              "letterSpacing": 0,
+              "lineHeight": 40,
+            },
+            {
+              "fontWeight": "100",
+              "marginBottom": 16,
+              "marginLeft": 16,
+              "marginRight": 16,
+              "marginTop": 25,
+              "textAlign": "center",
+            },
+          ]
         }
       >
         Your wallet is ready!
@@ -1705,43 +2175,91 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         ]
       }
     >
-      <TouchableOpacity
+      <View
+        accessibilityLabel="Done"
         accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-        style={
+        accessibilityState={
           {
-            "alignItems": "center",
-            "alignSelf": "stretch",
-            "backgroundColor": "#131416",
-            "borderRadius": 12,
-            "flexDirection": "row",
-            "height": 48,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "paddingHorizontal": 16,
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": false,
+            "expanded": undefined,
+            "selected": undefined,
           }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          [
+            {
+              "alignItems": "center",
+              "backgroundColor": "#121314",
+              "borderRadius": 12,
+              "columnGap": 8,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "minWidth": 80,
+              "opacity": 1,
+              "overflow": "hidden",
+              "paddingLeft": 16,
+              "paddingRight": 16,
+              "width": "100%",
+            },
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+          ]
         }
         testID="onboarding-success-done-button"
       >
         <Text
           accessibilityRole="text"
+          ellipsizeMode="clip"
+          numberOfLines={1}
           style={
-            {
-              "color": "#ffffff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#ffffff",
+                "flexGrow": 0,
+                "flexShrink": 1,
+                "flexWrap": "wrap",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
           }
         >
           Done
         </Text>
-      </TouchableOpacity>
+      </View>
       <TouchableOpacity
         onPress={[Function]}
         style={
@@ -1756,13 +2274,17 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Manage default settings

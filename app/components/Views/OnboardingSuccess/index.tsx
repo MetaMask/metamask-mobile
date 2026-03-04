@@ -1,16 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
-import Text from '../../../component-library/components/Texts/Text';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import {
   CommonActions,
   RouteProp,
@@ -29,6 +19,14 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontFamily,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -99,10 +97,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         }}
       />
       <Text
-        variant={TextVariant.DisplayMD}
-        style={tw.style('mt-[25px] mb-4 mx-4 text-center', {
-          fontFamily: 'MMSans-Regular',
-        })}
+        variant={TextVariant.DisplayMd}
+        fontFamily={FontFamily.Accent}
+        style={tw.style('mt-[25px] mb-4 mx-4 text-center font-thin')}
       >
         {getTitleString()}
       </Text>
@@ -120,7 +117,11 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         testID={OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON}
         style={tw.style('py-2 items-center')}
       >
-        <Text color={TextColor.Info} variant={TextVariant.BodyMDMedium}>
+        <Text
+          color={TextColor.InfoDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('onboarding_success.manage_default_settings')}
         </Text>
       </TouchableOpacity>
@@ -147,12 +148,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         <Box alignItems={BoxAlignItems.Center} twClassName="pb-1 gap-y-3">
           <Button
             testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
-            label={strings('onboarding_success.done')}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             onPress={handleOnDone}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-          />
+            isFullWidth
+          >
+            {strings('onboarding_success.done')}
+          </Button>
           {renderFooter()}
         </Box>
       </Box>

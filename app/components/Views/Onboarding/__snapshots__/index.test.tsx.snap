@@ -93,94 +93,181 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -327,94 +414,181 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -473,7 +647,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -481,7 +655,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "marginTop": 30,
                       "textAlign": "center",
                     },
@@ -589,7 +763,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
               activeOpacity={0.8}
               style={
                 {
-                  "backgroundColor": "#0a0d1392",
+                  "backgroundColor": "#000000cc",
                   "borderRadius": 8,
                   "flex": 1,
                   "flexDirection": "row",
@@ -639,7 +813,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -685,7 +859,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -828,94 +1002,181 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -1062,94 +1323,181 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View
@@ -1208,7 +1556,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": 400,
@@ -1216,7 +1564,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                       "lineHeight": 24,
                     },
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "marginTop": 30,
                       "textAlign": "center",
                     },
@@ -1324,7 +1672,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
               activeOpacity={0.8}
               style={
                 {
-                  "backgroundColor": "#0a0d1392",
+                  "backgroundColor": "#000000cc",
                   "borderRadius": 8,
                   "flex": 1,
                   "flexDirection": "row",
@@ -1374,7 +1722,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -1420,7 +1768,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                   style={
                     [
                       {
-                        "color": "#131416",
+                        "color": "#121314",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 30,
                         "marginVertical": 2,
@@ -1563,94 +1911,181 @@ exports[`Onboarding renders correctly 1`] = `
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -1797,94 +2232,181 @@ exports[`Onboarding renders correctly with android 1`] = `
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -2031,94 +2553,181 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -2265,94 +2874,181 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
             }
             testID="onboarding-animation-mock"
           >
-            <TouchableOpacity
+            <View
+              accessibilityLabel="Create a new wallet"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#FFFFFF",
-                  "borderRadius": 12,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 12,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-create-new-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#000000",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Create a new wallet
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </View>
+            <View
+              accessibilityLabel="Import using Secret Recovery Phrase"
               accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
+              accessibilityState={
                 {
-                  "alignItems": "center",
-                  "alignSelf": "stretch",
-                  "backgroundColor": "#000000",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flexDirection": "row",
-                  "height": 40,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
+                  "busy": undefined,
+                  "checked": undefined,
+                  "disabled": false,
+                  "expanded": undefined,
+                  "selected": undefined,
                 }
+              }
+              accessibilityValue={
+                {
+                  "max": undefined,
+                  "min": undefined,
+                  "now": undefined,
+                  "text": undefined,
+                }
+              }
+              accessible={true}
+              collapsable={false}
+              focusable={true}
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onResponderGrant={[Function]}
+              onResponderMove={[Function]}
+              onResponderRelease={[Function]}
+              onResponderTerminate={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "transparent",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 12,
+                    "borderWidth": 1,
+                    "columnGap": 8,
+                    "flexDirection": "row",
+                    "height": 40,
+                    "justifyContent": "center",
+                    "minWidth": 80,
+                    "opacity": 1,
+                    "overflow": "hidden",
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "width": "100%",
+                  },
+                  {
+                    "backgroundColor": "#000000",
+                  },
+                  {
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                  },
+                ]
               }
               testID="wallet-setup-screen-have-an-existing-wallet-button-id"
             >
               <Text
                 accessibilityRole="text"
+                ellipsizeMode="clip"
+                numberOfLines={1}
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#ffffff",
+                      "flexGrow": 0,
+                      "flexShrink": 1,
+                      "flexWrap": "wrap",
                       "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "fontWeight": 400,
                       "letterSpacing": 0,
                       "lineHeight": 24,
+                      "textAlign": "center",
                     },
-                    {
-                      "color": "#FFFFFF",
-                    },
+                    undefined,
                   ]
                 }
               >
                 Import using Secret Recovery Phrase
               </Text>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

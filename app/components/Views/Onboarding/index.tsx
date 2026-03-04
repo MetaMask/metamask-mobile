@@ -72,16 +72,11 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { JsonMap } from '@segment/analytics-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../component-library/components/Buttons/Button';
+import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -94,8 +89,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -819,41 +817,28 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
         >
           <Button
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
+            isInverse
             onPress={() => handleCtaActions('create')}
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            label={
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                style={{ color: importedColors.applePayBlack }}
-              >
-                {strings('onboarding.start_exploring_now')}
-              </Text>
-            }
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={{ backgroundColor: importedColors.white }}
-          />
+          >
+            {strings('onboarding.start_exploring_now')}
+          </Button>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
+            isInverse
             onPress={() => handleCtaActions('existing')}
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            label={
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                style={{ color: importedColors.white }}
-              >
-                {SEEDLESS_ONBOARDING_ENABLED
-                  ? strings('onboarding.import_using_srp_social_login')
-                  : strings('onboarding.import_using_srp')}
-              </Text>
-            }
             style={{ backgroundColor: importedColors.applePayBlack }}
-          />
+          >
+            {SEEDLESS_ONBOARDING_ENABLED
+              ? strings('onboarding.import_using_srp_social_login')
+              : strings('onboarding.import_using_srp')}
+          </Button>
         </OnboardingAnimation>
       </Box>
     ),
@@ -1009,13 +994,9 @@ const Onboarding = () => {
 
           {existingUser && !loading && (
             <Box twClassName="mb-10 -mt-10">
-              <Button
-                variant={ButtonVariants.Link}
-                onPress={onLogin}
-                label={strings('onboarding.unlock')}
-                width={ButtonWidthTypes.Full}
-                size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-              />
+              <TextButton onPress={onLogin} isInverse>
+                {strings('onboarding.unlock')}
+              </TextButton>
             </Box>
           )}
         </ScrollView>
