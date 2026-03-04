@@ -41528,10 +41528,10 @@ __metadata:
 
 "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch":
   version: 4.2.0
-  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=7a56d0"
+  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=314496"
   dependencies:
     react-native-blob-util: "npm:^0.18.0"
-  checksum: 10/49bc8247e77a4ea7badb551dd86e8c31dd6625a14aa29a278b6b27482959dbbc48519e98a53443ecb76b84ada17eebae3b626e762deb80055e4c4a692f7ad5bb
+  checksum: 10/421ba38bcf61fea1fb8491f9ea894c37bf6657ec8ccd9b2556c87683f2f71139c773bd44367810af7f0d7797906818646e2bb75440152e9eef0af57d43e446e5
   languageName: node
   linkType: hard
 
