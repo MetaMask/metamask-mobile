@@ -487,7 +487,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
           expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
+            'Unknown error - Network error',
           );
         }
       });
