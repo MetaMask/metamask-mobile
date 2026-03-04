@@ -105,7 +105,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock whenEngineReady
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
