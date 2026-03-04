@@ -24,7 +24,10 @@ import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-import { getNetworkImageSource } from '../../../../util/networks';
+import {
+  canDeleteNetwork,
+  getNetworkImageSource,
+} from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -186,7 +189,8 @@ const NetworkDetailsView = () => {
       <HeaderCompactStandard
         onBack={handleBack}
         endAccessory={
-          !formHook.form.addMode ? (
+          !formHook.form.addMode &&
+          canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
               style={({ pressed }) =>
