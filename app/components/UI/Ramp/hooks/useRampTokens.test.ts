@@ -2,7 +2,11 @@ import { waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../util/test/initial-root-state';
 import { handleFetch } from '@metamask/controller-utils';
-import { useRampTokens, RampsToken } from './useRampTokens';
+import {
+  useRampTokens,
+  RampsToken,
+  __clearRampTokensCache,
+} from './useRampTokens';
 import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 
@@ -94,6 +98,7 @@ describe('useRampTokens', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
+    __clearRampTokensCache();
     jest.clearAllMocks();
     process.env.METAMASK_ENVIRONMENT = 'dev';
   });

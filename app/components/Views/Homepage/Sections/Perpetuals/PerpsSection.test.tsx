@@ -46,6 +46,10 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
   })),
 }));
 
+jest.mock('../../../../UI/Perps/hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
 jest.mock('react-native-skeleton-placeholder', () => {
   const { View } = jest.requireActual('react-native');
   return function MockSkeletonPlaceholder({

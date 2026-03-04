@@ -36,6 +36,10 @@ function extractCloses(candleData: CandleData): number[] {
  * Uses the existing CandleStreamChannel which handles caching, ref-counting,
  * and reconnection automatically.
  *
+ * Candle callbacks arrive independently per symbol. A microtask-based flush
+ * coalesces rapid-fire arrivals into a single React state update so the
+ * parent component re-renders once instead of N times (one per symbol).
+ *
  * @param symbols - Market symbols to fetch sparklines for
  */
 export function useHomepageSparklines(
@@ -44,6 +48,7 @@ export function useHomepageSparklines(
   const stream = usePerpsStream();
   const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
   const dataRef = useRef<Record<string, number[]>>({});
+  const flushScheduledRef = useRef(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Stable string key so the effect doesn't re-run on every render
@@ -54,7 +59,17 @@ export function useHomepageSparklines(
     if (!symbolsKey) return undefined;
 
     dataRef.current = {};
+    flushScheduledRef.current = false;
     setSparklines({});
+
+    const scheduleFlush = () => {
+      if (flushScheduledRef.current) return;
+      flushScheduledRef.current = true;
+      queueMicrotask(() => {
+        flushScheduledRef.current = false;
+        setSparklines({ ...dataRef.current });
+      });
+    };
 
     const unsubscribes: (() => void)[] = [];
 
@@ -74,7 +89,7 @@ export function useHomepageSparklines(
             ...dataRef.current,
             [symbol]: downsample(closes, SPARKLINE_TARGET_POINTS),
           };
-          setSparklines({ ...dataRef.current });
+          scheduleFlush();
         },
       });
       unsubscribes.push(unsubscribe);
