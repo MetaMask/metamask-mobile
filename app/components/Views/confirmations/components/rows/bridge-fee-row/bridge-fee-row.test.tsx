@@ -86,11 +86,11 @@ describe('BridgeFeeRow', () => {
     expect(getByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeDefined();
     expect(getByText('$0.23')).toBeDefined();
     expect(queryByText('$1.23')).toBeNull();
-    expect(queryByTestId('metamask-fee-row')).toBeNull();
+    expect(getByTestId('metamask-fee-row')).toBeDefined();
     expect(queryByTestId('bridge-fee-row')).toBeNull();
   });
 
-  it('renders skeleton if musdConversion network fee is loading', () => {
+  it('renders skeletons if musdConversion fees are loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId, queryByTestId, queryByText } = render({
@@ -98,7 +98,9 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByTestId('network-fee-row-skeleton')).toBeDefined();
+    expect(getByTestId('metamask-fee-row-skeleton')).toBeDefined();
     expect(queryByTestId(ConfirmationRowComponentIDs.NETWORK_FEE)).toBeNull();
+    expect(queryByTestId('metamask-fee-row')).toBeNull();
     expect(queryByText('$0.23')).toBeNull();
   });
 

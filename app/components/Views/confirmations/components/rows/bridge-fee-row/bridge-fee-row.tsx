@@ -22,7 +22,10 @@ import {
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { BigNumber } from 'bignumber.js';
-import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
+import InfoRow, {
+  InfoRowSkeleton,
+  InfoRowVariant,
+} from '../../UI/info-row/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
@@ -43,11 +46,14 @@ export function BridgeFeeRow() {
 
   if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
     return (
-      <NetworkFeeRow
-        totals={totals}
-        hasAlert={hasAlert}
-        isLoading={isLoading}
-      />
+      <>
+        <NetworkFeeRow
+          totals={totals}
+          hasAlert={hasAlert}
+          isLoading={isLoading}
+        />
+        <MetaMaskFeeRow quotes={quotes} totals={totals} isLoading={isLoading} />
+      </>
     );
   }
 
@@ -260,5 +266,40 @@ function FeesTooltip({
         <Text color={TextColor.Alternative}>{metaMaskFeeUsd}</Text>
       </Box>
     </Box>
+  );
+}
+
+function MetaMaskFeeRow({
+  quotes,
+  totals,
+  isLoading,
+}: {
+  quotes?: TransactionPayQuote<Json>[];
+  totals?: TransactionPayTotals;
+  isLoading: boolean;
+}) {
+  const formatFiat = useFiatFormatter({ currency: 'usd' });
+
+  const hasQuotes = Boolean(quotes?.length);
+
+  const metamaskFeeUsd = useMemo(
+    () => formatFiat(new BigNumber(totals?.fees.metaMask.usd ?? 0)),
+    [totals, formatFiat],
+  );
+
+  if (isLoading) return <InfoRowSkeleton testId="metamask-fee-row-skeleton" />;
+
+  if (!hasQuotes) return null;
+
+  return (
+    <InfoRow
+      testID="metamask-fee-row"
+      label={strings('confirm.label.metamask_fee')}
+      rowVariant={InfoRowVariant.Small}
+    >
+      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        {metamaskFeeUsd}
+      </Text>
+    </InfoRow>
   );
 }
