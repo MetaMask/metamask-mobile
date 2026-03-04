@@ -88,7 +88,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
         );
-        // await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
