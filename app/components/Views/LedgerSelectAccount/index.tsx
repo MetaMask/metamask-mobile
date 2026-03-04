@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Image,
   Text,
@@ -179,8 +185,10 @@ const LedgerSelectAccount = () => {
     [],
   );
 
+  const hasTrackedOpenRef = useRef(false);
   useEffect(() => {
-    if (accounts.length > 0) {
+    if (accounts.length > 0 && !hasTrackedOpenRef.current) {
+      hasTrackedOpenRef.current = true;
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.HARDWARE_WALLET_ACCOUNT_SELECTOR_OPEN,
