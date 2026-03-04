@@ -240,8 +240,6 @@ export const PERPS_EVENT_VALUE = {
     STOP_LOSS_PROMPT_SET_SL: 'stop_loss_prompt_set_sl',
     // Geo-block sources for bulk actions
     CLOSE_ALL_POSITIONS_BUTTON: 'close_all_positions_button',
-    // Homepage section sources
-    HOME_SCREEN: 'home_screen',
   },
   WARNING_TYPE: {
     MINIMUM_DEPOSIT: 'minimum_deposit',
