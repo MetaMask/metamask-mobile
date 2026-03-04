@@ -130,7 +130,7 @@ exports[`CustomSlippageModal confirm button is disabled when shouldDisableConfir
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -162,7 +162,7 @@ exports[`CustomSlippageModal confirm button is disabled when shouldDisableConfir
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -224,7 +224,7 @@ exports[`CustomSlippageModal confirm button is disabled when shouldDisableConfir
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -407,7 +407,7 @@ exports[`CustomSlippageModal confirm button is enabled when shouldDisableConfirm
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -439,7 +439,7 @@ exports[`CustomSlippageModal confirm button is enabled when shouldDisableConfirm
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -501,7 +501,7 @@ exports[`CustomSlippageModal confirm button is enabled when shouldDisableConfirm
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -684,7 +684,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot for complete modal 
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -716,7 +716,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot for complete modal 
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -778,7 +778,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot for complete modal 
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -961,7 +961,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with confirm disabl
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -993,7 +993,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with confirm disabl
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -1055,7 +1055,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with confirm disabl
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
@@ -1241,7 +1241,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with description sh
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -1273,7 +1273,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with description sh
           style={
             [
               {
-                "color": "#121314",
+                "color": "#131416",
                 "flexGrow": 0,
                 "flexShrink": 1,
                 "flexWrap": "wrap",
@@ -1335,7 +1335,7 @@ exports[`CustomSlippageModal snapshot tests matches snapshot with description sh
           [
             {
               "alignItems": "center",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#131416",
               "borderRadius": 12,
               "columnGap": 8,
               "flexDirection": "row",
