@@ -17,7 +17,10 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
-// Action orchestrator (navigation, cache invalidation, toasts) — not a React Query wrapper.
+/**
+ * Orchestrates the withdraw flow (navigation, cache invalidation, toasts).
+ * Not a data-fetching hook — does not wrap useQuery/useMutation.
+ */
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
