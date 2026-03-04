@@ -15,13 +15,7 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import Routes from '../../../../constants/navigation/Routes';
 import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
-/**
- * This hook orchestrates the claim flow including navigation to the
- * confirmation screen, toast notifications on error (with retry), and
- * cache invalidation on success. It is not a data-fetching hook and
- * does not wrap useQuery/useMutation — returning a raw React Query
- * result does not apply here.
- */
+// Action orchestrator (navigation, cache invalidation, toasts) — not a React Query wrapper.
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const { claim: claimWinnings } = usePredictTrading();
