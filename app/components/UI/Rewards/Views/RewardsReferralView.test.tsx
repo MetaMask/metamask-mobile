@@ -29,12 +29,14 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      primary: '#000',
+      background: '#fff',
+    },
+  }),
+}));
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({

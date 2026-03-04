@@ -52,12 +52,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      primary: {
+        default: '#037DD6',
+      },
+      background: {
+        alternative: '#F7F9FA',
+      },
+    },
+  })),
+}));
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {

@@ -22,7 +22,6 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 import RewardsThemeImageComponent from './RewardsThemeImageComponent';
-const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Helper function to render with Redux Provider
 const renderWithProvider = (component: React.ReactElement) =>
@@ -57,14 +56,21 @@ describe('RewardsThemeImageComponent', () => {
     darkModeUrl: 'https://example.com/dark.png',
   };
 
-  const mockRewardsTheme = {
-    ...mockTheme,
+  const mockTheme = {
+    colors: {
+      primary: {
+        default: '#037DD6',
+      },
+    },
     themeAppearance: 'light',
+    brandColors: {},
+    typography: {},
+    shadows: {},
   } as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockRewardsTheme);
+    mockUseTheme.mockReturnValue(mockTheme);
   });
 
   it('renders Image and ActivityIndicator on initial render', () => {

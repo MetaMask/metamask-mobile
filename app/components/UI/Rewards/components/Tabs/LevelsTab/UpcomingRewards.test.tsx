@@ -125,15 +125,12 @@ const mockSelectSeasonStartDate = selectSeasonStartDate as jest.MockedFunction<
 >;
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
-  return {
-    useTheme: () => ({
-      themeAppearance: 'light',
-      brandColors: mockTheme.brandColors,
-    }),
-  };
-});
+jest.mock('../../../../../../util/theme', () => ({
+  useTheme: () => ({
+    themeAppearance: 'light',
+    brandColors: { grey700: '#374151' },
+  }),
+}));
 
 // Mock i18n
 jest.mock('../../../../../../../locales/i18n', () => ({

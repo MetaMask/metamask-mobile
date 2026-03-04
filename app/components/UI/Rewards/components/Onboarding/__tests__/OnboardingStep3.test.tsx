@@ -29,12 +29,15 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      background: {
+        muted: '#f5f5f5',
+      },
+    },
+  }),
+}));
 
 // Mock strings
 jest.mock('../../../../../../../locales/i18n', () => ({

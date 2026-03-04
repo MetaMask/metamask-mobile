@@ -135,18 +135,6 @@ module.exports = {
       },
     },
     {
-      files: ['app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
-    },
-    {
-      files: ['app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
-    },
-    {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',

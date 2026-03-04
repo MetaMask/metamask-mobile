@@ -106,12 +106,14 @@ const mockSelectSnapshotsRewardsEnabledFlag =
   >;
 
 // Mock theme
-jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      primary: '#000',
+      background: '#fff',
+    },
+  }),
+}));
 
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {

@@ -41,12 +41,16 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../../../util/theme', () => ({
+  useTheme: () => ({
+    themeAppearance: 'light',
+    colors: {
+      grey: {
+        700: '#374151',
+      },
+    },
+  }),
+}));
 
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({

@@ -202,7 +202,6 @@ const mockBoost: PointsBoostDto = {
   seasonLong: false,
   startDate: '2024-01-01',
   endDate: '2024-12-31',
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   backgroundColor: '#FF6B35',
 };
 
@@ -215,7 +214,6 @@ const mockSeasonLongBoost: PointsBoostDto = {
   },
   boostBips: 1000,
   seasonLong: true,
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   backgroundColor: '#4A90E2',
 };
 
@@ -228,7 +226,6 @@ const mockBoostWithoutEndDate: PointsBoostDto = {
   },
   boostBips: 250,
   seasonLong: false,
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   backgroundColor: '#50C878',
 };
 

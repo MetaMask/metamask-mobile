@@ -77,7 +77,6 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 1000,
       seasonLong: true,
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#FF0000',
     },
     {
@@ -91,7 +90,6 @@ describe('useActivePointsBoosts', () => {
       seasonLong: false,
       startDate: '2024-01-01',
       endDate: '2024-01-31',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       backgroundColor: '#00FF00',
     },
   ];

@@ -182,3 +182,20 @@ export const mockAccount = {
     },
   },
 };
+
+// Mock theme
+export const mockTheme = {
+  colors: {
+    background: {
+      muted: '#f5f5f5',
+      default: '#ffffff',
+    },
+    text: {
+      primary: '#000000',
+      alternative: '#666666',
+    },
+    border: {
+      muted: '#e0e0e0',
+    },
+  },
+};
