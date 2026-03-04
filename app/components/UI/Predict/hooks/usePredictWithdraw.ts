@@ -17,6 +17,14 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
+/**
+ * This hook is an action orchestrator, not a React Query wrapper.
+ * It coordinates navigation (navigateToConfirmation, goBack), imperative
+ * controller calls (prepareWithdraw), cache invalidation, error logging,
+ * and error toasts. There is no underlying useQuery/useMutation to
+ * surface — the controller method is a plain async call — so returning
+ * a raw React Query result does not apply here.
+ */
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
