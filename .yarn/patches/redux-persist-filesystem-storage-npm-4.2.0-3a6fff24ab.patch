@@ -1,7 +1,7 @@
-diff --git a/node_modules/redux-persist-filesystem-storage/index.d.ts b/node_modules/redux-persist-filesystem-storage/index.d.ts
-index b0caa94..76b0442 100644
---- a/node_modules/redux-persist-filesystem-storage/index.d.ts
-+++ b/node_modules/redux-persist-filesystem-storage/index.d.ts
+diff --git a/index.d.ts b/index.d.ts
+index b0caa94ceaa9afaa6c112947a328887e580f76a2..76b0442a7367f39d8ae9300825815edda5b02c44 100644
+--- a/index.d.ts
++++ b/index.d.ts
 @@ -12,6 +12,7 @@ declare module 'redux-persist-filesystem-storage' {
      setItem: (
        key: string,
@@ -10,24 +10,30 @@ index b0caa94..76b0442 100644
        callback?: (error?: Error) => void,
      ) => Promise<void>
  
-diff --git a/node_modules/redux-persist-filesystem-storage/index.js b/node_modules/redux-persist-filesystem-storage/index.js
-index d69afb6..0ca3a25 100644
---- a/node_modules/redux-persist-filesystem-storage/index.js
-+++ b/node_modules/redux-persist-filesystem-storage/index.js
-@@ -41,11 +41,14 @@ const FilesystemStorage = {
+diff --git a/index.js b/index.js
+index d69afb678b3d06760ad59831457cfd5c51fdb89b..8d5ecb060a91f137c865ed21f891b640d3cc65fe 100644
+--- a/index.js
++++ b/index.js
+@@ -41,11 +41,19 @@ const FilesystemStorage = {
      onStorageReady = onStorageReadyFactory(options.storagePath);
    },
  
 -  setItem: (key: string, value: string, callback?: (error: ?Error) => void) =>
+-    ReactNativeBlobUtil.fs
 +  setItem: (key: string, value: string, isIOS: boolean = false, callback?: (error: ?Error) => void) => {
-     ReactNativeBlobUtil.fs
++    return ReactNativeBlobUtil.fs
        .writeFile(pathForKey(key), value, options.encoding)
 -      .then(() => callback && callback())
 -      .catch(error => callback && callback(error)),
 +      .then(() => {
 +        if (isIOS) ReactNativeBlobUtil.ios.excludeFromBackupKey(pathForKey(key));
 +        callback && callback();
-+      }).catch(error => callback && callback(error));
++      }).catch((error) => {
++        if (!callback) {
++          throw error;
++        }
++        callback(error);
++      });
 +  },
  
    getItem: onStorageReady(
