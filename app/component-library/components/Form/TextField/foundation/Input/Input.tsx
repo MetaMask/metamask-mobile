@@ -1,8 +1,12 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useCallback, useRef, useState, useEffect } from 'react';
-import { TextInput } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import {
+  TextInput,
+  NativeSyntheticEvent,
+  TextInputFocusEventData,
+} from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../../../hooks';
@@ -31,7 +35,6 @@ const Input = React.forwardRef<TextInput, InputProps>(
       onFocus,
       autoFocus = true,
       value,
-      defaultValue,
       placeholder,
       onChangeText,
       ...props
@@ -39,24 +42,10 @@ const Input = React.forwardRef<TextInput, InputProps>(
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState(autoFocus);
-    const [internalValue, setInternalValue] = useState(defaultValue ?? '');
 
-    const isControlledRef = useRef<boolean | null>(null);
-    if (isControlledRef.current === null) {
-      isControlledRef.current = value !== undefined;
-    }
-    const isControlled = isControlledRef.current;
-
-    const currentValue = isControlled ? (value ?? '') : internalValue;
     const hasPlaceholder = placeholder != null && placeholder !== '';
     const isPlaceholderVisible =
-      hasPlaceholder && (currentValue === '' || currentValue == null);
-
-    useEffect(() => {
-      if (!isControlledRef.current) {
-        setInternalValue(defaultValue ?? '');
-      }
-    }, [defaultValue]);
+      hasPlaceholder && (value === '' || value == null);
 
     const { styles, theme } = useStyles(styleSheet, {
       style,
@@ -68,37 +57,23 @@ const Input = React.forwardRef<TextInput, InputProps>(
     });
 
     const onBlurHandler = useCallback(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (e: any) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(false);
           onBlur?.(e);
         }
       },
-      [isDisabled, setIsFocused, onBlur],
+      [isDisabled, onBlur],
     );
 
     const onFocusHandler = useCallback(
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (e: any) => {
+      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);
         }
       },
-      [isDisabled, setIsFocused, onFocus],
-    );
-
-    const onChangeTextHandler = useCallback(
-      (text: string) => {
-        if (!isControlled) {
-          setInternalValue(text);
-        }
-        onChangeText?.(text);
-      },
-      [isControlled, onChangeText],
+      [isDisabled, onFocus],
     );
 
     return (
@@ -107,8 +82,8 @@ const Input = React.forwardRef<TextInput, InputProps>(
         placeholderTextColor={theme.colors.text.alternative}
         {...props}
         placeholder={placeholder}
-        value={isControlled ? value : internalValue}
-        onChangeText={onChangeTextHandler}
+        value={value}
+        onChangeText={onChangeText}
         style={styles.base}
         editable={!isDisabled && !isReadonly}
         autoFocus={autoFocus}
