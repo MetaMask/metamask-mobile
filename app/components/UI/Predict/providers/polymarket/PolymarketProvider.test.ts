@@ -1840,7 +1840,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('falls back to Safe fee authorization when Permit2 allowance is not set', async () => {
+    it('uses Permit2 fee authorization even when Permit2 allowance is not yet set on-chain', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
@@ -1859,8 +1859,8 @@ describe('PolymarketProvider', () => {
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
-      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
-      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalled();
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
     });
 
     it('falls back to Safe fee authorization when permit2Enabled is false', async () => {
@@ -1989,7 +1989,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('submits FOK order type when falling back to Safe tx regardless of fakOrdersEnabled', async () => {
+    it('submits FAK order type when permit2 is enabled and fakOrdersEnabled, even without on-chain Permit2 allowance', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest({
         feeCollection: {
@@ -2017,7 +2017,7 @@ describe('PolymarketProvider', () => {
 
       expect(mockSubmitClobOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
         }),
       );
     });
@@ -2105,7 +2105,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('does not attach allowancesTx when permit2 is enabled, hasAllowances is false, and feeAuthorization is safe-transaction', async () => {
+    it('attaches allowancesTx when permit2 is enabled and hasAllowances is false, even with safe-transaction feeAuthorization', async () => {
       const { provider, mockSigner } = setupPlaceOrderTest({
         feeCollection: {
           ...DEFAULT_FEE_COLLECTION_FLAG,
@@ -2139,7 +2139,7 @@ describe('PolymarketProvider', () => {
 
       expect(mockSubmitClobOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          allowancesTx: undefined,
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
         }),
       );
     });
@@ -2250,6 +2250,37 @@ describe('PolymarketProvider', () => {
       expect(mockSubmitClobOrder).toHaveBeenCalledWith(
         expect.objectContaining({
           allowancesTx: undefined,
+        }),
+      );
+    });
+
+    it('attaches allowancesTx for SELL orders when permit2 feature flag is enabled and hasAllowances is false', async () => {
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      mockHasAllowances.mockResolvedValue(false);
+      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+      mockGetNetworkClientById.mockReturnValue({ provider: {} });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(getProxyWalletAllowancesTransaction).toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
         }),
       );
     });

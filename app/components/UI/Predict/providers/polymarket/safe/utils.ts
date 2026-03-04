@@ -174,39 +174,10 @@ const getNonce = async ({
   return BigInt(res);
 };
 
-export const getPermit2Nonce = async ({
-  safeAddress,
-}: {
-  safeAddress: string;
-}): Promise<string> => {
-  const { NetworkController } = Engine.context;
-  const networkClientId = NetworkController.findNetworkClientIdByChainId(
-    numberToHex(POLYGON_MAINNET_CHAIN_ID),
-  );
-  const ethQuery = new EthQuery(
-    NetworkController.getNetworkClientById(networkClientId).provider,
-  );
-  const nonceBitmapInterface = new Interface([
-    'function nonceBitmap(address, uint256) view returns (uint256)',
-  ]);
-  const res = (await query(ethQuery, 'call', [
-    {
-      to: PERMIT2_ADDRESS,
-      data: nonceBitmapInterface.encodeFunctionData('nonceBitmap', [
-        safeAddress,
-        0,
-      ]),
-    },
-  ])) as Hex;
-  const bitmap = res === '0x' ? 0n : BigInt(res);
-  let bitPos = 0n;
-  while (bitPos < 256n && ((bitmap >> bitPos) & 1n) === 1n) {
-    bitPos += 1n;
-  }
-  if (bitPos === 256n) {
-    throw new Error('No available Permit2 nonce found in nonce bitmap word 0');
-  }
-  return ((0n << 8n) | bitPos).toString();
+export const getPermit2Nonce = async (): Promise<string> => {
+  const arr = new Uint32Array(1);
+  global.crypto.getRandomValues(arr);
+  return arr[0].toString();
 };
 
 const getTransactionHash = ({
@@ -362,7 +333,7 @@ export const createPermit2FeeAuthorization = async ({
   amount: bigint;
   spender: string;
 }): Promise<Permit2FeeAuthorization> => {
-  const nonce = await getPermit2Nonce({ safeAddress });
+  const nonce = await getPermit2Nonce();
   const deadline = (Math.floor(Date.now() / 1000) + 3600).toString();
   const token = MATIC_CONTRACTS.collateral;
 

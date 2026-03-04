@@ -1226,30 +1226,20 @@ export class PolymarketProvider implements PredictProvider {
         );
 
         if (shouldUsePermit2) {
+          // Always use Permit2 fee authorization when permit2 is enabled.
+          // The relay will submit the allowancesTx on-chain first (if
+          // attached) before redeeming the Permit2 authorization.
+          permit2FeeReady = true;
           const executors = fees.executors ?? [];
-          const permit2Ready = await this.#isPermit2AllowanceReady(
-            signer.address,
-          );
-
-          if (permit2Ready) {
-            permit2FeeReady = true;
-            const randomIndex = new Uint32Array(1);
-            global.crypto.getRandomValues(randomIndex);
-            executor = executors[randomIndex[0] % executors.length];
-            feeAuthorization = await createPermit2FeeAuthorization({
-              safeAddress,
-              signer,
-              amount: feeAmountInUsdc,
-              spender: executor,
-            });
-          } else {
-            feeAuthorization = await createSafeFeeAuthorization({
-              safeAddress,
-              signer,
-              amount: feeAmountInUsdc,
-              to: fees.collector,
-            });
-          }
+          const randomIndex = new Uint32Array(1);
+          global.crypto.getRandomValues(randomIndex);
+          executor = executors[randomIndex[0] % executors.length];
+          feeAuthorization = await createPermit2FeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            spender: executor,
+          });
         } else {
           feeAuthorization = await createSafeFeeAuthorization({
             safeAddress,
@@ -1260,41 +1250,30 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
-      // When Permit2 is enabled, ensure the proxy wallet has the required
-      // allowances. If not, generate a signed Safe TX that the relay will
-      // submit on-chain before processing the order.
+      // When Permit2 is enabled via feature flags, ensure the proxy wallet
+      // has the required allowances. If not, generate a signed Safe TX that
+      // the relay will submit on-chain before processing the order.
+      // This uses the feature flag (not per-order fees) so it works for
+      // both BUY orders (with fees) and SELL orders (no fees).
       let allowancesTx: { to: string; data: string } | undefined;
 
-      if (shouldUsePermit2) {
+      if (feeCollection.permit2Enabled) {
         try {
           const accountState = await this.getAccountState({
             ownerAddress: signer.address,
           });
 
           if (!accountState.hasAllowances) {
-            // Only attach allowancesTx when:
-            // - No feeAuthorization (no fees to collect), OR
-            // - feeAuthorization is of type 'safe-permit2'
-            //   (relay needs Permit2 allowance on-chain for fee collection)
-            const shouldAttachAllowancesTx =
-              !feeAuthorization || feeAuthorization.type === 'safe-permit2';
+            const allowanceTx = await getProxyWalletAllowancesTransaction({
+              signer,
+              extraUsdcSpenders: [PERMIT2_ADDRESS],
+            });
 
-            if (shouldAttachAllowancesTx) {
-              const extraUsdcSpenders = feeCollection.permit2Enabled
-                ? [PERMIT2_ADDRESS]
-                : [];
-
-              const allowanceTx = await getProxyWalletAllowancesTransaction({
-                signer,
-                extraUsdcSpenders,
-              });
-
-              allowancesTx = allowanceTx.params;
-            }
+            allowancesTx = allowanceTx.params;
           }
         } catch (allowanceError) {
-          // Log but don't block the order — the relay can still process
-          // the order; fee collection may fall back to safe-transaction.
+          // Log but don't block the order — the relay will process
+          // the order without the allowances pre-set.
           DevLogger.log(
             'PolymarketProvider: Failed to generate allowances transaction',
             { error: allowanceError },
@@ -1310,9 +1289,9 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
-      // Determine order type independently of fee authorization.
-      // FAK depends on feature flags only; the Permit2 allowance check
-      // is only needed when fees must be collected via Permit2.
+      // Determine order type: FAK when Permit2 config is active and
+      // FAK orders are enabled. Since we always use Permit2 fee auth
+      // when permit2 is enabled, FAK is available for all orders.
       if (
         this.#shouldUseFakOrderType({
           permit2Enabled: feeCollection.permit2Enabled,
