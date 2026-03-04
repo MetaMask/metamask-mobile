@@ -5,6 +5,7 @@ import type { ControllerInitRequest } from '../types';
 import { geolocationApiServiceInit } from './geolocation-api-service-init';
 import {
   GeolocationApiService,
+  Env,
   type GeolocationApiServiceMessenger,
 } from '@metamask/geolocation-controller';
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
@@ -17,8 +18,6 @@ jest.mock('../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment', () => ({
 
 import { getSdkEnvironment } from '../../../components/UI/Ramp/Deposit/sdk/getSdkEnvironment';
 import { SdkEnvironment } from '@consensys/native-ramps-sdk';
-import { Env } from '@metamask/geolocation-controller';
-
 const mockGetSdkEnvironment = jest.mocked(getSdkEnvironment);
 
 function getInitRequestMock(): jest.Mocked<

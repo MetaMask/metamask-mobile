@@ -292,9 +292,9 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     );
     const rampsButtonClickedRegion = rampsButtonClicked?.properties
       ?.region as string;
-    // The region property is a plain string (e.g. "us-ca") matching the
-    // geolocation endpoint response, not a JSON-serialized object.
-    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
+    // The GeolocationController stores the ISO 3166-1 alpha-2 country code
+    // returned by the geolocation API (e.g. 'US'), not the ramp region id.
+    const expectedRegionId = selectedRegion.countryIsoCode;
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfTextMatches(

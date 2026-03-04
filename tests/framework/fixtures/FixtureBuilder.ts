@@ -509,7 +509,12 @@ class FixtureBuilder {
    */
   withDetectedGeolocation(countryCode: string) {
     merge(this.fixture.state.engine.backgroundState, {
-      GeolocationController: { location: countryCode },
+      GeolocationController: {
+        location: countryCode,
+        status: 'complete',
+        lastFetchedAt: Date.now(),
+        error: null,
+      },
     });
     return this;
   }
