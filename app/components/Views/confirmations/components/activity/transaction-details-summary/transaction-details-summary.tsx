@@ -78,6 +78,7 @@ export function TransactionDetailsSummary() {
             transaction={item}
             isLast={index === transactions.length - 1}
             parentTransaction={transactionMeta}
+            relatedTransactions={transactions}
           />
         ))}
       </Box>
@@ -89,10 +90,12 @@ function TransactionSummary({
   isLast,
   transaction,
   parentTransaction,
+  relatedTransactions,
 }: {
   isLast: boolean;
   transaction: TransactionMeta;
   parentTransaction: TransactionMeta;
+  relatedTransactions: TransactionMeta[];
 }) {
   const {
     chainId: receiveChainId,
@@ -104,7 +107,7 @@ function TransactionSummary({
     targetNetworkName,
     targetSymbol,
     time: receiveTime,
-  } = useBridgeReceiveData(transaction, parentTransaction);
+  } = useBridgeReceiveData(transaction, parentTransaction, relatedTransactions);
 
   const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
@@ -340,6 +343,7 @@ function getLineTitle({
 function useBridgeReceiveData(
   transaction: TransactionMeta,
   parentTransaction: TransactionMeta,
+  relatedTransactions: TransactionMeta[],
 ): {
   chainId?: Hex;
   hash?: Hex;
@@ -367,10 +371,6 @@ function useBridgeReceiveData(
   const sourceToken = useTokenWithBalance(
     tokenAddress ?? '0x0',
     payChainId ?? '0x0',
-  );
-
-  const requiredTransactions = useSelector((state: RootState) =>
-    selectTransactionsByIds(state, transaction.requiredTransactionIds ?? []),
   );
 
   const sourceNetworkName = useNetworkName(transaction.chainId);
@@ -409,7 +409,7 @@ function useBridgeReceiveData(
       // strategy skips polling and sets the musdConversion hash to '0x0'.
       // Fall back to the relay deposit's on-chain hash, which represents
       // the actual swap transaction where mUSD was received.
-      const relayDepositTx = requiredTransactions.find((t) =>
+      const relayDepositTx = relatedTransactions.find((t) =>
         hasTransactionType(t, [TransactionType.relayDeposit]),
       );
 
