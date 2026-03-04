@@ -61,37 +61,36 @@ function createMetrics(overrides: Partial<MetricsOutput> = {}): MetricsOutput {
 
 describe('PerformanceSentryPublisher', () => {
   let fetchMock: jest.SpiedFunction<typeof fetch>;
-  const originalSentryDsn = process.env['E2E_PERFORMANCE_SENTRY_DSN'];
+  const originalSentryDsn = process.env.E2E_PERFORMANCE_SENTRY_DSN;
   const originalSentrySampleRate =
-    process.env['E2E_PERFORMANCE_SENTRY_SAMPLE_RATE'];
-  const originalSentryEnabled = process.env['E2E_PERFORMANCE_SENTRY_ENABLED'];
+    process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
+  const originalSentryEnabled = process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    delete process.env['E2E_PERFORMANCE_SENTRY_DSN'];
-    delete process.env['E2E_PERFORMANCE_SENTRY_SAMPLE_RATE'];
-    delete process.env['E2E_PERFORMANCE_SENTRY_ENABLED'];
+    delete process.env.E2E_PERFORMANCE_SENTRY_DSN;
+    delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
+    delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     fetchMock = jest.spyOn(global, 'fetch');
   });
 
   afterEach(() => {
     if (originalSentryDsn === undefined) {
-      delete process.env['E2E_PERFORMANCE_SENTRY_DSN'];
+      delete process.env.E2E_PERFORMANCE_SENTRY_DSN;
     } else {
-      process.env['E2E_PERFORMANCE_SENTRY_DSN'] = originalSentryDsn;
+      process.env.E2E_PERFORMANCE_SENTRY_DSN = originalSentryDsn;
     }
 
     if (originalSentrySampleRate === undefined) {
-      delete process.env['E2E_PERFORMANCE_SENTRY_SAMPLE_RATE'];
+      delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
     } else {
-      process.env['E2E_PERFORMANCE_SENTRY_SAMPLE_RATE'] =
-        originalSentrySampleRate;
+      process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE = originalSentrySampleRate;
     }
 
     if (originalSentryEnabled === undefined) {
-      delete process.env['E2E_PERFORMANCE_SENTRY_ENABLED'];
+      delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     } else {
-      process.env['E2E_PERFORMANCE_SENTRY_ENABLED'] = originalSentryEnabled;
+      process.env.E2E_PERFORMANCE_SENTRY_ENABLED = originalSentryEnabled;
     }
 
     fetchMock.mockRestore();
@@ -114,7 +113,7 @@ describe('PerformanceSentryPublisher', () => {
   });
 
   it('sends performance timers as sentry measurements', async () => {
-    process.env['E2E_PERFORMANCE_SENTRY_DSN'] =
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';
     fetchMock.mockResolvedValue({
       ok: true,
@@ -135,8 +134,12 @@ describe('PerformanceSentryPublisher', () => {
     expect(sent).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    const [endpoint, requestInit] = fetchMock.mock.calls[0];
+    const [endpoint, requestInit] = fetchMock.mock.calls[0] ?? [];
     expect(endpoint).toBe('https://o123.ingest.sentry.io/api/4567/envelope/');
+    expect(requestInit).toBeDefined();
+    if (!requestInit) {
+      throw new Error('Expected request init payload for Sentry request');
+    }
     expect(requestInit.method).toBe('POST');
 
     const body = requestInit.body as string;
@@ -154,9 +157,9 @@ describe('PerformanceSentryPublisher', () => {
   });
 
   it('does not send when sample rate is invalid', async () => {
-    process.env['E2E_PERFORMANCE_SENTRY_DSN'] =
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
       'https://publicKey@o123.ingest.sentry.io/4567';
-    process.env['E2E_PERFORMANCE_SENTRY_SAMPLE_RATE'] = '2';
+    process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE = '2';
 
     const sent = await publishPerformanceScenarioToSentry({
       metrics: createMetrics(),
