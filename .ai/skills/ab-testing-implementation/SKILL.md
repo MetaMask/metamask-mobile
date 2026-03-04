@@ -21,7 +21,7 @@ Follow the playbook strictly and keep implementation decisions consistent with r
 3. Use `useABTest(flagKey, variants)` in feature code, with explicit normalization to `control` for unknown assignments.
 4. Let `useABTest` own `Experiment Viewed`; do not add manual duplicate exposure tracking.
 5. Use `active_ab_tests: [{ key, value }]` only when assignment is active.
-6. Do not add new business-event payloads under `ab_tests`.
+6. Do not add new payloads under `ab_tests`.
 7. Add or update tests for variant behavior and analytics payload context.
 8. Update docs when adding reusable A/B implementation patterns.
 
@@ -40,3 +40,5 @@ Run and report:
 ```bash
 bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
+
+If no files are staged, the checker automatically falls back to changed working-tree files.

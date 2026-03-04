@@ -47,7 +47,7 @@ active_ab_tests: [{ key: FLAG_KEY, value: variantName }];
 
 only when the assignment is active.
 
-3. Do not add new business-event payloads under `ab_tests`.
+3. Do not add new payloads under `ab_tests`.
 
 ## Step 4: Test Expectations
 
@@ -64,6 +64,8 @@ Run:
 ```bash
 bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
+
+If no files are staged, this command automatically falls back to changed working-tree files.
 
 Optional explicit files mode:
 

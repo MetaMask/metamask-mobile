@@ -213,3 +213,5 @@ Compliance check command:
 ```bash
 bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
+
+If no files are staged, the checker automatically falls back to changed working-tree files.

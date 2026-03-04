@@ -18,6 +18,8 @@ Execution requirements:
 bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
 
+If no files are staged, the checker automatically falls back to changed working-tree files.
+
 Required response sections:
 
 1. `Implementation Checklist`

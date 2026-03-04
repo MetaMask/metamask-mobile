@@ -9,7 +9,7 @@ Use these two mechanisms together:
 1. **Exposure event (automatic):** `Experiment Viewed`
 2. **Business events context (manual):** `active_ab_tests`
 
-`ab_tests` is legacy and should not be used for new instrumentation.
+`ab_tests` is legacy and should not be used for new payload additions.
 
 ## References
 
@@ -23,6 +23,7 @@ Use the canonical cross-harness A/B testing skill:
 - `.ai/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
 - `.ai/skills/ab-testing-implementation/references/ab-testing-playbook.md`
 - Compliance check: `bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
+- If no files are staged, the checker automatically falls back to changed working-tree files.
 
 ---
 
@@ -165,7 +166,7 @@ trackEvent(
 );
 ```
 
-Do not send per-test nested properties under `ab_tests`.
+Do not add new payloads under `ab_tests`.
 
 ---
 
@@ -216,7 +217,7 @@ active_ab_tests: [
 ];
 ```
 
-Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no new business-event instrumentation using it.
+Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no new payload additions using it.
 
 ---
 

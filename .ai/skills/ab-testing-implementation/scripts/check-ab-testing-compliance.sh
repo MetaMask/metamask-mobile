@@ -10,7 +10,7 @@ Usage:
 Checks changed files for A/B testing implementation compliance.
 
 Rules:
-  - Fail: New business-event payloads under ab_tests
+  - Fail: New ab_tests payload additions in checked code diffs
   - Fail: Malformed literal active_ab_tests objects missing key/value
   - Fail: Inline useABTest variants object missing control
   - Warn: Flag key naming mismatch for Abtest keys
@@ -21,15 +21,27 @@ EOF
 MODE=""
 FILES_ARG=""
 BASE_REF=""
+FALLBACK_TO_WORKTREE=0
+FALLBACK_NOTE=""
+
+set_mode() {
+  local new_mode="$1"
+  if [[ -n "$MODE" ]]; then
+    echo "ERROR: Choose exactly one mode: --staged or --files."
+    usage
+    exit 2
+  fi
+  MODE="$new_mode"
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --staged)
-      MODE="staged"
+      set_mode "staged"
       shift
       ;;
     --files)
-      MODE="files"
+      set_mode "files"
       FILES_ARG="${2:-}"
       if [[ -z "$FILES_ARG" ]]; then
         echo "ERROR: --files requires a comma-separated value."
@@ -99,26 +111,26 @@ is_valid_flag_key() {
   [[ "$key" =~ ^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$ ]]
 }
 
-collect_files() {
-  local files=()
-  if [[ "$MODE" == "staged" ]]; then
-    while IFS= read -r item; do
-      [[ -n "$item" ]] && files+=("$item")
-    done < <(git diff --cached --name-only --diff-filter=ACMR)
-  else
-    local raw
-    IFS=',' read -r -a raw <<< "$FILES_ARG"
-    local item
-    for item in "${raw[@]}"; do
-      item="$(trim "$item")"
-      if [[ -n "$item" ]]; then
-        files+=("$item")
-      fi
-    done
-  fi
-  if [[ ${#files[@]} -gt 0 ]]; then
-    printf '%s\n' "${files[@]}"
-  fi
+collect_staged_files() {
+  git diff --cached --name-only --diff-filter=ACMR | awk 'NF && !seen[$0]++'
+}
+
+collect_worktree_files() {
+  {
+    git diff --name-only --diff-filter=ACMR
+    git ls-files --others --exclude-standard
+  } | awk 'NF && !seen[$0]++'
+}
+
+collect_explicit_files() {
+  local raw
+  local item
+
+  IFS=',' read -r -a raw <<< "$FILES_ARG"
+  for item in "${raw[@]}"; do
+    item="$(trim "$item")"
+    [[ -n "$item" ]] && printf '%s\n' "$item"
+  done | awk 'NF && !seen[$0]++'
 }
 
 get_added_lines() {
@@ -126,6 +138,20 @@ get_added_lines() {
   local base_ref="${2:-}"
 
   if [[ "$MODE" == "staged" ]]; then
+    if [[ "$FALLBACK_TO_WORKTREE" -eq 1 ]]; then
+      # For fallback mode, treat untracked files as fully added.
+      if [[ -f "$file" ]] && ! git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+        cat "$file"
+        return
+      fi
+
+      git diff --unified=0 -- "$file" \
+        | grep '^+' \
+        | grep -v '^+++' \
+        | sed 's/^+//' || true
+      return
+    fi
+
     git diff --cached --unified=0 -- "$file" \
       | grep '^+' \
       | grep -v '^+++' \
@@ -161,7 +187,16 @@ get_scan_content() {
   local file="$1"
 
   if [[ "$MODE" == "staged" ]]; then
-    get_added_lines "$file"
+    if [[ "$FALLBACK_TO_WORKTREE" -eq 1 ]]; then
+      if [[ -f "$file" ]]; then
+        cat "$file"
+      fi
+      return
+    fi
+
+    if git cat-file -e ":$file" >/dev/null 2>&1; then
+      git show ":$file"
+    fi
     return
   fi
 
@@ -181,14 +216,32 @@ AB_IMPL_FILES=()
 TEST_CHANGED=0
 
 CHANGED_FILES=()
-while IFS= read -r file; do
-  [[ -n "$file" ]] && CHANGED_FILES+=("$file")
-done < <(collect_files)
+if [[ "$MODE" == "staged" ]]; then
+  while IFS= read -r file; do
+    [[ -n "$file" ]] && CHANGED_FILES+=("$file")
+  done < <(collect_staged_files)
+
+  if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
+    FALLBACK_TO_WORKTREE=1
+    FALLBACK_NOTE="Info: no staged files found; falling back to working-tree changed files."
+    while IFS= read -r file; do
+      [[ -n "$file" ]] && CHANGED_FILES+=("$file")
+    done < <(collect_worktree_files)
+  fi
+else
+  while IFS= read -r file; do
+    [[ -n "$file" ]] && CHANGED_FILES+=("$file")
+  done < <(collect_explicit_files)
+fi
 
 resolve_default_base_ref
 
 if [[ ${#CHANGED_FILES[@]} -eq 0 || ( ${#CHANGED_FILES[@]} -eq 1 && -z "${CHANGED_FILES[0]}" ) ]]; then
-  echo "A/B compliance check: no files to inspect."
+  if [[ "$MODE" == "staged" ]]; then
+    echo "A/B compliance check: no staged files and no working-tree changed files to inspect."
+  else
+    echo "A/B compliance check: no files to inspect from --files input."
+  fi
   exit 0
 fi
 
@@ -211,13 +264,13 @@ for file in "${CHANGED_FILES[@]}"; do
     AB_IMPL_FILES+=("$file")
   fi
 
-  # Rule: no new business-event ab_tests payloads.
+  # Rule: no new ab_tests payload additions in checked code diffs.
   while IFS= read -r line; do
     if [[ "$line" =~ active_ab_tests[[:space:]]*: ]]; then
       continue
     fi
     if [[ "$line" =~ (^|[^A-Za-z0-9_])ab_tests[[:space:]]*: ]] && [[ ! "$line" =~ LEGACY_AB_TEST_ALLOWED ]]; then
-      FAILURES+=("$file: added 'ab_tests' payload. Use 'active_ab_tests'.")
+      FAILURES+=("$file: added 'ab_tests' payload. New ab_tests payloads are forbidden.")
     fi
   done <<< "$added"
 
@@ -298,6 +351,9 @@ fi
 
 echo "A/B compliance check summary"
 echo "Mode: $MODE"
+if [[ -n "$FALLBACK_NOTE" ]]; then
+  echo "$FALLBACK_NOTE"
+fi
 if [[ "$MODE" == "files" && -n "$BASE_REF" ]]; then
   echo "Base ref: $BASE_REF"
 fi
