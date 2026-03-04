@@ -103,6 +103,10 @@
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_native_post_quote": {
+      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
+      "title": "Insufficient funds for post quote"
+    },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
