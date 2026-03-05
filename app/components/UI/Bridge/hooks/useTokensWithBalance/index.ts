@@ -39,6 +39,7 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { isTradableToken } from '../../utils/isTradableToken';
+import { normalizeTokenAddress } from '../useTokenAddress';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -261,7 +262,7 @@ export const useTokensWithBalance: ({
         }
 
         return {
-          address: token.address,
+          address: normalizeTokenAddress(token.address, chainId),
           name: token.name,
           decimals: token.decimals,
           symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
