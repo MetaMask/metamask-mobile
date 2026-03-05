@@ -201,6 +201,7 @@ export const DEPOSIT_CONFIG = {
 
 // Withdrawal constants (HyperLiquid-specific)
 export const HYPERLIQUID_WITHDRAWAL_MINUTES = 5; // HyperLiquid withdrawal processing time in minutes
+export const ESTIMATED_FEE_RATE = 0.0009; // 0.09% taker fee estimate for flip operations (close + open)
 
 // Type helpers
 export type SupportedAsset = keyof typeof HYPERLIQUID_ASSET_CONFIGS;
