@@ -13,7 +13,6 @@ import {
   getWalletNavbarOptions,
   getStakingNavbar,
   getSwapsQuotesNavbar,
-  getRampsBuildQuoteNavbarOptions,
 } from '.';
 import { mockTheme } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -1124,87 +1123,5 @@ describe('getSwapsQuotesNavbar', () => {
     );
     expect(mockAnalyticsTrackEvent).toHaveBeenCalled();
     expect(mockNavigation.pop).toHaveBeenCalled();
-  });
-});
-
-describe('getRampsBuildQuoteNavbarOptions', () => {
-  const mockNavigation = {
-    goBack: jest.fn(),
-    navigate: jest.fn(),
-  };
-
-  it('returns a header function', () => {
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      tokenSymbol: 'ETH',
-      networkName: 'Ethereum Mainnet',
-      onSettingsPress: jest.fn(),
-      onBackPress: jest.fn(),
-    });
-
-    expect(result).toHaveProperty('header');
-    expect(typeof result.header).toBe('function');
-  });
-
-  it('returns header with undefined title when tokenSymbol is missing', () => {
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      networkName: 'Ethereum Mainnet',
-    });
-
-    expect(result).toHaveProperty('header');
-    expect(typeof result.header).toBe('function');
-  });
-
-  it('returns header with undefined subtitle when networkName is missing', () => {
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      tokenSymbol: 'ETH',
-    });
-
-    expect(result).toHaveProperty('header');
-    expect(typeof result.header).toBe('function');
-  });
-
-  it('calls onBackPress and navigation.goBack when back button is pressed', () => {
-    const mockOnBackPress = jest.fn();
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      tokenSymbol: 'ETH',
-      networkName: 'Ethereum Mainnet',
-      onBackPress: mockOnBackPress,
-    });
-
-    const header = result.header();
-    const startButtonProps = header.props.startButtonIconProps;
-    startButtonProps.onPress();
-
-    expect(mockOnBackPress).toHaveBeenCalled();
-    expect(mockNavigation.goBack).toHaveBeenCalled();
-  });
-
-  it('calls navigation.goBack even when onBackPress is not provided', () => {
-    mockNavigation.goBack.mockClear();
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      tokenSymbol: 'ETH',
-      networkName: 'Ethereum Mainnet',
-    });
-
-    const header = result.header();
-    const startButtonProps = header.props.startButtonIconProps;
-    startButtonProps.onPress();
-
-    expect(mockNavigation.goBack).toHaveBeenCalled();
-  });
-
-  it('passes onSettingsPress to end button', () => {
-    const mockOnSettingsPress = jest.fn();
-    const result = getRampsBuildQuoteNavbarOptions(mockNavigation, {
-      tokenSymbol: 'ETH',
-      networkName: 'Ethereum Mainnet',
-      onSettingsPress: mockOnSettingsPress,
-    });
-
-    const header = result.header();
-    const endButtonProps = header.props.endButtonIconProps[0];
-    endButtonProps.onPress();
-
-    expect(mockOnSettingsPress).toHaveBeenCalled();
   });
 });

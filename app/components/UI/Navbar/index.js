@@ -1948,50 +1948,6 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
   };
 }
 
-/**
- * Function that returns the navigation options for the Ramps Build Quote screen
- *
- * @param {Object} navigation - Navigation object required to navigate between screens
- * @param {Object} options - Options for the navbar
- * @param {string} [options.tokenSymbol] - Symbol/ticker of the selected token (e.g., "ETH")
- * @param {string} [options.networkName] - Name of the network
- * @param {Function} [options.onSettingsPress] - Callback for settings button press
- * @param {Function} [options.onBackPress] - Callback for back button press
- * @returns {Object} - Navigation options object
- */
-export function getRampsBuildQuoteNavbarOptions(
-  navigation,
-  { tokenSymbol, networkName, onSettingsPress, onBackPress } = {},
-) {
-  const title = tokenSymbol
-    ? strings('fiat_on_ramp.buy', { ticker: tokenSymbol })
-    : undefined;
-  const subtitle = networkName
-    ? strings('fiat_on_ramp.on_network', { networkName })
-    : undefined;
-
-  return getHeaderCompactStandardNavbarOptions({
-    title,
-    subtitle,
-    startButtonIconProps: {
-      iconName: IconName.ArrowLeft,
-      onPress: () => {
-        onBackPress?.();
-        navigation.goBack();
-      },
-      testID: 'build-quote-back-button',
-    },
-    endButtonIconProps: [
-      {
-        iconName: IconName.Setting,
-        onPress: onSettingsPress,
-        testID: 'build-quote-settings-button',
-      },
-    ],
-    includesTopInset: true,
-  });
-}
-
 export function getRampsOrderDetailsNavbarOptions(
   navigation,
   { title, showBack = true },

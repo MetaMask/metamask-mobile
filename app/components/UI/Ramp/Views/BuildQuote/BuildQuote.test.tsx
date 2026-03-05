@@ -47,9 +47,6 @@ const mockTokenNetworkInfo = {
 };
 
 const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
-const mockGetRampsBuildQuoteNavbarOptions = jest.fn(
-  (_navigation: unknown, _options: unknown) => ({}),
-);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -85,10 +82,50 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../Navbar', () => ({
-  getRampsBuildQuoteNavbarOptions: (navigation: unknown, options: unknown) =>
-    mockGetRampsBuildQuoteNavbarOptions(navigation, options),
-}));
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        title,
+        subtitle,
+        onBack,
+        backButtonProps,
+        endButtonIconProps,
+      }: {
+        title?: string;
+        subtitle?: string;
+        onBack?: () => void;
+        backButtonProps?: { testID?: string };
+        endButtonIconProps?: {
+          iconName: string;
+          onPress?: () => void;
+          testID?: string;
+        }[];
+      }) => (
+        <View testID="header-compact-standard">
+          {title ? <Text>{title}</Text> : null}
+          {subtitle ? <Text>{subtitle}</Text> : null}
+          {onBack ? (
+            <View
+              testID={backButtonProps?.testID ?? 'back-button'}
+              onTouchEnd={onBack}
+            />
+          ) : null}
+          {endButtonIconProps?.map((btn, i) => (
+            <View
+              key={i}
+              testID={btn.testID ?? `end-button-${i}`}
+              onTouchEnd={btn.onPress}
+            />
+          ))}
+        </View>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../hooks/useFormatters', () => ({
   useFormatters: () => ({
@@ -365,21 +402,14 @@ describe('BuildQuote', () => {
     expect(getByText('$10')).toBeOnTheScreen();
   });
 
-  it('sets navigation options with token and network data', () => {
-    renderWithTheme(<BuildQuote />);
+  it('renders inline header with token and network data', () => {
+    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        goBack: mockGoBack,
-      }),
-      expect.objectContaining({
-        tokenSymbol: 'USDC',
-        networkName: 'Ethereum Mainnet',
-        onSettingsPress: expect.any(Function),
-      }),
-    );
+    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.buy')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.on_network')).toBeOnTheScreen();
+    expect(getByTestId('build-quote-back-button')).toBeOnTheScreen();
+    expect(getByTestId('build-quote-settings-button')).toBeOnTheScreen();
   });
 
   it('renders the payment method pill', () => {
@@ -402,26 +432,17 @@ describe('BuildQuote', () => {
     );
   });
 
-  it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
+  it('renders inline header without title or subtitle when token is not found', () => {
     mockTokens = {
       allTokens: [],
       topTokens: [],
     };
 
-    renderWithTheme(<BuildQuote />);
+    const { getByTestId, queryByText } = renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        goBack: mockGoBack,
-      }),
-      expect.objectContaining({
-        tokenSymbol: undefined,
-        networkName: undefined,
-        onSettingsPress: expect.any(Function),
-      }),
-    );
+    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
+    expect(queryByText('fiat_on_ramp.buy')).toBeNull();
+    expect(queryByText('fiat_on_ramp.on_network')).toBeNull();
   });
 
   it('renders quick amount buttons when amount is zero', () => {
