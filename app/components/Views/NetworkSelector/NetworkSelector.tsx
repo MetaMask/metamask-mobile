@@ -563,13 +563,17 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
                       <TagColored
                         color={TagColor.Success}
                         style={styles.noNetworkFeeContainer}
+                        labelProps={{
+                          variant: TextVariant.BodySM,
+                          style: {
+                            textTransform: 'none',
+                            textAlign: 'center',
+                            bottom: 1,
+                            fontWeight: 'normal',
+                          },
+                        }}
                       >
-                        <Text
-                          variant={TextVariant.BodySM}
-                          color={TextColor.Success}
-                        >
-                          {strings('networks.no_network_fee')}
-                        </Text>
+                        {strings('networks.no_network_fee')}
                       </TagColored>
                     ) : undefined}
                   </Box>

@@ -6,7 +6,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -26,7 +26,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -96,9 +96,9 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -140,7 +140,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -151,7 +151,7 @@ exports[`AssetSelectorButton renders correctly 1`] = `
                   ETH
                 </Text>
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -180,7 +180,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -200,7 +200,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -245,9 +245,9 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
-                    "fontSize": 18,
+                    "fontSize": 20,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
@@ -289,7 +289,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -300,7 +300,7 @@ exports[`AssetSelectorButton renders correctly without icon 1`] = `
                   ETH
                 </Text>
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -329,7 +329,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#121314",
+        "color": "#131416",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,
@@ -349,7 +349,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -393,7 +393,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
                   [
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 9999,
                       "height": 48,
                       "justifyContent": "center",
@@ -426,7 +426,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -471,7 +471,7 @@ exports[`AssetSelectorButton renders loading state correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },

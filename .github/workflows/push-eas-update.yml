@@ -51,6 +51,23 @@ env:
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
+  ota-summary:
+    name: OTA Update Summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display OTA Summary
+        run: |
+          {
+            echo "### OTA Update Summary"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Update version** | ${UPDATE_MESSAGE} |"
+            echo "| **Target version** | ${BASE_BRANCH_REF} |"
+            echo "| **Environment** | ${TARGET_CHANNEL} |"
+            echo "| **Target commit** | ${TARGET_COMMIT_HASH} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   setup-dependencies:
     name: Setup Dependencies (PR)
     needs:
@@ -105,7 +122,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility (PR commit)
         uses: ./.github/actions/validate-artifact-compatibility
@@ -310,11 +327,11 @@ jobs:
       QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
       QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
       QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+      QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
       QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
       QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
-      QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -325,7 +342,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.nvmrc'
 
       - name: Validate artifact compatibility
         uses: ./.github/actions/validate-artifact-compatibility
