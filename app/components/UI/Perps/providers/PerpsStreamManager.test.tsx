@@ -92,14 +92,11 @@ describe('PerpsStreamManager', () => {
       getMarkets: jest
         .fn()
         .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
+      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
       state: {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
-        cachedPositions: null,
-        cachedOrders: null,
-        cachedAccountState: null,
-        cachedUserDataTimestamp: 0,
-        cachedUserDataAddress: null,
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
       },
     } as unknown as typeof mockEngine.context.PerpsController;
 
@@ -1680,12 +1677,16 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
-      // Set up controller with fresh cached market data
+      // Set up controller with fresh cached market data via per-provider helper
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockMarketData);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: Date.now(),
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1712,9 +1713,11 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
 
@@ -1725,12 +1728,16 @@ describe('PerpsStreamManager', () => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
 
-      // Set up controller with fresh cached market data
+      // Set up controller with fresh cached market data via per-provider helper
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockMarketData);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: Date.now(),
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1757,21 +1764,25 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
 
     it('fetches from API when controller cache is stale', async () => {
       const callback = jest.fn();
 
-      // Set up controller with stale cached market data (very old timestamp)
+      // getCachedMarketDataForActiveProvider returns null when cache is stale
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: 0, // epoch = very stale
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1800,9 +1811,11 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
   });
@@ -1951,10 +1964,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA',
-          currentProvider: 'providerB',
+          fetchedFor: 'providerA:mainnet',
+          current: 'providerB:mainnet',
         }),
       );
 
@@ -3266,14 +3279,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached orders
+      // Set up controller to return fresh cached orders via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: mockOrders,
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3300,14 +3313,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached positions
+      // Set up controller to return fresh cached positions via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedPositions: mockPositions,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: mockPositions,
+        orders: [],
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3333,14 +3346,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached account state
+      // Set up controller to return fresh cached account state via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedAccountState: mockAccountState,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: [],
+        accountState: mockAccountState,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3356,14 +3369,10 @@ describe('PerpsStreamManager', () => {
     });
 
     it('does not use stale cached orders', () => {
-      // Set up controller with stale cached orders (very old timestamp)
+      // Controller helper returns null when data is stale
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: 0, // epoch = very stale
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue(null);
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3380,14 +3389,14 @@ describe('PerpsStreamManager', () => {
     });
 
     it('uses empty cached orders as valid cache', () => {
-      // Set up controller with empty cached orders — [] means "fetched, user has none"
+      // Controller helper returns empty orders — [] means "fetched, user has none"
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: [],
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: [],
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3402,14 +3411,14 @@ describe('PerpsStreamManager', () => {
     });
 
     it('prefers channel cache over controller cache', () => {
-      // Set up controller with cached orders
+      // Set up controller to return cached orders via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: mockOrders,
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback1 = jest.fn();

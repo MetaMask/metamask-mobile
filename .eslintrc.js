@@ -123,6 +123,12 @@ module.exports = {
       },
     },
     {
+      files: ['app/components/Snaps/**/*.{js,jsx,ts,tsx}'],
+      rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
+      },
+    },
+    {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
