@@ -30,6 +30,8 @@ export interface HardwareWalletRefs {
   isConnectingRef: React.MutableRefObject<boolean>;
   /** AbortController for cancelling in-flight connection operations. */
   abortControllerRef: React.MutableRefObject<AbortController | null>;
+  /** Synchronously-updated mirror of targetWalletType for use in callbacks. */
+  targetWalletTypeRef: React.MutableRefObject<HardwareWalletType | null>;
 }
 
 /** State setter functions exposed by the state manager. */
@@ -79,6 +81,7 @@ export const useHardwareWalletStateManager =
     const adapterRef = useRef<HardwareWalletAdapter | null>(null);
     const isConnectingRef = useRef<boolean>(false);
     const abortControllerRef = useRef<AbortController | null>(null);
+    const targetWalletTypeRef = useRef<HardwareWalletType | null>(null);
 
     const selectedAccount = useSelector(selectSelectedInternalAccount);
 
@@ -104,7 +107,20 @@ export const useHardwareWalletStateManager =
         adapterRef,
         isConnectingRef,
         abortControllerRef,
+        targetWalletTypeRef,
       }),
+      [],
+    );
+
+    const setTargetWalletTypeSync = useCallback(
+      (value: React.SetStateAction<HardwareWalletType | null>) => {
+        const newValue =
+          typeof value === 'function'
+            ? value(targetWalletTypeRef.current)
+            : value;
+        targetWalletTypeRef.current = newValue;
+        setTargetWalletType(newValue);
+      },
       [],
     );
 
@@ -112,15 +128,16 @@ export const useHardwareWalletStateManager =
       () => ({
         setConnectionState,
         setDeviceId,
-        setTargetWalletType,
+        setTargetWalletType: setTargetWalletTypeSync,
       }),
-      [],
+      [setTargetWalletTypeSync],
     );
 
     const resetState = useCallback(() => {
       setConnectionState({ status: ConnectionStatus.Disconnected });
       setDeviceId(null);
       setTargetWalletType(null);
+      targetWalletTypeRef.current = null;
       isConnectingRef.current = false;
       adapterRef.current = null;
 

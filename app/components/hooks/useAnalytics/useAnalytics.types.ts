@@ -30,6 +30,13 @@ export const SourceType = {
 export interface UseAnalyticsHook {
   isEnabled(): boolean;
   enable(enable?: boolean): Promise<void>;
+  /**
+   * Associate traits to the current user
+   */
+  identify(userTraits: AnalyticsUserTraits): Promise<void>;
+  /**
+   * @deprecated Use {@link identify} instead
+   */
   addTraitsToUser(userTraits: AnalyticsUserTraits): Promise<void>;
   trackEvent(event: AnalyticsTrackingEvent, saveDataRecording?: boolean): void;
   createDataDeletionTask(): Promise<IDeleteRegulationResponse>;
