@@ -18,6 +18,7 @@ describe(SmokeConfirmations('Send Bitcoin'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
+        await WalletView.scrollToBottomOfTokensList();
         await WalletView.waitForTokenToBeReady(TOKEN, 0);
         await WalletView.tapOnToken(TOKEN);
         await TokenOverview.tapSendButton();

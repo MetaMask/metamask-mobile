@@ -403,7 +403,10 @@ export async function mockRelayQuote(mockServer: Mockttp) {
     .forPost('/proxy')
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
-      return Boolean(url?.includes('api.relay.link/quote'));
+      return Boolean(
+        url?.includes('api.relay.link/quote') ||
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
+      );
     })
     .thenCallback(() => ({
       statusCode: 200,
