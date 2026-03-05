@@ -54,8 +54,11 @@ export const selectCountries = createSelector(
     if (!countries) {
       return createDefaultResourceState<Country[]>([]);
     }
+    if (countries.status != null) {
+      return countries;
+    }
     // Tolerate missing status from pre-migration state
-    return { ...countries, status: countries.status ?? 'idle' };
+    return { ...countries, status: 'idle' };
   },
 );
 
@@ -69,8 +72,11 @@ export const selectProviders = createSelector(
     if (!providers) {
       return createDefaultResourceState<Provider[], Provider | null>([], null);
     }
+    if (providers.status != null) {
+      return providers;
+    }
     // Tolerate missing status from pre-migration state
-    return { ...providers, status: providers.status ?? 'idle' };
+    return { ...providers, status: 'idle' };
   },
 );
 
@@ -89,8 +95,11 @@ export const selectTokens = createSelector(
         RampsToken | null
       >(null, null);
     }
+    if (tokens.status != null) {
+      return tokens;
+    }
     // Tolerate missing status from pre-migration state
-    return { ...tokens, status: tokens.status ?? 'idle' };
+    return { ...tokens, status: 'idle' };
   },
 );
 
@@ -109,8 +118,11 @@ export const selectPaymentMethods = createSelector(
         null,
       );
     }
+    if (paymentMethods.status != null) {
+      return paymentMethods;
+    }
     // Tolerate missing status from pre-migration state
-    return { ...paymentMethods, status: paymentMethods.status ?? 'idle' };
+    return { ...paymentMethods, status: 'idle' };
   },
 );
 
@@ -137,21 +149,31 @@ export const selectTransak = createSelector(
         kycRequirement: createDefaultResourceState(null),
       };
     }
+
+    // Check if all sub-states already have status (common case after migration 125)
+    if (
+      transak.userDetails.status != null &&
+      transak.buyQuote.status != null &&
+      transak.kycRequirement.status != null
+    ) {
+      return transak;
+    }
+
     // Tolerate missing status from pre-migration state on sub-states
     return {
       ...transak,
-      userDetails: {
-        ...transak.userDetails,
-        status: transak.userDetails.status ?? 'idle',
-      },
-      buyQuote: {
-        ...transak.buyQuote,
-        status: transak.buyQuote.status ?? 'idle',
-      },
-      kycRequirement: {
-        ...transak.kycRequirement,
-        status: transak.kycRequirement.status ?? 'idle',
-      },
+      userDetails:
+        transak.userDetails.status != null
+          ? transak.userDetails
+          : { ...transak.userDetails, status: 'idle' },
+      buyQuote:
+        transak.buyQuote.status != null
+          ? transak.buyQuote
+          : { ...transak.buyQuote, status: 'idle' },
+      kycRequirement:
+        transak.kycRequirement.status != null
+          ? transak.kycRequirement
+          : { ...transak.kycRequirement, status: 'idle' },
     };
   },
 );
