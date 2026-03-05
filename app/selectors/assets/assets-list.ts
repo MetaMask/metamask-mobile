@@ -252,62 +252,80 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       selectStakedAssets,
     ],
     (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
-      const assets = Object.entries(bip44Assets)
-        .filter(([networkId, _]) => enabledNetworks.includes(networkId))
+      const filteredAssets = Object.entries(bip44Assets)
+        .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) => chainAssets);
-
-      const stakedAssetsArray = [];
-      for (const asset of assets) {
-        if (asset.isNative) {
-          const stakedAsset = stakedAssets.find(
-            (item) =>
-              item.chainId === asset.chainId &&
-              item.accountId === asset.accountId,
-          );
-          if (stakedAsset) {
-            stakedAssetsArray.push({
-              ...stakedAsset.stakedAsset,
-            } as Asset);
-          }
-        }
-      }
-
-      assets.push(...stakedAssetsArray);
-
-      // Current sorting options
-      // {"key": "name", "order": "asc", "sortCallback": "alphaNumeric"}
-      // {"key": "tokenFiatAmount", "order": "dsc", "sortCallback": "stringNumeric"}
-      const tokensSorted = sortAssetsWithPriority(
-        assets.map((asset) => ({
-          ...asset,
-          tokenFiatAmount: asset.fiat?.balance.toString(),
-        })),
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
         tokenSortConfig,
       );
-
-      // Remove duplicates by creating a unique key for deduplication
-      const uniqueTokensMap = new Map();
-
-      tokensSorted.forEach(
-        ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-          const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-          if (!uniqueTokensMap.has(uniqueKey)) {
-            uniqueTokensMap.set(uniqueKey, {
-              address: assetId || '',
-              chainId: chainId?.toString() || '',
-              isStaked: Boolean(isStaked),
-            });
-          }
-        },
-      );
-
-      return Array.from(uniqueTokensMap.values());
     },
   );
 
 /** Default selector using selectEnabledNetworks. Use createSelectSortedAssetsBySelectedAccountGroup(customSelector) for a custom enabled-networks source. */
 export const selectSortedAssetsBySelectedAccountGroup =
   createSelectSortedAssetsBySelectedAccountGroup();
+
+interface SortedAssetItem {
+  address: string;
+  chainId: string;
+  isStaked: boolean;
+}
+
+interface StakedAssetEntry {
+  chainId: string;
+  accountId: string;
+  stakedAsset: Asset;
+}
+
+/**
+ * Merges staked assets into the list, sorts by token sort config, and deduplicates by assetId-chainId-isStaked.
+ * Shared by createSelectSortedAssetsBySelectedAccountGroup and selectSortedAssetsBySelectedAccountGroupForChainIds.
+ */
+function mergeStakedSortAndDedupeAssets(
+  filteredChainAssets: Asset[],
+  stakedAssets: StakedAssetEntry[],
+  tokenSortConfig: ReturnType<typeof selectTokenSortConfig>,
+): SortedAssetItem[] {
+  const assets = [...filteredChainAssets];
+  const stakedAssetsArray: Asset[] = [];
+  for (const asset of assets) {
+    if (asset.isNative) {
+      const stakedAsset = stakedAssets.find(
+        (item) =>
+          item.chainId === asset.chainId && item.accountId === asset.accountId,
+      );
+      if (stakedAsset) {
+        stakedAssetsArray.push({ ...stakedAsset.stakedAsset } as Asset);
+      }
+    }
+  }
+  assets.push(...stakedAssetsArray);
+
+  const tokensSorted = sortAssetsWithPriority(
+    assets.map((asset) => ({
+      ...asset,
+      tokenFiatAmount: asset.fiat?.balance.toString(),
+    })),
+    tokenSortConfig,
+  );
+
+  const uniqueTokensMap = new Map<string, SortedAssetItem>();
+  tokensSorted.forEach(
+    ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
+      const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
+      if (!uniqueTokensMap.has(uniqueKey)) {
+        uniqueTokensMap.set(uniqueKey, {
+          address: assetId || '',
+          chainId: chainId?.toString() || '',
+          isStaked: Boolean(isStaked),
+        });
+      }
+    },
+  );
+  return Array.from(uniqueTokensMap.values());
+}
 
 /**
  * Builds a set of network IDs for filtering. listPopularNetworks() returns CAIP-2;
@@ -340,51 +358,14 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
     ],
     (bip44Assets, chainIds, tokenSortConfig, stakedAssets) => {
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
-      const assets = Object.entries(bip44Assets)
+      const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) => chainAssets);
-
-      const stakedAssetsArray = [];
-      for (const asset of assets) {
-        if (asset.isNative) {
-          const stakedAsset = stakedAssets.find(
-            (item) =>
-              item.chainId === asset.chainId &&
-              item.accountId === asset.accountId,
-          );
-          if (stakedAsset) {
-            stakedAssetsArray.push({
-              ...stakedAsset.stakedAsset,
-            } as Asset);
-          }
-        }
-      }
-
-      assets.push(...stakedAssetsArray);
-
-      const tokensSorted = sortAssetsWithPriority(
-        assets.map((asset) => ({
-          ...asset,
-          tokenFiatAmount: asset.fiat?.balance.toString(),
-        })),
+      return mergeStakedSortAndDedupeAssets(
+        filteredAssets,
+        stakedAssets,
         tokenSortConfig,
       );
-
-      const uniqueTokensMap = new Map();
-      tokensSorted.forEach(
-        ({ assetId, chainId, isStaked }: Asset & { isStaked?: boolean }) => {
-          const uniqueKey = `${assetId}-${chainId}-${Boolean(isStaked)}`;
-          if (!uniqueTokensMap.has(uniqueKey)) {
-            uniqueTokensMap.set(uniqueKey, {
-              address: assetId || '',
-              chainId: chainId?.toString() || '',
-              isStaked: Boolean(isStaked),
-            });
-          }
-        },
-      );
-
-      return Array.from(uniqueTokensMap.values());
     },
   );
 
