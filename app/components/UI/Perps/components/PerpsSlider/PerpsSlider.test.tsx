@@ -86,9 +86,15 @@ describe('PerpsSlider', () => {
     const { useStyles } = jest.requireMock(
       '../../../../../component-library/hooks',
     );
-    useStyles.mockImplementation((styleSheet) => ({
-      styles: styleSheet({ theme: mockTheme }),
-    }));
+    useStyles.mockImplementation(
+      (
+        styleSheet: (params: {
+          theme: typeof mockTheme;
+        }) => Record<string, unknown>,
+      ) => ({
+        styles: styleSheet({ theme: mockTheme }),
+      }),
+    );
   });
 
   describe('Component Rendering', () => {
