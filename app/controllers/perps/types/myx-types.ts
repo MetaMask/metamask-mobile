@@ -1,8 +1,8 @@
 /**
  * MYX Protocol Type Definitions
  *
- * Minimal types needed for Stage 1 (market display and price fetching).
- * Only defines what's needed - SDK types are re-exported with MYX prefix.
+ * SDK types re-exported with MYX prefix for consistency.
+ * Includes types for market display, positions, orders, and trading.
  */
 
 import type { CaipChainId } from '@metamask/utils';
@@ -13,6 +13,53 @@ import type { CaipChainId } from '@metamask/utils';
 
 export type { PoolSymbolAllResponse as MYXPoolSymbol } from '@myx-trade/sdk';
 export type { TickerDataItem as MYXTicker } from '@myx-trade/sdk';
+
+// Position & order types from SDK
+export type { PositionType as MYXPositionType } from '@myx-trade/sdk';
+export type { HistoryOrderItem as MYXHistoryOrderItem } from '@myx-trade/sdk';
+export type { PositionHistoryItem as MYXPositionHistoryItem } from '@myx-trade/sdk';
+export type { TradeFlowItem as MYXTradeFlowItem } from '@myx-trade/sdk';
+export type { KlineDataItemType as MYXKlineData } from '@myx-trade/sdk';
+// KlineData is declared but not exported by @myx-trade/sdk — define locally.
+// Property names match the SDK's wire format (single-char keys).
+export type MYXKlineWsData = {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  E: number; // Timestamp
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  T: string; // Turnover
+  c: string; // Close price
+  h: string; // High price
+  l: string; // Low price
+  o: string; // Open price
+  t: number; // Timestamp
+  v: string; // Volume
+};
+export type { KlineDataResponse as MYXKlineDataResponse } from '@myx-trade/sdk';
+
+// SDK enums (re-exported as types since they're const objects in the SDK)
+export {
+  Direction as MYXDirection,
+  OrderType as MYXOrderType,
+  OperationType as MYXOperationType,
+  TriggerType as MYXTriggerType,
+  OrderStatus as MYXOrderStatus,
+  TimeInForce as MYXTimeInForce,
+} from '@myx-trade/sdk';
+
+// History enums
+export {
+  DirectionEnum as MYXDirectionEnum,
+  OrderTypeEnum as MYXOrderTypeEnum,
+  OperationEnum as MYXOperationEnum,
+  OrderStatusEnum as MYXOrderStatusEnum,
+  ExecTypeEnum as MYXExecTypeEnum,
+  TradeFlowTypeEnum as MYXTradeFlowTypeEnum,
+} from '@myx-trade/sdk';
+
+// Trading params types
+export type { PlaceOrderParams as MYXPlaceOrderParams } from '@myx-trade/sdk';
+export type { PositionTpSlOrderParams as MYXPositionTpSlOrderParams } from '@myx-trade/sdk';
+export type { GetHistoryOrdersParams as MYXGetHistoryOrdersParams } from '@myx-trade/sdk';
 
 // ============================================================================
 // Network Configuration Types
@@ -77,6 +124,21 @@ export const MYX_HL_OVERLAPPING_MARKETS = [
 ] as const;
 
 export type MYXOverlappingMarket = (typeof MYX_HL_OVERLAPPING_MARKETS)[number];
+
+// ============================================================================
+// Auth Configuration (passed from init file via babel-transformed env vars)
+// ============================================================================
+
+/**
+ * MYX auth credentials passed at construction time.
+ * Eliminates runtime `process.env` lookups — values come from the init file
+ * where `process.env.X` is babel-transformed at build time.
+ */
+export type MYXAuthConfig = {
+  appId: string;
+  apiSecret: string;
+  brokerAddress: string;
+};
 
 // ============================================================================
 // Client Service Types
