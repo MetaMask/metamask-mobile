@@ -88,6 +88,7 @@ export const HardwareWalletBottomSheet: React.FC<
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
+    if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
       case ConnectionStatus.Connecting:
@@ -100,7 +101,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status]);
+  }, [connectionState.status, walletType]);
 
   useEffect(() => {
     DevLogger.log(
