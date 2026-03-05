@@ -59,8 +59,11 @@ describe('useDeviceConnectionFlow', () => {
         getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
       };
       const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
+      const checkTransportEnabledOrShowError = jest
+        .fn()
+        .mockResolvedValue(false);
 
-      renderHook(() =>
+      const { result } = renderHook(() =>
         useDeviceConnectionFlow({
           refs,
           setters,
@@ -70,11 +73,17 @@ describe('useDeviceConnectionFlow', () => {
           updateConnectionState: jest.fn(),
           createAdapterWithCallbacks,
           initializeAdapter: jest.fn(),
-          checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+          checkTransportEnabledOrShowError,
         }),
       );
 
-      expect(createAdapterWithCallbacks).not.toHaveBeenCalled();
+      await act(async () => {
+        result.current.ensureDeviceReady('device-123');
+      });
+
+      expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
+        HardwareWalletType.Ledger,
+      );
     });
   });
 

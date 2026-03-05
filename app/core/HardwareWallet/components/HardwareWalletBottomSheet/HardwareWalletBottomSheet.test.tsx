@@ -140,17 +140,16 @@ describe('HardwareWalletBottomSheet', () => {
       expect(queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID)).toBeNull();
     });
 
-    it('renders nothing when walletType is null even if status is visible', () => {
+    it('renders no content when walletType is null even if status is visible', () => {
+      lastDeviceSelectionProps = {};
       mockConnectionState.status = ConnectionStatus.Scanning;
-      const { queryByTestId } = render(
+      render(
         <HardwareWalletBottomSheet
           {...createDefaultProps({ walletType: null })}
         />,
       );
 
-      expect(
-        queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID),
-      ).toBeOnTheScreen();
+      expect(lastDeviceSelectionProps).toEqual({});
     });
 
     it('renders when connected (polling may still be in progress)', () => {
