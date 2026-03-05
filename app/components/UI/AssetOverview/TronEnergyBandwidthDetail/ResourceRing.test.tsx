@@ -11,9 +11,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => mockTheme,
-}));
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 describe('ResourceRing', () => {
   it('renders the ring icon', () => {
