@@ -77,6 +77,18 @@ import useOriginSource from '../../hooks/useOriginSource';
 import { useOriginTrustSignals } from '../confirmations/hooks/useOriginTrustSignals';
 import { TrustSignalDisplayState } from '../confirmations/types/trustSignals';
 import TrustSignalModal from './TrustSignalModal';
+
+const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
+  Record<string, TrustSignalDisplayState>
+> = __DEV__
+  ? {
+      'app.uniswap.org': TrustSignalDisplayState.Verified,
+      'revoke.cash': TrustSignalDisplayState.Malicious,
+    }
+  : {};
+
+const TRUST_SIGNAL_VARIANT = 'malicious' as const;
+
 import {
   getCaip25PermissionsResponse,
   getDefaultAccounts,
@@ -182,26 +194,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
   );
 
-  // PhishingController trust signals: check origin against dapp-scanning API cache
   const { state: rawTrustSignalState } =
     useOriginTrustSignals(channelIdOrHostname);
-
-  // DEV-only overrides for manual trust signal testing without a live API.
-  // Remove or extend this map as needed during development.
-  const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
-    Record<string, TrustSignalDisplayState>
-  > = __DEV__
-    ? {
-        'app.uniswap.org': TrustSignalDisplayState.Verified,
-        'revoke.cash': TrustSignalDisplayState.Malicious,
-      }
-    : {
-        'app.uniswap.org': TrustSignalDisplayState.Verified,
-        'revoke.cash': TrustSignalDisplayState.Malicious,
-      };
-
   const trustSignalState =
-    (true && DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)]) ??
+    DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)] ??
     rawTrustSignalState;
 
   const defaultSelectedChainIds = useMemo(
@@ -294,16 +290,14 @@ const AccountConnect = (props: AccountConnectProps) => {
   // If trust signal state arrives after initial render (async scan),
   // navigate to the warning screen if the user hasn't dismissed it yet.
   useEffect(() => {
-    if (
-      needsTrustSignalGate &&
-      !trustSignalGateDismissedRef.current &&
-      screen === AccountConnectScreens.SingleConnect
-    ) {
-      setScreen(AccountConnectScreens.TrustSignalWarning);
+    if (needsTrustSignalGate && !trustSignalGateDismissedRef.current) {
+      setScreen((prev) =>
+        prev === AccountConnectScreens.SingleConnect
+          ? AccountConnectScreens.TrustSignalWarning
+          : prev,
+      );
     }
-  }, [needsTrustSignalGate, screen]);
-
-  const trustSignalVariant = 'malicious' as const;
+  }, [needsTrustSignalGate]);
 
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -960,18 +954,13 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderTrustSignalWarningScreen = useCallback(
     () => (
       <TrustSignalModal
-        variant={trustSignalVariant}
+        variant={TRUST_SIGNAL_VARIANT}
         url={urlWithProtocol}
         onConnectAnyway={handleTrustSignalDismiss}
         onClose={handleTrustSignalClose}
       />
     ),
-    [
-      trustSignalVariant,
-      urlWithProtocol,
-      handleTrustSignalDismiss,
-      handleTrustSignalClose,
-    ],
+    [urlWithProtocol, handleTrustSignalDismiss, handleTrustSignalClose],
   );
 
   const renderPhishingModal = useCallback(

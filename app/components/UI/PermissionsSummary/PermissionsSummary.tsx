@@ -108,7 +108,7 @@ const PermissionsSummary = ({
   showPermissionsOnly = false,
   promptToCreateSolanaAccount = false,
   isMaliciousDapp = false,
-  trustSignalState = TrustSignalDisplayState.Unknown,
+  trustSignalState,
 }: PermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;

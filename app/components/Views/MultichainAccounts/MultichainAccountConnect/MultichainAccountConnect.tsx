@@ -96,6 +96,17 @@ import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectM
 import TrustSignalModal from '../../AccountConnect/TrustSignalModal';
 import { useOriginTrustSignals } from '../../confirmations/hooks/useOriginTrustSignals';
 import { TrustSignalDisplayState } from '../../confirmations/types/trustSignals';
+
+const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
+  Record<string, TrustSignalDisplayState>
+> = __DEV__
+  ? {
+      'app.uniswap.org': TrustSignalDisplayState.Verified,
+      'revoke.cash': TrustSignalDisplayState.Malicious,
+    }
+  : {};
+
+const TRUST_SIGNAL_VARIANT = 'malicious' as const;
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
@@ -469,19 +480,12 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { state: rawTrustSignalState } =
     useOriginTrustSignals(channelIdOrHostname);
-  const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
-    Record<string, TrustSignalDisplayState>
-  > = {
-    'app.uniswap.org': TrustSignalDisplayState.Verified,
-    'revoke.cash': TrustSignalDisplayState.Malicious,
-  };
   const trustSignalState =
     DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)] ??
     rawTrustSignalState;
   const needsTrustSignalGate =
     trustSignalState === TrustSignalDisplayState.Malicious;
   const trustSignalGateDismissedRef = useRef(false);
-  const trustSignalVariant = 'malicious' as const;
 
   const [screen, setScreen] = useState<AccountConnectScreens>(
     needsTrustSignalGate
@@ -562,14 +566,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   }, [dappUrl, channelIdOrHostname]);
 
   useEffect(() => {
-    if (
-      needsTrustSignalGate &&
-      !trustSignalGateDismissedRef.current &&
-      screen === AccountConnectScreens.SingleConnect
-    ) {
-      setScreen(AccountConnectScreens.TrustSignalWarning);
+    if (needsTrustSignalGate && !trustSignalGateDismissedRef.current) {
+      setScreen((prev) =>
+        prev === AccountConnectScreens.SingleConnect
+          ? AccountConnectScreens.TrustSignalWarning
+          : prev,
+      );
     }
-  }, [needsTrustSignalGate, screen]);
+  }, [needsTrustSignalGate]);
 
   const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
@@ -1027,7 +1031,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         styles={styles}
       >
         <TrustSignalModal
-          variant={trustSignalVariant}
+          variant={TRUST_SIGNAL_VARIANT}
           url={urlWithProtocol}
           onConnectAnyway={handleTrustSignalDismiss}
           onClose={handleTrustSignalClose}
