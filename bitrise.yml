@@ -3497,7 +3497,7 @@ app:
         is_expand: false
       MM_PERPS_HIP3_BLOCKLIST_MARKETS: ""
     - opts:
-      is_expand: false
+        is_expand: false
       MM_MUSD_CONVERSION_FLOW_ENABLED: true
     - opts:
         is_expand: false
