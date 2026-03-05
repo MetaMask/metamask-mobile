@@ -7296,6 +7296,7 @@ describe('PolymarketProvider', () => {
 
       it('throws error when parsing fails without calling GameCache overlay', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValueOnce(true);
         mockGetMarketDetailsFromGammaApi.mockResolvedValue({});
         mockParsePolymarketEvents.mockReturnValue([]);
 
