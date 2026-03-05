@@ -52,6 +52,7 @@ import {
   ParamListBase,
   RouteProp,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -1086,9 +1087,10 @@ const Wallet = ({
     selectHomepageSectionsV1Enabled,
   );
 
-  const homepageRef = useRef<SectionRefreshHandle>(null);
-
   const { listPopularEvmNetworks } = useNetworkEnablement();
+  const isFocused = useIsFocused();
+
+  const homepageRef = useRef<SectionRefreshHandle>(null);
 
   // Enable parent scroll when homepage redesign or sections feature flags are enabled
   const shouldEnableParentScroll =
@@ -1363,7 +1365,7 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
-  const chainIds = useMemo(
+  const evmChainIds = useMemo(
     (): Hex[] => listPopularEvmNetworks(),
     // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1408,12 +1410,12 @@ const Wallet = ({
 
         {isHomepageSectionsV1Enabled ? (
           <>
-            <AssetPollingProvider />
+            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
             <Homepage ref={homepageRef} />
           </>
         ) : (
           <>
-            <AssetPollingProvider chainIds={chainIds} />
+            {isFocused && <AssetPollingProvider />}
             <WalletTokensTabView
               ref={walletTokensTabViewRef}
               navigation={navigation}

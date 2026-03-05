@@ -35,6 +35,8 @@ import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 
@@ -80,6 +82,21 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const evmNetworkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  // Restrict refresh to popular EVM networks so we only poll/refresh those chains.
+  const evmNetworkConfigurationsForRefresh = useMemo(() => {
+    const allowedEvmChainIds = new Set<string>(
+      popularChainIds
+        .filter((id) => id.startsWith('eip155:'))
+        .map((id) => toHex(id.slice(7)) as Hex),
+    );
+    return Object.fromEntries(
+      Object.entries(evmNetworkConfigurationsByChainId).filter(([chainId]) =>
+        allowedEvmChainIds.has(chainId),
+      ),
+    );
+  }, [evmNetworkConfigurationsByChainId, popularChainIds]);
+
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
   const selectedSolanaAccount =
     useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) || null;
@@ -118,7 +135,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       try {
         await refreshTokens({
           isSolanaSelected,
-          evmNetworkConfigurationsByChainId,
+          evmNetworkConfigurationsByChainId: evmNetworkConfigurationsForRefresh,
           selectedAccountId,
         });
       } catch {
@@ -128,7 +145,7 @@ const TokensSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   }, [
     isZeroBalanceAccount,
     isSolanaSelected,
-    evmNetworkConfigurationsByChainId,
+    evmNetworkConfigurationsForRefresh,
     selectedAccountId,
   ]);
 

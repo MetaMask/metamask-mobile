@@ -9,6 +9,7 @@ import ButtonIcon, {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import Tokens from '../../UI/Tokens';
+import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 
 const TokensFullView = () => {
   const navigation = useNavigation();
@@ -19,23 +20,26 @@ const TokensFullView = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
-      <HeaderBase
-        startAccessory={
-          <ButtonIcon
-            size={ButtonIconSizes.Lg}
-            onPress={handleBackPress}
-            iconName={IconName.ArrowLeft}
-            testID="back-button"
-          />
-        }
-        style={tw`p-4`}
-        twClassName="h-auto"
-      >
-        {strings('wallet.tokens')}
-      </HeaderBase>
-      <Tokens isFullView />
-    </SafeAreaView>
+    <>
+      <AssetPollingProvider />
+      <SafeAreaView style={tw`flex-1 bg-default pb-4`}>
+        <HeaderBase
+          startAccessory={
+            <ButtonIcon
+              size={ButtonIconSizes.Lg}
+              onPress={handleBackPress}
+              iconName={IconName.ArrowLeft}
+              testID="back-button"
+            />
+          }
+          style={tw`p-4`}
+          twClassName="h-auto"
+        >
+          {strings('wallet.tokens')}
+        </HeaderBase>
+        <Tokens isFullView />
+      </SafeAreaView>
+    </>
   );
 };
 

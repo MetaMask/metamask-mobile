@@ -220,6 +220,8 @@ jest.mock('../../../core/Engine', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: jest.fn(),
         listPopularEvmNetworks: jest.fn(() => ['0x1']),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       },
     },
   };
