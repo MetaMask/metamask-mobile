@@ -18,7 +18,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#b4b4b566",
+        "backgroundColor": "#b7bbc866",
         "height": 1,
         "position": "absolute",
         "width": "100%",
@@ -43,7 +43,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 10000,
           "height": 44,
           "justifyContent": "center",
@@ -54,7 +54,7 @@ exports[`FLipQuoteButton Rendering renders with disabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={24}
         name="SwapVertical"
@@ -89,7 +89,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#b4b4b566",
+        "backgroundColor": "#b7bbc866",
         "height": 1,
         "position": "absolute",
         "width": "100%",
@@ -117,7 +117,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderRadius": 10000,
           "height": 44,
           "justifyContent": "center",
@@ -128,7 +128,7 @@ exports[`FLipQuoteButton Rendering renders with enabled state 1`] = `
       testID="arrow-button"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={24}
         name="SwapVertical"

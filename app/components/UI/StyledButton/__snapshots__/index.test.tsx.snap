@@ -15,7 +15,7 @@ exports[`StyledButton should render correctly on Android the button with type ca
         },
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#66676a",
+          "borderColor": "#686e7d",
           "borderWidth": 1,
         },
         null,
@@ -220,7 +220,7 @@ exports[`StyledButton should render correctly on Android the button with type se
         },
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#949596",
+          "borderColor": "#b7bbc8",
           "borderWidth": 1,
         },
         null,
@@ -269,7 +269,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#66676a",
+        "borderColor": "#686e7d",
         "borderWidth": 1,
       },
       undefined,
@@ -284,7 +284,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
         "textAlign": "center",
       },
       {
-        "color": "#66676a",
+        "color": "#686e7d",
       },
       undefined,
     ]
@@ -556,7 +556,7 @@ exports[`StyledButton should render correctly on iOS the button with type second
       },
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#949596",
+        "borderColor": "#b7bbc8",
         "borderWidth": 1,
       },
       undefined,
@@ -571,7 +571,7 @@ exports[`StyledButton should render correctly on iOS the button with type second
         "textAlign": "center",
       },
       {
-        "color": "#131416",
+        "color": "#121314",
       },
       undefined,
     ]

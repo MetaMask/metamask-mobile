@@ -23,7 +23,6 @@ import Logger from '../../../../util/Logger';
  * 3. NO_CREDENTIAL - no Google account available
  * 4. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
  * 5. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
- * 6. NO_PROVIDER_DEPENDENCIES - credential provider not available (e.g., missing Google Play Services)
  *
  * If you modify these patterns or add new ones, ensure the check order in login()
  * handles overlapping matches correctly.
@@ -34,7 +33,6 @@ const ACM_ERRORS_REGEX = {
   NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
   ONE_TAP_FAILURE: /failure response from one tap/i,
-  NO_PROVIDER_DEPENDENCIES: /no provider dependencies found/i,
 };
 
 /**
@@ -112,14 +110,6 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
           throw new OAuthError(
             'handleGoogleLogin: User disabled One Tap sign-in feature',
             OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
-          );
-        } else if (
-          ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(error.message)
-        ) {
-          // Credential provider not available. Fallback to browser-based OAuth.
-          throw new OAuthError(
-            'handleGoogleLogin: Credential provider not available',
-            OAuthErrorType.GoogleLoginNoProviderDependencies,
           );
         } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
           if (!this.retried) {

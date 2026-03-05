@@ -22,7 +22,7 @@ exports[`AddressElement should render correctly 1`] = `
     <View
       placeholderStyle={
         {
-          "backgroundColor": "#f3f3f4",
+          "backgroundColor": "#f3f5f9",
         }
       }
       useNativeDriver={true}
@@ -69,7 +69,7 @@ exports[`AddressElement should render correctly 1`] = `
                 "backgroundColor": "#eee",
               },
               {
-                "backgroundColor": "#f3f3f4",
+                "backgroundColor": "#f3f5f9",
               },
             ]
           }
@@ -99,7 +99,7 @@ exports[`AddressElement should render correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "flex": 1,
             "fontFamily": "Geist-Regular",
             "fontSize": 16,

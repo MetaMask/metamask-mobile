@@ -3,9 +3,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
-import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import { createProcessingInfoModalNavigationDetails } from '../Modals/ProcessingInfoModal/ProcessingInfoModal';
 import {
   Box,
@@ -25,6 +23,11 @@ import BadgeWrapper, {
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { strings } from '../../../../../../locales/i18n';
+import { FiatOrder, getProviderName } from '../../../../../reducers/fiatOrders';
+import {
+  FIAT_ORDER_STATES,
+  FIAT_ORDER_PROVIDERS,
+} from '../../../../../constants/on-ramp';
 import { toDateFormat } from '../../../../../util/date';
 import { renderFiat } from '../../../../../util/number';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -34,19 +37,46 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import { getOrderAmount } from '../../utils/getOrderAmount';
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
-import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
-const localStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
   },
 });
 
+/**
+ * Extracts provider-specific fields from order.data that aren't available
+ * on the FiatOrder type itself.
+ */
+function getProviderSpecificData(order: FiatOrder) {
+  const data = order.data;
+  if (!data || typeof data !== 'object') {
+    return {};
+  }
+
+  const asRampsOrder = data as Partial<RampsOrder>;
+
+  return {
+    providerOrderLink: asRampsOrder.providerOrderLink,
+    cryptoIconUrl: asRampsOrder.cryptoCurrency?.iconUrl,
+    fiatDecimals: asRampsOrder.fiatCurrency?.decimals ?? 2,
+    providerSupportUrl:
+      asRampsOrder.provider?.links?.find((link) =>
+        link.name.toLowerCase().includes('support'),
+      )?.url ?? asRampsOrder.providerOrderLink,
+    statusDescription: asRampsOrder.statusDescription,
+    paymentDetails: hasDepositOrderField(data, 'paymentDetails')
+      ? data.paymentDetails
+      : undefined,
+  };
+}
+
 interface OrderContentProps {
-  order: RampsOrder;
+  order: FiatOrder;
   showCloseButton?: boolean;
 }
 
@@ -55,157 +85,100 @@ const OrderContent: React.FC<OrderContentProps> = ({
   showCloseButton = false,
 }) => {
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const providerData = useMemo(() => getProviderSpecificData(order), [order]);
 
-  const providerName = order.provider?.name ?? '';
-  const providerOrderLink = order.providerOrderLink;
-  const cryptoIconUrl = order.cryptoCurrency?.iconUrl;
-  const fiatDecimals = order.fiatCurrency?.decimals ?? 2;
-  const providerSupportUrl =
-    order.provider?.links?.find((link) =>
-      link.name.toLowerCase().includes('support'),
-    )?.url ?? providerOrderLink;
-
-  const paymentDetails = hasDepositOrderField(order, 'paymentDetails')
-    ? (
-        order as RampsOrder & {
-          paymentDetails: {
-            fiatCurrency: string;
-            paymentMethod: string;
-            fields: { name: string; id: string; value: string }[];
-          }[];
-        }
-      ).paymentDetails
-    : undefined;
-
-  const shortOrderId = order.providerOrderId
-    ? order.providerOrderId.length > 8
-      ? `...${order.providerOrderId.slice(-6)}`
-      : order.providerOrderId
+  const shortOrderId = order.id
+    ? order.id.length > 8
+      ? `...${order.id.slice(-6)}`
+      : order.id
     : '...';
 
   const handleCopyOrderId = useCallback(() => {
-    if (order.providerOrderId) {
-      Clipboard.setString(order.providerOrderId);
+    if (order.id) {
+      Clipboard.setString(order.id);
     }
-  }, [order.providerOrderId]);
+  }, [order.id]);
 
   const handleProviderLinkPress = useCallback(async () => {
-    if (!providerOrderLink) return;
-    let urlDomain: string | undefined;
-    try {
-      urlDomain = new URL(providerOrderLink).hostname;
-    } catch {
-      urlDomain = providerOrderLink;
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Order Details',
-          external_link_description: 'View on Provider',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
+    const url = providerData.providerOrderLink;
+    if (!url) return;
     try {
       if (await InAppBrowser.isAvailable()) {
-        await InAppBrowser.open(providerOrderLink);
+        await InAppBrowser.open(url);
       } else {
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
-          params: { url: providerOrderLink },
+          params: { url },
         });
       }
     } catch (err) {
       Logger.error(err as Error, {
         message: 'RampsOrderContent: Failed to open provider link',
-        link: providerOrderLink,
+        link: url,
       });
     }
-  }, [providerOrderLink, navigation, createEventBuilder, trackEvent]);
+  }, [providerData.providerOrderLink, navigation]);
 
   const getStatusText = () => {
-    switch (order.status) {
-      case RampsOrderStatus.Pending:
-      case RampsOrderStatus.Created:
-      case RampsOrderStatus.Precreated:
-      case RampsOrderStatus.Unknown:
+    switch (order.state) {
+      case FIAT_ORDER_STATES.PENDING:
+      case FIAT_ORDER_STATES.CREATED:
         return strings('ramps_order_details.processing');
-      case RampsOrderStatus.Completed:
+      case FIAT_ORDER_STATES.COMPLETED:
         return strings('ramps_order_details.complete');
-      case RampsOrderStatus.Failed:
+      case FIAT_ORDER_STATES.FAILED:
         return strings('ramps_order_details.failed');
-      case RampsOrderStatus.Cancelled:
+      case FIAT_ORDER_STATES.CANCELLED:
         return strings('ramps_order_details.cancelled');
-      case RampsOrderStatus.IdExpired:
-        return strings('ramps_order_details.failed');
       default:
         return '...';
     }
   };
 
   const getStatusColor = () => {
-    switch (order.status) {
-      case RampsOrderStatus.Pending:
-      case RampsOrderStatus.Created:
-      case RampsOrderStatus.Precreated:
-      case RampsOrderStatus.Unknown:
+    switch (order.state) {
+      case FIAT_ORDER_STATES.PENDING:
+      case FIAT_ORDER_STATES.CREATED:
         return 'text-warning-default';
-      case RampsOrderStatus.Completed:
+      case FIAT_ORDER_STATES.COMPLETED:
         return 'text-success-default';
-      case RampsOrderStatus.Failed:
-      case RampsOrderStatus.Cancelled:
-      case RampsOrderStatus.IdExpired:
+      case FIAT_ORDER_STATES.FAILED:
+      case FIAT_ORDER_STATES.CANCELLED:
         return 'text-error-default';
       default:
         return 'text-default';
     }
   };
 
-  const isLoading = !order.fiatAmount;
+  const isLoading = !order.amount;
 
   const handleClose = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
-        .addProperties({
-          location: 'Order Details',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     navigation.goBack();
-  }, [navigation, createEventBuilder, trackEvent]);
+  }, [navigation]);
+
+  const providerName = getProviderName(order.provider, order.data);
 
   const handleInfoPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_INFO_TOOLTIP_CLICKED)
-        .addProperties({
-          location: 'Order Details',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     navigation.navigate(
       ...createProcessingInfoModalNavigationDetails({
         providerName,
-        providerSupportUrl,
-        statusDescription: order.statusDescription,
+        providerSupportUrl: providerData.providerSupportUrl,
+        statusDescription: providerData.statusDescription,
       }),
     );
   }, [
     navigation,
     providerName,
-    providerSupportUrl,
-    order.statusDescription,
-    createEventBuilder,
-    trackEvent,
+    providerData.providerSupportUrl,
+    providerData.statusDescription,
   ]);
 
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
-  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
+  const fiatDecimals = providerData.fiatDecimals ?? 2;
+  const fiatDenomSymbol = order.currencySymbol || '';
 
+  // Normalize chainId to hex so getNetworkImageSource can find it.
+  // Some providers return plain decimal (e.g., '1'), others return CAIP-2 ('eip155:1') or hex ('0x1').
+  // getNetworkImageSource handles CAIP and hex but not plain decimal.
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
       return chainId;
@@ -215,12 +188,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
   };
 
   const normalizedNetworkChainId = normalizeChainIdForBadge(
-    order.network?.chainId ?? '',
+    order.network || '',
   );
   const networkImageSource = normalizedNetworkChainId
     ? getNetworkImageSource({ chainId: normalizedNetworkChainId })
     : null;
 
+  // Bank transfer details helpers
   const capitalizeWords = useCallback(
     (text: string): string =>
       text
@@ -237,26 +211,34 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
   const getFieldValue = useCallback(
     (fieldName: string): string | null => {
-      if (!paymentDetails || paymentDetails.length === 0) return null;
+      if (
+        !providerData.paymentDetails ||
+        providerData.paymentDetails.length === 0
+      )
+        return null;
 
-      const field = paymentDetails[0].fields.find((f) => f.name === fieldName);
+      const field = providerData.paymentDetails[0].fields.find(
+        (f) => f.name === fieldName,
+      );
       if (!field?.value) return null;
 
       return capitalizeWords(field.value);
     },
-    [paymentDetails, capitalizeWords],
+    [providerData.paymentDetails, capitalizeWords],
   );
 
-  const hasBankDetails = Boolean(paymentDetails);
+  const hasBankDetails = Boolean(providerData.paymentDetails);
   const showManageBankTransfer =
-    hasBankDetails && order.status === RampsOrderStatus.Created;
+    hasBankDetails &&
+    order.state === FIAT_ORDER_STATES.CREATED &&
+    order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2;
 
   const handleManageBankTransfer = useCallback(() => {
     navigation.navigate(Routes.RAMP.BANK_DETAILS_STANDALONE, {
-      orderId: order.providerOrderId,
+      orderId: order.id,
       shouldUpdate: false,
     });
-  }, [navigation, order.providerOrderId]);
+  }, [navigation, order.id]);
 
   const bankDetailFields = useMemo(() => {
     if (!hasBankDetails) return null;
@@ -292,7 +274,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
-          style={localStyles.badgeWrapperCenter}
+          style={styles.badgeWrapperCenter}
           badgeElement={
             networkImageSource ? (
               <BadgeNetwork
@@ -303,19 +285,22 @@ const OrderContent: React.FC<OrderContentProps> = ({
           }
         >
           <AvatarToken
-            name={cryptoSymbol}
-            imageSource={cryptoIconUrl ? { uri: cryptoIconUrl } : undefined}
+            name={order.cryptocurrency}
+            imageSource={
+              providerData.cryptoIconUrl
+                ? { uri: providerData.cryptoIconUrl }
+                : undefined
+            }
             size={AvatarSize.Lg}
           />
         </BadgeWrapper>
 
         <Text
-          testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount} {cryptoSymbol}
+          {getOrderAmount(order)} {order.cryptocurrency}
         </Text>
       </Box>
 
@@ -343,7 +328,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
               >
                 {getStatusText()}
               </Text>
-              {providerOrderLink && (
+              {providerData.providerOrderLink && (
                 <TouchableOpacity onPress={handleProviderLinkPress}>
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -445,11 +430,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.totalFeesFiat ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {renderFiat(Number(order.fee ?? 0), order.currency, fiatDecimals)}
           </Text>
         )}
       </Box>
@@ -472,8 +453,8 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {fiatDenomSymbol}
             {renderFiat(
-              Number(order.fiatAmount ?? 0),
-              fiatCurrencyCode,
+              Number(order.amount ?? 0),
+              order.currency,
               fiatDecimals,
             )}
           </Text>
@@ -553,14 +534,14 @@ const OrderContent: React.FC<OrderContentProps> = ({
       )}
 
       <Box twClassName="pt-4 pb-4 w-full">
-        {order.statusDescription && (
+        {providerData.statusDescription && (
           <TouchableOpacity onPress={handleInfoPress}>
             <Box
               flexDirection={BoxFlexDirection.Row}
               twClassName="items-center justify-center mb-4"
             >
               <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {order.statusDescription}
+                {providerData.statusDescription}
               </Text>
               <Icon
                 name={IconName.Info}
@@ -573,7 +554,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
 
         {showCloseButton && (
           <Button
-            testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

@@ -25,7 +25,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
-import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
+import { MusdConversionInfo } from '../info/musd-conversion-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
@@ -112,7 +112,7 @@ const Info = ({ route }: InfoProps) => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
   ) {
-    return <MusdConversionInfoRoot />;
+    return <MusdConversionInfo />;
   }
 
   if (

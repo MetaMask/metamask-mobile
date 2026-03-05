@@ -71,10 +71,8 @@ export const performEvmTokenRefresh = async (
       REFRESH_TIMEOUT_MS,
       'performEvmTokenRefresh',
     );
-  } catch {
-    Logger.log(
-      'performEvmTokenRefresh timed out; balances may be stale until the next refresh',
-    );
+  } catch (error) {
+    Logger.error(error as Error, 'Error while refreshing tokens');
   }
 };
 

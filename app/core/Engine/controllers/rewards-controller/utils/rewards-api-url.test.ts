@@ -38,17 +38,18 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     delete process.env.REWARDS_API_URL;
-    delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
+    delete process.env.GITHUB_ACTIONS;
+    delete process.env.E2E;
   });
 
   afterEach(() => {
     process.env = originalEnv;
   });
 
-  describe('BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY override', () => {
-    it('returns custom URL when REWARDS_API_URL is set and BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true', () => {
+  describe('GITHUB_ACTIONS override', () => {
+    it('returns custom URL when REWARDS_API_URL is set and GITHUB_ACTIONS is true and E2E is not true', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      process.env.GITHUB_ACTIONS = 'true';
 
       const [apiUrl, canChange] =
         getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
@@ -58,7 +59,7 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
 
     it('preserves canChange based on env when returning custom URL', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      process.env.GITHUB_ACTIONS = 'true';
 
       const [apiUrl, canChange] =
         getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
@@ -66,16 +67,25 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
       expect(canChange).toBe(false);
     });
 
-    it('falls through to switch when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true', () => {
+    it('falls through to switch when E2E is true', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+      process.env.GITHUB_ACTIONS = 'true';
+      process.env.E2E = 'true';
+
+      const [apiUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
+      expect(apiUrl).toEqual('https://api.uat');
+    });
+
+    it('falls through to switch when GITHUB_ACTIONS is not true', () => {
+      process.env.REWARDS_API_URL = 'https://custom.api';
+      process.env.GITHUB_ACTIONS = 'false';
 
       const [apiUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
       expect(apiUrl).toEqual('https://api.uat');
     });
 
     it('falls through to switch when REWARDS_API_URL is not set', () => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      process.env.GITHUB_ACTIONS = 'true';
 
       const [apiUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
       expect(apiUrl).toEqual('https://api.uat');

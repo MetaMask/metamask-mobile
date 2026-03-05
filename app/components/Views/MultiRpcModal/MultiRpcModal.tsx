@@ -18,7 +18,7 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectEvmChainId,
@@ -48,7 +48,7 @@ const MultiRpcModal = () => {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { navigate } = useNavigation();
 
   const dismissMultiRpcModalMigration = useCallback(() => {

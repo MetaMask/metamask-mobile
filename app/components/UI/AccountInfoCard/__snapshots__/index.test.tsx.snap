@@ -5,7 +5,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   style={
     {
       "alignItems": "center",
-      "borderColor": "#949596",
+      "borderColor": "#b7bbc8",
       "borderRadius": 10,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -17,7 +17,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -64,7 +64,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -98,14 +98,14 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         style={
           {
             "0": {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "marginRight": 2,
               "maxWidth": "45%",
             },
             "1": undefined,
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -133,13 +133,13 @@ exports[`AccountInfoCard should match snapshot 1`] = `
         style={
           {
             "0": {
-              "color": "#131416",
+              "color": "#121314",
               "flexGrow": 1,
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
             },
             "1": undefined,
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -167,12 +167,12 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           {
             "0": {
               "alignSelf": "flex-start",
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
             },
             "1": undefined,
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,

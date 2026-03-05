@@ -39,12 +39,11 @@ import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
-  analyticsLocation?: 'settings' | 'onboarding_default_settings';
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
+> = ({ hideMarketingSection = false }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
@@ -118,7 +117,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
-            location: analyticsLocation,
+            location: 'settings',
           })
           .build(),
       );
@@ -130,21 +129,8 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
-      // Track opt-out event before calling optOut() to ensure it gets sent
-      analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.METRICS_OPT_OUT,
-        )
-          .addProperties({
-            updated_after_onboarding: true,
-            location: analyticsLocation,
-          })
-          .build(),
-      );
-
       await analytics.optOut();
       setAnalyticsEnabled(false);
-
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
       }

@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types, react/jsx-pascal-case */
 
+/**
+ * @deprecated Please update your code to use `Icon` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React from 'react';
 
@@ -12,11 +16,6 @@ import styleSheet from './Icon.styles';
 import { assetByIconName } from './Icon.assets';
 import { DEFAULT_ICON_SIZE, DEFAULT_ICON_COLOR } from './Icon.constants';
 
-/**
- * @deprecated Please update your code to use `Icon` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Icon/README.md}
- */
 const Icon = ({
   size = DEFAULT_ICON_SIZE,
   style,

@@ -20,7 +20,7 @@ import BottomSheetFooter, {
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { storePna25Acknowledged } from '../../../actions/legalNotices';
@@ -38,7 +38,7 @@ const Pna25BottomSheet = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const handleAction = useCallback(
     (action: Pna25BottomSheetAction) => {

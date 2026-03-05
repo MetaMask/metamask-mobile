@@ -17,7 +17,7 @@ exports[`SelectOptionSheet render matches the snapshot 1`] = `
       numberOfLines={1}
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "fontWeight": 600,
@@ -35,7 +35,7 @@ exports[`SelectOptionSheet render matches the snapshot 1`] = `
       style={
         [
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "height": 12,
             "marginRight": 8,
             "width": 12,

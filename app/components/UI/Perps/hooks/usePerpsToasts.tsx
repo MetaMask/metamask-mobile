@@ -747,7 +747,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(2)}%`}
+                        {`${roeValue.toFixed(1)}%`}
                       </Text>
                     </Text>,
                   ),
@@ -818,7 +818,7 @@ const usePerpsToasts = (): {
                         }}
                       >
                         {' '}
-                        {`${roeValue.toFixed(2)}%`}
+                        {`${roeValue.toFixed(1)}%`}
                       </Text>
                     </Text>,
                   ),

@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -35,17 +34,14 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { useRampNavigation } from '../../hooks/useRampNavigation';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import useAnalytics from '../../hooks/useAnalytics';
 import {
   getRampRoutingDecision,
   getDetectedGeolocation,
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
-import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
 export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
@@ -69,7 +65,7 @@ function TokenSelection() {
   } = useRampsController();
   const legacyTokens = useRampTokens();
 
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const trackEvent = useAnalytics();
   const getNetworkName = useDepositCryptoCurrencyNetworkName();
 
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
@@ -95,13 +91,6 @@ function TokenSelection() {
       });
     };
 
-    // When tokens have never been loaded, controllerTokens is null and
-    // controllerTokensLoading is false (default state). Treat that as loading
-    // so we show spinner instead of "No tokens match" on first load before
-    // controller.init() has completed (e.g. fresh install or update).
-    const tokensNotYetLoaded =
-      controllerTokens === null && !controllerTokensError;
-
     return {
       topTokens: filterTokens(controllerTokens?.topTokens) as
         | RampsToken[]
@@ -109,7 +98,7 @@ function TokenSelection() {
       allTokens: filterTokens(controllerTokens?.allTokens) as
         | RampsToken[]
         | null,
-      isLoading: controllerTokensLoading || tokensNotYetLoaded,
+      isLoading: controllerTokensLoading,
       error: controllerTokensError,
     };
   }, [
@@ -134,53 +123,7 @@ function TokenSelection() {
   });
 
   const { goToBuy } = useRampNavigation();
-
-  const debouncedSearchString = useDebouncedValue(searchString, 500);
-
-  const rampType = isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY';
-
-  const hasTrackedScreenViewRef = useRef(false);
-  useEffect(() => {
-    if (hasTrackedScreenViewRef.current) return;
-    if (rampRoutingDecision != null) {
-      hasTrackedScreenViewRef.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
-          .addProperties({
-            location: 'Token Selection',
-            ramp_type: rampType,
-            ramp_routing: rampRoutingDecision,
-          })
-          .build(),
-      );
-    }
-  }, [rampRoutingDecision, rampType, createEventBuilder, trackEvent]);
-
-  const prevSearchStringRef = useRef('');
-  useEffect(() => {
-    if (
-      debouncedSearchString.trim().length > 0 &&
-      debouncedSearchString !== prevSearchStringRef.current
-    ) {
-      prevSearchStringRef.current = debouncedSearchString;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SEARCHED)
-          .addProperties({
-            search_query: debouncedSearchString,
-            results_count: searchTokenResults?.length ?? 0,
-            location: 'Token Selection',
-            ramp_type: rampType,
-          })
-          .build(),
-      );
-    }
-  }, [
-    debouncedSearchString,
-    searchTokenResults?.length,
-    rampType,
-    createEventBuilder,
-    trackEvent,
-  ]);
+  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -188,29 +131,25 @@ function TokenSelection() {
         (token) => token.assetId === assetId,
       );
       if (selectedToken) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_TOKEN_SELECTED)
-            .addProperties({
-              ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
-              region: detectedGeolocation || '',
-              chain_id: selectedToken.chainId,
-              currency_destination: selectedToken.assetId,
-              currency_destination_symbol: selectedToken.symbol,
-              currency_destination_network: getNetworkName(
-                selectedToken.chainId as string,
-              ),
-              currency_source: '',
-              is_authenticated: false,
-              token_caip19: selectedToken.assetId,
-              token_symbol: selectedToken.symbol,
-              ramp_routing: rampRoutingDecision ?? undefined,
-            })
-            .build(),
-        );
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'UNIFIED BUY',
+          region: detectedGeolocation || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_destination_symbol: selectedToken.symbol,
+          currency_destination_network: getNetworkName(
+            selectedToken.chainId as string,
+          ),
+          currency_source: '',
+          is_authenticated: false,
+          token_caip19: selectedToken.assetId,
+          token_symbol: selectedToken.symbol,
+          ramp_routing: rampRoutingDecision ?? undefined,
+        });
       }
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: set selected token on controller and navigate within the same stack
-      if (isV2UnifiedEnabled) {
+      if (isRampsUnifiedV2Enabled) {
         setSelectedToken(assetId);
         navigation.navigate(Routes.RAMP.AMOUNT_INPUT, { assetId });
       } else {
@@ -221,11 +160,10 @@ function TokenSelection() {
     [
       supportedTokens,
       trackEvent,
-      createEventBuilder,
       getNetworkName,
       detectedGeolocation,
       rampRoutingDecision,
-      isV2UnifiedEnabled,
+      isRampsUnifiedV2Enabled,
       navigation,
       goToBuy,
       setSelectedToken,
@@ -253,35 +191,9 @@ function TokenSelection() {
     handleSearchTextChange('');
   }, [handleSearchTextChange]);
 
-  const handleNetworkFilterChange = useCallback(
-    (newFilter: CaipChainId[] | null) => {
-      setNetworkFilter(newFilter);
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.RAMPS_NETWORK_FILTER_CLICKED)
-          .addProperties({
-            network_chain_id: newFilter?.[0] ?? undefined,
-            location: 'Token Selection',
-            ramp_type: rampType,
-          })
-          .build(),
-      );
-    },
-    [createEventBuilder, trackEvent, rampType],
-  );
-
   const handleUnsupportedInfoPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.RAMPS_UNSUPPORTED_TOKEN_TOOLTIP_CLICKED,
-      )
-        .addProperties({
-          location: 'Token Selection',
-          ramp_type: rampType,
-        })
-        .build(),
-    );
     navigation.navigate(...createUnsupportedTokenModalNavigationDetails());
-  }, [navigation, createEventBuilder, trackEvent, rampType]);
+  }, [navigation]);
 
   const renderToken = useCallback(
     ({ item: token }: { item: RampsToken }) => (
@@ -329,19 +241,9 @@ function TokenSelection() {
           showBack: false,
         },
         theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Token Selection',
-                ramp_type: rampType,
-              })
-              .build(),
-          );
-        },
       ),
     );
-  }, [navigation, theme, createEventBuilder, trackEvent, rampType]);
+  }, [navigation, theme]);
 
   if (isLoading) {
     return (
@@ -351,7 +253,6 @@ function TokenSelection() {
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
-              testID={TokenSelectionSelectors.LOADING_INDICATOR}
             />
           </Box>
         </ScreenLayout.Body>
@@ -388,7 +289,7 @@ function TokenSelection() {
           <TokenNetworkFilterBar
             networks={uniqueNetworks}
             networkFilter={networkFilter}
-            setNetworkFilter={handleNetworkFilterChange}
+            setNetworkFilter={setNetworkFilter}
           />
         </Box>
         <Box twClassName="px-4 py-3">

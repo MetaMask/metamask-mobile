@@ -27,6 +27,7 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   HyperLiquidClientService,
@@ -105,7 +106,6 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
-import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -333,8 +333,6 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Promise-based lock to prevent race conditions in concurrent initialization
   #initializationPromise: Promise<void> | null = null;
 
-  readonly #messenger: PerpsControllerMessengerBase;
-
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -342,11 +340,10 @@ export class HyperLiquidProvider implements PerpsProvider {
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
-    messenger: PerpsControllerMessengerBase;
+    messenger: PerpsControllerMessenger;
     initialAssetMapping?: [string, number][];
   }) {
     this.#deps = options.platformDependencies;
-    this.#messenger = options.messenger;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -357,16 +354,14 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.#useDexAbstraction = options.useDexAbstraction ?? true;
 
-    // Initialize services with injected platform dependencies
+    // Initialize services with injected platform dependencies and messenger
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
     });
     this.#walletService = new HyperLiquidWalletService(
       this.#deps,
-      this.#messenger,
-      {
-        isTestnet,
-      },
+      options.messenger,
+      { isTestnet },
     );
     this.#subscriptionService = new HyperLiquidSubscriptionService(
       this.#clientService,

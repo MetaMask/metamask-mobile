@@ -7,17 +7,7 @@
  */
 
 import type { Mockttp } from 'mockttp';
-import {
-  createLogger,
-  LogLevel,
-  type TestSpecificMock,
-  RampsRegion,
-} from '../../framework';
-
-const logger = createLogger({
-  name: 'PerpsArbitrumMocks',
-  level: LogLevel.INFO,
-});
+import type { TestSpecificMock } from '../../framework';
 
 // Static mock responses for Arbitrum RPC calls
 const MOCK_RESPONSES: Record<string, unknown> = {
@@ -93,7 +83,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
         const bodyText = await request.body.getText();
         const body = bodyText ? JSON.parse(bodyText) : undefined;
 
-        logger.info('[Perps E2E Mock] Intercepted Arbitrum RPC call');
+        console.log('[Perps E2E Mock] Intercepted Arbitrum RPC call');
 
         // Handle batch requests
         if (Array.isArray(body)) {
@@ -181,7 +171,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           }),
         };
       } catch (error) {
-        logger.error('[Perps E2E Mock] Error parsing request body:', error);
+        console.log('[Perps E2E Mock] Error parsing request body:', error);
         return {
           statusCode: 200,
           body: JSON.stringify({
@@ -202,7 +192,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted HyperLiquid Exchange GET');
+      console.log('[Perps E2E Mock] Intercepted HyperLiquid Exchange GET');
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ok' }),
@@ -219,7 +209,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
+      console.log('[Perps E2E Mock] Intercepted HyperLiquid Exchange POST');
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ok' }),
@@ -238,7 +228,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info(
+      console.log(
         '[Perps E2E Mock] Intercepted Rewards perps-fee-discount request',
       );
       return {
@@ -262,7 +252,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info(
+      console.log(
         '[Perps E2E Mock] Intercepted HyperLiquid coin image request',
       );
       return {
@@ -284,7 +274,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted Accounts API request');
+      console.log('[Perps E2E Mock] Intercepted Accounts API request');
       return {
         statusCode: 200,
         body: JSON.stringify({ data: [], included: [] }),
@@ -306,7 +296,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
       const urlParam = new URL(request.url).searchParams.get('url') || '';
       const url = new URL(urlParam);
       const address = (url.searchParams.get('address') || '').toLowerCase();
-      logger.info(
+      console.log(
         '[Perps E2E Mock] Intercepted Token API request for',
         address,
       );
@@ -335,7 +325,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(async () => {
-      logger.info('[Perps E2E Mock] Intercepted Tx Sentinel request');
+      console.log('[Perps E2E Mock] Intercepted Tx Sentinel request');
       return {
         statusCode: 200,
         body: JSON.stringify({ status: 'ok' }),
@@ -352,7 +342,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted Price API request');
+      console.log('[Perps E2E Mock] Intercepted Price API request');
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -436,7 +426,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
     })
     .asPriority(1000)
     .thenCallback(() => {
-      logger.info('[Perps E2E Mock] Intercepted Price API request');
+      console.log('[Perps E2E Mock] Intercepted Price API request');
       return {
         statusCode: 200,
         body: JSON.stringify({
@@ -466,39 +456,6 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=3600',
         },
-      };
-    });
-};
-
-/**
- * Mock the geolocation endpoint for Perps eligibility checks.
- * The EligibilityService fetches geolocation via /proxy and compares
- * the plain-text result against the blocked regions list (US, CA-ON, GB, BE).
- * Pass a non-blocked region (e.g. Spain, France) to ensure eligibility.
- */
-export const mockPerpsGeolocation = async (
-  mockServer: Mockttp,
-  region: RampsRegion,
-): Promise<void> => {
-  const regionCode = region.id.replace('/regions/', '');
-
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const urlParam = new URL(request.url).searchParams.get('url') || '';
-      return /on-ramp\.(dev-api|uat-api|api)\.cx\.metamask\.io\/geolocation/.test(
-        urlParam,
-      );
-    })
-    .asPriority(1000)
-    .thenCallback(() => {
-      logger.info(
-        `[Perps E2E Mock] Intercepted geolocation request → ${regionCode}`,
-      );
-      return {
-        statusCode: 200,
-        body: regionCode,
-        headers: { 'Content-Type': 'text/plain' },
       };
     });
 };

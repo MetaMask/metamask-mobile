@@ -1,11 +1,9 @@
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { hasProperty } from '@metamask/utils';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { isVersionGatedFeatureFlag } from '../types';
-import type {
-  PerpsPlatformDependencies,
-  PerpsRemoteFeatureFlagState,
-} from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 import type { ServiceContext } from './ServiceContext';
 import { ensureError } from '../utils/errorUtils';
 import { validateMarketPattern } from '../utils/marketUtils';
@@ -184,11 +182,11 @@ export class FeatureFlagConfigurationService {
    * Follows the "sticky remote" pattern: once remote config is loaded, never downgrade to fallback.
    *
    * @param options - Configuration object
-   * @param options.remoteFeatureFlagControllerState - Remote feature flag state
+   * @param options.remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    * @param options.context - ServiceContext providing state access callbacks
    */
   refreshHip3Config(options: {
-    remoteFeatureFlagControllerState: PerpsRemoteFeatureFlagState;
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState;
     context: ServiceContext;
   }): void {
     const { remoteFeatureFlagControllerState, context } = options;
@@ -322,11 +320,11 @@ export class FeatureFlagConfigurationService {
    * Note: Initial eligibility is set in the constructor if fallback regions are provided.
    *
    * @param options - Configuration object
-   * @param options.remoteFeatureFlagControllerState - Remote feature flag state
+   * @param options.remoteFeatureFlagControllerState - State from RemoteFeatureFlagController
    * @param options.context - ServiceContext providing callbacks
    */
   refreshEligibility(options: {
-    remoteFeatureFlagControllerState: PerpsRemoteFeatureFlagState;
+    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState;
     context: ServiceContext;
   }): void {
     const { remoteFeatureFlagControllerState, context } = options;

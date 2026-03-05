@@ -73,14 +73,6 @@ const TransactionDetailsSheet: React.FC = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleSpeedUp = useCallback(() => {
-    route.params.showSpeedUpModal();
-  }, [route.params]);
-
-  const handleCancel = useCallback(() => {
-    route.params.showCancelModal();
-  }, [route.params]);
-
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={handleClose}>
@@ -95,8 +87,6 @@ const TransactionDetailsSheet: React.FC = () => {
       <TransactionDetails
         transactionObject={currentTx}
         transactionDetails={transactionDetails}
-        showSpeedUpModal={handleSpeedUp}
-        showCancelModal={handleCancel}
         close={handleClose}
       />
     </BottomSheet>

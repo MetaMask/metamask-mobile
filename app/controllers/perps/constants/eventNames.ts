@@ -190,7 +190,6 @@ export const PERPS_EVENT_VALUE = {
     PERPS_ASSET_SCREEN_NO_FUNDS: 'perps_asset_screen_no_funds',
     TRADE_MENU_ACTION: 'trade_menu_action',
     WALLET_HOME: 'wallet_home',
-    HOME_SECTION: 'home_section',
     TOOLTIP: 'tooltip',
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO_BUTTON: 'crypto_button',
@@ -270,7 +269,6 @@ export const PERPS_EVENT_VALUE = {
     POSITION_UPDATE_FAILED: 'position_update_failed',
     TP_SL_UPDATE_FAILED: 'tp_sl_update_failed',
     MARGIN_UPDATE_FAILED: 'margin_update_failed',
-    UNKNOWN: 'unknown',
   },
   INTERACTION_TYPE: {
     TAP: 'tap',
@@ -390,7 +388,6 @@ export const PERPS_EVENT_VALUE = {
   },
   ACTION: {
     CONNECTION_RETRY: 'connection_retry',
-    CONNECTION_GO_BACK: 'connection_go_back',
     SHARE: 'share',
     // Risk management actions
     ADD_MARGIN: 'add_margin',

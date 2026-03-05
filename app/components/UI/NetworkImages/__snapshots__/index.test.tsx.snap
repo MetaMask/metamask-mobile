@@ -37,7 +37,7 @@ exports[`NetworkImageComponent should render correctly 1`] = `
     testID="button-icon-test-id"
   >
     <SvgMock
-      color="#131416"
+      color="#121314"
       fill="currentColor"
       height={20}
       name="ArrowDown"

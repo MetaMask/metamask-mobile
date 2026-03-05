@@ -1,3 +1,7 @@
+/**
+ * @deprecated Please update your code to use `AvatarToken` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import { isNumber } from 'lodash';
 import React, { useState } from 'react';
@@ -21,11 +25,6 @@ import {
   AVATARTOKEN_IMAGE_TESTID,
 } from './AvatarToken.constants';
 
-/**
- * @deprecated Please update your code to use `AvatarToken` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/AvatarToken/README.md}
- */
 const AvatarToken = ({
   size = DEFAULT_AVATARTOKEN_SIZE,
   style,

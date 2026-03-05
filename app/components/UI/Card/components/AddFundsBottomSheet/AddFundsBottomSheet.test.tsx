@@ -51,13 +51,27 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-    mockTheme,
-  };
-});
+jest.mock('../../../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      text: {
+        alternative: '#666666',
+      },
+    },
+  })),
+  mockTheme: {
+    colors: {
+      background: {
+        default: '#ffffff',
+      },
+      text: {
+        default: '#000000',
+        alternative: '#666666',
+      },
+    },
+    themeAppearance: 'light',
+  },
+}));
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({
@@ -83,8 +97,6 @@ const mockButtonClickData: RampsButtonClickData = {
 jest.mock('../../../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
-
-jest.mock('../../../Ramp/hooks/useRampsUnifiedV2Enabled');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -229,7 +241,7 @@ describe('AddFundsBottomSheet', () => {
     );
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
       expect.objectContaining({
-        button_text: 'Fund with cash',
+        text: 'Deposit',
         location: 'CardHome',
         chain_id_destination: '59144',
         ramp_type: 'DEPOSIT',

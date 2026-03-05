@@ -105,7 +105,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: '20'
 
       - name: Validate artifact compatibility (PR commit)
         uses: ./.github/actions/validate-artifact-compatibility
@@ -310,11 +310,8 @@ jobs:
       QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
       QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
       QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
-      QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
       QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
       QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
-      QUICKNODE_BSC_URL: ${{ secrets.QUICKNODE_BSC_URL }}
-      QUICKNODE_SEI_URL: ${{ secrets.QUICKNODE_SEI_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -325,7 +322,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: '20'
 
       - name: Validate artifact compatibility
         uses: ./.github/actions/validate-artifact-compatibility

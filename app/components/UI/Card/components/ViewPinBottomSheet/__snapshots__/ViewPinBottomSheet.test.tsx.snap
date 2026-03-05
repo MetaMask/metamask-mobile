@@ -335,7 +335,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#0a0d135c",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,7 +385,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -422,7 +422,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b4b4b566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -471,7 +471,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 700,
@@ -508,7 +508,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -575,7 +575,7 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                                   pointerEvents="none"
                                   style={
                                     {
-                                      "backgroundColor": "#66676a",
+                                      "backgroundColor": "#686e7d",
                                       "borderRadius": 4,
                                       "bottom": 0,
                                       "left": 0,

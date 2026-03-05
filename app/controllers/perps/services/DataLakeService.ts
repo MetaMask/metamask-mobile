@@ -5,10 +5,10 @@ import {
   DATA_LAKE_API_CONFIG,
   PERPS_CONSTANTS,
 } from '../constants/perpsConfig';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
 import type { PerpsPlatformDependencies } from '../types';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 
@@ -19,29 +19,30 @@ import { ensureError } from '../utils/errorUtils';
  * Implements exponential backoff retry logic and performance tracing.
  * Stateless service that operates purely on external API calls.
  *
- * Instance-based service with constructor injection of platform dependencies.
+ * Instance-based service with constructor injection of platform dependencies
+ * and messenger for inter-controller communication.
  */
 export class DataLakeService {
   readonly #deps: PerpsPlatformDependencies;
 
-  readonly #messenger: PerpsControllerMessengerBase;
+  readonly #messenger: PerpsControllerMessenger;
 
   /**
    * Create a new DataLakeService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Controller messenger for cross-controller communication.
+   * @param messenger - Messenger for inter-controller communication
    */
   constructor(
     deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessengerBase,
+    messenger: PerpsControllerMessenger,
   ) {
     this.#deps = deps;
     this.#messenger = messenger;
   }
 
   /**
-   * Get bearer token via DI authentication controller
+   * Get bearer token via messenger
    *
    * @returns The bearer token string for API authentication.
    */
@@ -131,11 +132,7 @@ export class DataLakeService {
 
     try {
       const token = await this.#getBearerToken();
-      const evmAccount = getSelectedEvmAccount(
-        this.#messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccount(this.#messenger);
 
       if (!evmAccount || !token) {
         this.#deps.debugLogger.log('DataLake API: Missing requirements', {

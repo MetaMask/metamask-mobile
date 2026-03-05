@@ -27,6 +27,7 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
@@ -187,17 +188,13 @@ const CustomNetwork = ({
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
-                    labelProps={{
-                      variant: TextVariant.BodySM,
-                      style: {
-                        textTransform: 'none',
-                        textAlign: 'center',
-                        bottom: 1,
-                        fontWeight: 'normal',
-                      },
-                    }}
                   >
-                    {strings('networks.no_network_fee')}
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Success}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </Text>
                   </TagColored>
                 ) : null}
               </Box>

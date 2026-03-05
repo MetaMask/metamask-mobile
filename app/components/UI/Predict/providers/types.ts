@@ -24,7 +24,7 @@ import {
 } from '../types';
 import { Hex } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
-import { PredictFeatureFlags } from '../types/flags';
+import { PredictFeeCollection } from '../types/flags';
 
 // Re-export shared types so existing provider-layer imports continue to work
 export type {
@@ -42,7 +42,6 @@ export type {
   PreviewOrderParams,
   PriceUpdateCallback,
 };
-export type { PredictFeatureFlags };
 
 export interface Signer {
   address: string;
@@ -122,8 +121,14 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<PredictMarket[]>;
-  getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
-  getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
+  getMarketsByIds?(
+    marketIds: string[],
+    liveSportsLeagues?: string[],
+  ): Promise<PredictMarket[]>;
+  getMarketDetails(params: {
+    marketId: string;
+    liveSportsLeagues?: string[];
+  }): Promise<PredictMarket>;
   getPriceHistory(
     params: GetPriceHistoryParams,
   ): Promise<PredictPriceHistoryPoint[]>;
@@ -138,6 +143,7 @@ export interface PredictProvider {
   previewOrder(
     params: PreviewOrderParams & {
       signer: Signer;
+      feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview>;
   placeOrder(

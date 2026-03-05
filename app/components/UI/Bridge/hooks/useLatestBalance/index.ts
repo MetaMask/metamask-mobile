@@ -9,11 +9,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
-import {
-  formatChainIdToCaip,
-  isNativeAddress,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
+import { isNativeAddress, isNonEvmChainId } from '@metamask/bridge-controller';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { useNonEvmTokensWithBalance } from '../useNonEvmTokensWithBalance';
 import { isEthAddress } from '../../../../../util/address';
@@ -54,20 +50,6 @@ interface Balance {
   atomicBalance: BigNumber;
 }
 
-// Non-EVM chains are case sensitive
-const normalizeTokenAddressForIdentity = (address?: string) =>
-  address && isEthAddress(address) ? address.toLowerCase() : address;
-
-// Used in case token and previous token are the same but chainId is in a different format
-const normalizeChainIdForIdentity = (chainId?: Hex | CaipChainId) =>
-  chainId ? formatChainIdToCaip(chainId) : undefined;
-
-const getTokenIdentity = (token?: {
-  address?: string;
-  chainId?: Hex | CaipChainId;
-}) =>
-  `${normalizeTokenAddressForIdentity(token?.address) ?? ''}::${normalizeChainIdForIdentity(token?.chainId) ?? ''}`;
-
 /**
  * A hook that fetches and returns the latest balance for a given token.
  * Latest balance is important because token balances can be cached and may not be updated immediately.
@@ -94,26 +76,6 @@ export const useLatestBalance = (token: {
   const nonEvmTokens = useNonEvmTokensWithBalance();
 
   const chainId = token.chainId;
-  const previousTokenIdentity = getTokenIdentity(previousToken);
-  const tokenIdentity = getTokenIdentity(token);
-  const tokenIdentityChanged = previousTokenIdentity !== tokenIdentity;
-
-  const setBalanceIfChanged = useCallback((nextBalance: Balance) => {
-    setBalance((currentBalance) => {
-      if (!currentBalance) {
-        return nextBalance;
-      }
-
-      if (
-        currentBalance.displayBalance === nextBalance.displayBalance &&
-        currentBalance.atomicBalance.eq(nextBalance.atomicBalance)
-      ) {
-        return currentBalance;
-      }
-
-      return nextBalance;
-    });
-  }, []);
 
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
@@ -144,7 +106,7 @@ export const useLatestBalance = (token: {
           chainId,
         );
         if (atomicBalance && token.decimals) {
-          setBalanceIfChanged({
+          setBalance({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
           });
@@ -157,13 +119,7 @@ export const useLatestBalance = (token: {
         });
       }
     }
-  }, [
-    token.address,
-    token.decimals,
-    chainId,
-    selectedAddress,
-    setBalanceIfChanged,
-  ]);
+  }, [token.address, token.decimals, chainId, selectedAddress]);
 
   // No need to fetch the balance for non-EVM tokens, use the balance provided by the
   // multichain balances controller
@@ -182,51 +138,46 @@ export const useLatestBalance = (token: {
       )?.balance;
 
       if (displayBalance && token.decimals) {
-        setBalanceIfChanged({
+        setBalance({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
         });
       } else {
-        setBalanceIfChanged({
+        setBalance({
           displayBalance: '0',
           atomicBalance: parseUnits('0'),
         });
       }
     }
-  }, [
-    token.address,
-    token.decimals,
-    chainId,
-    selectedAddress,
-    nonEvmTokens,
-    setBalanceIfChanged,
-  ]);
+  }, [token.address, token.decimals, chainId, selectedAddress, nonEvmTokens]);
 
   useEffect(() => {
-    // Reset balance state when token identity changes to prevent stale balance display.
-    if (tokenIdentityChanged) {
+    // Reset balance state when token address changes to prevent stale balance display
+    if (previousToken?.address !== token.address) {
       setBalance(undefined);
     }
-  }, [previousTokenIdentity, tokenIdentity, tokenIdentityChanged]);
 
-  useEffect(() => {
     // In case chainId is undefined, exit early to avoid
     // calling handleFetchEvmAtomicBalance which will trigger an invalid address error
     // when selectedAddress is a non-EVM chain.
-    if (!chainId || isCaipChainId(chainId)) {
+    if (!chainId) {
       return;
     }
 
-    handleFetchEvmAtomicBalance();
-  }, [chainId, handleFetchEvmAtomicBalance]);
-
-  useEffect(() => {
-    if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
-      return;
+    if (!isCaipChainId(chainId)) {
+      handleFetchEvmAtomicBalance();
     }
 
-    handleNonEvmAtomicBalance();
-  }, [chainId, handleNonEvmAtomicBalance]);
+    if (isCaipChainId(chainId) && isNonEvmChainId(chainId)) {
+      handleNonEvmAtomicBalance();
+    }
+  }, [
+    handleFetchEvmAtomicBalance,
+    handleNonEvmAtomicBalance,
+    chainId,
+    previousToken?.address,
+    token.address,
+  ]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;
@@ -241,15 +192,17 @@ export const useLatestBalance = (token: {
     }
 
     return { displayBalance, atomicBalance };
-  }, [token.balance, token.decimals]);
+    // Include token.address in the dependency array to ensure
+    // that the cached balance is updated when the token address changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token.balance, token.decimals, token.address]);
 
   if (!token.address || !token.decimals) {
     return undefined;
   }
 
-  // If the token identity has changed, return cached balance of new token
-  // so we have time to fetch the new balance.
-  if (tokenIdentityChanged) {
+  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
+  if (previousToken?.address !== token.address) {
     return cachedBalance;
   }
 

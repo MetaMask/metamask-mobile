@@ -39,12 +39,12 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
-import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
-import { isGaslessQuote } from '../../utils/isGaslessQuote';
-import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 
 if (
   Platform.OS === 'android' &&
@@ -53,9 +53,7 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
-  hasInsufficientBalance,
-}) => {
+const QuoteDetailsCard: React.FC = () => {
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -81,6 +79,22 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     isQuoteLoading,
   });
 
+  const gasFeesSponsoredNetworkEnabled = useSelector(
+    getGasFeesSponsoredNetworkEnabled,
+  );
+
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId,
+  });
+
+  const insufficientBal = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -88,10 +102,21 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     return native?.symbol ?? sourceToken?.symbol ?? '';
   }, [sourceToken?.chainId, sourceToken?.symbol]);
 
-  const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
-    quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
-    hasInsufficientBalance,
-  });
+  const isCurrentNetworkGasSponsored = useMemo(() => {
+    if (!sourceToken?.chainId || !gasFeesSponsoredNetworkEnabled) {
+      return false;
+    }
+    return gasFeesSponsoredNetworkEnabled(sourceToken.chainId);
+  }, [sourceToken?.chainId, gasFeesSponsoredNetworkEnabled]);
+
+  const shouldShowGasSponsored = useMemo(() => {
+    const gasSponsored = activeQuote?.quote?.gasSponsored ?? false;
+    return gasSponsored || (insufficientBal && isCurrentNetworkGasSponsored);
+  }, [
+    activeQuote?.quote?.gasSponsored,
+    insufficientBal,
+    isCurrentNetworkGasSponsored,
+  ]);
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -115,7 +140,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
 
-  const isGasless = isGaslessQuote(activeQuote?.quote);
+  const gasIncluded = !!activeQuote?.quote.gasIncluded;
+  const gasIncluded7702 = !!activeQuote?.quote.gasIncluded7702;
+  const isGasless = gasIncluded7702 || gasIncluded;
 
   const formattedMinToTokenAmount = formatMinimumReceived(
     activeQuote?.minToTokenAmount?.amount || '0',
@@ -182,17 +209,11 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               label: (
                 <TagColored
                   color={TagColor.Success}
-                  labelProps={{
-                    variant: TextVariant.BodySM,
-                    style: {
-                      textTransform: 'none',
-                      textAlign: 'center',
-                      bottom: 1,
-                      fontWeight: 'normal',
-                    },
-                  }}
+                  style={styles.gasFeesSponsoredContainer}
                 >
-                  {strings('bridge.gas_fees_sponsored')}
+                  <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                    {strings('bridge.gas_fees_sponsored')}
+                  </Text>
                 </TagColored>
               ),
             }}

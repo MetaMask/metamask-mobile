@@ -176,7 +176,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -194,7 +194,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -210,7 +210,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -233,7 +233,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -247,7 +247,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -260,7 +260,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -284,7 +284,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -319,7 +319,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -345,7 +345,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -369,7 +369,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -381,7 +381,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -398,7 +398,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -419,7 +419,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -433,7 +433,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -458,7 +458,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -472,7 +472,7 @@ exports[`DepositOrderContent Component renders bank transfer state correctly 1`]
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -659,7 +659,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -677,7 +677,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -693,7 +693,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -716,7 +716,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -730,7 +730,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -743,7 +743,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -767,7 +767,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -802,7 +802,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -828,7 +828,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -852,7 +852,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -864,7 +864,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -881,7 +881,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -902,7 +902,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -916,7 +916,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -941,7 +941,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -955,7 +955,7 @@ exports[`DepositOrderContent Component renders cancelled state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1142,7 +1142,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -1160,7 +1160,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -1176,7 +1176,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -1199,7 +1199,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1213,7 +1213,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -1226,7 +1226,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1250,7 +1250,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1285,7 +1285,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1311,7 +1311,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1335,7 +1335,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1347,7 +1347,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -1364,7 +1364,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -1385,7 +1385,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1399,7 +1399,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1424,7 +1424,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1438,7 +1438,7 @@ exports[`DepositOrderContent Component renders error state correctly with status
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1625,7 +1625,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -1643,7 +1643,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -1659,7 +1659,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -1682,7 +1682,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1696,7 +1696,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -1709,7 +1709,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1733,7 +1733,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1768,7 +1768,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1794,7 +1794,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1818,7 +1818,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1830,7 +1830,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -1847,7 +1847,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -1868,7 +1868,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1882,7 +1882,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1907,7 +1907,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -1921,7 +1921,7 @@ exports[`DepositOrderContent Component renders error state with specific failure
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2108,7 +2108,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -2127,7 +2127,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -2150,7 +2150,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2164,7 +2164,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -2177,7 +2177,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2201,7 +2201,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2236,7 +2236,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2262,7 +2262,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2286,7 +2286,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2298,7 +2298,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -2315,7 +2315,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -2336,7 +2336,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2350,7 +2350,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2375,7 +2375,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2389,7 +2389,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2580,7 +2580,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -2599,7 +2599,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -2622,7 +2622,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2636,7 +2636,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -2649,7 +2649,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2673,7 +2673,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2708,7 +2708,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2734,7 +2734,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2758,7 +2758,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2770,7 +2770,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -2787,7 +2787,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -2808,7 +2808,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2822,7 +2822,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2847,7 +2847,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -2861,7 +2861,7 @@ exports[`DepositOrderContent Component renders no subtitle when statusDescriptio
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3052,7 +3052,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -3070,7 +3070,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -3086,7 +3086,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -3109,7 +3109,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3123,7 +3123,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -3136,7 +3136,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3160,7 +3160,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3195,7 +3195,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3221,7 +3221,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3245,7 +3245,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3257,7 +3257,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -3274,7 +3274,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -3295,7 +3295,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3309,7 +3309,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3334,7 +3334,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3348,7 +3348,7 @@ exports[`DepositOrderContent Component renders processing state correctly 1`] = 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3535,7 +3535,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -3553,7 +3553,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -3569,7 +3569,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -3592,7 +3592,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3606,7 +3606,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -3619,7 +3619,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3643,7 +3643,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3678,7 +3678,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3704,7 +3704,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3728,7 +3728,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3740,7 +3740,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -3757,7 +3757,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -3778,7 +3778,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3792,7 +3792,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3817,7 +3817,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -3831,7 +3831,7 @@ exports[`DepositOrderContent Component renders success state correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4018,7 +4018,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -4036,7 +4036,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -4052,7 +4052,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -4075,7 +4075,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4089,7 +4089,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -4102,7 +4102,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4126,7 +4126,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4161,7 +4161,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4187,7 +4187,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4211,7 +4211,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4223,7 +4223,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -4240,7 +4240,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -4261,7 +4261,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4275,7 +4275,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4300,7 +4300,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4314,7 +4314,7 @@ exports[`DepositOrderContent Component renders with crypto fee when regular fee 
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4501,7 +4501,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Bold",
           "fontSize": 40,
           "letterSpacing": 0,
@@ -4519,7 +4519,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
       accessibilityRole="text"
       style={
         {
-          "color": "#66676a",
+          "color": "#686e7d",
           "fontFamily": "Geist-Regular",
           "fontSize": 14,
           "letterSpacing": 0,
@@ -4535,7 +4535,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#b4b4b566",
+        "borderColor": "#b7bbc866",
         "borderRadius": 8,
         "borderWidth": 1,
         "marginBottom": 16,
@@ -4558,7 +4558,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4572,7 +4572,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#b4b4b528",
+            "backgroundColor": "#3c4d9d0f",
             "borderRadius": 36,
             "flexDirection": "row",
             "gap": 4,
@@ -4585,7 +4585,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4609,7 +4609,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4644,7 +4644,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4670,7 +4670,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4694,7 +4694,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
           accessibilityRole="text"
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4706,7 +4706,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
           123456
         </Text>
         <SvgMock
-          color="#131416"
+          color="#121314"
           fill="currentColor"
           height={24}
           name="Copy"
@@ -4723,7 +4723,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
     <View
       style={
         {
-          "backgroundColor": "#b4b4b566",
+          "backgroundColor": "#b7bbc866",
           "height": 1,
           "marginHorizontal": -16,
           "marginVertical": 8,
@@ -4744,7 +4744,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4758,7 +4758,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4783,7 +4783,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#66676a",
+            "color": "#686e7d",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -4797,7 +4797,7 @@ exports[`DepositOrderContent Component renders without fee when fee is not provi
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,

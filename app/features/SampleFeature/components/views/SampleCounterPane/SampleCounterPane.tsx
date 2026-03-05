@@ -10,7 +10,8 @@ import { useSampleCounter } from '../../hooks/useSampleCounter/useSampleCounter'
 import { strings } from '../../../../../../locales/i18n';
 import Card from '../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import useMetrics from '../../../../../components/hooks/useMetrics/useMetrics';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
 
 /**
@@ -42,11 +43,13 @@ import { SAMPLE_FEATURE_EVENTS } from '../../../analytics/events';
 export function SampleCounterPane() {
   const { styles } = useStyles(styleSheet, {});
   const counter = useSampleCounter();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent } = useMetrics();
 
   const incrementCount = () => {
     trackEvent(
-      createEventBuilder(SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED).build(),
+      MetricsEventBuilder.createEventBuilder(
+        SAMPLE_FEATURE_EVENTS.COUNTER_INCREMENTED,
+      ).build(),
     );
     counter.incrementCount();
   };

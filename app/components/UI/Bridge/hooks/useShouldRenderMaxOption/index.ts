@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { RootState } from '../../../../../reducers';
+import { selectIsGaslessSwapEnabled } from '../../../../../core/redux/slices/bridge';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
 import {
@@ -10,23 +10,14 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
-import { useIsSendBundleSupported } from '../useIsSendBundleSupported';
 
 export const useShouldRenderMaxOption = (
   token?: BridgeToken,
   displayBalance?: string,
   isQuoteSponsored = false,
 ) => {
-  const evmChainId = useMemo(() => {
-    if (!token?.chainId || isNonEvmChainId(token.chainId)) {
-      return undefined;
-    }
-    return formatChainIdToHex(token.chainId);
-  }, [token?.chainId]);
-  const isSendBundleSupported = useIsSendBundleSupported(evmChainId);
-  const isGaslessSwapEnabled = useMemo(
-    () => Boolean(isSendBundleSupported),
-    [isSendBundleSupported],
+  const isGaslessSwapEnabled = useSelector((state: RootState) =>
+    token?.chainId ? selectIsGaslessSwapEnabled(state, token.chainId) : false,
   );
   const stxEnabled = useSelector((state: RootState) =>
     token?.chainId && !isNonEvmChainId(token.chainId)

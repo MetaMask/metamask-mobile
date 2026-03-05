@@ -68,7 +68,6 @@ import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -234,7 +233,6 @@ const WalletTabStackFlow = () => (
     <Stack.Screen
       name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
       component={RevealPrivateCredential}
-      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -263,10 +261,6 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
-    />
-    <Stack.Screen
-      name={Routes.DEPOSIT.ORDER_DETAILS}
-      component={DepositOrderDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.BANK_DETAILS_STANDALONE}
@@ -455,7 +449,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ExperimentalSettings"
         component={ExperimentalSettings}
-        options={{ headerShown: false }}
+        options={ExperimentalSettings.navigationOptions}
       />
       <Stack.Screen
         name="CompanySettings"
@@ -491,12 +485,11 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
-        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW}
         component={WalletConnectSessions}
-        options={{ headerShown: false }}
+        options={WalletConnectSessions.navigationOptions}
       />
       <Stack.Screen
         name="ResetPassword"

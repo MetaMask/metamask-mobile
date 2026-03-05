@@ -1,5 +1,4 @@
 import { CardSDK } from '../sdk/CardSDK';
-import { PIN_CSS } from '../hooks/useCardPinToken';
 import { pinKeys, pinTokenMutationFn } from './pin';
 
 describe('pinKeys', () => {
@@ -26,11 +25,11 @@ describe('pinTokenMutationFn', () => {
 
     const mutationFn = pinTokenMutationFn(mockSdk);
     const result = await mutationFn({
-      customCss: PIN_CSS.light,
+      customCss: { backgroundColor: '#FFFFFF', textColor: '#000000' },
     });
 
     expect(mockSdk.generateCardPinToken).toHaveBeenCalledWith({
-      customCss: PIN_CSS.light,
+      customCss: { backgroundColor: '#FFFFFF', textColor: '#000000' },
     });
     expect(result).toEqual(mockResponse);
   });

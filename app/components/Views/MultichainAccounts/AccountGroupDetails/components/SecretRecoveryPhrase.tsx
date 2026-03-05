@@ -51,8 +51,8 @@ export const SecretRecoveryPhrase = ({
 
   const onExportMnemonic = useCallback(() => {
     if (account?.options.entropySource) {
-      navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        shouldUpdateNav: true,
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
         keyringId: account.options.entropySource,
       });
     }

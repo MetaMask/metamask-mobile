@@ -222,7 +222,6 @@ function parseErrorByMessage(
       patterns: ['disconnected', 'disconnect', 'connection lost'],
       code: ErrorCode.DeviceDisconnected,
     },
-    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['locked', 'unlock'],
       code: ErrorCode.AuthenticationDeviceLocked,
@@ -241,6 +240,7 @@ function parseErrorByMessage(
       patterns: ['rejected', 'cancelled', 'refused'],
       code: ErrorCode.UserRejected,
     },
+    { patterns: ['timeout', 'timed out'], code: ErrorCode.ConnectionTimeout },
     {
       patterns: ['not authorized', 'unauthorized'],
       code: ErrorCode.PermissionNearbyDevicesDenied,

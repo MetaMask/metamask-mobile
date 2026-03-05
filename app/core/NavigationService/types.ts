@@ -382,6 +382,7 @@ export interface RootStackParamList extends ParamListBase {
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
   ConfirmTurnOnBackupAndSync: undefined;
+  ResetNotifications: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   DataCollection: undefined;

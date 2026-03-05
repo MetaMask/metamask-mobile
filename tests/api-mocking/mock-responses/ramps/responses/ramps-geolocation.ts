@@ -17,13 +17,14 @@ export const createGeolocationResponse = (
     { env: 'prod', url: 'https://on-ramp.api.cx.metamask.io/geolocation' },
   ];
 
-  // The real /geolocation endpoint returns plain text (e.g. 'us-ca'), not JSON.
-  // The app reads this with response.text() in useDetectGeolocation.ts and stores
-  // it as-is. If we return a JSON object here, it gets stringified and injected
-  // into URL paths like /regions/{geolocation}/tokens, producing malformed URLs.
   return envConfigs.map(({ url }) => ({
     urlEndpoint: url,
     responseCode: 200,
-    response: region.id.replace('/regions/', ''),
+    response: {
+      id: region.id,
+      name: region.name,
+      emoji: region.emoji,
+      detected: true,
+    },
   }));
 };

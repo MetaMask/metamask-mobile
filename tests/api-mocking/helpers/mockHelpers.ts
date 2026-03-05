@@ -203,9 +203,10 @@ export async function setupMockRequest(
         )}`,
       );
       logger.debug(`Returning response:`, response.response);
-      return typeof response.response === 'string'
-        ? { statusCode: response.responseCode ?? 200, body: response.response }
-        : { statusCode: response.responseCode ?? 200, json: response.response };
+      return {
+        statusCode: response.responseCode ?? 200,
+        json: response.response,
+      };
     });
 }
 

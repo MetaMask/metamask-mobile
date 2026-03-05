@@ -334,7 +334,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#0a0d135c",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b4b4b566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b4b4b566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -470,7 +470,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 16,
                                       "fontWeight": 700,
@@ -510,7 +510,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -565,7 +565,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={20}
                                     name="Clock"
@@ -599,7 +599,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -652,7 +652,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#131416"
+                                    color="#121314"
                                     fill="currentColor"
                                     height={20}
                                     name="Messages"
@@ -686,7 +686,7 @@ exports[`SettingsModal render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#131416",
+                                        "color": "#121314",
                                         "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,

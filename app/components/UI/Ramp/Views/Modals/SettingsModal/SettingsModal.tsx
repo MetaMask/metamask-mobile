@@ -25,8 +25,6 @@ import Logger from '../../../../../../util/Logger';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../components/MenuItem';
 import { useRampsController } from '../../../hooks/useRampsController';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
@@ -48,7 +46,6 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 );
 
 function SettingsModal() {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
@@ -95,15 +92,6 @@ function SettingsModal() {
   )?.url;
 
   const navigateToOrderHistory = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
-        .addProperties({
-          option: 'View Order History',
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     sheetRef.current?.onCloseBottomSheet();
     navigation.navigate(Routes.TRANSACTIONS_VIEW, {
       screen: Routes.TRANSACTIONS_VIEW,
@@ -111,21 +99,13 @@ function SettingsModal() {
         redirectToOrders: true,
       },
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [navigation]);
 
   const handleContactSupport = useCallback(async () => {
     if (!supportUrl) return;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
-        .addProperties({
-          option: 'Contact Support',
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     try {
       if (await InAppBrowser.isAvailable()) {
+        // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
         sheetRef.current?.onCloseBottomSheet();
         await InAppBrowser.open(supportUrl);
       } else {
@@ -140,18 +120,9 @@ function SettingsModal() {
     } catch (error) {
       Logger.error(error as Error, 'SettingsModal: Failed to open support URL');
     }
-  }, [supportUrl, navigation, trackEvent, createEventBuilder]);
+  }, [supportUrl, navigation]);
 
   const handleLogOut = useCallback(async () => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTING_OPTION_CLICKED)
-        .addProperties({
-          option: 'Log Out',
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     try {
       await resetProviderToken();
       setSelectedProvider(null);
@@ -186,7 +157,7 @@ function SettingsModal() {
         hasNoTimeout: false,
       });
     }
-  }, [setSelectedProvider, toastRef, trackEvent, createEventBuilder]);
+  }, [setSelectedProvider, toastRef]);
 
   const handleClosePress = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();

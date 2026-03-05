@@ -8,7 +8,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
-import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -16,7 +15,6 @@ import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsLis
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -73,9 +71,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
   }, [navigation]);
 
+  // DeFi positions come from Redux selectors - no async refresh needed
   const refresh = useCallback(async () => {
-    const controller = Engine.context.DeFiPositionsController;
-    await controller._executePoll();
+    // Data refreshes automatically via DeFiPositionsController
   }, []);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -85,24 +83,9 @@ const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     return null;
   }
 
-  // Don't render if empty and not loading (200 with no data)
-  if (!isLoading && isEmpty) {
+  // Don't render if error or empty (and not loading)
+  if (!isLoading && (hasError || isEmpty)) {
     return null;
-  }
-
-  // Show retry UI on error
-  if (!isLoading && hasError) {
-    return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllDeFi} />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </Box>
-    );
   }
 
   return (

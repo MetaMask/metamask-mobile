@@ -424,7 +424,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -444,7 +444,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -457,7 +457,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
@@ -473,7 +473,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -532,8 +532,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -548,7 +548,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -565,8 +565,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -581,7 +581,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -598,8 +598,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -614,7 +614,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -631,8 +631,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -647,7 +647,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -664,8 +664,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -680,7 +680,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -697,8 +697,8 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -713,7 +713,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -775,7 +775,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#66676a",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -817,7 +817,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -849,7 +849,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "height": 24,
                                 }
                               }
@@ -1294,7 +1294,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -1314,7 +1314,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -1327,7 +1327,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
@@ -1343,7 +1343,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1402,8 +1402,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1418,7 +1418,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1435,8 +1435,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1451,7 +1451,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1468,8 +1468,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1484,7 +1484,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1501,8 +1501,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1517,7 +1517,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1534,8 +1534,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1550,7 +1550,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1567,8 +1567,8 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -1583,7 +1583,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -1645,7 +1645,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#66676a",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -1663,7 +1663,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#66676a",
+                                      "color": "#686e7d",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1707,7 +1707,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -1739,7 +1739,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "height": 24,
                                 }
                               }
@@ -2184,7 +2184,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -2204,7 +2204,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -2217,7 +2217,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
@@ -2233,7 +2233,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -2292,8 +2292,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2308,7 +2308,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2325,8 +2325,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2341,7 +2341,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2358,8 +2358,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2374,7 +2374,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2391,8 +2391,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2407,7 +2407,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2424,8 +2424,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2440,7 +2440,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2457,8 +2457,8 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -2473,7 +2473,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -2535,7 +2535,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#66676a",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -2577,7 +2577,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -2609,7 +2609,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "height": 24,
                                 }
                               }
@@ -3054,7 +3054,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -3074,7 +3074,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -3087,7 +3087,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
@@ -3103,7 +3103,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -3162,8 +3162,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3178,7 +3178,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3197,8 +3197,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3213,7 +3213,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3232,8 +3232,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3248,7 +3248,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3267,8 +3267,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3283,7 +3283,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3302,8 +3302,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3318,7 +3318,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3337,8 +3337,8 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -3353,7 +3353,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -3431,7 +3431,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#66676a",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -3449,7 +3449,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#66676a",
+                                      "color": "#686e7d",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -3493,7 +3493,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -3524,7 +3524,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "height": 24,
                                 }
                               }
@@ -3969,7 +3969,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     {
@@ -3989,7 +3989,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                         "height": 4,
                                       },
                                       {
-                                        "backgroundColor": "#babbbe",
+                                        "backgroundColor": "#b7bbc8",
                                       },
                                     ],
                                     undefined,
@@ -4002,7 +4002,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#131416",
+                                  "color": "#121314",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "bold",
@@ -4018,7 +4018,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -4077,8 +4077,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4093,7 +4093,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4110,8 +4110,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4126,7 +4126,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4143,8 +4143,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4159,7 +4159,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4176,8 +4176,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4192,7 +4192,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4209,8 +4209,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4225,7 +4225,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4242,8 +4242,8 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#b4b4b528",
-                                      "borderColor": "#b4b4b566",
+                                      "backgroundColor": "#3c4d9d0f",
+                                      "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "height": 50,
@@ -4258,7 +4258,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#131416",
+                                      "color": "#121314",
                                       "fontFamily": "Geist-Bold",
                                       "fontSize": 24,
                                       "fontWeight": "bold",
@@ -4320,7 +4320,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#66676a",
+                                    "color": "#686e7d",
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -4338,7 +4338,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#66676a",
+                                      "color": "#686e7d",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -4382,7 +4382,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -4414,7 +4414,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                               name="powered-by-transak-logo"
                               style={
                                 {
-                                  "color": "#66676a",
+                                  "color": "#686e7d",
                                   "height": 24,
                                 }
                               }
