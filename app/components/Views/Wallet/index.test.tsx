@@ -418,6 +418,17 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(() => ({
       navigate: mockNavigate,
       setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+      dangerouslyGetParent: jest.fn(() => ({
+        dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+        addListener: jest.fn(() => jest.fn()),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => undefined),
+        })),
+      })),
     })),
     useRoute: jest.fn(() => ({
       params: {},
@@ -932,6 +943,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -1002,6 +1024,17 @@ describe('Wallet', () => {
       const mockNavigationObject = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Clear previous calls
@@ -1051,6 +1084,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1227,6 +1271,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Default to enabled
@@ -1452,6 +1507,17 @@ describe('Wallet', () => {
       mockNavigation = {
         navigate: mockNavigate,
         setOptions: mockSetOptions,
+        addListener: jest.fn(() => jest.fn()),
+        isFocused: jest.fn(() => false),
+        dangerouslyGetParent: jest.fn(() => ({
+          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
+          addListener: jest.fn(() => jest.fn()),
+          dangerouslyGetParent: jest.fn(() => ({
+            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
+            addListener: jest.fn(() => jest.fn()),
+            dangerouslyGetParent: jest.fn(() => undefined),
+          })),
+        })),
       } as unknown as NavigationProp<ParamListBase>;
 
       // Reset flags to default state

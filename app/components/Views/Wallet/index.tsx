@@ -11,7 +11,7 @@ import React, {
   useState,
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
-import { useBalanceRefresh } from './hooks';
+import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
@@ -128,6 +128,7 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
+import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -627,6 +628,21 @@ const Wallet = ({
   const [refreshing, setRefreshing] = useState(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
+
+  // ─── Homepage scroll context state ───────────────────────────────────────
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [containerScreenY, setContainerScreenY] = useState(0);
+  const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
+
+  // Ref to the scroll container View — used to measure its absolute screen Y
+  // position so the visibility check in sections can use correct bounds.
+  const containerViewRef = useRef<View>(null);
+  // Timestamp of the last scroll event — used for JS-level throttling.
+  const lastScrollTickTimeRef = useRef(0);
+  // Callbacks registered by sections to be notified of scroll events.
+  // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
+  const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
@@ -1148,6 +1164,16 @@ const Wallet = ({
     [],
   );
 
+  // Notifies scroll subscribers directly (no React state update = no re-renders).
+  const handleHomepageScroll = useCallback(() => {
+    if (!isHomepageSectionsV1Enabled) return;
+    const now = Date.now();
+    if (now - lastScrollTickTimeRef.current >= 100) {
+      lastScrollTickTimeRef.current = now;
+      scrollSubscribersRef.current.forEach((cb) => cb());
+    }
+  }, [isHomepageSectionsV1Enabled]);
+
   const handleVerticalScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const { contentOffset, contentSize, layoutMeasurement } =
@@ -1160,8 +1186,9 @@ const Wallet = ({
         layoutMeasurement.height,
         contentOffset.y,
       );
+      handleHomepageScroll();
     },
-    [computeFadeOpacity],
+    [computeFadeOpacity, handleHomepageScroll],
   );
 
   const handleScrollContentSizeChange = useCallback(
@@ -1395,6 +1422,22 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  const subscribeToScroll = useCallback((cb: () => void) => {
+    scrollSubscribersRef.current.add(cb);
+    return () => scrollSubscribersRef.current.delete(cb);
+  }, []);
+
+  const homepageScrollContextValue = useMemo(
+    () => ({
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+    }),
+    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
+  );
+
   const content = (
     <>
       <View style={styles.banner}>
@@ -1434,7 +1477,9 @@ const Wallet = ({
         {isHomepageSectionsV1Enabled ? (
           <>
             {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-            <Homepage ref={homepageRef} />
+            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
+              <Homepage ref={homepageRef} />
+            </HomepageScrollContext.Provider>
           </>
         ) : (
           <>
@@ -1465,8 +1510,18 @@ const Wallet = ({
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? (
           <View
+            ref={containerViewRef}
             style={styles.wrapper}
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+            onLayout={(e) => {
+              setViewportHeight(e.nativeEvent.layout.height);
+              // measureInWindow gives the absolute screen Y of the container
+              // top, which is needed to form correct visible bounds when
+              // sections call measureInWindow on themselves.
+              containerViewRef.current?.measureInWindow((_x, y) => {
+                setContainerScreenY(y);
+              });
+            }}
           >
             <ConditionalScrollView
               ref={scrollViewRef}
