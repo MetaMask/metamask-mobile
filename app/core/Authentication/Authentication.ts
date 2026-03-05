@@ -16,7 +16,10 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
@@ -1453,6 +1456,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
   };
 
   /**

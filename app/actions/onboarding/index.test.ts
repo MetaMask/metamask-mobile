@@ -3,10 +3,12 @@ import {
   clearOnboardingEvents,
   setCompletedOnboarding,
   setAccountType,
+  clearAccountType,
   SAVE_EVENT,
   CLEAR_EVENTS,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
+  CLEAR_ACCOUNT_TYPE,
 } from '.';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 
@@ -53,6 +55,14 @@ describe('Onboarding actions', () => {
       expect(setAccountType('metamask_google')).toEqual({
         type: SET_ACCOUNT_TYPE,
         accountType: 'metamask_google',
+      });
+    });
+  });
+
+  describe('clearAccountType', () => {
+    it('creates an action to clear accountType', () => {
+      expect(clearAccountType()).toEqual({
+        type: CLEAR_ACCOUNT_TYPE,
       });
     });
   });

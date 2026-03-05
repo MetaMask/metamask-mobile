@@ -4,6 +4,7 @@ import {
   SAVE_EVENT,
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
+  CLEAR_ACCOUNT_TYPE,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 
@@ -51,5 +52,15 @@ describe('onboardingReducer', () => {
     } as const;
     const state = onboardingReducer(initialState, action);
     expect(state.accountType).toBe('metamask_google');
+  });
+
+  it('handles the CLEAR_ACCOUNT_TYPE action', () => {
+    const stateWithAccountType = {
+      ...initialState,
+      accountType: 'metamask_google',
+    };
+    const action = { type: CLEAR_ACCOUNT_TYPE } as const;
+    const state = onboardingReducer(stateWithAccountType, action);
+    expect(state.accountType).toBeUndefined();
   });
 });
