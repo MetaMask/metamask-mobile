@@ -106,7 +106,6 @@ const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
     }
   : {};
 
-const TRUST_SIGNAL_VARIANT = 'malicious' as const;
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
@@ -1031,7 +1030,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         styles={styles}
       >
         <TrustSignalModal
-          variant={TRUST_SIGNAL_VARIANT}
           url={urlWithProtocol}
           onConnectAnyway={handleTrustSignalDismiss}
           onClose={handleTrustSignalClose}
