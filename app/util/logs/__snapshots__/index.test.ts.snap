@@ -66,6 +66,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "BridgeStatusController": {
         "txHistory": {},
       },
+      "CardController": {
+        "activeProviderId": null,
+        "cardholderAccounts": [],
+        "isAuthenticated": false,
+        "providerData": {},
+        "selectedCountry": null,
+      },
       "ConnectivityController": {
         "connectivityStatus": "online",
       },
@@ -915,6 +922,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "CardController": {
+        "activeProviderId": null,
+        "cardholderAccounts": [],
+        "isAuthenticated": false,
+        "providerData": {},
+        "selectedCountry": null,
       },
       "ConnectivityController": {
         "connectivityStatus": "online",
