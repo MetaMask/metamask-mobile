@@ -9,8 +9,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       state: {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       },
     },
   },
