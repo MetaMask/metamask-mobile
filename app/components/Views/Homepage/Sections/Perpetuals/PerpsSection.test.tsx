@@ -811,7 +811,7 @@ describe('PerpsSection', () => {
       fireEvent.press(screen.getByTestId('perps-view-more-card'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
+        screen: Routes.PERPS.MARKET_LIST,
         params: { source: 'home_section' },
       });
     });
