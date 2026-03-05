@@ -194,11 +194,7 @@ describe('LedgerMessageSignModal', () => {
       </Provider>,
     );
 
-    await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalled();
-    });
-
-    // goBack is called but does nothing when canGoBack is false
     expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
