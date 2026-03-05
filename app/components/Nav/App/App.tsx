@@ -466,11 +466,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={MultichainAccountConnect}
+      component={MultichainAccountConnect as ScreenComponent}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={MultichainAccountPermissions}
+      component={MultichainAccountPermissions as ScreenComponent}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
