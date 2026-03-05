@@ -25,6 +25,7 @@ import {
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
+  PredictSportsLeague,
   PriceResult,
   Side,
   UnrealizedPnL,
@@ -107,7 +108,7 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
-import { getEventLeague } from '../../utils/gameParser';
+import { isLiveSportsEvent } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -246,9 +247,10 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const { liveSportsLeagues } = this.#getFeatureFlags();
-      const eventLeague = getEventLeague(event);
-      const isSportsEvent =
-        eventLeague !== null && liveSportsLeagues.length > 0;
+      const isSportsEvent = isLiveSportsEvent(
+        event,
+        liveSportsLeagues as PredictSportsLeague[],
+      );
 
       if (isSportsEvent) {
         await TeamsCache.getInstance().ensureLeaguesLoaded(

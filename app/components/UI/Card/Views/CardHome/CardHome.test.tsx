@@ -65,6 +65,14 @@ jest.mock('@expensify/react-native-wallet', () => ({
   AddToWalletButton: () => null,
 }));
 
+const mockRemoveQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: jest.fn(() => ({
+    removeQueries: mockRemoveQueries,
+  })),
+}));
+
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -2629,9 +2637,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
       await waitFor(() => {
@@ -2662,7 +2668,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
@@ -2683,7 +2689,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
     });
 
     it('does nothing when error is not an authentication error', () => {
@@ -2701,7 +2707,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
@@ -2753,7 +2759,7 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should dispatch Redux actions after token removal
+      // Then: should dispatch Redux actions and clear query cache after token removal
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
@@ -2762,9 +2768,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
     });
 
@@ -2871,9 +2875,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
         );
@@ -2893,10 +2895,12 @@ describe('CardHome Component', () => {
       mockDispatch.mockImplementation((action) => {
         if (action.type === 'card/resetAuthenticatedData') {
           callOrder.push('resetAuth');
-        } else if (action.type === 'card/clearAllCache') {
-          callOrder.push('clearCache');
         }
         return action;
+      });
+
+      mockRemoveQueries.mockImplementation(() => {
+        callOrder.push('removeQueries');
       });
 
       mockNavigationDispatch.mockImplementation(() => {
@@ -2916,7 +2920,7 @@ describe('CardHome Component', () => {
         expect(callOrder).toEqual([
           'removeToken',
           'resetAuth',
-          'clearCache',
+          'removeQueries',
           'navigate',
         ]);
       });
@@ -2941,14 +2945,12 @@ describe('CardHome Component', () => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
 
-      // 2. Dispatch Redux actions
+      // 2. Dispatch Redux actions and clear query cache
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
       // 3. Navigate to authentication screen (this happens after toast is shown)

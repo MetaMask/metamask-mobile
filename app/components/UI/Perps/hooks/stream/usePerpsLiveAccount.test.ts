@@ -8,17 +8,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock Engine for lazy isInitialLoading check
-const mockEngineState = {
-  cachedAccountState: null as AccountState | null,
-  cachedUserDataTimestamp: 0,
-};
+let mockCachedUserData: {
+  positions: unknown[];
+  orders: unknown[];
+  accountState: AccountState | null;
+} | null = null;
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      get state() {
-        return mockEngineState;
-      },
+      getCachedUserDataForActiveProvider: () => mockCachedUserData,
     },
   },
 }));
@@ -36,6 +35,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
 describe('usePerpsLiveAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCachedUserData = null;
   });
 
   describe('default state', () => {
@@ -269,8 +269,11 @@ describe('usePerpsLiveAccount', () => {
         totalBalance: '7100',
       };
 
-      mockEngineState.cachedAccountState = cachedAccount;
-      mockEngineState.cachedUserDataTimestamp = Date.now();
+      mockCachedUserData = {
+        positions: [],
+        orders: [],
+        accountState: cachedAccount,
+      };
 
       // Mock subscription to NOT call the callback (no WebSocket data yet)
       mockSubscribe.mockImplementation(() => jest.fn());
@@ -286,11 +289,8 @@ describe('usePerpsLiveAccount', () => {
       });
     });
 
-    it('returns null for stale cached account (older than 60s)', () => {
-      mockEngineState.cachedAccountState = {
-        availableBalance: '5000',
-      } as AccountState;
-      mockEngineState.cachedUserDataTimestamp = Date.now() - 61_000;
+    it('returns null for stale cached account (helper returns null)', () => {
+      mockCachedUserData = null;
 
       mockSubscribe.mockImplementation(() => jest.fn());
 
@@ -298,7 +298,6 @@ describe('usePerpsLiveAccount', () => {
         state: {},
       });
 
-      // getPreloadedData enforces 60s TTL — stale cache is not used
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
@@ -306,8 +305,7 @@ describe('usePerpsLiveAccount', () => {
     });
 
     it('has null account when no cache exists', () => {
-      mockEngineState.cachedAccountState = null;
-      mockEngineState.cachedUserDataTimestamp = 0;
+      mockCachedUserData = null;
 
       mockSubscribe.mockImplementation(() => jest.fn());
 

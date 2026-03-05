@@ -5,6 +5,10 @@ import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
 } from './priceHistory';
+import {
+  predictUnrealizedPnLKeys,
+  predictUnrealizedPnLOptions,
+} from './unrealizedPnL';
 
 export const predictQueries = {
   activity: {
@@ -22,5 +26,9 @@ export const predictQueries = {
   priceHistory: {
     keys: predictPriceHistoryKeys,
     options: predictPriceHistoryOptions,
+  },
+  unrealizedPnL: {
+    keys: predictUnrealizedPnLKeys,
+    options: predictUnrealizedPnLOptions,
   },
 };
