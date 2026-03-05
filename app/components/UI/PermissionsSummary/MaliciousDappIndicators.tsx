@@ -105,11 +105,12 @@ export const getConnectButtonContent = (
   if (isNetworkSwitch) {
     return strings('confirmation_modal.confirm_cta');
   }
-  if (isMaliciousDapp) {
+  if (
+    isMaliciousDapp ||
+    trustSignalState === TrustSignalDisplayState.Malicious
+  ) {
     return <DangerConnectButtonContent />;
   }
-  if (trustSignalState === TrustSignalDisplayState.Malicious) {
-    return <DangerConnectButtonContent />;
-  }
+
   return strings('accounts.connect');
 };
