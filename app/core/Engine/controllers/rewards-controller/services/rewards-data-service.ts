@@ -265,7 +265,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetCampaignsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
