@@ -1,12 +1,12 @@
 import { formatPriceImpact } from './formatPriceImpact';
 
 describe('formatPriceImpact', () => {
-  it('returns "0" when called with undefined', () => {
-    expect(formatPriceImpact(undefined)).toBe('0');
+  it('returns "0%" when called with undefined', () => {
+    expect(formatPriceImpact(undefined)).toBe('0%');
   });
 
-  it('returns "0" when called with an empty string', () => {
-    expect(formatPriceImpact('')).toBe('0');
+  it('returns "0%" when called with an empty string', () => {
+    expect(formatPriceImpact('')).toBe('0%');
   });
 
   it('returns "0%" when value is zero', () => {
@@ -19,6 +19,10 @@ describe('formatPriceImpact', () => {
 
   it('returns "0%" for a negative value without percent sign', () => {
     expect(formatPriceImpact('-3')).toBe('0%');
+  });
+
+  it('returns "0%" for a non-numeric string', () => {
+    expect(formatPriceImpact('abc')).toBe('0%');
   });
 
   it('appends "%" when given a positive numeric string without percent sign', () => {
