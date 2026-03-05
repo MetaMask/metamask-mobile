@@ -291,7 +291,7 @@ describeForPlatforms('BridgeView', () => {
 
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
-    it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
+    it('displays gas included label and enables confirm when quote has gas included (issue 24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
         ...(mockQuoteWithMetadata as unknown as Record<string, unknown>),
@@ -330,7 +330,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
-    it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
+    it('shows two USDT when search API returns two USDT on Linea (issue 25256)', async () => {
       jest
         .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
         .mockResolvedValue('mock-bearer-token');
@@ -508,7 +508,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
-    it('shows native token in source area when source is native token from token details (#24865)', () => {
+    it('shows native token in source area when source is native token from token details (issue 24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
 
@@ -535,7 +535,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
-    it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
+    it('renders USDC to BNB swap setup without crash and hides confirm when no quote (issue 24802)', () => {
       const bnbChainIdHex = '0x38';
 
       const { getByTestId, queryByTestId } = defaultBridgeWithTokens({

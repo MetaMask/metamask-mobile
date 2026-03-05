@@ -158,11 +158,12 @@ module.exports = {
     },
     {
       files: [
-        'app/component-library/**/*.{js,ts,tsx}',
-        'app/components/**/*.{js,ts,tsx}',
+        'app/component-library/**/*.{js,jsx,ts,tsx}',
+        'app/components/**/*.{js,jsx,ts,tsx}',
       ],
-      plugins: ['tailwindcss'],
+      plugins: ['@metamask/design-tokens', 'tailwindcss'],
       rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
         'tailwindcss/classnames-order': 'error',
         'tailwindcss/enforces-negative-arbitrary-values': 'error',
         'tailwindcss/enforces-shorthand': 'error',
@@ -545,7 +546,6 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 'off',
   },
 

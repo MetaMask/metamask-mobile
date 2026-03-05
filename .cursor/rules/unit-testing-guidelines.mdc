@@ -234,6 +234,54 @@ See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for refa
 - **Mock all external dependencies** including APIs, services, hooks
 - **Use realistic mock data** that reflects real usage
 
+### Theme Mocking Rules
+
+- **Prefer shared `mockTheme` from `app/util/theme`** instead of hard-coded color literals in tests.
+- **Avoid local hex color objects** for `useTheme`, `useStyles`, or tailwind mock color functions.
+- **If a test only needs a specific theme field**, derive it from `mockTheme` (or spread `mockTheme` and override minimally).
+
+```ts
+// ✅ CORRECT: use shared mockTheme for useTheme mocks
+import { mockTheme } from '../../util/theme';
+
+jest.mock('../../util/theme', () => ({
+  useTheme: () => mockTheme,
+}));
+```
+
+```ts
+// ✅ CORRECT: return { styles, theme } for useStyles mocks
+import { mockTheme } from '../../util/theme';
+
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: jest.fn((styleFn, vars) => ({
+    styles: styleFn({ theme: mockTheme, vars }),
+    theme: mockTheme,
+  })),
+}));
+```
+
+```ts
+// ✅ CORRECT: derive tailwind mock colors from mockTheme
+import { mockTheme } from '../../util/theme';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+    color: jest.fn(() => mockTheme.colors.text.default),
+  }),
+}));
+```
+
+```ts
+// ❌ AVOID: local hex color mocks
+const mockColors = {
+  text: { default: '#000000' },
+  background: { default: '#FFFFFF' },
+  border: { muted: '#E5E7EB' },
+};
+```
+
 ```ts
 // ✅ CORRECT
 import { apiService } from '../services/api';
@@ -577,6 +625,46 @@ it('hides selector when disabled', () => {
   // Break test: change enabled={false} to enabled={true} and verify test fails
 });
 ```
+
+## Design Token Colors in Tests
+
+**Never hardcode design token hex values in test assertions or theme mocks.**
+
+Design token values change regularly. Hardcoding hex values creates fragile tests that
+break on every token update, triggering unrelated code owners and blocking merges.
+
+### Assertions
+
+```ts
+// ✅ Correct — uses token reference, survives token updates
+import { lightTheme } from '@metamask/design-tokens';
+expect(element.props.style.color).toBe(lightTheme.colors.text.alternative);
+
+// ❌ Wrong — breaks when design tokens change
+expect(element.props.style.color).toBe('#686e7d');
+```
+
+### Theme mocks
+
+```ts
+// ✅ Correct — spread real tokens via jest.requireActual, always up to date
+jest.mock('../../util/theme', () => {
+  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  return {
+    useTheme: () => ({ colors: lt.colors }),
+  };
+});
+
+// ✅ Even better — delete the mock entirely and rely on global testSetup.js
+// which already mocks useAppThemeFromContext with mockTheme (real tokens)
+
+// ❌ Wrong — hardcoded hex values will become stale
+jest.mock('../../util/theme', () => ({
+  useTheme: () => ({ colors: { overlay: { default: '#00000099' } } }),
+}));
+```
+
+The ESLint rule `@metamask/design-tokens/color-no-hex` enforces this in CI.
 
 ## Reviewer Responsibilities
 
