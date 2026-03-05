@@ -30,6 +30,16 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
+jest.mock('react-native-gesture-handler', () => {
+  const RN = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('react-native-gesture-handler'),
+    GestureHandlerRootView: RN.View,
+    GestureHandlerRootViewContext: React.createContext(true),
+  };
+});
+
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
 }));
@@ -277,8 +287,11 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('react-native-safe-area-context', () => {
+  const RN = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
+  const SafeAreaInsetsContext = React.createContext(inset);
   return {
     SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
     SafeAreaConsumer: jest
@@ -286,6 +299,8 @@ jest.mock('react-native-safe-area-context', () => {
       .mockImplementation(({ children }) => children(inset)),
     useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
     useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+    SafeAreaView: RN.View,
+    SafeAreaInsetsContext,
   };
 });
 
