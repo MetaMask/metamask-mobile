@@ -113,9 +113,9 @@ describe('createTransactionDetailStyles', () => {
     // Arrange
     const incompleteTheme = {
       colors: {
-        background: { default: 'rgb(255, 255, 255)' },
-        text: { default: 'rgb(0, 0, 0)' },
-        success: { default: 'rgb(40, 167, 69)' },
+        background: { default: mockTheme.colors.background.default },
+        text: { default: mockTheme.colors.text.default },
+        success: { default: mockTheme.colors.success.default },
         border: {},
       },
     };

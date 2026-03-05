@@ -38,8 +38,7 @@ const commodityMarket: PerpsMarketData = {
 const marketDataWithCategories = [cryptoMarket, commodityMarket];
 
 describe('PerpsMarketListView', () => {
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  describe('Bug regression: #25571', () => {
+  describe('Bug regression: 25571', () => {
     it('renders market list header and list with default state (no category filtering)', async () => {
       renderPerpsMarketListView();
 

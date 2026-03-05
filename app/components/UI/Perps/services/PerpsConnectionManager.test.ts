@@ -867,8 +867,7 @@ describe('PerpsConnectionManager', () => {
     });
   });
 
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  describe('DEX Abstraction Cache Clearing (PR #25334)', () => {
+  describe('DEX Abstraction Cache Clearing (PR 25334)', () => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -973,7 +972,7 @@ describe('PerpsConnectionManager', () => {
 
   describe('foreground reconnection — single reconnection flow', () => {
     it('PerpsConnectionManager has no AppState listener — only the hook triggers foreground reconnect', () => {
-      // This test documents the fix for the race condition introduced by PR #26780.
+      // This test documents the fix for the race condition introduced by PR 26780.
       // Previously, PerpsConnectionManager registered its own AppState listener in
       // setupStateMonitoring(), which competed with usePerpsConnectionLifecycle hook.
       //
