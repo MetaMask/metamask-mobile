@@ -557,9 +557,9 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <TouchableOpacity onPress={handleInfoPress}>
             <Box
               flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center justify-center mb-4"
+              twClassName="items-center justify-center mb-4 px-4 flex-wrap"
             >
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+              <Text variant={TextVariant.BodySm} twClassName="text-alternative shrink">
                 {order.statusDescription}
               </Text>
               <Icon
