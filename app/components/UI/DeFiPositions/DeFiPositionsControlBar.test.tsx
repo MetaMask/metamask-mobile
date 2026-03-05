@@ -102,6 +102,20 @@ jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => null),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+  },
+}));
+
 const mockStore = configureMockStore();
 
 describe('DeFiPositionsControlBar', () => {

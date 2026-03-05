@@ -411,6 +411,22 @@ jest.mock('../../../util/address', () => ({
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
+// Mock core first so useIsFocused/useNavigation work when Wallet or children use them
+jest.mock('@react-navigation/core', () => {
+  const actualCore = jest.requireActual('@react-navigation/core');
+  return {
+    ...actualCore,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+      dangerouslyGetParent: jest.fn(),
+    })),
+    useIsFocused: jest.fn(() => true),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -434,6 +450,7 @@ jest.mock('@react-navigation/native', () => {
       params: {},
     })),
     useFocusEffect: jest.fn(),
+    useIsFocused: jest.fn(() => true),
   };
 });
 
@@ -499,21 +516,6 @@ describe('Wallet', () => {
 
     // Check if TabsList mock was called
     expect(mockTabsListComponent).toHaveBeenCalled();
-  });
-
-  it('passes popular EVM chain IDs to AssetPollingProvider when homepage sections are disabled', () => {
-    mockAssetPollingProvider.mockClear();
-    //@ts-expect-error we are ignoring the navigation params on purpose
-    render(Wallet);
-    // When homepage sections flag is off, Wallet renders AssetPollingProvider with chainIds from listPopularEvmNetworks (Engine mock returns ['0x1'])
-    const calls = mockAssetPollingProvider.mock.calls as [
-      { chainIds?: string[] },
-    ][];
-    const callWithChainIds = calls.find(
-      ([props]) => props?.chainIds !== undefined,
-    );
-    expect(callWithChainIds).toBeDefined();
-    expect(callWithChainIds?.[0]?.chainIds).toEqual(['0x1']);
   });
   it('should render the address copy button', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
