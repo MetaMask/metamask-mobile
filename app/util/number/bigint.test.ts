@@ -1,5 +1,6 @@
 import {
   addCurrencySymbol,
+  addHexPrefix,
   balanceToFiat,
   balanceToFiatNumber,
   bigIntToHex,
@@ -25,8 +26,10 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderNumber,
   safeBigIntToHex,
   safeNumberToBigInt,
+  toGwei,
   toHexadecimal,
   toTokenMinimalUnit,
   toWei,
@@ -974,4 +977,111 @@ describe('Number utils :: safeBigIntToHex', () => {
       expect(safeBigIntToHex(value)).toBe(value);
     },
   );
+});
+
+describe('Number utils :: addHexPrefix', () => {
+  it('returns a non-string value unchanged', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect(addHexPrefix(42 as any)).toBe(42);
+  });
+
+  it('is idempotent for already lowercase 0x-prefixed strings', () => {
+    expect(addHexPrefix('0x1a2b')).toBe('0x1a2b');
+  });
+
+  it('is idempotent for already lowercase -0x-prefixed strings', () => {
+    expect(addHexPrefix('-0x1a2b')).toBe('-0x1a2b');
+  });
+
+  it('normalizes uppercase 0X prefix to lowercase 0x', () => {
+    expect(addHexPrefix('0X1A2B')).toBe('0x1A2B');
+  });
+
+  it('normalizes uppercase -0X prefix to lowercase -0x', () => {
+    expect(addHexPrefix('-0X1A2B')).toBe('-0x1A2B');
+  });
+
+  it('prepends 0x to a plain hex string', () => {
+    expect(addHexPrefix('1a2b')).toBe('0x1a2b');
+  });
+
+  it('prepends -0x to a negative hex string without prefix', () => {
+    expect(addHexPrefix('-1a2b')).toBe('-0x1a2b');
+  });
+});
+
+describe('Number utils :: renderNumber', () => {
+  it('returns integer strings longer than 5 characters unchanged', () => {
+    expect(renderNumber('123456789')).toBe('123456789');
+  });
+
+  it('returns integer strings of 5 characters or fewer unchanged', () => {
+    expect(renderNumber('12345')).toBe('12345');
+  });
+
+  it('returns the full number when there is no decimal point', () => {
+    expect(renderNumber('1')).toBe('1');
+  });
+
+  it('trims to 5 decimal places when a decimal point is present', () => {
+    expect(renderNumber('1.123456789')).toBe('1.12345');
+  });
+
+  it('keeps numbers with 5 or fewer decimal places intact', () => {
+    expect(renderNumber('1.123')).toBe('1.123');
+  });
+});
+
+describe('Number utils :: toGwei', () => {
+  it('converts whole-number ether to gwei', () => {
+    expect(toGwei(BigInt('1000000000000000000'))).toBe(1000000000n);
+  });
+
+  it('converts fractional ether wei value to gwei without throwing', () => {
+    // 1e17 wei = 0.1 ether = 100000000 gwei
+    expect(toGwei(BigInt('100000000000000000'))).toBe(100000000n);
+  });
+
+  it('converts a wei value that produces a decimal ether string without throwing', () => {
+    // 1337000000000 wei = 0.000001337 ether = 1337 gwei
+    expect(toGwei(BigInt('1337000000000'))).toBe(1337n);
+  });
+
+  it('handles negative wei values', () => {
+    expect(toGwei(BigInt('-1000000000000000000'))).toBe(-1000000000n);
+  });
+
+  it('returns 0n for zero input', () => {
+    expect(toGwei(BigInt('0'))).toBe(0n);
+  });
+});
+
+describe('Number utils :: fromTokenMinimalUnit with high decimals', () => {
+  it('handles decimals = 21 without throwing', () => {
+    expect(
+      fromTokenMinimalUnit(BigInt('1000000000000000000000'), 21, false),
+    ).toBe('1');
+  });
+
+  it('handles decimals = 36 without throwing', () => {
+    expect(
+      fromTokenMinimalUnit(
+        BigInt('1000000000000000000000000000000000000'),
+        36,
+        false,
+      ),
+    ).toBe('1');
+  });
+});
+
+describe('Number utils :: toTokenMinimalUnit with high decimals', () => {
+  it('handles decimals = 21 without throwing', () => {
+    expect(toTokenMinimalUnit('1', 21)).toBe(BigInt('1000000000000000000000'));
+  });
+
+  it('handles decimals = 36 without throwing', () => {
+    expect(toTokenMinimalUnit('1', 36)).toBe(
+      BigInt('1000000000000000000000000000000000000'),
+    );
+  });
 });

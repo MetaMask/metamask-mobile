@@ -80,11 +80,15 @@ const baseChange = {
  * @returns {string} The prefixed string.
  */
 export const addHexPrefix = (str) => {
-  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
+  if (typeof str !== 'string') {
     return str;
   }
 
   if (str.match(regex.hexPrefix)) {
+    return str;
+  }
+
+  if (str.match(/^-?0X/u)) {
     return str.replace('0X', '0x');
   }
 
@@ -813,7 +817,7 @@ export function renderWei(value) {
  */
 export function renderNumber(number) {
   const index = number.indexOf('.');
-  if (index === 0) return number;
+  if (index === -1) return number;
   return number.substring(0, index + 6);
 }
 

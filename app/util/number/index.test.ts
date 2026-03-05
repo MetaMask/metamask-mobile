@@ -3,6 +3,7 @@ import BN5 from 'bnjs5';
 
 import {
   addCurrencySymbol,
+  addHexPrefix,
   balanceToFiat,
   balanceToFiatNumber,
   BNToHex,
@@ -29,6 +30,7 @@ import {
   renderFiat,
   renderFromTokenMinimalUnit,
   renderFromWei,
+  renderNumber,
   safeBNToHex,
   safeNumberToBN,
   toBN,
@@ -1164,4 +1166,56 @@ describe('Number utils :: safeBNToHex', () => {
       expect(safeBNToHex(value)).toBe(value);
     },
   );
+});
+
+describe('Number utils :: addHexPrefix', () => {
+  it('returns a non-string value unchanged', () => {
+    expect(addHexPrefix(42)).toBe(42);
+  });
+
+  it('is idempotent for already lowercase 0x-prefixed strings', () => {
+    expect(addHexPrefix('0x1a2b')).toBe('0x1a2b');
+  });
+
+  it('is idempotent for already lowercase -0x-prefixed strings', () => {
+    expect(addHexPrefix('-0x1a2b')).toBe('-0x1a2b');
+  });
+
+  it('normalizes uppercase 0X prefix to lowercase 0x', () => {
+    expect(addHexPrefix('0X1A2B')).toBe('0x1A2B');
+  });
+
+  it('normalizes uppercase -0X prefix to lowercase -0x', () => {
+    expect(addHexPrefix('-0X1A2B')).toBe('-0x1A2B');
+  });
+
+  it('prepends 0x to a plain hex string', () => {
+    expect(addHexPrefix('1a2b')).toBe('0x1a2b');
+  });
+
+  it('prepends -0x to a negative hex string without prefix', () => {
+    expect(addHexPrefix('-1a2b')).toBe('-0x1a2b');
+  });
+});
+
+describe('Number utils :: renderNumber', () => {
+  it('returns integer strings longer than 5 characters unchanged', () => {
+    expect(renderNumber('123456789')).toBe('123456789');
+  });
+
+  it('returns integer strings of 5 characters or fewer unchanged', () => {
+    expect(renderNumber('12345')).toBe('12345');
+  });
+
+  it('returns the full number when there is no decimal point', () => {
+    expect(renderNumber('1')).toBe('1');
+  });
+
+  it('trims to 5 decimal places when a decimal point is present', () => {
+    expect(renderNumber('1.123456789')).toBe('1.12345');
+  });
+
+  it('keeps numbers with 5 or fewer decimal places intact', () => {
+    expect(renderNumber('1.123')).toBe('1.123');
+  });
 });

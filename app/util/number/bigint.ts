@@ -88,11 +88,15 @@ const baseChange = {
  * @returns The prefixed string.
  */
 export function addHexPrefix(str: string): SignedHex {
-  if (typeof str !== 'string' || str.match(regex.hexPrefix)) {
+  if (typeof str !== 'string') {
     return str as SignedHex;
   }
 
   if (str.match(regex.hexPrefix)) {
+    return str as SignedHex;
+  }
+
+  if (str.match(/^-?0X/u)) {
     return str.replace('0X', '0x') as SignedHex;
   }
 
@@ -135,7 +139,7 @@ export function fromTokenMinimalUnit(
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBigInt(prefixedInput);
   const negative = minimal < 0n;
-  const base = BigInt(Math.pow(10, decimals).toString());
+  const base = 10n ** BigInt(decimals);
 
   if (negative) {
     minimal = bigIntAbs(minimal); // Use absolute value
@@ -189,7 +193,7 @@ export function toTokenMinimalUnit(
   tokenValue: number | string | bigint,
   decimals: number,
 ): bigint {
-  const base = BigInt(Math.pow(10, decimals).toString());
+  const base = 10n ** BigInt(decimals);
   let value = numberToString(tokenValue);
   const negative = value.substring(0, 1) === '-';
   if (negative) {
@@ -480,7 +484,13 @@ export function toGwei(
   value: number | string | bigint,
   unit: EthereumUnit = 'ether',
 ): bigint {
-  return BigInt(fromWei(value, unit)) * 1000000000n;
+  const etherStr = fromWei(value, unit);
+  const negative = etherStr.startsWith('-');
+  const absStr = negative ? etherStr.slice(1) : etherStr;
+  const [intPart, fracPart = ''] = absStr.split('.');
+  const paddedFrac = fracPart.padEnd(9, '0').slice(0, 9);
+  const result = BigInt(intPart) * 1000000000n + BigInt(paddedFrac);
+  return negative ? -result : result;
 }
 
 /**
@@ -798,7 +808,7 @@ export function renderWei(value?: bigint | null): string {
  */
 export function renderNumber(number: string): string {
   const index = number.indexOf('.');
-  if (index === 0) return number;
+  if (index === -1) return number;
   return number.substring(0, index + 6);
 }
 
