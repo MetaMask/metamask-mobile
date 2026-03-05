@@ -115,7 +115,6 @@ export function handleMetaMaskDeeplink({
     url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.WC}`) ||
     url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)
   ) {
-    // console.debug(`test now deeplink hack ${url}`);
     let fixedUrl = wcURL;
     if (url.startsWith(`${PREFIXES.METAMASK}/${ACTIONS.WC}`)) {
       fixedUrl = url.replace(

@@ -133,10 +133,7 @@ import type {
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
-import type {
-  CardOnboardingWebviewParams,
-  CardConfirmModalParams,
-} from '../../components/UI/Card/Card.types';
+import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
 
 // Account actions params
 import type {
@@ -385,7 +382,6 @@ export interface RootStackParamList extends ParamListBase {
   AmbiguousAddress: AmbiguousAddressParams | undefined;
   BasicFunctionality: undefined;
   ConfirmTurnOnBackupAndSync: undefined;
-  ResetNotifications: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
   DataCollection: undefined;
@@ -446,6 +442,7 @@ export interface RootStackParamList extends ParamListBase {
   NftFullView: undefined;
   TokensFullView: undefined;
   TrendingTokensFullView: undefined;
+  RWATokensFullView: undefined;
 
   // Vault recovery routes
   RestoreWallet: undefined;
@@ -614,7 +611,6 @@ export interface RootStackParamList extends ParamListBase {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardOnboardingWebview: CardOnboardingWebviewParams | undefined;
   CardModals: undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;

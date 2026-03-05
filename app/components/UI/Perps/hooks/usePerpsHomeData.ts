@@ -63,7 +63,7 @@ export const usePerpsHomeData = ({
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Get connection state to guard REST calls that require an initialized controller
-  const { isConnected, isInitialized } = usePerpsConnection();
+  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
 
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
@@ -76,6 +76,7 @@ export const usePerpsHomeData = ({
     usePerpsLiveOrders({
       throttleMs: 1000,
       hideTpSl: true, // Hide Take Profit and Stop Loss orders from home screen
+      hideReduceOnly: true, // Hide all reduce-only orders from home screen
     });
 
   // Fetch fills via WebSocket for recent activity (instant updates, already cached)
@@ -365,12 +366,14 @@ export const usePerpsHomeData = ({
     recentActivity: limitedActivity,
     sortBy,
     isLoading: {
-      positions: isPositionsLoading,
-      orders: isOrdersLoading,
+      // During reconnection, treat WebSocket-backed data as loading so the UI
+      // shows skeletons instead of briefly flashing "no positions" → positions.
+      positions: isPositionsLoading || isConnecting,
+      orders: isOrdersLoading || isConnecting,
       markets: isMarketsLoading,
       // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
       // REST fills merge in background via mergedFills without blocking initial render
-      activity: isFillsLoading,
+      activity: isFillsLoading || isConnecting,
     },
     refresh,
   };

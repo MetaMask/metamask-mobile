@@ -14,7 +14,8 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { strings } from '../../../../locales/i18n';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
@@ -82,7 +83,7 @@ const NetworkManager = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {

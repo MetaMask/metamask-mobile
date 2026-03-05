@@ -18,7 +18,8 @@ import { useCardSDK } from '../sdk';
 import { CardNetwork, CardTokenAllowance } from '../types';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { Hex } from '@metamask/utils';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import AppConstants from '../../../../core/AppConstants';
@@ -65,7 +66,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [state, setState] = useState<DelegationState>({
     isLoading: false,
     error: null,

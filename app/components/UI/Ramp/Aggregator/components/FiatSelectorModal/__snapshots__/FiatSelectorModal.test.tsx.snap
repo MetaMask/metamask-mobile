@@ -334,7 +334,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -481,7 +481,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -501,8 +501,47 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -510,74 +549,24 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -623,8 +612,8 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -644,7 +633,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -673,13 +662,13 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -687,7 +676,6 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                       "letterSpacing": 0,
                                       "lineHeight": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -801,9 +789,9 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -815,7 +803,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -878,9 +866,9 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -892,7 +880,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -955,9 +943,9 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -969,7 +957,7 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1335,7 +1323,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1385,7 +1373,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1422,7 +1410,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1482,7 +1470,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -1502,8 +1490,47 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1511,74 +1538,24 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -1624,8 +1601,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -1645,7 +1622,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -1674,13 +1651,13 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -1688,7 +1665,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "letterSpacing": 0,
                                       "lineHeight": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -1802,9 +1778,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1816,7 +1792,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1879,9 +1855,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1893,7 +1869,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1956,9 +1932,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1970,7 +1946,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2336,7 +2312,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2386,7 +2362,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2423,7 +2399,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2483,7 +2459,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -2503,8 +2479,47 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -2512,74 +2527,24 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -2625,8 +2590,8 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -2646,7 +2611,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -2675,13 +2640,13 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -2689,7 +2654,6 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                       "letterSpacing": 0,
                                       "lineHeight": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -2803,9 +2767,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2817,7 +2781,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2880,9 +2844,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2894,7 +2858,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2957,9 +2921,9 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2971,7 +2935,7 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3337,7 +3301,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3387,7 +3351,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -3424,7 +3388,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -3484,7 +3448,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -3504,8 +3468,47 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -3513,74 +3516,24 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -3626,8 +3579,8 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#3c4d9d0f",
-                                  "borderColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
                                   "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
@@ -3647,7 +3600,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#686e7d"
+                                  color="#66676a"
                                   fill="currentColor"
                                   height={20}
                                   name="Search"
@@ -3676,13 +3629,13 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search for a currency"
-                                  placeholderTextColor="#686e7d"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -3690,7 +3643,6 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                       "letterSpacing": 0,
                                       "lineHeight": 0,
                                       "opacity": 1,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3804,9 +3756,9 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3818,7 +3770,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3881,9 +3833,9 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3895,7 +3847,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3958,9 +3910,9 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3972,7 +3924,7 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,

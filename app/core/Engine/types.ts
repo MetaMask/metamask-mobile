@@ -324,6 +324,12 @@ import {
   PredictControllerActions,
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
+import { CardController } from './controllers/card-controller/CardController';
+import type {
+  CardControllerState,
+  CardControllerActions,
+  CardControllerEvents,
+} from './controllers/card-controller/types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -408,6 +414,12 @@ import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
 } from '@metamask/transaction-pay-controller/dist/types.cjs';
+import {
+  AiDigestController,
+  AiDigestControllerActions,
+  AiDigestControllerEvents,
+  AiDigestControllerState,
+} from '@metamask/ai-controllers';
 
 /**
  * Controllers that area always instantiated
@@ -512,6 +524,7 @@ type GlobalActions =
   | EarnControllerActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CardControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -526,6 +539,7 @@ type GlobalActions =
   | ProfileMetricsServiceActions
   | RampsControllerActions
   | RampsServiceActions
+  | AiDigestControllerActions
   | TransakServiceActions;
 
 type GlobalEvents =
@@ -591,6 +605,7 @@ type GlobalEvents =
   | EarnControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CardControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -602,6 +617,7 @@ type GlobalEvents =
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
+  | AiDigestControllerEvents
   | TransakServiceEvents;
 
 /**
@@ -711,6 +727,7 @@ export type Controllers = {
   EarnController: EarnController;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CardController: CardController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -719,6 +736,7 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  AiDigestController: AiDigestController;
   TransakService: TransakService;
 };
 
@@ -790,6 +808,7 @@ export type EngineState = {
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  CardController: CardControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -798,6 +817,7 @@ export type EngineState = {
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
+  AiDigestController: AiDigestControllerState;
 };
 
 /** Controller names */
@@ -891,6 +911,7 @@ export type ControllersToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CardController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -905,7 +926,8 @@ export type ControllersToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
-  | 'AnalyticsController';
+  | 'AnalyticsController'
+  | 'AiDigestController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

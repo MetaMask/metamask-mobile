@@ -4,7 +4,7 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
@@ -19,7 +19,7 @@ import {
   LINEA_CAIP_CHAIN_ID,
   QUICK_SELECT_TOKENS,
 } from '../util/buildTokenList';
-import { clearCacheData } from '../../../../core/redux/slices/card';
+import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
@@ -29,7 +29,8 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
 
 export type LimitType = 'full' | 'restricted';
@@ -108,10 +109,10 @@ const useSpendingLimit = ({
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
   const navigation = useNavigation();
-  const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { sdk } = useCardSDK();
 
   // Form state
@@ -386,7 +387,9 @@ const useSpendingLimit = ({
 
       // Wait for backend to process
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      dispatch(clearCacheData('card-external-wallet-details'));
+      await queryClient.invalidateQueries({
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
+      });
 
       if (!isOnboardingFlow) {
         showSuccessToast();
@@ -418,7 +421,7 @@ const useSpendingLimit = ({
     priorityToken,
     delegationAmount,
     submitDelegation,
-    dispatch,
+    queryClient,
     isOnboardingFlow,
     showSuccessToast,
     showErrorToast,

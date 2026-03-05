@@ -92,14 +92,11 @@ describe('PerpsStreamManager', () => {
       getMarkets: jest
         .fn()
         .mockResolvedValue([{ name: 'BTC-PERP' }, { name: 'ETH-PERP' }]),
+      getCachedMarketDataForActiveProvider: jest.fn().mockReturnValue(null),
+      getCachedUserDataForActiveProvider: jest.fn().mockReturnValue(null),
       state: {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
-        cachedPositions: null,
-        cachedOrders: null,
-        cachedAccountState: null,
-        cachedUserDataTimestamp: 0,
-        cachedUserDataAddress: null,
+        cachedMarketDataByProvider: {},
+        cachedUserDataByProvider: {},
       },
     } as unknown as typeof mockEngine.context.PerpsController;
 
@@ -131,6 +128,11 @@ describe('PerpsStreamManager', () => {
       isConnecting: false,
       error: null,
     });
+    mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+      new Promise((_resolve) => {
+        /* never resolves */
+      }),
+    );
   });
 
   afterEach(() => {
@@ -1675,12 +1677,16 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
-      // Set up controller with fresh cached market data
+      // Set up controller with fresh cached market data via per-provider helper
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockMarketData);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: Date.now(),
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1707,9 +1713,11 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
 
@@ -1720,12 +1728,16 @@ describe('PerpsStreamManager', () => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
 
-      // Set up controller with fresh cached market data
+      // Set up controller with fresh cached market data via per-provider helper
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest
+        .fn()
+        .mockReturnValue(mockMarketData);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: Date.now(),
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1752,21 +1764,25 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
 
     it('fetches from API when controller cache is stale', async () => {
       const callback = jest.fn();
 
-      // Set up controller with stale cached market data (very old timestamp)
+      // getCachedMarketDataForActiveProvider returns null when cache is stale
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: mockMarketData,
-        cachedMarketDataTimestamp: 0, // epoch = very stale
+        cachedMarketDataByProvider: {},
         activeProvider: 'hyperliquid',
       };
 
@@ -1795,9 +1811,11 @@ describe('PerpsStreamManager', () => {
       // Reset state for other tests
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
       ).state = {
-        cachedMarketData: null,
-        cachedMarketDataTimestamp: 0,
+        cachedMarketDataByProvider: {},
       };
     });
   });
@@ -1842,6 +1860,34 @@ describe('PerpsStreamManager', () => {
       // Assert - the new code includes both race condition prevention and error logging
       expect(mockPerpsConnectionManager.isCurrentlyConnecting).toBeDefined();
       expect(mockLogger.error).toBeDefined();
+    });
+
+    it('defers connect when isCurrentlyConnecting returns true', () => {
+      // Arrange — connection is initialized but still connecting
+      mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => true);
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      const mockGetMarketData = jest.fn().mockResolvedValue([]);
+      mockEngine.context.PerpsController.getMarketDataWithPrices =
+        mockGetMarketData;
+
+      const streamManager = new PerpsStreamManager();
+      const callback = jest.fn();
+
+      // Act — subscribe triggers connect() → ensureReady passes but isCurrentlyConnecting guard defers
+      streamManager.marketData.subscribe({ callback, throttleMs: 0 });
+
+      // Assert — should NOT have called getMarketDataWithPrices yet
+      expect(mockGetMarketData).not.toHaveBeenCalled();
+
+      // Now flip the guard and advance timer so deferConnect fires
+      mockPerpsConnectionManager.isCurrentlyConnecting = jest.fn(() => false);
+      jest.advanceTimersByTime(250);
+
+      // Now it should have called getMarketDataWithPrices
+      expect(mockGetMarketData).toHaveBeenCalled();
     });
 
     it('discards fetched data when provider changes during in-flight fetch', async () => {
@@ -1918,10 +1964,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA',
-          currentProvider: 'providerB',
+          fetchedFor: 'providerA:mainnet',
+          current: 'providerB:mainnet',
         }),
       );
 
@@ -3233,14 +3279,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached orders
+      // Set up controller to return fresh cached orders via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: mockOrders,
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3267,14 +3313,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached positions
+      // Set up controller to return fresh cached positions via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedPositions: mockPositions,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: mockPositions,
+        orders: [],
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3300,14 +3346,14 @@ describe('PerpsStreamManager', () => {
           error: null,
         });
 
-      // Set up controller with fresh cached account state
+      // Set up controller to return fresh cached account state via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedAccountState: mockAccountState,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: [],
+        accountState: mockAccountState,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3323,14 +3369,10 @@ describe('PerpsStreamManager', () => {
     });
 
     it('does not use stale cached orders', () => {
-      // Set up controller with stale cached orders (very old timestamp)
+      // Controller helper returns null when data is stale
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: 0, // epoch = very stale
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue(null);
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3347,14 +3389,14 @@ describe('PerpsStreamManager', () => {
     });
 
     it('uses empty cached orders as valid cache', () => {
-      // Set up controller with empty cached orders — [] means "fetched, user has none"
+      // Controller helper returns empty orders — [] means "fetched, user has none"
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: [],
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: [],
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback = jest.fn();
@@ -3369,14 +3411,14 @@ describe('PerpsStreamManager', () => {
     });
 
     it('prefers channel cache over controller cache', () => {
-      // Set up controller with cached orders
+      // Set up controller to return cached orders via helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
-      ).state = {
-        ...mockEngine.context.PerpsController.state,
-        cachedOrders: mockOrders,
-        cachedUserDataTimestamp: Date.now(),
-      };
+      ).getCachedUserDataForActiveProvider = jest.fn().mockReturnValue({
+        positions: [],
+        orders: mockOrders,
+        accountState: null,
+      });
 
       const streamManager = new PerpsStreamManager();
       const callback1 = jest.fn();
@@ -3464,6 +3506,136 @@ describe('PerpsStreamManager', () => {
 
       expect(mockDevLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('Max connect retries exceeded'),
+      );
+    });
+  });
+
+  describe('awaitConnectionThenConnect', () => {
+    it('early-exits when sentinel timer is already set (duplicate await prevention)', () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting → triggers awaitConnectionThenConnect
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection returns a never-resolving promise
+      mockPerpsConnectionManager.waitForConnection = jest.fn().mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // First subscribe → ensureReady() → awaitConnectionThenConnect() sets sentinel
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Second subscribe → ensureReady() → awaitConnectionThenConnect() hits early-exit
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // waitForConnection should only have been called once (second call was skipped)
+      expect(
+        mockPerpsConnectionManager.waitForConnection,
+      ).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls connect() when waitForConnection resolves', async () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting → triggers awaitConnectionThenConnect
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection resolves immediately
+      mockPerpsConnectionManager.waitForConnection = jest
+        .fn()
+        .mockResolvedValue(undefined);
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe triggers ensureReady → awaitConnectionThenConnect
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Flush the sentinel setTimeout(noop, 0)
+      jest.advanceTimersByTime(0);
+
+      // Flush microtasks so the .then() handler runs
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // After the promise resolves, the .then() handler calls connect()
+      // which needs isInitialized: true to actually call subscribeToOrderFills
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      // The .then() callback already fired and called connect(); but connect()
+      // re-checks ensureReady(). Since we changed state after, let the deferred
+      // connect run if one was set.
+      jest.advanceTimersByTime(0);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+    });
+
+    it('falls back to deferConnect when waitForConnection rejects', async () => {
+      const streamManager = new PerpsStreamManager();
+      const mockSubscribeToOrderFills = jest.fn().mockReturnValue(jest.fn());
+
+      // Not initialized but actively connecting
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: false, isConnecting: true });
+
+      // waitForConnection rejects
+      mockPerpsConnectionManager.waitForConnection = jest
+        .fn()
+        .mockRejectedValue(new Error('connection failed'));
+
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      // Subscribe → awaitConnectionThenConnect
+      streamManager.fills.subscribe({ callback: jest.fn(), throttleMs: 0 });
+
+      // Flush sentinel timer
+      jest.advanceTimersByTime(0);
+
+      // Flush microtasks so .catch() handler runs
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // The .catch() handler calls deferConnect(200ms)
+      // Now make connection ready so when deferConnect fires, connect() succeeds
+      mockPerpsConnectionManager.getConnectionState = jest
+        .fn()
+        .mockReturnValue({ isInitialized: true });
+
+      // Advance past the ConnectRetryDelayMs (200ms)
+      jest.advanceTimersByTime(250);
+
+      expect(mockSubscribeToOrderFills).toHaveBeenCalled();
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('connection failed, falling back to polling'),
       );
     });
   });

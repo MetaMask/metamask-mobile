@@ -15,7 +15,6 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -74,7 +73,7 @@ import PerpsNavigationCard, {
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -232,10 +231,7 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled and 'all' category
-    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
       source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,

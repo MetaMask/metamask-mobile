@@ -10,7 +10,7 @@ import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -46,6 +46,7 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { useTokenDetailsABTest } from './useTokenDetailsABTest';
 import { TokenDetailsSource } from '../constants/constants';
 
 /**
@@ -131,13 +132,16 @@ export const useTokenActions = ({
   const userAssetsMap = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Metrics
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Navigation hooks
   const { navigateToSendPage } = useSendNavigation();
   const { goToBuy } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+
+  // A/B test context
+  const { isTestActive, variantName } = useTokenDetailsABTest();
 
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
@@ -151,6 +155,11 @@ export const useTokenActions = ({
     sourcePage: 'MainView',
     sourceToken,
     destToken,
+    abTestContext: {
+      ...(isTestActive && {
+        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+      }),
+    },
     skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
@@ -167,10 +176,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
@@ -212,12 +222,20 @@ export const useTokenActions = ({
   ]);
 
   const onSend = useCallback(async () => {
-    trackActionButtonClick(trackEvent, createEventBuilder, {
+    const sendEventProps = {
       action_name: ActionButtonType.SEND,
       action_position: ActionPosition.THIRD_POSITION,
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
-    });
+      ...(isTestActive && {
+        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
+      }),
+    };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
+        .addProperties(sendEventProps)
+        .build(),
+    );
 
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
@@ -262,6 +280,8 @@ export const useTokenActions = ({
     token,
     selectedChainId,
     navigateToSendPage,
+    isTestActive,
+    variantName,
   ]);
 
   const onBuy = useCallback(() => {
@@ -290,7 +310,7 @@ export const useTokenActions = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',

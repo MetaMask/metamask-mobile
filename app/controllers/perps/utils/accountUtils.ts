@@ -2,40 +2,37 @@
  * Account utilities for Perps components
  * Handles account selection and EVM account filtering
  */
-import { isEvmAccountType } from '@metamask/keyring-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
-import type { AccountState } from '../types';
+import type { AccountState, PerpsInternalAccount } from '../types';
+
+const EVM_ACCOUNT_TYPES = new Set(['eip155:eoa', 'eip155:erc4337']);
+
+function isEvmAccountType(type: string): boolean {
+  return EVM_ACCOUNT_TYPES.has(type);
+}
 
 export function findEvmAccount(
-  accounts: InternalAccount[],
-): InternalAccount | null {
+  accounts: (InternalAccount | PerpsInternalAccount)[],
+): { address: string; type: string } | null {
   const evmAccount = accounts.find(
-    (account) => account && isEvmAccountType(account.type),
+    (account) =>
+      account && isEvmAccountType(account.type as InternalAccount['type']),
   );
   return evmAccount ?? null;
 }
 
 export function getEvmAccountFromAccountGroup(
-  accounts: InternalAccount[],
+  accounts: (InternalAccount | PerpsInternalAccount)[],
 ): { address: string } | undefined {
   const evmAccount = findEvmAccount(accounts);
   return evmAccount ? { address: evmAccount.address } : undefined;
 }
 
-type AccountTreeMessenger = {
-  call: (
-    action: 'AccountTreeController:getAccountsFromSelectedAccountGroup',
-  ) => InternalAccount[];
-};
-
 export function getSelectedEvmAccount(
-  messenger: AccountTreeMessenger,
+  accounts: (InternalAccount | PerpsInternalAccount)[],
 ): { address: string } | undefined {
-  const accounts = messenger.call(
-    'AccountTreeController:getAccountsFromSelectedAccountGroup',
-  );
   return getEvmAccountFromAccountGroup(accounts);
 }
 

@@ -464,7 +464,7 @@
   "AssetsController": {
     "assetPreferences": {},
     "assetsBalance": {},
-    "assetsMetadata": {},
+    "assetsInfo": {},
     "assetsPrice": {},
     "customAssets": {}
   },
@@ -516,13 +516,8 @@
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "selectedPaymentToken": null,
-    "cachedMarketData": null,
-    "cachedMarketDataTimestamp": 0,
-    "cachedPositions": null,
-    "cachedOrders": null,
-    "cachedAccountState": null,
-    "cachedUserDataTimestamp": 0,
-    "cachedUserDataAddress": null
+    "cachedMarketDataByProvider": {},
+    "cachedUserDataByProvider": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -679,6 +674,13 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "CardController": {
+    "selectedCountry": null,
+    "activeProviderId": null,
+    "isAuthenticated": false,
+    "cardholderAccounts": [],
+    "providerData": {}
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -755,7 +757,8 @@
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {}
+    "subscriptions": {},
+    "rewardsEnvUrl": null
   },
   "PredictController": {
     "eligibility": { "eligible": false },
@@ -766,6 +769,9 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "AiDigestController": {
+    "marketInsights": {}
   },
   "RampsController": {
     "userRegion": null,
@@ -793,12 +799,6 @@
       "isLoading": false,
       "error": null
     },
-    "quotes": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
-    },
     "nativeProviders": {
       "transak": {
         "buyQuote": {
@@ -822,12 +822,7 @@
         }
       }
     },
-    "widgetUrl": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
-    },
-    "requests": {}
+    "requests": {},
+    "orders": []
   }
 }

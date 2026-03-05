@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 
-import { useUnifiedTxActions } from './useUnifiedTxActions';
+import {
+  useUnifiedTxActions,
+  type SpeedUpCancelParams,
+} from './useUnifiedTxActions';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Engine from '../../../core/Engine';
@@ -15,6 +18,7 @@ import {
   LedgerReplacementTxTypes,
   createLedgerTransactionModalNavDetails,
 } from '../../UI/LedgerModals/LedgerTransactionModal';
+import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 const mockNavigate = jest.fn();
 
@@ -71,6 +75,10 @@ jest.mock('../../../core/Ledger/Ledger', () => ({
   getDeviceId: jest.fn(async () => 'device-id'),
 }));
 
+jest.mock('../../../util/address', () => ({
+  isHardwareAccount: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     TransactionController: {
@@ -80,6 +88,10 @@ jest.mock('../../../core/Engine', () => ({
       accept: jest.fn(),
       reject: jest.fn(),
     },
+    GasFeeController: {
+      startPolling: jest.fn(),
+      stopPollingByPollingToken: jest.fn(),
+    },
   },
 }));
 
@@ -87,7 +99,8 @@ import { decGWEIToHexWEI } from '../../../util/conversions';
 import { addHexPrefix } from '../../../util/number';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import { isHardwareAccount } from '../../../util/address';
+import { getDeviceId } from '../../../core/Ledger/Ledger';
 
 describe('useUnifiedTxActions', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
@@ -144,7 +157,6 @@ describe('useUnifiedTxActions', () => {
     expect(result.current.cancel1559IsOpen).toBe(false);
     expect(result.current.speedUpConfirmDisabled).toBe(false);
     expect(result.current.cancelConfirmDisabled).toBe(false);
-    expect(result.current.existingGas).toBeNull();
     expect(result.current.existingTx).toBeNull();
     expect(result.current.speedUpTxId).toBeNull();
     expect(result.current.cancelTxId).toBeNull();
@@ -181,17 +193,14 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.speedUp1559IsOpen).toBe(false);
     });
 
-    it('opens 1559 modal when isEIP1559Transaction=true', () => {
+    it('opens speed up modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '1' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
 
-      expect(result.current.speedUp1559IsOpen).toBe(true);
-      expect(result.current.speedUpIsOpen).toBe(false);
+      expect(result.current.speedUpIsOpen).toBe(true);
       expect(result.current.speedUpTxId).toBe('1');
-      expect(result.current.existingGas).toBe(gas);
       expect(result.current.existingTx).toBe(tx);
     });
 
@@ -201,9 +210,8 @@ describe('useUnifiedTxActions', () => {
       );
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '2' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false };
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
 
       expect(validateTransactionActionBalance).toHaveBeenCalledWith(
         tx,
@@ -225,17 +233,14 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.cancel1559IsOpen).toBe(false);
     });
 
-    it('opens 1559 modal when isEIP1559Transaction=true', () => {
+    it('opens cancel modal when isEIP1559Transaction=true', () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '3' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
 
-      expect(result.current.cancel1559IsOpen).toBe(true);
-      expect(result.current.cancelIsOpen).toBe(false);
+      expect(result.current.cancelIsOpen).toBe(true);
       expect(result.current.cancelTxId).toBe('3');
-      expect(result.current.existingGas).toBe(gas);
       expect(result.current.existingTx).toBe(tx);
     });
 
@@ -245,9 +250,8 @@ describe('useUnifiedTxActions', () => {
       );
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '4' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false };
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
 
       expect(validateTransactionActionBalance).toHaveBeenCalledWith(
         tx,
@@ -263,10 +267,12 @@ describe('useUnifiedTxActions', () => {
   describe('speedUpTransaction', () => {
     it('success with legacy gas: controller computes rate when existing gasPrice !== 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '5' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' };
+      const tx = {
+        id: '5',
+        txParams: { gasPrice: '0x1' },
+      } as unknown as TransactionMeta;
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
         await result.current.speedUpTransaction();
       });
@@ -274,17 +280,18 @@ describe('useUnifiedTxActions', () => {
       expect(speedUpTx).toHaveBeenCalledWith('5', undefined);
       expect(result.current.speedUpIsOpen).toBe(false);
       expect(result.current.speedUp1559IsOpen).toBe(false);
-      expect(result.current.existingGas).toBeNull();
       expect(result.current.speedUpTxId).toBeNull();
       expect(result.current.existingTx).toBeNull();
     });
 
     it('success with legacy gas: uses estimated gas price when existing gasPrice === 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '6' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false, gasPrice: 0 };
+      const tx = {
+        id: '6',
+        txParams: { gasPrice: '0x0' },
+      } as unknown as TransactionMeta;
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
         await result.current.speedUpTransaction();
       });
@@ -294,16 +301,15 @@ describe('useUnifiedTxActions', () => {
       expect(speedUpTx).toHaveBeenCalledWith('6', { gasPrice: '0xabc' });
     });
 
-    it('success with 1559 gas from modal values', async () => {
+    it('success with 1559 gas from modal values (controller shape)', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '7' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
       const replacement = {
-        suggestedMaxFeePerGasHex: '10',
-        suggestedMaxPriorityFeePerGasHex: '2',
+        maxFeePerGas: '0x10',
+        maxPriorityFeePerGas: '0x2',
       };
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
         await result.current.speedUpTransaction(replacement);
       });
@@ -317,11 +323,12 @@ describe('useUnifiedTxActions', () => {
     it('handles error and opens retry', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '8' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
-        await result.current.speedUpTransaction({ error: 'failed' });
+        await result.current.speedUpTransaction({
+          error: 'failed',
+        } as SpeedUpCancelParams);
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -343,10 +350,12 @@ describe('useUnifiedTxActions', () => {
       });
 
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: 'fallback' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false, gasPrice: 0 };
+      const tx = {
+        id: 'fallback',
+        txParams: { gasPrice: '0x0' },
+      } as unknown as TransactionMeta;
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
         await result.current.speedUpTransaction();
       });
@@ -363,10 +372,12 @@ describe('useUnifiedTxActions', () => {
   describe('cancelTransaction', () => {
     it('success with legacy gas: controller computes rate when existing gasPrice !== 0', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
-      const tx = { id: '9' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false, gasPrice: '0x1' };
+      const tx = {
+        id: '9',
+        txParams: { gasPrice: '0x1' },
+      } as unknown as TransactionMeta;
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
       await act(async () => {
         await result.current.cancelTransaction();
       });
@@ -376,21 +387,19 @@ describe('useUnifiedTxActions', () => {
       ).toHaveBeenCalledWith('9', undefined);
       expect(result.current.cancelIsOpen).toBe(false);
       expect(result.current.cancel1559IsOpen).toBe(false);
-      expect(result.current.existingGas).toBeNull();
       expect(result.current.cancelTxId).toBeNull();
       expect(result.current.existingTx).toBeNull();
     });
 
-    it('success with 1559 gas from modal values', async () => {
+    it('success with 1559 gas from modal values (controller shape)', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '10' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
       const replacement = {
-        suggestedMaxFeePerGasHex: 'a',
-        suggestedMaxPriorityFeePerGasHex: 'b',
+        maxFeePerGas: '0xa',
+        maxPriorityFeePerGas: '0xb',
       };
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
       await act(async () => {
         await result.current.cancelTransaction(replacement);
       });
@@ -406,11 +415,12 @@ describe('useUnifiedTxActions', () => {
     it('handles error and opens retry', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '11' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: false };
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
       await act(async () => {
-        await result.current.cancelTransaction({ error: 'nope' });
+        await result.current.cancelTransaction({
+          error: 'nope',
+        } as SpeedUpCancelParams);
       });
 
       expect(result.current.retryIsOpen).toBe(true);
@@ -456,7 +466,6 @@ describe('useUnifiedTxActions', () => {
     it('navigates to ledger modal and resolves completion for speed up', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '14' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
 
       (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
         ({ onConfirmationComplete }) => [
@@ -465,7 +474,7 @@ describe('useUnifiedTxActions', () => {
         ],
       );
 
-      act(() => result.current.onSpeedUpAction(true, gas, tx));
+      act(() => result.current.onSpeedUpAction(true, tx));
       await act(async () => {
         await result.current.signLedgerTransaction({
           id: '14',
@@ -491,7 +500,6 @@ describe('useUnifiedTxActions', () => {
     it('navigates to ledger modal and resolves completion for cancel', async () => {
       const { result } = renderHook(() => useUnifiedTxActions());
       const tx = { id: '15' } as unknown as TransactionMeta;
-      const gas = { isEIP1559Transaction: true };
 
       (createLedgerTransactionModalNavDetails as jest.Mock).mockImplementation(
         ({ onConfirmationComplete }) => [
@@ -500,7 +508,7 @@ describe('useUnifiedTxActions', () => {
         ],
       );
 
-      act(() => result.current.onCancelAction(true, gas, tx));
+      act(() => result.current.onCancelAction(true, tx));
       await act(async () => {
         await result.current.signLedgerTransaction({
           id: '15',
@@ -521,6 +529,364 @@ describe('useUnifiedTxActions', () => {
 
       expect(result.current.cancelIsOpen).toBe(false);
       expect(result.current.cancel1559IsOpen).toBe(false);
+    });
+
+    describe('Ledger account transactions', () => {
+      beforeEach(() => {
+        (isHardwareAccount as jest.Mock).mockReturnValue(true);
+        (getDeviceId as jest.Mock).mockResolvedValue('device-id');
+        (
+          createLedgerTransactionModalNavDetails as jest.Mock
+        ).mockImplementation(({ onConfirmationComplete }) => [
+          'LedgerModal',
+          { onConfirmationComplete },
+        ]);
+      });
+
+      afterEach(() => {
+        (isHardwareAccount as jest.Mock).mockReturnValue(false);
+      });
+
+      describe('speedUpTransaction with Ledger account', () => {
+        it('calls signLedgerTransaction instead of speedUpTx', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-speedup-1' } as unknown as TransactionMeta;
+          const replacement = {
+            maxFeePerGas: '0xff',
+            maxPriorityFeePerGas: '0xee',
+          };
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction(replacement);
+          });
+
+          expect(getDeviceId).toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-speedup-1',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.SPEED_UP,
+              eip1559GasFee: {
+                maxFeePerGas: '0xff',
+                maxPriorityFeePerGas: '0xee',
+              },
+            },
+          });
+          expect(speedUpTx).not.toHaveBeenCalled();
+        });
+
+        it('returns early after calling signLedgerTransaction without calling onSpeedUpCompleted', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-speedup-2' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xaa',
+              maxPriorityFeePerGas: '0xbb',
+            });
+          });
+
+          expect(result.current.speedUpIsOpen).toBe(true);
+          expect(result.current.speedUpTxId).toBe('ledger-speedup-2');
+        });
+
+        it('handles empty gas fee hex values by falling back to legacy gas price', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-speedup-3' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({} as SpeedUpCancelParams);
+          });
+
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-speedup-3',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.SPEED_UP,
+              legacyGasFee: {
+                gasPrice: '0xabc',
+              },
+            },
+          });
+        });
+
+        it('handles legacy transaction by using gasPrice', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-speedup-legacy',
+            txParams: { gasPrice: '0x123' },
+          } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({} as SpeedUpCancelParams);
+          });
+
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-speedup-legacy',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.SPEED_UP,
+              legacyGasFee: undefined,
+            },
+          });
+        });
+
+        it('throws error before Ledger signing when transactionObject has error', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-speedup-4' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              error: 'gas error',
+            } as SpeedUpCancelParams);
+          });
+
+          expect(getDeviceId).not.toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).not.toHaveBeenCalled();
+          expect(result.current.retryIsOpen).toBe(true);
+          expect(result.current.retryErrorMsg).toBe('gas error');
+        });
+
+        it('throws error before Ledger signing when speedUpTxId is missing', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xcc',
+              maxPriorityFeePerGas: '0xdd',
+            });
+          });
+
+          expect(getDeviceId).not.toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).not.toHaveBeenCalled();
+          expect(result.current.retryIsOpen).toBe(true);
+          expect(result.current.retryErrorMsg).toBe(
+            'Missing transaction id for speed up',
+          );
+        });
+
+        it('cleans up modal state when user rejects on Ledger modal', async () => {
+          let capturedOnConfirmationComplete:
+            | ((isComplete: boolean) => void)
+            | null = null;
+          (
+            createLedgerTransactionModalNavDetails as jest.Mock
+          ).mockImplementation(({ onConfirmationComplete }) => {
+            capturedOnConfirmationComplete = onConfirmationComplete;
+            return ['LedgerModal', { onConfirmationComplete }];
+          });
+
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-speedup-reject',
+          } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+
+          expect(result.current.speedUpIsOpen).toBe(true);
+          expect(result.current.speedUpTxId).toBe('ledger-speedup-reject');
+
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xff',
+              maxPriorityFeePerGas: '0xee',
+            });
+          });
+
+          expect(capturedOnConfirmationComplete).not.toBeNull();
+
+          // Simulate user rejection on Ledger modal
+          act(() => {
+            capturedOnConfirmationComplete?.(false);
+          });
+
+          // Modal state should be cleaned up even on rejection
+          expect(result.current.speedUpIsOpen).toBe(false);
+          expect(result.current.speedUpTxId).toBeNull();
+          expect(result.current.existingTx).toBeNull();
+        });
+      });
+
+      describe('cancelTransaction with Ledger account', () => {
+        it('calls signLedgerTransaction instead of stopTransaction', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-cancel-1' } as unknown as TransactionMeta;
+          const replacement = {
+            maxFeePerGas: '0x11',
+            maxPriorityFeePerGas: '0x22',
+          };
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction(replacement);
+          });
+
+          expect(getDeviceId).toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-cancel-1',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.CANCEL,
+              eip1559GasFee: {
+                maxFeePerGas: '0x11',
+                maxPriorityFeePerGas: '0x22',
+              },
+            },
+          });
+          expect(
+            engineContext.TransactionController.stopTransaction,
+          ).not.toHaveBeenCalled();
+        });
+
+        it('returns early after calling signLedgerTransaction without calling onCancelCompleted', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-cancel-2' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x33',
+              maxPriorityFeePerGas: '0x44',
+            });
+          });
+
+          expect(result.current.cancelIsOpen).toBe(true);
+          expect(result.current.cancelTxId).toBe('ledger-cancel-2');
+        });
+
+        it('handles empty gas fee hex values by falling back to legacy gas price', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-cancel-3' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({} as SpeedUpCancelParams);
+          });
+
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-cancel-3',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.CANCEL,
+              legacyGasFee: {
+                gasPrice: '0xabc',
+              },
+            },
+          });
+        });
+
+        it('defers to TransactionController rate multiplication for legacy tx with existing gasPrice', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-cancel-legacy',
+            txParams: { gasPrice: '0x456' },
+          } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({} as SpeedUpCancelParams);
+          });
+
+          // legacyGasFee is undefined because getCancelOrSpeedupValues returns
+          // undefined when existing gasPrice is non-zero, letting the
+          // TransactionController apply its internal rate multiplication (1.1x).
+          expect(createLedgerTransactionModalNavDetails).toHaveBeenCalledWith({
+            transactionId: 'ledger-cancel-legacy',
+            deviceId: 'device-id',
+            onConfirmationComplete: expect.any(Function),
+            replacementParams: {
+              type: LedgerReplacementTxTypes.CANCEL,
+              legacyGasFee: undefined,
+            },
+          });
+        });
+
+        it('throws error before Ledger signing when transactionObject has error', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = { id: 'ledger-cancel-4' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({
+              error: 'cancel error',
+            } as SpeedUpCancelParams);
+          });
+
+          expect(getDeviceId).not.toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).not.toHaveBeenCalled();
+          expect(result.current.retryIsOpen).toBe(true);
+          expect(result.current.retryErrorMsg).toBe('cancel error');
+        });
+
+        it('throws error before Ledger signing when cancelTxId is missing', async () => {
+          const { result } = renderHook(() => useUnifiedTxActions());
+
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x55',
+              maxPriorityFeePerGas: '0x66',
+            });
+          });
+
+          expect(getDeviceId).not.toHaveBeenCalled();
+          expect(createLedgerTransactionModalNavDetails).not.toHaveBeenCalled();
+          expect(result.current.retryIsOpen).toBe(true);
+          expect(result.current.retryErrorMsg).toBe(
+            'Missing transaction id for cancel',
+          );
+        });
+
+        it('cleans up modal state when user rejects on Ledger modal', async () => {
+          let capturedOnConfirmationComplete:
+            | ((isComplete: boolean) => void)
+            | null = null;
+          (
+            createLedgerTransactionModalNavDetails as jest.Mock
+          ).mockImplementation(({ onConfirmationComplete }) => {
+            capturedOnConfirmationComplete = onConfirmationComplete;
+            return ['LedgerModal', { onConfirmationComplete }];
+          });
+
+          const { result } = renderHook(() => useUnifiedTxActions());
+          const tx = {
+            id: 'ledger-cancel-reject',
+          } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+
+          expect(result.current.cancelIsOpen).toBe(true);
+          expect(result.current.cancelTxId).toBe('ledger-cancel-reject');
+
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x11',
+              maxPriorityFeePerGas: '0x22',
+            });
+          });
+
+          expect(capturedOnConfirmationComplete).not.toBeNull();
+
+          // Simulate user rejection on Ledger modal
+          act(() => {
+            capturedOnConfirmationComplete?.(false);
+          });
+
+          // Modal state should be cleaned up even on rejection
+          expect(result.current.cancelIsOpen).toBe(false);
+          expect(result.current.cancelTxId).toBeNull();
+          expect(result.current.existingTx).toBeNull();
+        });
+      });
     });
   });
 });

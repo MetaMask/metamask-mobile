@@ -1,7 +1,3 @@
-import type {
-  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
 import {
   BaseController,
   ControllerGetStateAction,
@@ -10,29 +6,7 @@ import {
 } from '@metamask/base-controller';
 import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import type {
-  KeyringControllerGetStateAction,
-  KeyringControllerSignTypedMessageAction,
-} from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
-import type {
-  NetworkControllerGetStateAction,
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerFindNetworkClientIdByChainIdAction,
-} from '@metamask/network-controller';
-import type { AuthenticationController } from '@metamask/profile-sync-controller';
-import type {
-  RemoteFeatureFlagControllerState,
-  RemoteFeatureFlagControllerStateChangeEvent,
-  RemoteFeatureFlagControllerGetStateAction,
-} from '@metamask/remote-feature-flag-controller';
-import {
-  TransactionControllerAddTransactionAction,
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerTransactionFailedEvent,
-  TransactionControllerTransactionSubmittedEvent,
-  TransactionType,
-} from '@metamask/transaction-controller';
 import type { Json } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -129,7 +103,14 @@ import type {
   PerpsActiveProviderMode,
   PerpsProviderType,
   PerpsSelectedPaymentToken,
+  PerpsRemoteFeatureFlagState,
+  PerpsTransactionParams,
+  PerpsAddTransactionOptions,
 } from './types';
+import type {
+  PerpsControllerAllowedActions,
+  PerpsControllerAllowedEvents,
+} from './types/messenger';
 import type { CandleData } from './types/perps-types';
 import {
   LastTransactionResult,
@@ -321,15 +302,24 @@ export type PerpsControllerState = {
   selectedPaymentToken: Json | null;
 
   // Cached market data from background preloading (REST snapshots, not WebSocket)
-  cachedMarketData: PerpsMarketData[] | null;
-  cachedMarketDataTimestamp: number;
+  // Keyed by "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
+  cachedMarketDataByProvider: Record<
+    string,
+    { data: PerpsMarketData[]; timestamp: number }
+  >;
 
   // Cached user data from background preloading (REST snapshots, not WebSocket)
-  cachedPositions: Position[] | null;
-  cachedOrders: Order[] | null;
-  cachedAccountState: AccountState | null;
-  cachedUserDataTimestamp: number;
-  cachedUserDataAddress: string | null;
+  // Keyed by "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
+  cachedUserDataByProvider: Record<
+    string,
+    {
+      positions: Position[];
+      orders: Order[];
+      accountState: AccountState | null;
+      timestamp: number;
+      address: string;
+    }
+  >;
 };
 
 /**
@@ -387,13 +377,8 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   },
   hip3ConfigVersion: 0,
   selectedPaymentToken: null,
-  cachedMarketData: null,
-  cachedMarketDataTimestamp: 0,
-  cachedPositions: null,
-  cachedOrders: null,
-  cachedAccountState: null,
-  cachedUserDataTimestamp: 0,
-  cachedUserDataAddress: null,
+  cachedMarketDataByProvider: {},
+  cachedUserDataByProvider: {},
 });
 
 /**
@@ -550,47 +535,17 @@ const metadata: StateMetadata<PerpsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  cachedMarketData: {
+  cachedMarketDataByProvider: {
     includeInStateLogs: false,
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  cachedMarketDataTimestamp: {
-    includeInStateLogs: false,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: false,
-  },
-  cachedPositions: {
+  cachedUserDataByProvider: {
     includeInStateLogs: false,
     persist: false,
     includeInDebugSnapshot: false,
     usedInUi: true,
-  },
-  cachedOrders: {
-    includeInStateLogs: false,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  cachedAccountState: {
-    includeInStateLogs: false,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  cachedUserDataTimestamp: {
-    includeInStateLogs: false,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: false,
-  },
-  cachedUserDataAddress: {
-    includeInStateLogs: false,
-    persist: false,
-    includeInDebugSnapshot: false,
-    usedInUi: false,
   },
 };
 
@@ -745,36 +700,14 @@ export type PerpsControllerActions =
     };
 
 /**
- * External actions the PerpsController can call via messenger
- */
-export type AllowedActions =
-  | NetworkControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerToken
-  | RemoteFeatureFlagControllerGetStateAction
-  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | KeyringControllerGetStateAction
-  | KeyringControllerSignTypedMessageAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
-
-/**
- * External events the PerpsController can subscribe to
- */
-export type AllowedEvents =
-  | TransactionControllerTransactionSubmittedEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionFailedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent
-  | AccountTreeControllerSelectedAccountGroupChangeEvent;
-
-/**
- * PerpsController messenger constraints
+ * PerpsController messenger constraints.
+ * Includes both PerpsController's own actions/events and
+ * allowed actions/events from external controllers.
  */
 export type PerpsControllerMessenger = Messenger<
   'PerpsController',
-  PerpsControllerActions | AllowedActions,
-  PerpsControllerEvents | AllowedEvents
+  PerpsControllerActions | PerpsControllerAllowedActions,
+  PerpsControllerEvents | PerpsControllerAllowedEvents
 >;
 
 /**
@@ -786,7 +719,8 @@ export type PerpsControllerOptions = {
   clientConfig?: PerpsControllerConfig;
   /**
    * Platform-specific dependencies (required)
-   * Provides logging, metrics, tracing, stream management, and account utilities.
+   * Provides logging, metrics, tracing, stream management, and rewards.
+   * Cross-controller communication uses the messenger pattern.
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
@@ -796,6 +730,43 @@ type BlockedRegionList = {
   list: string[];
   source: 'remote' | 'fallback';
 };
+
+const MESSENGER_EXPOSED_METHODS = [
+  'placeOrder',
+  'editOrder',
+  'cancelOrder',
+  'cancelOrders',
+  'closePosition',
+  'closePositions',
+  'withdraw',
+  'getPositions',
+  'getOrderFills',
+  'getOrders',
+  'getOpenOrders',
+  'getFunding',
+  'getAccountState',
+  'getMarkets',
+  'refreshEligibility',
+  'toggleTestnet',
+  'disconnect',
+  'calculateFees',
+  'markTutorialCompleted',
+  'markFirstOrderCompleted',
+  'getHistoricalPortfolio',
+  'resetFirstTimeUserState',
+  'clearPendingTransactionRequests',
+  'saveTradeConfiguration',
+  'getTradeConfiguration',
+  'saveMarketFilterPreferences',
+  'getMarketFilterPreferences',
+  'savePendingTradeConfiguration',
+  'getPendingTradeConfiguration',
+  'clearPendingTradeConfiguration',
+  'getOrderBookGrouping',
+  'saveOrderBookGrouping',
+  'setSelectedPaymentToken',
+  'resetSelectedPaymentToken',
+] as const;
 
 /**
  * PerpsController - Protocol-agnostic perpetuals trading controller
@@ -847,12 +818,28 @@ export class PerpsController extends BaseController<
    * @returns True if the condition is met.
    */
   #isMYXProviderEnabled(): boolean {
-    const getLocalFlag = (): boolean =>
-      typeof globalThis.process !== 'undefined' &&
-      globalThis.process.env?.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+    const config = this.#options.clientConfig ?? {};
 
+    // Local env-var override (MM_PERPS_MYX_PROVIDER_ENABLED) always wins —
+    // matches the UI selector (resolvePerpsMyxProviderEnabled) so controller
+    // and UI agree on whether MYX is available.
+    if (config.myxProviderEnabled) {
+      return true;
+    }
+
+    // Credentials present → MYX is enabled regardless of remote flag.
+    // Use || so empty-string env vars (default '') fall through.
+    const hasCredentials = Boolean(
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      config.myxAppIdTestnet || config.myxAppIdMainnet,
+    );
+
+    if (hasCredentials) {
+      return true;
+    }
+
+    // No local override or credentials — check remote flag as fallback
     try {
-      const localFlag = getLocalFlag();
       const remoteState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
@@ -864,13 +851,12 @@ export class PerpsController extends BaseController<
           this.#options.infrastructure.featureFlags.validateVersionGated(
             remoteFlag,
           );
-        return validated ?? localFlag;
+        return validated ?? false;
       }
 
-      return localFlag;
+      return false;
     } catch {
-      // If RemoteFeatureFlagController not ready, use fallback
-      return getLocalFlag();
+      return false;
     }
   }
 
@@ -880,6 +866,17 @@ export class PerpsController extends BaseController<
    * When activeProvider is 'aggregated': points to AggregatedPerpsProvider wrapper
    */
   protected activeProviderInstance: PerpsProvider | null = null;
+
+  /**
+   * Cached standalone provider for pre-initialization discovery queries.
+   * Avoids creating a new HyperLiquidProvider (and potentially leaking WebSocket
+   * connections) on every standalone call from the preload cycle.
+   */
+  #standaloneProvider: HyperLiquidProvider | null = null;
+
+  #standaloneProviderIsTestnet: boolean | null = null;
+
+  #standaloneProviderHip3Version: number | null = null;
 
   // Store options for dependency injection (allows core package to inject platform-specific services)
   readonly #options: PerpsControllerOptions;
@@ -922,8 +919,8 @@ export class PerpsController extends BaseController<
       infrastructure,
     };
 
-    // Instantiate services with platform dependencies and messenger
-    // Services that need inter-controller communication receive the messenger
+    // Instantiate services with platform dependencies
+    // Services that need cross-controller access receive the messenger
     this.#tradingService = new TradingService(infrastructure);
     this.#marketDataService = new MarketDataService(infrastructure);
     this.#accountService = new AccountService(infrastructure, messenger);
@@ -978,6 +975,9 @@ export class PerpsController extends BaseController<
       );
     }
 
+    // Subscribe for the full controller lifetime — intentionally not stored;
+    // geo-blocking and HIP-3 flag propagation must remain active across
+    // disconnect → reconnect cycles and must never be torn down.
     this.messenger.subscribe(
       'RemoteFeatureFlagController:stateChange',
       this.refreshEligibilityOnFeatureFlagChange.bind(this),
@@ -987,6 +987,11 @@ export class PerpsController extends BaseController<
 
     // Migrate old persisted data without accountAddress
     this.#migrateRequestsIfNeeded();
+
+    this.messenger.registerMethodActionHandlers(
+      this,
+      MESSENGER_EXPOSED_METHODS,
+    );
   }
 
   // ============================================================================
@@ -1014,6 +1019,251 @@ export class PerpsController extends BaseController<
     ...args: (string | number | boolean | object | null | undefined)[]
   ): void {
     this.#options.infrastructure.debugLogger.log(...args);
+  }
+
+  /**
+   * Build a cache key for per-provider market data.
+   * Format: "providerId:network" (e.g. 'hyperliquid:mainnet', 'myx:testnet')
+   *
+   * @param providerId - The provider identifier.
+   * @param isTestnet - Whether the provider is on testnet.
+   * @returns The cache key string.
+   */
+  #marketCacheKey(providerId: string, isTestnet: boolean): string {
+    return `${providerId}:${isTestnet ? 'testnet' : 'mainnet'}`;
+  }
+
+  /**
+   * Determine the effective testnet flag for a given provider.
+   * MYX may be forced to testnet via PROVIDER_CONFIG.MYX_TESTNET_ONLY.
+   *
+   * @param providerId - The provider identifier.
+   * @returns Whether this provider should use testnet.
+   */
+  #providerIsTestnet(providerId: string): boolean {
+    if (providerId === 'myx') {
+      return PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
+    }
+    return this.state.isTestnet;
+  }
+
+  /**
+   * Read cached market data for the currently active provider (or aggregated).
+   * Returns null when no valid cache exists or when cache has expired.
+   *
+   * @returns The cached market data array, or null if no valid cache.
+   */
+  getCachedMarketDataForActiveProvider(): PerpsMarketData[] | null {
+    const { activeProvider } = this.state;
+    const cache = this.state.cachedMarketDataByProvider;
+
+    if (activeProvider === 'aggregated') {
+      // Assemble from all registered provider entries
+      const assembled: PerpsMarketData[] = [];
+      let oldestTimestamp = Infinity;
+      for (const [providerId] of this.providers) {
+        const key = this.#marketCacheKey(
+          providerId,
+          this.#providerIsTestnet(providerId),
+        );
+        const entry = cache[key];
+        if (!entry || entry.data.length === 0) {
+          continue;
+        }
+        oldestTimestamp = Math.min(oldestTimestamp, entry.timestamp);
+        assembled.push(...entry.data);
+      }
+      if (assembled.length === 0) {
+        return null;
+      }
+      // Check TTL against the oldest entry
+      if (Date.now() - oldestTimestamp > PerpsController.#preloadGuardMs * 10) {
+        return null;
+      }
+      return assembled;
+    }
+
+    // Single provider mode
+    const key = this.#marketCacheKey(
+      activeProvider,
+      this.#providerIsTestnet(activeProvider),
+    );
+    const entry = cache[key];
+    if (!entry || entry.data.length === 0) {
+      return null;
+    }
+    if (Date.now() - entry.timestamp > PerpsController.#preloadGuardMs * 10) {
+      return null;
+    }
+    return entry.data;
+  }
+
+  /**
+   * Read cached user data for the currently active provider (or aggregated).
+   * Returns null when no valid cache exists, cache has expired, or address
+   * does not match the currently selected EVM account.
+   *
+   * @returns The cached user data, or null if no valid cache.
+   */
+  getCachedUserDataForActiveProvider(): {
+    positions: Position[];
+    orders: Order[];
+    accountState: AccountState | null;
+  } | null {
+    const { activeProvider } = this.state;
+    const cache = this.state.cachedUserDataByProvider;
+    const staleCutoff = PerpsController.#preloadGuardMs * 2; // 60s
+
+    // Get current user address for validation
+    let currentAddress: string | null = null;
+    try {
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
+      currentAddress = evmAccount?.address ?? null;
+    } catch {
+      // Can't determine current account — trust the cache
+    }
+
+    const isValidEntry = (
+      entry: { timestamp: number; address: string } | undefined,
+    ): entry is { timestamp: number; address: string } => {
+      if (!entry) {
+        return false;
+      }
+      if (Date.now() - entry.timestamp >= staleCutoff) {
+        return false;
+      }
+      if (
+        currentAddress &&
+        entry.address.toLowerCase() !== currentAddress.toLowerCase()
+      ) {
+        return false;
+      }
+      return true;
+    };
+
+    if (activeProvider === 'aggregated') {
+      // Assemble from all registered provider entries
+      const allPositions: Position[] = [];
+      const allOrders: Order[] = [];
+      let defaultAccountState: AccountState | null = null;
+      let hasValidEntry = false;
+
+      for (const [providerId] of this.providers) {
+        const key = this.#marketCacheKey(
+          providerId,
+          this.#providerIsTestnet(providerId),
+        );
+        const entry = cache[key];
+        if (!isValidEntry(entry)) {
+          continue;
+        }
+        hasValidEntry = true;
+        allPositions.push(...entry.positions);
+        allOrders.push(...entry.orders);
+        // AccountState from default provider (hyperliquid)
+        if (providerId === 'hyperliquid') {
+          defaultAccountState = entry.accountState;
+        }
+      }
+
+      if (!hasValidEntry) {
+        return null;
+      }
+
+      return {
+        positions: allPositions,
+        orders: allOrders,
+        accountState: defaultAccountState,
+      };
+    }
+
+    // Single provider mode
+    const key = this.#marketCacheKey(
+      activeProvider,
+      this.#providerIsTestnet(activeProvider),
+    );
+    const entry = cache[key];
+    if (!entry || !isValidEntry(entry)) {
+      return null;
+    }
+
+    return {
+      positions: entry.positions,
+      orders: entry.orders,
+      accountState: entry.accountState,
+    };
+  }
+
+  /**
+   * Returns a cached standalone HyperLiquidProvider for pre-initialization
+   * discovery queries. Creates a new instance on first call or when the
+   * isTestnet / hip3ConfigVersion has changed since the last creation.
+   *
+   * @returns A HyperLiquidProvider suitable for standalone REST calls.
+   */
+  #getOrCreateStandaloneProvider(): HyperLiquidProvider {
+    const currentIsTestnet = this.state.isTestnet;
+    const currentHip3Version = this.state.hip3ConfigVersion ?? 0;
+
+    if (
+      this.#standaloneProvider &&
+      this.#standaloneProviderIsTestnet === currentIsTestnet &&
+      this.#standaloneProviderHip3Version === currentHip3Version
+    ) {
+      return this.#standaloneProvider;
+    }
+
+    // Stale or missing — tear down old one (fire-and-forget)
+    if (this.#standaloneProvider) {
+      const old = this.#standaloneProvider;
+      Promise.resolve(old.disconnect()).catch(() => {
+        /* best-effort */
+      });
+    }
+
+    this.#standaloneProvider = new HyperLiquidProvider({
+      isTestnet: currentIsTestnet,
+      hip3Enabled: this.#hip3Enabled,
+      allowlistMarkets: this.#hip3AllowlistMarkets,
+      blocklistMarkets: this.#hip3BlocklistMarkets,
+      platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
+    });
+    this.#standaloneProviderIsTestnet = currentIsTestnet;
+    this.#standaloneProviderHip3Version = currentHip3Version;
+
+    return this.#standaloneProvider;
+  }
+
+  /**
+   * Disconnect and discard the cached standalone provider (if any).
+   * Best-effort — errors are silently caught.
+   */
+  async #cleanupStandaloneProvider(): Promise<void> {
+    if (!this.#standaloneProvider) {
+      return;
+    }
+    try {
+      await this.#standaloneProvider.disconnect();
+    } catch {
+      /* best-effort */
+    }
+    this.#standaloneProvider = null;
+    this.#standaloneProviderIsTestnet = null;
+    this.#standaloneProviderHip3Version = null;
+  }
+
+  /**
+   * Test-observable accessor for whether a standalone provider is cached.
+   *
+   * @returns True if a standalone provider instance exists.
+   */
+  protected hasStandaloneProvider(): boolean {
+    return this.#standaloneProvider !== null;
   }
 
   /**
@@ -1060,27 +1310,20 @@ export class PerpsController extends BaseController<
    * @returns The transaction result containing a hash promise and transaction metadata.
    */
   async #submitTransaction(
-    txParams: {
-      from: string;
-      to?: string;
-      value?: string;
-      data?: string;
-      gas?: string;
-    },
-    options: {
-      networkClientId: string;
-      origin?: string;
-      type?: TransactionType;
-      skipInitialGasEstimate?: boolean;
-    },
+    txParams: PerpsTransactionParams,
+    options: PerpsAddTransactionOptions,
   ): Promise<{
     result: Promise<string>;
     transactionMeta: { id: string; hash?: string };
   }> {
+    // Cast needed: PerpsController uses loose string types for txParams/options
+    // while TransactionController uses strict branded types (TransactionParams, AddTransactionOptions)
     return this.messenger.call(
       'TransactionController:addTransaction',
-      txParams,
-      options,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      txParams as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      options as any,
     );
   }
 
@@ -1133,7 +1376,7 @@ export class PerpsController extends BaseController<
    * @param remoteFeatureFlagControllerState - State from RemoteFeatureFlagController.
    */
   protected refreshEligibilityOnFeatureFlagChange(
-    remoteFeatureFlagControllerState: RemoteFeatureFlagControllerState,
+    remoteFeatureFlagControllerState: PerpsRemoteFeatureFlagState,
   ): void {
     this.#featureFlagConfigurationService.refreshEligibility({
       remoteFeatureFlagControllerState,
@@ -1314,6 +1557,7 @@ export class PerpsController extends BaseController<
           );
         }
         this.providers.clear();
+        await this.#cleanupStandaloneProvider();
 
         const { activeProvider } = this.state;
 
@@ -1343,13 +1587,44 @@ export class PerpsController extends BaseController<
         // Register MYX provider if enabled via feature flag
         const isMYXEnabled = this.#isMYXProviderEnabled();
         if (isMYXEnabled) {
+          const myxIsTestnet =
+            PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
+          const config = this.#options.clientConfig ?? {};
+          // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
+          // Uses firstNonEmpty because env vars default to '' (not null/undefined),
+          // so ?? would not fall through on empty strings.
+          const firstNonEmpty = (...vals: (string | undefined)[]): string =>
+            vals.find(
+              (val) => val !== null && val !== undefined && val !== '',
+            ) ?? '';
+          const myxAppId = myxIsTestnet
+            ? (config.myxAppIdTestnet ?? '')
+            : firstNonEmpty(config.myxAppIdMainnet, config.myxAppIdTestnet);
+          const myxApiSecret = myxIsTestnet
+            ? (config.myxApiSecretTestnet ?? '')
+            : firstNonEmpty(
+                config.myxApiSecretMainnet,
+                config.myxApiSecretTestnet,
+              );
+          const myxBrokerAddress = myxIsTestnet
+            ? (config.myxBrokerAddressTestnet ?? '')
+            : firstNonEmpty(
+                config.myxBrokerAddressMainnet,
+                config.myxBrokerAddressTestnet,
+              );
           const myxProvider = new MYXProvider({
-            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+            isTestnet: myxIsTestnet,
             platformDependencies: this.#options.infrastructure,
+            messenger: this.messenger,
+            myxAuthConfig: {
+              appId: myxAppId,
+              apiSecret: myxApiSecret,
+              brokerAddress: myxBrokerAddress,
+            },
           });
           this.providers.set('myx', myxProvider);
           this.#debugLog('PerpsController: MYX provider registered', {
-            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+            isTestnet: myxIsTestnet,
           });
         }
 
@@ -1808,17 +2083,27 @@ export class PerpsController extends BaseController<
   ): Promise<{ result: Promise<string> }> {
     const { amount, placeOrder } = params;
 
+    let currentDepositId: string | undefined;
+
     try {
       // Clear any stale results when starting a new deposit flow
       // Don't set depositInProgress yet - wait until user confirms
 
       // Prepare deposit transaction using DepositService
       const provider = this.getActiveProvider();
-      const { transaction, assetChainId, currentDepositId } =
-        await this.#depositService.prepareTransaction({ provider });
+      const {
+        transaction,
+        assetChainId,
+        currentDepositId: depositId,
+      } = await this.#depositService.prepareTransaction({ provider });
+      currentDepositId = depositId;
 
       // Get current account address via messenger (outside of update() for proper typing)
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
       const accountAddress = evmAccount?.address ?? 'unknown';
 
       this.update((state) => {
@@ -1826,7 +2111,7 @@ export class PerpsController extends BaseController<
 
         // Add deposit request to tracking
         const depositRequest = {
-          id: currentDepositId,
+          id: currentDepositId ?? uuidv4(),
           timestamp: Date.now(),
           amount: amount ?? '0', // Use provided amount or default to '0'
           asset: USDC_SYMBOL,
@@ -1851,6 +2136,7 @@ export class PerpsController extends BaseController<
 
       let result: Promise<string>;
       let transactionMeta: { id: string };
+      let depositOrderResult: Promise<string> | null = null;
 
       const defaultTransactionOptions = {
         networkClientId,
@@ -1859,23 +2145,22 @@ export class PerpsController extends BaseController<
       };
 
       if (placeOrder) {
-        // Use messenger-based addTransaction to create transaction without navigating to confirmation screen
+        // Use addTransaction to create transaction without navigating to confirmation screen
         const addResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDepositAndOrder,
+          type: 'perpsDepositAndOrder',
         });
         transactionMeta = addResult.transactionMeta;
-        // For deposit+order, we don't await the result promise - transaction will be confirmed via useTransactionConfirm
-        // Return a resolved promise that never resolves (transaction handled via confirmation flow)
-        result = new Promise(() => {
-          // Never resolves - transaction handled via confirmation flow
-        });
+        // Return transaction ID immediately (fire-and-forget for caller)
+        result = Promise.resolve(transactionMeta.id);
+        // Track deposit request lifecycle via the real transaction result
+        depositOrderResult = addResult.result;
       } else {
         // submit shows the confirmation screen and returns a promise
         // The promise will resolve when transaction completes or reject if cancelled/failed
         const submitResult = await this.#submitTransaction(transaction, {
           ...defaultTransactionOptions,
-          type: TransactionType.perpsDeposit,
+          type: 'perpsDeposit',
         });
         result = submitResult.result;
         transactionMeta = submitResult.transactionMeta;
@@ -1956,6 +2241,15 @@ export class PerpsController extends BaseController<
                 state.depositInProgress = false;
                 state.lastDepositTransactionId = null;
                 // Don't set lastDepositResult - no toast needed
+
+                // Mark deposit request as cancelled
+                const requestToUpdate = state.depositRequests.find(
+                  (req) => req.id === currentDepositId,
+                );
+                if (requestToUpdate) {
+                  requestToUpdate.status = 'cancelled' as TransactionStatus;
+                  requestToUpdate.success = false;
+                }
               });
             } else {
               // Transaction failed after confirmation - show error toast
@@ -1984,6 +2278,44 @@ export class PerpsController extends BaseController<
               });
             }
           });
+      } else if (depositOrderResult) {
+        // Track deposit request lifecycle for deposit+order flow
+        depositOrderResult
+          .then((actualTxHash) => {
+            this.update((state) => {
+              const requestToUpdate = state.depositRequests.find(
+                (req) => req.id === currentDepositId,
+              );
+              if (requestToUpdate) {
+                requestToUpdate.status = 'completed' as TransactionStatus;
+                requestToUpdate.success = true;
+                requestToUpdate.txHash = actualTxHash;
+              }
+            });
+            return undefined;
+          })
+          .catch((error) => {
+            const errorMessage = ensureError(
+              error,
+              'PerpsController.depositWithOrder',
+            ).message;
+            const isCancellation =
+              errorMessage.includes('User denied') ||
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('cancelled') ||
+              errorMessage.includes('canceled');
+            this.update((state) => {
+              const requestToUpdate = state.depositRequests.find(
+                (req) => req.id === currentDepositId,
+              );
+              if (requestToUpdate) {
+                requestToUpdate.status = (
+                  isCancellation ? 'cancelled' : 'failed'
+                ) as TransactionStatus;
+                requestToUpdate.success = false;
+              }
+            });
+          });
       }
 
       return {
@@ -2006,6 +2338,17 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.lastDepositTransactionId = null;
           // Note: lastDepositResult is already set in the catch block above
+
+          // Mark deposit request as failed if one was created
+          if (currentDepositId) {
+            const request = state.depositRequests.find(
+              (req) => req.id === currentDepositId,
+            );
+            if (request) {
+              request.status = 'failed' as TransactionStatus;
+              request.success = false;
+            }
+          }
         });
       }
       throw error;
@@ -2050,6 +2393,8 @@ export class PerpsController extends BaseController<
     txHash?: string,
   ): void {
     let withdrawalAmount: string | undefined;
+    let shouldTrack = false;
+    let found = false;
 
     this.update((state) => {
       const withdrawalIndex = state.withdrawalRequests.findIndex(
@@ -2057,9 +2402,11 @@ export class PerpsController extends BaseController<
       );
 
       if (withdrawalIndex >= 0) {
+        found = true;
         const request = state.withdrawalRequests[withdrawalIndex];
         withdrawalAmount = request.amount;
-        const originalStatus = request.status;
+        shouldTrack =
+          withdrawalAmount !== undefined && request.status !== status;
         request.status = status;
         request.success = status === 'completed';
         if (txHash) {
@@ -2074,29 +2421,30 @@ export class PerpsController extends BaseController<
             activeWithdrawalId: null,
           };
         }
-
-        // Track withdrawal transaction completed/failed (confirmed via HyperLiquid API)
-        if (withdrawalAmount !== undefined && originalStatus !== status) {
-          this.#getMetrics().trackPerpsEvent(
-            PerpsAnalyticsEvent.WithdrawalTransaction,
-            {
-              [PERPS_EVENT_PROPERTY.STATUS]:
-                status === 'completed'
-                  ? PERPS_EVENT_VALUE.STATUS.COMPLETED
-                  : PERPS_EVENT_VALUE.STATUS.FAILED,
-              [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]:
-                Number.parseFloat(withdrawalAmount),
-            },
-          );
-        }
-
-        this.#debugLog('PerpsController: Updated withdrawal status', {
-          withdrawalId,
-          status,
-          txHash,
-        });
       }
     });
+
+    if (shouldTrack && withdrawalAmount !== undefined) {
+      this.#getMetrics().trackPerpsEvent(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        {
+          [PERPS_EVENT_PROPERTY.STATUS]:
+            status === 'completed'
+              ? PERPS_EVENT_VALUE.STATUS.COMPLETED
+              : PERPS_EVENT_VALUE.STATUS.FAILED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]:
+            Number.parseFloat(withdrawalAmount),
+        },
+      );
+    }
+
+    if (found) {
+      this.#debugLog('PerpsController: Updated withdrawal status', {
+        withdrawalId,
+        status,
+        txHash,
+      });
+    }
   }
 
   /**
@@ -2172,18 +2520,10 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if user has positions) without full perps setup
     if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       // TODO: When adding new providers (MYX), consider a provider factory pattern
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getPositions(params);
     }
 
@@ -2241,15 +2581,7 @@ export class PerpsController extends BaseController<
     // For standalone mode, access provider directly without initialization check
     if (params?.standalone && params.userAddress) {
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getOpenOrders(params);
     }
 
@@ -2292,17 +2624,9 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if user has perps funds) without full perps setup
     if (params?.standalone && params.userAddress) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getAccountState(params);
     }
 
@@ -2347,17 +2671,9 @@ export class PerpsController extends BaseController<
     // This allows discovery use cases (checking if market exists) without full perps setup
     if (params?.standalone) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getMarkets(params);
     }
 
@@ -2384,17 +2700,9 @@ export class PerpsController extends BaseController<
   }): Promise<PerpsMarketData[]> {
     if (params?.standalone) {
       // Use activeProviderInstance if available (respects provider abstraction)
-      // Fallback to creating HyperLiquidProvider for pre-initialization discovery
+      // Fallback to cached standalone provider for pre-initialization discovery
       const provider =
-        this.activeProviderInstance ??
-        new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
+        this.activeProviderInstance ?? this.#getOrCreateStandaloneProvider();
       return provider.getMarketDataWithPrices();
     }
 
@@ -2451,7 +2759,7 @@ export class PerpsController extends BaseController<
       });
     }, PerpsController.#preloadRefreshMs);
 
-    // Watch for isTestnet / hip3ConfigVersion / cachedUserDataAddress changes
+    // Watch for isTestnet / hip3ConfigVersion changes
     const handler: StateChangeListener<PerpsControllerState> = (
       _state,
       patches,
@@ -2487,16 +2795,9 @@ export class PerpsController extends BaseController<
         this.#previousIsTestnet = currentIsTestnet;
         this.#previousHip3ConfigVersion = currentHip3Version;
 
-        // Clear stale cache (market + user data)
-        this.update((state) => {
-          state.cachedMarketData = null;
-          state.cachedMarketDataTimestamp = 0;
-          state.cachedPositions = null;
-          state.cachedOrders = null;
-          state.cachedAccountState = null;
-          state.cachedUserDataTimestamp = 0;
-          state.cachedUserDataAddress = null;
-        });
+        // No need to clear user data cache — per-provider keys include the
+        // network, so different networks don't collide. Re-preload will
+        // populate the new key.
 
         this.#performMarketDataPreload().catch(() => {
           /* fire-and-forget */
@@ -2511,26 +2812,35 @@ export class PerpsController extends BaseController<
 
     // Watch for account changes via AccountTreeController
     const accountChangeHandler = (): void => {
-      const evmAccount = getSelectedEvmAccount(this.messenger);
+      const evmAccount = getSelectedEvmAccount(
+        this.messenger.call(
+          'AccountTreeController:getAccountsFromSelectedAccountGroup',
+        ),
+      );
       const currentAddress = evmAccount?.address ?? null;
-      if (
-        currentAddress &&
-        this.state.cachedUserDataAddress !== null &&
-        currentAddress !== this.state.cachedUserDataAddress
-      ) {
+
+      // If any cached entry belongs to a different account, clear all entries.
+      // Max 4 entries (2 providers × 2 networks) — clearing all is simple and safe.
+      const hasStaleEntries = Object.values(
+        this.state.cachedUserDataByProvider,
+      ).some(
+        (entry) =>
+          currentAddress === null ||
+          entry.address.toLowerCase() !== currentAddress.toLowerCase(),
+      );
+      if (hasStaleEntries) {
         this.#debugLog(
           'PerpsController: Account changed, clearing user data cache',
         );
         this.update((state) => {
-          state.cachedPositions = null;
-          state.cachedOrders = null;
-          state.cachedAccountState = null;
-          state.cachedUserDataTimestamp = 0;
-          state.cachedUserDataAddress = null;
+          state.cachedUserDataByProvider = {};
         });
-        this.#performUserDataPreload().catch(() => {
-          /* fire-and-forget */
-        });
+        // Only preload if the new account is an EVM account
+        if (currentAddress) {
+          this.#performUserDataPreload().catch(() => {
+            /* fire-and-forget */
+          });
+        }
       }
     };
     this.messenger.subscribe(
@@ -2564,6 +2874,9 @@ export class PerpsController extends BaseController<
     }
     this.#previousIsTestnet = null;
     this.#previousHip3ConfigVersion = null;
+    this.#cleanupStandaloneProvider().catch(() => {
+      /* fire-and-forget to preserve sync signature */
+    });
   }
 
   /**
@@ -2574,10 +2887,28 @@ export class PerpsController extends BaseController<
       return;
     }
 
+    // Skip preloading during provider/network reinitialisation.
+    // The activeProviderInstance still points to the OLD network's provider
+    // until init() completes, so fetching now would store stale data under
+    // the NEW network's cache key.
+    if (this.#isReinitializing) {
+      return;
+    }
+
+    // Determine actual provider and cache key for debounce
+    const actualProviderId = this.activeProviderInstance
+      ? this.state.activeProvider // includes 'aggregated'
+      : 'hyperliquid';
+    const cacheKey = this.#marketCacheKey(
+      actualProviderId,
+      this.#providerIsTestnet(actualProviderId),
+    );
+
     const now = Date.now();
+    const existingEntry = this.state.cachedMarketDataByProvider[cacheKey];
     if (
-      now - this.state.cachedMarketDataTimestamp <
-      PerpsController.#preloadGuardMs
+      existingEntry &&
+      now - existingEntry.timestamp < PerpsController.#preloadGuardMs
     ) {
       return;
     }
@@ -2603,10 +2934,46 @@ export class PerpsController extends BaseController<
       this.#debugLog('PerpsController: Fetching market data in background');
       const data = await this.getMarketDataWithPrices({ standalone: true });
 
-      this.update((state) => {
-        state.cachedMarketData = data;
-        state.cachedMarketDataTimestamp = Date.now();
-      });
+      // Store under per-provider key(s)
+      const ts = Date.now();
+      if (
+        this.state.activeProvider === 'aggregated' &&
+        this.activeProviderInstance
+      ) {
+        // Split returned data by providerId and store each slice
+        const fallbackProviderId = 'hyperliquid'; // default for items missing providerId
+        const byProvider = new Map<string, PerpsMarketData[]>();
+        for (const item of data) {
+          const pid = item.providerId ?? fallbackProviderId;
+          const existing = byProvider.get(pid);
+          if (existing) {
+            existing.push(item);
+          } else {
+            byProvider.set(pid, [item]);
+          }
+        }
+        this.update((state) => {
+          for (const [pid, slice] of byProvider) {
+            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            state.cachedMarketDataByProvider[key] = {
+              data: slice,
+              timestamp: ts,
+            };
+          }
+          // Write aggregated sentinel so the staleness guard sees it
+          state.cachedMarketDataByProvider[cacheKey] = {
+            data: [], // sentinel — real data is in per-provider keys
+            timestamp: ts,
+          };
+        });
+      } else {
+        this.update((state) => {
+          state.cachedMarketDataByProvider[cacheKey] = {
+            data,
+            timestamp: ts,
+          };
+        });
+      }
 
       this.#debugLog('PerpsController: Market data preloaded', {
         marketCount: data.length,
@@ -2656,18 +3023,33 @@ export class PerpsController extends BaseController<
     }
 
     // Get current user address
-    const evmAccount = getSelectedEvmAccount(this.messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
     if (!evmAccount?.address) {
       return;
     }
 
     const userAddress = evmAccount.address;
 
+    // Determine actual provider (same logic as market preload)
+    const actualProviderId = this.activeProviderInstance
+      ? this.state.activeProvider // includes 'aggregated'
+      : 'hyperliquid';
+    const userCacheKey = this.#marketCacheKey(
+      actualProviderId,
+      this.#providerIsTestnet(actualProviderId),
+    );
+
     // Skip if cache is fresh and for same account
     const now = Date.now();
+    const existingEntry = this.state.cachedUserDataByProvider[userCacheKey];
     if (
-      this.state.cachedUserDataAddress === userAddress &&
-      now - this.state.cachedUserDataTimestamp < PerpsController.#preloadGuardMs
+      existingEntry &&
+      existingEntry.address === userAddress &&
+      now - existingEntry.timestamp < PerpsController.#preloadGuardMs
     ) {
       return;
     }
@@ -2716,13 +3098,77 @@ export class PerpsController extends BaseController<
         this.getAccountState({ standalone: true, userAddress }),
       ]);
 
-      this.update((state) => {
-        state.cachedPositions = positions;
-        state.cachedOrders = orders;
-        state.cachedAccountState = accountState;
-        state.cachedUserDataTimestamp = Date.now();
-        state.cachedUserDataAddress = userAddress;
-      });
+      if (
+        this.state.activeProvider === 'aggregated' &&
+        this.activeProviderInstance
+      ) {
+        // Split by providerId and write one cache entry per provider key
+        // (mirrors the market-data preload pattern at ~line 2976)
+        const ts = Date.now();
+        type UserDataBucket = {
+          positions: typeof positions;
+          orders: typeof orders;
+          accountState: typeof accountState | null;
+        };
+        const fallbackProviderId = 'hyperliquid'; // default for items missing providerId
+        const byProvider = new Map<string, UserDataBucket>();
+
+        const ensureBucket = (pid: string): UserDataBucket => {
+          let bucket = byProvider.get(pid);
+          if (!bucket) {
+            bucket = { positions: [], orders: [], accountState: null };
+            byProvider.set(pid, bucket);
+          }
+          return bucket;
+        };
+
+        for (const pos of positions) {
+          ensureBucket(pos.providerId ?? fallbackProviderId).positions.push(
+            pos,
+          );
+        }
+
+        for (const order of orders) {
+          ensureBucket(order.providerId ?? fallbackProviderId).orders.push(
+            order,
+          );
+        }
+
+        // AccountState — assign to its provider bucket
+        ensureBucket(
+          accountState.providerId ?? fallbackProviderId,
+        ).accountState = accountState;
+
+        this.update((state) => {
+          for (const [pid, data] of byProvider) {
+            const key = this.#marketCacheKey(pid, this.#providerIsTestnet(pid));
+            state.cachedUserDataByProvider[key] = {
+              ...data,
+              timestamp: ts,
+              address: userAddress,
+            };
+          }
+          // Write aggregated sentinel so the staleness guard sees it
+          state.cachedUserDataByProvider[userCacheKey] = {
+            positions: [],
+            orders: [],
+            accountState: null,
+            timestamp: ts,
+            address: userAddress,
+          };
+        });
+      } else {
+        // Single provider — store directly under its key
+        this.update((state) => {
+          state.cachedUserDataByProvider[userCacheKey] = {
+            positions,
+            orders,
+            accountState,
+            timestamp: Date.now(),
+            address: userAddress,
+          };
+        });
+      }
 
       this.#debugLog('PerpsController: User data preloaded', {
         positionCount: positions.length,
@@ -2945,8 +3391,13 @@ export class PerpsController extends BaseController<
 
     this.#isReinitializing = true;
 
+    // Store previous isTestnet for rollback on failure
+    const previousIsTestnet = this.state.isTestnet;
+
     try {
-      const previousNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+      await this.#cleanupStandaloneProvider();
+
+      const previousNetwork = previousIsTestnet ? 'testnet' : 'mainnet';
 
       this.update((state) => {
         state.isTestnet = !state.isTestnet;
@@ -2965,6 +3416,15 @@ export class PerpsController extends BaseController<
       this.#initializationPromise = null;
       await this.init();
 
+      // Check if initialization actually succeeded — performInitialization()
+      // does not throw on failure, it sets state to Failed and resolves.
+      if (this.state.initializationState === InitializationState.Failed) {
+        throw new Error(
+          this.state.initializationError ??
+            'Network toggle initialization failed',
+        );
+      }
+
       this.#debugLog('PerpsController: Network toggle completed', {
         newNetwork,
         isTestnet: this.state.isTestnet,
@@ -2973,6 +3433,11 @@ export class PerpsController extends BaseController<
 
       return { success: true, isTestnet: this.state.isTestnet };
     } catch (error) {
+      // Rollback isTestnet to previous value
+      this.update((state) => {
+        state.isTestnet = previousIsTestnet;
+      });
+
       return {
         success: false,
         isTestnet: this.state.isTestnet,
@@ -2980,6 +3445,16 @@ export class PerpsController extends BaseController<
       };
     } finally {
       this.#isReinitializing = false;
+
+      // Re-trigger preload now that reinit is complete and the
+      // activeProviderInstance points to the correct network.
+      // The state-change listener may have already fired during reinit
+      // but was skipped due to the #isReinitializing guard.
+      if (this.#preloadTimer) {
+        this.#performMarketDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
+      }
     }
   }
 
@@ -2994,6 +3469,11 @@ export class PerpsController extends BaseController<
   async switchProvider(
     providerId: PerpsActiveProviderMode,
   ): Promise<SwitchProviderResult> {
+    // No-op if already on this provider (regardless of init state)
+    if (this.state.activeProvider === providerId) {
+      return { success: true, providerId };
+    }
+
     // Validate provider is available
     // 'aggregated' is always valid, individual providers must exist in the map
     const isValidProvider =
@@ -3005,11 +3485,6 @@ export class PerpsController extends BaseController<
         providerId: this.state.activeProvider,
         error: `Provider ${providerId} not available`,
       };
-    }
-
-    // Skip if already on this provider
-    if (this.state.activeProvider === providerId) {
-      return { success: true, providerId };
     }
 
     // Prevent concurrent switches
@@ -3027,6 +3502,8 @@ export class PerpsController extends BaseController<
     const previousProvider = this.state.activeProvider;
 
     try {
+      await this.#cleanupStandaloneProvider();
+
       this.#debugLog('PerpsController: Provider switch initiated', {
         from: previousProvider,
         to: providerId,
@@ -3037,7 +3514,7 @@ export class PerpsController extends BaseController<
       // reinitialization. The disconnect() method skips provider teardown
       // when isReinitializing is true to prevent double-disconnect.
 
-      // Update state with new provider
+      // Update state with new provider (market data cache preserved per-provider)
       this.update((state) => {
         state.activeProvider = providerId;
         state.accountState = null;
@@ -3111,6 +3588,13 @@ export class PerpsController extends BaseController<
       };
     } finally {
       this.#isReinitializing = false;
+
+      // Re-trigger preload now that reinit is complete.
+      if (this.#preloadTimer) {
+        this.#performMarketDataPreload().catch(() => {
+          /* fire-and-forget */
+        });
+      }
     }
   }
 
@@ -3492,6 +3976,23 @@ export class PerpsController extends BaseController<
       },
     );
 
+    // Stop preload interval and messenger subscriptions first,
+    // so no background work fires while we tear down providers.
+    if (this.#preloadTimer) {
+      clearInterval(this.#preloadTimer);
+      this.#preloadTimer = null;
+    }
+    if (this.#preloadStateUnsubscribe) {
+      this.#preloadStateUnsubscribe();
+      this.#preloadStateUnsubscribe = null;
+    }
+    if (this.#accountChangeUnsubscribe) {
+      this.#accountChangeUnsubscribe();
+      this.#accountChangeUnsubscribe = null;
+    }
+    this.#previousIsTestnet = null;
+    this.#previousHip3ConfigVersion = null;
+
     // Only disconnect the provider if we're initialized
     if (this.isInitialized && !this.isCurrentlyReinitializing()) {
       try {
@@ -3504,6 +4005,17 @@ export class PerpsController extends BaseController<
         );
       }
     }
+
+    // Clear stale reference so standalone reads don't route through old provider
+    this.activeProviderInstance = null;
+
+    // Cleanup cached standalone provider (if any) — awaited to prevent races
+    await this.#cleanupStandaloneProvider();
+
+    // Note: Feature-flag subscription is NOT cleaned up here.
+    // It is a controller-lifetime concern (set once in the constructor),
+    // not a session-lifetime concern. Unsubscribing here would break
+    // geo-blocking / HIP-3 flag propagation after disconnect → reconnect.
 
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
@@ -4119,9 +4631,7 @@ export class PerpsController extends BaseController<
       slPrice: params.slPrice,
       tpPrice: params.tpPrice,
       isTestnet: this.state.isTestnet,
-      context: this.#createServiceContext('reportOrderToDataLake', {
-        messenger: this.messenger,
-      }),
+      context: this.#createServiceContext('reportOrderToDataLake', {}),
       retryCount: params.retryCount,
       _traceId: params._traceId,
     });

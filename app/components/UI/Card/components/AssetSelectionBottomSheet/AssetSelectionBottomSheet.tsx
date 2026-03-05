@@ -46,7 +46,8 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import { SUPPORTED_ASSET_NETWORKS } from '../../constants';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { truncateAddress } from '../../util/truncateAddress';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
@@ -109,7 +110,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
   const { sdk } = useCardSDK();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Helper: Check if token should be filtered out
   const shouldFilterOutToken = useCallback(

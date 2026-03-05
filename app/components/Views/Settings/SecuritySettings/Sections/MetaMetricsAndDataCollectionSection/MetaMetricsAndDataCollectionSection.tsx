@@ -16,7 +16,6 @@ import Button, {
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
-import { useTheme } from '../../../../../../util/theme';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../../../../util/metrics';
@@ -36,17 +35,18 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/s
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
 import { selectIsPna25FlagEnabled } from '../../../../../../selectors/featureFlagController/legalNotices';
+import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 
 interface MetaMetricsAndDataCollectionSectionProps {
   hideMarketingSection?: boolean;
+  analyticsLocation?: 'settings' | 'onboarding_default_settings';
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
   MetaMetricsAndDataCollectionSectionProps
-> = ({ hideMarketingSection = false }) => {
-  const theme = useTheme();
+> = ({ hideMarketingSection = false, analyticsLocation = 'settings' }) => {
+  const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
-  const styles = createStyles(colors);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -118,7 +118,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
           .addProperties({
             is_metrics_opted_in: true,
             updated_after_onboarding: true,
-            location: 'settings',
+            location: analyticsLocation,
           })
           .build(),
       );
@@ -130,8 +130,21 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         dispatch(storePna25Acknowledged());
       }
     } else {
+      // Track opt-out event before calling optOut() to ensure it gets sent
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.METRICS_OPT_OUT,
+        )
+          .addProperties({
+            updated_after_onboarding: true,
+            location: analyticsLocation,
+          })
+          .build(),
+      );
+
       await analytics.optOut();
       setAnalyticsEnabled(false);
+
       if (isDataCollectionForMarketingEnabled) {
         dispatch(setDataCollectionForMarketing(false));
       }

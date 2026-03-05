@@ -176,6 +176,8 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
+import { cardControllerInit } from './controllers/card-controller';
 import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
@@ -369,6 +371,8 @@ export class Engine {
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
+        AiDigestController: aiDigestControllerInit,
+        CardController: cardControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -408,6 +412,8 @@ export class Engine {
     const rampsService = controllersByName.RampsService;
     const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
+    const aiDigestController = controllersByName.AiDigestController;
+    const cardController = controllersByName.CardController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -565,6 +571,8 @@ export class Engine {
       RampsService: rampsService,
       TransakService: transakService,
       RampsController: rampsController,
+      AiDigestController: aiDigestController,
+      CardController: cardController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1287,6 +1295,7 @@ export default {
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      CardController,
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
@@ -1320,6 +1329,7 @@ export default {
       TransactionController,
       TransactionPayController,
       RampsController,
+      AiDigestController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1388,6 +1398,8 @@ export default {
       TransactionController: TransactionController.state,
       TransactionPayController: TransactionPayController.state,
       RampsController: RampsController.state,
+      AiDigestController: AiDigestController.state,
+      CardController: CardController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

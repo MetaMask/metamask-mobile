@@ -125,7 +125,10 @@ import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-c
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
-import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import {
+  getRampsControllerMessenger,
+  getRampsControllerInitMessenger,
+} from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -145,6 +148,8 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
+import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
+import { getCardControllerMessenger } from './card-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -398,7 +403,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   RampsController: {
     getMessenger: getRampsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getRampsControllerInitMessenger,
   },
   RampsService: {
     getMessenger: getRampsServiceMessenger,
@@ -450,6 +455,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   AnalyticsController: {
     getMessenger: getAnalyticsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  AiDigestController: {
+    getMessenger: getAiDigestControllerMessenger,
+    getInitMessenger: noop,
+  },
+  CardController: {
+    getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

@@ -31,9 +31,9 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -74,8 +74,8 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "#b7bbc8",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "#949596",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -101,21 +101,19 @@ exports[`EditAccountName should render correctly 1`] = `
             onBlur={[Function]}
             onChangeText={[Function]}
             onFocus={[Function]}
-            placeholderTextColor="#686e7d"
+            placeholderTextColor="#66676a"
             style={
               {
                 "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "height": 46,
                 "letterSpacing": 0,
-                "lineHeight": 0,
                 "opacity": 1,
-                "textAlignVertical": "center",
               }
             }
             testID="account-name-input"
@@ -136,9 +134,9 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -179,8 +177,8 @@ exports[`EditAccountName should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "#b7bbc8",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "#949596",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -206,13 +204,13 @@ exports[`EditAccountName should render correctly 1`] = `
             onBlur={[Function]}
             onFocus={[Function]}
             placeholder="0x49a016E6736F9Ad381605c...72A6"
-            placeholderTextColor="#686e7d"
+            placeholderTextColor="#66676a"
             style={
               {
                 "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#121314",
+                "color": "#131416",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": "400",
@@ -220,7 +218,6 @@ exports[`EditAccountName should render correctly 1`] = `
                 "letterSpacing": 0,
                 "lineHeight": 0,
                 "opacity": 1,
-                "textAlignVertical": "center",
               }
             }
             testID="input"
@@ -249,7 +246,7 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -267,7 +264,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -290,7 +287,7 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",

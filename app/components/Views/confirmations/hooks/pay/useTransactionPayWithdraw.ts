@@ -1,7 +1,11 @@
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { isTransactionPayWithdraw } from '../../utils/transaction';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  getPostQuoteTransactionType,
+  isTransactionPayWithdraw,
+} from '../../utils/transaction';
+import { selectPayQuoteConfig } from '../../../../../selectors/featureFlagController/confirmations';
+import { RootState } from '../../../../../reducers';
 
 export interface UseTransactionPayWithdrawResult {
   /** Whether this transaction is a withdraw type */
@@ -19,9 +23,12 @@ export interface UseTransactionPayWithdrawResult {
 export function useTransactionPayWithdraw(): UseTransactionPayWithdrawResult {
   const transactionMeta = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const { predictWithdrawAnyToken } = useSelector(selectMetaMaskPayFlags);
+  const transactionType = getPostQuoteTransactionType(transactionMeta);
+  const config = useSelector((state: RootState) =>
+    selectPayQuoteConfig(state, transactionType),
+  );
 
-  const canSelectWithdrawToken = isWithdraw && predictWithdrawAnyToken;
+  const canSelectWithdrawToken = isWithdraw && config.enabled === true;
 
   return {
     isWithdraw,

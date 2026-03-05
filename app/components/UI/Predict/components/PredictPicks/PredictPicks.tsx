@@ -1,7 +1,7 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import React from 'react';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
-import { useLivePositions } from '../../hooks/useLivePositions';
+import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { PredictEventValues } from '../../constants/eventNames';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
@@ -23,15 +23,16 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   market,
   testID = 'predict-picks',
 }) => {
-  const { positions } = usePredictPositions({
+  const { data: positions = [] } = usePredictPositions({
     marketId: market.id,
-    autoRefreshTimeout: 10000,
+    claimable: false,
+    refetchInterval: 10000,
   });
-  const { positions: claimablePositions } = usePredictPositions({
+  const { data: claimablePositions = [] } = usePredictPositions({
     marketId: market.id,
     claimable: true,
   });
-  const { livePositions } = useLivePositions(positions);
+  const { livePositions } = usePredictLivePositions(positions);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigate } = navigation;

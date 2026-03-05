@@ -16,6 +16,7 @@ import {
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
 import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
+import { useRampsOrders, type UseRampsOrdersResult } from './useRampsOrders';
 
 /**
  * Result returned by the useRampsController hook.
@@ -55,15 +56,16 @@ export interface UseRampsControllerResult {
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 
   // Quotes
-  quotes: UseRampsQuotesResult['quotes'];
-  selectedQuote: UseRampsQuotesResult['selectedQuote'];
   getQuotes: UseRampsQuotesResult['getQuotes'];
-  setSelectedQuote: UseRampsQuotesResult['setSelectedQuote'];
-  startQuotePolling: UseRampsQuotesResult['startQuotePolling'];
-  stopQuotePolling: UseRampsQuotesResult['stopQuotePolling'];
   getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
-  quotesLoading: UseRampsQuotesResult['isLoading'];
-  quotesError: UseRampsQuotesResult['error'];
+
+  // Orders
+  orders: UseRampsOrdersResult['orders'];
+  getOrderById: UseRampsOrdersResult['getOrderById'];
+  addOrder: UseRampsOrdersResult['addOrder'];
+  removeOrder: UseRampsOrdersResult['removeOrder'];
+  refreshOrder: UseRampsOrdersResult['refreshOrder'];
+  getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
 }
 
 /**
@@ -106,14 +108,8 @@ export interface UseRampsControllerResult {
  *   paymentMethodsError,
  *
  *   // Quotes
- *   quotes,
- *   selectedQuote,
- *   startQuotePolling,
- *   stopQuotePolling,
- *   quotesLoading,
- *   quotesError,
  *   getQuotes,
- *   setSelectedQuote,
+ *   getWidgetUrl,
  *
  * } = useRampsController();
  * ```
@@ -151,24 +147,21 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
+  const { getQuotes, getWidgetUrl } = useRampsQuotes();
+
   const {
-    quotes,
-    selectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
-    getWidgetUrl,
-    isLoading: quotesLoading,
-    error: quotesError,
-    getQuotes,
-    setSelectedQuote,
-  } = useRampsQuotes();
+    orders,
+    getOrderById,
+    addOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
+  } = useRampsOrders();
 
   return {
-    // User region
     userRegion,
     setUserRegion,
 
-    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
@@ -176,35 +169,31 @@ export function useRampsController(): UseRampsControllerResult {
     providersLoading,
     providersError,
 
-    // Tokens
     tokens,
     selectedToken,
     setSelectedToken,
     tokensLoading,
     tokensError,
 
-    // Countries
     countries,
     countriesLoading,
     countriesError,
 
-    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
 
-    // Quotes
-    quotes,
-    selectedQuote,
     getQuotes,
-    setSelectedQuote,
-    startQuotePolling,
-    stopQuotePolling,
     getWidgetUrl,
-    quotesLoading,
-    quotesError,
+
+    orders,
+    getOrderById,
+    addOrder,
+    removeOrder,
+    refreshOrder,
+    getOrderFromCallback,
   };
 }
 

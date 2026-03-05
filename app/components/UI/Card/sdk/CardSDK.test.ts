@@ -13,10 +13,16 @@ import {
   CardAuthorizeResponse,
   CardExchangeTokenResponse,
   CardLocation,
+  CardType,
   CreateOnboardingConsentRequest,
   UserResponse,
   DelegationSettingsNetwork,
+  CashbackWalletResponse,
+  CashbackWithdrawEstimationResponse,
+  CashbackWithdrawResponse,
 } from '../types';
+import { CARD_DETAILS_CSS } from '../hooks/useCardDetailsToken';
+import { PIN_CSS } from '../hooks/useCardPinToken';
 import Logger from '../../../../util/Logger';
 import { getCardBaanxToken } from '../util/cardTokenVault';
 import AppConstants from '../../../../core/AppConstants';
@@ -4021,12 +4027,7 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue(mockTokenResponse),
       });
 
-      const customCss = {
-        cardBackgroundColor: '#FF5C16',
-        cardTextColor: '#FFFFFF',
-        panBackgroundColor: '#EFEFEF',
-        panTextColor: '#000000',
-      };
+      const customCss = CARD_DETAILS_CSS[CardType.VIRTUAL];
 
       // When: generateCardDetailsToken is called with custom CSS
       const result = await cardSDK.generateCardDetailsToken({ customCss });
@@ -4305,6 +4306,138 @@ describe('CardSDK', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining('completeSolanaDelegation'),
         expect.any(String),
+      );
+    });
+  });
+
+  describe('generateCardPinToken', () => {
+    const mockPinTokenResponse = {
+      token: 'pin-token-uuid-123',
+      imageUrl:
+        'https://cards.baanx.com/details-image?token=pin-token-uuid-123',
+    };
+
+    beforeEach(() => {
+      (getCardBaanxToken as jest.Mock).mockResolvedValue({
+        success: true,
+        tokenData: { accessToken: 'test-access-token' },
+      });
+    });
+
+    it('generates card PIN token successfully', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPinTokenResponse),
+      });
+
+      const result = await cardSDK.generateCardPinToken();
+
+      expect(result).toEqual(mockPinTokenResponse);
+    });
+
+    it('generates card PIN token with custom CSS', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPinTokenResponse),
+      });
+
+      const customCss = PIN_CSS.light;
+
+      const result = await cardSDK.generateCardPinToken({ customCss });
+
+      expect(result).toEqual(mockPinTokenResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/card/pin/token'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ customCss }),
+        }),
+      );
+    });
+
+    it('throws INVALID_CREDENTIALS error on 401 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+
+      try {
+        await cardSDK.generateCardPinToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(
+          CardErrorType.INVALID_CREDENTIALS,
+        );
+      }
+    });
+
+    it('throws INVALID_CREDENTIALS error on 403 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+      });
+
+      try {
+        await cardSDK.generateCardPinToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(
+          CardErrorType.INVALID_CREDENTIALS,
+        );
+      }
+    });
+
+    it('throws NO_CARD error on 404 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+      });
+
+      try {
+        await cardSDK.generateCardPinToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.NO_CARD);
+      }
+    });
+
+    it('throws SERVER_ERROR on 500 response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+      });
+
+      try {
+        await cardSDK.generateCardPinToken();
+        fail('Expected error to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(CardError);
+        expect((error as CardError).type).toBe(CardErrorType.SERVER_ERROR);
+      }
+    });
+
+    it('sends authenticated request with bearer token', async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPinTokenResponse),
+      });
+
+      await cardSDK.generateCardPinToken();
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer test-access-token',
+          }),
+        }),
       );
     });
   });
@@ -5342,6 +5475,178 @@ describe('CardSDK', () => {
       await expect(cardSDK.unfreezeCard()).rejects.toMatchObject({
         type: CardErrorType.NETWORK_ERROR,
       });
+    });
+  });
+
+  describe('getCashbackWallet', () => {
+    it('returns cashback wallet data on success', async () => {
+      const mockWallet: CashbackWalletResponse = {
+        id: 'w1',
+        balance: '10.50',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockWallet),
+      });
+
+      const result = await cardSDK.getCashbackWallet();
+
+      expect(result).toEqual(mockWallet);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ error: 'Internal Server Error' }),
+      });
+
+      await expect(cardSDK.getCashbackWallet()).rejects.toThrow(CardError);
+      await expect(cardSDK.getCashbackWallet()).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(cardSDK.getCashbackWallet()).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('getCashbackWithdrawEstimation', () => {
+    it('returns estimation data on success', async () => {
+      const mockEstimation: CashbackWithdrawEstimationResponse = {
+        wei: '4648201084656',
+        eth: '0.000004648201084656',
+        price: '0.00892136699188968037536',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEstimation),
+      });
+
+      const result = await cardSDK.getCashbackWithdrawEstimation();
+
+      expect(result).toEqual(mockEstimation);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward/withdraw-estimation'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.getCashbackWithdrawEstimation(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(
+        cardSDK.getCashbackWithdrawEstimation(),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('withdrawCashback', () => {
+    it('returns transaction hash on success', async () => {
+      const mockResponse: CashbackWithdrawResponse = {
+        txHash: '0xabc123def456',
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse),
+      });
+
+      const result = await cardSDK.withdrawCashback({ amount: '10.50' });
+
+      expect(result).toEqual(mockResponse);
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/wallet/reward/withdraw'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ amount: '10.50' }),
+        }),
+      );
+    });
+
+    it('throws SERVER_ERROR on non-ok response', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        cardSDK.withdrawCashback({ amount: '10.50' }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.SERVER_ERROR,
+      });
+    });
+
+    it('throws NETWORK_ERROR on fetch failure', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue(
+        new Error('Network failure'),
+      );
+
+      await expect(
+        cardSDK.withdrawCashback({ amount: '10.50' }),
+      ).rejects.toMatchObject({
+        type: CardErrorType.NETWORK_ERROR,
+      });
+    });
+  });
+
+  describe('getTransactionReceipt', () => {
+    it('returns receipt from ethers provider', async () => {
+      const mockReceipt = {
+        status: 1,
+        transactionHash: '0xabc',
+        blockNumber: 12345,
+      };
+      mockProvider.getTransactionReceipt = jest
+        .fn()
+        .mockResolvedValue(mockReceipt);
+
+      const result = await cardSDK.getTransactionReceipt('0xabc');
+
+      expect(result).toEqual(mockReceipt);
+    });
+
+    it('returns null when receipt is not yet available', async () => {
+      mockProvider.getTransactionReceipt = jest.fn().mockResolvedValue(null);
+
+      const result = await cardSDK.getTransactionReceipt('0xabc');
+
+      expect(result).toBeNull();
     });
   });
 });

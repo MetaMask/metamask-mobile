@@ -11,17 +11,20 @@ import React, {
   useState,
 } from 'react';
 import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
-import { useBalanceRefresh } from './hooks';
+import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -64,7 +67,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -108,6 +111,7 @@ import {
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
+import { colorWithOpacity } from '../../../util/colors';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
@@ -123,6 +127,7 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
+import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -205,6 +210,13 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    bottomFadeOverlay: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 40,
     },
   });
 
@@ -614,6 +626,21 @@ const Wallet = ({
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
+  // ─── Homepage scroll context state ───────────────────────────────────────
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [containerScreenY, setContainerScreenY] = useState(0);
+  const { entryPoint, visitId } = useHomepageEntryPoint(navigation);
+
+  // Ref to the scroll container View — used to measure its absolute screen Y
+  // position so the visibility check in sections can use correct bounds.
+  const containerViewRef = useRef<View>(null);
+  // Timestamp of the last scroll event — used for JS-level throttling.
+  const lastScrollTickTimeRef = useRef(0);
+  // Callbacks registered by sections to be notified of scroll events.
+  // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
+  const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // ─────────────────────────────────────────────────────────────────────────
+
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsGTMModalEnabled = useSelector(
     selectPerpsGtmOnboardingModalEnabledFlag,
@@ -625,7 +652,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
@@ -765,7 +792,7 @@ const Wallet = ({
     return true;
   }, [isEvmSelected, allEnabledNetworks]);
 
-  const { isEnabled: getParticipationInMetaMetrics } = useMetrics();
+  const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
 
@@ -1063,7 +1090,7 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations],
+    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
@@ -1079,6 +1106,75 @@ const Wallet = ({
   // Enable parent scroll when homepage redesign or sections feature flags are enabled
   const shouldEnableParentScroll =
     isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
+
+  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
+
+  const scrollContentHeight = useRef(0);
+  const scrollLayoutHeight = useRef(0);
+  const scrollOffsetY = useRef(0);
+
+  const computeFadeOpacity = useCallback(
+    (contentH: number, layoutH: number, offsetY: number) => {
+      const scrollableHeight = contentH - layoutH;
+      if (scrollableHeight <= 0) {
+        setBottomFadeOpacity(0);
+        return;
+      }
+      const distanceFromEnd = scrollableHeight - offsetY;
+      const fadeThreshold = 100;
+      setBottomFadeOpacity(
+        Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
+      );
+    },
+    [],
+  );
+
+  // Notifies scroll subscribers directly (no React state update = no re-renders).
+  const handleHomepageScroll = useCallback(() => {
+    if (!isHomepageSectionsV1Enabled) return;
+    const now = Date.now();
+    if (now - lastScrollTickTimeRef.current >= 100) {
+      lastScrollTickTimeRef.current = now;
+      scrollSubscribersRef.current.forEach((cb) => cb());
+    }
+  }, [isHomepageSectionsV1Enabled]);
+
+  const handleVerticalScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      scrollContentHeight.current = contentSize.height;
+      scrollLayoutHeight.current = layoutMeasurement.height;
+      scrollOffsetY.current = contentOffset.y;
+      computeFadeOpacity(
+        contentSize.height,
+        layoutMeasurement.height,
+        contentOffset.y,
+      );
+      handleHomepageScroll();
+    },
+    [computeFadeOpacity, handleHomepageScroll],
+  );
+
+  const handleScrollContentSizeChange = useCallback(
+    (_w: number, h: number) => {
+      scrollContentHeight.current = h;
+      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
+    },
+    [computeFadeOpacity],
+  );
+
+  const handleScrollLayout = useCallback(
+    (event: { nativeEvent: { layout: { height: number } } }) => {
+      scrollLayoutHeight.current = event.nativeEvent.layout.height;
+      computeFadeOpacity(
+        scrollContentHeight.current,
+        event.nativeEvent.layout.height,
+        scrollOffsetY.current,
+      );
+    },
+    [computeFadeOpacity],
+  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1221,14 +1317,20 @@ const Wallet = ({
           ? (obj.ref.props as { tabLabel?: string })?.tabLabel
           : '';
       if (tabLabel === strings('wallet.tokens')) {
-        trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.WALLET_TOKENS)
+            .addProperties({ action: 'Wallet View', name: 'Tokens' })
+            .build(),
+        );
       } else if (tabLabel === strings('wallet.defi')) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
         );
       } else if (tabLabel === strings('wallet.collectibles')) {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
+          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES)
+            .addProperties({ action: 'Wallet View', name: 'Collectibles' })
+            .build(),
         );
         detectNfts();
       }
@@ -1285,6 +1387,22 @@ const Wallet = ({
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
 
+  const subscribeToScroll = useCallback((cb: () => void) => {
+    scrollSubscribersRef.current.add(cb);
+    return () => scrollSubscribersRef.current.delete(cb);
+  }, []);
+
+  const homepageScrollContextValue = useMemo(
+    () => ({
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+    }),
+    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
+  );
+
   const content = (
     <>
       <AssetPollingProvider />
@@ -1323,7 +1441,9 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <Homepage ref={homepageRef} />
+          <HomepageScrollContext.Provider value={homepageScrollContextValue}>
+            <Homepage ref={homepageRef} />
+          </HomepageScrollContext.Provider>
         ) : (
           <WalletTokensTabView
             ref={walletTokensTabViewRef}
@@ -1350,8 +1470,18 @@ const Wallet = ({
       <View style={baseStyles.flexGrow}>
         {selectedInternalAccount ? (
           <View
+            ref={containerViewRef}
             style={styles.wrapper}
             testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+            onLayout={(e) => {
+              setViewportHeight(e.nativeEvent.layout.height);
+              // measureInWindow gives the absolute screen Y of the container
+              // top, which is needed to form correct visible bounds when
+              // sections call measureInWindow on themselves.
+              containerViewRef.current?.measureInWindow((_x, y) => {
+                setContainerScreenY(y);
+              });
+            }}
           >
             <ConditionalScrollView
               ref={scrollViewRef}
@@ -1359,6 +1489,16 @@ const Wallet = ({
               scrollViewProps={{
                 contentContainerStyle: scrollViewContentStyle,
                 showsVerticalScrollIndicator: false,
+                onScroll: isHomepageSectionsV1Enabled
+                  ? handleVerticalScroll
+                  : undefined,
+                onContentSizeChange: isHomepageSectionsV1Enabled
+                  ? handleScrollContentSizeChange
+                  : undefined,
+                onLayout: isHomepageSectionsV1Enabled
+                  ? handleScrollLayout
+                  : undefined,
+                scrollEventThrottle: 16,
                 refreshControl: shouldEnableParentScroll ? (
                   <RefreshControl
                     colors={[colors.primary.default]}
@@ -1371,6 +1511,21 @@ const Wallet = ({
             >
               {content}
             </ConditionalScrollView>
+            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
+              <LinearGradient
+                pointerEvents="none"
+                colors={[
+                  colorWithOpacity(colors.background.default, 0),
+                  colors.background.default,
+                ]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={[
+                  styles.bottomFadeOverlay,
+                  { opacity: bottomFadeOpacity },
+                ]}
+              />
+            )}
           </View>
         ) : (
           renderLoader()

@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, TextStyle, Platform } from 'react-native';
+import { Platform, StyleSheet, TextStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
@@ -19,8 +19,19 @@ import { InputStyleSheetVars } from './Input.types';
  */
 const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
   const { theme, vars } = params;
-  const { style, textVariant, isDisabled, isStateStylesDisabled, isFocused } =
-    vars;
+  const {
+    style,
+    textVariant,
+    isDisabled,
+    isStateStylesDisabled,
+    isFocused,
+    value = '',
+    placeholder,
+  } = vars;
+
+  const hasPlaceholder = placeholder != null && placeholder !== '';
+  const isPlaceholderVisible =
+    hasPlaceholder && (value === '' || value == null);
 
   const stateObj = isStateStylesDisabled
     ? {
@@ -45,11 +56,7 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
-        lineHeight: 0,
-        // iOS-specific fix for custom font baseline alignment
-        ...(Platform.OS === 'ios' && {
-          textAlignVertical: 'center',
-        }),
+        ...(Platform.OS === 'ios' && isPlaceholderVisible && { lineHeight: 0 }),
       },
       style,
     ) as TextStyle,

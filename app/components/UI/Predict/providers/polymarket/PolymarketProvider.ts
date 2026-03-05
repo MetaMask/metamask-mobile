@@ -63,8 +63,10 @@ import {
   ROUNDING_CONFIG,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
+import { PERMIT2_ADDRESS } from './safe/constants';
 import {
   computeProxyAddress,
+  createPermit2FeeAuthorization,
   createSafeFeeAuthorization,
   getClaimTransaction,
   getDeployProxyWalletTransaction,
@@ -72,7 +74,9 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderData,
@@ -98,10 +102,11 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  refreshBalanceAllowance,
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
-import { PredictFeeCollection } from '../../types/flags';
+import { PredictFeatureFlags } from '../../types/flags';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -135,6 +140,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
   readonly chainId = POLYGON_MAINNET_CHAIN_ID;
+  readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
@@ -146,6 +152,14 @@ export class PolymarketProvider implements PredictProvider {
   >();
 
   private static readonly FALLBACK_CATEGORY: PredictCategory = 'trending';
+
+  constructor({
+    getFeatureFlags,
+  }: {
+    getFeatureFlags: () => PredictFeatureFlags;
+  }) {
+    this.#getFeatureFlags = getFeatureFlags;
+  }
 
   /**
    * Generate standard error context for Logger.error calls with searchable tags and context.
@@ -174,18 +188,59 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  #hasPermit2Config(params: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+  }): boolean {
+    return (
+      params.permit2Enabled === true &&
+      Array.isArray(params.executors) &&
+      params.executors.length > 0
+    );
+  }
+
+  #shouldUseFakOrderType({
+    permit2Enabled,
+    executors,
+    fakOrdersEnabled,
+  }: {
+    permit2Enabled?: boolean;
+    executors?: string[];
+    fakOrdersEnabled: boolean;
+  }): boolean {
+    return (
+      this.#hasPermit2Config({ permit2Enabled, executors }) &&
+      fakOrdersEnabled === true
+    );
+  }
+
+  async #isPermit2AllowanceReady(ownerAddress: string): Promise<boolean> {
+    const safeAddress =
+      this.#accountStateByAddress.get(ownerAddress)?.address ??
+      computeProxyAddress(ownerAddress);
+
+    try {
+      return await hasPermit2Allowance({ address: safeAddress });
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Permit2 allowance check failed', {
+        error,
+        ownerAddress,
+      });
+      return false;
+    }
+  }
+
   public async getMarketDetails({
     marketId,
-    liveSportsLeagues = [],
   }: {
     marketId: string;
-    liveSportsLeagues?: string[];
   }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
 
     try {
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
@@ -223,25 +278,20 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public async getMarketsByIds(
-    marketIds: string[],
-    liveSportsLeagues: string[] = [],
-  ): Promise<PredictMarket[]> {
+  public async getMarketsByIds(marketIds: string[]): Promise<PredictMarket[]> {
     if (!marketIds || marketIds.length === 0) {
       return [];
     }
 
     try {
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId, liveSportsLeagues }).catch(
-          (error) => {
-            DevLogger.log(
-              `PolymarketProvider: Failed to fetch market ${marketId}`,
-              error,
-            );
-            return null;
-          },
-        ),
+        this.getMarketDetails({ marketId }).catch((error) => {
+          DevLogger.log(
+            `PolymarketProvider: Failed to fetch market ${marketId}`,
+            error,
+          );
+          return null;
+        }),
       );
 
       const results = await Promise.all(marketPromises);
@@ -301,7 +351,7 @@ export class PolymarketProvider implements PredictProvider {
 
   public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
     try {
-      const liveSportsLeagues = params?.liveSportsLeagues ?? [];
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const liveSportsEnabled = liveSportsLeagues.length > 0;
 
       if (liveSportsEnabled) {
@@ -712,7 +762,7 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     address: string;
     positions: PredictPosition[];
-    claimable: boolean;
+    claimable?: boolean;
     marketId?: string;
     outcomeId?: string;
   }): PredictPosition[] {
@@ -818,7 +868,7 @@ export class PolymarketProvider implements PredictProvider {
     address,
     limit = 100, // todo: reduce this once we've decided on the pagination approach
     offset = 0,
-    claimable = false,
+    claimable,
     marketId,
     outcomeId,
   }: GetPositionsParams): Promise<PredictPosition[]> {
@@ -835,8 +885,11 @@ export class PolymarketProvider implements PredictProvider {
       offset: offset.toString(),
       user: predictAddress,
       sortBy: 'CURRENT',
-      redeemable: claimable.toString(),
     });
+
+    if (claimable !== undefined) {
+      queryParams.set('redeemable', claimable.toString());
+    }
 
     // Use market (conditionId/outcomeId) if provided for targeted fetch
     // This is mutually exclusive with eventId (marketId)
@@ -965,21 +1018,51 @@ export class PolymarketProvider implements PredictProvider {
   public async previewOrder(
     params: PreviewOrderParams & {
       signer: Signer;
-      feeCollection?: PredictFeeCollection;
     },
   ): Promise<OrderPreview> {
-    const basePreview = await previewOrder(params);
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const basePreview = await previewOrder({ ...params, feeCollection });
+
+    // Determine intended order type from feature flags.
+    // FAK is used when Permit2 config is active and FAK orders are enabled.
+    // The Permit2 allowance check is only needed when fees must be collected.
+    let orderType = OrderType.FOK;
+
+    const couldUseFak = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    });
+
+    if (couldUseFak) {
+      const hasFees =
+        basePreview.fees !== undefined && basePreview.fees.totalFee > 0;
+      if (hasFees) {
+        // TODO: remove this once placeOrder guarantees Permit2 allowance
+        // is set automatically before order submission.
+        const permit2Ready = await this.#isPermit2AllowanceReady(
+          params.signer.address,
+        );
+        if (permit2Ready) {
+          orderType = OrderType.FAK;
+        }
+      } else {
+        // No fees to collect via Permit2 — FAK can be used directly.
+        orderType = OrderType.FAK;
+      }
+    }
 
     if (params.signer) {
       if (this.isRateLimited(params.signer.address)) {
         return {
           ...basePreview,
+          orderType,
           rateLimited: true,
         };
       }
     }
 
-    return basePreview;
+    return { ...basePreview, orderType };
   }
 
   public async placeOrder(
@@ -992,6 +1075,7 @@ export class PolymarketProvider implements PredictProvider {
       maxAmountSpent,
       minAmountReceived,
       negRisk,
+      feeRateBps,
       fees,
       slippage,
       tickSize,
@@ -1101,7 +1185,7 @@ export class PolymarketProvider implements PredictProvider {
         takerAmount,
         expiration: '0',
         nonce: '0',
-        feeRateBps: '0',
+        feeRateBps: feeRateBps ?? '0',
         side: side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL,
         signatureType: SignatureType.POLY_GNOSIS_SAFE,
       };
@@ -1132,10 +1216,83 @@ export class PolymarketProvider implements PredictProvider {
 
       const signerApiKey = await this.getApiKey({ address: signer.address });
 
+      // Determine fees, permit2, and order type BEFORE building clobOrder
+      // so the HMAC signature covers the correct orderType.
+      const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+      const shouldUsePermit2 = this.#hasPermit2Config({
+        permit2Enabled: fees?.permit2Enabled,
+        executors: fees?.executors,
+      });
+
+      let feeAuthorization:
+        | SafeFeeAuthorization
+        | Permit2FeeAuthorization
+        | undefined;
+      let executor: string | undefined;
+      let orderType: OrderType = OrderType.FOK;
+      let permit2FeeReady = false;
+
+      if (fees !== undefined && fees.totalFee > 0) {
+        const safeAddress = computeProxyAddress(signer.address);
+        const feeAmountInUsdc = BigInt(
+          parseUnits(fees.totalFee.toString(), 6).toString(),
+        );
+
+        if (shouldUsePermit2) {
+          const executors = fees.executors ?? [];
+          const permit2Ready = await this.#isPermit2AllowanceReady(
+            signer.address,
+          );
+
+          if (permit2Ready) {
+            permit2FeeReady = true;
+            const randomIndex = new Uint32Array(1);
+            global.crypto.getRandomValues(randomIndex);
+            executor = executors[randomIndex[0] % executors.length];
+            feeAuthorization = await createPermit2FeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              spender: executor,
+            });
+          } else {
+            feeAuthorization = await createSafeFeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              to: fees.collector,
+            });
+          }
+        } else {
+          feeAuthorization = await createSafeFeeAuthorization({
+            safeAddress,
+            signer,
+            amount: feeAmountInUsdc,
+            to: fees.collector,
+          });
+        }
+      }
+
+      // Determine order type independently of fee authorization.
+      // FAK depends on feature flags only; the Permit2 allowance check
+      // is only needed when fees must be collected via Permit2.
+      if (
+        this.#shouldUseFakOrderType({
+          permit2Enabled: feeCollection.permit2Enabled,
+          executors: feeCollection.executors,
+          fakOrdersEnabled,
+        })
+      ) {
+        const hasFees = fees !== undefined && fees.totalFee > 0;
+        if (!hasFees || permit2FeeReady) {
+          orderType = OrderType.FAK;
+        }
+      }
+
       const clobOrder = {
         order: { ...signedOrder, side, salt: parseInt(signedOrder.salt) },
         owner: signerApiKey.apiKey,
-        orderType: OrderType.FOK,
+        orderType,
       };
 
       const body = JSON.stringify(clobOrder);
@@ -1150,24 +1307,28 @@ export class PolymarketProvider implements PredictProvider {
         apiKey: signerApiKey,
       });
 
-      let feeAuthorization;
-      if (fees !== undefined && fees.totalFee > 0) {
-        const safeAddress = computeProxyAddress(signer.address);
-        const feeAmountInUsdc = BigInt(
-          parseUnits(fees.totalFee.toString(), 6).toString(),
-        );
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: fees.collector,
+      // TEMPORARY WORKAROUND: Refresh balance/allowance on Polymarket's CLOB
+      // before submitting the order. See refreshBalanceAllowance docs for details.
+      try {
+        await refreshBalanceAllowance({
+          address: signer.address,
+          apiKey: signerApiKey,
+          side,
+          outcomeTokenId,
         });
+      } catch (refreshError) {
+        // Best-effort — don't block order submission if the refresh fails
+        DevLogger.log(
+          'PolymarketProvider: Pre-order balance/allowance refresh failed',
+          refreshError,
+        );
       }
 
       const { success, response, error } = await submitClobOrder({
         headers,
         clobOrder,
         feeAuthorization,
+        executor,
       });
 
       if (!success) {
@@ -1460,8 +1621,13 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     if (!accountState.hasAllowances) {
+      const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = depositFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       const allowanceTransaction = await getProxyWalletAllowancesTransaction({
         signer,
+        extraUsdcSpenders,
       });
 
       if (!allowanceTransaction) {
@@ -1533,13 +1699,17 @@ export class PolymarketProvider implements PredictProvider {
       // Check deployment status and allowances
       let isDeployed: boolean;
       let hasAllowancesResult: boolean;
+      const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
+      const extraUsdcSpenders = flagFeeCollection.permit2Enabled
+        ? [PERMIT2_ADDRESS]
+        : [];
       try {
         [isDeployed, hasAllowancesResult] = await Promise.all([
           isSmartContractAddress(
             address,
             numberToHex(POLYGON_MAINNET_CHAIN_ID),
           ),
-          hasAllowances({ address }),
+          hasAllowances({ address, extraUsdcSpenders }),
         ]);
       } catch (error) {
         throw new Error(

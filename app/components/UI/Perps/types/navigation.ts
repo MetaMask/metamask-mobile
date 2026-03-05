@@ -77,7 +77,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
     defaultMarketTypeFilter?:
       | 'all'
@@ -220,6 +219,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
+    /** When true, the order was initiated from the token details screen */
+    fromTokenDetails?: boolean;
+    /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+    assetsASSETS2493AbtestTokenDetailsLayout?: string;
   };
 }
 

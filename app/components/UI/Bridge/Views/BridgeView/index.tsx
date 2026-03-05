@@ -14,17 +14,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  getDecimalChainId,
-  getNetworkImageSource,
-} from '../../../../../util/networks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,
   setSourceAmount,
   setSourceAmountAsMax,
-  selectIsMaxSourceAmount,
   resetBridgeState,
   selectDestToken,
   selectSourceToken,
@@ -58,8 +54,6 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
@@ -77,6 +71,7 @@ import { isNullOrUndefined, Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { trimTrailingZeros } from '../../utils/trimTrailingZeros.ts';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
@@ -89,6 +84,7 @@ import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.ts
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
 import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -99,7 +95,6 @@ const BridgeView = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const keypadRef = useRef<SwapsKeypadRef>(null);
 
   // Needed to get gas fee estimates
@@ -107,7 +102,6 @@ const BridgeView = () => {
   useGasFeeEstimates(selectedNetworkClientId);
 
   const sourceAmount = useSelector(selectSourceAmount);
-  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
@@ -134,8 +128,6 @@ const BridgeView = () => {
   // This gives users time to type before the keyboard disappears
   // The ref is typed to only expose the blur method we need
   const inputRef = useRef<TokenInputAreaRef>(null);
-
-  const updateQuoteParams = useBridgeQuoteRequest();
 
   // Fetch STX liveness for the source chain
   useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
@@ -177,6 +169,11 @@ const BridgeView = () => {
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
+    balance: sourceToken?.balance,
+  });
+
+  const updateQuoteParams = useBridgeQuoteRequest({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const {
@@ -276,26 +273,7 @@ const BridgeView = () => {
     navigation.setOptions(getBridgeNavbar(navigation, bridgeViewMode, colors));
   }, [navigation, bridgeViewMode, colors]);
 
-  const hasTrackedPageView = useRef(false);
-  useEffect(() => {
-    const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
-
-    if (shouldTrackPageView) {
-      hasTrackedPageView.current = true;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
-          .addProperties({
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            chain_id_destination: getDecimalChainId(destToken?.chainId),
-            token_symbol_source: sourceToken.symbol,
-            token_symbol_destination: destToken?.symbol,
-            token_address_source: sourceToken.address,
-            token_address_destination: destToken?.address,
-          })
-          .build(),
-      );
-    }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
+  useTrackSwapPageViewed();
 
   // Reset isErrorBannerVisible when error state changes
   useEffect(() => {
@@ -320,7 +298,9 @@ const BridgeView = () => {
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
-      dispatch(setSourceAmountAsMax(latestSourceBalance.displayBalance));
+      const balance = latestSourceBalance.displayBalance;
+      const cleaned = trimTrailingZeros(balance);
+      dispatch(setSourceAmountAsMax(cleaned));
     }
   };
 
@@ -357,6 +337,14 @@ const BridgeView = () => {
       );
     }
 
+    // Prevent bottom section from rendering when no active
+    // quotes exist and none are being fetching.
+    // This resolves edge cases when users are redirected back from
+    // Select Quote page due to quotes expiry.
+    if (!activeQuote) {
+      return null;
+    }
+
     // TODO: remove this once controller types are updated
     // @ts-expect-error: controller types are not up to date yet
     const quoteBpsFee = activeQuote?.quote?.feeData?.metabridge?.quoteBpsFee;
@@ -372,6 +360,7 @@ const BridgeView = () => {
         : null;
 
     return (
+      isValidSourceAmount &&
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
@@ -433,7 +422,6 @@ const BridgeView = () => {
           <TokenInputArea
             ref={inputRef}
             amount={sourceAmount}
-            isMaxAmount={isMaxSourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
             networkImageSource={
@@ -502,7 +490,9 @@ const BridgeView = () => {
             )}
             {shouldDisplayQuoteDetails && (
               <Box style={styles.quoteContainer}>
-                <QuoteDetailsCard />
+                <QuoteDetailsCard
+                  hasInsufficientBalance={hasInsufficientBalance}
+                />
               </Box>
             )}
           </Box>
@@ -515,7 +505,7 @@ const BridgeView = () => {
           value={sourceAmount || '0'}
           onChange={handleKeypadChange}
           currency={sourceToken?.symbol || 'ETH'}
-          decimals={sourceToken?.decimals || 18}
+          decimals={sourceToken?.decimals ?? Infinity}
         >
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsConfirmButton

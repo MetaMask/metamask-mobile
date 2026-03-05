@@ -40,8 +40,6 @@ import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format'
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -180,7 +178,6 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
-  const { isStockToken } = useRWAToken();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
@@ -309,9 +306,6 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token) && (
-          <StockBadge style={styles.stockBadgeWrapper} token={token} />
-        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
