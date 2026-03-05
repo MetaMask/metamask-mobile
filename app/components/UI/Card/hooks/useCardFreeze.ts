@@ -32,8 +32,6 @@ const useCardFreeze = ({
   optimisticStatusRef.current = optimisticStatus;
 
   // Clear optimistic override once the real cardStatus prop catches up.
-  // This avoids reverting the switch when fetchCardDetails silently fails
-  // (useWrapWithCache swallows errors and returns null).
   useEffect(() => {
     if (optimisticStatus !== null && cardStatus === optimisticStatus) {
       setOptimisticStatus(null);
