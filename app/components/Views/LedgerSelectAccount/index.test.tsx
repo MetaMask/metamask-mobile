@@ -4,6 +4,7 @@ import LedgerSelectAccount from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import type { BluetoothInterface } from '../../hooks/Ledger/useBluetoothDevices';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 import {
@@ -90,8 +91,8 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
     isSendingLedgerCommands: false,
     isAppLaunchConfirmationNeeded: false,
     ledgerLogicToRun: jest.fn(
-      async (fn: (transport: unknown) => Promise<void>) =>
-        fn(undefined as unknown),
+      async (fn: (transport: BluetoothInterface) => Promise<void>) =>
+        fn(undefined as unknown as BluetoothInterface),
     ),
     error: undefined,
   })),
@@ -216,12 +217,12 @@ describe('LedgerSelectAccount', () => {
     mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
     mockForgetLedger.mockResolvedValue(undefined);
 
-    (useLedgerBluetooth as jest.Mock).mockImplementation(() => ({
+    jest.mocked(useLedgerBluetooth).mockImplementation(() => ({
       isSendingLedgerCommands: false,
       isAppLaunchConfirmationNeeded: false,
       ledgerLogicToRun: jest.fn(
-        async (fn: (transport: unknown) => Promise<void>) =>
-          fn(undefined as unknown),
+        async (fn: (transport: BluetoothInterface) => Promise<void>) =>
+          fn(undefined as unknown as BluetoothInterface),
       ),
       error: undefined,
       cleanupBluetoothConnection: jest.fn(),
