@@ -146,6 +146,9 @@ export function useWebSocketHealthToast(): void {
             case WebSocketConnectionState.Connecting:
               // Immediately hide any existing toast so the user sees a response to retry,
               // then show a "reconnecting" banner after the 1s flicker-prevention delay.
+              // Mark that a disconnection has occurred so the "back online" toast fires
+              // when Connected is reached (covers snapshot path: Disconnected → Connecting → Connected).
+              hasExperiencedDisconnectionRef.current = true;
               clearAutoRetryTimer();
               hide();
               scheduleShowBanner(WebSocketConnectionState.Connecting, attempt);
