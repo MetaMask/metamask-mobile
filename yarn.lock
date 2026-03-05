@@ -9430,14 +9430,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^10.2.0":
-  version: 10.2.0
-  resolution: "@metamask/ramps-controller@npm:10.2.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.2.0-preview-93519965c":
+  version: 10.2.0-preview-93519965c
+  resolution: "@metamask-previews/ramps-controller@npm:10.2.0-preview-93519965c"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/4c9e10f3948a4e0f44f3a98fd2a7a220585e74793ad4cc899b27be6ea3c428c76fb95b0987697a0dd62a98221868ce2bfb3e40495cef00f4909e5dd88dec152e
+  checksum: 10/fe18cea25478fc81fbe51f1dca0a4ed1741b08b7aa2cec6d39db44c6a2dbb99d7c64aa0d9b65bd0b22a8c9bb143f50e194a3cda0dfa02804a508c4484fe12c86
   languageName: node
   linkType: hard
 

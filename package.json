@@ -1,5 +1,11 @@
 {
   "name": "metamask",
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "10.2.0-preview-93519965c"
+    }
+  },
   "version": "7.69.0",
   "private": true,
   "scripts": {
