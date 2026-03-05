@@ -133,7 +133,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const feeCollectionConfig = useSelector(selectPredictFeeCollectionFlag);
   const isFeeExemption =
     market?.tags?.some((slug) =>
-      feeCollectionConfig.waiveList.includes(slug),
+      feeCollectionConfig.waiveList?.includes(slug),
     ) ?? false;
 
   // Tabs become ready when both market and positions queries have resolved
