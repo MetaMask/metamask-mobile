@@ -648,6 +648,13 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const { listPopularEvmNetworks } = useNetworkEnablement();
+  const evmChainIds = useMemo(
+    (): Hex[] => listPopularEvmNetworks(),
+    // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [listPopularEvmNetworks, networkConfigurations],
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -1062,13 +1069,18 @@ const Wallet = ({
     () => {
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
-
-        const networkClientIDs = Object.values(evmNetworkConfigurations)
+        const allowed = new Set<string>(evmChainIds);
+        const popularConfigs = Object.fromEntries(
+          Object.entries(evmNetworkConfigurations).filter(([cid]) =>
+            allowed.has(cid),
+          ),
+        );
+        const networkClientIDs = Object.values(popularConfigs)
           .map(
             ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
+              rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
           )
-          .filter((c) => Boolean(c));
+          .filter((c): c is string => Boolean(c));
 
         AccountTrackerController.refresh(networkClientIDs);
       });
@@ -1076,7 +1088,13 @@ const Wallet = ({
     /* eslint-disable-next-line */
     // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
     // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
+    [
+      navigation,
+      chainId,
+      evmNetworkConfigurations,
+      evmChainIds,
+      selectedInternalAccount,
+    ],
   );
 
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
@@ -1087,7 +1105,6 @@ const Wallet = ({
     selectHomepageSectionsV1Enabled,
   );
 
-  const { listPopularEvmNetworks } = useNetworkEnablement();
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
@@ -1364,13 +1381,6 @@ const Wallet = ({
       }
     }
   }, [refreshBalance, isHomepageSectionsV1Enabled]);
-
-  const evmChainIds = useMemo(
-    (): Hex[] => listPopularEvmNetworks(),
-    // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [listPopularEvmNetworks, networkConfigurations],
-  );
 
   const content = (
     <>

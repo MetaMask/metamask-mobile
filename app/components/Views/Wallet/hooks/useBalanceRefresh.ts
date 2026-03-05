@@ -1,11 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectNativeNetworkCurrencies,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const REFRESH_TIMEOUT_MS = 5000;
 const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
@@ -23,15 +25,40 @@ const isRefreshTimeoutError = (error: unknown): error is Error =>
  */
 export const useBalanceRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
+  const { listPopularEvmNetworks } = useNetworkEnablement();
+
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const evmChainIds = useMemo(
+    () => listPopularEvmNetworks(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [networkConfigurations],
+  );
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  // Only refresh balance for popular EVM chains.
+  const evmNetworkConfigurationsFiltered = useMemo(() => {
+    const allowed = new Set<string>(evmChainIds);
+    return Object.fromEntries(
+      Object.entries(evmNetworkConfigurations).filter(([chainId]) =>
+        allowed.has(chainId),
+      ),
+    );
+  }, [evmNetworkConfigurations, evmChainIds]);
+
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
   const refreshBalance = useCallback(async () => {
-    const { AccountTrackerController, CurrencyRateController } = Engine.context;
-    const networkClientIds = Object.values(evmNetworkConfigurations)
+    const {
+      AccountTrackerController,
+      CurrencyRateController,
+      TokenBalancesController,
+      TokenDetectionController,
+    } = Engine.context;
+    const networkClientIds = Object.values(evmNetworkConfigurationsFiltered)
       .map(
         ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
           rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
@@ -43,6 +70,8 @@ export const useBalanceRefresh = () => {
         Promise.allSettled([
           AccountTrackerController.refresh(networkClientIds),
           CurrencyRateController.updateExchangeRate(nativeCurrencies),
+          TokenDetectionController.detectTokens({ chainIds: evmChainIds }),
+          TokenBalancesController.updateBalances({ chainIds: evmChainIds }),
         ]),
         new Promise((_, reject) =>
           setTimeout(
@@ -59,7 +88,7 @@ export const useBalanceRefresh = () => {
 
       Logger.error(error as Error, 'Error refreshing balance');
     }
-  }, [evmNetworkConfigurations, nativeCurrencies]);
+  }, [evmNetworkConfigurationsFiltered, evmChainIds, nativeCurrencies]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);

@@ -3,8 +3,16 @@ import { useBalanceRefresh } from './useBalanceRefresh';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
+const mockListPopularEvmNetworks = jest.fn();
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
+}));
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    listPopularEvmNetworks: mockListPopularEvmNetworks,
+  }),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -19,6 +27,7 @@ jest.mock('../../../../selectors/networkController', () => ({
     },
   })),
   selectNativeNetworkCurrencies: jest.fn(() => ['ETH', 'POL']),
+  selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -28,6 +37,12 @@ jest.mock('../../../../core/Engine', () => ({
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(() => Promise.resolve()),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenBalancesController: {
+      updateBalances: jest.fn(() => Promise.resolve()),
     },
   },
 }));
@@ -40,6 +55,19 @@ jest.mock('../../../../util/Logger', () => ({
 describe('useBalanceRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockListPopularEvmNetworks.mockReturnValue(['0x1', '0x89']);
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenBalancesController.updateBalances as jest.Mock
+    ).mockResolvedValue(undefined);
   });
 
   it('returns refreshBalance, handleRefresh, and refreshing', () => {
@@ -72,6 +100,21 @@ describe('useBalanceRefresh', () => {
     expect(
       Engine.context.AccountTrackerController.refresh,
     ).toHaveBeenCalledWith(['mainnet-client', 'polygon-client']);
+  });
+
+  it('calls TokenDetectionController.detectTokens and TokenBalancesController.updateBalances with popular chain IDs', async () => {
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.TokenDetectionController.detectTokens,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
+    expect(
+      Engine.context.TokenBalancesController.updateBalances,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
   });
 
   it('calls CurrencyRateController.updateExchangeRate with native currencies', async () => {
@@ -148,5 +191,33 @@ describe('useBalanceRefresh', () => {
       unexpectedError,
       'Error refreshing balance',
     );
+  });
+
+  it('calls AccountTrackerController.refresh only for popular EVM chain IDs', async () => {
+    mockListPopularEvmNetworks.mockReturnValue(['0x1']);
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.AccountTrackerController.refresh,
+    ).toHaveBeenCalledWith(['mainnet-client']);
+  });
+
+  it('calls AccountTrackerController.refresh with empty array when no popular chains', async () => {
+    mockListPopularEvmNetworks.mockReturnValue([]);
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.AccountTrackerController.refresh,
+    ).toHaveBeenCalledWith([]);
   });
 });
