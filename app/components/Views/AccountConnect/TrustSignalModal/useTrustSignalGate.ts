@@ -13,8 +13,6 @@ export const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
     }
   : {};
 
-export const TRUST_SIGNAL_VARIANT = 'malicious' as const;
-
 /**
  * Computes trust signal state for the given origin.
  * Call BEFORE the `useState` for `screen` so the initial value can be set
