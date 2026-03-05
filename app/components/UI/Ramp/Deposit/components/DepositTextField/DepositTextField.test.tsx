@@ -8,11 +8,11 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import { mockTheme } from '../../../../../../util/theme';
-import { AppThemeKey } from '../../../../../../util/theme/models';
+import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
-let mockCurrentTheme = mockTheme;
+let mockCurrentTheme: Theme = mockTheme;
 
 const defaultProps = {
   label: 'Test Label',
