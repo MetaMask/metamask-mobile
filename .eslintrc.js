@@ -117,12 +117,6 @@ module.exports = {
       },
     },
     {
-      files: ['app/components/UI/Card/**/*.{js,jsx,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
-    },
-    {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
@@ -160,6 +154,14 @@ module.exports = {
       files: [
         'app/component-library/**/*.{js,jsx,ts,tsx}',
         'app/components/**/*.{js,jsx,ts,tsx}',
+      ],
+      excludedFiles: [
+        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
       ],
       plugins: ['@metamask/design-tokens', 'tailwindcss'],
       rules: {
