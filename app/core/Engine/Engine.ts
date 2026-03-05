@@ -1198,13 +1198,12 @@ export class Engine {
     }
   }
 
-  // This should be used instead of directly calling PreferencesController.setSelectedAddress or AccountsController.setSelectedAccount
+  // This should be used instead of AccountsController.setSelectedAccount
   setSelectedAccount(address: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const account = AccountsController.getAccountByAddress(address);
     if (account) {
       AccountsController.setSelectedAccount(account.id);
-      PreferencesController.setSelectedAddress(address);
     } else {
       throw new Error(`No account found for address: ${address}`);
     }

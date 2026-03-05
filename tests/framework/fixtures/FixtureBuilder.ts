@@ -1349,14 +1349,6 @@ class FixtureBuilder {
         selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
       },
     };
-    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
-    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
-    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
-    //     name: 'Account 1',
-    //     importTime: 1684232000456,
-    //   },
-    // };
-    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
 
     // Configure for Ethereum mainnet only
     this.fixture.state.engine.backgroundState.MultichainNetworkController = {

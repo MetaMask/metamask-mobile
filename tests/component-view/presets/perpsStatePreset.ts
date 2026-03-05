@@ -46,9 +46,6 @@ export const initialStatePerps = () =>
             providerConfig: { chainId: '0x1', type: 'mainnet' },
             selectedNetworkClientId: 'mainnet',
           },
-          PreferencesController: {
-            selectedAddress: '0x1234567890abcdef',
-          },
           // PerpsMarketBalanceActions -> usePerpsHomeActions -> useConfirmNavigation reads TransactionController
           TransactionController: {
             transactions: [],

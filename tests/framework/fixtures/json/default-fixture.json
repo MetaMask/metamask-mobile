@@ -426,20 +426,11 @@
           "dismissSmartAccountSuggestionEnabled": false,
           "displayNftMedia": true,
           "featureFlags": {},
-          "identities": {
-            "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3": {
-              "address": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
-              "importTime": 1684232000456,
-              "name": "Account 1"
-            }
-          },
           "ipfsGateway": "https://dweb.link/ipfs/",
           "isIpfsGatewayEnabled": true,
           "isMultiAccountBalancesEnabled": true,
-          "lostIdentities": {},
           "privacyMode": false,
           "securityAlertsEnabled": true,
-          "selectedAddress": "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3",
           "showIncomingTransactions": {
             "0x1": true,
             "0x13881": true,
@@ -467,7 +458,6 @@
           "showMultiRpcModal": false,
           "showTestNetworks": true,
           "smartAccountOptIn": true,
-          "smartAccountOptInForAccounts": [],
           "smartTransactionsOptInStatus": true,
           "tokenNetworkFilter": {},
           "tokenSortConfig": {

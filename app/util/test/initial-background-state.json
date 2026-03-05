@@ -285,10 +285,7 @@
   },
   "PreferencesController": {
     "featureFlags": {},
-    "identities": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
-    "lostIdentities": {},
-    "selectedAddress": "",
     "useTokenDetection": true,
     "useNftDetection": true,
     "useSafeChainsListValidation": true,
@@ -299,7 +296,6 @@
     "showMultiRpcModal": false,
     "showTestNetworks": false,
     "smartAccountOptIn": true,
-    "smartAccountOptInForAccounts": [],
     "showIncomingTransactions": {
       "0x1": true,
       "0x5": true,
