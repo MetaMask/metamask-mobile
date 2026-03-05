@@ -38,7 +38,7 @@ export function useTransactionPayPostQuote(): void {
 
     try {
       const { TransactionPayController } = Engine.context;
-      const from = transactionMeta?.txParams.from as Hex | undefined;
+      const from = transactionMeta?.txParams?.from as Hex | undefined;
       const refundTo = from ? computeProxyAddress(from) : undefined;
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
@@ -55,5 +55,5 @@ export function useTransactionPayPostQuote(): void {
         transactionId,
       });
     }
-  }, [canSelectWithdrawToken, transactionId, transactionMeta?.txParams.from]);
+  }, [canSelectWithdrawToken, transactionId, transactionMeta?.txParams?.from]);
 }
