@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import ChartLegend from './ChartLegend';
 import { ChartSeries } from '../PredictDetailsChart';
+import { TEST_HEX_COLORS } from '../../../testUtils/mockColors';
 
 jest.mock('../utils', () => ({
   formatTickValue: jest.fn((value: number, range: number) => {
@@ -22,8 +23,7 @@ describe('ChartLegend', () => {
   const mockSingleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#4459FF',
+      color: TEST_HEX_COLORS.CHART_PRIMARY,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -35,8 +35,7 @@ describe('ChartLegend', () => {
   const mockMultipleSeries: ChartSeries[] = [
     {
       label: 'Outcome A',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#4459FF',
+      color: TEST_HEX_COLORS.CHART_PRIMARY,
       data: [
         { timestamp: 1640995200000, value: 0.5 },
         { timestamp: 1640998800000, value: 0.6 },
@@ -45,8 +44,7 @@ describe('ChartLegend', () => {
     },
     {
       label: 'Outcome B',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#FF6B6B',
+      color: TEST_HEX_COLORS.CHART_CORAL,
       data: [
         { timestamp: 1640995200000, value: 0.3 },
         { timestamp: 1640998800000, value: 0.2 },
@@ -135,8 +133,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty Series',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#4459FF',
+          color: TEST_HEX_COLORS.CHART_PRIMARY,
           data: [],
         },
       ];
@@ -207,8 +204,7 @@ describe('ChartLegend', () => {
       const seriesWithEmptyData: ChartSeries[] = [
         {
           label: 'Empty',
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          color: '#4459FF',
+          color: TEST_HEX_COLORS.CHART_PRIMARY,
           data: [],
         },
       ];
