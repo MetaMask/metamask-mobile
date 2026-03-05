@@ -311,7 +311,7 @@ describe('MusdQuickConvertView', () => {
       expect(
         getByText(
           strings('earn.musd_conversion.quick_convert.title', {
-            apy: MUSD_CONVERSION_APY,
+            percentage: MUSD_CONVERSION_APY,
           }),
         ),
       ).toBeOnTheScreen();
