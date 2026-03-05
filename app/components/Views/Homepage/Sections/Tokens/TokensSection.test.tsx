@@ -576,7 +576,9 @@ describe('TokensSection', () => {
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(
       screen.queryByTestId('remove-token-bottom-sheet'),
@@ -602,7 +604,9 @@ describe('TokensSection', () => {
     });
 
     it('shows RemoveTokenBottomSheet on long press and calls removeEvmToken on confirm', async () => {
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
 
@@ -626,7 +630,9 @@ describe('TokensSection', () => {
         },
       ]);
 
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xsoltoken'), 'onLongPress');
 
@@ -639,7 +645,9 @@ describe('TokensSection', () => {
     });
 
     it('hides RemoveTokenBottomSheet on cancel', () => {
-      renderWithProvider(<TokensSection />);
+      renderWithProvider(
+        <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       fireEvent(screen.getByTestId('token-item-0xtoken1'), 'onLongPress');
 
