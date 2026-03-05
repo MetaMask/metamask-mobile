@@ -300,9 +300,8 @@ export const useDeviceConnectionFlow = ({
       connectionSuccessCallbackRef.current = null;
       callback();
     }
-    setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [setters, updateConnectionState]);
+  }, [updateConnectionState]);
 
   return {
     ensureDeviceReady,
