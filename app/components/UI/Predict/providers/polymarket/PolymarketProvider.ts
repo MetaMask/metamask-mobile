@@ -246,12 +246,12 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const { liveSportsLeagues } = this.#getFeatureFlags();
-      const isSportsEvent = isLiveSportsEvent(event, liveSportsLeagues);
+      const supportedLeagues =
+        liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES;
+      const isSportsEvent = isLiveSportsEvent(event, supportedLeagues);
 
       if (isSportsEvent) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-        );
+        await TeamsCache.getInstance().ensureLeaguesLoaded(supportedLeagues);
       }
 
       const teamLookup = isSportsEvent
