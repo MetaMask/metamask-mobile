@@ -582,7 +582,90 @@ const CardHome = () => {
     }
   }, [trackEvent, createEventBuilder, priorityToken, openSwaps, navigation]);
 
-  const openOnboardingDelegationAction = useCallback(() => {
+  const cardSetupState = useMemo(() => {
+    const needsSetup =
+      isBaanxLoginEnabled &&
+      (warning === CardStateWarning.NoCard ||
+        warning === CardStateWarning.NeedDelegation);
+
+    const isKYCVerified =
+      isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
+
+    const isKYCPending =
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      (kycStatus?.verificationState === 'PENDING' ||
+        kycStatus?.verificationState === 'UNVERIFIED');
+
+    const canEnable = isKYCVerified && !isLoading;
+
+    const setupTestId =
+      warning === CardStateWarning.NoCard
+        ? CardHomeSelectors.ENABLE_CARD_BUTTON
+        : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
+
+    return { needsSetup, canEnable, isKYCPending, setupTestId };
+  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
+
+  /**
+   * Check if the card is being provisioned.
+   * Show info box when: VERIFIED + has delegated assets + card not yet provisioned
+   */
+  const isCardProvisioning = useMemo(
+    () =>
+      isAuthenticated &&
+      kycStatus?.verificationState === 'VERIFIED' &&
+      warning === CardStateWarning.NoCard &&
+      (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0,
+    [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
+  );
+
+  const userShippingAddress: ShippingAddress | undefined = useMemo(
+    () => buildShippingAddress(kycStatus?.userDetails),
+    [kycStatus?.userDetails],
+  );
+
+  const orderMetalCardAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ORDER_METAL_CARD_BUTTON,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
+      flow: 'upgrade',
+      shippingAddress: userShippingAddress,
+    });
+  }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
+
+  const isUserEligibleForMetalCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !cardSetupState.needsSetup &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      userLocation === 'us' &&
+      userShippingAddress &&
+      cardDetails?.type === CardType.VIRTUAL,
+    [
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      userLocation,
+      userShippingAddress,
+      cardDetails,
+      isLoading,
+      cardSetupState,
+      isCardProvisioning,
+    ],
+  );
+
+  const enableCardAction = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -591,13 +674,17 @@ const CardHome = () => {
         .build(),
     );
 
-    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-      flow: 'manage',
-      priorityToken,
-      allTokens,
-      delegationSettings,
-      externalWalletDetailsData,
-    });
+    if (isUserEligibleForMetalCard) {
+      orderMetalCardAction();
+    } else {
+      navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+        flow: 'manage',
+        priorityToken,
+        allTokens,
+        delegationSettings,
+        externalWalletDetailsData,
+      });
+    }
   }, [
     navigation,
     priorityToken,
@@ -606,6 +693,8 @@ const CardHome = () => {
     externalWalletDetailsData,
     trackEvent,
     createEventBuilder,
+    isUserEligibleForMetalCard,
+    orderMetalCardAction,
   ]);
 
   const changeAssetAction = useCallback(() => {
@@ -689,26 +778,6 @@ const CardHome = () => {
       ],
     );
   }, [logoutFromProvider, navigation]);
-
-  const userShippingAddress: ShippingAddress | undefined = useMemo(
-    () => buildShippingAddress(kycStatus?.userDetails),
-    [kycStatus?.userDetails],
-  );
-
-  const orderMetalCardAction = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.ORDER_METAL_CARD_BUTTON,
-        })
-        .build(),
-    );
-
-    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
-      flow: 'upgrade',
-      shippingAddress: userShippingAddress,
-    });
-  }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
 
   const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
@@ -906,44 +975,6 @@ const CardHome = () => {
     }
   }, [isPinLoading, reauthenticate, fetchAndShowPin, navigation, toastRef]);
 
-  const cardSetupState = useMemo(() => {
-    const needsSetup =
-      isBaanxLoginEnabled &&
-      (warning === CardStateWarning.NoCard ||
-        warning === CardStateWarning.NeedDelegation);
-
-    const isKYCVerified =
-      isAuthenticated && kycStatus?.verificationState === 'VERIFIED';
-
-    const isKYCPending =
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      (kycStatus?.verificationState === 'PENDING' ||
-        kycStatus?.verificationState === 'UNVERIFIED');
-
-    const canEnable = isKYCVerified && !isLoading;
-
-    const setupTestId =
-      warning === CardStateWarning.NoCard
-        ? CardHomeSelectors.ENABLE_CARD_BUTTON
-        : CardHomeSelectors.ENABLE_ASSETS_BUTTON;
-
-    return { needsSetup, canEnable, isKYCPending, setupTestId };
-  }, [warning, isBaanxLoginEnabled, isAuthenticated, kycStatus, isLoading]);
-
-  /**
-   * Check if the card is being provisioned.
-   * Show info box when: VERIFIED + has delegated assets + card not yet provisioned
-   */
-  const isCardProvisioning = useMemo(
-    () =>
-      isAuthenticated &&
-      kycStatus?.verificationState === 'VERIFIED' &&
-      warning === CardStateWarning.NoCard &&
-      (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0,
-    [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
-  );
-
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -983,7 +1014,7 @@ const CardHome = () => {
           variant={ButtonVariants.Primary}
           label={strings('card.card_home.enable_card_button_label')}
           size={ButtonSize.Lg}
-          onPress={openOnboardingDelegationAction}
+          onPress={enableCardAction}
           width={ButtonWidthTypes.Full}
           testID={cardSetupState.setupTestId}
         />
@@ -1024,34 +1055,9 @@ const CardHome = () => {
     isLoading,
     isSwapEnabledForPriorityToken,
     tw,
-    openOnboardingDelegationAction,
+    enableCardAction,
     isCardProvisioning,
   ]);
-
-  const isUserEligibleForMetalCard = useMemo(
-    () =>
-      !isLoading &&
-      !cardSetupState.isKYCPending &&
-      !cardSetupState.needsSetup &&
-      !isCardProvisioning &&
-      isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      userLocation === 'us' &&
-      userShippingAddress &&
-      cardDetails?.type === CardType.VIRTUAL,
-    [
-      isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
-      isAuthenticated,
-      userLocation,
-      userShippingAddress,
-      cardDetails,
-      isLoading,
-      cardSetupState,
-      isCardProvisioning,
-    ],
-  );
 
   useEffect(
     () => () => {
