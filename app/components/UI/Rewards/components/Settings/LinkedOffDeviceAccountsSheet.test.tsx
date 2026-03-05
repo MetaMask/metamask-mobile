@@ -37,19 +37,19 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetHeader — renders children directly
+// Mock HeaderCompactStandard — renders title text directly
 jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
+    const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ children }: { children?: React.ReactNode }) =>
+      default: ({ title }: { title?: string; onClose?: () => void }) =>
         ReactActual.createElement(
           View,
-          { testID: 'bottom-sheet-header' },
-          children,
+          { testID: 'header-compact-standard' },
+          ReactActual.createElement(Text, null, title),
         ),
     };
   },
@@ -126,8 +126,9 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm', HeadingMd: 'HeadingMd' },
     BoxFlexDirection: { Row: 'row', Column: 'column' },
     BoxAlignItems: { Center: 'center', Start: 'flex-start' },
-    IconName: { Copy: 'copy', Info: 'info' },
+    IconName: { Copy: 'copy', Info: 'info', Close: 'close' },
     IconSize: { Md: 'md', Xl: 'xl' },
+    ButtonIconSize: { Md: 'md', Lg: 'lg' },
     FontWeight: { Medium: 'medium', Bold: 'bold' },
   };
 });
@@ -200,7 +201,7 @@ describe('LinkedOffDeviceAccountsSheet', () => {
           onClose={mockOnClose}
         />,
       );
-      expect(getByTestId('bottom-sheet-header')).toBeOnTheScreen();
+      expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
     });
 
     it('renders the sheet title', () => {

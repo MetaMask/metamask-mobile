@@ -15,7 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { toHex } from '@metamask/controller-utils';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -28,6 +27,7 @@ import {
 } from '../../../../../util/networks';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 
 const styles = StyleSheet.create({
   list: {
@@ -144,11 +144,10 @@ const LinkedOffDeviceAccountsSheet: React.FC<
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
-      <BottomSheetHeader>
-        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-          {strings('rewards.settings.off_device_accounts_sheet_title')}
-        </Text>
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={strings('rewards.settings.off_device_accounts_sheet_title')}
+        onClose={onClose}
+      />
 
       <Box twClassName="px-4 gap-4">
         <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
