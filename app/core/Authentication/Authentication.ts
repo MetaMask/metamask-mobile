@@ -1346,9 +1346,6 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
