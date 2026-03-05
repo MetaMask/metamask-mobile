@@ -6,8 +6,13 @@ import type { PredictActivity } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { ensureError } from '../utils/predictErrorHandler';
+import { useSelector } from 'react-redux';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 
 export function usePredictActivity(): UseQueryResult<PredictActivity[], Error> {
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
+
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const address = evmAccount?.address ?? '0x0';
 
