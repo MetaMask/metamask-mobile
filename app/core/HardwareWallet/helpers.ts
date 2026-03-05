@@ -38,6 +38,22 @@ export function getHardwareWalletTypeForAddress(
 }
 
 /**
+ * Asserts that a wallet type is non-null.
+ * Used after `??` fallback chains in error-handling and display paths
+ * where the type should always be resolved by that point.
+ */
+export function assertWalletType(
+  walletType: HardwareWalletType | null | undefined,
+): HardwareWalletType {
+  if (walletType == null) {
+    throw new Error(
+      'assertWalletType: no wallet type available — this should be unreachable when an adapter is active',
+    );
+  }
+  return walletType;
+}
+
+/**
  * Returns i18n keys for connection tips based on the wallet type.
  */
 export function getConnectionTipsForWalletType(

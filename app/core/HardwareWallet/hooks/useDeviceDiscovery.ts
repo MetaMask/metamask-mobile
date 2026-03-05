@@ -11,6 +11,7 @@ import {
   HardwareWalletAdapter,
 } from '../types';
 import { parseErrorByType } from '../errors';
+import { assertWalletType } from '../helpers';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const INITIAL_DEVICE_SELECTION: DeviceSelectionState = {
@@ -88,7 +89,7 @@ export const useDeviceDiscovery = ({
         DevLogger.log('[HardwareWallet] Device discovery error:', error);
         const scanError = parseErrorByType(
           error,
-          walletType ?? adapter.walletType ?? HardwareWalletType.Ledger,
+          assertWalletType(walletType ?? adapter.walletType),
         );
         updateConnectionState({
           status: ConnectionStatus.ErrorState,

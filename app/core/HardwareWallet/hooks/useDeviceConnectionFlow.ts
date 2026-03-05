@@ -6,6 +6,7 @@ import {
 } from '@metamask/hw-wallet-sdk';
 
 import { HardwareWalletAdapter } from '../types';
+import { assertWalletType } from '../helpers';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -195,10 +196,9 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = null;
       }
 
-      const targetType =
-        refs.targetWalletTypeRef.current ??
-        walletType ??
-        HardwareWalletType.Ledger;
+      const targetType = assertWalletType(
+        refs.targetWalletTypeRef.current ?? walletType,
+      );
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
@@ -299,8 +299,9 @@ export const useDeviceConnectionFlow = ({
       connectionSuccessCallbackRef.current = null;
       callback();
     }
+    setters.setTargetWalletType(null);
     updateConnectionState({ status: ConnectionStatus.Disconnected });
-  }, [updateConnectionState]);
+  }, [setters, updateConnectionState]);
 
   return {
     ensureDeviceReady,

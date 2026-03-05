@@ -22,6 +22,7 @@ import {
   SuccessContent,
 } from './contents';
 import { DiscoveredDevice, type DeviceSelectionState } from '../../types';
+import { assertWalletType } from '../../helpers';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 
 export const HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID =
@@ -159,9 +160,7 @@ export const HardwareWalletBottomSheet: React.FC<
     onClose();
   }, [onClose]);
 
-  // The effective device type — only used when the sheet is visible,
-  // so walletType should always be set by then.
-  const deviceType = walletType ?? HardwareWalletType.Ledger;
+  const deviceType = assertWalletType(walletType);
 
   const renderContent = () => {
     switch (connectionState.status) {
