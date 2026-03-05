@@ -19215,7 +19215,9 @@ describe('RewardsController', () => {
 
     it('returns cached campaigns when cache is fresh', async () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
-      const mockCachedCampaigns = [createTestCampaign({ id: 'cached-campaign' })];
+      const mockCachedCampaigns = [
+        createTestCampaign({ id: 'cached-campaign' }),
+      ];
 
       controller = new RewardsController({
         messenger: mockMessenger,
