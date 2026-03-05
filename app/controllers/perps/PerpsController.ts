@@ -751,6 +751,8 @@ export class PerpsController extends BaseController<
    */
   #standaloneProvider: HyperLiquidProvider | null = null;
 
+  #handlersRegistered = false;
+
   #standaloneProviderIsTestnet: boolean | null = null;
 
   #standaloneProviderHip3Version: number | null = null;
@@ -864,11 +866,6 @@ export class PerpsController extends BaseController<
 
     // Migrate old persisted data without accountAddress
     this.#migrateRequestsIfNeeded();
-
-    this.messenger.registerMethodActionHandlers(
-      this,
-      MESSENGER_EXPOSED_METHODS,
-    );
   }
 
   // ============================================================================
@@ -1206,6 +1203,14 @@ export class PerpsController extends BaseController<
    * @returns A promise that resolves when the operation completes.
    */
   async init(): Promise<void> {
+    if (!this.#handlersRegistered) {
+      this.messenger.registerMethodActionHandlers(
+        this,
+        MESSENGER_EXPOSED_METHODS,
+      );
+      this.#handlersRegistered = true;
+    }
+
     if (this.isInitialized) {
       return undefined;
     }
