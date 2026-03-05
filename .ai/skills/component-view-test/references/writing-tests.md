@@ -1,6 +1,6 @@
 # Writing Tests — Steps 1 & 2
 
-Reference: [Main skill](../component-view-test.md) · [Navigation & Mocking](navigation-mocking.md) · [Reference](reference.md)
+Reference: [SKILL.md](../SKILL.md) · [Navigation & Mocking](navigation-mocking.md) · [Reference](reference.md)
 
 ---
 
@@ -324,6 +324,27 @@ renderBridgeView({
   },
 });
 ```
+
+### Bridge: enabling the confirm CTA
+
+To enable the Bridge confirm CTA (requires a valid quote), use the `withBridgeRecommendedQuoteEvmSimple` helper on the state fixture — it's the easiest path:
+
+```typescript
+const state = initialStateBridge()
+  .withBridgeRecommendedQuoteEvmSimple({ sourceAmount: '1' })
+  .build();
+```
+
+Alternatively, set these fields manually in `engine.backgroundState.BridgeController`:
+
+- `quotes: [recommendedQuote]`
+- `recommendedQuote: recommendedQuote`
+- `quotesLastFetched: Date.now()`
+- `quotesLoadingStatus: 'SUCCEEDED'`
+
+Also ensure remote feature flags enable Bridge for the target chain(s) via `RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2`.
+
+---
 
 ### When no renderer exists for the view yet
 

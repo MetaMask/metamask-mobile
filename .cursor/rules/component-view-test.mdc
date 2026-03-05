@@ -1,0 +1,33 @@
+---
+description: Component view test rules for MetaMask Mobile — applies when working on
+  *.view.test.tsx files or tests/component-view/ infrastructure.
+globs: ["**/*.view.test.tsx", "tests/component-view/**"]
+alwaysApply: false
+---
+
+# Component View Test
+
+This rule applies when working on `*.view.test.tsx` files or the `tests/component-view/` framework.
+
+## Summary
+
+Component view tests are integration-level tests that exercise views through real Redux state using the `tests/component-view/` framework. Only Engine and allowed native modules may be mocked.
+
+Key constraints:
+- Every test must include at least one `fireEvent`, `waitFor`/`findBy`, `store.dispatch`, or Engine spy — no render scenarios
+- Use selector ID constants from `ComponentName.testIds.ts`, never raw strings
+- Always use `jest.config.view.js` to run tests
+
+Run command:
+```bash
+yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
+```
+
+For the full workflow, golden rules, and code templates, read:
+
+`.ai/skills/component-view-test/SKILL.md`
+
+Reference files:
+- `.ai/skills/component-view-test/references/writing-tests.md` (Steps 1–2)
+- `.ai/skills/component-view-test/references/navigation-mocking.md` (Steps 3–4)
+- `.ai/skills/component-view-test/references/reference.md` (Steps 5–7, checklist, patterns)

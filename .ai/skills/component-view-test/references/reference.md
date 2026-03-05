@@ -1,6 +1,6 @@
 # Reference — Steps 5–7, Assertion Patterns, What NOT to Do
 
-Reference: [Main skill](../component-view-test.md) · [Writing Tests](writing-tests.md) · [Navigation & Mocking](navigation-mocking.md)
+Reference: [SKILL.md](../SKILL.md) · [Writing Tests](writing-tests.md) · [Navigation & Mocking](navigation-mocking.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # Navigation & Mocking — Steps 3 & 4
 
-Reference: [Main skill](../component-view-test.md) · [Writing Tests](writing-tests.md) · [Reference](reference.md)
+Reference: [SKILL.md](../SKILL.md) · [Writing Tests](writing-tests.md) · [Reference](reference.md)
 
 ---
 

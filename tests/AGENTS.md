@@ -12,9 +12,25 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### Component-View Tests (Mandatory)
 
-- [.cursor/rules/component-view-testing.mdc](../.cursor/rules/component-view-testing.mdc) — Mock policy, presets/renderers, navigation, test structure, **no fake timers**.
-- [tests/component-view/README.md](component-view/README.md) — Framework layout, usage, presets, renderers, platform matrix.
-- [tests/component-view/COMPONENT_VIEW_TEST_RULES.md](component-view/COMPONENT_VIEW_TEST_RULES.md) — Detailed rules, allowed mocks, avoid fake timers, how to write component-view tests.
+**Canonical skill** (Claude Code: `/component-view-test`, Cursor: auto-attaches on `*.view.test.tsx`):
+
+- [.ai/skills/component-view-test/SKILL.md](../.ai/skills/component-view-test/SKILL.md) — Full workflow, golden rules, step-by-step guide
+- [.ai/skills/component-view-test/references/writing-tests.md](../.ai/skills/component-view-test/references/writing-tests.md) — Steps 1–2: test structure, renderers, presets
+- [.ai/skills/component-view-test/references/navigation-mocking.md](../.ai/skills/component-view-test/references/navigation-mocking.md) — Steps 3–4: navigation testing, API mocking
+- [.ai/skills/component-view-test/references/reference.md](../.ai/skills/component-view-test/references/reference.md) — Steps 5–7: fiat, run commands, self-review checklist, failure diagnosis
+
+Other harnesses: start prompts with `Follow .ai/skills/component-view-test/SKILL.md`
+
+Run with:
+
+```bash
+yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
+```
+
+Enforcement:
+
+- ESLint override in `.eslintrc.js` blocks forbidden `jest.mock` in `*.view.test.*`
+- Runtime guard: `app/util/test/testSetupView.js`
 
 ### Implementation Reference (Component-View)
 
@@ -42,5 +58,5 @@ Unit tests under `tests/` (e.g. framework tests): [.cursor/rules/unit-testing-gu
 
 - **tests/** — Use `withFixtures` + `FixtureBuilder`; Page Object methods only; no `TestHelpers.delay()`; selectors in `tests/selectors/` or page folder; import from `tests/framework/index.ts`. Commands: [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).
 - **tests/** — Framework/mocking: read tests/docs/README and MOCKING; keep exports in `tests/framework/index.ts`. Regression/smoke: same as e2e (withFixtures, Page Objects, no delay). Yarn only.
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See COMPONENT_VIEW_TEST_RULES.md.
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. See `.ai/skills/component-view-test/SKILL.md`.
 - **wdio/** — Do not extend. New work: Detox + tests/smoke|regression or Appwright (`tests/`). If maintaining: legacy section in [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md).

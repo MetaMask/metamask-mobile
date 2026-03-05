@@ -1,0 +1,4 @@
+interface:
+  display_name: "Component View Test"
+  short_description: "Write and fix *.view.test.tsx integration tests for MetaMask Mobile."
+  default_prompt: "Use the component-view-test skill to write or fix component view tests."

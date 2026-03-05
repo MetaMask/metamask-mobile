@@ -101,15 +101,15 @@ scripts/                  # Build and automation scripts
 
 **Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
 
-| Rule File                         | Scope                                                |
-| --------------------------------- | ---------------------------------------------------- |
-| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization |
-| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling     |
-| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA       |
-| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects          |
-| `component-view-testing.mdc`      | Component testing with presets/renderers             |
-| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                      |
-| `pr-creation-guidelines.mdc`      | Pull request standards                               |
+| Rule File                         | Scope                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization                       |
+| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling                           |
+| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA                             |
+| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects                                |
+| `component-view-test.mdc`         | Component testing — delegates to `.ai/skills/component-view-test/SKILL.md` |
+| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                                            |
+| `pr-creation-guidelines.mdc`      | Pull request standards                                                     |
 
 ### Quick Reference
 
@@ -193,7 +193,14 @@ If the user asks to implement a ticket directly from Jira:
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
 
 ## Test Guidelines
-When working on tests, read tests/AGENTS.md for testing conventions.
+
+Three test types coexist in this repo:
+
+- **Unit tests** (`*.test.tsx`)
+- **Component view tests** (`*.view.test.tsx`)
+- **E2E tests** (`tests/smoke/`, `tests/regression/`)
+
+For conventions and skill references for each type, read `tests/AGENTS.md`.
 
 ## A/B Testing Agent Standard
 
