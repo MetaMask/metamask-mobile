@@ -68,10 +68,10 @@ flowchart TD
     USE_CASES --> MAP_CATS[Map each action to test category]
     MAP_CATS --> DEDUP[Check existing view tests for duplication]
     DEDUP --> RUN_COV[Run coverage report]
-    RUN_COV --> CANDIDATE[Present candidate list to user\nordered by coverage impact]
-    CANDIDATE --> USER_OK{User approves\nor adjusts list?}
-    USER_OK -->|No candidates / skip all| DONE([Done — no tests needed])
-    USER_OK -->|Approved| NEW_RENDERER
+    RUN_COV --> CANDIDATE[Build candidate list ordered by coverage impact]
+    CANDIDATE --> NO_CANDIDATES{Any valid candidates?}
+    NO_CANDIDATES -->|No| DONE([Done — no tests needed])
+    NO_CANDIDATES -->|Yes| NEW_RENDERER
 
     NEW_RENDERER{Renderer exists for this view?}
     NEW_RENDERER -->|Yes| NEW_PRESET{Preset covers needed state?}
@@ -169,68 +169,15 @@ flowchart TD
 
 5. **Test behavior, not snapshots** — use `toBeOnTheScreen()`, `not.toBeOnTheScreen()`, interaction assertions.
 
-6. **Follow AAA** — Arrange → Act → Assert, blank lines between each section. Tests can and should chain multiple user actions when they form a coherent user journey. "One test = one user story or business outcome" — not "one fireEvent per test".
+6. **Follow AAA** — Arrange → Act → Assert, blank lines between each section. One test = one user journey or business outcome; multiple chained actions in a single test are fine.
 
-7. **No render scenarios** — a test that only sets up state and checks what's visible (even with multiple assertions) is a render scenario and is an antipattern. Every test must involve at least one of: a user interaction (`fireEvent`), an async flow (`waitFor`/`findBy`), a Redux action (`store.dispatch`/`act`), or an Engine spy. Ask: "does this test involve the user doing something or the system reacting to something?" If no, rewrite it.
+7. **No render scenarios** — every test must have at least one of: `fireEvent`, `waitFor`/`findBy`, `store.dispatch`/`act`, or an Engine spy. Static visibility checks are not tests. See [`references/writing-tests.md`](references/writing-tests.md) for examples.
 
-8. **Use selector ID constants, never raw strings** — every `getByTestId` / `findByTestId` / `queryByTestId` call must reference a constant from the component's `ComponentName.testIds.ts` file, not a hardcoded string literal. If the file does not exist, create it before writing the test. Raw string literals are only acceptable for elements that belong to another component that hasn't exported its selectors yet (document why in a comment).
+8. **Use selector ID constants, never raw strings** — every `getByTestId` / `findByTestId` / `queryByTestId` must reference a constant from `ComponentName.testIds.ts`. Create the file if it does not exist.
 
-9. **Every view with async data needs one data-completeness test** — when a view loads data asynchronously (API call, Engine polling), write one test that waits for the load to complete and then validates all significant fields of all items in the full mock dataset using `within()` per row. This is NOT a render scenario: the async resolution is the event under test.
-   - **Scope:** one data-completeness test per independent async data flow in the view.
-   - **What to validate:** every significant visible field (name, price, change %, icon text) of every item in the base mock dataset using `within(rowElement)` to scope queries to a single row.
+9. **Every view with async data needs one data-completeness test** — wait for the load and validate all significant fields of all items in the base mock using `within()` per row. One per independent async data flow.
 
-10. **Filter / segmentation tests must assert both sides** — when a test selects a filter, network, or category, always assert both what appears (positive: the expected items are on screen) AND what disappears (negative: `queryByTestId(...).not.toBeOnTheScreen()` for items from the previous set).
-
----
-
-## The Ideal Component View Test
-
-Component view tests are **integration tests**, not unit tests. The ideal test models a
-**complete user journey**: a realistic sequence of actions a user would take and the
-system outcomes that result.
-
-### Shape of an ideal test
-
-```typescript
-// Note: test ID strings in this example are written out for readability.
-// In real code, always import from ComponentName.testIds.ts and use constants:
-//   import { PredictFeedSelectorsIDs } from './PredictFeed.testIds';
-//   getByTestId(PredictFeedSelectorsIDs.SEARCH_BUTTON)
-it('user opens search, types a query, and sees matching results', async () => {
-  // Arrange — minimal state + spy setup
-  const getMarketsSpy = jest.spyOn(
-    Engine.context.PredictController,
-    'getMarkets',
-  );
-  getMarketsSpy.mockResolvedValue([MOCK_PREDICT_MARKET]);
-  const { getByTestId, findByPlaceholderText, findByTestId } =
-    renderPredictFeedView();
-
-  // Act — realistic user action sequence
-  fireEvent.press(getByTestId(PredictFeedSelectorsIDs.SEARCH_BUTTON));
-  const searchInput = await findByPlaceholderText('Search prediction markets');
-  fireEvent.changeText(searchInput, 'bitcoin');
-
-  // Assert — end state: Engine called correctly + UI reflects result
-  await waitFor(() => {
-    expect(getMarketsSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ q: 'bitcoin' }),
-    );
-  });
-  expect(
-    await findByTestId(PredictFeedSelectorsIDs.SEARCH_RESULT_ITEM_0),
-  ).toBeOnTheScreen();
-
-  getMarketsSpy.mockRestore();
-});
-```
-
-### Rules for the ideal test
-
-- **Multiple actions are fine** — pressing a button, then typing, then pressing again is one user journey
-- **Multiple assertions are fine** — assert both sides of a state change (positive + negative)
-- **Engine spy + UI assertion in the same test** — proves cause AND effect together
-- **The antipattern is still render scenarios** — if there is no `fireEvent`, no async reaction, no `dispatch`, no Engine spy, it's a render scenario regardless of how many assertions it has
+10. **Filter / segmentation tests must assert both sides** — after selecting a filter, assert both what appears (positive `findByTestId`) and what disappears (negative `queryByTestId(...).not.toBeOnTheScreen()`).
 
 ---
 
@@ -304,34 +251,7 @@ Read the coverage table output. Focus on:
 - Files with **low line/branch coverage**
 - **Uncovered branches** — conditions like `if (isLoading)`, `if (error)` that have no test
 
-Use this to **prioritize** your candidate list: implement the tests that cover the most uncovered paths first.
-
-### 5. Present the Candidate List and Wait for Approval
-
-**Stop here.** Present the candidate list to the user — do not write any test code yet.
-
-Format it clearly, ordered by impact (lowest coverage / highest uncovered branch count first):
-
----
-
-**Proposed tests for `MyView.view.test.tsx`** (ordered by impact):
-
-| #   | Test description                                               | Pattern                         | Coverage impact               |
-| --- | -------------------------------------------------------------- | ------------------------------- | ----------------------------- |
-| 1   | User types '9.5' on keypad → fiat display updates              | `fireEvent` → `findBy`          | keypad input branch uncovered |
-| 2   | User taps dest token area → navigates to token selector        | `fireEvent.press` → route probe | navigation branch uncovered   |
-| 3   | `setSlippage('5')` dispatched → Engine called with slippage: 5 | `store.dispatch` → Engine spy   | slippage wiring uncovered     |
-
-Dropped:
-
-- ❌ RENDER SCENARIO: 'shows source token name in header' — no interaction
-- ❌ DUPLICATE: 'opens source token selector' — already in `BridgeView.view.test.tsx`
-
-**Proceed with all, a subset, or suggest changes?**
-
----
-
-Wait for the user's response before writing any test code. If the user adjusts the list, update it and confirm again before implementing.
+Use this to **prioritize** your candidate list: implement the tests that cover the most uncovered paths first. Then proceed directly to writing the tests — no approval step needed.
 
 ---
 
@@ -344,28 +264,3 @@ For detailed guidance, examples, and code templates, consult these files:
 | [`references/writing-tests.md`](references/writing-tests.md)           | Step 1 (test file structure, antipatterns, good examples, minimal template, import order) + Step 2 (renderers, presets, React Query, route params)        |
 | [`references/navigation-mocking.md`](references/navigation-mocking.md) | Step 3 (route probes, single nav push, multi-screen renderer, cross-screen journey, userEvent) + Step 4 (external service / API mocking, MSW placeholder) |
 | [`references/reference.md`](references/reference.md)                   | Step 5 (fiat), Step 6 (run commands), Step 6.5 (self-review checklist), Step 7 (failure diagnosis), Assertion Patterns, What NOT to Do, Quick Reference   |
-
----
-
-## Quick Reference
-
-```bash
-# Run a single test file
-yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
-
-# Coverage for a feature folder
-yarn test:view:coverage:folder app/components/UI/MyFeature
-
-# Lint check
-yarn eslint <path/to/test.tsx>
-```
-
-**Key locations:**
-
-| What                                              | Where                                                 |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| Global Engine + native mocks                      | `tests/component-view/mocks.ts`                       |
-| renderComponentViewScreen, renderScreenWithRoutes | `tests/component-view/render.tsx`                     |
-| StateFixtureBuilder                               | `tests/component-view/stateFixture.ts`                |
-| Routes                                            | `app/constants/navigation/Routes.ts`                  |
-| DeepPartial type                                  | `app/util/test/renderWithProvider` (type-only import) |
