@@ -21,13 +21,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
 
-const mockEnsurePolygonNetworkExists = jest.fn().mockResolvedValue(undefined);
-jest.mock('./usePredictNetworkManagement', () => ({
-  usePredictNetworkManagement: () => ({
-    ensurePolygonNetworkExists: mockEnsurePolygonNetworkExists,
-  }),
-}));
-
 const mockGetAccountState = Engine.context.PredictController
   .getAccountState as jest.Mock;
 
@@ -50,7 +43,6 @@ describe('usePredictAccountState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetAccountState.mockResolvedValue(mockAccountState);
-    mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
   describe('initialization', () => {
@@ -148,43 +140,6 @@ describe('usePredictAccountState', () => {
         expect(result.current.error).toBeNull();
         expect(result.current.data?.address).toEqual(mockAccountState.address);
       });
-    });
-  });
-
-  describe('network management', () => {
-    it('calls ensurePolygonNetworkExists before fetching', async () => {
-      const { Wrapper } = createWrapper();
-      renderHook(() => usePredictAccountState(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(mockEnsurePolygonNetworkExists).toHaveBeenCalledTimes(1);
-      });
-
-      // Ensure network setup was called before getAccountState
-      const networkCallOrder =
-        mockEnsurePolygonNetworkExists.mock.invocationCallOrder[0];
-      const fetchCallOrder = mockGetAccountState.mock.invocationCallOrder[0];
-      expect(networkCallOrder).toBeLessThan(fetchCallOrder);
-    });
-
-    it('continues loading account state when ensurePolygonNetworkExists fails', async () => {
-      const { Wrapper } = createWrapper();
-      mockEnsurePolygonNetworkExists.mockRejectedValue(
-        new Error('Failed to add Polygon network'),
-      );
-
-      const { result } = renderHook(() => usePredictAccountState(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-
-      expect(result.current.data?.address).toEqual(mockAccountState.address);
-      expect(result.current.error).toBeNull();
     });
   });
 

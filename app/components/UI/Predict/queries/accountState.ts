@@ -6,19 +6,10 @@ export const predictAccountStateKeys = {
   all: () => ['predict', 'accountState'] as const,
 };
 
-export const predictAccountStateOptions = ({
-  ensurePolygonNetworkExists,
-}: {
-  ensurePolygonNetworkExists: () => Promise<void>;
-}) =>
+export const predictAccountStateOptions = () =>
   queryOptions({
     queryKey: predictAccountStateKeys.all(),
-    queryFn: async (): Promise<AccountState> => {
-      await ensurePolygonNetworkExists().catch(() => {
-        // Network may already exist — swallow so the fetch can still proceed.
-      });
-
-      return Engine.context.PredictController.getAccountState({});
-    },
+    queryFn: async (): Promise<AccountState> =>
+      Engine.context.PredictController.getAccountState({}),
     staleTime: 10_000,
   });

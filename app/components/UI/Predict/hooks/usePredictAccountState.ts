@@ -4,7 +4,6 @@ import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { predictQueries } from '../queries';
-import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import type { AccountState } from '../types';
 
 interface UsePredictAccountStateOptions {
@@ -17,16 +16,14 @@ interface UsePredictAccountStateOptions {
 
 /**
  * Fetches the Predict account state (address, deployment status, allowances).
- * Ensures the Polygon network exists before the query runs.
  */
 export function usePredictAccountState(
   options: UsePredictAccountStateOptions = {},
 ): UseQueryResult<AccountState, Error> {
   const { enabled = true } = options;
-  const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
   const queryResult = useQuery({
-    ...predictQueries.accountState.options({ ensurePolygonNetworkExists }),
+    ...predictQueries.accountState.options(),
     enabled,
   });
 
