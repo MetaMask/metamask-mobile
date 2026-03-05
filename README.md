@@ -21,6 +21,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Component View Testing](./docs/readme/component-view-testing.md)
 - [E2E Testing](./docs/readme/e2e-testing.md)
 - [Debugging](./docs/readme/debugging.md)
+- [Development Process](./docs/readme/development-process.md)
 - [Performance](./docs/readme/performance.md)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
