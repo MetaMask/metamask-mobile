@@ -1709,6 +1709,39 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('navigates to token unavailable modal via supportedCryptoCurrencies even when selectedToken is null', async () => {
+      // Regression guard: tokenStateIsSettled is false when selectedToken is null
+      // (token not yet in controller list), but the supportedCryptoCurrencies check
+      // should still fire because it only needs selectedProvider + params.assetId.
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          // MOCK_ASSET_ID is intentionally absent
+        },
+      };
+      mockTokens = null; // selectedToken will be null → tokenStateIsSettled is false
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
     it('does not navigate to token unavailable modal when no provider is selected', () => {
       mockSelectedProvider = null;
 

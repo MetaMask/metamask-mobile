@@ -156,9 +156,9 @@ function BuildQuote() {
     !params?.assetId || selectedToken?.assetId === params.assetId;
 
   const isTokenUnavailable = useMemo(() => {
-    if (!selectedProvider || !tokenStateIsSettled) return false;
+    if (!selectedProvider) return false;
 
-    // Explicit signal from provider metadata
+    // Explicit signal from provider metadata — no need to wait for token state to settle.
     if (
       params?.assetId &&
       selectedProvider.supportedCryptoCurrencies &&
@@ -169,9 +169,11 @@ function BuildQuote() {
 
     // API returned no payment methods after a successful fetch.
     // The status field distinguishes 'idle' (never fetched) from 'success' (fetched empty).
-    // Only relevant when a specific asset was requested via deep-link params.
+    // Wait for token state to settle before acting on this signal to avoid false positives
+    // during the initial async load when paymentMethods is still empty.
     if (
       params?.assetId &&
+      tokenStateIsSettled &&
       paymentMethodsStatus === RequestStatus.SUCCESS &&
       paymentMethods.length === 0
     ) {
