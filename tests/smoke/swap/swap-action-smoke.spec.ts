@@ -75,7 +75,7 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
         ],
         testSpecificMock,
         restartDevice: true,
-        skipReactNativeReload: false,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await loginToApp();
