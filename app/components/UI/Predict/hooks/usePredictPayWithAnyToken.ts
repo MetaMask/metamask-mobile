@@ -1,12 +1,16 @@
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
-import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { POLYGON_USDCE } from '../../../Views/confirmations/constants/predict';
+import { useAddToken } from '../../../Views/confirmations/hooks/tokens/useAddToken';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import {
   PredictBuyPreviewParams,
@@ -14,11 +18,9 @@ import {
 } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 export interface PredictPayWithAnyTokenParams {
-  amountUsd?: number;
+  amount?: number;
   isInputFocused?: boolean;
   transactionError?: string;
   market: PredictBuyPreviewParams['market'];
@@ -39,6 +41,14 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
+  useAddToken({
+    chainId: CHAIN_IDS.POLYGON,
+    decimals: POLYGON_USDCE.decimals,
+    name: POLYGON_USDCE.name,
+    symbol: POLYGON_USDCE.symbol,
+    tokenAddress: POLYGON_USDCE.address,
+  });
+
   const { payWithAnyTokenConfirmation } = usePredictTrading();
 
   const handleDepositError = useCallback(
@@ -58,7 +68,6 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
         },
       });
 
-      Engine.context.PredictController.clearActiveOrder();
       navigation.goBack();
 
       toastRef?.current?.showToast({
@@ -88,26 +97,19 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
   const triggerPayWithAnyToken = useCallback(
     async (params: PredictPayWithAnyTokenParams) => {
       try {
-        Engine.context.PredictController.setActiveOrder({
-          market: params.market,
-          outcome: params.outcome,
-          outcomeToken: params.outcomeToken,
-          ...(typeof params.isInputFocused === 'boolean'
-            ? { isInputFocused: params.isInputFocused }
-            : {}),
-          ...(params.amountUsd && params.amountUsd > 0
-            ? { amountUsd: params.amountUsd }
-            : {}),
-          ...(params.transactionError
-            ? { transactionError: params.transactionError }
-            : {}),
-        });
-
-        await payWithAnyTokenConfirmation({});
+        const { response } = await payWithAnyTokenConfirmation();
         navigateToConfirmation({
           loader: ConfirmationLoader.CustomAmount,
           headerShown: false,
           replace: true,
+          routeParams: {
+            market: params.market,
+            outcome: params.outcome,
+            outcomeToken: params.outcomeToken,
+            transactionId: response?.transactionId,
+            amount: params.amount,
+            isConfirmation: true,
+          },
         });
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');

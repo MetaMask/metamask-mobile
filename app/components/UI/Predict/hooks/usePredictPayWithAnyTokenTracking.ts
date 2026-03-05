@@ -57,7 +57,9 @@ export function usePredictPayWithAnyTokenTracking({
   const isFailed =
     status === TransactionStatus.failed ||
     status === TransactionStatus.rejected;
-  const isProcessing = transactionId && !isConfirmed && !isFailed;
+  const isProcessing =
+    status === TransactionStatus.signed ||
+    status === TransactionStatus.submitted;
 
   useEffect(() => {
     if (trackedTransactionIdRef.current === transactionId) {

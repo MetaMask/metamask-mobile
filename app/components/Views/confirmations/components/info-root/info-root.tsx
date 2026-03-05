@@ -30,6 +30,7 @@ import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 import { PREDICT_DEPOSIT_AND_ORDER_TYPE } from '../../constants/predict';
+import PredictBuyPreview from '../../../../UI/Predict/views/PredictBuyPreview/PredictBuyPreview';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -130,7 +131,7 @@ const Info = ({ route }: InfoProps) => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [PREDICT_DEPOSIT_AND_ORDER_TYPE])
   ) {
-    return <PredictPayWithAnyTokenInfo />;
+    return <PredictBuyPreview />;
   }
 
   if (

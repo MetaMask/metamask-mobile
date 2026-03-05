@@ -28,6 +28,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
@@ -42,11 +43,11 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
-import { MINIMUM_BET } from '../../constants/transactions';
-import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
-import { usePredictBalance } from '../../hooks/usePredictBalance';
+import { usePredictBuyAvailableBalance } from '../../hooks/usePredictBuyAvailableBalance';
+import { usePredictBuyConditions } from '../../hooks/usePredictBuyConditions';
+import { usePredictBuyInfo } from '../../hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
+import { usePredictBuyActions } from '../../hooks/usePredictBuyPreviewActions';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -61,7 +62,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import { formatPrice } from '../../utils/format';
+import PredictPayWithAnyTokenInfo from '../../components/PredictPayWithAnyTokenInfo';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -71,8 +72,14 @@ const PredictBuyPreview = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
-  const { market, outcome, outcomeToken, entryPoint, transactionId } =
-    route.params;
+  const {
+    market,
+    outcome,
+    outcomeToken,
+    entryPoint,
+    transactionId,
+    isConfirmation,
+  } = route.params;
 
   usePredictActiveOrder({ shouldInit: true });
 
@@ -85,10 +92,8 @@ const PredictBuyPreview = () => {
     [market, outcomeToken, entryPoint],
   );
 
-  const { data: balance = 0, isLoading: isBalanceLoading } =
-    usePredictBalance();
-
-  const { deposit } = usePredictDeposit();
+  const { availableBalance, isBalanceLoading } =
+    usePredictBuyAvailableBalance();
 
   const {
     currentValue,
@@ -103,26 +108,12 @@ const PredictBuyPreview = () => {
 
   const {
     placeOrder,
-    isLoading,
+    isLoading: isPlaceOrderLoading,
     error: placeOrderError,
     result,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
-
-  const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
-
-  const triggerPayWithAnyTokenFlow = useCallback(
-    async (params: Parameters<typeof triggerPayWithAnyToken>[0]) => {
-      try {
-        setIsPayWithAnyTokenLoading(true);
-        await triggerPayWithAnyToken(params);
-      } finally {
-        setIsPayWithAnyTokenLoading(false);
-      }
-    },
-    [setIsPayWithAnyTokenLoading, triggerPayWithAnyToken],
-  );
 
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
@@ -196,7 +187,7 @@ const PredictBuyPreview = () => {
   const {
     preview,
     error: previewError,
-    isCalculating,
+    isCalculating: isPreviewCalculating,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -206,11 +197,60 @@ const PredictBuyPreview = () => {
     autoRefreshTimeout: 1000,
   });
 
+  const {
+    toWin,
+    metamaskFee,
+    providerFee,
+    total,
+    depositFee,
+    rewardsFeeAmount,
+  } = usePredictBuyInfo({
+    currentValue,
+    preview,
+    previewError,
+    isPlaceOrderLoading,
+  });
+
+  const { handleTokenSelected, handleConfirm, handleDepositFailed } =
+    usePredictBuyActions({
+      currentValue,
+      analyticsProperties,
+      preview,
+      placeOrder,
+      setIsPayWithAnyTokenLoading,
+      depositAmount: total - depositFee,
+    });
+
+  const { isProcessing: isPayWithAnyTokenProcessing } =
+    usePredictPayWithAnyTokenTracking({
+      transactionId,
+      onFail: handleDepositFailed,
+      onConfirm: handleConfirm,
+    });
+
+  const {
+    isPlacingOrder,
+    isBelowMinimum,
+    canPlaceBet,
+    isUserChangeTriggeringCalculation,
+  } = usePredictBuyConditions({
+    currentValue,
+    preview,
+    isPreviewCalculating,
+    isPlaceOrderLoading,
+    isPayWithAnyTokenProcessing,
+    isUserInputChange,
+  });
+
+  usePredictPaymentToken({
+    onTokenSelected: handleTokenSelected,
+  });
+
   useEffect(() => {
-    if (!isCalculating) {
+    if (!isPreviewCalculating) {
       setIsUserInputChange(false);
     }
-  }, [isCalculating, setIsUserInputChange]);
+  }, [isPreviewCalculating, setIsUserInputChange]);
 
   const {
     retrySheetRef,
@@ -228,10 +268,10 @@ const PredictBuyPreview = () => {
   // Track screen load performance (balance + initial preview)
   usePredictMeasurement({
     traceName: TraceName.PredictBuyPreviewView,
-    conditions: [!isBalanceLoading, balance !== undefined, !!market],
+    conditions: [!isBalanceLoading, availableBalance !== undefined, !!market],
     debugContext: {
       marketId: market?.id,
-      hasBalance: balance !== undefined,
+      hasBalance: availableBalance !== undefined,
       isBalanceLoading,
     },
   });
@@ -241,70 +281,22 @@ const PredictBuyPreview = () => {
     [isOrderNotFilled, previewError, placeOrderError],
   );
 
-  const { toWin, isRateLimited, metamaskFee, providerFee, total } = useMemo(
-    () => ({
-      toWin: preview?.minAmountReceived ?? 0,
-      isRateLimited: preview?.rateLimited ?? false,
-      metamaskFee: preview?.fees?.metamaskFee ?? 0,
-      providerFee: preview?.fees?.providerFee ?? 0,
-      total:
-        currentValue +
-        (preview?.fees?.providerFee ?? 0) +
-        (preview?.fees?.metamaskFee ?? 0),
-    }),
-    [currentValue, preview],
-  );
-
-  const isBelowMinimum = useMemo(
-    () => currentValue > 0 && currentValue < MINIMUM_BET,
-    [currentValue],
-  );
-  const canPlaceBet = useMemo(
-    () =>
-      currentValue >= MINIMUM_BET &&
-      !!preview &&
-      !isLoading &&
-      !isBalanceLoading &&
-      !isRateLimited &&
-      !isCalculating,
-    [
-      currentValue,
-      preview,
-      isLoading,
-      isBalanceLoading,
-      isRateLimited,
-      isCalculating,
-    ],
-  );
-
-  const onPlaceBet = useCallback(async () => {
-    if (!preview || isBelowMinimum) return;
-
-    await placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, isBelowMinimum, placeOrder, analyticsProperties]);
-
-  const { isAutoPlaceLoading } = usePredictAutoPlaceOrder({
-    handlePlaceOrder: onPlaceBet,
-  });
-
-  const isPlacingOrder = isLoading || isAutoPlaceLoading || !!isProcessing;
-  const canPlaceBetAction = canPlaceBet && !isAutoPlaceLoading;
-
-  const rewardsFeeAmountUsd =
-    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
-  const rewardsLoadingOverride = isCalculating && isUserInputChange;
-
   useEffect(() => {
     if (result?.success) {
       dispatch(StackActions.pop());
     }
   }, [dispatch, result]);
 
+  const edges = useMemo(
+    () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
+    [isConfirmation],
+  );
+
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={edges}
+    >
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
@@ -315,12 +307,9 @@ const PredictBuyPreview = () => {
         keypadRef={keypadRef}
         isInputFocused={isInputFocused}
         isBalanceLoading={isBalanceLoading}
-        availableBalanceDisplay={formatPrice(balance, {
-          minimumDecimals: 2,
-          maximumDecimals: 2,
-        })}
+        availableBalanceDisplay={availableBalance}
         toWin={toWin}
-        isShowingToWinSkeleton={isCalculating && isUserInputChange}
+        isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
       />
       <PredictBuyMinimumError
         isBalanceLoading={isBalanceLoading}
@@ -334,7 +323,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        onAddFunds={deposit}
       />
       <PredictBuyBottomContent
         isInputFocused={isInputFocused}
@@ -344,14 +332,14 @@ const PredictBuyPreview = () => {
           disabled={isInputFocused}
           loading={isPayWithAnyTokenLoading}
           total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
-          rewardsLoadingOverride={rewardsLoadingOverride}
+          rewardsFeeAmountUsd={rewardsFeeAmount}
+          rewardsLoadingOverride={isUserChangeTriggeringCalculation}
           handleFeesInfoPress={handleFeesInfoPress}
         />
         <PredictBuyActionButton
           isLoading={isPlacingOrder}
-          onPress={onPlaceBet}
-          disabled={!canPlaceBetAction}
+          onPress={handleConfirm}
+          disabled={!canPlaceBet}
           showReducedOpacity={isPayWithAnyTokenLoading}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
@@ -363,6 +351,7 @@ const PredictBuyPreview = () => {
           ref={feeBreakdownSheetRef}
           providerFee={providerFee}
           metamaskFee={metamaskFee}
+          depositFee={depositFee}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           contractCount={preview?.minAmountReceived ?? 0}
           betAmount={currentValue}
@@ -380,6 +369,9 @@ const PredictBuyPreview = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
+      {isConfirmation && (
+        <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
+      )}
     </SafeAreaView>
   );
 };

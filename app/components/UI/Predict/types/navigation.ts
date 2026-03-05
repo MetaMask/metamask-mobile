@@ -4,6 +4,7 @@
 
 import { ParamListBase } from '@react-navigation/native';
 import {
+  OrderPreview,
   PredictActivityItem,
   PredictCategory,
   PredictMarket,
@@ -58,6 +59,9 @@ export interface PredictBuyPreviewParams {
   amount?: number;
   transactionId?: string;
   animationEnabled?: boolean;
+  isConfirmation?: boolean;
+  isInputFocused?: boolean;
+  preview?: OrderPreview;
 }
 
 /** Predict sell preview parameters */

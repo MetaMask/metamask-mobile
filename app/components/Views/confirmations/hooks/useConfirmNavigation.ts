@@ -25,6 +25,7 @@ export type ConfirmNavigateOptions = {
   headerShown?: boolean;
   replace?: boolean;
   stack?: string;
+  routeParams?: object;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
@@ -43,7 +44,7 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, replace, stack, ...params } = options;
+      const { headerShown, replace, stack, routeParams, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -72,7 +73,11 @@ export function useConfirmNavigation() {
 
       if (replace) {
         dispatch(
-          StackActions.replace(route, { ...params, animationEnabled: false }),
+          StackActions.replace(route, {
+            ...params,
+            ...routeParams,
+            animationEnabled: false,
+          }),
         );
         return;
       }

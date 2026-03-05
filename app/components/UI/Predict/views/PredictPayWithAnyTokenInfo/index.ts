@@ -1,1 +1,0 @@
-export { PredictPayWithAnyTokenInfo } from './PredictPayWithAnyTokenInfo';

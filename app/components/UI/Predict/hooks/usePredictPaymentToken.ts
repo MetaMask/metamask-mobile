@@ -9,10 +9,13 @@ import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { selectPredictSelectedPaymentToken } from '../selectors/predictController';
 
 interface UsePredictPaymentTokenParams {
-  onTokenSelected?: (
-    tokenAddress: string | null,
-    tokenKey: string | null,
-  ) => Promise<void> | void;
+  onTokenSelected?: ({
+    tokenAddress,
+    tokenKey,
+  }: {
+    tokenAddress: string | null;
+    tokenKey: string | null;
+  }) => Promise<void> | void;
 }
 
 export interface UsePredictPaymentTokenResult {
@@ -104,10 +107,10 @@ export function usePredictPaymentToken({
     }
 
     previousSelectedTokenKeyRef.current = selectedTokenKey;
-    const callbackResult = onTokenSelected?.(
-      selectedTokenAddress,
-      selectedTokenKey,
-    );
+    const callbackResult = onTokenSelected?.({
+      tokenAddress: selectedTokenAddress,
+      tokenKey: selectedTokenKey,
+    });
 
     if (callbackResult) {
       Promise.resolve(callbackResult).catch(() => undefined);

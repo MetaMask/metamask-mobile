@@ -44,13 +44,10 @@ export function usePredictTrading() {
     return controller.depositWithConfirmation(params);
   }, []);
 
-  const payWithAnyTokenConfirmation = useCallback(
-    async (params: PrepareDepositParams) => {
-      const controller = Engine.context.PredictController;
-      return controller.payWithAnyTokenConfirmation(params);
-    },
-    [],
-  );
+  const payWithAnyTokenConfirmation = useCallback(async () => {
+    const controller = Engine.context.PredictController;
+    return controller.payWithAnyTokenConfirmation();
+  }, []);
 
   return {
     placeOrder,

@@ -2082,9 +2082,9 @@ export class PredictController extends BaseController<
    * TODO: Remove the cast once `predictDepositAndOrder` is added to
    * `@metamask/transaction-controller`.
    */
-  public async payWithAnyTokenConfirmation(
-    _params: PrepareDepositParams = {},
-  ): Promise<Result<{ batchId: string }>> {
+  public async payWithAnyTokenConfirmation(): Promise<
+    Result<{ transactionId: string }>
+  > {
     const provider = this.provider;
 
     try {
@@ -2178,7 +2178,7 @@ export class PredictController extends BaseController<
       return {
         success: true,
         response: {
-          batchId: transactionId,
+          transactionId,
         },
       };
     } catch (error) {
@@ -2186,7 +2186,7 @@ export class PredictController extends BaseController<
       if (e.message.includes('User denied transaction signature')) {
         return {
           success: true,
-          response: { batchId: 'NA' },
+          response: { transactionId: 'NA' },
         };
       }
       Logger.error(
