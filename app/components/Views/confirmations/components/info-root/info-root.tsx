@@ -21,7 +21,6 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
-import { PredictPayWithAnyTokenInfo } from '../../../../UI/Predict/views/PredictPayWithAnyTokenInfo';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
@@ -71,7 +70,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.perpsDepositAndOrder:
         return PerpsOrderView;
       case PREDICT_DEPOSIT_AND_ORDER_TYPE:
-        return PredictPayWithAnyTokenInfo;
+        return PredictBuyPreview;
       // Default to contract interaction as generic transaction confirmation
       case TransactionType.lendingDeposit:
       case TransactionType.lendingWithdraw:

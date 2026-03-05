@@ -40,6 +40,7 @@ export const usePredictBuyActions = ({
     isPreviewFromPayWithAnyTokenUsed,
     setIsPreviewFromPayWithAnyTokenUsed,
   ] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const {
     market,
@@ -151,6 +152,8 @@ export const usePredictBuyActions = ({
 
   const handleConfirm = useCallback(async () => {
     if (isConfirmation) {
+      setIsConfirming(true);
+      setIsPayWithAnyTokenLoading(true);
       redirectToBuyPreview({
         includeTransactionId: true,
         includePreview: true,
@@ -182,7 +185,6 @@ export const usePredictBuyActions = ({
     if (!preview) {
       throw new Error('Preview is required');
     }
-
     await placeOrder({
       analyticsProperties,
       preview,
@@ -196,6 +198,7 @@ export const usePredictBuyActions = ({
     preview,
     previewFromPayWithAnyToken,
     redirectToBuyPreview,
+    setIsPayWithAnyTokenLoading,
     transactionId,
   ]);
 
@@ -203,5 +206,6 @@ export const usePredictBuyActions = ({
     handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
+    isConfirming,
   };
 };
