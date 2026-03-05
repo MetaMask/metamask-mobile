@@ -4,18 +4,16 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
 <RCTSafeAreaView
   style={
     {
-      "alignItems": "center",
       "backgroundColor": "#ffffff",
       "flex": 1,
-      "position": "relative",
     }
   }
 >
   <View
     style={
       {
-        "marginLeft": 3.5000000000000004,
-        "marginRight": 3.5000000000000004,
+        "flex": 1,
+        "paddingHorizontal": 3.5000000000000004,
       }
     }
   >
@@ -128,6 +126,8 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       }
     >
       <Image
+        onError={[Function]}
+        resizeMode="contain"
         source={1}
         style={
           {
@@ -137,6 +137,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
             "width": 30,
           }
         }
+        testID="ledger-connect-image"
       />
     </View>
     <View

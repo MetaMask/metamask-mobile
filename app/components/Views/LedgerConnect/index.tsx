@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -24,7 +24,6 @@ import { showSimpleNotification } from '../../../actions/notification';
 import LedgerConnectionError, {
   LedgerConnectionErrorProps,
 } from './LedgerConnectionError';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
 
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
@@ -76,10 +75,22 @@ const LedgerConnect = ({
   const [errorDetail, setErrorDetails] = useState<LedgerConnectionErrorProps>();
   const [loading, setLoading] = useState(false);
   const [hasMatchingDeviceId, setHasMatchingDeviceId] = useState(true);
+  const [didCoverImageFailToLoad, setDidCoverImageFailToLoad] = useState(false);
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
   const deviceOSVersion = Number(getSystemVersion()) || 0;
   const { trackEvent, createEventBuilder } = useMetrics();
+  const ledgerHeaderImage = useAssetFromTheme(
+    ledgerDeviceLightImage,
+    ledgerDeviceDarkImage,
+  );
+  const themedLedgerConnectImage = useAssetFromTheme(
+    ledgerConnectLightImage,
+    ledgerConnectDarkImage,
+  );
+  const ledgerConnectImage = didCoverImageFailToLoad
+    ? ledgerConnectLightImage
+    : themedLedgerConnectImage;
 
   const ledgerModelName = useMemo(() => {
     if (selectedDevice) {
@@ -113,12 +124,10 @@ const LedgerConnect = ({
   }, [selectedDevice, trackEvent, createEventBuilder, ledgerModelName]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavigationOptionsTitle('', navigation, true, theme.colors),
-    );
-  }, [navigation, theme.colors]);
+    setDidCoverImageFailToLoad(false);
+  }, [themedLedgerConnectImage]);
 
-  const connectLedger = () => {
+  const connectLedger = useCallback(() => {
     setLoading(true);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION)
@@ -131,7 +140,13 @@ const LedgerConnect = ({
     ledgerLogicToRun(async () => {
       onConnectLedger();
     });
-  };
+  }, [
+    createEventBuilder,
+    ledgerLogicToRun,
+    ledgerModelName,
+    onConnectLedger,
+    trackEvent,
+  ]);
 
   const onDeviceSelected = (currentDevice: BluetoothDevice | undefined) => {
     const getStoredDeviceId = async () => {
@@ -147,32 +162,41 @@ const LedgerConnect = ({
     getStoredDeviceId();
   };
 
-  const handleErrorWithRetry = (errorTitle: string, errorSubtitle: string) => {
-    setErrorDetails({
-      errorTitle,
-      errorSubtitle,
-      primaryButtonConfig: {
-        title: strings('ledger.retry'),
-        onPress: () => {
-          const retryCount = retryTimes + 1;
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.HARDWARE_WALLET_CONNECTION_RETRY,
-            )
-              .addProperties({
-                device_type: HardwareDeviceTypes.LEDGER,
-                device_model: ledgerModelName,
-                retry_count: retryCount,
-              })
-              .build(),
-          );
-          setErrorDetails(undefined);
-          setRetryTimes(retryCount);
-          connectLedger();
+  const handleErrorWithRetry = useCallback(
+    (errorTitle: string, errorSubtitle: string) => {
+      setErrorDetails({
+        errorTitle,
+        errorSubtitle,
+        primaryButtonConfig: {
+          title: strings('ledger.retry'),
+          onPress: () => {
+            const retryCount = retryTimes + 1;
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.HARDWARE_WALLET_CONNECTION_RETRY,
+              )
+                .addProperties({
+                  device_type: HardwareDeviceTypes.LEDGER,
+                  device_model: ledgerModelName,
+                  retry_count: retryCount,
+                })
+                .build(),
+            );
+            setErrorDetails(undefined);
+            setRetryTimes(retryCount);
+            connectLedger();
+          },
         },
-      },
-    });
-  };
+      });
+    },
+    [
+      connectLedger,
+      createEventBuilder,
+      ledgerModelName,
+      retryTimes,
+      trackEvent,
+    ],
+  );
 
   const permissionText = useMemo(() => {
     if (deviceOSVersion >= 12) {
@@ -270,18 +294,14 @@ const LedgerConnect = ({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ledgerError]);
+  }, [dispatch, handleErrorWithRetry, ledgerError, navigation, retryTimes]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.connectLedgerWrapper}>
         <View style={styles.header}>
           <Image
-            source={useAssetFromTheme(
-              ledgerDeviceLightImage,
-              ledgerDeviceDarkImage,
-            )}
+            source={ledgerHeaderImage}
             style={styles.ledgerImage}
             resizeMode="contain"
           />
@@ -297,11 +317,11 @@ const LedgerConnect = ({
         </Text>
         <View style={styles.imageContainer}>
           <Image
-            source={useAssetFromTheme(
-              ledgerConnectLightImage,
-              ledgerConnectDarkImage,
-            )}
+            source={ledgerConnectImage}
             style={styles.coverImage}
+            resizeMode="contain"
+            testID="ledger-connect-image"
+            onError={() => setDidCoverImageFailToLoad(true)}
           />
         </View>
         <View style={styles.textContainer}>

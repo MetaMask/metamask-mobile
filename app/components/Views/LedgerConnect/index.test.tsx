@@ -17,6 +17,8 @@ import { strings } from '../../../../locales/i18n';
 import { getSystemVersion } from 'react-native-device-info';
 import Device from '../../../util/device';
 import { LEDGER_SUPPORT_LINK } from '../../../constants/urls';
+import { mockTheme } from '../../../util/theme';
+import createStyles from './index.styles';
 
 // Add types for the mocked hooks
 interface UseBluetoothPermissionsHook {
@@ -398,5 +400,18 @@ describe('LedgerConnect', () => {
     await waitFor(() => {
       expect(getByTestId('multiple-devices-error-message')).toBeDefined();
     });
+  });
+
+  it('applies top safe area inset to header on Android', () => {
+    jest.mocked(Device.isAndroid).mockReturnValue(true);
+
+    const styles = createStyles(mockTheme.colors, {
+      top: 24,
+      bottom: 0,
+      left: 0,
+      right: 0,
+    });
+
+    expect(styles.header.marginTop).toBe(24);
   });
 });
