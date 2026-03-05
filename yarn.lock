@@ -9430,14 +9430,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@10.0.0-preview-225638478":
-  version: 10.0.0-preview-225638478
-  resolution: "@metamask-previews/ramps-controller@npm:10.0.0-preview-225638478"
+"@metamask/ramps-controller@npm:^10.2.0":
+  version: 10.2.0
+  resolution: "@metamask/ramps-controller@npm:10.2.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/dc093dacbe55ee20cbb50cc9b1c9649469b4c115f35db6b0f7a020610742955c6f35ee5e1f74ba079769c481c0210316ffd23e775bd03b1e83798530aaf142cb
+  checksum: 10/4c9e10f3948a4e0f44f3a98fd2a7a220585e74793ad4cc899b27be6ea3c428c76fb95b0987697a0dd62a98221868ce2bfb3e40495cef00f4909e5dd88dec152e
   languageName: node
   linkType: hard
 
@@ -9737,13 +9737,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^18.0.1":
-  version: 18.0.1
-  resolution: "@metamask/snaps-controllers@npm:18.0.1"
+"@metamask/snaps-controllers@npm:^18.0.2":
+  version: 18.0.2
+  resolution: "@metamask/snaps-controllers@npm:18.0.2"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.2"
+    "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.8"
     "@metamask/key-tree": "npm:^10.1.1"
     "@metamask/messenger": "npm:^0.3.0"
@@ -9776,7 +9776,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/0b9c3f8097cda0621020bde7e63a74a20f7623a9926d2d102942df56f9b9fefbf0900f7a3a17b175f8648b1b93fc373f5c736ee88e517ee624ed6161985742cb
+  checksum: 10/3d8f88ff926b2918b1632dc9920c94871df85146a66d4d6dbb8fb31ee241c7012e85d86bdf30be47aec97fc2fecf724f5e235f30a1550bedf4084586175e05eb
   languageName: node
   linkType: hard
 
@@ -35452,7 +35452,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^10.0.0"
+    "@metamask/ramps-controller": "npm:^10.2.0"
     "@metamask/react-native-acm": "npm:^1.0.1"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -35470,7 +35470,7 @@ __metadata:
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^22.6.0"
-    "@metamask/snaps-controllers": "npm:^18.0.1"
+    "@metamask/snaps-controllers": "npm:^18.0.2"
     "@metamask/snaps-execution-environments": "npm:^11.0.0"
     "@metamask/snaps-rpc-methods": "npm:^14.3.0"
     "@metamask/snaps-sdk": "npm:^10.4.0"
@@ -35775,7 +35775,7 @@ __metadata:
     redux-devtools-expo-dev-plugin: "npm:^1.0.0"
     redux-mock-store: "npm:1.5.4"
     redux-persist: "npm:6.0.0"
-    redux-persist-filesystem-storage: "npm:^4.2.0"
+    redux-persist-filesystem-storage: "patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch"
     redux-saga: "npm:^1.3.0"
     redux-saga-test-plan: "npm:^4.0.6"
     redux-thunk: "npm:^2.4.2"
@@ -41517,12 +41517,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-persist-filesystem-storage@npm:^4.2.0":
+"redux-persist-filesystem-storage@npm:4.2.0":
   version: 4.2.0
   resolution: "redux-persist-filesystem-storage@npm:4.2.0"
   dependencies:
     react-native-blob-util: "npm:^0.18.0"
   checksum: 10/c2edeb92b72874ab08c7a34e9dae8a06ac13c4a5b238d92e798ec0355027a99eb0c27c6b4c95b8c0efda8123a50f9c232e7a215a97726f07dc4af73a991ac343
+  languageName: node
+  linkType: hard
+
+"redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch":
+  version: 4.2.0
+  resolution: "redux-persist-filesystem-storage@patch:redux-persist-filesystem-storage@npm%3A4.2.0#~/.yarn/patches/redux-persist-filesystem-storage-npm-4.2.0-3a6fff24ab.patch::version=4.2.0&hash=4dfd27"
+  dependencies:
+    react-native-blob-util: "npm:^0.18.0"
+  checksum: 10/fa556e2d1784a5e664e2e7024fa2255b08334e0dacf8993acca676cb912ad82c0f8ef3ba9ec2597d455f9dded83acf3343cc0a66d4e2fc14486e31dd9efe6def
   languageName: node
   linkType: hard
 

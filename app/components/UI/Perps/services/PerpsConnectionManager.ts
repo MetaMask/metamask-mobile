@@ -62,6 +62,7 @@ class PerpsConnectionManagerClass {
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+  private stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private netInfoUnsubscribe: (() => void) | null = null;
   private wasOffline = false;
   private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -161,23 +162,29 @@ class PerpsConnectionManagerClass {
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
 
-        // Force the controller to reconnect with new account
-        // This ensures proper WebSocket reconnection at the controller level
-        this.reconnectWithNewContext().catch((error) => {
-          Logger.error(
-            ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
-            {
-              tags: { feature: PERPS_CONSTANTS.FeatureName },
-              context: {
-                name: 'PerpsConnectionManager.setupStateMonitoring',
-                data: {
-                  message:
-                    'Error reconnecting with new account/network context',
+        // Debounce: coalesce rapid state changes (e.g. provider switch + network
+        // toggle in the same tick) into a single reconnection attempt.
+        if (this.stateChangeDebounceTimer !== null) {
+          clearTimeout(this.stateChangeDebounceTimer);
+        }
+        this.stateChangeDebounceTimer = setTimeout(() => {
+          this.stateChangeDebounceTimer = null;
+          this.reconnectWithNewContext().catch((error) => {
+            Logger.error(
+              ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                context: {
+                  name: 'PerpsConnectionManager.setupStateMonitoring',
+                  data: {
+                    message:
+                      'Error reconnecting with new account/network context',
+                  },
                 },
               },
-            },
-          );
-        });
+            );
+          });
+        }, 50);
       }
 
       // Update tracked values
@@ -321,6 +328,10 @@ class PerpsConnectionManagerClass {
       this.wasOffline = false;
     }
     this.cancelNetworkRestoreRetry();
+    if (this.stateChangeDebounceTimer !== null) {
+      clearTimeout(this.stateChangeDebounceTimer);
+      this.stateChangeDebounceTimer = null;
+    }
     if (this.unsubscribeFromStore) {
       this.unsubscribeFromStore();
       this.unsubscribeFromStore = null;
@@ -903,6 +914,27 @@ class PerpsConnectionManagerClass {
         ? PERPS_CONSTANTS.ReconnectionDelayAndroidMs
         : PERPS_CONSTANTS.ReconnectionDelayIosMs;
       await wait(reconnectionDelay);
+
+      // Wait for any concurrent controller reinit (e.g. toggleTestnet) to finish
+      // before calling getActiveProvider(), which throws CLIENT_REINITIALIZING while
+      // isReinitializing is true.
+      {
+        const maxWaitMs = 2000;
+        const pollIntervalMs = 50;
+        let waited = 0;
+        while (
+          Engine.context.PerpsController.isCurrentlyReinitializing() &&
+          waited < maxWaitMs
+        ) {
+          await wait(pollIntervalMs);
+          waited += pollIntervalMs;
+        }
+        if (waited > 0) {
+          DevLogger.log(
+            `PerpsConnectionManager: Waited ${waited}ms for concurrent reinit to complete`,
+          );
+        }
+      }
 
       // Validate connection with WebSocket health check ping before marking as connected
       // This ensures the WebSocket connection is actually responsive after reconnection without expensive API calls

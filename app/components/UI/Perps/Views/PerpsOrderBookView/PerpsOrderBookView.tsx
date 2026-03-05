@@ -499,7 +499,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <ButtonIcon
               iconName={IconName.ArrowLeft}
               iconColor={IconColor.Default}
-              size={ButtonIconSizes.Lg}
+              size={ButtonIconSizes.Md}
               onPress={handleBack}
               testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
             />
