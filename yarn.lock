@@ -9746,13 +9746,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^18.0.1":
-  version: 18.0.1
-  resolution: "@metamask/snaps-controllers@npm:18.0.1"
+"@metamask/snaps-controllers@npm:^18.0.2":
+  version: 18.0.2
+  resolution: "@metamask/snaps-controllers@npm:18.0.2"
   dependencies:
     "@metamask/approval-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.2"
+    "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.8"
     "@metamask/key-tree": "npm:^10.1.1"
     "@metamask/messenger": "npm:^0.3.0"
@@ -9785,7 +9785,7 @@ __metadata:
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/0b9c3f8097cda0621020bde7e63a74a20f7623a9926d2d102942df56f9b9fefbf0900f7a3a17b175f8648b1b93fc373f5c736ee88e517ee624ed6161985742cb
+  checksum: 10/3d8f88ff926b2918b1632dc9920c94871df85146a66d4d6dbb8fb31ee241c7012e85d86bdf30be47aec97fc2fecf724f5e235f30a1550bedf4084586175e05eb
   languageName: node
   linkType: hard
 
@@ -35462,7 +35462,7 @@ __metadata:
     "@metamask/signature-controller": "npm:^35.0.0"
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^22.6.0"
-    "@metamask/snaps-controllers": "npm:^18.0.1"
+    "@metamask/snaps-controllers": "npm:^18.0.2"
     "@metamask/snaps-execution-environments": "npm:^11.0.0"
     "@metamask/snaps-rpc-methods": "npm:^14.3.0"
     "@metamask/snaps-sdk": "npm:^10.4.0"
