@@ -28,79 +28,92 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
-const WhatsHappeningSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const tw = useTailwind();
-  const isEnabled = useSelector(selectWhatsHappeningEnabled);
-  const title = strings('homepage.sections.whats_happening');
+interface WhatsHappeningSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
-  const { items, isLoading, error, refresh } =
-    useWhatsHappening(MAX_ITEMS_DISPLAYED);
+const WhatsHappeningSection = forwardRef<
+  SectionRefreshHandle,
+  WhatsHappeningSectionProps
+>(
+  (
+    { sectionIndex: _sectionIndex, totalSectionsLoaded: _totalSectionsLoaded },
+    ref,
+  ) => {
+    const tw = useTailwind();
+    const isEnabled = useSelector(selectWhatsHappeningEnabled);
+    const title = strings('homepage.sections.whats_happening');
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    const { items, isLoading, error, refresh } =
+      useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
-  const handleViewAll = useCallback(() => {
-    // TODO: navigate to expanded "What's Happening" view
-  }, []);
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-  if (!isEnabled) {
-    return null;
-  }
+    const handleViewAll = useCallback(() => {
+      // TODO: navigate to expanded "What's Happening" view
+    }, []);
 
-  const hasError = !isLoading && items.length === 0 && error;
+    if (!isEnabled) {
+      return null;
+    }
 
-  if (hasError) {
+    const hasError = !isLoading && items.length === 0 && error;
+
+    if (hasError) {
+      return (
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAll} />
+          <ErrorState
+            title={strings('homepage.error.unable_to_load', {
+              section: title.toLowerCase(),
+            })}
+            onRetry={refresh}
+          />
+        </Box>
+      );
+    }
+
+    if (!isLoading && items.length === 0) {
+      return null;
+    }
+
     return (
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewAll} />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
+        <FadingScrollContainer>
+          {(scrollProps) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              snapToOffsets={SNAP_OFFSETS}
+              decelerationRate="fast"
+              testID="homepage-whats-happening-carousel"
+              {...scrollProps}
+            >
+              {isLoading ? (
+                SKELETON_KEYS.map((key) => (
+                  <WhatsHappeningCardSkeleton key={key} />
+                ))
+              ) : (
+                <>
+                  {items.map((item) => (
+                    <WhatsHappeningCard key={item.id} item={item} />
+                  ))}
+                  <ViewMoreCard
+                    onPress={handleViewAll}
+                    twClassName="w-[180px] h-[200px]"
+                    textVariant={TextVariant.BodyLg}
+                  />
+                </>
+              )}
+            </ScrollView>
+          )}
+        </FadingScrollContainer>
       </Box>
     );
-  }
-
-  if (!isLoading && items.length === 0) {
-    return null;
-  }
-
-  return (
-    <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAll} />
-      <FadingScrollContainer>
-        {(scrollProps) => (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
-            snapToOffsets={SNAP_OFFSETS}
-            decelerationRate="fast"
-            testID="homepage-whats-happening-carousel"
-            {...scrollProps}
-          >
-            {isLoading ? (
-              SKELETON_KEYS.map((key) => (
-                <WhatsHappeningCardSkeleton key={key} />
-              ))
-            ) : (
-              <>
-                {items.map((item) => (
-                  <WhatsHappeningCard key={item.id} item={item} />
-                ))}
-                <ViewMoreCard
-                  onPress={handleViewAll}
-                  twClassName="w-[180px] h-[200px]"
-                  textVariant={TextVariant.BodyLg}
-                />
-              </>
-            )}
-          </ScrollView>
-        )}
-      </FadingScrollContainer>
-    </Box>
-  );
-});
+  },
+);
 
 export default WhatsHappeningSection;

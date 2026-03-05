@@ -1,12 +1,16 @@
+/* eslint-disable import/no-nodejs-modules */
 import { waitFor, web } from 'detox';
 import { getFixturesServerPort } from './framework/fixtures/FixtureUtils';
 import Utilities from './framework/Utilities';
 import { resolveConfig } from 'detox/internals';
 import { createLogger } from './framework/logger';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const logger = createLogger({
   name: 'TestHelpers',
 });
+const execAsync = promisify(exec);
 
 export default class TestHelpers {
   /**
@@ -394,7 +398,7 @@ export default class TestHelpers {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 
-    return device.launchApp(launchOptions);
+    return this.launchAppWithRecovery(launchOptions);
   }
 
   static async launchAppForDebugBuild(platform, launchOptions) {
@@ -403,16 +407,93 @@ export default class TestHelpers {
     );
 
     if (platform === 'ios') {
-      await device.launchApp(launchOptions);
+      await this.launchAppWithRecovery(launchOptions);
       return device.openURL({
         url: deepLinkUrl,
       });
     }
 
-    return device.launchApp({
+    return this.launchAppWithRecovery({
       url: deepLinkUrl,
       ...launchOptions,
     });
+  }
+
+  static getAdbDeviceFlag() {
+    return device?.id ? `-s ${device.id}` : '';
+  }
+
+  static async logAndroidReversePorts(context) {
+    if (device.getPlatform() !== 'android') {
+      return;
+    }
+
+    try {
+      const command = `adb ${this.getAdbDeviceFlag()} reverse --list`;
+      const { stdout } = await execAsync(command);
+      logger.debug(
+        `[launch diagnostics] ${context} | adb reverse --list:\n${
+          stdout?.trim() || '(empty)'
+        }`,
+      );
+    } catch (error) {
+      logger.warn(
+        `[launch diagnostics] ${context} | Failed to list adb reverse ports`,
+        error,
+      );
+    }
+  }
+
+  static isAndroidReverseAddressInUseError(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return (
+      device.getPlatform() === 'android' &&
+      message.includes('adb') &&
+      message.includes('reverse tcp:') &&
+      message.includes('Address already in use')
+    );
+  }
+
+  static extractConflictingReversePort(error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const match = message.match(/reverse tcp:(\d+) tcp:\1/);
+    return match?.[1];
+  }
+
+  static async removeAndroidReversePort(port) {
+    const command = `adb ${this.getAdbDeviceFlag()} reverse --remove tcp:${port}`;
+    await execAsync(command);
+    logger.warn(
+      `[launch recovery] Removed conflicting adb reverse tcp:${port}. Retrying app launch once.`,
+    );
+  }
+
+  static async launchAppWithRecovery(launchOptions) {
+    await this.logAndroidReversePorts('before device.launchApp');
+
+    try {
+      return await device.launchApp(launchOptions);
+    } catch (error) {
+      if (!this.isAndroidReverseAddressInUseError(error)) {
+        throw error;
+      }
+
+      const conflictingPort = this.extractConflictingReversePort(error);
+      if (!conflictingPort) {
+        throw error;
+      }
+
+      logger.warn(
+        `[launch recovery] Detected Detox adb reverse port collision on tcp:${conflictingPort}.`,
+      );
+      await this.logAndroidReversePorts(
+        'launch failure before reverse cleanup',
+      );
+      await this.removeAndroidReversePort(conflictingPort);
+      await this.logAndroidReversePorts('after reverse cleanup before retry');
+
+      return device.launchApp(launchOptions);
+    }
   }
 
   static getDeepLinkUrl(url) {

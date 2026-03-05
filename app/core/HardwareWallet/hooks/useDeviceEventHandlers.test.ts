@@ -168,41 +168,6 @@ describe('useDeviceEventHandlers', () => {
     });
   });
 
-  describe('clearError', () => {
-    it('clears error state and returns to disconnected', () => {
-      const error = new HardwareWalletError('Test', {
-        code: ErrorCode.Unknown,
-        severity: Severity.Err,
-        category: Category.Unknown,
-        userMessage: 'Test',
-      });
-      lastConnectionState = { status: ConnectionStatus.ErrorState, error };
-
-      const { result } = createHook();
-
-      act(() => {
-        result.current.clearError();
-      });
-
-      expect(lastConnectionState.status).toBe(ConnectionStatus.Disconnected);
-    });
-
-    it('does not change non-error states', () => {
-      lastConnectionState = {
-        status: ConnectionStatus.Connected,
-        deviceId: 'device-123',
-      };
-
-      const { result } = createHook();
-
-      act(() => {
-        result.current.clearError();
-      });
-
-      expect(lastConnectionState.status).toBe(ConnectionStatus.Connected);
-    });
-  });
-
   describe('handleDeviceEvent', () => {
     describe('Connected event', () => {
       it('updates to connected state', () => {

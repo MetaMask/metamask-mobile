@@ -190,6 +190,7 @@ export const PERPS_EVENT_VALUE = {
     PERPS_ASSET_SCREEN_NO_FUNDS: 'perps_asset_screen_no_funds',
     TRADE_MENU_ACTION: 'trade_menu_action',
     WALLET_HOME: 'wallet_home',
+    HOME_SECTION: 'home_section',
     TOOLTIP: 'tooltip',
     MAGNIFYING_GLASS: 'magnifying_glass',
     CRYPTO_BUTTON: 'crypto_button',
