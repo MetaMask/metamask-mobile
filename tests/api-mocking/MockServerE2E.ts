@@ -426,7 +426,17 @@ export default class MockServerE2E implements Resource {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
           this._server?._liveRequests?.push({
             url: translatedUrl,
@@ -436,7 +446,17 @@ export default class MockServerE2E implements Resource {
         } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
           logger.warn(`Allowed URL: ${translatedUrl}`);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
         }
 
