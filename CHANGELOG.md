@@ -7,10 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Fixed spurious offline/reconnecting/connected toasts appearing when switching accounts or networks on the Perps screen (#27034)
-
 ## [7.66.0]
 
 ### Added
