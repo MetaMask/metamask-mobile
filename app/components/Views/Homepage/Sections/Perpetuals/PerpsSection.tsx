@@ -52,8 +52,8 @@ const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
 
-/** Key fields that affect position card display; skip re-render if unchanged */
-function positionDisplayKey(p: Position): string {
+/** Key fields that affect position card display; skip re-render if unchanged. Exported for testing. */
+export function positionDisplayKey(p: Position): string {
   return `${p.symbol}:${p.entryPrice ?? ''}:${p.size ?? ''}:${p.unrealizedPnl ?? ''}:${p.takeProfitPrice ?? ''}:${p.stopLossPrice ?? ''}`;
 }
 
