@@ -2673,6 +2673,7 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -4102,6 +4103,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -4966,6 +4968,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5083,6 +5086,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5248,6 +5252,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -5531,6 +5536,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -6395,6 +6401,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -6527,6 +6534,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -6707,6 +6715,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -7005,6 +7014,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -8479,6 +8489,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }

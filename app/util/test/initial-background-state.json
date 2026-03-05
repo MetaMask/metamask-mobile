@@ -679,6 +679,13 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "CardController": {
+    "selectedCountry": null,
+    "activeProviderId": null,
+    "isAuthenticated": false,
+    "cardholderAccounts": [],
+    "providerData": {}
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },

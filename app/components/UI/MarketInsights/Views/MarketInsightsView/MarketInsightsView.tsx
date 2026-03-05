@@ -519,7 +519,7 @@ const MarketInsightsView: React.FC = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {strings('market_insights.fixed_footer_disclaimer')}
+              {strings('market_insights.footer_disclaimer')}
             </Text>
           </Box>
         </Box>
