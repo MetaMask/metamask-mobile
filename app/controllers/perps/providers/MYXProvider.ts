@@ -13,6 +13,7 @@
 
 import type { CaipAccountId } from '@metamask/utils';
 
+import { MYX_FEE_CONFIG, MYX_TRADING_DEFAULTS } from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import { MYXClientService } from '../services/MYXClientService';
 import { WebSocketConnectionState } from '../types';
@@ -581,16 +582,15 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async getMaxLeverage(_asset: string): Promise<number> {
-    return 100; // MYX default max leverage
+    return MYX_TRADING_DEFAULTS.DefaultMaxLeverage;
   }
 
   async calculateFees(
     _params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    // MYX fee structure (placeholder values)
     return {
-      feeRate: 0.0005, // 0.05% total fee rate
-      protocolFeeRate: 0.0005, // Protocol taker fee
+      feeRate: MYX_FEE_CONFIG.DefaultFeeRate,
+      protocolFeeRate: MYX_FEE_CONFIG.DefaultProtocolFeeRate,
     };
   }
 

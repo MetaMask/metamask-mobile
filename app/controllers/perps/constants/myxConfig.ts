@@ -250,3 +250,23 @@ export const MYX_HTTP_TIMEOUT_MS = 10000;
  * Maximum retries for failed API requests
  */
 export const MYX_MAX_RETRIES = 3;
+
+// ============================================================================
+// Trading Defaults
+// ============================================================================
+
+/**
+ * MYX trading defaults for leverage and position sizing
+ */
+export const MYX_TRADING_DEFAULTS = {
+  DefaultMaxLeverage: 100,
+} as const;
+
+/**
+ * MYX fee configuration
+ * Both rates are 0.05% (5 bps) applied to the notional value
+ */
+export const MYX_FEE_CONFIG = {
+  DefaultFeeRate: 0.0005, // 0.05% total fee rate
+  DefaultProtocolFeeRate: 0.0005, // Protocol taker fee
+} as const;

@@ -279,6 +279,13 @@ export const HIP3_ASSET_ID_CONFIG = {
 export const BASIS_POINTS_DIVISOR = 10000;
 
 /**
+ * Offset added to spot market pair index to derive the spot asset ID
+ * used in HyperLiquid order routing.
+ * Per HyperLiquid protocol: spotAssetId = SPOT_ASSET_ID_OFFSET + pairIndex
+ */
+export const SPOT_ASSET_ID_OFFSET = 10000;
+
+/**
  * HIP-3 asset market type classifications (PRODUCTION DEFAULT)
  *
  * This is the production default configuration, can be overridden via feature flag

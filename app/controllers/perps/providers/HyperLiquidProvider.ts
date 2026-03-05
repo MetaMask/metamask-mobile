@@ -14,6 +14,7 @@ import {
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
+  SPOT_ASSET_ID_OFFSET,
   TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
@@ -1698,7 +1699,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
-    const spotAssetId = 10000 + usdhUsdcPair.index;
+    const spotAssetId = SPOT_ASSET_ID_OFFSET + usdhUsdcPair.index;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Found USDH/USDC spot pair',

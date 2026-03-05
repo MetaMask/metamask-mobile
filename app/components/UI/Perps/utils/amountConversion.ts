@@ -15,11 +15,13 @@ export type AmountConversionLogger = PerpsLogger | undefined;
  *
  * @param amount - Amount in various formats (USD string, hex wei, or numeric string)
  * @param logger - Optional logger for error reporting
+ * @param ethPriceUSD - Current ETH price in USD, required when amount is a hex wei value
  * @returns Formatted USD string using Perps formatting standards
  */
 export const convertPerpsAmountToUSD = (
   amount: string,
   logger?: AmountConversionLogger,
+  ethPriceUSD?: number,
 ): string => {
   if (!amount) {
     return formatPerpsFiat(0);
@@ -38,11 +40,7 @@ export const convertPerpsAmountToUSD = (
       const weiBN = new BN(amount, 16);
       const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
       const ethValue = ethBN.toNumber();
-
-      // For now, use a placeholder ETH price since we don't have real-time price data
-      // In a real implementation, this should come from a price feed
-      const ethPriceUSD = 2000; // TODO: Replace with actual ETH price from price feed
-      const usdValue = ethValue * ethPriceUSD;
+      const usdValue = ethValue * (ethPriceUSD ?? 0);
       // Preserve decimals for converted amounts
       return formatPerpsFiat(usdValue);
     }

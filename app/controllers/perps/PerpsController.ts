@@ -2105,8 +2105,8 @@ export class PerpsController extends BaseController<
             const isCancellation =
               errorMessage.includes('User denied') ||
               errorMessage.includes('User rejected') ||
-              errorMessage.includes('cancelled') ||
-              errorMessage.includes('canceled');
+              errorMessage.includes('User cancelled') ||
+              errorMessage.includes('User canceled');
             this.update((state) => {
               const requestToUpdate = state.depositRequests.find(
                 (req) => req.id === currentDepositId,
