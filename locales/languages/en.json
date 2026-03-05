@@ -6041,13 +6041,12 @@
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
-      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
       "learn_more": "Learn more",
       "tooltip_title": "Earn yield with mUSD",
       "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
       "quick_convert": {
-        "title": "Convert and get {{apy}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "title": "Convert and get {{percentage}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
         "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert max"

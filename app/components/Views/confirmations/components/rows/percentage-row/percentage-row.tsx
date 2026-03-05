@@ -11,6 +11,9 @@ import { InfoRowSkeleton } from '../../UI/info-row/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../../../../core/AppConstants';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { TransactionType } from '@metamask/transaction-controller';
+import { hasTransactionType } from '../../../utils/transaction';
 
 const styles = StyleSheet.create({
   termsText: {
@@ -20,6 +23,14 @@ const styles = StyleSheet.create({
 
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
+
+  const transactionMetadata = useTransactionMetadataRequest();
+
+  if (
+    !hasTransactionType(transactionMetadata, [TransactionType.musdConversion])
+  ) {
+    return null;
+  }
 
   const redirectToBonusFaq = () =>
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
