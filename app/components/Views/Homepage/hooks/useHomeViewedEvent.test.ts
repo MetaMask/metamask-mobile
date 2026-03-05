@@ -447,8 +447,8 @@ describe('useHomeViewedEvent', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         interaction_type: 'section_viewed',
         location: 'home',
-        name: HomeSectionNames.DEFI,
-        index: 2,
+        section_name: HomeSectionNames.DEFI,
+        section_index: 2,
         total_sections_loaded: 4,
         is_empty: true,
         item_count: 0,
