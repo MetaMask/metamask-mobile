@@ -2,6 +2,7 @@
 # Query the running MetaMask app state via CDP bridge.
 #
 # Usage:
+#   scripts/perps/agentic/app-state.sh status                   # Route + selected account snapshot
 #   scripts/perps/agentic/app-state.sh route                    # Current route name
 #   scripts/perps/agentic/app-state.sh state engine              # Redux state at path
 #   scripts/perps/agentic/app-state.sh state engine.backgroundState.NetworkController
@@ -24,6 +25,9 @@ COMMAND="${1:-route}"
 shift || true
 
 case "$COMMAND" in
+  status)
+    node scripts/perps/agentic/cdp-bridge.js status
+    ;;
   route)
     node scripts/perps/agentic/cdp-bridge.js get-route
     ;;
@@ -61,6 +65,7 @@ case "$COMMAND" in
     echo "Usage: app-state.sh <command> [args...]"
     echo ""
     echo "Commands:"
+    echo "  status                 Route + selected account snapshot"
     echo "  route                  Current route name and params"
     echo "  state <dot.path>       Redux state at the given path"
     echo "  nav                    Full navigation state tree"

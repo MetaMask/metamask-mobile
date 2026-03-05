@@ -529,6 +529,17 @@ const COMMANDS = {
     return { currentRoute: route, deviceName, platform };
   },
 
+  async status(client, _args, { deviceName, platform } = {}) {
+    const expr = `(function() {
+      var route = globalThis.__AGENTIC__?.getRoute() || null;
+      var account = null;
+      try { account = globalThis.__AGENTIC__?.getSelectedAccount() || null; } catch(e) {}
+      return { route: route, account: account };
+    })()`;
+    const snapshot = await cdpEval(client, expr);
+    return Object.assign({}, snapshot, { deviceName: deviceName || '', platform: platform || '' });
+  },
+
   async 'list-accounts'(client) {
     return await cdpEval(client, 'globalThis.__AGENTIC__?.listAccounts()');
   },
@@ -623,6 +634,7 @@ Usage:
 
 Commands:
   navigate <RouteName> [params-json]   Navigate to a screen
+  status                               Route + selected account snapshot
   get-route                            Get current route name and params
   get-state [dot.path]                 Get Redux state (or nav state if no path)
   eval <expression>                    Evaluate arbitrary JS in app context

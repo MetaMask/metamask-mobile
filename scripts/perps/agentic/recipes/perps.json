@@ -33,5 +33,20 @@
     "description": "Registered provider IDs",
     "expression": "JSON.stringify(Array.from(Engine.context.PerpsController.providers.keys()))",
     "async": false
+  },
+  "pre-trade": {
+    "description": "Position count + balance snapshot before a trade (use for pre/post comparison)",
+    "expression": "Promise.all([Engine.context.PerpsController.getPositions(),Engine.context.PerpsController.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl}}),accountState:r[1]})})",
+    "async": true
+  },
+  "place-order": {
+    "description": "TEMPLATE: market buy BTC $10 at 2x leverage — substitute params via eval-async for custom scenarios",
+    "expression": "Engine.context.PerpsController.placeOrder({symbol:'BTC',isBuy:true,orderType:'market',size:'0.0001',leverage:2,usdAmount:'10',maxSlippageBps:500}).then(function(r){return JSON.stringify(r)})",
+    "async": true
+  },
+  "post-trade": {
+    "description": "Position count + balance snapshot after a trade (compare with pre-trade output)",
+    "expression": "Promise.all([Engine.context.PerpsController.getPositions(),Engine.context.PerpsController.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(p){return{symbol:p.symbol,side:p.side,size:p.size,entryPrice:p.entryPrice,unrealizedPnl:p.unrealizedPnl}}),accountState:r[1]})})",
+    "async": true
   }
 }

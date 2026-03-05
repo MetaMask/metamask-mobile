@@ -118,8 +118,17 @@ scripts/perps/agentic/app-state.sh recipe --list                # list all avail
 scripts/perps/agentic/screenshot.sh [label]                     # take screenshot, returns path
 scripts/perps/agentic/start-metro.sh                            # ensure Metro is running
 scripts/perps/agentic/stop-metro.sh                             # stop Metro background process
-scripts/perps/agentic/reload-metro.sh                            # trigger hot-reload on all connected apps
-scripts/perps/agentic/test-trade-flow.sh                         # end-to-end trade validation harness
+scripts/perps/agentic/reload-metro.sh                           # trigger hot-reload on all connected apps
+```
+
+**yarn shortcuts** (human-friendly aliases):
+
+```bash
+yarn a:start      # start/attach Metro
+yarn a:stop       # stop Metro
+yarn a:status     # current route
+yarn a:reload     # hot-reload all connected apps
+yarn a:navigate   # navigate to a screen (pass route + optional params)
 ```
 
 **Metro log**: `.agent/metro.log` — grep for errors after changes.
@@ -135,9 +144,8 @@ scripts/perps/agentic/
 ├── start-metro.sh         # Start Metro (or attach to existing)
 ├── stop-metro.sh          # Stop Metro background process
 ├── reload-metro.sh        # Trigger hot-reload on all connected apps
-├── test-trade-flow.sh     # End-to-end trade validation (place → verify → close)
 └── recipes/               # Per-team recipe files (see recipes/README.md)
-    ├── perps.json          # Perps team recipes (positions, auth, balances, markets, etc.)
+    ├── perps.json          # Perps team recipes (positions, auth, balances, markets, trade-flow, etc.)
     └── README.md           # How to add recipes for your team
 ```
 
@@ -247,53 +255,40 @@ scripts/perps/agentic/app-state.sh eval-async \
 
 ### Trade Flow Validation
 
-`test-trade-flow.sh` is an end-to-end trade validation harness that places a real order, monitors WebSocket data flow, and verifies position state changes. It was created to validate fixes for TAT-2597 (position not appearing after trade) and TAT-2598 (missing prices / can't trade).
+The trade flow validation pattern uses three recipes in `recipes/perps.json` to capture pre/post state around an order. This replaces a shell script with composable `eval-async` calls that an agent can orchestrate directly.
 
-**Usage:**
+**Recipes:**
+
+| Recipe              | Description                                        |
+| ------------------- | -------------------------------------------------- |
+| `perps/pre-trade`   | Position count + balance snapshot before the trade |
+| `perps/place-order` | **TEMPLATE** — market buy BTC $10 at 2x leverage   |
+| `perps/post-trade`  | Same snapshot shape as pre-trade for comparison    |
+
+**Orchestration pattern:**
 
 ```bash
-# Default: BTC long, $10, 2x leverage
-scripts/perps/agentic/test-trade-flow.sh
+# 1. Capture baseline
+scripts/perps/agentic/app-state.sh recipe perps/pre-trade
 
-# Custom symbol, side, size
-SYMBOL=ETH SIDE=sell SIZE=0.01 USD_AMOUNT=20 \
-  scripts/perps/agentic/test-trade-flow.sh
+# 2. Place order (template — edit the expression or use eval-async for custom params)
+scripts/perps/agentic/app-state.sh recipe perps/place-order
 
-# Skip navigation (already on Perps screen)
-SKIP_NAV=1 scripts/perps/agentic/test-trade-flow.sh
+# 3. Wait for WebSocket updates
+sleep 5
 
-# Keep position open after test
-SKIP_CLOSE=1 scripts/perps/agentic/test-trade-flow.sh
+# 4. Capture post-trade state
+scripts/perps/agentic/app-state.sh recipe perps/post-trade
 ```
 
-**Environment variables:**
+**Custom order via `eval-async`** (substitute your own params):
 
-| Variable      | Default   | Description                                |
-| ------------- | --------- | ------------------------------------------ |
-| `SYMBOL`      | `BTC`     | Market symbol                              |
-| `SIDE`        | `buy`     | `buy` (long) or `sell` (short)             |
-| `SIZE`        | `0.0001`  | Position size in base asset                |
-| `USD_AMOUNT`  | `10`      | Notional USD value                         |
-| `LEVERAGE`    | `2`       | Leverage multiplier                        |
-| `ORDER_TYPE`  | `market`  | `market` or `limit`                        |
-| `LIMIT_PRICE` | _(empty)_ | Price for limit orders                     |
-| `SLIPPAGE`    | `500`     | Max slippage in basis points               |
-| `SKIP_NAV`    | _(empty)_ | Set to `1` to skip navigation to Perps     |
-| `SKIP_CLOSE`  | _(empty)_ | Set to `1` to keep position open           |
-| `PLATFORM`    | `android` | Platform for screenshots                   |
-| `WAIT_SECS`   | `5`       | Seconds to wait for WS updates after order |
+```bash
+scripts/perps/agentic/app-state.sh eval-async \
+  "Engine.context.PerpsController.placeOrder({symbol:'ETH',isBuy:false,orderType:'market',size:'0.01',leverage:3,usdAmount:'20',maxSlippageBps:500}).then(function(r){return JSON.stringify(r)})"
+```
 
-**What it validates:**
-
-1. Engine accessibility via CDP
-2. Pre-trade position count capture
-3. Live price fetch from `getMarketDataWithPrices()`
-4. Order validation via `validateOrder()`
-5. Order placement via `placeOrder()` + latency measurement
-6. Post-trade position count increase (TAT-2597)
-7. WebSocket position callbacks (`PositionStreamChannel`) (TAT-2597)
-8. Price stream first-data receipt (TAT-2598)
-9. Position cleanup via `closePosition()` (unless `SKIP_CLOSE`)
+> **Important:** `perps/place-order` places a real order. It is labeled as a template/example. Always verify auth state (`perps/auth`) and balances (`perps/balances`) before running.
 
 ### Metro Log Debugging
 
