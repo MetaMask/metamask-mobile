@@ -204,10 +204,9 @@ class Transactions extends PureComponent {
     ready: false,
     refreshing: false,
     cancelIsOpen: false,
-    cancelConfirmDisabled: false,
     speedUpIsOpen: false,
     retryIsOpen: false,
-    speedUpConfirmDisabled: false,
+    confirmDisabled: false,
     rpcBlockExplorer: undefined,
     errorMsg: undefined,
     isQRHardwareAccount: false,
@@ -279,8 +278,7 @@ class Transactions extends PureComponent {
         ({ id }) => id === this.existingTx?.id,
       )
     ) {
-      this.onSpeedUpCompleted();
-      this.onCancelCompleted();
+      this.closeSpeedUpCancelModal();
     }
   }
 
@@ -422,7 +420,7 @@ class Transactions extends PureComponent {
 
   onSpeedUpAction = (speedUpAction, tx) => {
     if (!speedUpAction) {
-      this.setState({ speedUpIsOpen: false });
+      this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
       this.speedUpTxId = null;
       this.existingTx = null;
       return;
@@ -430,12 +428,16 @@ class Transactions extends PureComponent {
     if (!tx) return;
     this.speedUpTxId = tx.id;
     this.existingTx = tx;
-    const speedUpConfirmDisabled = validateTransactionActionBalance(
+    const confirmDisabled = validateTransactionActionBalance(
       tx,
       SPEED_UP_RATE,
       this.props.accounts,
     );
-    this.setState({ speedUpIsOpen: speedUpAction, speedUpConfirmDisabled });
+    this.setState({
+      speedUpIsOpen: true,
+      cancelIsOpen: false,
+      confirmDisabled,
+    });
   };
 
   closeSpeedUpCancelModal = () => {
@@ -445,13 +447,9 @@ class Transactions extends PureComponent {
     this.existingTx = null;
   };
 
-  onSpeedUpCompleted = () => {
-    this.closeSpeedUpCancelModal();
-  };
-
   onCancelAction = (cancelAction, tx) => {
     if (!cancelAction) {
-      this.setState({ cancelIsOpen: false });
+      this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
       this.cancelTxId = null;
       this.existingTx = null;
       return;
@@ -459,16 +457,16 @@ class Transactions extends PureComponent {
     if (!tx) return;
     this.cancelTxId = tx.id;
     this.existingTx = tx;
-    const cancelConfirmDisabled = validateTransactionActionBalance(
+    const confirmDisabled = validateTransactionActionBalance(
       tx,
       CANCEL_RATE,
       this.props.accounts,
     );
-    this.setState({ cancelIsOpen: cancelAction, cancelConfirmDisabled });
-  };
-
-  onCancelCompleted = () => {
-    this.closeSpeedUpCancelModal();
+    this.setState({
+      speedUpIsOpen: false,
+      cancelIsOpen: true,
+      confirmDisabled,
+    });
   };
 
   getParamsToSend = (transactionObject) => {
@@ -504,7 +502,7 @@ class Transactions extends PureComponent {
     const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `speedUpTransaction failed `, speedUpTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
-    this.setState({ speedUpIsOpen: false });
+    this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
   };
 
   handleCancelTransactionFailure = (e) => {
@@ -512,7 +510,7 @@ class Transactions extends PureComponent {
     const message = e instanceof TransactionError ? e.message : undefined;
     Logger.error(e, { message: `cancelTransaction failed `, cancelTxId });
     InteractionManager.runAfterInteractions(this.toggleRetry(message));
-    this.setState({ cancelIsOpen: false });
+    this.setState({ speedUpIsOpen: false, cancelIsOpen: false });
   };
 
   speedUpTransaction = async (transactionObject) => {
@@ -541,7 +539,7 @@ class Transactions extends PureComponent {
       } else {
         await speedUpTransaction(this.speedUpTxId, params);
       }
-      this.onSpeedUpCompleted();
+      this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleSpeedUpTransactionFailure(e);
     }
@@ -566,10 +564,7 @@ class Transactions extends PureComponent {
 
     const onConfirmation = (isComplete) => {
       if (isComplete) {
-        transaction.speedUpParams &&
-        transaction.speedUpParams?.type === 'SpeedUp'
-          ? this.onSpeedUpCompleted()
-          : this.onCancelCompleted();
+        this.closeSpeedUpCancelModal();
       }
     };
 
@@ -620,7 +615,7 @@ class Transactions extends PureComponent {
           params,
         );
       }
-      this.onCancelCompleted();
+      this.closeSpeedUpCancelModal();
     } catch (e) {
       this.handleCancelTransactionFailure(e);
     }
@@ -696,7 +691,7 @@ class Transactions extends PureComponent {
       header,
       isSigningQRObject,
     } = this.props;
-    const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
+    const { confirmDisabled } = this.state;
     const { colors } = this.context || mockTheme;
     const styles = createStyles(colors);
 
@@ -758,16 +753,8 @@ class Transactions extends PureComponent {
                 ? this.cancelTransaction
                 : this.speedUpTransaction
             }
-            onClose={
-              this.state.cancelIsOpen
-                ? this.onCancelCompleted
-                : this.onSpeedUpCompleted
-            }
-            confirmDisabled={
-              this.state.cancelIsOpen
-                ? cancelConfirmDisabled
-                : speedUpConfirmDisabled
-            }
+            onClose={this.closeSpeedUpCancelModal}
+            confirmDisabled={confirmDisabled}
           />
         )}
       </View>

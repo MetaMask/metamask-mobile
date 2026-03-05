@@ -1550,17 +1550,19 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalledWith({
-      cancelConfirmDisabled: false,
+      speedUpIsOpen: false,
       cancelIsOpen: true,
+      confirmDisabled: false,
     });
   });
 
-  it('should test onSpeedUpCompleted method directly', () => {
+  it('should test closeSpeedUpCancelModal method directly', () => {
     instance.setState = jest.fn();
     instance.speedUpTxId = 'tx-123';
+    instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-123' };
 
-    instance.onSpeedUpCompleted();
+    instance.closeSpeedUpCancelModal();
 
     expect(instance.setState).toHaveBeenCalledWith({
       speedUpIsOpen: false,
@@ -1568,22 +1570,6 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     });
     expect(instance.speedUpTxId).toBeNull();
     expect(instance.cancelTxId).toBeNull();
-    expect(instance.existingTx).toBeNull();
-  });
-
-  it('should test onCancelCompleted method directly', () => {
-    instance.setState = jest.fn();
-    instance.cancelTxId = 'tx-456';
-    instance.existingTx = { id: 'tx-456' };
-
-    instance.onCancelCompleted();
-
-    expect(instance.setState).toHaveBeenCalledWith({
-      speedUpIsOpen: false,
-      cancelIsOpen: false,
-    });
-    expect(instance.cancelTxId).toBeNull();
-    expect(instance.speedUpTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
 
@@ -1864,8 +1850,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test componentDidUpdate method directly', () => {
     instance.updateBlockExplorer = jest.fn();
-    instance.onSpeedUpCompleted = jest.fn();
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
     instance.existingTx = { id: 'tx-123' };
     instance.props = {
       ...defaultTestProps,
@@ -1875,8 +1860,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.componentDidUpdate();
 
     expect(instance.updateBlockExplorer).toHaveBeenCalled();
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test init method directly', () => {
@@ -1942,7 +1926,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1951,7 +1935,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     await instance.speedUpTransaction(transactionObject);
 
-    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test cancelTransaction method directly', async () => {
@@ -1961,7 +1945,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1973,7 +1957,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalled();
-    expect(instance.onCancelCompleted).toHaveBeenCalled();
+    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
   });
 
   it('should test renderLoader method directly', () => {
@@ -2067,8 +2051,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     };
     instance.state = {
       refreshing: false,
-      cancelConfirmDisabled: false,
-      speedUpConfirmDisabled: false,
+      confirmDisabled: false,
     };
     instance.props = {
       ...defaultTestProps,
@@ -2354,7 +2337,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.speedUpTxId = 'tx-123';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onSpeedUpCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     const transactionObject = {
       suggestedMaxFeePerGasHex: '123',
@@ -2369,7 +2352,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.cancelTxId = 'tx-456';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.onCancelCompleted = jest.fn();
+    instance.closeSpeedUpCancelModal = jest.fn();
 
     await instance.cancelTransaction(transactionObject);
 
