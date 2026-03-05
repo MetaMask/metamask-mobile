@@ -811,7 +811,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
