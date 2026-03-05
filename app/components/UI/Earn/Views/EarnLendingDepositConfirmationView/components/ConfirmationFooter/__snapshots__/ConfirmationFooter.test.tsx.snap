@@ -183,7 +183,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#b4b4b528",
                 "borderRadius": 12,
                 "height": 24,
                 "justifyContent": "center",
@@ -263,7 +263,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -281,7 +281,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -304,7 +304,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
@@ -355,7 +355,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -370,7 +370,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -395,7 +395,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -412,7 +412,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -428,7 +428,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
