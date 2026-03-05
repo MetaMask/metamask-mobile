@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
@@ -46,7 +46,10 @@ const LedgerTransactionModal = () => {
   const { transactionId, onConfirmationComplete, deviceId, replacementParams } =
     useParams<LedgerTransactionModalParams>();
 
+  const hasNavigatedRef = useRef(false);
   const goBack = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
