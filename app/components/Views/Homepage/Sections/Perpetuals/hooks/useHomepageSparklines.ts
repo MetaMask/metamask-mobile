@@ -45,6 +45,7 @@ function extractCloses(candleData: CandleData): number[] {
 export function useHomepageSparklines(
   symbols: string[],
 ): UseHomepageSparklinesResult {
+  const safeSymbols = useMemo(() => symbols ?? [], [symbols]);
   const stream = usePerpsStream();
   const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
   const dataRef = useRef<Record<string, number[]>>({});
@@ -52,8 +53,7 @@ export function useHomepageSparklines(
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Stable string key so the effect doesn't re-run on every render
-  // when the caller produces a new array reference with the same contents.
-  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+  const symbolsKey = useMemo(() => safeSymbols.join(','), [safeSymbols]);
 
   useEffect(() => {
     if (!symbolsKey) return undefined;
@@ -72,15 +72,16 @@ export function useHomepageSparklines(
     };
 
     const unsubscribes: (() => void)[] = [];
+    const syms = symbolsKey.split(',').filter(Boolean);
 
-    for (const symbol of symbols) {
+    for (const symbol of syms) {
       const unsubscribe = stream.candles.subscribe({
         symbol,
         interval: CandlePeriod.FifteenMinutes,
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
           if (dataRef.current[symbol]) return;
-          if (!candleData || candleData.candles.length < 2) return;
+          if (!candleData?.candles || candleData.candles.length < 2) return;
 
           const closes = extractCloses(candleData);
           if (closes.length < 2) return;

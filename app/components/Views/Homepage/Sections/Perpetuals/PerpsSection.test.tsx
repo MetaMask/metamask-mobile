@@ -25,9 +25,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
-    useFocusEffect: jest.fn((callback: () => void) => {
-      callback?.();
-    }),
   };
 });
 
@@ -47,10 +44,6 @@ jest.mock('../../../../UI/Perps/hooks', () => ({
     refresh: jest.fn(),
     isRefreshing: false,
   })),
-}));
-
-jest.mock('../../../../UI/Perps/hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 jest.mock('react-native-skeleton-placeholder', () => {
@@ -219,6 +212,10 @@ const makeOrder = (overrides: Record<string, unknown> = {}) => ({
   timestamp: 1700000000,
   ...overrides,
 });
+
+const mockUseHomeViewedEvent = jest.requireMock(
+  '../../hooks/useHomeViewedEvent',
+).default as jest.Mock;
 
 const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
   symbol: 'BTC',
@@ -1160,6 +1157,166 @@ describe('PerpsSection', () => {
       expect(
         screen.queryByTestId('homepage-trending-perps-carousel'),
       ).toBeNull();
+    });
+  });
+
+  describe('segment event integration', () => {
+    it('passes sectionName, sectionIndex, and totalSectionsLoaded', () => {
+      renderWithProvider(
+        <PerpsSection sectionIndex={2} totalSectionsLoaded={4} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sectionName: 'perps',
+          sectionIndex: 2,
+          totalSectionsLoaded: 4,
+        }),
+      );
+    });
+
+    it('passes isLoading: true while positions are loading', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isLoading: true }),
+      );
+    });
+
+    it('passes isLoading: true while orders are loading', () => {
+      usePerpsLiveOrders.mockReturnValue({
+        orders: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isLoading: true }),
+      );
+    });
+
+    it('passes isLoading: true while markets load when user has no positions or orders (pendingTrending)', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isLoading: true }),
+      );
+    });
+
+    it('passes isLoading: false once all data has settled', () => {
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isLoading: false }),
+      );
+    });
+
+    it('passes isEmpty: true and itemCount: 0 when no positions, orders, or markets', () => {
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isEmpty: true, itemCount: 0 }),
+      );
+    });
+
+    it('passes isEmpty: false and itemCount when user has positions', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition(), makePosition({ symbol: 'ETH', size: '1' })],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isEmpty: false, itemCount: 2 }),
+      );
+    });
+
+    it('combines positions and orders in itemCount', () => {
+      usePerpsLivePositions.mockReturnValue({
+        positions: [makePosition()],
+        isInitialLoading: false,
+      });
+      usePerpsLiveOrders.mockReturnValue({
+        orders: [
+          makeOrder({ orderId: 'o1' }),
+          makeOrder({ orderId: 'o2', symbol: 'ETH' }),
+        ],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isEmpty: false, itemCount: 3 }),
+      );
+    });
+
+    it('passes isEmpty: false when trending markets are shown', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [makeTrendingMarket()],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isEmpty: false }),
+      );
+    });
+
+    it('passes itemCount: 0 when only trending markets are shown (positions/orders not counted)', () => {
+      usePerpsMarkets.mockReturnValue({
+        markets: [
+          makeTrendingMarket({ symbol: 'BTC' }),
+          makeTrendingMarket({ symbol: 'ETH' }),
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      renderWithProvider(
+        <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ itemCount: 0 }),
+      );
     });
   });
 });
