@@ -405,7 +405,9 @@ describe('TokensSection', () => {
     mockListPopularNetworks.mockReturnValue(popularChainIds);
     mockSortedTokenKeys.mockReturnValue([]);
 
-    renderWithProvider(<TokensSection />);
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(mockSortedTokenKeys).toHaveBeenCalledWith(
       expect.anything(),
