@@ -2,6 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { CandlePeriod } from '../constants/chartConfig';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
@@ -46,6 +47,7 @@ import type {
   CancelOrderParams,
   CancelOrderResult,
   CancelOrdersResult,
+  CandleData,
   ClosePositionParams,
   ClosePositionsParams,
   ClosePositionsResult,
@@ -7481,6 +7483,23 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       throw error;
     }
+  }
+
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    this.#clientService.ensureInitialized();
+    const result = await this.#clientService.fetchHistoricalCandles(options);
+    return (
+      result ?? {
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
+      }
+    );
   }
 
   /**
