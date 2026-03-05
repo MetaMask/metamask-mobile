@@ -2,6 +2,7 @@ import SecureKeychain from '../../../SecureKeychain';
 import Logger from '../../../../util/Logger';
 
 const KEYCHAIN_PREFIX = 'com.metamask.CARD_TOKENS';
+const LEGACY_BAANX_KEY = 'CARD_BAANX_TOKENS';
 
 /**
  * Auth token set stored in SecureKeychain, keyed by provider ID.
@@ -11,14 +12,20 @@ export interface CardTokenSet {
   refreshToken?: string;
   accessTokenExpiresAt: number;
   refreshTokenExpiresAt?: number;
-  location?: string;
+  location: string;
+}
+
+function keychainKey(providerId: string): string {
+  return providerId === 'baanx'
+    ? LEGACY_BAANX_KEY
+    : `CARD_TOKENS_${providerId}`;
 }
 
 function scopeOptions(providerId: string) {
   return {
     service:
       providerId === 'baanx'
-        ? 'com.metamask.CARD_BAANX_TOKENS'
+        ? `com.metamask.${LEGACY_BAANX_KEY}`
         : `${KEYCHAIN_PREFIX}_${providerId}`,
     accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
   };
@@ -34,7 +41,9 @@ export const CardTokenStore = {
       if (!item) return null;
 
       const data: Partial<CardTokenSet> = JSON.parse(item.value);
-      if (!data.accessToken || !data.accessTokenExpiresAt) return null;
+      if (!data.accessToken || !data.accessTokenExpiresAt || !data.location) {
+        return null;
+      }
 
       return data as CardTokenSet;
     } catch (error) {
@@ -52,7 +61,7 @@ export const CardTokenStore = {
   async set(providerId: string, tokenSet: CardTokenSet): Promise<boolean> {
     try {
       const result = await SecureKeychain.setSecureItem(
-        `CARD_TOKENS_${providerId}`,
+        keychainKey(providerId),
         JSON.stringify(tokenSet),
         scopeOptions(providerId),
       );

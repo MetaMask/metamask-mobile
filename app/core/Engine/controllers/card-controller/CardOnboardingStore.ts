@@ -31,22 +31,27 @@ function scopeOptions(providerId: string) {
  * SecureKeychain wrapper for Card onboarding session data.
  */
 export const CardOnboardingStore = {
+  /**
+   * Retrieves onboarding data for a provider.
+   * @returns The onboarding data, or null if no data exists.
+   * @throws If a keychain read error occurs (to prevent silent data loss in set()).
+   */
   async get(providerId: string): Promise<CardOnboardingData | null> {
-    try {
-      const item = await SecureKeychain.getSecureItem(scopeOptions(providerId));
-      if (!item) return null;
+    const item = await SecureKeychain.getSecureItem(scopeOptions(providerId));
+    if (!item) return null;
 
+    try {
       const data: Partial<CardOnboardingData> = JSON.parse(item.value);
       return {
         ...EMPTY_ONBOARDING_DATA,
         ...data,
       };
-    } catch (error) {
-      Logger.error(error as Error, {
+    } catch (parseError) {
+      Logger.error(parseError as Error, {
         tags: { feature: 'card', provider: providerId },
         context: {
           name: 'CardOnboardingStore',
-          data: { method: 'get' },
+          data: { method: 'get', reason: 'JSON parse failed' },
         },
       });
       return null;

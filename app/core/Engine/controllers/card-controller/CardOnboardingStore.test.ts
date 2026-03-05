@@ -55,10 +55,21 @@ describe('CardOnboardingStore', () => {
       });
     });
 
-    it('returns null on keychain error', async () => {
+    it('throws on keychain error to prevent silent data loss in set()', async () => {
       (mockSecureKeychain.getSecureItem as jest.Mock).mockRejectedValue(
         new Error('Keychain error'),
       );
+
+      await expect(CardOnboardingStore.get('baanx')).rejects.toThrow(
+        'Keychain error',
+      );
+    });
+
+    it('returns null on JSON parse error', async () => {
+      (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue({
+        key: 'CARD_ONBOARDING_baanx',
+        value: 'invalid-json',
+      });
 
       const result = await CardOnboardingStore.get('baanx');
 
@@ -120,7 +131,7 @@ describe('CardOnboardingStore', () => {
       );
     });
 
-    it('returns false on keychain error', async () => {
+    it('returns false on write error', async () => {
       (mockSecureKeychain.getSecureItem as jest.Mock).mockResolvedValue(null);
       (mockSecureKeychain.setSecureItem as jest.Mock).mockRejectedValue(
         new Error('Keychain error'),
@@ -131,6 +142,19 @@ describe('CardOnboardingStore', () => {
       });
 
       expect(result).toBe(false);
+    });
+
+    it('returns false on read error to prevent silent data loss', async () => {
+      (mockSecureKeychain.getSecureItem as jest.Mock).mockRejectedValue(
+        new Error('Keychain read error'),
+      );
+
+      const result = await CardOnboardingStore.set('baanx', {
+        contactVerificationId: 'ver-456',
+      });
+
+      expect(result).toBe(false);
+      expect(mockSecureKeychain.setSecureItem).not.toHaveBeenCalled();
     });
   });
 
