@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePredictTrading } from './usePredictTrading';
@@ -15,10 +14,9 @@ import Logger from '../../../../util/Logger';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
-import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
 /**
- * Orchestrates the withdraw flow (navigation, cache invalidation, toasts).
+ * Orchestrates the withdraw flow (navigation, toasts).
  * Not a data-fetching hook — does not wrap useQuery/useMutation.
  */
 export const usePredictWithdraw = () => {
@@ -26,8 +24,6 @@ export const usePredictWithdraw = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
-  const queryClient = useQueryClient();
-
   const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
 
   const withdraw = useCallback(async () => {
@@ -37,8 +33,6 @@ export const usePredictWithdraw = () => {
       });
 
       const response = await prepareWithdraw({});
-
-      invalidatePredictCaches(queryClient);
 
       return response;
     } catch (err) {
@@ -80,7 +74,6 @@ export const usePredictWithdraw = () => {
     navigateToConfirmation,
     navigation,
     prepareWithdraw,
-    queryClient,
     toastRef,
   ]);
 

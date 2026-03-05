@@ -3,7 +3,6 @@ import { usePredictWithdraw } from './usePredictWithdraw';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import Logger from '../../../../util/Logger';
-import { invalidatePredictCaches } from '../utils/invalidatePredictCaches';
 
 // Create mock functions
 const mockNavigate = jest.fn();
@@ -66,22 +65,6 @@ jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(() => ({ toastRef: mockToastRef })),
 }));
-
-jest.mock('@tanstack/react-query', () => ({
-  ...jest.requireActual('@tanstack/react-query'),
-  useQueryClient: jest.fn(() => ({
-    invalidateQueries: jest.fn(),
-  })),
-}));
-
-jest.mock('../utils/invalidatePredictCaches', () => ({
-  invalidatePredictCaches: jest.fn(),
-}));
-
-const mockInvalidatePredictCaches =
-  invalidatePredictCaches as jest.MockedFunction<
-    typeof invalidatePredictCaches
-  >;
 
 // Mock react-redux
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -523,25 +506,4 @@ describe('usePredictWithdraw', () => {
     });
   });
 
-  describe('cache invalidation', () => {
-    it('invalidates caches after successful withdraw', async () => {
-      mockPrepareWithdraw.mockResolvedValue(undefined);
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockInvalidatePredictCaches).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not invalidate caches when withdraw fails', async () => {
-      mockPrepareWithdraw.mockRejectedValue(new Error('Withdraw failed'));
-
-      const { result } = setupUsePredictWithdrawTest();
-
-      await result.current.withdraw();
-
-      expect(mockInvalidatePredictCaches).not.toHaveBeenCalled();
-    });
-  });
 });
