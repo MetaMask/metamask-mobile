@@ -1,5 +1,5 @@
 import { providerErrors } from '@metamask/rpc-errors';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -29,10 +29,6 @@ export const useMusdConversionStaleApprovalCleanup = () => {
     [pendingUnapprovedMusdConversions],
   );
 
-  const pendingMusdUnapprovedTransactionIdsRef = useRef<string[]>([]);
-  pendingMusdUnapprovedTransactionIdsRef.current =
-    pendingMusdUnapprovedTransactionIds;
-
   useEffect(() => {
     let previousAppState = AppState.currentState;
 
@@ -48,10 +44,7 @@ export const useMusdConversionStaleApprovalCleanup = () => {
         return;
       }
 
-      const staleApprovalTransactionIds =
-        pendingMusdUnapprovedTransactionIdsRef.current;
-
-      if (staleApprovalTransactionIds.length === 0) {
+      if (pendingMusdUnapprovedTransactionIds.length === 0) {
         previousAppState = nextAppState;
         return;
       }
@@ -59,12 +52,12 @@ export const useMusdConversionStaleApprovalCleanup = () => {
       Logger.log(
         '[mUSD Conversion] Rejecting stale pending approvals on foreground',
         {
-          count: staleApprovalTransactionIds.length,
-          transactionIds: staleApprovalTransactionIds,
+          count: pendingMusdUnapprovedTransactionIds.length,
+          transactionIds: pendingMusdUnapprovedTransactionIds,
         },
       );
 
-      for (const transactionId of staleApprovalTransactionIds) {
+      for (const transactionId of pendingMusdUnapprovedTransactionIds) {
         Engine.rejectPendingApproval(
           transactionId,
           providerErrors.userRejectedRequest({
@@ -105,5 +98,5 @@ export const useMusdConversionStaleApprovalCleanup = () => {
     return () => {
       appStateListener.remove();
     };
-  }, []);
+  }, [pendingMusdUnapprovedTransactionIds]);
 };
