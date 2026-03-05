@@ -172,10 +172,6 @@ async function handleUniversalLink({
   url: string;
   source: string;
 }) {
-  Logger.log(
-    `[DeeplinkDebug] handleUniversalLink: received url=${url} pathname=${new URL(url).pathname}`,
-  );
-
   const validatedUrl = new URL(url);
 
   if (
@@ -224,11 +220,6 @@ async function handleUniversalLink({
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 
   const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
-
-  Logger.log(
-    `[DeeplinkDebug] handleUniversalLink: hostname=${urlObj.hostname} action=${action} isSupportedDomain=${isSupportedDomain} isActionSupported=${isActionSupported}`,
-  );
-
   if (!isSupportedDomain) {
     isInvalidLink = true;
   }
@@ -263,23 +254,16 @@ async function handleUniversalLink({
   const linkType = () => {
     // Invalid domain
     if (isInvalidLink) {
-      Logger.log(
-        `[DeeplinkDebug] handleUniversalLink: linkType=INVALID (isInvalidLink)`,
-      );
       return DeepLinkModalLinkType.INVALID;
     }
 
     // Unsupported action with valid signature
     if (!isActionSupported && isPrivateLink) {
-      Logger.log(`[DeeplinkDebug] handleUniversalLink: linkType=UNSUPPORTED`);
       return DeepLinkModalLinkType.UNSUPPORTED;
     }
 
     // Unsupported action without valid signature
     if (!isActionSupported) {
-      Logger.log(
-        `[DeeplinkDebug] handleUniversalLink: linkType=INVALID (isActionSupported=false) action=${action}`,
-      );
       return DeepLinkModalLinkType.INVALID;
     }
 

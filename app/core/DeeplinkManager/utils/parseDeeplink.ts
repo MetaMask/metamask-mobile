@@ -29,10 +29,6 @@ async function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
-    Logger.log(
-      `[DeeplinkDebug] parseDeeplink: incoming url=${JSON.stringify(url)}`,
-    );
-
     // If URL is the simulation form (e.g. reached parse before handleDeeplink rewrote it), normalize to canonical link
     let normalizedUrl = url;
     if (normalizedUrl.startsWith(BRANCH_FALLBACK_SIMULATION_PREFIX)) {
@@ -41,9 +37,6 @@ async function parseDeeplink({
         .trim();
       if (path) {
         normalizedUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path}`;
-        Logger.log(
-          `[DeeplinkDebug] parseDeeplink: normalized simulation → normalizedUrl=${normalizedUrl}`,
-        );
       }
     }
 
@@ -73,9 +66,6 @@ async function parseDeeplink({
         const mappedUrl = normalizedUrl.replace(
           `${PROTOCOLS.METAMASK}://`,
           `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
-        );
-        Logger.log(
-          `[DeeplinkDebug] parseDeeplink: passing to handleUniversalLink url(mappedUrl)=${mappedUrl}`,
         );
         const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
         handleUniversalLink({

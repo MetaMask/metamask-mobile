@@ -28,10 +28,6 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   let uri = opts.uri;
   const source = opts.source;
 
-  Logger.log(
-    `[DeeplinkDebug] handleDeeplink: incoming uri=${JSON.stringify(uri)} __DEV__=${__DEV__}`,
-  );
-
   // Dev-only: simulate Branch webpage fallback in simulator (no Branch/X required)
   if (
     __DEV__ &&
@@ -42,18 +38,12 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
     const path = uri.slice(BRANCH_FALLBACK_SIMULATION_PREFIX.length).trim();
     if (path) {
       uri = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path}`;
-      Logger.log(
-        `[DeeplinkDebug] handleDeeplink: rewrote simulation → uri=${uri}`,
-      );
     }
   }
 
   const { dispatch } = ReduxService.store;
   try {
     if (uri && typeof uri === 'string') {
-      Logger.log(
-        `[DeeplinkDebug] handleDeeplink: setCurrentDeeplink(uri=${uri})`,
-      );
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       dispatch(checkForDeeplink());
     }
