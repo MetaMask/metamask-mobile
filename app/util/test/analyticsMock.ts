@@ -77,7 +77,7 @@ export const createMockUseAnalyticsHook = (
   overrides?: Partial<UseAnalyticsHook>,
 ): UseAnalyticsHook => ({
   trackEvent: jest.fn(),
-  createEventBuilder: jest.fn().mockReturnValue({
+  createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
     addSensitiveProperties: jest.fn().mockReturnThis(),
     removeProperties: jest.fn().mockReturnThis(),
@@ -89,7 +89,7 @@ export const createMockUseAnalyticsHook = (
       sensitiveProperties: {},
       saveDataRecording: false,
     }),
-  }),
+  })),
   isEnabled: jest.fn().mockReturnValue(true),
   identify: jest.fn().mockResolvedValue(undefined),
   enable: jest.fn().mockResolvedValue(undefined),
