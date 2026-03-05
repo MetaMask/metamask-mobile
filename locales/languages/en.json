@@ -5915,7 +5915,7 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
+    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
@@ -6023,12 +6023,13 @@
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD is here!",
+        "delivered": "mUSD conversion successful",
+        "delivered_description": "Bonus will be claimable within a day.",
         "failed": "mUSD conversion failed"
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
@@ -6036,7 +6037,7 @@
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
       "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
