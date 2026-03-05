@@ -1,5 +1,6 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics';
+import { analytics } from '../analytics/analytics';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
@@ -32,16 +33,16 @@ const onConfirmUseTerms = async (onAccept?: () => void) => {
   if (onAccept) {
     onAccept();
   }
-  MetaMetrics.getInstance().trackEvent(
-    MetricsEventBuilder.createEventBuilder(
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.USER_TERMS_ACCEPTED,
     ).build(),
   );
 };
 
 const useTermsDisplayed = () => {
-  MetaMetrics.getInstance().trackEvent(
-    MetricsEventBuilder.createEventBuilder(
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.USER_TERMS_SHOWN,
     ).build(),
   );

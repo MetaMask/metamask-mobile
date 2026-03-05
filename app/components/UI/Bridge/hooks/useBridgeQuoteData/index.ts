@@ -22,7 +22,6 @@ import {
   getQuoteRefreshRate,
   shouldRefreshQuote,
 } from '../../utils/quoteUtils';
-
 import I18n from '../../../../../../locales/i18n';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
@@ -84,7 +83,10 @@ export const useBridgeQuoteData = ({
   const isExpired = isQuoteExpired(willRefresh, refreshRate, quotesLastFetched);
 
   const bestQuote = quotes?.recommendedQuote;
-  const allQuotes = quotes?.sortedQuotes ?? [];
+  const allQuotes = useMemo(
+    () => quotes?.sortedQuotes ?? [],
+    [quotes?.sortedQuotes],
+  );
 
   // Determine the active quote:
   // 1. If user manually selected a quote, use that
@@ -139,14 +141,22 @@ export const useBridgeQuoteData = ({
     [destToken],
   );
 
-  // Validate the active quote
   const isQuoteDestTokenMatch = isQuoteDestTokenMatchForQuote(activeQuote);
 
   // Filter all quotes to only include valid ones (not expired and matching dest token)
-  const validQuotes =
-    isExpired && !willRefresh && !isSubmittingTx
-      ? []
-      : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote));
+  const validQuotes = useMemo(
+    () =>
+      isExpired && !willRefresh && !isSubmittingTx
+        ? []
+        : allQuotes.filter((quote) => isQuoteDestTokenMatchForQuote(quote)),
+    [
+      isExpired,
+      willRefresh,
+      isSubmittingTx,
+      allQuotes,
+      isQuoteDestTokenMatchForQuote,
+    ],
+  );
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
@@ -207,9 +217,9 @@ export const useBridgeQuoteData = ({
     quoteRate,
     sourceToken?.symbol,
     destToken?.symbol,
-    networkFee,
     slippage,
     locale,
+    networkFee,
   ]);
 
   const isLoading = quotesLoadingStatus === RequestStatus.LOADING;

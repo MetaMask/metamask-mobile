@@ -1,34 +1,21 @@
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useLatestBalance } from '../useLatestBalance';
 import { useSelector } from 'react-redux';
-import {
-  selectSourceAmount,
-  selectSourceToken,
-} from '../../../../../core/redux/slices/bridge';
-import useIsInsufficientBalance from '../useInsufficientBalance';
+import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 
 interface Props {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
   quoteGasSponsored?: boolean;
+  hasInsufficientBalance: boolean;
 }
 
 export const useShouldRenderGasSponsoredBanner = ({
   quoteGasSponsored,
-  latestSourceBalance,
+  hasInsufficientBalance,
 }: Props) => {
-  const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
-
-  const insufficientBal = useIsInsufficientBalance({
-    amount: sourceAmount,
-    token: sourceToken,
-    latestAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
-
-  const isNetworkGasSponsored = useIsNetworkGasSponsored();
+  const isNetworkGasSponsored = useIsNetworkGasSponsored(sourceToken?.chainId);
 
   const shouldShowGasSponsored =
-    quoteGasSponsored || (insufficientBal && isNetworkGasSponsored);
+    quoteGasSponsored || (hasInsufficientBalance && isNetworkGasSponsored);
 
   return shouldShowGasSponsored;
 };

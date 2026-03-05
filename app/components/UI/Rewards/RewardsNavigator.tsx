@@ -63,7 +63,7 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
             component={RewardsSettingsView}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
         </>
       ) : null}

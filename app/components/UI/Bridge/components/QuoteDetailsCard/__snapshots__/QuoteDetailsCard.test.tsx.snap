@@ -356,7 +356,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#686e7d",
+                                "color": "#66676a",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -382,7 +382,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -395,9 +395,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           </View>
                           <TouchableOpacity
                             onPress={[Function]}
+                            testID="rate-info-button"
                           >
                             <SvgMock
-                              color="#686e7d"
+                              color="#66676a"
                               fill="currentColor"
                               height={16}
                               name="Info"
@@ -430,7 +431,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               numberOfLines={1}
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -477,9 +478,10 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 "flexShrink": 0,
                               }
                             }
+                            testID="rate-arrow-button"
                           >
                             <SvgMock
-                              color="#686e7d"
+                              color="#66676a"
                               fill="currentColor"
                               height={16}
                               name="ArrowRight"
@@ -537,7 +539,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -569,7 +571,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={16}
                                     name="Info"
@@ -614,7 +616,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -673,7 +675,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -705,7 +707,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={16}
                                     name="Info"
@@ -762,7 +764,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#686e7d",
+                                        "color": "#66676a",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -773,7 +775,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     0.5%
                                   </Text>
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={16}
                                     name="Edit"
@@ -834,7 +836,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -866,7 +868,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#686e7d"
+                                    color="#66676a"
                                     fill="currentColor"
                                     height={16}
                                     name="Info"
@@ -911,7 +913,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -957,7 +959,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#686e7d",
+                                  "color": "#66676a",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -1001,7 +1003,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 numberOfLines={1}
                                 style={
                                   {
-                                    "color": "#686e7d",
+                                    "color": "#66676a",
                                     "flexShrink": 1,
                                     "fontFamily": "Geist-Regular",
                                     "fontSize": 16,
@@ -1013,7 +1015,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 Select recipient
                               </Text>
                               <SvgMock
-                                color="#686e7d"
+                                color="#66676a"
                                 fill="currentColor"
                                 height={16}
                                 name="Edit"

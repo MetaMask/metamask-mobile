@@ -39,12 +39,12 @@ import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/Add
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
 import { toSentenceCase } from '../../../../../util/string';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import TagColored, {
   TagColor,
 } from '../../../../../component-library/components-temp/TagColored';
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
+import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 if (
@@ -54,7 +54,9 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const QuoteDetailsCard: React.FC = () => {
+const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
+  hasInsufficientBalance,
+}) => {
   const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
@@ -81,12 +83,6 @@ const QuoteDetailsCard: React.FC = () => {
     isQuoteLoading,
   });
 
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -95,8 +91,8 @@ const QuoteDetailsCard: React.FC = () => {
   }, [sourceToken?.chainId, sourceToken?.symbol]);
 
   const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
-    latestSourceBalance,
     quoteGasSponsored: activeQuote?.quote?.gasSponsored ?? false,
+    hasInsufficientBalance,
   });
 
   const handleSlippagePress = () => {
@@ -143,7 +139,7 @@ const QuoteDetailsCard: React.FC = () => {
             {strings('bridge.rate')}
           </Text>
           <QuoteCountdownTimer />
-          <TouchableOpacity onPress={handleRatePress}>
+          <TouchableOpacity onPress={handleRatePress} testID="rate-info-button">
             <Icon
               name={IconName.Info}
               size={IconSize.Sm}
@@ -161,7 +157,11 @@ const QuoteDetailsCard: React.FC = () => {
               {rate}
             </Text>
           </Box>
-          <Pressable style={tw`shrink-0`} onPress={handleRatePress}>
+          <Pressable
+            style={tw`shrink-0`}
+            onPress={handleRatePress}
+            testID="rate-arrow-button"
+          >
             <Icon
               name={IconName.ArrowRight}
               size={IconSize.Sm}
@@ -189,11 +189,17 @@ const QuoteDetailsCard: React.FC = () => {
               label: (
                 <TagColored
                   color={TagColor.Success}
-                  style={styles.gasFeesSponsoredContainer}
+                  labelProps={{
+                    variant: TextVariant.BodySM,
+                    style: {
+                      textTransform: 'none',
+                      textAlign: 'center',
+                      bottom: 1,
+                      fontWeight: 'normal',
+                    },
+                  }}
                 >
-                  <Text variant={TextVariant.BodySM} color={TextColor.Success}>
-                    {strings('bridge.gas_fees_sponsored')}
-                  </Text>
+                  {strings('bridge.gas_fees_sponsored')}
                 </TagColored>
               ),
             }}

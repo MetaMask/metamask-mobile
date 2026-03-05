@@ -48,10 +48,6 @@ const createStyles = ({ colors }: Theme) =>
       height: 16,
       marginTop: 0.5,
     },
-    gasFeesSponsoredContainer: {
-      height: 22,
-    },
-    rateValue: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   });
 
 export default createStyles;

@@ -256,7 +256,7 @@ export function getNavigationOptionsTitle(
     headerLeft: () =>
       isFullScreenModal ? null : (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={navigationPop}
           style={innerStyles.accessories}
@@ -1249,7 +1249,7 @@ export function getNetworkNavbarOptions(
             style={styles.headerLeftButton}
             onPress={() => navigation.pop()}
             testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
           />
@@ -1651,7 +1651,7 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
     headerRight: () => <View style={innerStyles.rightSpacer} />,
@@ -1684,7 +1684,7 @@ export function getPerpsMarketDetailsNavbar(navigation, title) {
       <ButtonIcon
         iconName={IconName.Arrow2Left}
         onPress={leftAction}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
       />
     ),
   };
@@ -1901,7 +1901,7 @@ export function getStakingNavbar(
     headerLeft: () =>
       hasBackButton ? (
         <ButtonIcon
-          size={ButtonIconSize.Lg}
+          size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
           style={innerStyles.headerLeft}
@@ -1947,7 +1947,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
         style={styles.headerLeftButton}
         onPress={() => navigation.pop()}
         testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         iconColor={IconColor.Default}
       />
@@ -1966,6 +1966,7 @@ export function getDeFiProtocolPositionDetailsNavbarOptions(navigation) {
  * @param {string} [options.networkName] - Name of the network
  * @param {Object} [options.networkImageSource] - Image source for the network icon
  * @param {Function} [options.onSettingsPress] - Callback for settings button press
+ * @param {Function} [options.onBackPress] - Callback for back button press
  * @returns {Object} - Navigation options object
  */
 export function getRampsBuildQuoteNavbarOptions(
@@ -1977,6 +1978,7 @@ export function getRampsBuildQuoteNavbarOptions(
     networkName,
     networkImageSource,
     onSettingsPress,
+    onBackPress,
   } = {},
 ) {
   const innerStyles = StyleSheet.create({
@@ -2015,8 +2017,11 @@ export function getRampsBuildQuoteNavbarOptions(
         startAccessory={
           <ButtonIcon
             style={innerStyles.backButton}
-            onPress={() => navigation.goBack()}
-            size={ButtonIconSize.Lg}
+            onPress={() => {
+              onBackPress?.();
+              navigation.goBack();
+            }}
+            size={ButtonIconSize.Md}
             iconName={IconName.ArrowLeft}
             iconColor={IconColor.Default}
             testID="build-quote-back-button"
@@ -2026,7 +2031,7 @@ export function getRampsBuildQuoteNavbarOptions(
           <ButtonIcon
             style={styles.headerRightButton}
             onPress={onSettingsPress}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             iconName={IconName.Setting}
             iconColor={IconColor.Default}
             testID="build-quote-settings-button"
@@ -2072,11 +2077,11 @@ export function getRampsBuildQuoteNavbarOptions(
                 />
               </BadgeWrapperComponent>
               <View style={innerStyles.labelsContainer}>
-                <MorphText variant={TextVariant.HeadingSM}>
+                <MorphText variant={TextVariant.HeadingMD}>
                   {strings('fiat_on_ramp.buy', { ticker: tokenSymbol })}
                 </MorphText>
                 <MorphText
-                  variant={TextVariant.BodySM}
+                  variant={TextVariant.BodySMMedium}
                   color={TextColor.Alternative}
                 >
                   {strings('fiat_on_ramp.on_network', { networkName })}
@@ -2094,7 +2099,7 @@ export function getRampsOrderDetailsNavbarOptions(
   navigation,
   { title, showBack = true },
   theme,
-  onClose = undefined,
+  onClose,
 ) {
   let startButtonIconProps;
   if (showBack) {

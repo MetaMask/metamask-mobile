@@ -48,8 +48,8 @@ describe('useIsNetworkGasSponsored', () => {
 
     it('returns false when network is not sponsored', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0x89' // Only Polygon is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0x89', // Only Polygon is sponsored
       );
 
       // Act
@@ -82,8 +82,8 @@ describe('useIsNetworkGasSponsored', () => {
   describe('returns true', () => {
     it('returns true when network is sponsored for Ethereum mainnet', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0x1' // Ethereum mainnet is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0x1', // Ethereum mainnet is sponsored
       );
 
       // Act
@@ -98,8 +98,8 @@ describe('useIsNetworkGasSponsored', () => {
 
     it('returns true when network is sponsored for Polygon', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0x89' // Polygon is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0x89', // Polygon is sponsored
       );
 
       // Act
@@ -114,8 +114,8 @@ describe('useIsNetworkGasSponsored', () => {
 
     it('returns true when network is sponsored for Optimism', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0xa' // Optimism is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0xa', // Optimism is sponsored
       );
 
       // Act
@@ -131,7 +131,9 @@ describe('useIsNetworkGasSponsored', () => {
     it('returns true for Solana when sponsored', () => {
       // Arrange
       const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) => chainId === solanaChainId);
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === solanaChainId,
+      );
 
       // Act
       const { result } = renderHookWithProvider(
@@ -148,7 +150,9 @@ describe('useIsNetworkGasSponsored', () => {
     it('returns true when multiple networks are sponsored', () => {
       // Arrange
       const sponsoredNetworks = ['0x1', '0x89', '0xa'];
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) => sponsoredNetworks.includes(chainId));
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
+        sponsoredNetworks.includes(chainId),
+      );
 
       // Act & Assert for each network
       const ethereumResult = renderHookWithProvider(
@@ -173,7 +177,9 @@ describe('useIsNetworkGasSponsored', () => {
     it('returns false for unsupported network when multiple networks are sponsored', () => {
       // Arrange
       const sponsoredNetworks = ['0x1', '0x89', '0xa'];
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) => sponsoredNetworks.includes(chainId));
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
+        sponsoredNetworks.includes(chainId),
+      );
 
       // Act
       const { result } = renderHookWithProvider(
@@ -189,8 +195,8 @@ describe('useIsNetworkGasSponsored', () => {
   describe('different networks', () => {
     it('correctly identifies Arbitrum as sponsored', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0xa4b1' // Arbitrum is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0xa4b1', // Arbitrum is sponsored
       );
 
       // Act
@@ -205,8 +211,8 @@ describe('useIsNetworkGasSponsored', () => {
 
     it('correctly identifies Base as not sponsored', () => {
       // Arrange
-      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue((chainId) =>
-         chainId === '0x1' // Only Ethereum is sponsored
+      mockGetGasFeesSponsoredNetworkEnabled.mockReturnValue(
+        (chainId) => chainId === '0x1', // Only Ethereum is sponsored
       );
 
       // Act
@@ -227,7 +233,7 @@ describe('useIsNetworkGasSponsored', () => {
 
       // Act
       const { result } = renderHookWithProvider(
-        () => useIsNetworkGasSponsored(''),
+        () => useIsNetworkGasSponsored('' as `${string}:${string}`),
         { state: {} },
       );
 
