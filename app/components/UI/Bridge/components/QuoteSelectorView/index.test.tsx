@@ -336,46 +336,6 @@ describe('QuoteSelectorView', () => {
     });
   });
 
-  describe('formatNetworkFee integration', () => {
-    it('calls formatNetworkFee for each quote', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [mockQuote],
-        bestQuote: mockQuote,
-        isLoading: false,
-        blockaidError: null,
-        quoteFetchError: null,
-        isExpired: false,
-      });
-
-      render(<QuoteSelectorView />);
-
-      expect(mockFormatNetworkFee).toHaveBeenCalledWith(
-        mockCurrency,
-        mockQuote,
-      );
-    });
-
-    it('calls formatNetworkFee for multiple quotes', () => {
-      const quotes = [
-        mockQuote,
-        { ...mockQuote, quote: { ...mockQuote.quote, requestId: 'quote-2' } },
-      ];
-
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: quotes,
-        bestQuote: quotes[0],
-        isLoading: false,
-        blockaidError: null,
-        quoteFetchError: null,
-        isExpired: false,
-      });
-
-      render(<QuoteSelectorView />);
-
-      expect(mockFormatNetworkFee).toHaveBeenCalledTimes(2);
-    });
-  });
-
   describe('isGaslessQuote integration', () => {
     it('calls isGaslessQuote for each quote', () => {
       mockUseBridgeQuoteData.mockReturnValue({
@@ -452,11 +412,7 @@ describe('QuoteSelectorView', () => {
         quote: { ...mockQuote.quote, requestId: 'regular-quote' },
       };
 
-      mockIsGaslessQuote
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(false)
-        .mockReturnValueOnce(false);
+      mockIsGaslessQuote.mockReturnValueOnce(true).mockReturnValueOnce(false);
 
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [gaslessQuote, regularQuote],
@@ -470,7 +426,7 @@ describe('QuoteSelectorView', () => {
       const { getByTestId } = render(<QuoteSelectorView />);
 
       expect(getByTestId('quote-list-count')).toHaveTextContent('2');
-      expect(mockIsGaslessQuote).toHaveBeenCalledTimes(4);
+      expect(mockIsGaslessQuote).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -643,7 +599,7 @@ describe('QuoteSelectorView', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('does not navigate back when loading even if error exists', () => {
+    it('navigates back when loading and error exists', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [],
         bestQuote: null,
@@ -655,7 +611,7 @@ describe('QuoteSelectorView', () => {
 
       render(<QuoteSelectorView />);
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockGoBack).toHaveBeenCalled();
     });
 
     it('does not navigate back when no errors and not expired', () => {

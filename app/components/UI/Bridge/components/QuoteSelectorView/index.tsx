@@ -130,8 +130,6 @@ export const QuoteSelectorView = () => {
   }, [navigation]);
 
   // Go back to bridge view only if there's an error or quotes are expired
-  // Don't go back while loading or just because no quotes are available.
-  // If the latter is the case, then render skeleton loaders.
   useEffect(() => {
     if (quoteFetchError || blockaidError || (isExpired && !willRefresh)) {
       navigation.goBack();
