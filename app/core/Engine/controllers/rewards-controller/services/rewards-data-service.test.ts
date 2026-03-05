@@ -4635,7 +4635,7 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('should successfully get campaigns', async () => {
+    it('fetches campaigns with correct auth headers', async () => {
       const result = await service.getCampaigns(mockSubscriptionId);
 
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
@@ -4655,7 +4655,7 @@ describe('RewardsDataService', () => {
       expect(result[0].name).toBe('ONDO Holding Campaign');
     });
 
-    it('should handle empty campaigns array', async () => {
+    it('returns empty array when API returns no campaigns', async () => {
       const mockResponse = {
         ok: true,
         json: jest.fn().mockResolvedValue([]),
@@ -4667,7 +4667,7 @@ describe('RewardsDataService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should throw error when response is not ok', async () => {
+    it('throws when response is not ok', async () => {
       const mockResponse = {
         ok: false,
         status: 401,

@@ -271,7 +271,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction;
 
