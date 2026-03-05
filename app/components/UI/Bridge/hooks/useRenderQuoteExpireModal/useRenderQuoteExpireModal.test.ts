@@ -29,12 +29,14 @@ import {
 
 // Mock navigation
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     setOptions: jest.fn(),
   }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 const createMockInputRef = () => ({
@@ -53,6 +55,7 @@ const mockLatestSourceBalance = {
 describe('useRenderQuoteExpireModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFocused = true;
     jest
       .mocked(useBridgeQuoteData)
       .mockReturnValue(
@@ -175,6 +178,29 @@ describe('useRenderQuoteExpireModal', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('does not navigate when bridge view is not focused', () => {
+    // Arrange
+    const inputRef = createMockInputRef();
+    mockIsFocused = false;
+    jest.mocked(useBridgeQuoteData).mockReturnValue({
+      ...mockUseBridgeQuoteData,
+      isExpired: true,
+      willRefresh: false,
+    } as ReturnType<typeof useBridgeQuoteData>);
+
+    // Act
+    renderHookWithProvider(() =>
+      useRenderQuoteExpireModal({
+        inputRef,
+        latestSourceBalance: mockLatestSourceBalance,
+      }),
+    );
+
+    // Assert
+    expect(inputRef.current.blur).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('does not navigate when a transaction is being submitted', () => {
     // Arrange
     const inputRef = createMockInputRef();
@@ -221,6 +247,38 @@ describe('useRenderQuoteExpireModal', () => {
 
     // Assert – should still only have been called once
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows modal after bridge view regains focus while quote remains expired', () => {
+    // Arrange
+    const inputRef = createMockInputRef();
+    mockIsFocused = false;
+    jest.mocked(useBridgeQuoteData).mockReturnValue({
+      ...mockUseBridgeQuoteData,
+      isExpired: true,
+      willRefresh: false,
+    } as ReturnType<typeof useBridgeQuoteData>);
+
+    // Act – render out of focus first
+    const { rerender } = renderHookWithProvider(() =>
+      useRenderQuoteExpireModal({
+        inputRef,
+        latestSourceBalance: mockLatestSourceBalance,
+      }),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    // Regain focus while quote is still expired
+    mockIsFocused = true;
+    rerender({});
+
+    // Assert
+    expect(inputRef.current.blur).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+    });
   });
 
   it('resets and shows modal again after quote recovers then expires again', () => {
