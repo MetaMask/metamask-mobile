@@ -7,6 +7,11 @@ import { selectSelectedInternalAccountAddress } from '../../../../../selectors/a
 import PerpsSection from './PerpsSection';
 import type { SectionRefreshHandle } from '../../types';
 
+export interface PerpsSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
+
 /**
  * Wraps PerpsSection with WebSocket providers.
  * Gates rendering on the perps feature flag to avoid opening
@@ -16,7 +21,10 @@ import type { SectionRefreshHandle } from '../../types';
  * remounts the entire provider + hook tree, resetting loading
  * state and showing the skeleton while new data streams in.
  */
-const PerpsSectionWithProvider = forwardRef<SectionRefreshHandle>((_, ref) => {
+const PerpsSectionWithProvider = forwardRef<
+  SectionRefreshHandle,
+  PerpsSectionProps
+>(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
@@ -27,7 +35,11 @@ const PerpsSectionWithProvider = forwardRef<SectionRefreshHandle>((_, ref) => {
   return (
     <PerpsConnectionProvider key={selectedAddress} suppressErrorView>
       <PerpsStreamProvider>
-        <PerpsSection ref={ref} />
+        <PerpsSection
+          ref={ref}
+          sectionIndex={sectionIndex}
+          totalSectionsLoaded={totalSectionsLoaded}
+        />
       </PerpsStreamProvider>
     </PerpsConnectionProvider>
   );
