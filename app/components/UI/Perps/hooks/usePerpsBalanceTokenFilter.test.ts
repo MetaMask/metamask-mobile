@@ -4,9 +4,14 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { usePerpsBalanceTokenFilter } from './usePerpsBalanceTokenFilter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { PERPS_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/perpsConfig';
-import type { AssetType } from '../../../Views/confirmations/types/token';
+import {
+  type AssetType,
+  type TokenListItem,
+  isHighlightedItemOutsideAssetList,
+} from '../../../Views/confirmations/types/token';
+import { usePerpsTrading } from './usePerpsTrading';
+import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -16,6 +21,11 @@ jest.mock(
   '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
 );
 jest.mock('./useIsPerpsBalanceSelected');
+jest.mock('./usePerpsTrading');
+jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: jest.fn(),
+}));
+jest.mock('./usePerpsPaymentToken');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -40,9 +50,21 @@ const mockUseIsPerpsBalanceSelected =
     typeof useIsPerpsBalanceSelected
   >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
+  typeof usePerpsTrading
+>;
+const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
+  typeof useConfirmNavigation
+>;
+const mockUsePerpsPaymentToken = usePerpsPaymentToken as jest.MockedFunction<
+  typeof usePerpsPaymentToken
+>;
 
 describe('usePerpsBalanceTokenFilter', () => {
   const chainId = '0xa4b1';
+  const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
+  const mockNavigateToConfirmation = jest.fn();
+  const mockOnPerpsPaymentTokenChange = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,6 +79,15 @@ describe('usePerpsBalanceTokenFilter', () => {
       }
       return undefined;
     });
+    mockUsePerpsTrading.mockReturnValue({
+      depositWithConfirmation: mockDepositWithConfirmation,
+    } as unknown as ReturnType<typeof usePerpsTrading>);
+    mockUseConfirmNavigation.mockReturnValue({
+      navigateToConfirmation: mockNavigateToConfirmation,
+    } as unknown as ReturnType<typeof useConfirmNavigation>);
+    mockUsePerpsPaymentToken.mockReturnValue({
+      onPaymentTokenChange: mockOnPerpsPaymentTokenChange,
+    } as unknown as ReturnType<typeof usePerpsPaymentToken>);
   });
 
   describe('when transaction is not perpsDepositAndOrder', () => {
@@ -76,11 +107,11 @@ describe('usePerpsBalanceTokenFilter', () => {
 
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const filter = result.current;
-      const output = filter(inputTokens);
+      const output: TokenListItem[] = filter(inputTokens);
 
       expect(output).toBe(inputTokens);
       expect(output).toHaveLength(1);
-      expect(output[0].address).toBe('0xabc');
+      expect((output[0] as AssetType).address).toBe('0xabc');
     });
 
     it('returns tokens unchanged when transaction meta is undefined', () => {
@@ -103,7 +134,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       } as ReturnType<typeof useTransactionMetadataRequest>);
     });
 
-    it('prepends perps balance token with correct shape', () => {
+    it('prepends highlighted row with perps balance and Add funds button', () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '2000.50',
       });
@@ -123,23 +154,26 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output).toHaveLength(2);
-      const perpsToken = output[0];
-      expect(perpsToken.address).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
-      expect(perpsToken.tokenId).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
-      expect(perpsToken.name).toBe('perps.adjust_margin.perps_balance');
-      expect(perpsToken.symbol).toBe('USD');
-      expect(perpsToken.balance).toBe('2000.50');
-      expect(perpsToken.balanceInSelectedCurrency).toBe('$2000.50');
-      expect(perpsToken.decimals).toBe(2);
-      expect(perpsToken.isETH).toBe(false);
-      expect(perpsToken.isNative).toBe(false);
-      expect(perpsToken.isSelected).toBe(true);
-      expect(perpsToken.description).toBe(
-        PERPS_CONSTANTS.PerpsBalanceTokenDescription,
-      );
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      const highlightedAction = output[0];
+      if (isHighlightedItemOutsideAssetList(highlightedAction)) {
+        expect(highlightedAction.position).toBe('outside_of_asset_list');
+        expect(highlightedAction.name).toBe(
+          'perps.adjust_margin.perps_balance',
+        );
+        expect(highlightedAction.name_description).toBe('$2000.50');
+        expect(highlightedAction.fiat).toBe('$2000.50');
+        expect(highlightedAction.fiat_description).toBe('$2000.50');
+        expect(highlightedAction.isSelected).toBe(true);
+        expect(highlightedAction.actions).toHaveLength(1);
+        expect(highlightedAction.actions?.[0]?.buttonLabel).toBe(
+          'perps.add_funds',
+        );
+      }
+      expect((output[1] as AssetType).address).toBe('0xusdc');
     });
 
-    it('uses availableBalance from perps account', () => {
+    it('uses availableBalance from perps account in highlighted row', () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '999.99',
       });
@@ -148,8 +182,12 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[0].balance).toBe('999.99');
-      expect(output[0].balanceInSelectedCurrency).toBe('$999.99');
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      if (isHighlightedItemOutsideAssetList(output[0])) {
+        expect(output[0].name_description).toBe('$999.99');
+        expect(output[0].fiat).toBe('$999.99');
+      }
     });
 
     it('uses zero balance when perps account is null', () => {
@@ -164,8 +202,12 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[0].balance).toBe('0');
-      expect(output[0].balanceInSelectedCurrency).toBe('$0.00');
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      if (isHighlightedItemOutsideAssetList(output[0])) {
+        expect(output[0].name_description).toBe('$0.00');
+        expect(output[0].fiat).toBe('$0.00');
+      }
     });
 
     it('clears isSelected on other tokens when perps balance is selected', () => {
@@ -195,8 +237,8 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[1].isSelected).toBe(false);
-      expect(output[2].isSelected).toBe(false);
+      expect((output[1] as AssetType).isSelected).toBe(false);
+      expect((output[2] as AssetType).isSelected).toBe(false);
     });
 
     it('keeps token isSelected when perps balance is not selected', () => {
@@ -220,7 +262,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
       const output = result.current(inputTokens);
 
-      expect(output[1].isSelected).toBe(true);
+      expect((output[1] as AssetType).isSelected).toBe(true);
     });
 
     it('filters to only allowlisted tokens when allowlist is set', () => {
@@ -253,9 +295,56 @@ describe('usePerpsBalanceTokenFilter', () => {
       const output = result.current(inputTokens);
 
       expect(output).toHaveLength(2);
-      expect(output[0].address).toBe(PERPS_BALANCE_PLACEHOLDER_ADDRESS);
-      expect(output[1].address).toBe('0xusdc');
-      expect(output[1].symbol).toBe('USDC');
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(true);
+      expect((output[1] as AssetType).address).toBe('0xusdc');
+      expect((output[1] as AssetType).symbol).toBe('USDC');
+    });
+
+    it('calls navigateToConfirmation and depositWithConfirmation when Add funds is pressed', () => {
+      mockUseSelector.mockReturnValue({
+        availableBalance: '500.00',
+      });
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(2);
+      const highlightedAction = output[0];
+      expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
+      if (isHighlightedItemOutsideAssetList(highlightedAction)) {
+        highlightedAction.actions?.[0]?.onPress();
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          stack: expect.any(String),
+        });
+        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+      }
+    });
+
+    it('calls onPerpsPaymentTokenChange with null when row action is invoked', () => {
+      mockUseSelector.mockReturnValue({
+        availableBalance: '100.00',
+      });
+      const inputTokens: AssetType[] = [];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      const highlightedAction = output[0];
+      expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
+      if (isHighlightedItemOutsideAssetList(highlightedAction)) {
+        highlightedAction.action();
+        expect(mockOnPerpsPaymentTokenChange).toHaveBeenCalledWith(null);
+      }
     });
   });
 });
