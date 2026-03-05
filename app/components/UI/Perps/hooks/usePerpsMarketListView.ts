@@ -51,9 +51,6 @@ interface UsePerpsMarketListViewReturn {
   searchState: {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    isSearchVisible: boolean;
-    setIsSearchVisible: (visible: boolean) => void;
-    toggleSearchVisibility: () => void;
     clearSearch: () => void;
   };
   /**
@@ -162,10 +159,7 @@ export const usePerpsMarketListView = ({
   );
 
   // Use search hook for search state and filtering (search bar always visible in UI)
-  const searchHook = usePerpsSearch({
-    markets: allMarkets,
-    initialSearchVisible: true,
-  });
+  const searchHook = usePerpsSearch({ markets: allMarkets });
 
   const { filteredMarkets: searchedMarkets } = searchHook;
 
@@ -274,9 +268,6 @@ export const usePerpsMarketListView = ({
     searchState: {
       searchQuery: searchHook.searchQuery,
       setSearchQuery: searchHook.setSearchQuery,
-      isSearchVisible: searchHook.isSearchVisible,
-      setIsSearchVisible: searchHook.setIsSearchVisible,
-      toggleSearchVisibility: searchHook.toggleSearchVisibility,
       clearSearch: searchHook.clearSearch,
     },
     sortState: {

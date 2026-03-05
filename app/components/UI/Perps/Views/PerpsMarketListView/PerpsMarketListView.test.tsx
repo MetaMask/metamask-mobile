@@ -76,22 +76,14 @@ jest.mock('../../hooks/stream', () => ({
 
 // Mock variables to hold state that will be set in beforeEach
 const mockMarketDataForHook: PerpsMarketData[] = [];
-let mockSearchVisible = false;
 let mockSearchQuery = '';
 
 // Create persistent mock functions that update the shared state
 const mockSetSearchQuery = jest.fn((q: string) => {
   mockSearchQuery = q;
 });
-const mockSetIsSearchVisible = jest.fn((v: boolean) => {
-  mockSearchVisible = v;
-});
-const mockToggleSearchVisibility = jest.fn(() => {
-  mockSearchVisible = !mockSearchVisible;
-});
 const mockClearSearch = jest.fn(() => {
   mockSearchQuery = '';
-  mockSearchVisible = false;
 });
 
 jest.mock('../../hooks', () => ({
@@ -151,9 +143,6 @@ jest.mock('../../hooks', () => ({
       searchState: {
         searchQuery: mockSearchQuery,
         setSearchQuery: mockSetSearchQuery,
-        isSearchVisible: mockSearchVisible, // This will be read fresh each render
-        setIsSearchVisible: mockSetIsSearchVisible,
-        toggleSearchVisibility: mockToggleSearchVisibility,
         clearSearch: mockClearSearch,
       },
       sortState: {
@@ -561,11 +550,8 @@ describe('PerpsMarketListView', () => {
     mockMarketDataForHook.push(...mockMarketData);
 
     // Reset search state
-    mockSearchVisible = false;
     mockSearchQuery = '';
     mockSetSearchQuery.mockClear();
-    mockSetIsSearchVisible.mockClear();
-    mockToggleSearchVisibility.mockClear();
     mockClearSearch.mockClear();
 
     // Suppress console warnings for Animated during tests
@@ -812,8 +798,6 @@ describe('PerpsMarketListView', () => {
     it('filters markets with whitespace-only query', async () => {
       const { usePerpsMarketListView } = jest.requireMock('../../hooks');
 
-      // Start with search visible
-      mockSearchVisible = true;
       mockSearchQuery = '   ';
 
       // Mock to return empty results when search query is whitespace
@@ -822,9 +806,6 @@ describe('PerpsMarketListView', () => {
         searchState: {
           searchQuery: '   ',
           setSearchQuery: mockSetSearchQuery,
-          isSearchVisible: true,
-          setIsSearchVisible: mockSetIsSearchVisible,
-          toggleSearchVisibility: mockToggleSearchVisibility,
           clearSearch: mockClearSearch,
         },
         sortState: {

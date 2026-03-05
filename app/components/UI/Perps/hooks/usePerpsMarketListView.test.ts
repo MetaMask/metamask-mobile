@@ -107,9 +107,6 @@ describe('usePerpsMarketListView', () => {
     mockUsePerpsSearch.mockReturnValue({
       searchQuery: '',
       setSearchQuery: jest.fn(),
-      isSearchVisible: false,
-      setIsSearchVisible: jest.fn(),
-      toggleSearchVisibility: jest.fn(),
       filteredMarkets: mockMarketsWithValidVolume, // Already filtered by volume
       clearSearch: jest.fn(),
     });
@@ -148,12 +145,11 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.favoritesState).toBeDefined();
     });
 
-    it('passes initialSearchVisible true to usePerpsSearch so search always applies', () => {
+    it('passes markets to usePerpsSearch', () => {
       renderHook(() => usePerpsMarketListView());
 
       expect(mockUsePerpsSearch).toHaveBeenCalledWith({
         markets: expect.any(Array),
-        initialSearchVisible: true,
       });
     });
 
@@ -255,9 +251,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [],
         clearSearch: jest.fn(),
       });
@@ -273,9 +266,6 @@ describe('usePerpsMarketListView', () => {
       const mockSearchState = {
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[0]],
         clearSearch: jest.fn(),
       };
@@ -285,12 +275,8 @@ describe('usePerpsMarketListView', () => {
       const { result } = renderHook(() => usePerpsMarketListView());
 
       expect(result.current.searchState.searchQuery).toBe('BTC');
-      expect(result.current.searchState.isSearchVisible).toBe(true);
       expect(result.current.searchState.setSearchQuery).toBe(
         mockSearchState.setSearchQuery,
-      );
-      expect(result.current.searchState.toggleSearchVisibility).toBe(
-        mockSearchState.toggleSearchVisibility,
       );
       expect(result.current.searchState.clearSearch).toBe(
         mockSearchState.clearSearch,
@@ -447,9 +433,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[0]], // Only BTC
         clearSearch: jest.fn(),
       });
@@ -476,9 +459,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'ETH',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mockMarketsWithValidVolume[1]], // Only ETH
         clearSearch: jest.fn(),
       });
@@ -629,9 +609,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: mixedMarkets,
         clearSearch: jest.fn(),
       });
@@ -659,9 +636,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [],
         clearSearch: jest.fn(),
       });
@@ -703,9 +677,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: initialMarkets,
         clearSearch: jest.fn(),
       });
@@ -729,9 +700,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: updatedMarkets,
         clearSearch: jest.fn(),
       });
@@ -783,9 +751,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: '',
         setSearchQuery: jest.fn(),
-        isSearchVisible: false,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: mixedMarkets,
         clearSearch: jest.fn(),
       });
@@ -849,9 +814,6 @@ describe('usePerpsMarketListView', () => {
       mockUsePerpsSearch.mockReturnValue({
         searchQuery: 'BTC',
         setSearchQuery: jest.fn(),
-        isSearchVisible: true,
-        setIsSearchVisible: jest.fn(),
-        toggleSearchVisibility: jest.fn(),
         filteredMarkets: [mixedMarkets[0]], // BTC from search
         clearSearch: jest.fn(),
       });
