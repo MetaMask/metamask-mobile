@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Image } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -34,8 +33,6 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
   item,
   onPress,
 }) => {
-  const tw = useTailwind();
-
   const formattedDate = useMemo(() => formatDate(item.date), [item.date]);
 
   const handlePress = () => onPress?.(item);
@@ -44,46 +41,37 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
     <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
       <Box
         twClassName="w-[280px] rounded-2xl bg-background-muted overflow-hidden"
-        gap={3}
+        padding={4}
+        gap={2}
       >
-        {item.imageUrl ? (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={tw.style('w-full h-[120px]')}
-            resizeMode="cover"
-          />
-        ) : (
-          <Box twClassName="w-full h-[120px] bg-background-alternative" />
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={3}
+        >
+          {item.title}
+        </Text>
+
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={3}
+        >
+          {item.description}
+        </Text>
+
+        {formattedDate && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {formattedDate}
+          </Text>
         )}
 
-        <Box padding={4} paddingTop={0} gap={1}>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={2}
-          >
-            {item.title}
+        {item.relatedAssets.length > 0 && (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {item.relatedAssets.join(', ')}
           </Text>
-
-          {formattedDate && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {formattedDate}
-            </Text>
-          )}
-
-          {item.relatedAssets.length > 0 && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {item.relatedAssets.join(', ')}
-            </Text>
-          )}
-        </Box>
+        )}
       </Box>
     </TouchableOpacity>
   );
