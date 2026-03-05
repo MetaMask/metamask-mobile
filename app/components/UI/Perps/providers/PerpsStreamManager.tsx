@@ -317,6 +317,7 @@ abstract class StreamChannel<T> {
         subscriber.timer = undefined;
       }
       subscriber.pendingUpdate = undefined;
+      subscriber.hasReceivedFirstUpdate = false;
     });
 
     // Disconnect the old WebSocket subscription to stop receiving old account data
