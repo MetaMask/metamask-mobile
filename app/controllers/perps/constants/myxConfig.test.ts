@@ -120,8 +120,8 @@ describe('myxConfig', () => {
   });
 
   describe('getMYXChainId', () => {
-    it('returns 421614 (Arbitrum Sepolia) for testnet', () => {
-      expect(getMYXChainId('testnet')).toBe(421614);
+    it('returns 59141 (Linea Sepolia) for testnet', () => {
+      expect(getMYXChainId('testnet')).toBe(59141);
     });
 
     it('returns 56 (BNB) for mainnet', () => {

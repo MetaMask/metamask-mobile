@@ -67,7 +67,7 @@ jest.mock('@myx-trade/sdk', () => ({
 
 function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
   return {
-    chainId: 421614,
+    chainId: 59141,
     marketId: 'market-1',
     poolId: '0xpool1',
     baseSymbol: 'RHEA',
@@ -81,7 +81,7 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
 
 function makeTicker(overrides: Partial<MYXTicker> = {}): MYXTicker {
   return {
-    chainId: 421614,
+    chainId: 59141,
     poolId: '0xpool1',
     oracleId: 1,
     price: '1500.00',
@@ -143,7 +143,7 @@ describe('MYXClientService', () => {
         '[MYXClientService] Initialized with SDK',
         expect.objectContaining({
           isTestnet: true,
-          chainId: 421614,
+          chainId: 59141,
         }),
       );
     });
@@ -263,7 +263,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 421614,
+        chainId: 59141,
         poolIds: ['0xpool1'],
       });
     });
@@ -307,7 +307,7 @@ describe('MYXClientService', () => {
 
       expect(result).toEqual(tickers);
       expect(mockGetTickerList).toHaveBeenCalledWith({
-        chainId: 421614,
+        chainId: 59141,
         poolIds: ['0xpool1', '0xpool2'],
       });
     });
@@ -647,7 +647,7 @@ describe('MYXClientService', () => {
 
   describe('getOrderHistory', () => {
     it('delegates to SDK with params and address', async () => {
-      const params = { limit: 50, chainId: 421614 };
+      const params = { limit: 50, chainId: 59141 };
       const mockResult = { code: 9200, data: [] };
       mockGetOrderHistory.mockResolvedValueOnce(mockResult);
 
@@ -704,11 +704,11 @@ describe('MYXClientService', () => {
       const mockResult = { code: 9200, data: { totalCollateral: '1000' } };
       mockGetAccountInfo.mockResolvedValueOnce(mockResult);
 
-      const result = await service.getAccountInfo(421614, '0xuser', '0xpool1');
+      const result = await service.getAccountInfo(59141, '0xuser', '0xpool1');
 
       expect(result).toEqual(mockResult);
       expect(mockGetAccountInfo).toHaveBeenCalledWith(
-        421614,
+        59141,
         '0xuser',
         '0xpool1',
       );
@@ -718,7 +718,7 @@ describe('MYXClientService', () => {
       mockGetAccountInfo.mockRejectedValueOnce(new Error('Account error'));
 
       await expect(
-        service.getAccountInfo(421614, '0xuser', '0xpool1'),
+        service.getAccountInfo(59141, '0xuser', '0xpool1'),
       ).rejects.toThrow('Account error');
     });
   });
@@ -728,11 +728,11 @@ describe('MYXClientService', () => {
       const mockResult = { code: 9200, data: '500000000' };
       mockGetWalletQuoteTokenBalance.mockResolvedValueOnce(mockResult);
 
-      const result = await service.getWalletQuoteTokenBalance(421614, '0xuser');
+      const result = await service.getWalletQuoteTokenBalance(59141, '0xuser');
 
       expect(result).toEqual(mockResult);
       expect(mockGetWalletQuoteTokenBalance).toHaveBeenCalledWith(
-        421614,
+        59141,
         '0xuser',
       );
     });
@@ -743,7 +743,7 @@ describe('MYXClientService', () => {
       );
 
       await expect(
-        service.getWalletQuoteTokenBalance(421614, '0xuser'),
+        service.getWalletQuoteTokenBalance(59141, '0xuser'),
       ).rejects.toThrow('Balance error');
     });
   });
@@ -804,7 +804,7 @@ describe('MYXClientService', () => {
       expect(mockGetKlineList).toHaveBeenCalledWith(
         expect.objectContaining({
           poolId: '0xpool1',
-          chainId: 421614,
+          chainId: 59141,
           interval: '1h',
           limit: 100,
         }),
@@ -852,7 +852,7 @@ describe('MYXClientService', () => {
 
       expect(result).toBe(42);
       expect(mockGetMarketDetail).toHaveBeenCalledWith({
-        chainId: 421614,
+        chainId: 59141,
         poolId: '0xpool1',
       });
     });
@@ -914,7 +914,7 @@ describe('MYXClientService', () => {
 
   describe('getChainId', () => {
     it('returns testnet chain ID', () => {
-      expect(service.getChainId()).toBe(421614);
+      expect(service.getChainId()).toBe(59141);
     });
 
     it('returns mainnet chain ID', () => {
