@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed Perps WebSocket not reconnecting after app resume from background or WiFi/network toggle (#26809)
-- Fixed Perps positions not loading correctly after long background and duplicate AppState listener causing reconnection race (#26998)
+- Fixed Perps WebSocket not reconnecting after app resume from background or WiFi/network toggle (#26780)
+- Remove duplicate AppState listener causing reconnection race (#26982)
 - Fixed an issue with running Snaps (#26992)
 - Improve reliability of persistence (#26979)
 
