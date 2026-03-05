@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -175,8 +176,7 @@ const mockNflMarket: PredictMarketType = {
       name: 'Denver Broncos',
       logo: 'https://example.com/broncos.png',
       abbreviation: 'DEN',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#FC4C02',
+      color: TEST_HEX_COLORS.TEAM_ALT_ORANGE,
       alias: 'Broncos',
     },
     awayTeam: {
@@ -184,8 +184,7 @@ const mockNflMarket: PredictMarketType = {
       name: 'Seattle Seahawks',
       logo: 'https://example.com/seahawks.png',
       abbreviation: 'SEA',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#002244',
+      color: TEST_HEX_COLORS.TEAM_SEA,
       alias: 'Seahawks',
     },
   },

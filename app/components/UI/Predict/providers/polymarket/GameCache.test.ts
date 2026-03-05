@@ -1,3 +1,4 @@
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { GameUpdate, PredictMarket, Recurrence } from '../../types';
 import { GameCache } from './GameCache';
 
@@ -51,8 +52,7 @@ const createMockMarketWithGame = (
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       awayTeam: {
@@ -60,8 +60,7 @@ const createMockMarketWithGame = (
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },

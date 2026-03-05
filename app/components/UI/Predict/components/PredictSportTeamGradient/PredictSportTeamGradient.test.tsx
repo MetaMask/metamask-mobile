@@ -1,17 +1,17 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import PredictSportTeamGradient from './PredictSportTeamGradient';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 describe('PredictSportTeamGradient', () => {
   describe('rendering', () => {
     it('renders gradient with team colors', () => {
-      const awayColor = '#002244';
-      const homeColor = '#FB4F14';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA;
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN;
 
       const { getByTestId } = render(
         <PredictSportTeamGradient
@@ -25,8 +25,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('renders gradient with NFL team colors', () => {
-      const seattleBlue = '#002244';
-      const seattleGreen = '#69BE28';
+      const seattleBlue = TEST_HEX_COLORS.TEAM_SEA;
+      const seattleGreen = TEST_HEX_COLORS.TEAM_SEA_GREEN;
 
       const { getByTestId } = render(
         <PredictSportTeamGradient
@@ -42,8 +42,8 @@ describe('PredictSportTeamGradient', () => {
 
   describe('gradient colors', () => {
     it('applies 20% opacity to 6-character hex colors', () => {
-      const awayColor = '#002244';
-      const homeColor = '#FB4F14';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA;
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -62,8 +62,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('applies 20% opacity to uppercase hex colors', () => {
-      const awayColor = '#ABCDEF';
-      const homeColor = '#123456';
+      const awayColor = TEST_HEX_COLORS.EXAMPLE_LIGHT;
+      const homeColor = TEST_HEX_COLORS.EXAMPLE;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -80,8 +80,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('applies 20% opacity to 3-character hex colors', () => {
-      const awayColor = '#F00';
-      const homeColor = '#0F0';
+      const awayColor = TEST_HEX_COLORS.PURE_RED_SHORT;
+      const homeColor = TEST_HEX_COLORS.PURE_GREEN_SHORT;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -98,8 +98,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('applies 20% opacity to 8-character hex colors with existing alpha', () => {
-      const awayColor = '#002244FF';
-      const homeColor = '#FB4F1480';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA_ALPHA;
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN_ALPHA;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -116,8 +116,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('applies 20% opacity to 4-character hex colors with existing alpha', () => {
-      const awayColor = '#F00F';
-      const homeColor = '#0F08';
+      const awayColor = TEST_HEX_COLORS.PURE_RED_SHORT_ALPHA;
+      const homeColor = TEST_HEX_COLORS.PURE_GREEN_SHORT_ALPHA;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -172,8 +172,8 @@ describe('PredictSportTeamGradient', () => {
 
   describe('gradient direction', () => {
     it('configures 45 degree gradient with diagonal direction', () => {
-      const awayColor = '#002244';
-      const homeColor = '#FB4F14';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA;
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -194,7 +194,10 @@ describe('PredictSportTeamGradient', () => {
       const childText = 'Game Content';
 
       const { getByText } = render(
-        <PredictSportTeamGradient awayColor="#002244" homeColor="#FB4F14">
+        <PredictSportTeamGradient
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
+        >
           <Text>{childText}</Text>
         </PredictSportTeamGradient>,
       );
@@ -204,7 +207,10 @@ describe('PredictSportTeamGradient', () => {
 
     it('renders multiple children inside gradient', () => {
       const { getByText } = render(
-        <PredictSportTeamGradient awayColor="#002244" homeColor="#FB4F14">
+        <PredictSportTeamGradient
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
+        >
           <Text>Team A</Text>
           <Text>Team B</Text>
           <Text>Score</Text>
@@ -219,8 +225,8 @@ describe('PredictSportTeamGradient', () => {
     it('renders gradient without children', () => {
       const { getByTestId } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
-          homeColor="#FB4F14"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           testID="gradient"
         />,
       );
@@ -235,8 +241,8 @@ describe('PredictSportTeamGradient', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
-          homeColor="#FB4F14"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           style={customStyle}
           testID="gradient"
         />,
@@ -254,8 +260,8 @@ describe('PredictSportTeamGradient', () => {
 
       const { getByTestId } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
-          homeColor="#FB4F14"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           style={customStyle}
           testID="gradient"
         />,
@@ -270,7 +276,7 @@ describe('PredictSportTeamGradient', () => {
 
   describe('edge cases', () => {
     it('renders gradient with identical away and home colors', () => {
-      const sameColor = '#002244';
+      const sameColor = TEST_HEX_COLORS.TEAM_SEA;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -289,8 +295,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('renders gradient with 3-character hex colors', () => {
-      const awayColor = '#FFF';
-      const homeColor = '#000';
+      const awayColor = TEST_HEX_COLORS.WHITE_SHORT;
+      const homeColor = TEST_HEX_COLORS.PURE_BLACK;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -309,8 +315,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('renders gradient with lowercase hex colors', () => {
-      const awayColor = '#abc123';
-      const homeColor = '#def456';
+      const awayColor = TEST_HEX_COLORS.EXAMPLE_LOWER_ABC123;
+      const homeColor = TEST_HEX_COLORS.EXAMPLE_LOWER_DEF456;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -329,8 +335,8 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('renders gradient with uppercase hex colors', () => {
-      const awayColor = '#ABC123';
-      const homeColor = '#DEF456';
+      const awayColor = TEST_HEX_COLORS.EXAMPLE_UPPER_ABC123;
+      const homeColor = TEST_HEX_COLORS.EXAMPLE_UPPER_DEF456;
 
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
@@ -353,8 +359,8 @@ describe('PredictSportTeamGradient', () => {
     it('wraps content in relative positioned container', () => {
       const { getByTestId } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
-          homeColor="#FB4F14"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           testID="gradient"
         />,
       );
@@ -373,8 +379,8 @@ describe('PredictSportTeamGradient', () => {
     it('positions gradient absolutely within container', () => {
       const { UNSAFE_getAllByType } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
-          homeColor="#FB4F14"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           testID="gradient"
         >
           <Text>Content</Text>
@@ -388,8 +394,8 @@ describe('PredictSportTeamGradient', () => {
 
   describe('memoization', () => {
     it('memoizes gradient colors when props remain unchanged', () => {
-      const awayColor = '#002244';
-      const homeColor = '#FB4F14';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA;
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN;
 
       const { UNSAFE_getAllByType, rerender } = render(
         <PredictSportTeamGradient
@@ -415,11 +421,11 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('recalculates gradient colors when away color changes', () => {
-      const homeColor = '#FB4F14';
+      const homeColor = TEST_HEX_COLORS.TEAM_DEN;
 
       const { UNSAFE_getAllByType, rerender } = render(
         <PredictSportTeamGradient
-          awayColor="#002244"
+          awayColor={TEST_HEX_COLORS.TEAM_SEA}
           homeColor={homeColor}
           testID="gradient"
         />,
@@ -429,7 +435,7 @@ describe('PredictSportTeamGradient', () => {
 
       rerender(
         <PredictSportTeamGradient
-          awayColor="#123456"
+          awayColor={TEST_HEX_COLORS.EXAMPLE}
           homeColor={homeColor}
           testID="gradient"
         />,
@@ -442,12 +448,12 @@ describe('PredictSportTeamGradient', () => {
     });
 
     it('recalculates gradient colors when home color changes', () => {
-      const awayColor = '#002244';
+      const awayColor = TEST_HEX_COLORS.TEAM_SEA;
 
       const { UNSAFE_getAllByType, rerender } = render(
         <PredictSportTeamGradient
           awayColor={awayColor}
-          homeColor="#FB4F14"
+          homeColor={TEST_HEX_COLORS.TEAM_DEN}
           testID="gradient"
         />,
       );
@@ -457,7 +463,7 @@ describe('PredictSportTeamGradient', () => {
       rerender(
         <PredictSportTeamGradient
           awayColor={awayColor}
-          homeColor="#789ABC"
+          homeColor={TEST_HEX_COLORS.EXAMPLE_789ABC}
           testID="gradient"
         />,
       );

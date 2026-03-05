@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictGameDetailsFooter from './PredictGameDetailsFooter';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -92,8 +93,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       },
       homeTeam: {
@@ -101,8 +101,7 @@ const createMockGameMarket = (): PredictMarket =>
         name: 'Denver Broncos',
         logo: 'https://example.com/den.png',
         abbreviation: 'DEN',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        color: '#FB4F14',
+        color: TEST_HEX_COLORS.TEAM_DEN,
         alias: 'Broncos',
       },
     },

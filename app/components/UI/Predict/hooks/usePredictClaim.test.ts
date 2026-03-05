@@ -1,4 +1,5 @@
 import { NavigationProp } from '@react-navigation/native';
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -33,12 +34,10 @@ jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
     colors: {
       error: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        default: '#ca3542',
+        default: mockTestHexColors.ERROR_DARK,
       },
       accent04: {
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        normal: '#89b0ff',
+        normal: mockTestHexColors.ACCENT_BLUE,
       },
     },
   })),
@@ -203,10 +202,8 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        iconColor: '#ca3542',
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        backgroundColor: '#89b0ff',
+        iconColor: TEST_HEX_COLORS.ERROR_DARK,
+        backgroundColor: TEST_HEX_COLORS.ACCENT_BLUE,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),

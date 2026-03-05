@@ -1,13 +1,13 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import Svg from 'react-native-svg';
 import PredictSportWinner from './PredictSportWinner';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 describe('PredictSportWinner', () => {
   describe('rendering', () => {
     it('renders trophy with required color prop', () => {
-      const trophyColor = '#FFD700';
+      const trophyColor = TEST_HEX_COLORS.GOLD;
 
       const { getByTestId } = render(
         <PredictSportWinner color={trophyColor} testID="trophy" />,
@@ -17,7 +17,7 @@ describe('PredictSportWinner', () => {
     });
 
     it('renders trophy with team-specific color', () => {
-      const customTeamColor = '#1D4E9B';
+      const customTeamColor = TEST_HEX_COLORS.TEAM_NE;
 
       const { getByTestId } = render(
         <PredictSportWinner color={customTeamColor} testID="trophy" />,
@@ -32,7 +32,7 @@ describe('PredictSportWinner', () => {
       const defaultSize = 16;
 
       const { getByTestId } = render(
-        <PredictSportWinner color="#FFD700" testID="trophy" />,
+        <PredictSportWinner color={TEST_HEX_COLORS.GOLD} testID="trophy" />,
       );
 
       const svg = getByTestId('trophy');
@@ -47,7 +47,11 @@ describe('PredictSportWinner', () => {
       [24, '24px'],
     ])('renders trophy at %s size', (size) => {
       const { getByTestId } = render(
-        <PredictSportWinner color="#FFD700" size={size} testID="trophy" />,
+        <PredictSportWinner
+          color={TEST_HEX_COLORS.GOLD}
+          size={size}
+          testID="trophy"
+        />,
       );
 
       const svg = getByTestId('trophy');
@@ -58,7 +62,7 @@ describe('PredictSportWinner', () => {
 
   describe('edge cases', () => {
     it('renders trophy with hex color including alpha channel', () => {
-      const colorWithAlpha = '#FFD700FF';
+      const colorWithAlpha = TEST_HEX_COLORS.GOLD_ALPHA;
 
       const { getByTestId } = render(
         <PredictSportWinner color={colorWithAlpha} testID="trophy" />,
@@ -68,7 +72,7 @@ describe('PredictSportWinner', () => {
     });
 
     it('renders trophy with short hex color format', () => {
-      const shortHexColor = '#FFF';
+      const shortHexColor = TEST_HEX_COLORS.WHITE_SHORT;
 
       const { getByTestId } = render(
         <PredictSportWinner color={shortHexColor} testID="trophy" />,
@@ -92,7 +96,7 @@ describe('PredictSportWinner', () => {
 
       const { getByTestId } = render(
         <PredictSportWinner
-          color="#FFD700"
+          color={TEST_HEX_COLORS.GOLD}
           size={minimalSize}
           testID="trophy"
         />,
@@ -107,7 +111,11 @@ describe('PredictSportWinner', () => {
       const largeSize = 64;
 
       const { getByTestId } = render(
-        <PredictSportWinner color="#FFD700" size={largeSize} testID="trophy" />,
+        <PredictSportWinner
+          color={TEST_HEX_COLORS.GOLD}
+          size={largeSize}
+          testID="trophy"
+        />,
       );
 
       const svg = getByTestId('trophy');
@@ -122,7 +130,7 @@ describe('PredictSportWinner', () => {
 
       const { UNSAFE_getByType } = render(
         <PredictSportWinner
-          color="#FFD700"
+          color={TEST_HEX_COLORS.GOLD}
           size={customSize}
           testID="trophy"
         />,

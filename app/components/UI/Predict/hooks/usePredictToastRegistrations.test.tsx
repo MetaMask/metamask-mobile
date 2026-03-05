@@ -1,3 +1,4 @@
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -37,12 +38,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      success: { default: '#00ff00' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      error: { default: '#ff0000' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      accent04: { normal: '#ffffff' },
+      success: { default: mockTestHexColors.SUCCESS_BRIGHT },
+      error: { default: mockTestHexColors.ERROR_BRIGHT },
+      accent04: { normal: mockTestHexColors.WHITE_BRIGHT },
     },
   }),
 }));

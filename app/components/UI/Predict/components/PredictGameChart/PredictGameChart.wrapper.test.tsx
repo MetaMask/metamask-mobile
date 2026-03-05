@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, act, waitFor } from '@testing-library/react-native';
 import PredictGameChart from './PredictGameChart';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
@@ -71,8 +72,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team B',
     abbreviation: 'TB',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#0000FF',
+    color: TEST_HEX_COLORS.PURE_BLUE,
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',
   },
@@ -80,8 +80,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team A',
     abbreviation: 'TA',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#FF0000',
+    color: TEST_HEX_COLORS.PURE_RED,
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
   },
@@ -221,8 +220,7 @@ describe('PredictGameChart Wrapper', () => {
 
         expect(data).toHaveLength(2);
         expect(data[0].label).toBe('TA');
-        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-        expect(data[0].color).toBe('#FF0000');
+        expect(data[0].color).toBe(TEST_HEX_COLORS.PURE_RED);
         expect(data[0].data).toHaveLength(3);
         expect(data[0].data[0].value).toBe(60);
       });

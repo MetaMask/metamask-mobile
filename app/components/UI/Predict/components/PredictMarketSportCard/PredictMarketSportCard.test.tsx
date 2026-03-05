@@ -1,5 +1,6 @@
-import { fireEvent } from '@testing-library/react-native';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Recurrence, PredictMarket as PredictMarketType } from '../../types';
@@ -122,8 +123,7 @@ const mockMarket: PredictMarketType = {
       name: 'Seattle Seahawks',
       logo: '',
       abbreviation: 'SEA',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#002244',
+      color: TEST_HEX_COLORS.TEAM_SEA,
       alias: 'Seahawks',
     },
     homeTeam: {
@@ -131,8 +131,7 @@ const mockMarket: PredictMarketType = {
       name: 'Denver Broncos',
       logo: '',
       abbreviation: 'DEN',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#FB4F14',
+      color: TEST_HEX_COLORS.TEAM_DEN,
       alias: 'Broncos',
     },
   },

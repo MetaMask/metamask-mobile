@@ -1,3 +1,4 @@
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { TeamsCache } from './TeamsCache';
 import { PolymarketApiTeam } from './types';
 
@@ -17,8 +18,7 @@ const createMockTeam = (
   name: 'Seattle Seahawks',
   logo: 'https://example.com/sea.png',
   abbreviation: 'SEA',
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  color: '#002244',
+  color: TEST_HEX_COLORS.TEAM_SEA,
   alias: 'Seahawks',
   ...overrides,
 });
@@ -28,24 +28,21 @@ const mockNflTeams: PolymarketApiTeam[] = [
     id: 'team-sea',
     name: 'Seattle Seahawks',
     abbreviation: 'SEA',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#002244',
+    color: TEST_HEX_COLORS.TEAM_SEA,
     alias: 'Seahawks',
   }),
   createMockTeam({
     id: 'team-den',
     name: 'Denver Broncos',
     abbreviation: 'DEN',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#FB4F14',
+    color: TEST_HEX_COLORS.TEAM_DEN,
     alias: 'Broncos',
   }),
   createMockTeam({
     id: 'team-sf',
     name: 'San Francisco 49ers',
     abbreviation: 'SF',
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: '#AA0000',
+    color: TEST_HEX_COLORS.TEAM_SF,
     alias: '49ers',
   }),
 ];
