@@ -141,8 +141,7 @@ function useLedgerBluetooth(deviceId: string): UseLedgerBluetoothHook {
     if (!transportRef.current && deviceId) {
       try {
         transportRef.current = await loadBleTransport(deviceId);
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         transportRef.current?.on('disconnect', () => {
           transportRef.current = undefined;
 
