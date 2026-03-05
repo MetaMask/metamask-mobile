@@ -64,6 +64,7 @@ import { selectContractExchangeRates } from '../../../selectors/tokenRatesContro
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork/PickerNetwork';
 import Routes from '../../../constants/navigation/Routes';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
@@ -906,6 +907,7 @@ class PaymentRequest extends PureComponent {
   handleNetworkPickerPress = () => {
     this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.NETWORK_SELECTOR,
+      params: { source: NETWORK_SELECTOR_SOURCES.PAYMENT_REQUEST },
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
