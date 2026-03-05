@@ -40,6 +40,16 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+// Mock PerpsConnectionManager
+const mockGetConnectionState = jest
+  .fn()
+  .mockReturnValue({ isDisconnecting: false });
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    getConnectionState: () => mockGetConnectionState(),
+  },
+}));
+
 // Auto-retry delay constant (must match the one in the hook)
 const AUTO_RETRY_DELAY_MS = 10000;
 // Offline banner delay (must match the one in the hook)
@@ -56,6 +66,9 @@ describe('useWebSocketHealthToast', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockUnsubscribe = jest.fn();
+
+    // Default: not an intentional reconnect
+    mockGetConnectionState.mockReturnValue({ isDisconnecting: false });
 
     // Default mock implementation
     mockUsePerpsConnection.mockReturnValue({
@@ -522,6 +535,111 @@ describe('useWebSocketHealthToast', () => {
       });
 
       expect(mockReconnect).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Intentional reconnect suppression (account/network/provider switch)', () => {
+    const setupIntentionalReconnect = () => {
+      renderHook(() => useWebSocketHealthToast());
+      // Snapshot
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+      mockShow.mockClear();
+      mockHide.mockClear();
+      // Mark as intentional from this point on
+      mockGetConnectionState.mockReturnValue({ isDisconnecting: true });
+    };
+
+    it('suppresses offline toast on Disconnected during intentional reconnect', () => {
+      setupIntentionalReconnect();
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+      act(() => {
+        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
+      });
+
+      expect(mockShow).not.toHaveBeenCalled();
+    });
+
+    it('suppresses reconnecting banner on Connecting during intentional reconnect', () => {
+      setupIntentionalReconnect();
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connecting, 0);
+      });
+      act(() => {
+        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
+      });
+
+      expect(mockShow).not.toHaveBeenCalled();
+      expect(mockHide).not.toHaveBeenCalled();
+    });
+
+    it('suppresses back-online toast on Connected after intentional reconnect', () => {
+      setupIntentionalReconnect();
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connecting, 0);
+      });
+      // Connection succeeds — isDisconnecting is cleared on the singleton by now
+      mockGetConnectionState.mockReturnValue({ isDisconnecting: false });
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+
+      expect(mockShow).not.toHaveBeenCalled();
+    });
+
+    it('does not schedule auto-retry during intentional reconnect', () => {
+      setupIntentionalReconnect();
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      expect(mockReconnect).not.toHaveBeenCalled();
+    });
+
+    it('still shows toasts for a real disconnect after a completed intentional reconnect', () => {
+      setupIntentionalReconnect();
+
+      // Intentional cycle
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connecting, 0);
+      });
+      mockGetConnectionState.mockReturnValue({ isDisconnecting: false });
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+      mockShow.mockClear();
+
+      // Now a real disconnect
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
+      });
+      act(() => {
+        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
+      });
+
+      expect(mockShow).toHaveBeenCalledWith(
+        WebSocketConnectionState.Disconnected,
+        1,
+      );
     });
   });
 });

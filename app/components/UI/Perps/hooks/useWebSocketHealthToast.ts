@@ -152,9 +152,9 @@ export function useWebSocketHealthToast(): void {
           switch (newState) {
             case WebSocketConnectionState.Disconnected:
               if (isIntentionalReconnect) {
-                // Intentional reconnect (account/network/provider switch) — skip offline toast
+                // Intentional reconnect (account/network/provider switch) — skip offline toast.
+                // performReconnection() manages its own timeout; no auto-retry needed here.
                 clearShowBannerDelayTimer();
-                scheduleAutoRetry();
                 break;
               }
               // Any post-snapshot Disconnected state is worth showing — whether it's a
@@ -169,9 +169,9 @@ export function useWebSocketHealthToast(): void {
 
             case WebSocketConnectionState.Connecting:
               clearAutoRetryTimer();
-              hide();
               if (!isIntentionalReconnect) {
-                // Only arm "back online" and show banner for unintentional reconnects
+                // Only arm "back online", hide any existing toast, and show banner for unintentional reconnects
+                hide();
                 hasExperiencedDisconnectionRef.current = true;
                 scheduleShowBanner(
                   WebSocketConnectionState.Connecting,
