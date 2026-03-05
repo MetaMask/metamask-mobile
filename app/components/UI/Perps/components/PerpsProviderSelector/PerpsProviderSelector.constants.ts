@@ -78,6 +78,6 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     isTestnet: true,
     name: 'MYX',
     network: 'Testnet',
-    description: 'Arbitrum Sepolia perps (Beta)',
+    description: 'Linea Sepolia perps (Beta)',
   },
 ];

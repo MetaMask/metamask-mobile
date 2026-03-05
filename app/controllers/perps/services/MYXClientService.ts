@@ -248,12 +248,26 @@ export class MYXClientService {
         },
       );
 
-      const tickers = await this.#myxClient.markets.getTickerList({
-        chainId: this.#chainId,
-        poolIds,
-      });
+      // Group poolIds by their actual chainId from the markets cache.
+      // getPoolSymbolAll() can return pools across multiple chains (e.g. testnet
+      // spans chainId 59141 and 421614). The ticker API only returns results for
+      // pools that match the passed chainId, so we must call it once per chain.
+      const chainIdMap = new Map<number, string[]>();
+      for (const poolId of poolIds) {
+        const pool = this.#marketsCache.find((mp) => mp.poolId === poolId);
+        const chainId = pool?.chainId ?? this.#chainId;
+        const existing = chainIdMap.get(chainId) ?? [];
+        existing.push(poolId);
+        chainIdMap.set(chainId, existing);
+      }
 
-      return tickers || [];
+      const results = await Promise.all(
+        Array.from(chainIdMap.entries()).map(([chainId, ids]) =>
+          this.#myxClient.markets.getTickerList({ chainId, poolIds: ids }),
+        ),
+      );
+
+      return results.flat().filter(Boolean);
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,

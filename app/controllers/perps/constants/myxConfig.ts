@@ -21,11 +21,12 @@ import type {
 /**
  * MYX Chain IDs
  * Mainnet: BNB Chain (56)
- * Testnet: Arbitrum Sepolia (421614) per SDK guide & API data.
- * SDK also lists BSC testnet 97 but the API has no pools on that chain.
+ * Testnet: Linea Sepolia (59141) — primary testnet chain with most active pools.
+ * The testnet API also has one pool on Arbitrum Sepolia (421614) but it has no
+ * ticker data, so Linea Sepolia is the effective testnet chain.
  */
 export const MYX_MAINNET_CHAIN_ID = '56' as const;
-export const MYX_TESTNET_CHAIN_ID = '421614' as const;
+export const MYX_TESTNET_CHAIN_ID = '59141' as const;
 export const MYX_MAINNET_CAIP_CHAIN_ID =
   `eip155:${MYX_MAINNET_CHAIN_ID}` as CaipChainId;
 export const MYX_TESTNET_CAIP_CHAIN_ID =
@@ -99,11 +100,11 @@ export const MYX_COLLATERAL_DECIMALS = 18;
 // ============================================================================
 
 /**
- * Collateral token address — testnet (USDC on Arbitrum Sepolia)
- * From SDK: ARB_TEST_SEPOLIA.USDC
+ * Collateral token address — testnet (USDC on Linea Sepolia)
+ * From SDK: LINEA_SEPOLIA.USDC
  */
 export const MYX_COLLATERAL_TOKEN_TESTNET =
-  '0x7E248Ec1721639413A280d9E82e2862Cae2E6E28' as const;
+  '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b' as const;
 
 /**
  * Collateral token address — mainnet (BUSD on BNB, per pool quoteToken)
