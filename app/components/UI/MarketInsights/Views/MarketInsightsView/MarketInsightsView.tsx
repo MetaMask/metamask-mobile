@@ -507,7 +507,7 @@ const MarketInsightsView: React.FC = () => {
       </ScrollView>
 
       <Box
-        twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom}px]`}
+        twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
       >
         <Button
           variant={ButtonVariant.Primary}
