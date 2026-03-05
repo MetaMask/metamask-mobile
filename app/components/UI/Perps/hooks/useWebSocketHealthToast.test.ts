@@ -75,44 +75,55 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Initial mount behavior', () => {
-    it('should not show toast when initial state is CONNECTED', () => {
+    it('skips toast when first callback is CONNECTED (happy path)', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Simulate initial callback with CONNECTED state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Should not show toast for initial CONNECTED state
       expect(mockShow).not.toHaveBeenCalled();
     });
 
-    it('should show toast when initial state is DISCONNECTED (after delay)', () => {
+    it('skips toast when first callback is DISCONNECTED (snapshot only, not a real event)', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Simulate initial callback with DISCONNECTED state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
-
-      expect(mockShow).not.toHaveBeenCalled();
 
       act(() => {
         jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
-      expect(mockShow).toHaveBeenCalledWith(
-        WebSocketConnectionState.Disconnected,
-        1,
-      );
+      expect(mockShow).not.toHaveBeenCalled();
     });
 
-    it('should show toast when initial state is CONNECTING (after delay)', () => {
+    it('skips toast when first callback is CONNECTING (snapshot only, not a real event)', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Simulate initial callback with CONNECTING state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
+      });
+
+      expect(mockShow).not.toHaveBeenCalled();
+    });
+
+    it('schedules Connecting banner after Disconnected snapshot when WS starts reconnecting', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // First callback: snapshot
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 0);
+      });
+
+      // Second callback: real transition
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connecting, 1);
       });
 
       expect(mockShow).not.toHaveBeenCalled();
@@ -123,22 +134,20 @@ describe('useWebSocketHealthToast', () => {
 
       expect(mockShow).toHaveBeenCalledWith(
         WebSocketConnectionState.Connecting,
-        2,
+        1,
       );
     });
   });
 
   describe('State transitions', () => {
-    it('should show disconnected toast on CONNECTED → DISCONNECTED transition (after delay)', () => {
+    it('shows Disconnected toast after CONNECTED → DISCONNECTED transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // First callback: CONNECTED (initial state)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
       mockShow.mockClear();
 
-      // Second callback: DISCONNECTED (transition - schedules show after delay)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
@@ -155,10 +164,10 @@ describe('useWebSocketHealthToast', () => {
       );
     });
 
-    it('should show connecting toast on DISCONNECTED → CONNECTING transition (after delay)', () => {
+    it('shows Connecting toast after DISCONNECTED → CONNECTING transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // First callback: DISCONNECTED (initial - marks as experienced disconnection)
+      // First callback: snapshot
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
@@ -167,7 +176,6 @@ describe('useWebSocketHealthToast', () => {
       });
       mockShow.mockClear();
 
-      // Second callback: CONNECTING (transition - schedules show after delay)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
@@ -184,27 +192,24 @@ describe('useWebSocketHealthToast', () => {
       );
     });
 
-    it('should show success toast on reconnection (DISCONNECTED → CONNECTING → CONNECTED)', () => {
+    it('shows Connected toast on reconnection after DISCONNECTED → CONNECTING → CONNECTED', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
+      // Snapshot
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Disconnected (schedules show after delay; we reconnect before delay)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
       mockShow.mockClear();
 
-      // Reconnecting (schedules show after delay; we reconnect before delay)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
       mockShow.mockClear();
 
-      // Reconnected successfully (clears delay, shows Connected immediately)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
@@ -215,10 +220,9 @@ describe('useWebSocketHealthToast', () => {
       );
     });
 
-    it('should NOT show success toast on initial connection (no prior disconnection)', () => {
+    it('omits Connected toast on initial connection with no prior disconnection', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED - should NOT show toast
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
@@ -228,19 +232,17 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Retry callback', () => {
-    it('should register retry callback on mount', () => {
+    it('registers retry callback on mount', () => {
       renderHook(() => useWebSocketHealthToast());
 
       expect(mockSetOnRetry).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it('should call PerpsController.reconnect when retry is invoked', () => {
+    it('calls PerpsController.reconnect when retry callback is invoked', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Get the retry callback that was registered
       const retryCallback = mockSetOnRetry.mock.calls[0][0];
 
-      // Invoke the retry callback
       act(() => {
         retryCallback();
       });
@@ -250,7 +252,7 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Cleanup on unmount', () => {
-    it('should unsubscribe and hide toast on unmount', () => {
+    it('calls unsubscribe and hide on unmount', () => {
       const { unmount } = renderHook(() => useWebSocketHealthToast());
 
       unmount();
@@ -261,15 +263,13 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Reconnection attempt tracking', () => {
-    it('should pass reconnection attempt number to show()', () => {
+    it('passes reconnection attempt number to show()', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Disconnected
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
@@ -278,7 +278,6 @@ describe('useWebSocketHealthToast', () => {
       });
       mockShow.mockClear();
 
-      // Reconnecting with attempt 3 (schedules show after delay)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 3);
       });
@@ -297,7 +296,7 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Subscription behavior', () => {
-    it('should not subscribe when isConnected is false', () => {
+    it('skips subscription when isConnected is false', () => {
       mockUsePerpsConnection.mockReturnValue({
         isConnected: false,
         isInitialized: true,
@@ -310,7 +309,7 @@ describe('useWebSocketHealthToast', () => {
       expect(mockSubscribeToConnectionState).not.toHaveBeenCalled();
     });
 
-    it('should not subscribe when isInitialized is false', () => {
+    it('skips subscription when isInitialized is false', () => {
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
         isInitialized: false,
@@ -323,7 +322,7 @@ describe('useWebSocketHealthToast', () => {
       expect(mockSubscribeToConnectionState).not.toHaveBeenCalled();
     });
 
-    it('should subscribe when both isConnected and isInitialized are true', () => {
+    it('subscribes when both isConnected and isInitialized are true', () => {
       mockUsePerpsConnection.mockReturnValue({
         isConnected: true,
         isInitialized: true,
@@ -338,23 +337,21 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Offline banner delay (flicker prevention)', () => {
-    it('should NOT show offline banner if reconnected within delay', () => {
+    it('omits offline banner when connection restores within the delay window', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
       mockShow.mockClear();
 
-      // Disconnected (schedules show after 1s)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       expect(mockShow).not.toHaveBeenCalled();
 
-      // Reconnect before delay expires
+      // Restore before delay expires
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 1);
       });
@@ -362,13 +359,11 @@ describe('useWebSocketHealthToast', () => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Advance past the banner delay - show was never scheduled for Disconnected/Connecting
-      // because we cleared the timer when we got Connected
       act(() => {
         jest.advanceTimersByTime(OFFLINE_BANNER_DELAY_MS);
       });
 
-      // Should only have shown Connected (reconnection success), not Disconnected
+      // Only the Connected (back-online) toast, not Disconnected
       expect(mockShow).toHaveBeenCalledTimes(1);
       expect(mockShow).toHaveBeenCalledWith(
         WebSocketConnectionState.Connected,
@@ -378,16 +373,14 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('DISCONNECTING state', () => {
-    it('should not show toast for DISCONNECTING state', () => {
+    it('omits toast for DISCONNECTING state', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
       mockShow.mockClear();
 
-      // DISCONNECTING - no toast
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnecting, 0);
       });
@@ -397,42 +390,19 @@ describe('useWebSocketHealthToast', () => {
   });
 
   describe('Auto-retry behavior', () => {
-    it('should schedule auto-retry when entering DISCONNECTED state', () => {
+    it('fires reconnect after auto-retry delay on CONNECTED → DISCONNECTED transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Transition to DISCONNECTED
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
-      });
-
-      // reconnect should not be called yet
-      expect(mockReconnect).not.toHaveBeenCalled();
-
-      // Advance timers by auto-retry delay
-      act(() => {
-        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS);
-      });
-
-      // reconnect should now be called
-      expect(mockReconnect).toHaveBeenCalledTimes(1);
-    });
-
-    it('should schedule auto-retry when initial state is DISCONNECTED', () => {
-      renderHook(() => useWebSocketHealthToast());
-
-      // Initial callback with DISCONNECTED state
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
       expect(mockReconnect).not.toHaveBeenCalled();
 
-      // Advance timers by auto-retry delay
       act(() => {
         jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS);
       });
@@ -440,99 +410,117 @@ describe('useWebSocketHealthToast', () => {
       expect(mockReconnect).toHaveBeenCalledTimes(1);
     });
 
-    it('should cancel auto-retry when entering CONNECTING state', () => {
+    it('fires reconnect after auto-retry delay when WS transitions to DISCONNECTED after snapshot', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: CONNECTED
+      // First callback: snapshot (no auto-retry)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Transition to DISCONNECTED (schedules auto-retry)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
-      // Transition to CONNECTING (should cancel auto-retry)
+      expect(mockReconnect).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS);
+      });
+
+      expect(mockReconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels pending auto-retry on DISCONNECTED → CONNECTING transition', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
+      });
+
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connecting, 2);
       });
 
-      // Advance timers past auto-retry delay
       act(() => {
         jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
       });
 
-      // reconnect should NOT have been called (auto-retry was cancelled)
       expect(mockReconnect).not.toHaveBeenCalled();
     });
 
-    it('should cancel auto-retry when entering CONNECTED state', () => {
+    it('cancels pending auto-retry on DISCONNECTED → CONNECTED transition', () => {
       renderHook(() => useWebSocketHealthToast());
 
-      // Initial: DISCONNECTED (schedules auto-retry)
-      act(() => {
-        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
-      });
-
-      // Transition to CONNECTED (should cancel auto-retry)
+      // Snapshot
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Connected, 0);
       });
 
-      // Advance timers past auto-retry delay
-      act(() => {
-        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
-      });
-
-      // reconnect should NOT have been called (auto-retry was cancelled)
-      expect(mockReconnect).not.toHaveBeenCalled();
-    });
-
-    it('should cancel auto-retry when manual retry is triggered', () => {
-      renderHook(() => useWebSocketHealthToast());
-
-      // Initial: DISCONNECTED (schedules auto-retry)
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
-      // Get the retry callback and invoke it (manual retry)
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
+      });
+
+      expect(mockReconnect).not.toHaveBeenCalled();
+    });
+
+    it('cancels pending auto-retry when manual retry is triggered', () => {
+      renderHook(() => useWebSocketHealthToast());
+
+      // Snapshot
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
+      });
+
       const retryCallback = mockSetOnRetry.mock.calls[0][0];
       act(() => {
         retryCallback();
       });
 
-      // Manual retry should have called reconnect
       expect(mockReconnect).toHaveBeenCalledTimes(1);
       mockReconnect.mockClear();
 
-      // Advance timers past auto-retry delay
       act(() => {
         jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
       });
 
-      // reconnect should NOT have been called again (auto-retry was cancelled by manual retry)
       expect(mockReconnect).not.toHaveBeenCalled();
     });
 
-    it('should cancel auto-retry on unmount', () => {
+    it('cancels pending auto-retry on unmount', () => {
       const { unmount } = renderHook(() => useWebSocketHealthToast());
 
-      // Initial: DISCONNECTED (schedules auto-retry)
+      // Snapshot
+      act(() => {
+        connectionStateCallback(WebSocketConnectionState.Connected, 0);
+      });
+
       act(() => {
         connectionStateCallback(WebSocketConnectionState.Disconnected, 1);
       });
 
-      // Unmount
       unmount();
 
-      // Advance timers past auto-retry delay
       act(() => {
         jest.advanceTimersByTime(AUTO_RETRY_DELAY_MS + 1000);
       });
 
-      // reconnect should NOT have been called (auto-retry was cancelled on unmount)
       expect(mockReconnect).not.toHaveBeenCalled();
     });
   });
