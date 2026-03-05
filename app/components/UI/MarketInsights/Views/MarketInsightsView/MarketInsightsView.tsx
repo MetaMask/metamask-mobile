@@ -398,7 +398,7 @@ const MarketInsightsView: React.FC = () => {
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
-            <Text variant={TextVariant.HeadingLg}>{report.headline}</Text>
+            <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
           </Box>
 
           <Box twClassName="px-4 pb-6">
