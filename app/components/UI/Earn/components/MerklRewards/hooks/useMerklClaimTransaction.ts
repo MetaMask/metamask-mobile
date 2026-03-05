@@ -25,7 +25,7 @@ import {
  * After successful submission, user is navigated to home page.
  * Toast notifications and balance refresh are handled globally by useMerklClaimStatus.
  */
-export const useMerklClaim = (asset: TokenI | undefined) => {
+export const useMerklClaimTransaction = (asset: TokenI | undefined) => {
   const [isClaiming, setIsClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
