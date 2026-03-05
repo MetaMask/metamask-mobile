@@ -31,17 +31,24 @@ const styleSheet = (params: {
     },
     horizontalContainer: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 16,
+      paddingHorizontal: 0,
+      paddingTop: 12,
+      paddingBottom: 24,
     },
-    textContainer: {
+    textColumn: {
+      flex: 1,
+    },
+    amountIconRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    amountFiatColumn: {
       flex: 1,
     },
     label: {
       color: theme.colors.text.alternative,
-      marginBottom: 4,
     },
     amountTextLeft: {
       textAlign: 'left',
@@ -49,6 +56,7 @@ const styleSheet = (params: {
     fiatTextLeft: {
       textAlign: 'left',
       color: theme.colors.text.alternative,
+      marginTop: 4,
     },
     iconContainer: {
       marginLeft: 16,

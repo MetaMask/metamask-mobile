@@ -67,31 +67,38 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
       preventPulse={!maxValueMode || !isNative}
     >
       <View style={styles.horizontalContainer}>
-        <View style={styles.textContainer}>
+        <View style={styles.textColumn}>
           <Text style={styles.label} variant={TextVariant.BodyMD}>
             {strings('confirm.label.sending')}
           </Text>
-          {isRoundedAmount ? (
-            <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-              <AssetAmount
-                amount={amount}
-                styles={{ ...styles, assetAmountText: styles.amountTextLeft }}
-              />
-            </TouchableOpacity>
-          ) : (
-            <AssetAmount
-              amount={amount}
-              styles={{ ...styles, assetAmountText: styles.amountTextLeft }}
-            />
-          )}
-          {fiat && (
-            <Text style={styles.fiatTextLeft} variant={TextVariant.BodyMD}>
-              {fiat}
-            </Text>
-          )}
-        </View>
-        <View style={styles.iconContainer}>
-          <AvatarTokenWithNetworkBadge size={AvatarSize.Lg} />
+          <View style={styles.amountIconRow}>
+            <View style={styles.amountFiatColumn}>
+              {isRoundedAmount ? (
+                <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+                  <AssetAmount
+                    amount={amount}
+                    styles={{
+                      ...styles,
+                      assetAmountText: styles.amountTextLeft,
+                    }}
+                  />
+                </TouchableOpacity>
+              ) : (
+                <AssetAmount
+                  amount={amount}
+                  styles={{ ...styles, assetAmountText: styles.amountTextLeft }}
+                />
+              )}
+              {fiat && (
+                <Text style={styles.fiatTextLeft} variant={TextVariant.BodyMD}>
+                  {fiat}
+                </Text>
+              )}
+            </View>
+            <View style={styles.iconContainer}>
+              <AvatarTokenWithNetworkBadge size={AvatarSize.Lg} />
+            </View>
+          </View>
         </View>
       </View>
       {isRoundedAmount && (
