@@ -26,30 +26,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-<<<<<<< HEAD
 // Mock react-native-safe-area-context (override SafeAreaView only; keep SafeAreaProvider etc. for stack)
 jest.mock('react-native-safe-area-context', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   const actual = jest.requireActual('react-native-safe-area-context');
-=======
-// Mock theme
-jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
-
-// Mock getNavigationOptionsTitle
-jest.mock('../../Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({ title: 'Settings' })),
-}));
-
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text } = jest.requireActual('react-native');
->>>>>>> 30bd473975 (test: migrate color-no-hex for rewards codeowner batch)
   return {
     ...actual,
     useSafeAreaInsets: jest.fn(() => ({

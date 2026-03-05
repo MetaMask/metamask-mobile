@@ -1,10 +1,15 @@
 /* eslint-disable react/display-name */
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-native/no-color-literals */
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import RewardPointsAnimationComponent, { RewardAnimationState } from './index';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 /**
  * Storybook configuration for RewardPointsAnimation component
@@ -44,25 +49,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  primaryButton: {
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    backgroundColor: '#007AFF',
+  button: {
     padding: 10,
     borderRadius: 5,
     minWidth: 100,
     alignItems: 'center',
-  },
-  secondaryButton: {
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    backgroundColor: '#6C757D',
-    padding: 10,
-    borderRadius: 5,
-    minWidth: 100,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
   animationContainer: {
     padding: 20,
@@ -79,6 +70,7 @@ const InteractiveStory = (args: {
   duration: number;
   variant?: any;
 }) => {
+  const tw = useTailwind();
   const [currentValue, setCurrentValue] = useState(0);
   const [animationState, setAnimationState] = useState<RewardAnimationState>(
     RewardAnimationState.Idle,
@@ -142,27 +134,54 @@ const InteractiveStory = (args: {
       <View style={styles.buttonContainer}>
         <View style={styles.buttonRow}>
           <TouchableOpacity
-            style={styles.primaryButton}
+            style={[styles.button, tw`bg-primary-default`]}
             onPress={handleLoading}
           >
-            <Text style={styles.buttonText}>Loading</Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-background-default"
+            >
+              Loading
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={[styles.button, tw`bg-text-alternative`]}
             onPress={simulateApiCall}
           >
-            <Text style={styles.buttonText}>Simulate API call</Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-background-default"
+            >
+              Simulate API call
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.secondaryButton}
+            style={[styles.button, tw`bg-text-alternative`]}
             onPress={handleError}
           >
-            <Text style={styles.buttonText}>Error</Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-background-default"
+            >
+              Error
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleIdle}>
-            <Text style={styles.buttonText}>Set random value</Text>
+          <TouchableOpacity
+            style={[styles.button, tw`bg-primary-default`]}
+            onPress={handleIdle}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              twClassName="text-background-default"
+            >
+              Set random value
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

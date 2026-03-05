@@ -161,6 +161,14 @@ const mockFormatTimeRemaining = jest.requireMock(
   '../../../utils/formatUtils',
 ).formatTimeRemaining;
 
+/* eslint-disable @metamask/design-tokens/color-no-hex -- domain-specific mock API colors */
+const MOCK_BOOST_COLORS = {
+  swap: '#FF6B35',
+  seasonLong: '#4A90E2',
+  noEndDate: '#50C878',
+} as const;
+/* eslint-enable @metamask/design-tokens/color-no-hex */
+
 // Mock React Native components
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -202,8 +210,7 @@ const mockBoost: PointsBoostDto = {
   seasonLong: false,
   startDate: '2024-01-01',
   endDate: '2024-12-31',
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  backgroundColor: '#FF6B35',
+  backgroundColor: MOCK_BOOST_COLORS.swap,
 };
 
 const mockSeasonLongBoost: PointsBoostDto = {
@@ -215,8 +222,7 @@ const mockSeasonLongBoost: PointsBoostDto = {
   },
   boostBips: 1000,
   seasonLong: true,
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  backgroundColor: '#4A90E2',
+  backgroundColor: MOCK_BOOST_COLORS.seasonLong,
 };
 
 const mockBoostWithoutEndDate: PointsBoostDto = {
@@ -228,8 +234,7 @@ const mockBoostWithoutEndDate: PointsBoostDto = {
   },
   boostBips: 250,
   seasonLong: false,
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  backgroundColor: '#50C878',
+  backgroundColor: MOCK_BOOST_COLORS.noEndDate,
 };
 
 describe('ActiveBoosts', () => {
