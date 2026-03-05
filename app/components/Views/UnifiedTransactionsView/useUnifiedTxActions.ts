@@ -176,6 +176,25 @@ export function useUnifiedTxActions() {
     setCancelIsOpen(true);
   };
 
+  const getParamsToSend = (
+    params?: SpeedUpCancelParams,
+  ): GasPriceValue | FeeMarketEIP1559Values | undefined => {
+    if (params?.error) {
+      return undefined;
+    }
+    if (
+      params &&
+      'gasPrice' in params &&
+      (params.gasPrice === '0x0' || parseInt(String(params.gasPrice), 16) === 0)
+    ) {
+      return getCancelOrSpeedupValues();
+    }
+    if (params && ('maxFeePerGas' in params || 'gasPrice' in params)) {
+      return params;
+    }
+    return getCancelOrSpeedupValues();
+  };
+
   const speedUpTransaction = async (params?: SpeedUpCancelParams) => {
     try {
       if (params && 'error' in params && params.error) {
@@ -185,10 +204,7 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
-      const gasValues =
-        params && ('maxFeePerGas' in params || 'gasPrice' in params)
-          ? params
-          : getCancelOrSpeedupValues();
+      const gasValues = getParamsToSend(params);
 
       if (isLedgerAccount) {
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
@@ -223,10 +239,7 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
-      const gasValues =
-        params && ('maxFeePerGas' in params || 'gasPrice' in params)
-          ? params
-          : getCancelOrSpeedupValues();
+      const gasValues = getParamsToSend(params);
 
       if (isLedgerAccount) {
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
