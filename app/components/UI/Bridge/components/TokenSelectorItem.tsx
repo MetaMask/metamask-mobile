@@ -28,11 +28,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../Box/box.types';
+import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
 import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
