@@ -1247,7 +1247,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Cache miss or skipCache=true - fetch from API
     const infoClient = this.#clientService.getInfoClient();
-    const meta = await infoClient.meta({ dex: dexKey });
+    // Pass dex only for HIP-3 DEXs; omit for main DEX (empty string).
+    // Testnet API returns null when dex="" is explicitly sent.
+    const meta = await infoClient.meta(dexKey ? { dex: dexKey } : undefined);
 
     // Defensive validation before caching
     if (!meta?.universe || !Array.isArray(meta.universe)) {
@@ -1938,15 +1940,28 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async #buildAssetMapping(): Promise<void> {
     // Get feature-flag-validated DEXs to map (respects hip3Enabled and enabledDexs)
-    const dexsToMap = await this.#getValidatedDexs();
+    let dexsToMap: (string | null)[];
+    try {
+      dexsToMap = await this.#getValidatedDexs();
+    } catch (dexError) {
+      // If getValidatedDexs fails, fall back to main DEX only to keep the provider
+      // functional. Without this, a transient perpDexs() failure would permanently
+      // brick #ensureReady via the cached rejected promise.
+      this.#deps.debugLogger.log(
+        '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
+        { error: String(dexError) },
+      );
+      this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
+      this.#cachedValidatedDexs = this.#cachedValidatedDexs ?? [null];
+      dexsToMap = [null];
+    }
 
     // Use cached perpDexs array (populated by getValidatedDexs)
-    const allPerpDexs = this.#cachedAllPerpDexs;
-    if (!allPerpDexs) {
-      throw new Error(
-        'perpDexs not cached - getValidatedDexs must be called first',
-      );
+    // Defensive: ensure non-null even if getValidatedDexs had an unexpected issue
+    if (!this.#cachedAllPerpDexs) {
+      this.#cachedAllPerpDexs = [null];
     }
+    const allPerpDexs = this.#cachedAllPerpDexs;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
