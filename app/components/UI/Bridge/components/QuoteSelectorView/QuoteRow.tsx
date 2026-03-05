@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
   Box,
@@ -7,10 +7,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  Skeleton,
   Text,
   TextColor,
   TextVariant as TextVariantDS,
@@ -22,47 +19,50 @@ import TagBase, {
   TagShape,
 } from '../../../../../component-library/base-components/TagBase';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
+import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { useSelector } from 'react-redux';
+import { selectDestToken } from '../../../../../core/redux/slices/bridge';
+import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
+import { limitToMaximumDecimalPlaces } from '../../../../../util/number';
 
 export interface QuoteRowProps {
   provider: {
     name: string;
   };
   isLowestCost?: boolean;
-  formattedNetworkFee?: string;
-  isGasless?: boolean;
-  quoteGasSponsored?: boolean;
   formattedTotalCost: string;
   selected?: boolean;
   quoteRequestId: string;
   onPress: (quoteRequestId: string) => void;
   loading?: boolean;
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+  receiveAmount?: string;
 }
 
 export const QuoteRow = ({
   selected,
   provider,
-  formattedNetworkFee,
-  quoteGasSponsored,
-  isGasless,
   isLowestCost,
   formattedTotalCost,
   onPress,
   quoteRequestId,
   loading,
-  latestSourceBalance,
+  receiveAmount,
 }: QuoteRowProps) => {
-  const tw = useTailwind();
   const theme = useTheme();
-
-  const shouldShowGasSponsored = useShouldRenderGasSponsoredBanner({
-    latestSourceBalance,
-    quoteGasSponsored,
-  });
+  const destToken = useSelector(selectDestToken);
+  const formattedReceiveAmountFiat = useDisplayCurrencyValue(
+    receiveAmount,
+    destToken,
+  );
+  const formattedReceiveAmount = useMemo(
+    () =>
+      receiveAmount && receiveAmount !== '0' && destToken
+        ? formatAmountWithLocaleSeparators(
+            limitToMaximumDecimalPlaces(parseFloat(receiveAmount)),
+          )
+        : receiveAmount,
+    [receiveAmount, destToken],
+  );
 
   return (
     <TouchableOpacity onPress={() => onPress(quoteRequestId)}>
@@ -112,65 +112,30 @@ export const QuoteRow = ({
             </View>
           </Box>
           <Skeleton hideChildren={loading}>
-            {shouldShowGasSponsored ? (
-              <Text
-                variant={TextVariantDS.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('bridge.gas_fees_sponsored')}
-              </Text>
-            ) : isGasless ? (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariantDS.BodySm}
-                  style={tw`line-through`}
-                  color={TextColor.TextAlternative}
-                >
-                  {formattedNetworkFee}
-                </Text>
-                <Text
-                  variant={TextVariantDS.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('bridge.included')}
-                </Text>
-              </Box>
-            ) : (
-              <Box
-                gap={1}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-              >
-                <View>
-                  <Icon
-                    name={IconName.Gas}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </View>
-                <View>
-                  <Text
-                    variant={TextVariantDS.BodySm}
-                    color={TextColor.TextAlternative}
-                  >
-                    {formattedNetworkFee}
-                  </Text>
-                </View>
-              </Box>
-            )}
+            <Text
+              variant={TextVariantDS.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('bridge.total_cost')}: {formattedTotalCost}
+            </Text>
           </Skeleton>
         </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
-          alignItems={BoxAlignItems.Center}
+          alignItems={BoxAlignItems.End}
+          gap={1}
         >
           <Skeleton hideChildren={loading}>
             <Text variant={TextVariantDS.BodyMd} fontWeight={FontWeight.Medium}>
-              {formattedTotalCost}
+              ~ {formattedReceiveAmount} {destToken?.symbol}
+            </Text>
+          </Skeleton>
+          <Skeleton hideChildren={loading}>
+            <Text
+              variant={TextVariantDS.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              ~ {formattedReceiveAmountFiat}
             </Text>
           </Skeleton>
         </Box>

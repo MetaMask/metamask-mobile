@@ -10,7 +10,6 @@ export const QUOTES_PLACEHOLDER_DATA = [
     onPress: () => {
       // Placeholder for loading state
     },
-    latestSourceBalance: undefined,
     loading: true,
   },
   {
@@ -22,7 +21,6 @@ export const QUOTES_PLACEHOLDER_DATA = [
     onPress: () => {
       // Placeholder for loading state
     },
-    latestSourceBalance: undefined,
     loading: true,
   },
 ] satisfies QuoteRowProps[];

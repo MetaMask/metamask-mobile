@@ -11,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectDestToken,
   selectSelectedQuoteRequestId,
   selectSourceToken,
   setSelectedQuoteRequestId,
@@ -21,12 +22,12 @@ import { QuoteList } from './QuoteList';
 import { QuoteRowProps } from './QuoteRow';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
-import { formatNetworkFee } from '../../utils/formatNetworkFee';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import formatFiat from '../../../../../util/formatFiat';
 import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
+import { fromTokenMinimalUnit } from '../../../../../util/number';
 
 export const QuoteSelectorView = () => {
   const navigation = useNavigation();
@@ -40,13 +41,16 @@ export const QuoteSelectorView = () => {
     blockaidError,
     quoteFetchError,
     isExpired,
+    willRefresh,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
   });
+
   const trackAllQuotesSortedEvent =
     useTrackAllQuotesSortedEvent(latestSourceBalance);
 
@@ -78,20 +82,24 @@ export const QuoteSelectorView = () => {
           formattedTotalCost: formatFiat(
             new BigNumber(quote.sentAmount.usd ?? '0').plus(
               isGaslessQuote(quote.quote)
-                ? '0'
-                : (quote.totalNetworkFee.usd ?? '0'),
+                ? (quote.includedTxFees?.usd ?? '0')
+                : (quote.totalNetworkFee.usd ??
+                    quote.gasFee.effective.usd ??
+                    '0'),
             ),
             currency,
           ),
+          receiveAmount: destToken
+            ? fromTokenMinimalUnit(
+                quote.quote.destTokenAmount,
+                destToken.decimals,
+              )
+            : undefined,
           provider: {
             name: startCase(quote.quote.bridges[0]),
           },
-          isGasless: isGaslessQuote(quote.quote),
-          quoteGasSponsored: quote?.quote?.gasSponsored ?? false,
           quoteRequestId: quote.quote.requestId,
           onPress: onQuoteSelect,
-          latestSourceBalance,
-          formattedNetworkFee: formatNetworkFee(currency, quote),
           loading: isLoading,
           isLowestCost: quote.quote.requestId === bestQuote?.quote.requestId,
           selected:
@@ -104,11 +112,11 @@ export const QuoteSelectorView = () => {
   }, [
     validQuotes,
     onQuoteSelect,
-    latestSourceBalance,
     bestQuote,
     isLoading,
     currency,
     selectedQuoteRequestId,
+    destToken,
   ]);
 
   useEffect(() => {
@@ -125,10 +133,10 @@ export const QuoteSelectorView = () => {
   // Don't go back while loading or just because no quotes are available.
   // If the latter is the case, then render skeleton loaders.
   useEffect(() => {
-    if ((quoteFetchError || blockaidError || isExpired) && !isLoading) {
+    if (quoteFetchError || blockaidError || (isExpired && !willRefresh)) {
       navigation.goBack();
     }
-  }, [quoteFetchError, blockaidError, isExpired, isLoading, navigation]);
+  }, [quoteFetchError, blockaidError, isExpired, navigation, willRefresh]);
 
   return (
     <ScreenView>

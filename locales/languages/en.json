@@ -6602,8 +6602,9 @@
     "custom": "Custom",
     "invalid_recipient_address": "Invalid address",
     "select_quote": "Select Quote",
-    "select_quote_info": "The total cost is the fiat value of your input tokens plus the fiat value of the network fee.",
-    "lowest_cost": "Lowest cost"
+    "select_quote_info": "Quotes are sorted by the estimated total cost, which includes the exchange rate and network fee.",
+    "lowest_cost": "Lowest cost",
+    "total_cost": "Total Cost"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
