@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -19,6 +18,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import { cancelBulkLink } from '../../../../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -26,14 +26,6 @@ import {
   resetRewardsState,
   setCandidateSubscriptionId,
 } from '../../../../../reducers/rewards';
-
-const styles = StyleSheet.create({
-  sheetTitle: {
-    alignItems: 'center',
-    paddingTop: 16,
-    paddingBottom: 16,
-  },
-});
 
 const ENV_OPTIONS: string[] = [
   AppConstants.REWARDS_API_URL.DEV,
@@ -126,14 +118,15 @@ const RewardsEnvironmentToggle: React.FC = () => {
           ref={sheetRef}
           onClose={() => setIsSheetOpen(false)}
         >
-          <View style={styles.sheetTitle}>
-            <Text variant={TextVariant.HeadingSm}>
-              {strings('rewards.settings.environment_selector')}
-            </Text>
-          </View>
+          <HeaderCompactStandard
+            title={strings('rewards.settings.environment_selector')}
+            onClose={() => sheetRef.current?.onCloseBottomSheet()}
+            closeButtonProps={{ testID: 'environment-sheet-close-button' }}
+          />
           {ENV_OPTIONS.map((env) => (
             <ListItemSelect
               key={env}
+              testID={`environment-option-${env}`}
               onPress={() => handleEnvSelect(env)}
               isSelected={env === currentEnv}
               isDisabled={false}
