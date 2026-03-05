@@ -30,13 +30,12 @@ import {
 
 jest.mock('../../../util/hideKeyFromUrl', () => jest.fn());
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0378FF' },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
@@ -48,9 +47,11 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
     theme: {
       colors: {
         icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#666666',
         },
         text: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#999999',
         },
       },

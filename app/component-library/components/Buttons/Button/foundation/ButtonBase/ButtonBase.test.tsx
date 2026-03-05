@@ -5,7 +5,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../../../Icons/Icon';
-import { TextVariant } from '../../../../Texts/Text';
+import { TextColor, TextVariant } from '../../../../Texts/Text';
 
 // Internal dependencies.
 import ButtonBase from './ButtonBase';
@@ -180,7 +180,7 @@ describe('ButtonBase', () => {
       <ButtonBase
         label="Click me!"
         onPress={() => null}
-        labelColor="#ff0000"
+        labelColor={TextColor.Alternative}
         size={ButtonSize.Md}
       />,
     );

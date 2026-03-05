@@ -70,9 +70,11 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
     theme: {
       colors: {
         icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#666666',
         },
         text: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#999999',
         },
       },
