@@ -15829,6 +15829,7 @@ describe('RewardsController', () => {
           "activeAccount": null,
           "activeBoosts": {},
           "campaigns": {},
+          "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},

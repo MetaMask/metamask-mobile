@@ -23,6 +23,7 @@ import {
   type RewardDto,
   type SnapshotDto,
   type CampaignDto,
+  type CampaignDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,

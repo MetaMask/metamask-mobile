@@ -27,6 +27,7 @@ import type {
   ApplyBonusCodeDto,
   SnapshotDto,
   CampaignDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';

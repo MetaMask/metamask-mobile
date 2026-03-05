@@ -22,6 +22,7 @@ import type {
   LineaTokenRewardDto,
   SnapshotDto,
   CampaignDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import {
