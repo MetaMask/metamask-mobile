@@ -77,18 +77,18 @@ function classifyErrorByMessage(message: string): LedgerCommunicationErrors {
   return LedgerCommunicationErrors.UnknownError;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function classifyLedgerError(e: any): LedgerCommunicationErrors {
+function classifyLedgerError(e: unknown): LedgerCommunicationErrors {
   if (e instanceof LedgerError) {
     return e.code;
   }
-  if (e.name === 'TransportStatusError') {
-    return classifyTransportStatusError(e.statusCode);
+  const err = e as { name?: string; statusCode?: number; message?: string };
+  if (err?.name === 'TransportStatusError' && typeof err.statusCode === 'number') {
+    return classifyTransportStatusError(err.statusCode);
   }
-  if (e.name === 'TransportRaceCondition') {
+  if (err?.name === 'TransportRaceCondition') {
     return LedgerCommunicationErrors.LedgerHasPendingConfirmation;
   }
-  return classifyErrorByMessage(e.message);
+  return classifyErrorByMessage(typeof err?.message === 'string' ? err.message : '');
 }
 
 // Assumptions
