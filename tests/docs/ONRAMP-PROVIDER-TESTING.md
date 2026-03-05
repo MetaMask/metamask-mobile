@@ -24,12 +24,12 @@ This guide covers how to manually test the on-ramp providers (Transak and MoonPa
 
 ## Overview
 
-The on-ramp flow in MetaMask Mobile allows users to buy crypto using fiat payment methods. There are two provider integration types:
+The on-ramp flow in MetaMask Mobile allows you to buy crypto using fiat payment methods. There are two provider integration types:
 
 | Type           | Description                                                       | Providers |
 | -------------- | ----------------------------------------------------------------- | --------- |
 | **Native**     | In-app KYC/OTP flow — checkout is handled entirely inside the app | Transak   |
-| **Aggregator** | Opens provider's widget in an in-app browser (WebView)            | MoonPay   |
+| **Aggregator** | Opens the provider's widget in an in-app browser (WebView)        | MoonPay   |
 
 All manual staging tests should be run against a **non-production build** of the app. Non-production builds automatically target MetaMask's staging (UAT) Ramps backend, which connects to each provider's own staging environment.
 
@@ -64,8 +64,8 @@ Before testing, confirm the following:
 
 The flow you experience after selecting a quote depends on the provider type:
 
-- **Native** — Everything happens in-app. KYC, OTP verification, and order submission are all handled within MetaMask without opening a browser. _(Transak)_
-- **Aggregator** — The app opens the provider's checkout widget in an in-app browser (WebView). The provider handles the entire payment experience inside their widget. _(MoonPay)_
+- **Native** — Everything happens in-app. You complete KYC, OTP verification, and order submission entirely within MetaMask without opening a browser. _(Transak)_
+- **Aggregator** — The app opens the provider's checkout widget in an in-app browser (WebView). You complete the entire payment experience inside their widget. _(MoonPay)_
 
 This matters for testing because the steps, required test data, and observable behavior differ between the two.
 
@@ -77,19 +77,19 @@ Each provider maintains a separate staging or sandbox environment with test cred
 
 ### What "test data" means for on-ramp providers
 
-- **Staging account** — an account registered with the provider's developer portal, scoped to their sandbox environment
+- **Staging account** — an account you register with the provider's developer portal, scoped to their sandbox environment
 - **Test card numbers** — Visa/Mastercard numbers that trigger success, decline, or 3DS challenge scenarios without a real charge
-- **Test identity data** — name, address, phone, and email used for KYC screens (staging providers typically accept any valid-format data)
+- **Test identity data** — name, address, phone, and email you use for KYC screens (staging providers typically accept any valid-format data)
 - **OTP bypass** — some providers accept a static code (e.g., `000000`) in their sandbox instead of a real SMS/email OTP
-- **Provider API key** — required for some native flows; found in the `depositConfig` feature flag or the provider's developer dashboard
+- **Provider API key** — required for some native flows; you can find this in the `depositConfig` feature flag or the provider's developer dashboard
 
 ### Where to get it
 
-| Provider         | Where to look                                                                                                                                                                                                       |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Transak**      | [Transak Staging Documentation](https://docs.transak.com/docs/test-credentials) — Refer to their documentation. Staging accounts use the same portal as production but are scoped to `api-gateway-stg.transak.com`. |
-| **MoonPay**      | [MoonPay Staging Documentation](https://dev.moonpay.com/docs/faq-sandbox-testing) — Refer to their test documentation.                                                                                              |
-| **Any provider** | Check the provider's official developer documentation for a "sandbox," "test environment," or "testing" section. Most will list test Visa/Mastercard numbers for common scenarios.                                  |
+| Provider         | Where to look                                                                                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Transak**      | [Transak Staging Documentation](https://docs.transak.com/docs/test-credentials) — refer to their documentation for staging test credentials.                                       |
+| **MoonPay**      | [MoonPay Staging Documentation](https://dev.moonpay.com/docs/faq-sandbox-testing) — refer to their test documentation for sandbox credentials.                                     |
+| **Any provider** | Check the provider's official developer documentation for a "sandbox," "test environment," or "testing" section. Most will list test Visa/Mastercard numbers for common scenarios. |
 
 > **Tip:** When testing a new provider for the first time, confirm whether they have a sandbox environment (isolated test data) vs. a staging environment (shared with QA). Some providers have both. Always use the most isolated environment available.
 
@@ -113,7 +113,7 @@ All on-ramp tests start from the same entry point regardless of provider:
 
 ## Testing Transak (Native Flow)
 
-Transak's integration runs entirely in-app, or to better put it, it is a native experience. No webviews open, the app communicates with Transak's staging API directly and surfaces each step as a native screen.
+Transak's integration runs entirely in-app — it is a native experience. No WebViews open; instead you move through each step as a native screen inside MetaMask.
 
 ### Transak Test Data
 
@@ -130,20 +130,20 @@ You will need:
 
 After tapping **Continue** on the Build Quote screen:
 
-1. **Verify Identity** — Transak's KYC requirement screen is shown; tap **Continue**
+1. **Verify Identity** — You are shown Transak's KYC requirement screen; tap **Continue**
 2. **Email entry** — enter your Transak staging account email; tap **Continue**
-3. **OTP entry** — Transak sends a code to the email; enter it (or use the staging bypass code if available)
-4. **Personal details** — first-time users are prompted for name, address, and phone; fill in valid test data
-5. **KYC confirmation** — the app verifies identity status and proceeds automatically if approved
-6. **Quote confirmation** — shows the final breakdown: crypto amount, fiat total, and fees
-7. **Order placement** — confirm the order; the app submits it to Transak's staging environment
-8. **Order details screen** — displays a summary with token amount, total fiat, and fees
-9. **Activity tab** — the order appears under **Transfers** and transitions from **Pending** → **Completed**
+3. **OTP entry** — Transak sends a code to your email; enter it (or use the staging bypass code if available)
+4. **Personal details** — if this is your first time, you are prompted for name, address, and phone; fill in valid test data
+5. **KYC confirmation** — your identity status is verified and the flow proceeds automatically if approved
+6. **Quote confirmation** — you see the final breakdown: crypto amount, fiat total, and fees
+7. **Order placement** — confirm the order; it is submitted to Transak's staging environment
+8. **Order details screen** — you see a summary with token amount, total fiat, and fees
+9. **Activity tab** — your order appears under **Transfers** and transitions from **Pending** → **Completed**
 
 **What to verify:**
 
 - [ ] OTP screen appears and accepts the staging code
-- [ ] KYC screen shows correct status after identity check
+- [ ] KYC screen shows the correct status after identity check
 - [ ] Order details screen shows the correct token, amount, and provider name ("Transak (Staging)")
 - [ ] Order appears in the Activity tab
 - [ ] Order status reaches **Completed**
@@ -152,7 +152,7 @@ After tapping **Continue** on the Build Quote screen:
 
 ## Testing MoonPay (Aggregator / WebView Flow)
 
-MoonPay's integration opens their checkout widget in an in-app browser. MetaMask handles entry and exit — everything in between happens inside MoonPay's widget.
+MoonPay's integration opens their checkout widget in an in-app browser. You enter the flow from MetaMask and return to it automatically on completion — everything in between happens inside MoonPay's widget.
 
 ### MoonPay Test Data
 
@@ -171,20 +171,20 @@ You will need:
 After tapping **Continue** on the Build Quote screen:
 
 1. **In-app browser opens** — MoonPay's checkout widget loads inside the app
-2. **Widget checkout** — inside the widget, complete:
-   - Payment card entry (use a MoonPay staging test card)
-   - Email and account verification if prompted
-   - Any KYC or identity steps required by MoonPay
-   - Purchase confirmation
-3. **Callback handled** — on completion, MoonPay redirects back to MetaMask automatically
-4. **Order details screen** — the app displays the order summary with token amount, fiat total, and provider name
-5. **Activity tab** — the order appears under **Transfers** and transitions from **Pending** → **Completed**
+2. **Widget checkout** — inside the widget, you will:
+   - Enter your payment card details (use a MoonPay staging test card)
+   - Verify your email and create or log into a MoonPay account if prompted
+   - Complete any KYC or identity steps required by MoonPay
+   - Confirm the purchase
+3. **Callback handled** — on completion, MoonPay redirects you back to MetaMask automatically
+4. **Order details screen** — you see the order summary with token amount, fiat total, and provider name
+5. **Activity tab** — your order appears under **Transfers** and transitions from **Pending** → **Completed**
 
 **What to verify:**
 
 - [ ] In-app browser opens and MoonPay widget loads correctly
 - [ ] Test card is accepted and payment completes within the widget
-- [ ] App returns to the Order Details screen automatically after widget completion (no manual navigation needed)
+- [ ] You are returned to the Order Details screen automatically after widget completion (no manual navigation needed)
 - [ ] Order details show the correct token, amount, and provider name ("Moonpay (Staging)")
 - [ ] Order appears in the Activity tab
 - [ ] Order status reaches **Completed**
@@ -197,14 +197,14 @@ The on-ramp system supports multiple providers. When testing a provider not cove
 
 ### 1. Confirm the provider is available in your region
 
-The providers shown in the app depend on your detected region. If the expected provider doesn't appear in the quote screen, confirm your device region is one the provider supports. You can change your device's region in system settings and relaunch the app.
+The providers shown depend on your detected region. If the expected provider does not appear on the quote screen, confirm your device region is one the provider supports. You can change your region in system settings and relaunch the app.
 
 ### 2. Identify the flow type
 
-Look at which screen appears after tapping Continue:
+Look at which screen appears after you tap Continue:
 
-- **KYC / identity / OTP screens in-app** → native flow (same pattern as Transak)
-- **In-app browser opens** → aggregator flow (same pattern as MoonPay)
+- **KYC / identity / OTP screens in-app** → native flow (follow the same pattern as Transak)
+- **In-app browser opens** → aggregator flow (follow the same pattern as MoonPay)
 
 ### 3. Get staging credentials from the provider
 
@@ -220,8 +220,8 @@ Follow the same approach described in [How to Find Provider Test Data](#how-to-f
 Regardless of provider, verify:
 
 - [ ] Provider name appears correctly on the Build Quote and Order Details screens
-- [ ] Checkout completes without errors using test credentials
-- [ ] Order Details screen shows correct token, amounts, and fees
+- [ ] Checkout completes without errors using your test credentials
+- [ ] Order Details screen shows the correct token, amounts, and fees
 - [ ] Order appears in the Activity tab under **Transfers**
 - [ ] Order status reaches **Completed**
 
@@ -230,13 +230,13 @@ Regardless of provider, verify:
 ## Troubleshooting
 
 **Buy button is not visible**
-Confirm `rampsUnifiedBuyV1` and `rampsUnifiedBuyV2` feature flags are active. These are required for the Buy entry point to appear.
+Confirm `rampsUnifiedBuyV1` and `rampsUnifiedBuyV2` feature flags are active on your build. These are required for the Buy entry point to appear.
 
 **No providers or quotes returned**
-Your detected region may not be supported. Verify the device's region is set to a supported country (US, France, Spain, or Saint Lucia) and relaunch the app.
+Your detected region may not be supported. Verify your device's region is set to a supported country (US, France, Spain, or Saint Lucia) and relaunch the app.
 
 **Transak KYC flow fails or loops**
-Verify you are using a registered Transak staging account email. If the OTP is not arriving, check whether Transak's sandbox has an OTP bypass code in their documentation.
+Verify you are using a registered Transak staging account email. If the OTP is not arriving, check whether Transak's sandbox has a bypass code in their documentation.
 
 **MoonPay widget fails to load or returns an error**
 The order ID has a 60-second expiration. If you delayed starting the widget after the quote was fetched, go back and start the flow again. Also confirm MoonPay's sandbox environment is accessible from your network.
@@ -245,4 +245,4 @@ The order ID has a 60-second expiration. If you delayed starting the widget afte
 This typically means the provider's staging environment has not confirmed the order. Wait a few minutes and pull to refresh in the Activity tab. If it does not resolve, check whether the staging provider processed the transaction on their side.
 
 **Wrong provider shown or preferred provider not auto-selected**
-Provider selection is based on the user's most recent order history. To test a specific provider, clear order history from app state or use a fresh wallet fixture.
+Provider selection is based on your most recent order history. To test a specific provider, clear your order history from app state or use a fresh wallet fixture.
