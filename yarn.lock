@@ -9441,13 +9441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-acm@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@metamask/react-native-acm@npm:1.0.1"
+"@metamask/react-native-acm@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@metamask/react-native-acm@npm:1.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/75e736dd81ab5d85f2cd4a5ef21fa0b9297556d702576ecc537afb5fc6046bcca62e01c687c76998f7c0e9fab9a6b635013c3ae85b8f5ab29d1718d9a73fb988
+  checksum: 10/118f5d9336dd8d79b4f1ef5dda67a3d37040d1dc66b93f9f70319b65550948088ffabd21e048033926a2edc2c032e1295261850bfa602bea36c4efc164304ef8
   languageName: node
   linkType: hard
 
@@ -35453,7 +35453,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^27.1.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^10.0.0"
-    "@metamask/react-native-acm": "npm:^1.0.1"
+    "@metamask/react-native-acm": "npm:^1.1.0"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
     "@metamask/react-native-payments": "npm:^2.0.0"
