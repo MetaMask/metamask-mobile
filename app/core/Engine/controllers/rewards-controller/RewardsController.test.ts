@@ -8,6 +8,7 @@ import type { RewardsControllerMessenger } from '../../messengers/rewards-contro
 import { deriveStateFromMetadata } from '@metamask/base-controller';
 import {
   RewardClaimStatus,
+  CampaignType,
   type RewardsAccountState,
   type RewardsControllerState,
   type SeasonStatusState,
@@ -18,7 +19,7 @@ import {
   SeasonRewardType,
   type LineaTokenRewardDto,
 } from './types';
-import type { CaipAccountId } from '@metamask/utils';
+import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
 
 // Mock dependencies
@@ -18740,17 +18741,17 @@ describe('RewardsController', () => {
     const createTestCampaign = (
       overrides: Partial<{
         id: string;
-        type: string;
+        type: CampaignType;
         name: string;
         startDate: string;
         endDate: string;
-        termsAndConditions: Record<string, unknown> | null;
+        termsAndConditions: Json | null;
         excludedRegions: string[];
         statusLabel: string;
       }> = {},
     ) => ({
       id: 'campaign-1',
-      type: 'ONDO_HOLDING',
+      type: CampaignType.ONDO_HOLDING,
       name: 'ONDO Holding Campaign',
       startDate: '2025-01-01T00:00:00.000Z',
       endDate: '2027-01-01T00:00:00.000Z',

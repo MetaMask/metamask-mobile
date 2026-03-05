@@ -2,7 +2,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
@@ -131,7 +131,7 @@ export interface CampaignDto {
   /**
    * Terms and conditions content from Contentful (may be null)
    */
-  termsAndConditions: Record<string, unknown> | null;
+  termsAndConditions: Json | null;
 
   /**
    * Regions excluded from this campaign

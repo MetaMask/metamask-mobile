@@ -49,6 +49,7 @@ import {
   RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
   RewardsDataServiceGetSnapshotsAction,
+  RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
   RewardsDataServiceSetRewardsEnvUrlAction,
@@ -88,6 +89,7 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -151,6 +153,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:applyReferralCode',
       'RewardsDataService:applyBonusCode',
       'RewardsDataService:getSnapshots',
+      'RewardsDataService:getCampaigns',
       'RewardsDataService:getRewardsEnvUrl',
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
