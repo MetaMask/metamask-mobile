@@ -64,7 +64,7 @@ export default function migrate(state: unknown): unknown {
       if (
         hasProperty(ramps, field) &&
         isResourceStateShape(ramps[field]) &&
-        !hasProperty(ramps[field] as object, 'status')
+        (ramps[field] as Record<string, unknown>).status == null
       ) {
         (ramps[field] as Record<string, unknown>).status = 'idle';
       }
@@ -89,7 +89,7 @@ export default function migrate(state: unknown): unknown {
           if (
             hasProperty(transak, field) &&
             isResourceStateShape(transak[field]) &&
-            !hasProperty(transak[field] as object, 'status')
+            (transak[field] as Record<string, unknown>).status == null
           ) {
             (transak[field] as Record<string, unknown>).status = 'idle';
           }
