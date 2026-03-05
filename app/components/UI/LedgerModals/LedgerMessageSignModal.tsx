@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import {
@@ -48,7 +48,10 @@ const LedgerMessageSignModal = () => {
   const { onConfirmationComplete, deviceId } =
     useParams<LedgerMessageSignModalParams>();
 
+  const hasNavigatedRef = useRef(false);
   const goBack = useCallback(() => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
     dispatch(resetEventStage(signingEvent.rpcName));
     if (navigation.canGoBack()) {
       navigation.goBack();
