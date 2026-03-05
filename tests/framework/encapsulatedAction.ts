@@ -25,12 +25,14 @@ import { FrameworkDetector } from './FrameworkDetector.ts';
  * ```
  */
 export async function encapsulatedAction(config: {
-  detox: () => Promise<void>;
-  appium: () => Promise<void>;
+  detox?: () => Promise<void>;
+  appium?: () => Promise<void>;
 }): Promise<void> {
-  if (FrameworkDetector.isDetox()) {
+  if (FrameworkDetector.isDetox() && config.detox) {
     await config.detox();
-  } else {
+  } else if (FrameworkDetector.isAppium() && config.appium) {
     await config.appium();
+  } else {
+    throw new Error('No action configuration provided');
   }
 }
