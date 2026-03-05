@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { FlatList } from 'react-native';
 import {
   Box,
@@ -11,9 +11,7 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Avatar, {
   AvatarSize,
@@ -27,12 +25,12 @@ import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
 
 interface LinkedOffDeviceAccountsSheetProps {
   accounts: OffDeviceAccount[];
+  onClose?: () => void;
 }
 
-const LinkedOffDeviceAccountsSheet = forwardRef<
-  BottomSheetRef,
+const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
->(({ accounts }, ref) => {
+> = ({ accounts, onClose }) => {
   const handleCopy = useCallback(async (address: string) => {
     try {
       await ClipboardManager.setString(address);
@@ -86,7 +84,7 @@ const LinkedOffDeviceAccountsSheet = forwardRef<
   );
 
   return (
-    <BottomSheet ref={ref}>
+    <BottomSheet shouldNavigateBack={false} onClose={onClose}>
       <BottomSheetHeader>
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('rewards.settings.off_device_accounts_sheet_title')}
@@ -103,8 +101,6 @@ const LinkedOffDeviceAccountsSheet = forwardRef<
       </Box>
     </BottomSheet>
   );
-});
-
-LinkedOffDeviceAccountsSheet.displayName = 'LinkedOffDeviceAccountsSheet';
+};
 
 export default LinkedOffDeviceAccountsSheet;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -11,7 +11,6 @@ import RewardSettingsAccountGroupList from '../components/Settings/RewardSetting
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
 import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
-import type { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
 
 export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
@@ -20,13 +19,17 @@ const RewardsSettingsView: React.FC = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedSettingsViewed = useRef(false);
-  const offDeviceSheetRef = useRef<BottomSheetRef>(null);
+  const [isOffDeviceSheetOpen, setIsOffDeviceSheetOpen] = useState(false);
 
   // Computes off-device accounts; internally fetches subscription accounts from the backend
   const offDeviceAccounts = useLinkedOffDeviceAccounts();
 
   const handleOpenOffDeviceSheet = useCallback(() => {
-    offDeviceSheetRef.current?.onOpenBottomSheet();
+    setIsOffDeviceSheetOpen(true);
+  }, []);
+
+  const handleCloseOffDeviceSheet = useCallback(() => {
+    setIsOffDeviceSheetOpen(false);
   }, []);
 
   useEffect(() => {
@@ -71,10 +74,12 @@ const RewardsSettingsView: React.FC = () => {
           <RewardSettingsAccountGroupList />
         </Box>
 
-        <LinkedOffDeviceAccountsSheet
-          ref={offDeviceSheetRef}
-          accounts={offDeviceAccounts}
-        />
+        {isOffDeviceSheetOpen && (
+          <LinkedOffDeviceAccountsSheet
+            accounts={offDeviceAccounts}
+            onClose={handleCloseOffDeviceSheet}
+          />
+        )}
       </SafeAreaView>
     </ErrorBoundary>
   );
