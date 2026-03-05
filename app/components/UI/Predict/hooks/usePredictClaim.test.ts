@@ -202,8 +202,8 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: TEST_HEX_COLORS.ERROR_DARK,
-        backgroundColor: TEST_HEX_COLORS.ACCENT_BLUE,
+        iconColor: mockTestHexColors.ERROR_DARK,
+        backgroundColor: mockTestHexColors.ACCENT_BLUE,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),
