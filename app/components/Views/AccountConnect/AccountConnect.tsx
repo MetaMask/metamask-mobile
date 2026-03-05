@@ -74,18 +74,10 @@ import {
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
-import { useOriginTrustSignals } from '../confirmations/hooks/useOriginTrustSignals';
-import { TrustSignalDisplayState } from '../confirmations/types/trustSignals';
-import TrustSignalModal from './TrustSignalModal';
-
-const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
-  Record<string, TrustSignalDisplayState>
-> = __DEV__
-  ? {
-      'app.uniswap.org': TrustSignalDisplayState.Verified,
-      'revoke.cash': TrustSignalDisplayState.Malicious,
-    }
-  : {};
+import TrustSignalModal, {
+  useTrustSignalState,
+  useTrustSignalGateControl,
+} from './TrustSignalModal';
 
 import {
   getCaip25PermissionsResponse,
@@ -192,11 +184,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     isOriginWalletConnect && wc2Metadata?.verifyContext?.isScam,
   );
 
-  const { state: rawTrustSignalState } =
-    useOriginTrustSignals(channelIdOrHostname);
-  const trustSignalState =
-    DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)] ??
-    rawTrustSignalState;
+  const { trustSignalState, needsTrustSignalGate } =
+    useTrustSignalState(channelIdOrHostname);
 
   const defaultSelectedChainIds = useMemo(
     () =>
@@ -275,27 +264,16 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const needsTrustSignalGate =
-    trustSignalState === TrustSignalDisplayState.Malicious;
-  const trustSignalGateDismissedRef = useRef(false);
-
   const [screen, setScreen] = useState<AccountConnectScreens>(
     needsTrustSignalGate
       ? AccountConnectScreens.TrustSignalWarning
       : AccountConnectScreens.SingleConnect,
   );
 
-  // If trust signal state arrives after initial render (async scan),
-  // navigate to the warning screen if the user hasn't dismissed it yet.
-  useEffect(() => {
-    if (needsTrustSignalGate && !trustSignalGateDismissedRef.current) {
-      setScreen((prev) =>
-        prev === AccountConnectScreens.SingleConnect
-          ? AccountConnectScreens.TrustSignalWarning
-          : prev,
-      );
-    }
-  }, [needsTrustSignalGate]);
+  const { handleTrustSignalDismiss } = useTrustSignalGateControl(
+    needsTrustSignalGate,
+    setScreen,
+  );
 
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -939,11 +917,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     ),
     [urlWithProtocol, handleConnectAnyway, handleMaliciousWarningClose],
   );
-
-  const handleTrustSignalDismiss = useCallback(() => {
-    trustSignalGateDismissedRef.current = true;
-    setScreen(AccountConnectScreens.SingleConnect);
-  }, []);
 
   const handleTrustSignalClose = useCallback(() => {
     hideSheet(() => cancelPermissionRequest(permissionRequestId));
