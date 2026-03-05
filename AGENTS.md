@@ -197,21 +197,24 @@ When working on tests, read tests/AGENTS.md for testing conventions.
 
 ## A/B Testing Agent Standard
 
-For A/B test implementation or review tasks, use the canonical skill source:
+For A/B test implementation or review tasks, use the canonical standard:
 
-- `.ai/skills/ab-testing-implementation/SKILL.md`
-- `.ai/skills/ab-testing-implementation/references/ab-testing-playbook.md`
+- `docs/ab-testing.md` (`Agent Execution Standard (SSOT)`)
+
+Codex skill entrypoint:
+
+- `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
 
 Harness entrypoints:
 
-- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`)
 - Claude: `.claude/commands/create-ab-test.md` (`/create-ab-test`)
-- Windsurf and other harnesses: start prompts with `Follow .ai/skills/ab-testing-implementation/references/ab-testing-playbook.md and apply docs/ab-testing.md.`
+- Cursor: `.cursor/commands/create-ab-test.md` (`/create-ab-test`) shim to Claude command
+- Windsurf and other harnesses: start prompts with `Follow docs/ab-testing.md section "Agent Execution Standard (SSOT)".`
 
 Compliance check command:
 
 ```bash
-bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
 ```
 
 If no files are staged, the checker automatically falls back to changed working-tree files.

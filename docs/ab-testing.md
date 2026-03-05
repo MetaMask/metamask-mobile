@@ -18,12 +18,47 @@ Use these two mechanisms together:
 
 ## Agent Skill Entrypoint
 
-Use the canonical cross-harness A/B testing skill:
+Use these entrypoints:
 
-- `.ai/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
-- `.ai/skills/ab-testing-implementation/references/ab-testing-playbook.md`
-- Compliance check: `bash .ai/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
+- SSOT policy + execution standard: this document
+- Codex skill entrypoint: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+- Claude command entrypoint: `.claude/commands/create-ab-test.md`
+- Cursor command entrypoint: `.cursor/commands/create-ab-test.md`
+- Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
 - If no files are staged, the checker automatically falls back to changed working-tree files.
+
+## Agent Execution Standard (SSOT)
+
+For agent implementation/review tasks, follow this workflow exactly:
+
+1. Run discovery before edits:
+
+```bash
+rg -n "useABTest\\(|active_ab_tests|ab_tests|Abtest|abTestConfig" app docs tests
+rg -n "Experiment Viewed|EXPERIMENT_VIEWED" app
+```
+
+2. Keep test config centralized in a dedicated config module (`abTestConfig.ts` pattern).
+3. Use `useABTest(flagKey, variants)` and normalize unresolved assignments to `control`.
+4. Do not manually emit `Experiment Viewed` when using `useABTest`.
+5. For business events, use `active_ab_tests: [{ key, value }]` only when assignment is active.
+6. Do not add new payloads under `ab_tests`.
+7. Use risk-based test scope:
+   - If behavior or analytics integration changed, add/update tests.
+   - If change is copy/config-only, you may skip new tests with a brief rationale.
+8. Run compliance check:
+
+```bash
+bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged
+```
+
+Required agent response sections:
+
+1. `Implementation Checklist`
+2. `Files To Modify`
+3. `Analytics Payload Changes`
+4. `Tests To Run`
+5. `Compliance Check Result`
 
 ---
 
