@@ -39,9 +39,7 @@ const expectedEventNames = [
   expectedEvents.UnifiedSwapBridgeCompleted,
 ];
 
-// Disabling this test as we've been experiencing issues with the test setup
-// See: https://github.com/MetaMask/metamask-mobile/actions/runs/22703717413/job/65827036980
-describe.skip(SmokeTrade('Swap from Actions'), (): void => {
+describe(SmokeTrade('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(180000);
   });
