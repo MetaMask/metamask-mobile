@@ -1111,6 +1111,9 @@ describe('NetworkManager Component', () => {
           '0x89': true,
           '0xa': false,
         },
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       // The component internally processes enabledNetworksByNamespace
@@ -1146,6 +1149,9 @@ describe('NetworkManager Component', () => {
           '0x89': false,
           '0xa': false,
         },
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       // The component should handle nested namespace structures
@@ -1167,6 +1173,9 @@ describe('NetworkManager Component', () => {
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       const { getByTestId } = renderComponent();
@@ -1199,6 +1208,9 @@ describe('NetworkManager Component', () => {
           '0xa': false,
           '0xa4b1': true,
         },
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       // Component should only include enabled (true) networks
@@ -1228,6 +1240,9 @@ describe('NetworkManager Component', () => {
           '0x1': true,
           '0x89': true,
         },
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       const { getByTestId } = renderComponent();

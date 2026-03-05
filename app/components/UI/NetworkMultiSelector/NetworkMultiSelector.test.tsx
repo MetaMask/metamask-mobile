@@ -335,6 +335,9 @@ describe('NetworkMultiSelector', () => {
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
       enabledNetworksForAllNamespaces: mockEnabledNetworks,
+      listPopularEvmNetworks: jest.fn(() => []),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
     });
 
     mockUseNetworksByNamespace.mockReturnValue({
@@ -569,6 +572,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       const { getByTestId } = renderWithProvider(
@@ -607,6 +613,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       const { getByTestId } = renderWithProvider(
@@ -693,6 +702,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -749,6 +761,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -829,6 +844,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -908,6 +926,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -979,6 +1000,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -2413,6 +2437,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        listPopularEvmNetworks: jest.fn(() => []),
+        listPopularMultichainNetworks: jest.fn(() => []),
+        listPopularNetworks: jest.fn(() => []),
       });
 
       const { getByTestId } = renderWithProvider(

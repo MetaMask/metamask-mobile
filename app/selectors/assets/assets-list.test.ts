@@ -10,12 +10,12 @@ import {
 } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
 import { createDeepEqualSelector } from '../util';
 import {
   createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
   selectAssetsBySelectedAccountGroup,
-  selectEnabledNetworks,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectTronResourcesBySelectedAccountGroup,
@@ -696,8 +696,16 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
   it('returns selector that filters by custom enabled-networks selector', () => {
     const onlyMainnetSelector = createDeepEqualSelector(
-      [selectEnabledNetworks],
-      (enabled) => enabled.filter((id) => id === '0x1'),
+      [selectEnabledNetworksByNamespace],
+      (enabledNetworksByNamespace) => {
+        const enabled = Object.values(enabledNetworksByNamespace).flatMap(
+          (network) =>
+            Object.entries(network)
+              .filter(([_, isEnabled]) => isEnabled)
+              .map(([networkId]) => networkId),
+        );
+        return enabled.filter((id) => id === '0x1');
+      },
     );
     const customSelectSorted =
       createSelectSortedAssetsBySelectedAccountGroup(onlyMainnetSelector);
