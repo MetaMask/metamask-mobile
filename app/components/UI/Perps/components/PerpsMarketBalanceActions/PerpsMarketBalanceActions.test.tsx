@@ -64,6 +64,28 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      enabledNetworksForAllNamespaces: {},
+      networkEnablementController: {},
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+      listPopularEvmNetworks: jest.fn(() => []),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+      tryEnableEvmNetwork: jest.fn(),
+    }),
+  }),
+);
+
 // Mock strings function
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {

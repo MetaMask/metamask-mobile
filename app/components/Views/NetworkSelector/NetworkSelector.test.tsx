@@ -135,6 +135,10 @@ jest.mock('../../../core/Engine', () => ({
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
       enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+      listPopularEvmNetworks: jest.fn(() => []),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
     },
   },
 }));

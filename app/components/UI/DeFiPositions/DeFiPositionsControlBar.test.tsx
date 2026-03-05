@@ -21,6 +21,7 @@ jest.mock('../../../selectors/networkController', () => ({
   selectIsAllNetworks: () => false,
   selectIsPopularNetwork: () => true,
   selectChainId: () => '0x1',
+  selectNetworkConfigurations: () => ({}),
   selectPopularNetworkConfigurationsByCaipChainId: () => ({
     '0x1': {
       chainId: '0x1',

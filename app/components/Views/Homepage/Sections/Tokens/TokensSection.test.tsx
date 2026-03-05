@@ -73,6 +73,7 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
 
 const mockNetworkConfigurations = {};
 jest.mock('../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkController'),
   selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
