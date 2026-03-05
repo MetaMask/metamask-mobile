@@ -784,25 +784,29 @@
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "providers": {
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "tokens": {
       "data": null,
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "paymentMethods": {
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "nativeProviders": {
       "transak": {
@@ -810,20 +814,23 @@
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         },
         "isAuthenticated": false,
         "kycRequirement": {
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         },
         "userDetails": {
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         }
       }
     },
