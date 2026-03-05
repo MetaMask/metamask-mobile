@@ -88,6 +88,71 @@ export interface ApplyBonusCodeDto {
 }
 
 /**
+ * Campaign type enum matching the backend CampaignType
+ */
+export enum CampaignType {
+  ONDO_HOLDING = 'ONDO_HOLDING',
+}
+
+/**
+ * DTO for campaign data from the backend
+ */
+export interface CampaignDto {
+  /**
+   * The unique identifier of the campaign
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The type of campaign
+   * @example CampaignType.ONDO_HOLDING
+   */
+  type: CampaignType;
+
+  /**
+   * The name of the campaign
+   * @example 'ONDO Holding Campaign'
+   */
+  name: string;
+
+  /**
+   * The start date of the campaign
+   * @example '2024-01-01T00:00:00.000Z'
+   */
+  startDate: string;
+
+  /**
+   * The end date of the campaign
+   * @example '2024-12-31T23:59:59.999Z'
+   */
+  endDate: string;
+
+  /**
+   * Terms and conditions content from Contentful (may be null)
+   */
+  termsAndConditions: Record<string, unknown> | null;
+
+  /**
+   * Regions excluded from this campaign
+   * @example ['US', 'GB']
+   */
+  excludedRegions: string[];
+
+  /**
+   * Status label for the campaign
+   * @example 'Active'
+   */
+  statusLabel: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignsState = {
+  campaigns: CampaignDto[];
+  lastFetched: number;
+};
+
+/**
  * DTO for snapshot data from the backend
  */
 export interface SnapshotDto {
@@ -1202,6 +1267,7 @@ export type RewardsControllerState = {
   offDeviceSubscriptionAccounts: {
     [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
   };
+  campaigns: { [subscriptionId: string]: CampaignsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1534,6 +1600,14 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
+ * Action for getting campaigns
+ */
+export interface RewardsControllerGetCampaignsAction {
+  type: 'RewardsController:getCampaigns';
+  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
+}
+
+/**
  * Action for getting snapshots for a season
  */
 export interface RewardsControllerGetSnapshotsAction {
@@ -1642,6 +1716,7 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetCampaignsAction
   | RewardsControllerGetSnapshotsAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
