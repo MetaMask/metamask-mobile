@@ -169,7 +169,9 @@ function BuildQuote() {
 
     // API returned no payment methods after a successful fetch.
     // The status field distinguishes 'idle' (never fetched) from 'success' (fetched empty).
+    // Only relevant when a specific asset was requested via deep-link params.
     if (
+      params?.assetId &&
       paymentMethodsStatus === RequestStatus.SUCCESS &&
       paymentMethods.length === 0
     ) {

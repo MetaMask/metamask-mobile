@@ -1679,6 +1679,36 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('does not navigate to token unavailable modal when no assetId param and payment methods are empty', async () => {
+      mockUseParams.mockReturnValue({});
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {},
+      };
+      mockPaymentMethods = [];
+      mockPaymentMethodsLoading = false;
+      mockPaymentMethodsStatus = 'success';
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
     it('does not navigate to token unavailable modal when no provider is selected', () => {
       mockSelectedProvider = null;
 

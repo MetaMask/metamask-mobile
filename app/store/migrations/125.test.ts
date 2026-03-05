@@ -312,12 +312,14 @@ describe(`migration #${migrationVersion}`, () => {
               selected: null,
               isLoading: false,
               error: null,
+              status: undefined as string | undefined,
             },
             paymentMethods: {
               data: [],
               selected: null,
               isLoading: true,
               error: null,
+              status: undefined as string | undefined,
             },
             nativeProviders: {
               transak: {
@@ -333,6 +335,7 @@ describe(`migration #${migrationVersion}`, () => {
                   selected: null,
                   isLoading: false,
                   error: null,
+                  status: undefined as string | undefined,
                 },
               },
             },

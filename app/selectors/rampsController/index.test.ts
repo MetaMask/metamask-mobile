@@ -164,6 +164,7 @@ describe('RampsController Selectors', () => {
           selected: mockProvider,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -190,6 +191,7 @@ describe('RampsController Selectors', () => {
           selected: mockToken,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -214,6 +216,7 @@ describe('RampsController Selectors', () => {
           selected: null,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -237,6 +240,7 @@ describe('RampsController Selectors', () => {
           selected: mockPaymentMethod,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
