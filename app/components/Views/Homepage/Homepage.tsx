@@ -16,10 +16,7 @@ import { SectionRefreshHandle } from './types';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import {
-  HomepageSectionNames,
-  HomepageSectionName,
-} from './hooks/useHomepageSectionViewedEvent';
+import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -45,11 +42,11 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const enabledSections = useMemo(
     () =>
       [
-        { name: HomepageSectionNames.TOKENS, enabled: true },
-        { name: HomepageSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomepageSectionNames.PREDICT, enabled: isPredictEnabled },
-        { name: HomepageSectionNames.DEFI, enabled: isDeFiEnabled },
-        { name: HomepageSectionNames.NFTS, enabled: true },
+        { name: HomeSectionNames.TOKENS, enabled: true },
+        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+        { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
+        { name: HomeSectionNames.NFTS, enabled: true },
       ].filter((s) => s.enabled),
     [isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
   );
@@ -57,7 +54,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const totalSectionsLoaded = enabledSections.length;
 
   const getSectionIndex = useCallback(
-    (name: HomepageSectionName) =>
+    (name: HomeSectionName) =>
       enabledSections.findIndex((s) => s.name === name),
     [enabledSections],
   );
@@ -78,27 +75,27 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
     <Box gap={6} marginBottom={8} testID="homepage-container">
       <TokensSection
         ref={tokensSectionRef}
-        sectionIndex={getSectionIndex(HomepageSectionNames.TOKENS)}
+        sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <PerpsSection
         ref={perpsSectionRef}
-        sectionIndex={getSectionIndex(HomepageSectionNames.PERPS)}
+        sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <PredictionsSection
         ref={predictionsSectionRef}
-        sectionIndex={getSectionIndex(HomepageSectionNames.PREDICT)}
+        sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <DeFiSection
         ref={defiSectionRef}
-        sectionIndex={getSectionIndex(HomepageSectionNames.DEFI)}
+        sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
       <NFTsSection
         ref={nftsSectionRef}
-        sectionIndex={getSectionIndex(HomepageSectionNames.NFTS)}
+        sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
         totalSectionsLoaded={totalSectionsLoaded}
       />
     </Box>

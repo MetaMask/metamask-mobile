@@ -1,9 +1,7 @@
 import type { RefObject } from 'react';
 import type { View } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from './useHomepageSectionViewedEvent';
+import useHomeViewedEvent, { HomeSectionNames } from './useHomeViewedEvent';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 // --- Analytics mock ---
@@ -30,7 +28,7 @@ const mockSubscribeToScroll = jest.fn((callback: () => void) => {
   };
 });
 
-const HomepageEntryPointsValues = {
+const HomeEntryPointsValues = {
   APP_OPENED: 'app_opened',
   HOME_TAB: 'home_tab',
   NAVIGATED_BACK: 'navigated_back',
@@ -40,7 +38,7 @@ let mockContextValue = {
   subscribeToScroll: mockSubscribeToScroll,
   viewportHeight: 800,
   containerScreenY: 0,
-  entryPoint: HomepageEntryPointsValues.APP_OPENED as string,
+  entryPoint: HomeEntryPointsValues.APP_OPENED as string,
   visitId: 0,
 };
 
@@ -71,14 +69,14 @@ const createMockRef = (y: number, height: number): RefObject<View> =>
 const defaultParams = {
   sectionRef: null as RefObject<View> | null,
   isLoading: false,
-  sectionName: HomepageSectionNames.TOKENS,
+  sectionName: HomeSectionNames.TOKENS,
   sectionIndex: 0,
   totalSectionsLoaded: 5,
   isEmpty: false,
   itemCount: 3,
 };
 
-describe('useHomepageSectionViewedEvent', () => {
+describe('useHomeViewedEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     scrollSubscribers = [];
@@ -86,7 +84,7 @@ describe('useHomepageSectionViewedEvent', () => {
       subscribeToScroll: mockSubscribeToScroll,
       viewportHeight: 800,
       containerScreenY: 0,
-      entryPoint: HomepageEntryPointsValues.APP_OPENED,
+      entryPoint: HomeEntryPointsValues.APP_OPENED,
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
     };
   });
@@ -95,7 +93,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('does not fire when visitId is 0 (pre-focus; avoids duplicate on first load)', () => {
       mockContextValue = { ...mockContextValue, visitId: 0 };
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
@@ -107,7 +105,7 @@ describe('useHomepageSectionViewedEvent', () => {
 
     it('fires immediately when sectionRef is null and not loading', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
@@ -119,7 +117,7 @@ describe('useHomepageSectionViewedEvent', () => {
 
     it('does not fire when sectionRef is null but still loading', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: true,
@@ -132,7 +130,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('fires once loading finishes', () => {
       const { rerender } = renderHook(
         ({ isLoading }: { isLoading: boolean }) =>
-          useHomepageSectionViewedEvent({
+          useHomeViewedEvent({
             ...defaultParams,
             sectionRef: null,
             isLoading,
@@ -149,7 +147,7 @@ describe('useHomepageSectionViewedEvent', () => {
 
     it('only fires once even after multiple re-renders with null ref', () => {
       const { rerender } = renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
@@ -166,7 +164,7 @@ describe('useHomepageSectionViewedEvent', () => {
   describe('sectionIndex guard', () => {
     it('does not fire when sectionIndex is -1 (feature flag disabled)', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,
@@ -180,7 +178,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('does not fire via scroll check when sectionIndex is -1', () => {
       const mockRef = createMockRef(0, 200); // fully visible
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
           sectionIndex: -1,
@@ -199,7 +197,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('fires on mount when section is fully in the viewport', () => {
       const mockRef = createMockRef(0, 200); // y=0, height=200 → 100% visible
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -212,7 +210,7 @@ describe('useHomepageSectionViewedEvent', () => {
       // viewportHeight=800, y=700, height=200 → visiblePx=100 = height*0.5
       const mockRef = createMockRef(700, 200);
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -225,7 +223,7 @@ describe('useHomepageSectionViewedEvent', () => {
       // viewportHeight=800, y=750, height=200 → visiblePx=50 < 100
       const mockRef = createMockRef(750, 200);
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -238,7 +236,7 @@ describe('useHomepageSectionViewedEvent', () => {
       // viewportHeight=800, y=800, height=200 → visiblePx=0
       const mockRef = createMockRef(800, 200);
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -250,7 +248,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('fires on scroll when section scrolls into ≥50% visibility', () => {
       const mockRef = createMockRef(800, 200); // starts below viewport
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -282,7 +280,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('does not fire again on subsequent scrolls after already firing', () => {
       const mockRef = createMockRef(0, 200); // fully visible from mount
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -305,7 +303,7 @@ describe('useHomepageSectionViewedEvent', () => {
       const mockRef = createMockRef(0, 200);
 
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -318,7 +316,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('does not fire when measureInWindow reports height of 0', () => {
       const mockRef = createMockRef(0, 0); // height=0 → guard exits early
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -332,7 +330,7 @@ describe('useHomepageSectionViewedEvent', () => {
       // y=0 → visiblePx = min(2000, 800) - 0 = 800 ≥ 400
       const mockRef = createMockRef(0, 2000);
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -346,7 +344,7 @@ describe('useHomepageSectionViewedEvent', () => {
       // y=450 → visiblePx = min(2450, 800) - 450 = 350 < 400
       const mockRef = createMockRef(450, 2000);
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -361,7 +359,7 @@ describe('useHomepageSectionViewedEvent', () => {
       let currentVisitId = 0;
       const { rerender } = renderHook(() => {
         mockContextValue = { ...mockContextValue, visitId: currentVisitId };
-        return useHomepageSectionViewedEvent({
+        return useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
         });
@@ -385,7 +383,7 @@ describe('useHomepageSectionViewedEvent', () => {
       let currentVisitId = 0;
       const { rerender } = renderHook(() => {
         mockContextValue = { ...mockContextValue, visitId: currentVisitId };
-        return useHomepageSectionViewedEvent({
+        return useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         });
@@ -407,7 +405,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('does not re-fire when visitId stays the same', () => {
       mockContextValue = { ...mockContextValue, visitId: 1 };
       const { rerender } = renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
         }),
@@ -425,20 +423,20 @@ describe('useHomepageSectionViewedEvent', () => {
   describe('event properties', () => {
     it('fires with the correct MetaMetrics event', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({ ...defaultParams, sectionRef: null }),
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
       );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.HOMEPAGE_SECTION_VIEWED,
+        MetaMetricsEvents.HOME_VIEWED,
       );
     });
 
     it('includes all required properties', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
-          sectionName: HomepageSectionNames.DEFI,
+          sectionName: HomeSectionNames.DEFI,
           sectionIndex: 2,
           totalSectionsLoaded: 4,
           isEmpty: true,
@@ -449,28 +447,28 @@ describe('useHomepageSectionViewedEvent', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         interaction_type: 'section_viewed',
         location: 'home',
-        name: HomepageSectionNames.DEFI,
+        name: HomeSectionNames.DEFI,
         index: 2,
         total_sections_loaded: 4,
         is_empty: true,
         item_count: 0,
-        entry_point: HomepageEntryPointsValues.APP_OPENED,
+        entry_point: HomeEntryPointsValues.APP_OPENED,
       });
     });
 
     it('uses the entry_point from context', () => {
       mockContextValue = {
         ...mockContextValue,
-        entryPoint: HomepageEntryPointsValues.HOME_TAB,
+        entryPoint: HomeEntryPointsValues.HOME_TAB,
       };
 
       renderHook(() =>
-        useHomepageSectionViewedEvent({ ...defaultParams, sectionRef: null }),
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
       );
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          entry_point: HomepageEntryPointsValues.HOME_TAB,
+          entry_point: HomeEntryPointsValues.HOME_TAB,
         }),
       );
     });
@@ -480,7 +478,7 @@ describe('useHomepageSectionViewedEvent', () => {
       mockBuild.mockReturnValue(builtEvent);
 
       renderHook(() =>
-        useHomepageSectionViewedEvent({ ...defaultParams, sectionRef: null }),
+        useHomeViewedEvent({ ...defaultParams, sectionRef: null }),
       );
 
       expect(mockTrackEvent).toHaveBeenCalledWith(builtEvent);
@@ -491,7 +489,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('subscribes to scroll when a sectionRef is provided', () => {
       const mockRef = createMockRef(800, 200); // below viewport so no immediate fire
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -503,7 +501,7 @@ describe('useHomepageSectionViewedEvent', () => {
     it('unsubscribes from scroll on unmount', () => {
       const mockRef = createMockRef(800, 200);
       const { unmount } = renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: mockRef,
         }),
@@ -518,7 +516,7 @@ describe('useHomepageSectionViewedEvent', () => {
 
     it('does not subscribe to scroll for null-ref sections', () => {
       renderHook(() =>
-        useHomepageSectionViewedEvent({
+        useHomeViewedEvent({
           ...defaultParams,
           sectionRef: null,
           isLoading: false,

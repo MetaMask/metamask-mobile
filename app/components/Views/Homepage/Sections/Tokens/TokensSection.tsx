@@ -33,9 +33,9 @@ import { selectSelectedInternalAccountByScope } from '../../../../../selectors/m
 import { SolScope } from '@metamask/keyring-api';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from '../../hooks/useHomepageSectionViewedEvent';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -135,10 +135,10 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
 
-    useHomepageSectionViewedEvent({
+    useHomeViewedEvent({
       sectionRef: sectionViewRef,
       isLoading: false,
-      sectionName: HomepageSectionNames.TOKENS,
+      sectionName: HomeSectionNames.TOKENS,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: isZeroBalanceAccount,

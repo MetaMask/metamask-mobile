@@ -43,9 +43,9 @@ import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
 import { usePerpsEventTracking } from '../../../../UI/Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from '../../hooks/useHomepageSectionViewedEvent';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 
 const MAX_ITEMS = 5;
@@ -253,10 +253,10 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isLoadingSection = hookLoading || deferredLoading || pendingTrending;
     const willRender = !isLoadingSection;
 
-    useHomepageSectionViewedEvent({
+    useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading: isLoadingSection,
-      sectionName: HomepageSectionNames.PERPS,
+      sectionName: HomeSectionNames.PERPS,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: !hasItems && trendingMarkets.length === 0,

@@ -32,9 +32,9 @@ import type { PredictNavigationParamList } from '../../../../UI/Predict/types/na
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from '../../hooks/useHomepageSectionViewedEvent';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
 
 const MAX_MARKETS_DISPLAYED = 5;
 
@@ -141,10 +141,10 @@ const PredictionsSection = forwardRef<
   // itemCount/isEmpty values before data arrives.
   const willRender = isPredictEnabled && !isLoading && !isEmpty;
 
-  useHomepageSectionViewedEvent({
+  useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
-    sectionName: HomepageSectionNames.PREDICT,
+    sectionName: HomeSectionNames.PREDICT,
     sectionIndex,
     totalSectionsLoaded,
     // Treat error state as empty — there is no useful content to show.

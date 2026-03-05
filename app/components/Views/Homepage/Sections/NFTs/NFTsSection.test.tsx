@@ -8,6 +8,8 @@ import { SectionRefreshHandle } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockOnRefresh = jest.fn().mockResolvedValue(undefined);
+const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+const mockAbortDetection = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -16,11 +18,23 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useFocusEffect: (callback: () => void) => {
+      const React = jest.requireActual('react');
+      React.useEffect(callback, [callback]);
+    },
   };
 });
 
 jest.mock('../../../../../reducers/collectibles', () => ({
   isNftFetchingProgressSelector: jest.fn(() => false),
+}));
+
+jest.mock('../../../../hooks/useNftDetection', () => ({
+  useNftDetection: () => ({
+    detectNfts: mockDetectNfts,
+    abortDetection: mockAbortDetection,
+    chainIdsToDetectNftsFor: [],
+  }),
 }));
 
 jest.mock('../../../../UI/NftGrid/useNftRefresh', () => ({
@@ -42,10 +56,10 @@ jest.mock('./hooks', () => ({
   useOwnedNfts: jest.fn(() => []),
 }));
 
-jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
-  HomepageSectionNames: {
+  HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',
@@ -164,6 +178,36 @@ describe('NFTsSection', () => {
     // NFTs beyond the limit (indices 6-7) should NOT be displayed
     expect(screen.queryByText('NFT 6')).not.toBeOnTheScreen();
     expect(screen.queryByText('NFT 7')).not.toBeOnTheScreen();
+  });
+
+  it('triggers NFT detection on focus', () => {
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockDetectNfts).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls abortDetection on unmount', () => {
+    const { unmount } = renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    unmount();
+
+    expect(mockAbortDetection).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders without error when detectNfts rejects', async () => {
+    mockDetectNfts.mockRejectedValueOnce(new Error('Aborted'));
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    await act(async () => undefined);
+
+    expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {

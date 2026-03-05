@@ -61,10 +61,10 @@ jest.mock('./hooks', () => ({
   })),
 }));
 
-jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
-  HomepageSectionNames: {
+  HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',

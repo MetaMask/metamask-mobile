@@ -13,10 +13,26 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
     }),
+    useFocusEffect: (callback: () => void) => {
+      const React = jest.requireActual('react');
+      React.useEffect(callback, [callback]);
+    },
   };
 });
 
 // Mock feature flags - enable all sections by default
+const mockDetectNfts = jest.fn().mockResolvedValue(undefined);
+const mockAbortDetection = jest.fn();
+
+jest.mock('../../hooks/useNftDetection', () => ({
+  useNftDetection: () => ({
+    detectNfts: mockDetectNfts,
+    abortDetection: mockAbortDetection,
+    chainIdsToDetectNftsFor: [],
+  }),
+}));
+
+// Mock feature flags - enable all sections
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
@@ -97,13 +113,13 @@ jest.mock(
   }),
 );
 
-// Mock useHomepageSectionViewedEvent to avoid analytics side-effects in
+// Mock useHomeViewedEvent to avoid analytics side-effects in
 // Homepage-level tests — section-level analytics are covered by the hook tests.
-const mockUseHomepageSectionViewedEvent = jest.fn();
-jest.mock('./hooks/useHomepageSectionViewedEvent', () => ({
+const mockUseHomeViewedEvent = jest.fn();
+jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: (...args: unknown[]) => mockUseHomepageSectionViewedEvent(...args),
-  HomepageSectionNames: {
+  default: (...args: unknown[]) => mockUseHomeViewedEvent(...args),
+  HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',
@@ -177,7 +193,7 @@ describe('Homepage', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
       // Tokens=0, Perps=1, Predict=2, DeFi=3, NFTs=4 → total=5
-      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const calls = mockUseHomeViewedEvent.mock.calls;
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
@@ -191,7 +207,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=5 when all flags are enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const calls = mockUseHomeViewedEvent.mock.calls;
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(5);
       });
@@ -208,7 +224,7 @@ describe('Homepage', () => {
     it('shifts indices when Perps is disabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const calls = mockUseHomeViewedEvent.mock.calls;
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 
@@ -221,7 +237,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=4 when Perps is disabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const calls = mockUseHomeViewedEvent.mock.calls;
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(4);
       });
@@ -246,7 +262,7 @@ describe('Homepage', () => {
     it('passes totalSectionsLoaded=2 when only Tokens and NFTs are enabled', () => {
       renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
-      const calls = mockUseHomepageSectionViewedEvent.mock.calls;
+      const calls = mockUseHomeViewedEvent.mock.calls;
       const callBySectionName = (name: string) =>
         calls.find((c) => c[0]?.sectionName === name)?.[0];
 

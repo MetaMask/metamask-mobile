@@ -213,8 +213,8 @@ const makeOrder = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const mockUseHomepageSectionViewedEvent = jest.requireMock(
-  '../../hooks/useHomepageSectionViewedEvent',
+const mockUseHomeViewedEvent = jest.requireMock(
+  '../../hooks/useHomeViewedEvent',
 ).default as jest.Mock;
 
 const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
@@ -229,10 +229,10 @@ const makeTrendingMarket = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
-  HomepageSectionNames: {
+  HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',
@@ -395,7 +395,7 @@ describe('PerpsSection', () => {
     expect(roeElements.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('navigates to perps home on title press', () => {
+  it('navigates to perps home on title press with home_section source', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -793,7 +793,7 @@ describe('PerpsSection', () => {
       expect(screen.getByText('View more')).toBeOnTheScreen();
     });
 
-    it('navigates to perps home when "View more" card is pressed', () => {
+    it('navigates to perps home with home_screen source when "View more" card is pressed', () => {
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
@@ -1166,7 +1166,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={2} totalSectionsLoaded={4} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           sectionName: 'perps',
           sectionIndex: 2,
@@ -1185,7 +1185,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isLoading: true }),
       );
     });
@@ -1200,7 +1200,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isLoading: true }),
       );
     });
@@ -1218,7 +1218,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isLoading: true }),
       );
     });
@@ -1228,7 +1228,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isLoading: false }),
       );
     });
@@ -1238,7 +1238,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isEmpty: true, itemCount: 0 }),
       );
     });
@@ -1253,7 +1253,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isEmpty: false, itemCount: 2 }),
       );
     });
@@ -1275,7 +1275,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isEmpty: false, itemCount: 3 }),
       );
     });
@@ -1293,7 +1293,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ isEmpty: false }),
       );
     });
@@ -1314,7 +1314,7 @@ describe('PerpsSection', () => {
         <PerpsSection sectionIndex={0} totalSectionsLoaded={5} />,
       );
 
-      expect(mockUseHomepageSectionViewedEvent).toHaveBeenLastCalledWith(
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ itemCount: 0 }),
       );
     });

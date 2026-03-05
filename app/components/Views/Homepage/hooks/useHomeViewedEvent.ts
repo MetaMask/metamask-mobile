@@ -4,7 +4,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 
-export const HomepageSectionNames = {
+export const HomeSectionNames = {
   TOKENS: 'tokens',
   PERPS: 'perps',
   DEFI: 'defi',
@@ -12,10 +12,10 @@ export const HomepageSectionNames = {
   NFTS: 'nfts',
 } as const;
 
-export type HomepageSectionName =
-  (typeof HomepageSectionNames)[keyof typeof HomepageSectionNames];
+export type HomeSectionName =
+  (typeof HomeSectionNames)[keyof typeof HomeSectionNames];
 
-interface UseHomepageSectionViewedEventParams {
+interface UseHomeViewedEventParams {
   /**
    * Ref to the section's root View. Pass `null` when the section does not
    * render (e.g. DeFi with no positions) — the event will fire immediately
@@ -24,7 +24,7 @@ interface UseHomepageSectionViewedEventParams {
   sectionRef: RefObject<View> | null;
   /** Whether the section data is still being fetched. */
   isLoading: boolean;
-  sectionName: HomepageSectionName;
+  sectionName: HomeSectionName;
   /** 0-based position of this section among all enabled sections. */
   sectionIndex: number;
   /** Total number of enabled sections on the page. */
@@ -39,7 +39,7 @@ interface UseHomepageSectionViewedEventParams {
 }
 
 /**
- * Fires a `Homepage Viewed` Segment event when a homepage section enters the
+ * Fires a `Home Viewed` Segment event when a homepage section enters the
  * user's viewport (≥ 50 % of the section is visible).
  *
  * - Re-fires on every homepage visit (when `visitId` increments).
@@ -48,7 +48,7 @@ interface UseHomepageSectionViewedEventParams {
  * - Uses a subscription pattern instead of React state so scroll events do
  * not trigger re-renders of section components.
  */
-const useHomepageSectionViewedEvent = ({
+const useHomeViewedEvent = ({
   sectionRef,
   isLoading,
   sectionName,
@@ -56,7 +56,7 @@ const useHomepageSectionViewedEvent = ({
   totalSectionsLoaded,
   isEmpty,
   itemCount,
-}: UseHomepageSectionViewedEventParams) => {
+}: UseHomeViewedEventParams) => {
   const {
     subscribeToScroll,
     viewportHeight,
@@ -83,7 +83,7 @@ const useHomepageSectionViewedEvent = ({
     hasFiredRef.current = true;
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.HOMEPAGE_SECTION_VIEWED)
+      createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
         .addProperties({
           interaction_type: 'section_viewed',
           location: 'home',
@@ -166,4 +166,4 @@ const useHomepageSectionViewedEvent = ({
   ]);
 };
 
-export default useHomepageSectionViewedEvent;
+export default useHomeViewedEvent;

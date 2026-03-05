@@ -22,9 +22,9 @@ import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featu
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import useHomepageSectionViewedEvent, {
-  HomepageSectionNames,
-} from '../../hooks/useHomepageSectionViewedEvent';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
 
 const MAX_POSITIONS_DISPLAYED = 5;
 
@@ -101,10 +101,10 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // no premature immediate fire via the null path.
     const willRender = !isLoading;
 
-    useHomepageSectionViewedEvent({
+    useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
       isLoading,
-      sectionName: HomepageSectionNames.DEFI,
+      sectionName: HomeSectionNames.DEFI,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: isEmpty || hasError || !isDeFiEnabled,

@@ -34,10 +34,10 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
-jest.mock('../../hooks/useHomepageSectionViewedEvent', () => ({
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
-  HomepageSectionNames: {
+  HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',
