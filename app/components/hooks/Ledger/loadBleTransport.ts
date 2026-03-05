@@ -5,8 +5,7 @@
  * which does not intercept native dynamic import() in the Node 22 test env.
  */
 const loadBleTransport = async (deviceId: string) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const BluetoothTransport: any = await import(
+  const BluetoothTransport = await import(
     '@ledgerhq/react-native-hw-transport-ble'
   );
   return BluetoothTransport.default.open(deviceId);
