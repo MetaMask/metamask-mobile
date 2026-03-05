@@ -192,16 +192,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     Record<string, TrustSignalDisplayState>
   > = __DEV__
     ? {
-        'uniswap.org': TrustSignalDisplayState.Verified,
-        'example.com': TrustSignalDisplayState.Malicious,
+        'app.uniswap.org': TrustSignalDisplayState.Verified,
+        'revoke.cash': TrustSignalDisplayState.Malicious,
       }
     : {
-        'uniswap.org': TrustSignalDisplayState.Verified,
-        'example.com': TrustSignalDisplayState.Malicious,
+        'app.uniswap.org': TrustSignalDisplayState.Verified,
+        'revoke.cash': TrustSignalDisplayState.Malicious,
       };
 
   const trustSignalState =
-    (__DEV__ && DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)]) ??
+    (true && DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)]) ??
     rawTrustSignalState;
 
   const defaultSelectedChainIds = useMemo(
@@ -283,6 +283,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const needsTrustSignalGate =
     trustSignalState === TrustSignalDisplayState.Malicious;
+  const trustSignalGateDismissedRef = useRef(false);
 
   const [screen, setScreen] = useState<AccountConnectScreens>(
     needsTrustSignalGate
@@ -291,10 +292,11 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   // If trust signal state arrives after initial render (async scan),
-  // navigate to the warning screen if still on the initial screen.
+  // navigate to the warning screen if the user hasn't dismissed it yet.
   useEffect(() => {
     if (
       needsTrustSignalGate &&
+      !trustSignalGateDismissedRef.current &&
       screen === AccountConnectScreens.SingleConnect
     ) {
       setScreen(AccountConnectScreens.TrustSignalWarning);
@@ -947,6 +949,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleTrustSignalDismiss = useCallback(() => {
+    trustSignalGateDismissedRef.current = true;
     setScreen(AccountConnectScreens.SingleConnect);
   }, []);
 

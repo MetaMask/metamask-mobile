@@ -6,14 +6,14 @@ const createStyles = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     safeArea: {
+      flex: 1,
       backgroundColor: theme.colors.background.alternative,
     },
     mainContainer: {
+      flex: 1,
       backgroundColor: theme.colors.background.alternative,
       paddingTop: 8,
       paddingBottom: 16,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
       justifyContent: 'space-between',
     },
     contentContainer: {

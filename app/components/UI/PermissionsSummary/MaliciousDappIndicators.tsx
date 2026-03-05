@@ -11,7 +11,7 @@ import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSi
 
 const styles = StyleSheet.create({
   urlIcon: {
-    marginTop: 2,
+    marginTop: 1,
     alignSelf: 'center',
   },
   buttonContent: {

@@ -93,6 +93,9 @@ import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
 import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
+import TrustSignalModal from '../../AccountConnect/TrustSignalModal';
+import { useOriginTrustSignals } from '../../confirmations/hooks/useOriginTrustSignals';
+import { TrustSignalDisplayState } from '../../confirmations/types/trustSignals';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
@@ -464,8 +467,26 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     CaipAccountId[]
   >(suggestedCaipAccountIds);
 
+  const { state: rawTrustSignalState } =
+    useOriginTrustSignals(channelIdOrHostname);
+  const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
+    Record<string, TrustSignalDisplayState>
+  > = {
+    'app.uniswap.org': TrustSignalDisplayState.Verified,
+    'revoke.cash': TrustSignalDisplayState.Malicious,
+  };
+  const trustSignalState =
+    DEV_TRUST_SIGNAL_OVERRIDES[getHost(channelIdOrHostname)] ??
+    rawTrustSignalState;
+  const needsTrustSignalGate =
+    trustSignalState === TrustSignalDisplayState.Malicious;
+  const trustSignalGateDismissedRef = useRef(false);
+  const trustSignalVariant = 'malicious' as const;
+
   const [screen, setScreen] = useState<AccountConnectScreens>(
-    AccountConnectScreens.SingleConnect,
+    needsTrustSignalGate
+      ? AccountConnectScreens.TrustSignalWarning
+      : AccountConnectScreens.SingleConnect,
   );
   const [showPhishingModal, setShowPhishingModal] = useState(false);
   const [userIntent, setUserIntent] = useState(USER_INTENT.None);
@@ -539,6 +560,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       isMountedRef.current = false;
     };
   }, [dappUrl, channelIdOrHostname]);
+
+  useEffect(() => {
+    if (
+      needsTrustSignalGate &&
+      !trustSignalGateDismissedRef.current &&
+      screen === AccountConnectScreens.SingleConnect
+    ) {
+      setScreen(AccountConnectScreens.TrustSignalWarning);
+    }
+  }, [needsTrustSignalGate, screen]);
 
   const { faviconURI: faviconSource } = useFavicon(dappUrl);
 
@@ -829,6 +860,16 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     setScreen(AccountConnectScreens.SingleConnect);
   }, []);
 
+  const handleTrustSignalDismiss = useCallback(() => {
+    trustSignalGateDismissedRef.current = true;
+    setScreen(AccountConnectScreens.SingleConnect);
+  }, []);
+
+  const handleTrustSignalClose = useCallback(() => {
+    cancelPermissionRequest(permissionRequestId);
+    navigation.goBack();
+  }, [cancelPermissionRequest, permissionRequestId, navigation]);
+
   const permissionsSummaryProps = useMemo(
     (): MultichainPermissionsSummaryProps => ({
       currentPageInformation: {
@@ -852,6 +893,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       setTabIndex,
       tabIndex,
       isMaliciousDapp,
+      trustSignalState,
     }),
     [
       faviconSource,
@@ -864,6 +906,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       permissionRequestId,
       navigation,
       isMaliciousDapp,
+      trustSignalState,
     ],
   );
 
@@ -979,6 +1022,17 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           />
         </ScreenContainer>
       )}
+      <ScreenContainer
+        isVisible={screen === AccountConnectScreens.TrustSignalWarning}
+        styles={styles}
+      >
+        <TrustSignalModal
+          variant={trustSignalVariant}
+          url={urlWithProtocol}
+          onConnectAnyway={handleTrustSignalDismiss}
+          onClose={handleTrustSignalClose}
+        />
+      </ScreenContainer>
       {renderPhishingModal()}
     </Box>
   );
