@@ -30,6 +30,14 @@ jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../../selectors/networkEnablementController', () => ({
+  selectEVMEnabledNetworks: jest.fn(() => []),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountTrackerController: {

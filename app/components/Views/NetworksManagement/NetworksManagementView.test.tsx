@@ -48,6 +48,25 @@ jest.mock('../../hooks/useMetrics', () => ({
   }),
 }));
 
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    listPopularEvmNetworks: jest.fn(() => []),
+    listPopularMultichainNetworks: jest.fn(() => []),
+    listPopularNetworks: jest.fn(() => []),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
+}));
+
 const initialState = {
   engine: {
     backgroundState,
