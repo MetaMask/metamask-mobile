@@ -9,6 +9,7 @@ import {
   INVALID,
   MISSING,
   VALID,
+  EXPIRED,
 } from '../../utils/verifySignature';
 import {
   DeepLinkModalLinkType,
@@ -191,6 +192,7 @@ async function handleUniversalLink({
 
   let isPrivateLink = false;
   let isInvalidLink = false;
+  let isExpiredLink = false;
 
   const action: SUPPORTED_ACTIONS = validatedUrl.pathname.split(
     '/',
@@ -234,6 +236,14 @@ async function handleUniversalLink({
           );
           isPrivateLink = true;
           break;
+        case EXPIRED:
+          DevLogger.log(
+            'DeepLinkManager:parse Expired signature for deeplink',
+            url,
+          );
+          isExpiredLink = true;
+          isPrivateLink = false;
+          break;
         case INVALID:
         case MISSING:
           DevLogger.log(
@@ -255,6 +265,11 @@ async function handleUniversalLink({
     // Invalid domain
     if (isInvalidLink) {
       return DeepLinkModalLinkType.INVALID;
+    }
+
+    // Expired link (signature was valid but has expired)
+    if (isExpiredLink) {
+      return DeepLinkModalLinkType.EXPIRED;
     }
 
     // Unsupported action with valid signature
@@ -404,10 +419,11 @@ async function handleUniversalLink({
       }
 
       // Show modal and track analytics based on user action
-      // For invalid/unsupported links, pass onBack and onContinue callbacks
+      // For invalid/unsupported/expired links, pass onBack and onContinue callbacks
       if (
         linkInstanceType === DeepLinkModalLinkType.INVALID ||
-        linkInstanceType === DeepLinkModalLinkType.UNSUPPORTED
+        linkInstanceType === DeepLinkModalLinkType.UNSUPPORTED ||
+        linkInstanceType === DeepLinkModalLinkType.EXPIRED
       ) {
         const modalParams: DeepLinkModalParams = {
           linkType: linkInstanceType,

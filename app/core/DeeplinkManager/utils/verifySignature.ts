@@ -78,8 +78,13 @@ function canonicalize(url: URL): string {
 export const MISSING = 'MISSING' as const;
 export const VALID = 'VALID' as const;
 export const INVALID = 'INVALID' as const;
+export const EXPIRED = 'EXPIRED' as const;
 
-type VerificationResult = typeof MISSING | typeof VALID | typeof INVALID;
+type VerificationResult =
+  | typeof MISSING
+  | typeof VALID
+  | typeof INVALID
+  | typeof EXPIRED;
 
 let tools: {
   algorithm: SubtleAlgorithm;
@@ -114,12 +119,37 @@ async function lazyGetTools() {
   return tools;
 }
 
+/**
+ * Check if the deeplink has expired based on the 'exp' parameter.
+ * The 'exp' parameter should contain a Unix timestamp in seconds.
+ * @param url - The URL to check for expiration
+ * @returns true if the link has expired, false otherwise
+ */
+export const isDeeplinkExpired = (url: URL): boolean => {
+  const expParam = url.searchParams.get('exp');
+  if (!expParam) {
+    return false;
+  }
+
+  const expirationTimestamp = parseInt(expParam, 10);
+  if (isNaN(expirationTimestamp)) {
+    return false;
+  }
+
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  return currentTimestamp > expirationTimestamp;
+};
+
 export const verifyDeeplinkSignature = async (
   url: URL,
 ): Promise<VerificationResult> => {
   const signatureStr = url.searchParams.get('sig');
   if (!signatureStr) {
     return MISSING;
+  }
+
+  if (isDeeplinkExpired(url)) {
+    return EXPIRED;
   }
 
   try {

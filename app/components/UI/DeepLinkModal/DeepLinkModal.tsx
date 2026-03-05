@@ -42,7 +42,10 @@ import { DeepLinkModalParams, ModalImageProps } from './types';
 import { DeepLinkModalLinkType } from '../../../core/DeeplinkManager/types/deepLink.types';
 
 const ModalImage = memo<ModalImageProps>(({ linkType, styles }) => {
-  if (linkType === DeepLinkModalLinkType.INVALID) {
+  if (
+    linkType === DeepLinkModalLinkType.INVALID ||
+    linkType === DeepLinkModalLinkType.EXPIRED
+  ) {
     return (
       <View style={styles.pageNotFoundImageContainer}>
         <Image source={pageNotFound} style={styles.pageNotFoundImage} />
@@ -106,7 +109,8 @@ const DeepLinkModal = () => {
 
   const pageTitle =
     params.linkType !== DeepLinkModalLinkType.INVALID &&
-    params.linkType !== DeepLinkModalLinkType.UNSUPPORTED
+    params.linkType !== DeepLinkModalLinkType.UNSUPPORTED &&
+    params.linkType !== DeepLinkModalLinkType.EXPIRED
       ? params.pageTitle
       : undefined;
   const { styles } = useStyles(styleSheet, {});
@@ -145,6 +149,11 @@ const DeepLinkModal = () => {
         description: strings('deep_link_modal.unsupported.description'),
         buttonLabel: strings('deep_link_modal.go_to_home_button'),
       },
+      [DeepLinkModalLinkType.EXPIRED]: {
+        title: strings('deep_link_modal.expired.title'),
+        description: strings('deep_link_modal.expired.description'),
+        buttonLabel: strings('deep_link_modal.go_to_home_button'),
+      },
     }),
     [pageTitle],
   );
@@ -177,9 +186,10 @@ const DeepLinkModal = () => {
     dismissModal(() => {
       if (
         linkType === DeepLinkModalLinkType.INVALID ||
-        linkType === DeepLinkModalLinkType.UNSUPPORTED
+        linkType === DeepLinkModalLinkType.UNSUPPORTED ||
+        linkType === DeepLinkModalLinkType.EXPIRED
       ) {
-        // Navigate to home page for invalid/unsupported links
+        // Navigate to home page for invalid/unsupported/expired links
         navigation.navigate(Routes.WALLET.HOME, {
           screen: Routes.WALLET.TAB_STACK_FLOW,
           params: {

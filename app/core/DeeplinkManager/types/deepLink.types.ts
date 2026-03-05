@@ -75,6 +75,7 @@ export enum DeepLinkModalLinkType {
   PRIVATE = 'private',
   INVALID = 'invalid',
   UNSUPPORTED = 'unsupported',
+  EXPIRED = 'expired',
 }
 
 /**

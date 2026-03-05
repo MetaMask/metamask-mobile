@@ -395,6 +395,7 @@ describe('DeepLinkModal', () => {
     ${'public'}
     ${'private'}
     ${'invalid'}
+    ${'expired'}
   `(
     'calls onBack when back button is pressed for $linkType link',
     async ({ linkType }) => {
@@ -413,4 +414,54 @@ describe('DeepLinkModal', () => {
       expect(mockOnBack).toHaveBeenCalled();
     },
   );
+
+  it('renders expired link UI', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      ...baseParams,
+      linkType: 'expired',
+    });
+    const { getByText, queryByText } = renderScreen(
+      DeepLinkModal,
+      { name: 'DeepLinkModal' },
+      { state: {} },
+    );
+
+    const title = getByText(/This link has expired/i);
+    const description = getByText(
+      /The link you're trying to use is no longer valid/i,
+    );
+    const goToHomeButton = getByText('Go to the home page');
+    const checkbox = queryByText(/Don't remind me again/i);
+
+    expect(title).toBeOnTheScreen();
+    expect(description).toBeOnTheScreen();
+    expect(goToHomeButton).toBeOnTheScreen();
+    expect(checkbox).not.toBeOnTheScreen();
+  });
+
+  it('navigates to home page when primary button is pressed for expired link', async () => {
+    (useParams as jest.Mock).mockReturnValue({
+      ...baseParams,
+      linkType: 'expired',
+      onContinue: mockOnContinue,
+    });
+    const { getByText } = renderScreen(
+      DeepLinkModal,
+      { name: 'DeepLinkModal' },
+      { state: {} },
+    );
+    const continueButton = getByText('Go to the home page');
+
+    await act(async () => {
+      fireEvent.press(continueButton);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'WalletView',
+      },
+    });
+    expect(mockOnContinue).toHaveBeenCalled();
+  });
 });

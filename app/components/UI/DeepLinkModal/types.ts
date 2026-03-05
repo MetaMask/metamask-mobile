@@ -34,6 +34,12 @@ type UnsupportedLinkParams = CommonLinkParams & {
   pageTitle?: never; // Unsupported links don't have a page title
 };
 
+type ExpiredLinkParams = CommonLinkParams & {
+  linkType: DeepLinkModalLinkType.EXPIRED;
+  onContinue?: () => void; // Optional callback for primary button action (navigate to home)
+  pageTitle?: never; // Expired links don't have a page title
+};
+
 /**
  * Deeplink Modal Params
  */
@@ -41,7 +47,8 @@ export type DeepLinkModalParams =
   | PublicLinkParams
   | PrivateLinkParams
   | InvalidLinkParams
-  | UnsupportedLinkParams;
+  | UnsupportedLinkParams
+  | ExpiredLinkParams;
 
 /**
  * Modal Image Props

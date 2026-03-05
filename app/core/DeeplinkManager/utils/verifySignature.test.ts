@@ -3,9 +3,11 @@ import { CryptoKey } from 'react-native-quick-crypto/lib/typescript/src/keys';
 import {
   verifyDeeplinkSignature,
   hasSignature,
+  isDeeplinkExpired,
   MISSING,
   VALID,
   INVALID,
+  EXPIRED,
 } from './verifySignature';
 import AppConstants from '../../AppConstants';
 
@@ -38,6 +40,50 @@ describe('verifySignature', () => {
       expect(MISSING).toBe('MISSING');
       expect(VALID).toBe('VALID');
       expect(INVALID).toBe('INVALID');
+      expect(EXPIRED).toBe('EXPIRED');
+    });
+  });
+
+  describe('isDeeplinkExpired', () => {
+    it('returns false when URL has no exp parameter', () => {
+      const url = new URL('https://example.com?param=value');
+      expect(isDeeplinkExpired(url)).toBe(false);
+    });
+
+    it('returns false when exp parameter is not a valid number', () => {
+      const url = new URL('https://example.com?exp=invalid');
+      expect(isDeeplinkExpired(url)).toBe(false);
+    });
+
+    it('returns false when exp parameter is empty', () => {
+      const url = new URL('https://example.com?exp=');
+      expect(isDeeplinkExpired(url)).toBe(false);
+    });
+
+    it('returns true when exp timestamp is in the past', () => {
+      const pastTimestamp = Math.floor(Date.now() / 1000) - 3600;
+      const url = new URL(`https://example.com?exp=${pastTimestamp}`);
+      expect(isDeeplinkExpired(url)).toBe(true);
+    });
+
+    it('returns false when exp timestamp is in the future', () => {
+      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+      const url = new URL(`https://example.com?exp=${futureTimestamp}`);
+      expect(isDeeplinkExpired(url)).toBe(false);
+    });
+
+    it('returns true when exp timestamp is just before current time', () => {
+      const justBeforeNow = Math.floor(Date.now() / 1000) - 1;
+      const url = new URL(`https://example.com?exp=${justBeforeNow}`);
+      expect(isDeeplinkExpired(url)).toBe(true);
+    });
+
+    it('handles exp parameter with other query parameters', () => {
+      const pastTimestamp = Math.floor(Date.now() / 1000) - 3600;
+      const url = new URL(
+        `https://example.com?param1=value1&exp=${pastTimestamp}&param2=value2`,
+      );
+      expect(isDeeplinkExpired(url)).toBe(true);
     });
   });
 
@@ -92,6 +138,33 @@ describe('verifySignature', () => {
       const url = new URL('https://example.com?sig=');
       const result = await verifyDeeplinkSignature(url);
       expect(result).toBe(MISSING);
+    });
+
+    it('returns EXPIRED when exp timestamp is in the past', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const pastTimestamp = Math.floor(Date.now() / 1000) - 3600;
+      const url = new URL(
+        `https://example.com?sig=${validSignature}&exp=${pastTimestamp}`,
+      );
+      const result = await verifyDeeplinkSignature(url);
+      expect(result).toBe(EXPIRED);
+    });
+
+    it('verifies signature when exp timestamp is in the future', async () => {
+      const validSignature = Buffer.from(new Array(64).fill(0)).toString(
+        'base64',
+      );
+      const futureTimestamp = Math.floor(Date.now() / 1000) + 3600;
+      const url = new URL(
+        `https://example.com?sig=${validSignature}&exp=${futureTimestamp}`,
+      );
+
+      mockSubtle.verify.mockResolvedValue(true);
+
+      const result = await verifyDeeplinkSignature(url);
+      expect(result).toBe(VALID);
     });
 
     it('returns INVALID when signature has wrong length', async () => {

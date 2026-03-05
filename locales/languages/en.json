@@ -6877,6 +6877,10 @@
       "update_to_store_link": "Update to the latest version of MetaMask",
       "well_take_you_to_right_place": " and we'll take you to the right place."
     },
+    "expired": {
+      "title": "This link has expired",
+      "description": "The link you're trying to use is no longer valid. Please request a new link to continue."
+    },
     "go_to_home_button": "Go to the home page",
     "back_button": "Back",
     "continue_button": "Continue"
