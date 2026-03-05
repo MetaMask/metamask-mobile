@@ -2030,3 +2030,4 @@ export type SeasonActivityTypeDto = {
    */
   icon: string;
 };
+
