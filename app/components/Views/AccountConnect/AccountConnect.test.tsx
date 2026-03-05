@@ -301,11 +301,13 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
 // Mock useOriginTrustSignals
 const mockUseOriginTrustSignals = jest.fn(() => ({
   state: TrustSignalDisplayState.Unknown,
-  label: null,
+  label: null as string | null,
 }));
+
 jest.mock('../confirmations/hooks/useOriginTrustSignals', () => ({
-  useOriginTrustSignals: (...args: unknown[]) =>
-    mockUseOriginTrustSignals(...args),
+  useOriginTrustSignals: (
+    ...args: Parameters<typeof mockUseOriginTrustSignals>
+  ) => mockUseOriginTrustSignals(...args),
 }));
 
 // Set default mock behaviors
