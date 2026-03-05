@@ -1,2 +1,2 @@
-export { Hex } from './common';
+export { HexSchema } from './common';
 export { PredictFeeCollectionSchema } from './flags';

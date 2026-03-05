@@ -6,13 +6,16 @@ import {
   object,
   string,
 } from '@metamask/superstruct';
-import { Hex } from './common';
+import { HexSchema } from './common';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 
 export const PredictFeeCollectionSchema = defaulted(
   object({
     enabled: defaulted(boolean(), () => DEFAULT_FEE_COLLECTION_FLAG.enabled),
-    collector: defaulted(Hex, () => DEFAULT_FEE_COLLECTION_FLAG.collector),
+    collector: defaulted(
+      HexSchema,
+      () => DEFAULT_FEE_COLLECTION_FLAG.collector,
+    ),
     metamaskFee: defaulted(
       number(),
       () => DEFAULT_FEE_COLLECTION_FLAG.metamaskFee,
