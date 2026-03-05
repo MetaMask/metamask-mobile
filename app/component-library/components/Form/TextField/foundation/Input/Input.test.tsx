@@ -104,4 +104,13 @@ describe('Input', () => {
 
     expect(onChangeText).toHaveBeenCalledWith('a');
   });
+
+  it('does not force controlled mode when value is omitted', () => {
+    const { getByTestId } = renderWithTheme(<Input placeholder="Enter text" />);
+
+    const input = getByTestId(INPUT_TEST_ID);
+
+    expect(input.props.value).toBeUndefined();
+    expect(getStyleProp(input.props.style, 'lineHeight')).toBeUndefined();
+  });
 });

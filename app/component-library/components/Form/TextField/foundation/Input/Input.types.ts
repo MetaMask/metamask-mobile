@@ -28,6 +28,12 @@ export interface InputProps extends Omit<TextInputProps, 'editable'> {
    * @default false
    */
   isStateStylesDisabled?: boolean;
+  /**
+   * The value of the text input. Defaults to empty string when not provided,
+   * ensuring the iOS placeholder alignment workaround (lineHeight: 0) can
+   * safely determine whether the placeholder is visible without internal state.
+   */
+  value?: string;
 }
 
 /**

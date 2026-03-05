@@ -25,13 +25,14 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
     isDisabled,
     isStateStylesDisabled,
     isFocused,
-    value = '',
+    value,
     placeholder,
   } = vars;
 
-  const hasPlaceholder = placeholder != null && placeholder !== '';
-  const isPlaceholderVisible =
-    hasPlaceholder && (value === '' || value == null);
+  // Only apply placeholder-mode styling for controlled empty inputs.
+  // For uncontrolled inputs (value is undefined), we avoid forcing lineHeight
+  // since style vars cannot track typing state transitions.
+  const isPlaceholderVisible = !!placeholder && value === '';
 
   const stateObj = isStateStylesDisabled
     ? {
@@ -56,6 +57,11 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,
+        // iOS-only workaround: when a placeholder is visible, the native
+        // TextInput renders it misaligned (vertically offset) due to how iOS
+        // applies lineHeight to placeholder text. Setting lineHeight: 0 resets
+        // this. We guard with Platform.OS === 'ios' because lineHeight: 0 on
+        // Android collapses the text area, making typed content invisible.
         ...(Platform.OS === 'ios' && isPlaceholderVisible && { lineHeight: 0 }),
       },
       style,

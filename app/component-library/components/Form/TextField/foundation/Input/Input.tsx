@@ -36,7 +36,6 @@ const Input = React.forwardRef<TextInput, InputProps>(
       autoFocus = true,
       value,
       placeholder,
-      onChangeText,
       ...props
     },
     ref,
@@ -49,7 +48,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
       isStateStylesDisabled,
       isDisabled,
       isFocused,
-      value: value ?? '',
+      value,
       placeholder,
     });
 
@@ -79,8 +78,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
         placeholderTextColor={theme.colors.text.alternative}
         {...props}
         placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
+        {...(value !== undefined ? { value } : {})}
         style={styles.base}
         editable={!isDisabled && !isReadonly}
         autoFocus={autoFocus}
