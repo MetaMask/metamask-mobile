@@ -3,11 +3,12 @@ import React, {
   useCallback,
   useImperativeHandle,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -19,6 +20,7 @@ import { useOwnedNfts } from './hooks';
 import NftGridItem from '../../../../UI/NftGrid/NftGridItem';
 import { useNftRefresh } from '../../../../UI/NftGrid/useNftRefresh';
 import { CollectiblesEmptyState } from '../../../../UI/CollectiblesEmptyState/CollectiblesEmptyState';
+import { useNftDetection } from '../../../../hooks/useNftDetection';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { isNftFetchingProgressSelector } from '../../../../../reducers/collectibles';
@@ -59,6 +61,31 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
   const hasNfts = ownedNfts.length > 0;
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
   const { onRefresh } = useNftRefresh();
+  const { detectNfts, abortDetection } = useNftDetection();
+  const hasLoadedOnceRef = useRef(false);
+  const isSilentDetectionRef = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      isSilentDetectionRef.current = hasLoadedOnceRef.current;
+
+      detectNfts()
+        .catch(() => {
+          // AbortError is expected when detection is cancelled on blur
+        })
+        .finally(() => {
+          hasLoadedOnceRef.current = true;
+          isSilentDetectionRef.current = false;
+        });
+
+      return () => {
+        abortDetection();
+        isSilentDetectionRef.current = false;
+      };
+    }, [detectNfts, abortDetection]),
+  );
+
+  const showSkeleton = isNftFetchingProgress && !isSilentDetectionRef.current;
 
   const title = strings('homepage.sections.nfts');
 
@@ -128,7 +155,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
             ))}
           </Box>
         </SectionRow>
-      ) : isNftFetchingProgress ? (
+      ) : showSkeleton ? (
         <SectionRow>
           <NftSkeletonRow />
         </SectionRow>
