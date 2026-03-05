@@ -2023,7 +2023,6 @@ describe('PolymarketProvider', () => {
       permit2Enabled?: boolean;
       hasAllowances?: boolean;
       executors?: string[];
-      fees?: typeof Side;
     }) {
       const result = setupPlaceOrderTest({
         feeCollection: {

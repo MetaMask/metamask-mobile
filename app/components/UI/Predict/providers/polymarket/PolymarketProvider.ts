@@ -1233,15 +1233,21 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
+      let allowancesTx: { to: string; data: string } | undefined;
+      let permit2AllowanceReady = false;
+
       // When Permit2 is enabled via feature flags, ensure the proxy wallet
       // has the required allowances. If not, generate a signed Safe TX that
       // the relay will submit on-chain before processing the order.
       // This uses the feature flag (not per-order fees) so it works for
       // both BUY orders (with fees) and SELL orders (no fees).
-      let allowancesTx: { to: string; data: string } | undefined;
-      let permit2AllowanceReady = false;
+      //
+      // IMPORTANT: Skip when a Safe fee authorization was already signed,
+      // because both transactions read the same on-chain Safe nonce and
+      // the relay would invalidate one when executing the other.
+      const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
 
-      if (feeCollection.permit2Enabled) {
+      if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
         try {
           const accountState = await this.getAccountState({
             ownerAddress: signer.address,
