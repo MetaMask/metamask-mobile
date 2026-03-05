@@ -7628,7 +7628,11 @@
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
-      "environment_default": "Default"
+      "environment_default": "Default",
+      "off_device_accounts_banner_title": "Accounts Not Found",
+      "off_device_accounts_banner_description": "There are accounts that are part of this rewards profile but these aren't found on this device.",
+      "off_device_accounts_banner_cta": "View Accounts",
+      "off_device_accounts_sheet_title": "Linked Accounts Not On Device"
     },
     "referred_by_code": {
       "title": "Referral Code",
