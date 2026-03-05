@@ -399,6 +399,7 @@ const MarketInsightsView: React.FC = () => {
       <MarketInsightsViewHeader onBackPress={handleBackPress} />
 
       <ScrollView
+        style={tw.style('flex-1')}
         contentContainerStyle={tw.style(`pb-4`)}
         showsVerticalScrollIndicator={false}
       >
