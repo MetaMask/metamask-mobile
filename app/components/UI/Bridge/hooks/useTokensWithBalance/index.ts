@@ -39,7 +39,7 @@ import {
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { isTradableToken } from '../../utils/isTradableToken';
-import { normalizeTokenAddress } from '../useTokenAddress';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
