@@ -101,6 +101,7 @@ import {
   POLYMARKET_PROVIDER_ID,
 } from '../providers/polymarket/constants';
 import {
+  DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
 } from '../constants/flags';
@@ -115,8 +116,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
-import { create } from '@metamask/superstruct';
-import { PredictFeeCollectionSchema } from '../schemas';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 
 /**
  * State shape for PredictController
@@ -439,11 +439,12 @@ export class PredictController extends BaseController<
         ? rawMarketHighlightsFlag
         : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
-    const feeCollection = create(
+    const feeCollection = parse(
       unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
         flags.predictFeeCollection,
       ),
       PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
     );
 
     const fakOrdersEnabled =
