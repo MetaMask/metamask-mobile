@@ -7,6 +7,7 @@ import {
   formatPeriodDisplay,
   mapApiTeamToPredictTeam,
   buildGameData,
+  extractTeamsFromEvents,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -445,6 +446,85 @@ describe('gameParser', () => {
       expect(result?.score).toBeNull();
       expect(result?.elapsed).toBeNull();
       expect(result?.period).toBeNull();
+    });
+  });
+
+  describe('extractTeamsFromEvents', () => {
+    it('extracts teams from sports events', () => {
+      const events = [
+        createMockEvent({
+          slug: 'nfl-sea-den-2025-01-12',
+          tags: [
+            { id: '1', label: 'NFL', slug: 'nfl' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        }),
+      ];
+
+      const result = extractTeamsFromEvents(events, ['nfl']);
+
+      expect(result).toEqual([
+        { league: 'nfl', abbreviation: 'sea' },
+        { league: 'nfl', abbreviation: 'den' },
+      ]);
+    });
+
+    it('skips non-sports events', () => {
+      const events = [
+        createMockEvent({
+          slug: 'some-other-market',
+          tags: [{ id: '1', label: 'Politics', slug: 'politics' }],
+        }),
+      ];
+
+      const result = extractTeamsFromEvents(events, ['nfl']);
+
+      expect(result).toEqual([]);
+    });
+
+    it('skips events for leagues not in enabledLeagues', () => {
+      const events = [
+        createMockEvent({
+          slug: 'nfl-sea-den-2025-01-12',
+          tags: [
+            { id: '1', label: 'NFL', slug: 'nfl' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        }),
+      ];
+
+      const result = extractTeamsFromEvents(events, []);
+
+      expect(result).toEqual([]);
+    });
+
+    it('extracts teams from multiple events', () => {
+      const events = [
+        createMockEvent({
+          slug: 'nfl-sea-den-2025-01-12',
+          tags: [
+            { id: '1', label: 'NFL', slug: 'nfl' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        }),
+        createMockEvent({
+          slug: 'nfl-sf-den-2025-01-13',
+          tags: [
+            { id: '1', label: 'NFL', slug: 'nfl' },
+            { id: '2', label: 'Games', slug: 'games' },
+          ],
+        }),
+      ];
+
+      const result = extractTeamsFromEvents(events, ['nfl']);
+
+      expect(result).toHaveLength(4);
+    });
+
+    it('returns empty array for empty events', () => {
+      const result = extractTeamsFromEvents([], ['nfl']);
+
+      expect(result).toEqual([]);
     });
   });
 
