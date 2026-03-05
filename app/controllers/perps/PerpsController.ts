@@ -1259,92 +1259,7 @@ export class PerpsController extends BaseController<
         this.providers.clear();
         await this.#cleanupStandaloneProvider();
 
-        const { activeProvider } = this.state;
-
-        this.#debugLog(
-          'PerpsController: Creating provider with HIP-3 configuration',
-          {
-            hip3Enabled: this.#hip3Enabled,
-            hip3AllowlistMarkets: this.#hip3AllowlistMarkets,
-            hip3BlocklistMarkets: this.#hip3BlocklistMarkets,
-            hip3ConfigSource: this.#hip3ConfigSource,
-            isTestnet: this.state.isTestnet,
-            activeProvider,
-          },
-        );
-
-        // Always create HyperLiquid provider as the base provider
-        const hyperLiquidProvider = new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
-        this.providers.set('hyperliquid', hyperLiquidProvider);
-
-        // Register MYX provider if enabled via feature flag
-        const isMYXEnabled = this.#isMYXProviderEnabled();
-        if (isMYXEnabled) {
-          const myxProvider = new MYXProvider({
-            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
-            platformDependencies: this.#options.infrastructure,
-          });
-          this.providers.set('myx', myxProvider);
-          this.#debugLog('PerpsController: MYX provider registered', {
-            isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
-          });
-        }
-
-        // Set up active provider based on activeProvider value in state
-        // 'aggregated' is treated as just another provider that wraps others
-        if (activeProvider === 'aggregated') {
-          // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
-          this.activeProviderInstance = new AggregatedPerpsProvider({
-            providers: this.providers,
-            defaultProvider: 'hyperliquid',
-            infrastructure: this.#options.infrastructure,
-          });
-          this.#debugLog(
-            'PerpsController: Using aggregated provider (multi-provider)',
-            { registeredProviders: Array.from(this.providers.keys()) },
-          );
-        } else if (activeProvider === 'hyperliquid') {
-          // Direct provider mode: use HyperLiquid provider directly
-          this.activeProviderInstance = hyperLiquidProvider;
-          this.#debugLog(
-            `PerpsController: Using direct provider (${activeProvider})`,
-          );
-        } else if (activeProvider === 'myx') {
-          // MYX provider mode
-          const myxProvider = this.providers.get('myx');
-          if (myxProvider) {
-            this.activeProviderInstance = myxProvider;
-          } else {
-            // MYX feature flag is disabled — fall back to HyperLiquid
-            this.#debugLog(
-              'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
-            );
-            this.activeProviderInstance = hyperLiquidProvider;
-            this.update((state) => {
-              state.activeProvider = 'hyperliquid';
-            });
-          }
-          this.#debugLog(
-            `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
-          );
-        } else {
-          // Unsupported provider - throw error to prevent silent misconfiguration
-          throw new Error(
-            `Unsupported provider: ${String(activeProvider)}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
-          );
-        }
-
-        // Future providers can be added here with their own authentication patterns:
-        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-        // - Some might use different wallet patterns: new GMXProvider({ signer })
-        // - Some might not need auth at all: new DydxProvider()
+        this.#createProviders();
 
         // Wait for WebSocket transport to be ready before marking as initialized
         await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
@@ -1357,7 +1272,7 @@ export class PerpsController extends BaseController<
 
         this.#debugLog('PerpsController: Providers initialized successfully', {
           providerCount: this.providers.size,
-          activeProvider,
+          activeProvider: this.state.activeProvider,
           timestamp: new Date().toISOString(),
           attempts: attempt,
         });
@@ -1402,6 +1317,98 @@ export class PerpsController extends BaseController<
       attempts: maxAttempts,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Instantiate provider instances based on current state and register them.
+   * Selects and assigns the active provider instance from the registry.
+   * Future providers can be added here with their own authentication patterns:
+   * - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+   * - Some might use different wallet patterns: new GMXProvider({ signer })
+   * - Some might not need auth at all: new DydxProvider()
+   */
+  #createProviders(): void {
+    const { activeProvider } = this.state;
+
+    this.#debugLog(
+      'PerpsController: Creating provider with HIP-3 configuration',
+      {
+        hip3Enabled: this.#hip3Enabled,
+        hip3AllowlistMarkets: this.#hip3AllowlistMarkets,
+        hip3BlocklistMarkets: this.#hip3BlocklistMarkets,
+        hip3ConfigSource: this.#hip3ConfigSource,
+        isTestnet: this.state.isTestnet,
+        activeProvider,
+      },
+    );
+
+    // Always create HyperLiquid provider as the base provider
+    const hyperLiquidProvider = new HyperLiquidProvider({
+      isTestnet: this.state.isTestnet,
+      hip3Enabled: this.#hip3Enabled,
+      allowlistMarkets: this.#hip3AllowlistMarkets,
+      blocklistMarkets: this.#hip3BlocklistMarkets,
+      platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
+    });
+    this.providers.set('hyperliquid', hyperLiquidProvider);
+
+    // Register MYX provider if enabled via feature flag
+    const isMYXEnabled = this.#isMYXProviderEnabled();
+    if (isMYXEnabled) {
+      const myxProvider = new MYXProvider({
+        isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+        platformDependencies: this.#options.infrastructure,
+      });
+      this.providers.set('myx', myxProvider);
+      this.#debugLog('PerpsController: MYX provider registered', {
+        isTestnet: PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet,
+      });
+    }
+
+    // Set up active provider based on activeProvider value in state
+    // 'aggregated' is treated as just another provider that wraps others
+    if (activeProvider === 'aggregated') {
+      // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
+      this.activeProviderInstance = new AggregatedPerpsProvider({
+        providers: this.providers,
+        defaultProvider: 'hyperliquid',
+        infrastructure: this.#options.infrastructure,
+      });
+      this.#debugLog(
+        'PerpsController: Using aggregated provider (multi-provider)',
+        { registeredProviders: Array.from(this.providers.keys()) },
+      );
+    } else if (activeProvider === 'hyperliquid') {
+      // Direct provider mode: use HyperLiquid provider directly
+      this.activeProviderInstance = hyperLiquidProvider;
+      this.#debugLog(
+        `PerpsController: Using direct provider (${activeProvider})`,
+      );
+    } else if (activeProvider === 'myx') {
+      // MYX provider mode
+      const myxProvider = this.providers.get('myx');
+      if (myxProvider) {
+        this.activeProviderInstance = myxProvider;
+      } else {
+        // MYX feature flag is disabled — fall back to HyperLiquid
+        this.#debugLog(
+          'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
+        );
+        this.activeProviderInstance = hyperLiquidProvider;
+        this.update((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+      }
+      this.#debugLog(
+        `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
+      );
+    } else {
+      // Unsupported provider - throw error to prevent silent misconfiguration
+      throw new Error(
+        `Unsupported provider: ${String(activeProvider)}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
+      );
+    }
   }
 
   /**
