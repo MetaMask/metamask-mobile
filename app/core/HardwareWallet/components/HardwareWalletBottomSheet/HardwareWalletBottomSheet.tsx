@@ -160,9 +160,8 @@ export const HardwareWalletBottomSheet: React.FC<
     onClose();
   }, [onClose]);
 
-  const deviceType = assertWalletType(walletType);
-
   const renderContent = () => {
+    const deviceType = assertWalletType(walletType);
     switch (connectionState.status) {
       case ConnectionStatus.Ready:
         return (
