@@ -1,7 +1,6 @@
 import {
   getHardwareWalletTypeName,
   getHardwareWalletTypeForAddress,
-  assertWalletType,
 } from './helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
@@ -109,29 +108,6 @@ describe('HardwareWallet helpers', () => {
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Ledger);
-    });
-  });
-
-  describe('assertWalletType', () => {
-    it('returns the value when given a valid HardwareWalletType', () => {
-      expect(assertWalletType(HardwareWalletType.Ledger)).toBe(
-        HardwareWalletType.Ledger,
-      );
-      expect(assertWalletType(HardwareWalletType.Qr)).toBe(
-        HardwareWalletType.Qr,
-      );
-    });
-
-    it('throws when given null', () => {
-      expect(() => assertWalletType(null)).toThrow(
-        'assertWalletType: no wallet type available',
-      );
-    });
-
-    it('throws when given undefined', () => {
-      expect(() => assertWalletType(undefined)).toThrow(
-        'assertWalletType: no wallet type available',
-      );
     });
   });
 });

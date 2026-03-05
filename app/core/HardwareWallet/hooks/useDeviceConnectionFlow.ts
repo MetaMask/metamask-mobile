@@ -6,7 +6,6 @@ import {
 } from '@metamask/hw-wallet-sdk';
 
 import { HardwareWalletAdapter } from '../types';
-import { assertWalletType } from '../helpers';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -196,9 +195,11 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = null;
       }
 
-      const targetType = assertWalletType(
-        refs.targetWalletTypeRef.current ?? walletType,
-      );
+      const targetType = refs.targetWalletTypeRef.current ?? walletType;
+
+      if (!targetType) {
+        throw new Error('ensureDeviceReady called without a wallet type');
+      }
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);

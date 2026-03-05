@@ -8,7 +8,6 @@ import {
 
 import { createHardwareWalletError } from '../errors';
 import { HardwareWalletAdapter } from '../types';
-import { assertWalletType } from '../helpers';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 interface UseTransportMonitoringOptions {
@@ -51,7 +50,7 @@ export const useTransportMonitoring = ({
       if (errorCode === null) {
         return null;
       }
-      const targetType = assertWalletType(walletType ?? adapter?.walletType);
+      const targetType = walletType ?? adapter?.walletType;
       return createHardwareWalletError(errorCode, targetType);
       // Stable ref (adapterRef) — not needed as a dep
       // eslint-disable-next-line react-hooks/exhaustive-deps

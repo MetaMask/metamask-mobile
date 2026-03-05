@@ -11,8 +11,8 @@ interface MobileErrorExtension {
   recoveryAction: RecoveryAction;
   icon: IconName;
   iconColor: IconColor;
-  getLocalizedTitle: (walletType?: HardwareWalletType) => string;
-  getLocalizedMessage: (walletType?: HardwareWalletType) => string;
+  getLocalizedTitle: (walletType?: HardwareWalletType | null) => string;
+  getLocalizedMessage: (walletType?: HardwareWalletType | null) => string;
 }
 
 /**

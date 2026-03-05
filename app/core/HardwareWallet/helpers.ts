@@ -7,7 +7,7 @@ import { strings } from '../../../locales/i18n';
  * Helper to get wallet type display name
  */
 export const getHardwareWalletTypeName = (
-  walletType?: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
 ): string => {
   switch (walletType) {
     case HardwareWalletType.Ledger:
@@ -35,22 +35,6 @@ export function getHardwareWalletTypeForAddress(
     return HardwareWalletType.Qr;
   }
   return undefined;
-}
-
-/**
- * Asserts that a wallet type is non-null.
- * Used after `??` fallback chains in error-handling and display paths
- * where the type should always be resolved by that point.
- */
-export function assertWalletType(
-  walletType: HardwareWalletType | null | undefined,
-): HardwareWalletType {
-  if (walletType == null) {
-    throw new Error(
-      'assertWalletType: no wallet type available — this should be unreachable when an adapter is active',
-    );
-  }
-  return walletType;
 }
 
 /**

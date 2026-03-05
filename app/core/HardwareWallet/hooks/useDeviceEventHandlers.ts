@@ -13,7 +13,6 @@ import {
   HardwareWalletRefs,
 } from './useHardwareWalletStateManager';
 import { parseErrorByType, createHardwareWalletError } from '../errors';
-import { assertWalletType } from '../helpers';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 /** Options for the {@link useDeviceEventHandlers} hook. */
@@ -63,7 +62,7 @@ export const useDeviceEventHandlers = ({
       } else {
         hwError = parseErrorByType(
           error,
-          assertWalletType(walletType ?? refs.adapterRef.current?.walletType),
+          walletType ?? refs.adapterRef.current?.walletType,
         );
       }
 
@@ -123,9 +122,7 @@ export const useDeviceEventHandlers = ({
           } else {
             const lockedError = createHardwareWalletError(
               ErrorCode.AuthenticationDeviceLocked,
-              assertWalletType(
-                walletType ?? refs.adapterRef.current?.walletType,
-              ),
+              walletType ?? refs.adapterRef.current?.walletType,
             );
             updateConnectionState({
               status: ConnectionStatus.ErrorState,

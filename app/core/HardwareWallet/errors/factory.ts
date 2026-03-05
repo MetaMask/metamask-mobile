@@ -50,7 +50,7 @@ function getSDKErrorInfo(
  */
 export function createHardwareWalletError(
   code: ErrorCode,
-  walletType?: HardwareWalletType,
+  walletType?: HardwareWalletType | null,
   technicalMessage?: string,
   options?: { cause?: Error; metadata?: Record<string, unknown> },
 ): HardwareWalletError {
