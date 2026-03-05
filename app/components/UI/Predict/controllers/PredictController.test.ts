@@ -5863,6 +5863,36 @@ describe('PredictController', () => {
       });
     });
 
+    it('includes orderType in analytics properties when provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+          orderType: 'FAK',
+        });
+
+        expect(analytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              order_type: 'FAK',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('omits orderType from analytics properties when not provided', async () => {
+      await withController(async ({ controller }) => {
+        await controller.trackPredictOrderEvent({
+          status: 'submitted',
+          analyticsProperties: { marketId: 'test' },
+        });
+
+        const eventArg = (analytics.trackEvent as jest.Mock).mock.calls[0][0];
+        expect(eventArg.properties).not.toHaveProperty('order_type');
+      });
+    });
+
     it('calls analytics.trackEvent for trackMarketDetailsOpened', () => {
       withController(({ controller }) => {
         controller.trackMarketDetailsOpened({

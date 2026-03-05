@@ -61,6 +61,18 @@ jest.mock('./hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 const mockUsePredictMarketsForHomepage =
   jest.requireMock('./hooks').usePredictMarketsForHomepage;
 const mockUsePredictPositionsForHomepage =
@@ -168,13 +180,17 @@ describe('PredictionsSection', () => {
   });
 
   it('renders section title when enabled', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('navigates to predictions market list on title press', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('Predictions'));
 
@@ -188,7 +204,9 @@ describe('PredictionsSection', () => {
       .requireMock('../../../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<PredictionsSection />);
+    const { toJSON } = renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });
@@ -206,7 +224,9 @@ describe('PredictionsSection', () => {
     });
 
     it('renders positions when user has them', async () => {
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
@@ -224,7 +244,9 @@ describe('PredictionsSection', () => {
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
     });
@@ -261,7 +283,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
@@ -276,7 +300,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       // Should still show the title
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
@@ -290,7 +316,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      const { toJSON } = renderWithProvider(<PredictionsSection />);
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(toJSON()).toBeNull();
     });
@@ -305,7 +333,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.getByText('Unable to load predictions')).toBeOnTheScreen();
       expect(screen.getByText('Retry')).toBeOnTheScreen();
@@ -319,7 +349,9 @@ describe('PredictionsSection', () => {
         refresh: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(
         screen.queryByText('Unable to load predictions'),
@@ -341,7 +373,9 @@ describe('PredictionsSection', () => {
     });
 
     it('does not show claim button when there are no claimable positions', () => {
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
@@ -357,7 +391,9 @@ describe('PredictionsSection', () => {
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
@@ -374,7 +410,9 @@ describe('PredictionsSection', () => {
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
@@ -389,7 +427,9 @@ describe('PredictionsSection', () => {
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
@@ -404,7 +444,9 @@ describe('PredictionsSection', () => {
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
@@ -442,7 +484,13 @@ describe('PredictionsSection', () => {
       });
 
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          ref={ref}
+        />,
+      );
 
       await ref.current?.refresh();
 
@@ -473,7 +521,13 @@ describe('PredictionsSection', () => {
       });
 
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          ref={ref}
+        />,
+      );
 
       await ref.current?.refresh();
 
