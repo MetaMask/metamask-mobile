@@ -25,10 +25,13 @@ const selectPredictClaimablePositionsByAddress = ({
 }: {
   address: string;
 }) =>
-  createSelector(
-    selectPredictClaimablePositions,
-    (claimablePositions) => claimablePositions[address] || [],
-  );
+  createSelector(selectPredictClaimablePositions, (claimablePositions) => {
+    const normalizedAddress = address.toLowerCase();
+    const matchedKey = Object.keys(claimablePositions).find(
+      (key) => key.toLowerCase() === normalizedAddress,
+    );
+    return matchedKey ? claimablePositions[matchedKey] : [];
+  });
 
 const selectPredictWonPositions = ({ address }: { address: string }) =>
   createSelector(

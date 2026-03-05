@@ -1595,8 +1595,14 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner();
 
-      // Get claimable positions from state
-      const claimablePositions = this.state.claimablePositions[signer.address];
+      // Get claimable positions from state (case-insensitive address match)
+      const normalizedSignerAddress = signer.address.toLowerCase();
+      const matchedAddress = Object.keys(this.state.claimablePositions).find(
+        (addressKey) => addressKey.toLowerCase() === normalizedSignerAddress,
+      );
+      const claimablePositions = matchedAddress
+        ? this.state.claimablePositions[matchedAddress]
+        : undefined;
 
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');

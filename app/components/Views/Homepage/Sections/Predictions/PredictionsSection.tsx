@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
@@ -91,9 +92,16 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     refresh: refreshClaimable,
   } = usePredictPositionsForHomepage(undefined, true);
 
+  const [isClaiming, setIsClaiming] = useState(false);
+
   const handleClaim = useCallback(async () => {
-    await claim();
-    await refreshClaimable();
+    setIsClaiming(true);
+    try {
+      await claim();
+      await refreshClaimable();
+    } finally {
+      setIsClaiming(false);
+    }
   }, [claim, refreshClaimable]);
 
   const totalClaimable = claimablePositions.reduce(
@@ -170,8 +178,12 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     );
   }
 
-  // Render positions if user has any
-  if (hasPositions || isLoadingPositions) {
+  // Render positions if user has active positions, or claimable winnings
+  if (
+    hasPositions ||
+    isLoadingPositions ||
+    (!isLoadingClaimable && totalClaimable > 0)
+  ) {
     return (
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewAllPredictions} />
@@ -190,14 +202,17 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               />
             ))
           )}
-          {!isLoadingPositions && !isLoadingClaimable && totalClaimable > 0 && (
-            <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-              <PredictClaimButton
-                amount={totalClaimable}
-                onPress={handleClaim}
-              />
-            </Box>
-          )}
+          {!isLoadingPositions &&
+            !isLoadingClaimable &&
+            !isClaiming &&
+            totalClaimable > 0 && (
+              <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+                <PredictClaimButton
+                  amount={totalClaimable}
+                  onPress={handleClaim}
+                />
+              </Box>
+            )}
         </Box>
       </Box>
     );
