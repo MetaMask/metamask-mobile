@@ -72,7 +72,7 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   return (
-    <Box gap={6} marginBottom={8} testID="homepage-container">
+    <Box gap={12} marginBottom={8} testID="homepage-container">
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
