@@ -82,13 +82,18 @@ function classifyLedgerError(e: unknown): LedgerCommunicationErrors {
     return e.code;
   }
   const err = e as { name?: string; statusCode?: number; message?: string };
-  if (err?.name === 'TransportStatusError' && typeof err.statusCode === 'number') {
+  if (
+    err?.name === 'TransportStatusError' &&
+    typeof err.statusCode === 'number'
+  ) {
     return classifyTransportStatusError(err.statusCode);
   }
   if (err?.name === 'TransportRaceCondition') {
     return LedgerCommunicationErrors.LedgerHasPendingConfirmation;
   }
-  return classifyErrorByMessage(typeof err?.message === 'string' ? err.message : '');
+  return classifyErrorByMessage(
+    typeof err?.message === 'string' ? err.message : '',
+  );
 }
 
 // Assumptions
