@@ -60,7 +60,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       accessibilityRole={onPress ? 'button' : undefined}
     >
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Medium}
         twClassName="mb-2"
       >
