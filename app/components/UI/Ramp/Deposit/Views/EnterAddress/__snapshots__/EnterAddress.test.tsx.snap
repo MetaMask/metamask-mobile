@@ -677,6 +677,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -807,6 +808,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -932,6 +934,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -1185,6 +1188,7 @@ exports[`EnterAddress Component displays form validation errors when continue is
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -3651,6 +3655,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -3766,6 +3771,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -3891,6 +3897,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -4114,6 +4121,7 @@ exports[`EnterAddress Component render matches snapshot 1`] = `
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5112,6 +5120,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -5227,6 +5236,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                             "fontWeight": "400",
                                             "height": 46,
                                             "letterSpacing": 0,
+                                            "lineHeight": 0,
                                             "opacity": 1,
                                           }
                                         }
@@ -5352,6 +5362,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5468,6 +5479,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
@@ -5595,6 +5607,7 @@ exports[`EnterAddress Component shows text input for state when region is not US
                                               "fontWeight": "400",
                                               "height": 46,
                                               "letterSpacing": 0,
+                                              "lineHeight": 0,
                                               "opacity": 1,
                                             }
                                           }
