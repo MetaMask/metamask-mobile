@@ -9,12 +9,12 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       display: 'flex',
       flexDirection: 'row',
-      gap: 4,
-      borderRadius: 4,
+      gap: 6,
+      borderRadius: 8,
       paddingTop: 2,
       paddingBottom: 2,
-      paddingLeft: 6,
-      paddingRight: 6,
+      paddingLeft: 8,
+      paddingRight: 8,
     },
   });
 };

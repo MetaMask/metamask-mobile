@@ -72,7 +72,7 @@ export function getNavbar({
 
   const defaultHeaderLeft = () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={handleBackPress}
       style={innerStyles.headerLeft}

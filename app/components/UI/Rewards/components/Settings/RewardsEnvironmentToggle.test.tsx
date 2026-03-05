@@ -46,66 +46,6 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
 }));
 
-// Mock design system components
-jest.mock('@metamask/design-system-react-native', () => {
-  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-  const ReactActual = jest.requireActual('react');
-  return {
-    Box: function MockBox({
-      children,
-      testID,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-      [key: string]: unknown;
-    }) {
-      return ReactActual.createElement(View, { testID, ...props }, children);
-    },
-    Text: function MockText({
-      children,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      [key: string]: unknown;
-    }) {
-      return ReactActual.createElement(Text, { ...props }, children);
-    },
-    Button: function MockButton({
-      children,
-      onPress,
-      testID,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      onPress?: () => void;
-      testID?: string;
-      [key: string]: unknown;
-    }) {
-      return ReactActual.createElement(
-        TouchableOpacity,
-        { onPress, testID, ...props },
-        ReactActual.createElement(Text, null, children),
-      );
-    },
-    TextVariant: {
-      HeadingSm: 'HeadingSm',
-      BodyMd: 'BodyMd',
-      BodySm: 'BodySm',
-      BodyMDBold: 'BodyMDBold',
-    },
-    TextColor: {
-      TextAlternative: 'text-alternative',
-    },
-    ButtonVariant: { Secondary: 'secondary', Primary: 'primary' },
-    ButtonSize: { Md: 'md', Sm: 'sm' },
-    BoxFlexDirection: { Row: 'row' },
-    BoxAlignItems: { center: 'center', Center: 'center' },
-    BoxJustifyContent: { Between: 'justify-between' },
-  };
-});
-
-// Mock BottomSheet
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -113,12 +53,15 @@ jest.mock(
     const ReactActual = jest.requireActual('react');
     const MockBottomSheet = ReactActual.forwardRef(
       (
-        { children }: { children?: React.ReactNode },
+        {
+          children,
+          onClose,
+        }: { children?: React.ReactNode; onClose?: () => void },
         ref: React.Ref<unknown>,
       ) => {
         ReactActual.useImperativeHandle(ref, () => ({
           onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn(),
+          onCloseBottomSheet: () => onClose?.(),
         }));
         return ReactActual.createElement(View, null, children);
       },
@@ -127,40 +70,6 @@ jest.mock(
     return { __esModule: true, default: MockBottomSheet };
   },
 );
-
-// Mock ListItemSelect
-jest.mock(
-  '../../../../../component-library/components/List/ListItemSelect',
-  () => {
-    const { TouchableOpacity } = jest.requireActual('react-native');
-    const ReactActual = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: function MockListItemSelect({
-        children,
-        onPress,
-        isSelected,
-        testID,
-      }: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        isSelected?: boolean;
-        testID?: string;
-      }) {
-        return ReactActual.createElement(
-          TouchableOpacity,
-          { onPress, testID, accessibilityState: { selected: isSelected } },
-          children,
-        );
-      },
-    };
-  },
-);
-
-// Mock ListItem
-jest.mock('../../../../../component-library/components/List/ListItem', () => ({
-  VerticalAlignment: { Center: 'center' },
-}));
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -270,7 +179,6 @@ describe('RewardsEnvironmentToggle', () => {
   });
 
   it('renders all environment options after opening the sheet', () => {
-    // Arrange
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
@@ -279,22 +187,35 @@ describe('RewardsEnvironmentToggle', () => {
       return undefined;
     });
 
-    const { getByTestId, getByText, getAllByText } = render(
-      <RewardsEnvironmentToggle />,
-    );
+    const { getByTestId } = render(<RewardsEnvironmentToggle />);
 
-    // Act — open the sheet
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
 
-    // Assert
-    expect(getByText(DEV_URL)).toBeTruthy();
-    expect(getByText(UAT_URL)).toBeTruthy();
-    // PRD URL appears twice: once in the trigger label, once in the sheet
-    expect(getAllByText(PRD_URL).length).toBeGreaterThanOrEqual(1);
+    expect(getByTestId(`environment-option-${DEV_URL}`)).toBeTruthy();
+    expect(getByTestId(`environment-option-${UAT_URL}`)).toBeTruthy();
+    expect(getByTestId(`environment-option-${PRD_URL}`)).toBeTruthy();
+  });
+
+  it('closes sheet when header close button is pressed', () => {
+    mockCall.mockImplementation((action: string) => {
+      if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
+      if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
+      if (action === 'RewardsController:getDefaultRewardsEnvUrl')
+        return PRD_URL;
+      return undefined;
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsEnvironmentToggle />);
+
+    fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
+    expect(getByTestId(`environment-option-${DEV_URL}`)).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('environment-sheet-close-button'));
+
+    expect(queryByTestId(`environment-option-${DEV_URL}`)).toBeNull();
   });
 
   it('shows a "Default" badge next to the env that matches the default', () => {
-    // Arrange — current env is DEV but default is UAT
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return DEV_URL;
@@ -305,15 +226,12 @@ describe('RewardsEnvironmentToggle', () => {
 
     const { getByTestId, getByText } = render(<RewardsEnvironmentToggle />);
 
-    // Act — open the sheet
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
 
-    // Assert — "Default" badge is shown (once, next to UAT)
     expect(getByText('Default')).toBeTruthy();
   });
 
   it('shows no "Default" badge when no env matches the default', () => {
-    // Arrange — default returns an unknown URL not in the options list
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return DEV_URL;
@@ -324,15 +242,12 @@ describe('RewardsEnvironmentToggle', () => {
 
     const { getByTestId, queryByText } = render(<RewardsEnvironmentToggle />);
 
-    // Act — open the sheet
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
 
-    // Assert
     expect(queryByText('Default')).toBeNull();
   });
 
   it('calls setRewardsEnvUrl when a different env option is pressed', async () => {
-    // Arrange
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
@@ -341,13 +256,11 @@ describe('RewardsEnvironmentToggle', () => {
       return undefined;
     });
 
-    const { getByTestId, getByText } = render(<RewardsEnvironmentToggle />);
+    const { getByTestId } = render(<RewardsEnvironmentToggle />);
 
-    // Open the sheet, then press the DEV option
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
-    fireEvent.press(getByText(DEV_URL));
+    fireEvent.press(getByTestId(`environment-option-${DEV_URL}`));
 
-    // Assert
     await waitFor(() => {
       expect(mockCall).toHaveBeenCalledWith(
         'RewardsController:setRewardsEnvUrl',
@@ -357,7 +270,6 @@ describe('RewardsEnvironmentToggle', () => {
   });
 
   it('does not call setRewardsEnvUrl when the already-selected env is pressed', async () => {
-    // Arrange
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
@@ -366,13 +278,11 @@ describe('RewardsEnvironmentToggle', () => {
       return undefined;
     });
 
-    const { getByTestId, getAllByText } = render(<RewardsEnvironmentToggle />);
+    const { getByTestId } = render(<RewardsEnvironmentToggle />);
 
-    // Open the sheet, then press the already-selected PRD option
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
-    fireEvent.press(getAllByText(PRD_URL)[0]);
+    fireEvent.press(getByTestId(`environment-option-${PRD_URL}`));
 
-    // Assert
     expect(mockCall).not.toHaveBeenCalledWith(
       'RewardsController:setRewardsEnvUrl',
       expect.anything(),
@@ -380,7 +290,6 @@ describe('RewardsEnvironmentToggle', () => {
   });
 
   it('dispatches cancelBulkLink, resetRewardsState, and setCandidateSubscriptionId(retry) after changing env', async () => {
-    // Arrange
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
@@ -389,13 +298,11 @@ describe('RewardsEnvironmentToggle', () => {
       return undefined;
     });
 
-    const { getByTestId, getByText } = render(<RewardsEnvironmentToggle />);
+    const { getByTestId } = render(<RewardsEnvironmentToggle />);
 
-    // Act — open sheet and select a different env
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
-    fireEvent.press(getByText(DEV_URL));
+    fireEvent.press(getByTestId(`environment-option-${DEV_URL}`));
 
-    // Assert — reset flow + trigger immediate candidate subscription re-fetch
     await waitFor(() => {
       expect(mockDispatch).toHaveBeenCalledWith(cancelBulkLink());
       expect(mockDispatch).toHaveBeenCalledWith(resetRewardsState());
@@ -406,7 +313,6 @@ describe('RewardsEnvironmentToggle', () => {
   });
 
   it('does not dispatch or navigate when re-selecting the current env', async () => {
-    // Arrange
     mockCall.mockImplementation((action: string) => {
       if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
       if (action === 'RewardsController:getRewardsEnvUrl') return PRD_URL;
@@ -415,13 +321,11 @@ describe('RewardsEnvironmentToggle', () => {
       return undefined;
     });
 
-    const { getByTestId, getAllByText } = render(<RewardsEnvironmentToggle />);
+    const { getByTestId } = render(<RewardsEnvironmentToggle />);
 
-    // Act — open sheet and press the already-selected env
     fireEvent.press(getByTestId('rewards-environment-toggle-trigger'));
-    fireEvent.press(getAllByText(PRD_URL)[0]);
+    fireEvent.press(getByTestId(`environment-option-${PRD_URL}`));
 
-    // Assert — no reset or navigation should occur
     await waitFor(() => {
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
