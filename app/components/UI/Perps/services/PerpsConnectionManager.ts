@@ -886,6 +886,8 @@ class PerpsConnectionManagerClass {
       this.isInitialized = false;
       this.hasPreloaded = false;
       this.isPreloading = false;
+      // Flag intentional teardown so WS state events can be suppressed in the UI
+      this.isDisconnecting = true;
       // Clear previous errors when starting reconnection attempt
       this.clearError();
 
@@ -968,6 +970,7 @@ class PerpsConnectionManagerClass {
       // No need to explicitly call getAccountState() - preloadSubscriptions() handles account data
       this.isConnected = true;
       this.isInitialized = true;
+      this.isDisconnecting = false;
       // Clear errors on successful reconnection
       this.clearError();
 
@@ -1032,8 +1035,9 @@ class PerpsConnectionManagerClass {
         id: traceId,
         data: traceData,
       });
-      // Always clear connecting state when done
+      // Always clear connecting/disconnecting state when done
       this.isConnecting = false;
+      this.isDisconnecting = false;
     }
   }
 
