@@ -44,14 +44,6 @@ const mockAdapterInstance = {
     }),
   getRequiredAppName: jest.fn().mockReturnValue('Ethereum'),
   getTransportDisabledErrorCode: jest.fn().mockReturnValue('BluetoothDisabled'),
-  getConnectionTips: jest
-    .fn()
-    .mockReturnValue([
-      'hardware_wallet.connecting.tip_unlock',
-      'hardware_wallet.connecting.tip_open_app',
-      'hardware_wallet.connecting.tip_enable_bluetooth',
-      'hardware_wallet.connecting.tip_dnd_off',
-    ]),
 };
 
 jest.mock('./adapters', () => ({
@@ -521,7 +513,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('retryLastOperation (internal, via bottom sheet props)', () => {
+    describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
       it('transitions to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
@@ -544,7 +536,7 @@ describe('HardwareWalletProvider', () => {
         );
 
         const internalRetry =
-          capturedBottomSheetProps.retryLastOperation as () => Promise<void>;
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
         await act(async () => {
           await internalRetry();
         });

@@ -121,7 +121,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
   placeholderTextColor,
 }) => {
   const {
-    form: { nickname },
+    form: { nickname, editable },
     isAnyModalVisible,
     onNicknameChange,
     autoFillNameField,
@@ -144,7 +144,7 @@ const NetworkNameField: React.FC<NetworkNameFieldProps> = ({
         autoCapitalize="none"
         autoCorrect={false}
         value={nickname}
-        isDisabled={isAnyModalVisible}
+        isDisabled={isAnyModalVisible || editable === false}
         onChangeText={onNicknameChange}
         placeholder={strings('app_settings.network_name_placeholder')}
         placeholderTextColor={placeholderTextColor}
@@ -200,7 +200,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
   placeholderTextColor,
 }) => {
   const {
-    form: { chainId, ticker, addMode },
+    form: { chainId, ticker, addMode, editable },
     isAnyModalVisible,
     onChainIDChange,
     onTickerChange,
@@ -265,7 +265,7 @@ const NetworkChainSymbolFields: React.FC<NetworkChainSymbolFieldsProps> = ({
           autoCapitalize="none"
           autoCorrect={false}
           value={ticker}
-          isDisabled={isAnyModalVisible}
+          isDisabled={isAnyModalVisible || editable === false}
           onChangeText={onTickerChange}
           onBlur={handleSymbolBlur}
           onFocus={onSymbolFocused}

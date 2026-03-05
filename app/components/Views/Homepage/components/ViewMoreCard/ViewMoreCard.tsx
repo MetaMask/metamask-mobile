@@ -47,7 +47,7 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       gap={2}
     >
       <Box
-        twClassName="w-12 h-12 rounded-full bg-background-muted"
+        twClassName="w-8 h-8 rounded-full bg-background-muted"
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
       >

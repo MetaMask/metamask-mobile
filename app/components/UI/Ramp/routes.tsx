@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
@@ -20,7 +20,9 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
+import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
+import LockManagerService from '../../../core/LockManagerService';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -116,27 +118,43 @@ const TokenListModalsRoutes = () => (
       name={Routes.RAMP.MODALS.PROCESSING_INFO}
       component={ProcessingInfoModal}
     />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.SSN_INFO}
+      component={SsnInfoModal}
+    />
   </ModalsStack.Navigator>
 );
 
-const TokenListRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="none"
-  >
-    <RootStack.Screen
-      name={Routes.RAMP.TOKEN_SELECTION}
-      component={MainRoutes}
-    />
-    <RootStack.Screen
-      name={Routes.RAMP.MODALS.ID}
-      component={TokenListModalsRoutes}
-      options={{
-        ...clearStackNavigatorOptions,
-        detachPreviousScreen: false,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const TokenListRoutes = () => {
+  // Disable auto-lock during Ramps unified buy v2 flow
+  // This allows users to minimize the app to check personal details or complete
+  // verification steps without being locked out and redirected to wallet home
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
+  return (
+    <RootStack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+      headerMode="none"
+    >
+      <RootStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={MainRoutes}
+      />
+      <RootStack.Screen
+        name={Routes.RAMP.MODALS.ID}
+        component={TokenListModalsRoutes}
+        options={{
+          ...clearStackNavigatorOptions,
+          detachPreviousScreen: false,
+        }}
+      />
+    </RootStack.Navigator>
+  );
+};
 
 export default TokenListRoutes;
