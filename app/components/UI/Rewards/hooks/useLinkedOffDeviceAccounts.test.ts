@@ -100,7 +100,7 @@ describe('useLinkedOffDeviceAccounts', () => {
       ];
       mockEngineCall.mockResolvedValueOnce(mockCaip10Accounts);
 
-      const { result } = renderHook(() => useLinkedOffDeviceAccounts());
+      renderHook(() => useLinkedOffDeviceAccounts());
 
       await act(async () => {
         const focusCallback = mockUseFocusEffect.mock.calls[0][0];
