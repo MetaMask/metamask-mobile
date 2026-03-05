@@ -79,13 +79,42 @@ const CellSelectWithMenu = ({
                   style={styles.containerRow}
                   onPress={props.onTextClick}
                 >
-                  <Text
-                    numberOfLines={1}
-                    variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
-                    style={styles.secondaryText}
-                  >
-                    {secondaryText}
-                  </Text>
+                  <View style={styles.secondaryTextWrapper}>
+                    <View style={styles.secondaryTextInner}>
+                      <Text
+                        numberOfLines={1}
+                        variant={
+                          DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT
+                        }
+                        style={styles.secondaryText}
+                      >
+                        {secondaryText}
+                      </Text>
+                    </View>
+                    {showSecondaryTextIcon && (
+                      <Icon
+                        name={IconName.ArrowDown}
+                        size={IconSize.Xss}
+                        style={styles.arrowStyle}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </TouchableWithoutFeedback>
+            ) : (
+              <View style={styles.containerRow}>
+                <View style={styles.secondaryTextWrapper}>
+                  <View style={styles.secondaryTextInner}>
+                    <Text
+                      numberOfLines={1}
+                      variant={
+                        DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT
+                      }
+                      style={styles.secondaryText}
+                    >
+                      {secondaryText}
+                    </Text>
+                  </View>
                   {showSecondaryTextIcon && (
                     <Icon
                       name={IconName.ArrowDown}
@@ -93,24 +122,7 @@ const CellSelectWithMenu = ({
                       style={styles.arrowStyle}
                     />
                   )}
-                </TouchableOpacity>
-              </TouchableWithoutFeedback>
-            ) : (
-              <View style={styles.containerRow}>
-                <Text
-                  numberOfLines={1}
-                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
-                  style={styles.secondaryText}
-                >
-                  {secondaryText}
-                </Text>
-                {showSecondaryTextIcon && (
-                  <Icon
-                    name={IconName.ArrowDown}
-                    size={IconSize.Xss}
-                    style={styles.arrowStyle}
-                  />
-                )}
+                </View>
               </View>
             ))}
           {!!tagLabel && (

@@ -13,6 +13,8 @@ import {
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
+import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
@@ -34,6 +36,16 @@ import { SECTION_KEYS } from './NetworksManagementView.constants';
 import { NetworkManagementItem } from './NetworksManagementView.types';
 
 import AdditionalNetworkItem from './components/AdditionalNetworkItem';
+
+/** Same as NetworkSelector: short host + path, no protocol or API key. */
+const formatRpcUrlForDisplay = (url: string): string => {
+  const withoutKey = hideKeyFromUrl(url);
+  const withoutProtocol = hideProtocolFromUrl(withoutKey);
+  if (withoutProtocol?.startsWith('http')) {
+    return withoutProtocol.replace(/^https?:\/\//, '');
+  }
+  return withoutProtocol ?? url;
+};
 
 const NetworksManagementView = () => {
   const navigation = useNavigation();
@@ -97,7 +109,9 @@ const NetworksManagementView = () => {
         variant={CellVariant.SelectWithMenu}
         title={item.name}
         secondaryText={
-          item.hasMultipleRpcs && item.rpcUrl ? item.rpcUrl : undefined
+          item.hasMultipleRpcs && item.rpcUrl
+            ? formatRpcUrlForDisplay(item.rpcUrl)
+            : undefined
         }
         avatarProps={{
           variant: AvatarVariant.Network,
