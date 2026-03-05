@@ -118,17 +118,11 @@ export const selectPendingTradeConfiguration = createSelector(
     ): PerpsControllerState['tradeConfigurations'] | undefined =>
       state?.tradeConfigurations,
     (_state: PerpsControllerState, coin: string): string => coin,
-    (
-      _state: PerpsControllerState,
-      _coin: string,
-      now: number = Date.now(),
-    ): number => now,
   ],
   (
     isTestnet,
     configs,
     coin,
-    now,
   ):
     | {
         amount?: string;
@@ -148,6 +142,7 @@ export const selectPendingTradeConfiguration = createSelector(
     }
 
     // Check if config has expired (5 minutes = 300,000 milliseconds)
+    const now = Date.now();
     const FIVE_MINUTES_MS = 5 * 60 * 1000;
     const age = now - config.timestamp;
 

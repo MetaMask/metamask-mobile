@@ -189,7 +189,7 @@ export const REFERRAL_CONFIG = {
 
 // Deposit constants
 export const DEPOSIT_CONFIG = {
-  EstimatedGasLimit: 150000, // Estimated gas limit for bridge deposit
+  EstimatedGasLimit: 100000, // Estimated gas limit for bridge deposit
   DefaultSlippage: 1, // 1% default slippage for bridge quotes
   BridgeQuoteTimeout: 1000, // 1 second timeout for bridge quotes
   RefreshRate: 30000, // 30 seconds quote refresh rate
