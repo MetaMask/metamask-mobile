@@ -295,7 +295,7 @@ describe('usePredictMarketData', () => {
   });
 
   describe('pagination', () => {
-    it('loads next page via fetchMore and indicates when no more pages', async () => {
+    it('loads next page via fetchMore and sets hasMore to false on partial page', async () => {
       const { Wrapper } = createWrapper();
       const PAGE_SIZE = 20;
 
