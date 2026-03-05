@@ -1,51 +1,45 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectUserRegion } from '../../../../selectors/rampsController';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 
+const BACKUP_INIT_DELAY_MS = 5000;
+
 /**
- * Hook that ensures RampsController has tokens (and providers) loaded.
+ * Backup init for RampsController when Engine init may not have run or completed.
  *
- * - When V2 is enabled and userRegion is set: calls hydrateState() to refresh
- * tokens and providers (e.g. when region is already loaded from persistence).
- * - When V2 is enabled and userRegion is null: calls controller.init() once so
- * tokens load when the Ramp UI mounts (backup if Engine init hasn't run or
- * completed yet). Uses a ref to avoid duplicate in-flight init.
+ * When V2 is enabled and userRegion is still null after a delay, calls controller.init()
+ * once. Engine (rampsControllerInit) is the primary init; this handles edge cases where
+ * the React tree mounts before Engine finishes. init() is idempotent so duplicate
+ * calls are safe.
  *
- * Should be called from a top-level component that mounts early (e.g. FiatOrders in Main nav).
+ * Should be called from a top-level component that mounts early (e.g. RampsBootstrap).
  */
 export function useHydrateRampsController(): void {
   const userRegion = useSelector(selectUserRegion);
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
-  const hasTriggeredInitRef = useRef(false);
 
   useEffect(() => {
-    if (!isV2UnifiedEnabled) {
+    if (!isV2UnifiedEnabled || userRegion?.regionCode) {
       return;
     }
 
-    const { RampsController } = Engine.context;
-
-    if (userRegion?.regionCode) {
-      Promise.resolve(RampsController.hydrateState()).catch(() => {
-        // Error is stored in state
-      });
-      return;
-    }
-
-    // userRegion is null: ensure init runs so tokens load when Ramp UI is shown
-    // (backup to Engine init, which may not have run or completed yet).
-    if (!hasTriggeredInitRef.current) {
-      hasTriggeredInitRef.current = true;
-      Promise.resolve(RampsController.init())
+    const timeoutId = setTimeout(() => {
+      const { RampsController } = Engine.context;
+      if (RampsController.state.userRegion?.regionCode) {
+        return;
+      }
+      RampsController.init()
         .then(() => {
           RampsController.startOrderPolling();
         })
         .catch(() => {
-          hasTriggeredInitRef.current = false;
+          // Error is stored in state
         });
-    }
+    }, BACKUP_INIT_DELAY_MS);
+
+    return () => clearTimeout(timeoutId);
   }, [isV2UnifiedEnabled, userRegion?.regionCode]);
 }
 

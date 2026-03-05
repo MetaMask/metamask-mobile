@@ -5,6 +5,7 @@ import RampsBootstrap from './RampsBootstrap';
 const mockUseDetectGeolocation = jest.fn();
 const mockUseRampsSmartRouting = jest.fn();
 const mockUseHydrateRampsController = jest.fn();
+const mockUseRampsProviders = jest.fn();
 
 jest.mock('./hooks/useDetectGeolocation', () => ({
   __esModule: true,
@@ -19,6 +20,11 @@ jest.mock('./hooks/useRampsSmartRouting', () => ({
 jest.mock('./hooks/useHydrateRampsController', () => ({
   __esModule: true,
   default: (...args: unknown[]) => mockUseHydrateRampsController(...args),
+}));
+
+jest.mock('./hooks/useRampsProviders', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockUseRampsProviders(...args),
 }));
 
 describe('RampsBootstrap', () => {
@@ -42,6 +48,12 @@ describe('RampsBootstrap', () => {
     render(<RampsBootstrap />);
 
     expect(mockUseHydrateRampsController).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls useRampsProviders on mount', () => {
+    render(<RampsBootstrap />);
+
+    expect(mockUseRampsProviders).toHaveBeenCalledTimes(1);
   });
 
   it('renders null', () => {
