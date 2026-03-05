@@ -6,13 +6,15 @@
  */
 import type { BluetoothInterface } from './useBluetoothDevices';
 
+type BleTransportModule = {
+  default: { open: (deviceId: string) => Promise<BluetoothInterface> };
+};
 const loadBleTransport = async (
   deviceId: string,
 ): Promise<BluetoothInterface> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const BluetoothTransport: any = await import(
+  const BluetoothTransport = (await import(
     '@ledgerhq/react-native-hw-transport-ble'
-  );
+  )) as BleTransportModule;
   return BluetoothTransport.default.open(deviceId);
 };
 
