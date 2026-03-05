@@ -7,6 +7,147 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.69.0]
+
+### Uncategorized
+
+- Null ## **Related issues** (#26529)
+- Fixed incorrect error message shown when there is not enough native token to cover gas fees during a withdrawal. (#27001)
+- Null - minor UI fix (#26892)
+- chore: update node-version-file in push-eas-update.yml (#26844)
+- Separated yarn install from build job in build.yml (#26369)
+- Bump RemoteFeatureFlagController (#26680)
+- Add auth header to bridge getToken calls (#26191)
+- Hide keyboard when scrolling in explore search (#26577)
+- Adds metrics for predict withdraw transactions as part of the MM Pay metrics (#26544)
+- chore: increment build number in build.yml (#26525)
+- Added servers api defined at builds.yml for github action builds (#26178)
+- Remove process.env spread (#26368)
+- chore(release): sync stable to main for version 7.68.0 (#26469)
+- Update assets controllers to v100.0.3 (#26467)
+- chore(release): sync stable to main for version 7.65.0 (#26317)
+- Remove usage of SwapsController.fetchTokenWithCache from assets team (#26327)
+- Bump assets-controllers and phishing-controller versions (#26340)
+- Remove explore feature flag (#26275)
+
+### Added
+
+- Updated mUSD conversion flow copy to replace boost with bonus (#26453)
+- Add network logo for Tempo mainnet (#26904)
+- Adds the "refundTo" param for postQuote transactions, so refunds from Relay will be refunded back to Predict balance. (#27065)
+- Fixed saving network details for custom networks (e.g. added from Popular list) when the Save button had no effect (#27053)
+- Fixed off center "Buy/Get mUSD" button for primary mUSD conversion CTA (#27015)
+- Added MYX Finance as a second perpetuals provider with provider+network switching UI and validated market data (#26553)
+- Added OTA Summary in the workflow (#26957)
+- Removed showing OTA modal when users are on onboarding screen (#26839)
+- Bump `@metamask-assets-controllers` to `^100.1.0` (#26987)
+- Fixed network details screen showing a delete (trash) icon for networks that cannot be removed (e.g. Ethereum mainnet, Linea, (#26983)
+  Goerli, testnets).
+- Inlined perps “Add funds” flow in the pay-with token filter so the Pay With modal no longer depends on a deposit callback (#26543)
+  from the parent.
+- Fixed token hiding not working on the redesigned homepage (#26649)
+- Added redesigned Speed up and Cancel transaction modal (#26209)
+- MUSD quick convert (part 3) adding max convert bottom sheet (#26638)
+- Improved keyboard UX for buy feature (#26776)
+- Improved Ramps buy flow by preventing auto-lock during checkout (#26723)
+- Allow users to select a payment method if their amount is 0 (#26717)
+- Updated prediction market card design with smaller cards, plain-text percentages, and consistent heights (#26795)
+- Added watchlist tokens to the top of the Perpetuals trending carousel on the homepage with a star badge indicator (#26763)
+- Added a bottom fade overlay to the homepage wallet view indicating scrollable content (#26470)
+- Updates ramp provider selection modal UI (#26726)
+- Sets Infura RPC for HyperEVM with Quicknode failover (#25367)
+- UI updates for the Reveal SRP feature, specifically the Quiz Component and Reveal SRP views. (#25388)
+- Added new toast-style notifications for buy order status updates (processing, completed, failed, cancelled) behind the (#26670)
+  Unified Buy V2 feature flag
+- Implement mUSD Cashback on the Card dashboard (#26586)
+- Added a persistent "Submitting your trade" toast during Perps order placement so users see clear feedback while the order is (#26432)
+  processing.
+- The second of three PRs for mUSD Quick Convert. This includes all changes except the actual "Max Convert" bottom sheet (#26581)
+  confirmation.
+- Added open perps positions section to the new wallet Homepage (#26430)
+- Incoming ERC-20 token transfers from unknown senders are now hidden from the activity feed to protect against address (#26235)
+  poisoning attacks.
+- Updated prediction buy fee details UI to improve readability and updated fee breakdown copy. (#26524)
+- Display MM fee for Predict Withdraw to any token (#26562)
+- Add gasless bridge with 7702 behind feature flag (#26513)
+- Added a dedicated order details screen for Ramps V2 (Unified Buy) orders with status tracking, provider link, and processing (#26462)
+  info modal
+- Updated Predict withdraw toast to show the actual token symbol and amount instead of hardcoded USDC (#26418)
+- Updated full-screen confirmation/loading for mUSD Quick Convert by forcing that variant to use the bottom-sheet flow. (#26437)
+- Allow user to redeem a bonus code in WaysToEarn (#26097)
+- Added DeFi full view screen accessible from the homepage DeFi section title (#26498)
+- Updated Add network behavior on new Network Management view (#26339)
+- Updated Predict orders to use Polymarket market-specific fees when placing orders. (#26518)
+- Show withdraw token + amount in activity and on transaction detail page (#26223)
+- Adds modal for changing token or provider if token is unavailable. (#26043)
+- Added a Networks Management screen to the Account Menu behind a feature flag, allowing users to view, search, and manage their (#26336)
+  enabled and available networks.
+- Added popular tokens section on Homepage for zero balance accounts, showing mUSD, ETH, BTC, SOL, and BNB with real-time (#26379)
+  prices and quick buy access
+- Improve functionality of swaps input (#26225)
+- Enhanced token import with search endpoint integration, trending tokens, and modernized UI architecture (#26108)
+- Fixed pull-to-refresh gesture intercepting taps on buttons near the top of the page in the in-app browser (#26373)
+- Remove quote details tooltip cta and fix paddings (#26156)
+
+### Fixed
+
+- Fixed missing Ramps Button Clicked analytics event when tapping Buy on the homepage token empty state (#27058)
+- Suppress spurious offline/reconnecting toasts on mount and during intentional reconnects (#27034)
+- Fixed the occasional Input placeholder misalignments (#26835)
+- Hides a quote expired element when outside of the bridge page (#26729)
+- Disable the Max button for Predict Withdraw (#27006)
+- Fixed missing NFT detection on homepage focus, restoring auto-detection when the user navigates to the homepage (#26919)
+- Hide cashback option for US users on Card home screen. Show "Earn 3% back" cashback description for Metal Card (#26993)
+  holders.
+  Automatically navigate back after successful cashback
+  withdrawal.
+  Update Cashback screen background tokens to
+  `bg-background-muted`.
+  Add comprehensive test coverage for cashback
+  visibility, description, and navigation behavior.
+- Fix camera permission `allow once` didn't show the camera popup in android. (#26415)
+- Fixed a bug where the Receive address in EVM token details showed a (#26965)
+  Non-EVM address after switching from a Non-EVM network.
+- Refactored Ramp buyability to add batched useTokensBuyability with keyed results and keep useTokenBuyability as a (#25539)
+  backward-compatible wrapper, reducing redundant legacy token-cache
+  fetches for multi-token checks.
+- Fixed a bug where some swap deeplink token icons did not load because ERC-20 icon URLs used checksummed addresses. (#26914)
+- Update mUSD conversion tertiary CTA cta_text property (#26805)
+- Fixed perps ROE percentage display to show 2 decimal places for improved precision (#26600)
+- Improved token price display on the token details page to show up to 4 decimal places for precision, and subscript notation for (#26894)
+  very small prices, consistent with the trending token list
+- Fixed Perps section on homepage showing a full-screen error instead of the compact inline error state (#26831)
+- Fixed Buy token selection screen showing "No tokens match" with an empty list on first app load after install or update; (#26852)
+  screen now shows loading until tokens are ready.
+- Fixed date of birth formatting on Card onboarding so the displayed date matches the user's selected date in all timezones. (#26893)
+- Updated Unified Buy Build Quote header to use correct typography and icon sizing per design spec. (#26713)
+- Fixed Google login crash on Android devices without credential provider dependencies by falling back to browser-based (#26677)
+  authentication
+- Removed "Reset notifications" button from notifications list (#26641)
+- Added blue claim button to the homepage Predictions section for users with claimable winnings (#26650)
+- Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after (#25952)
+  token selection.
+- Formatting remove territory for unified formatting (#26623)
+- Avoid perps failure tightly coupled to trending feature (#26549)
+- Fixed a potential decompression bomb vulnerability in the deeplink connection flow by adding streaming output size limits (#26542)
+- Fixes the limit-order TP/SL display gap and related order-row/detail display. (#25885)
+- Fixed claim button text color in Predict positions header to always display white for proper contrast (#26510)
+- Migration to fix TokenController string decimals (#26338)
+- Fixed first-time interaction alerts trigger for token transfer recipients (#26326)
+- Fixed Bridge recipient selection to preserve external recipients and show an error state for invalid recipient addresses. (#26398)
+- Migrates `NetworkEnablementController.nativeAssetIdentifiers['eip155:999']` to (#26231)
+  value `eip155:999/slip44:2457` if applicable.
+- Fixed a bug where the balance check for prediction market orders did not account for fees, causing orders to fail when the (#26446)
+  user's balance was insufficient to cover fees
+- Fixed Android JNI UncaughtException error caused by WebView debugging configuration (#26391)
+- Fixed: Order book grouping by 1 unit no longer incorrectly groups by 2 (#26331)
+- Fixes an issue where validation triggered when user tries `,` separator in gas fields (#26429)
+- Fixed a bug where the transaction details bottom sheet would show a stale "Pending" status even after the transaction was (#26306)
+  confirmed.
+- Fixed WalletConnect connection tray getting stuck or looping when scanning QR codes, and fixed the loading animation not (#26121)
+  displaying during connection.
+- Modify `useUnifiedTxActions.ts` to specially handle ledger transaction speed up and cancel transaction. (#24745)
+
 ## [7.66.0]
 
 ### Added
@@ -10615,7 +10756,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...HEAD
+[7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.66.0...v7.69.0
 [7.66.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.65.0...v7.66.0
 [7.65.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.1...v7.65.0
 [7.64.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.64.0...v7.64.1
