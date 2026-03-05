@@ -6598,7 +6598,6 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cancel": "Cancel",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",

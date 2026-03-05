@@ -1157,8 +1157,8 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('submits the transaction when priceImpact is exactly at the threshold', async () => {
-      // 25 is not > 25, so the modal is NOT shown and handleConfirm is called
+    it('navigates to PriceImpactModal when priceImpact is exactly at the threshold', async () => {
+      // 25 >= 25, so the modal IS shown and the transaction is not submitted
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1182,10 +1182,15 @@ describe('SwapsConfirmButton', () => {
         fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
       });
 
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: {
+          type: PriceImpactModalType.Execution,
+          token: mockState.bridge?.sourceToken,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
       });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
     it('submits the transaction when priceImpact is below the threshold', async () => {

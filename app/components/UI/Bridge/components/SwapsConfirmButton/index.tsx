@@ -162,7 +162,7 @@ export const SwapsConfirmButton = ({
 
     if (
       Number.isFinite(priceImpact) &&
-      priceImpact > AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD
+      priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
