@@ -58,8 +58,13 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
+import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
+import type { TokenDetailsRouteParams } from '../constants/constants';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
@@ -110,6 +115,11 @@ const styleSheet = (params: { theme: Theme }) => {
     marketClosedActionButtonContainer: {
       marginBottom: 8,
     },
+    securityTrustWrapper: {
+      marginTop: 20,
+      marginBottom: 20,
+      paddingHorizontal: 16,
+    } as ViewStyle,
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
@@ -157,6 +167,10 @@ export interface AssetOverviewContentProps {
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
+
+  // Security & Trust
+  /** Pre-fetched security data from trending/search flows. When absent the hook fetches on demand. */
+  prefetchedSecurityData?: TokenSecurityData;
 }
 
 /**
@@ -194,6 +208,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   isTronNative,
   stakedTrxAsset,
   onMarketInsightsDisplayResolved,
+  prefetchedSecurityData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -266,6 +281,36 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const caip19AssetId = useMemo((): CaipAssetType | null => {
+    try {
+      if (isCaipAssetType(token.address)) {
+        return token.address as CaipAssetType;
+      }
+      if (!token.chainId) return null;
+      return (formatAddressToAssetId(token.address, token.chainId) ??
+        null) as CaipAssetType | null;
+    } catch {
+      return null;
+    }
+  }, [token.address, token.chainId]);
+
+  const {
+    securityData,
+    isLoading: isSecurityLoading,
+    fetchedAt: securityFetchedAt,
+  } = useTokenSecurityData({
+    assetId: caip19AssetId,
+    prefetchedData: prefetchedSecurityData,
+  });
+
+  const securityTimeAgo = useMemo(
+    () =>
+      securityFetchedAt
+        ? formatRelativeTime(securityFetchedAt.toISOString())
+        : '',
+    [securityFetchedAt],
+  );
+
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
       return null;
@@ -577,6 +622,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
+          </View>
+          <View style={styles.securityTrustWrapper}>
+            <SecurityTrustEntryCard
+              securityData={securityData}
+              isLoading={isSecurityLoading}
+              timeAgo={securityTimeAgo}
+              token={token as TokenDetailsRouteParams}
+            />
           </View>
           {isEligibilityModalVisible && (
             <View>

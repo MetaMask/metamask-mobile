@@ -207,6 +207,7 @@ const TokenDetails: React.FC<{
         onReceive={onReceive}
         goToSwaps={goToSwaps}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+        prefetchedSecurityData={token.securityData}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         isTronNative={isTronNative}
         stakedTrxAsset={stakedTrxAsset}

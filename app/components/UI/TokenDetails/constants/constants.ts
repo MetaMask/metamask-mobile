@@ -1,4 +1,5 @@
 import type { TokenI } from '../../Tokens/types';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 /**
  * Source of navigation to Token Details page
@@ -22,4 +23,5 @@ export enum TokenDetailsSource {
  */
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
+  securityData?: TokenSecurityData;
 }

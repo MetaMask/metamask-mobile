@@ -468,6 +468,7 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  SECURITY_TRUST: 'SecurityTrust',
 };
 
 export default Routes;
