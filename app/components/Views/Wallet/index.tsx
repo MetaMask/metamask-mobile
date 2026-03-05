@@ -183,6 +183,7 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -977,6 +978,7 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
+  const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -1065,17 +1067,28 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
+  const isHomepageSectionsV1EnabledForRefresh = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+  const evmChainIdsForAccountRefresh = useMemo(
+    () =>
+      isHomepageSectionsV1EnabledForRefresh
+        ? evmChainIds
+        : (evmEnabledChainIds ?? []),
+    [isHomepageSectionsV1EnabledForRefresh, evmChainIds, evmEnabledChainIds],
+  );
+
   useEffect(
     () => {
-      requestAnimationFrame(async () => {
+      requestAnimationFrame(() => {
         const { AccountTrackerController } = Engine.context;
-        const allowed = new Set<string>(evmChainIds);
-        const popularConfigs = Object.fromEntries(
+        const allowed = new Set<string>(evmChainIdsForAccountRefresh);
+        const configsToRefresh = Object.fromEntries(
           Object.entries(evmNetworkConfigurations).filter(([cid]) =>
             allowed.has(cid),
           ),
         );
-        const networkClientIDs = Object.values(popularConfigs)
+        const networkClientIDs = Object.values(configsToRefresh)
           .map(
             ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex]?.networkClientId,
@@ -1092,7 +1105,7 @@ const Wallet = ({
       navigation,
       chainId,
       evmNetworkConfigurations,
-      evmChainIds,
+      evmChainIdsForAccountRefresh,
       selectedInternalAccount,
     ],
   );
