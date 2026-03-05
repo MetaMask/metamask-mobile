@@ -21,6 +21,7 @@ import type {
   SeasonMetadataDto,
   LineaTokenRewardDto,
   SnapshotDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import {
@@ -4507,6 +4508,80 @@ describe('RewardsDataService', () => {
             'rewards-client-id': 'mobile-7.50.1',
           }),
         }),
+      );
+    });
+  });
+
+  describe('getCampaigns', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockCampaignsResponse: CampaignDto[] = [
+      {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'ONDO_HOLDING' as CampaignDto['type'],
+        name: 'ONDO Holding Campaign',
+        startDate: '2025-01-01T00:00:00.000Z',
+        endDate: '2027-01-01T00:00:00.000Z',
+        termsAndConditions: null,
+        excludedRegions: [],
+        statusLabel: 'Active',
+      },
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockCampaignsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully get campaigns', async () => {
+      const result = await service.getCampaigns(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/campaigns',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+            'Content-Type': 'application/json',
+          }),
+          credentials: 'omit',
+        }),
+      );
+      expect(result).toEqual(mockCampaignsResponse);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('ONDO Holding Campaign');
+    });
+
+    it('should handle empty campaigns array', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('should throw error when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
+        'Get campaigns failed: 401',
       );
     });
   });

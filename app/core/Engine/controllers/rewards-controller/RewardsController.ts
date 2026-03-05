@@ -22,6 +22,7 @@ import {
   type PointsEventDto,
   type RewardDto,
   type SnapshotDto,
+  type CampaignDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -93,6 +94,9 @@ const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Snapshots cache threshold
 const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaigns cache threshold
+const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -167,6 +171,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  campaigns: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -195,6 +205,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   unlockedRewards: {},
   pointsEvents: {},
   snapshots: {},
+  campaigns: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -563,6 +574,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getSnapshots',
       this.getSnapshots.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getCampaigns',
+      this.getCampaigns.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3294,6 +3309,51 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.snapshots[key] = {
             snapshots: payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+
+    return result;
+  }
+
+  /**
+   * Get all available campaigns with caching
+   * @param subscriptionId - The subscription ID for authentication
+   * @returns Promise<CampaignDto[]> - The list of campaigns
+   */
+  async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) {
+      return [];
+    }
+    const result = await wrapWithCache<CampaignDto[]>({
+      key: subscriptionId,
+      ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cachedCampaigns = this.state.campaigns[key] || undefined;
+        if (!cachedCampaigns) return;
+        return {
+          payload: cachedCampaigns.campaigns,
+          lastFetched: cachedCampaigns.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaigns data via API call',
+          );
+          const response = (await this.messenger.call(
+            'RewardsDataService:getCampaigns',
+            subscriptionId,
+          )) as CampaignDto[];
+          return response || [];
+        }, subscriptionId),
+      writeCache: (key, payload) => {
+        this.update((state: RewardsControllerState) => {
+          state.campaigns[key] = {
+            campaigns: payload,
             lastFetched: Date.now(),
           };
         });

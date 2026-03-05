@@ -15827,6 +15827,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaigns": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
@@ -15847,6 +15848,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaigns": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "rewardsEnvUrl": null,
@@ -15872,6 +15874,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaigns": {},
           "pointsEvents": {},
           "rewardsEnvUrl": null,
           "seasonStatuses": {},
@@ -18725,6 +18728,159 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh snapshots data via API call for seasonId',
         mockSeasonId,
+      );
+    });
+  });
+
+  describe('getCampaigns', () => {
+    let controller: RewardsController;
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+
+    const createTestCampaign = (
+      overrides: Partial<{
+        id: string;
+        type: string;
+        name: string;
+        startDate: string;
+        endDate: string;
+        termsAndConditions: Record<string, unknown> | null;
+        excludedRegions: string[];
+        statusLabel: string;
+      }> = {},
+    ) => ({
+      id: 'campaign-1',
+      type: 'ONDO_HOLDING',
+      name: 'ONDO Holding Campaign',
+      startDate: '2025-01-01T00:00:00.000Z',
+      endDate: '2027-01-01T00:00:00.000Z',
+      termsAndConditions: null,
+      excludedRegions: [],
+      statusLabel: 'Active',
+      ...overrides,
+    });
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns empty array when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getCampaigns',
+        expect.anything(),
+      );
+    });
+
+    it('fetches campaigns from API and caches result', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      const mockCampaigns = [
+        createTestCampaign({ id: 'campaign-1' }),
+        createTestCampaign({ id: 'campaign-2', name: 'Another Campaign' }),
+      ];
+      mockMessenger.call.mockResolvedValue(mockCampaigns);
+
+      const result = await controller.getCampaigns(mockSubscriptionId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getCampaigns',
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockCampaigns);
+      expect(result).toHaveLength(2);
+
+      const cachedData = controller.state.campaigns[mockSubscriptionId];
+      expect(cachedData).toBeDefined();
+      expect(cachedData.campaigns).toEqual(mockCampaigns);
+      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('returns cached campaigns when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
+      const mockCachedCampaigns = [createTestCampaign({ id: 'cached-campaign' })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaigns: {
+            [mockSubscriptionId]: {
+              campaigns: mockCachedCampaigns,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await controller.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual(mockCachedCampaigns);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches fresh campaigns when cache is stale', async () => {
+      const staleTime = Date.now() - 1000 * 60 * 10; // 10 minutes ago (beyond 5 minute threshold)
+      const staleCampaigns = [createTestCampaign({ id: 'stale-campaign' })];
+      const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
+
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaigns: {
+            [mockSubscriptionId]: {
+              campaigns: staleCampaigns,
+              lastFetched: staleTime,
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(freshCampaigns);
+
+      const result = await controller.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual(freshCampaigns);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getCampaigns',
+        mockSubscriptionId,
+      );
+    });
+
+    it('logs when fetching fresh campaigns data', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue([]);
+      mockLogger.log.mockClear();
+
+      await controller.getCampaigns(mockSubscriptionId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaigns data via API call',
       );
     });
   });

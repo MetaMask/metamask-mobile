@@ -26,6 +26,7 @@ import type {
   ApplyReferralDto,
   ApplyBonusCodeDto,
   SnapshotDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -210,6 +211,11 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
+export interface RewardsDataServiceGetCampaignsAction {
+  type: `${typeof SERVICE_NAME}:getCampaigns`;
+  handler: RewardsDataService['getCampaigns'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -259,7 +265,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetCampaignsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -397,6 +404,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaigns`,
+      this.getCampaigns.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1292,5 +1303,26 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
+  }
+
+  /**
+   * Get all available campaigns.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of available campaigns.
+   */
+  async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
+    const response = await this.makeRequest(
+      '/campaigns',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaigns failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignDto[];
   }
 }
