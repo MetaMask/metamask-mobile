@@ -12,7 +12,6 @@ const MOCK_URL = 'https://suspicious-dapp.example.com';
 const renderModal = (url = MOCK_URL) =>
   renderWithProvider(
     <TrustSignalModal
-      variant="malicious"
       url={url}
       onConnectAnyway={mockOnConnectAnyway}
       onClose={mockOnClose}

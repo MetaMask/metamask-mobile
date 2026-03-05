@@ -18,43 +18,15 @@ import ButtonIcon, {
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import styleSheet from './TrustSignalModal.styles';
 import { TrustSignalModalSelectorsIDs } from './TrustSignalModal.testIds';
-import {
-  TrustSignalModalProps,
-  TrustSignalModalVariant,
-} from './TrustSignalModal.types';
-
-const VARIANT_CONFIG: Record<
-  TrustSignalModalVariant,
-  {
-    iconName: IconName;
-    iconColor: IconColor;
-    textColor: TextColor;
-    mutedColorKey: 'error';
-    titleKey: string;
-    descriptionKey: string;
-    buttonType: string;
-  }
-> = {
-  malicious: {
-    iconName: IconName.Danger,
-    iconColor: IconColor.Error,
-    textColor: TextColor.Error,
-    mutedColorKey: 'error',
-    titleKey: 'accounts.trust_signal_block_title',
-    descriptionKey: 'accounts.trust_signal_block_description',
-    buttonType: 'danger',
-  },
-};
+import { TrustSignalModalProps } from './TrustSignalModal.types';
 
 const TrustSignalModal = ({
-  variant,
   url,
   onConnectAnyway,
   onClose,
 }: TrustSignalModalProps) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const config = VARIANT_CONFIG[variant];
 
   return (
     <SafeAreaView
@@ -78,9 +50,9 @@ const TrustSignalModal = ({
           {/* Warning/danger icon */}
           <View style={styles.iconContainer}>
             <Icon
-              name={config.iconName}
+              name={IconName.Danger}
               size={IconSize.Xl}
-              color={config.iconColor}
+              color={IconColor.Error}
             />
           </View>
 
@@ -90,7 +62,7 @@ const TrustSignalModal = ({
             style={styles.title}
             testID={TrustSignalModalSelectorsIDs.TITLE}
           >
-            {strings(config.titleKey)}
+            {strings('accounts.trust_signal_block_title')}
           </TextComponent>
 
           {/* URL with icon */}
@@ -100,7 +72,7 @@ const TrustSignalModal = ({
           >
             <TextComponent
               variant={TextVariant.BodyMD}
-              color={config.textColor}
+              color={TextColor.Error}
               style={styles.urlText}
               numberOfLines={1}
               ellipsizeMode="middle"
@@ -108,9 +80,9 @@ const TrustSignalModal = ({
               {url}
             </TextComponent>
             <Icon
-              name={config.iconName}
+              name={IconName.Danger}
               size={IconSize.Sm}
-              color={config.iconColor}
+              color={IconColor.Error}
             />
           </View>
 
@@ -118,12 +90,12 @@ const TrustSignalModal = ({
           <View
             style={[
               styles.descriptionBox,
-              { backgroundColor: colors[config.mutedColorKey].muted },
+              { backgroundColor: colors.error.muted },
             ]}
             testID={TrustSignalModalSelectorsIDs.DESCRIPTION_BOX}
           >
             <TextComponent variant={TextVariant.BodyMD}>
-              {strings(config.descriptionKey)}
+              {strings('accounts.trust_signal_block_description')}
             </TextComponent>
           </View>
         </View>
@@ -131,7 +103,7 @@ const TrustSignalModal = ({
         {/* Connect Anyway button */}
         <View style={styles.buttonContainer}>
           <StyledButton
-            type={config.buttonType}
+            type="danger"
             onPress={onConnectAnyway}
             containerStyle={styles.connectAnywayButton}
             testID={TrustSignalModalSelectorsIDs.CONNECT_ANYWAY_BUTTON}

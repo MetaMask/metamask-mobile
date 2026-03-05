@@ -87,8 +87,6 @@ const DEV_TRUST_SIGNAL_OVERRIDES: Partial<
     }
   : {};
 
-const TRUST_SIGNAL_VARIANT = 'malicious' as const;
-
 import {
   getCaip25PermissionsResponse,
   getDefaultAccounts,
@@ -954,7 +952,6 @@ const AccountConnect = (props: AccountConnectProps) => {
   const renderTrustSignalWarningScreen = useCallback(
     () => (
       <TrustSignalModal
-        variant={TRUST_SIGNAL_VARIANT}
         url={urlWithProtocol}
         onConnectAnyway={handleTrustSignalDismiss}
         onClose={handleTrustSignalClose}
