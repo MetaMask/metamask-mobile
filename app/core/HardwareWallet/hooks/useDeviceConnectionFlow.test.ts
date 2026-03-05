@@ -19,25 +19,24 @@ const createMockSetters = (): HardwareWalletStateSetters => ({
   setTargetWalletType: jest.fn(),
 });
 
+const createDefaultOptions = (overrides = {}) => ({
+  refs: createMockRefs(),
+  setters: createMockSetters(),
+  walletType: HardwareWalletType.Ledger as HardwareWalletType | null,
+  deviceId: null as string | null,
+  handleError: jest.fn(),
+  updateConnectionState: jest.fn(),
+  createAdapterWithCallbacks: jest.fn(),
+  initializeAdapter: jest.fn(),
+  checkTransportEnabledOrShowError: jest.fn(),
+  ...overrides,
+});
+
 describe('useDeviceConnectionFlow', () => {
   describe('ensureDeviceReady', () => {
     it('throws when no wallet type is available', async () => {
-      const refs = createMockRefs();
-      const setters = createMockSetters();
-
-      const { result } = renderHook(() =>
-        useDeviceConnectionFlow({
-          refs,
-          setters,
-          walletType: null,
-          deviceId: null,
-          handleError: jest.fn(),
-          updateConnectionState: jest.fn(),
-          createAdapterWithCallbacks: jest.fn(),
-          initializeAdapter: jest.fn(),
-          checkTransportEnabledOrShowError: jest.fn(),
-        }),
-      );
+      const options = createDefaultOptions({ walletType: null });
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
       await expect(
         act(() => result.current.ensureDeviceReady()),
@@ -47,7 +46,6 @@ describe('useDeviceConnectionFlow', () => {
     it('uses targetWalletTypeRef when walletType is null', async () => {
       const refs = createMockRefs();
       refs.targetWalletTypeRef.current = HardwareWalletType.Ledger;
-      const setters = createMockSetters();
       const mockAdapter = {
         walletType: HardwareWalletType.Ledger,
         resetFlowState: jest.fn(),
@@ -59,60 +57,45 @@ describe('useDeviceConnectionFlow', () => {
         getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
       };
       const createAdapterWithCallbacks = jest.fn().mockReturnValue(mockAdapter);
-      const checkTransportEnabledOrShowError = jest
-        .fn()
-        .mockResolvedValue(false);
+      const options = createDefaultOptions({
+        refs,
+        walletType: null,
+        deviceId: 'device-123',
+        createAdapterWithCallbacks,
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
 
-      const { result } = renderHook(() =>
-        useDeviceConnectionFlow({
-          refs,
-          setters,
-          walletType: null,
-          deviceId: 'device-123',
-          handleError: jest.fn(),
-          updateConnectionState: jest.fn(),
-          createAdapterWithCallbacks,
-          initializeAdapter: jest.fn(),
-          checkTransportEnabledOrShowError,
-        }),
-      );
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
+      let readyPromise: Promise<boolean>;
       await act(async () => {
-        result.current.ensureDeviceReady('device-123');
+        readyPromise = result.current.ensureDeviceReady('device-123');
+        await Promise.resolve();
       });
 
       expect(createAdapterWithCallbacks).toHaveBeenCalledWith(
         HardwareWalletType.Ledger,
       );
+
+      // Resolve the pending readiness promise so it doesn't leak
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise!;
+      });
     });
   });
 
   describe('closeFlow', () => {
     it('clears targetWalletType', () => {
-      const refs = createMockRefs();
-      const setters = createMockSetters();
-      const updateConnectionState = jest.fn();
-
-      const { result } = renderHook(() =>
-        useDeviceConnectionFlow({
-          refs,
-          setters,
-          walletType: HardwareWalletType.Ledger,
-          deviceId: null,
-          handleError: jest.fn(),
-          updateConnectionState,
-          createAdapterWithCallbacks: jest.fn(),
-          initializeAdapter: jest.fn(),
-          checkTransportEnabledOrShowError: jest.fn(),
-        }),
-      );
+      const options = createDefaultOptions();
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
       act(() => {
         result.current.closeFlow();
       });
 
-      expect(setters.setTargetWalletType).toHaveBeenCalledWith(null);
-      expect(updateConnectionState).toHaveBeenCalledWith({
+      expect(options.setters.setTargetWalletType).toHaveBeenCalledWith(null);
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Disconnected,
       });
     });
@@ -120,30 +103,15 @@ describe('useDeviceConnectionFlow', () => {
 
   describe('handleConnectionSuccess', () => {
     it('does not clear targetWalletType', () => {
-      const refs = createMockRefs();
-      const setters = createMockSetters();
-      const updateConnectionState = jest.fn();
-
-      const { result } = renderHook(() =>
-        useDeviceConnectionFlow({
-          refs,
-          setters,
-          walletType: HardwareWalletType.Ledger,
-          deviceId: null,
-          handleError: jest.fn(),
-          updateConnectionState,
-          createAdapterWithCallbacks: jest.fn(),
-          initializeAdapter: jest.fn(),
-          checkTransportEnabledOrShowError: jest.fn(),
-        }),
-      );
+      const options = createDefaultOptions();
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
 
       act(() => {
         result.current.handleConnectionSuccess();
       });
 
-      expect(setters.setTargetWalletType).not.toHaveBeenCalled();
-      expect(updateConnectionState).toHaveBeenCalledWith({
+      expect(options.setters.setTargetWalletType).not.toHaveBeenCalled();
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
         status: ConnectionStatus.Disconnected,
       });
     });
