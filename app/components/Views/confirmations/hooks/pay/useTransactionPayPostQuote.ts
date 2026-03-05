@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
-import { createProjectLogger } from '@metamask/utils';
-import type { Hex } from '@metamask/utils';
+import { createProjectLogger, type Hex } from '@metamask/utils';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
