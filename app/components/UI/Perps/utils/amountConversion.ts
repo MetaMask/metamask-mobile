@@ -1,5 +1,4 @@
 import { formatPerpsFiat } from '../utils/formatUtils';
-import BN from 'bnjs4';
 import { ensureError } from '../../../../util/errorUtils';
 import { PERPS_CONSTANTS, type PerpsLogger } from '@metamask/perps-controller';
 
@@ -13,15 +12,13 @@ export type AmountConversionLogger = PerpsLogger | undefined;
  * Converts various amount formats to USD display string for Perps
  * Uses existing Perps formatting utilities for consistency
  *
- * @param amount - Amount in various formats (USD string, hex wei, or numeric string)
+ * @param amount - Amount in various formats (USD string or numeric string)
  * @param logger - Optional logger for error reporting
- * @param ethPriceUSD - Current ETH price in USD, required when amount is a hex wei value
  * @returns Formatted USD string using Perps formatting standards
  */
 export const convertPerpsAmountToUSD = (
   amount: string,
   logger?: AmountConversionLogger,
-  ethPriceUSD?: number,
 ): string => {
   if (!amount) {
     return formatPerpsFiat(0);
@@ -35,14 +32,9 @@ export const convertPerpsAmountToUSD = (
       return formatPerpsFiat(numericValue);
     }
 
-    // Check if it's a hex value (starts with 0x) - treat as wei
+    // Hex wei input is not supported in the Perps flow (all deposits use ERC-20 USDC)
     if (amount.startsWith('0x')) {
-      const weiBN = new BN(amount, 16);
-      const ethBN = weiBN.div(new BN(10).pow(new BN(18)));
-      const ethValue = ethBN.toNumber();
-      const usdValue = ethValue * (ethPriceUSD ?? 0);
-      // Preserve decimals for converted amounts
-      return formatPerpsFiat(usdValue);
+      return '$0';
     }
 
     // Otherwise, treat as a direct USD amount (e.g., "1.30" = $1.30)
