@@ -8,6 +8,8 @@ import {
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { selectHomepageSectionsV1Enabled } from '../../../../selectors/featureFlagController/homepage';
+import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
 
 const REFRESH_TIMEOUT_MS = 5000;
 const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
@@ -28,6 +30,11 @@ export const useBalanceRefresh = () => {
   const { listPopularEvmNetworks } = useNetworkEnablement();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+
+  const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
 
   const evmChainIds = useMemo(
     () => listPopularEvmNetworks(),
@@ -39,15 +46,21 @@ export const useBalanceRefresh = () => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  // Only refresh balance for popular EVM chains.
+  // Sections enabled: refresh popular EVM chains. Sections disabled: refresh enabled eip155 only.
+  const evmChainIdsForRefresh = useMemo(
+    () =>
+      isHomepageSectionsV1Enabled ? evmChainIds : (evmEnabledChainIds ?? []),
+    [isHomepageSectionsV1Enabled, evmChainIds, evmEnabledChainIds],
+  );
+
   const evmNetworkConfigurationsFiltered = useMemo(() => {
-    const allowed = new Set<string>(evmChainIds);
+    const allowed = new Set<string>(evmChainIdsForRefresh);
     return Object.fromEntries(
       Object.entries(evmNetworkConfigurations).filter(([chainId]) =>
         allowed.has(chainId),
       ),
     );
-  }, [evmNetworkConfigurations, evmChainIds]);
+  }, [evmNetworkConfigurations, evmChainIdsForRefresh]);
 
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
@@ -70,8 +83,12 @@ export const useBalanceRefresh = () => {
         Promise.allSettled([
           AccountTrackerController.refresh(networkClientIds),
           CurrencyRateController.updateExchangeRate(nativeCurrencies),
-          TokenDetectionController.detectTokens({ chainIds: evmChainIds }),
-          TokenBalancesController.updateBalances({ chainIds: evmChainIds }),
+          TokenDetectionController.detectTokens({
+            chainIds: evmChainIdsForRefresh,
+          }),
+          TokenBalancesController.updateBalances({
+            chainIds: evmChainIdsForRefresh,
+          }),
         ]),
         new Promise((_, reject) =>
           setTimeout(
@@ -88,7 +105,11 @@ export const useBalanceRefresh = () => {
 
       Logger.error(error as Error, 'Error refreshing balance');
     }
-  }, [evmNetworkConfigurationsFiltered, evmChainIds, nativeCurrencies]);
+  }, [
+    evmNetworkConfigurationsFiltered,
+    evmChainIdsForRefresh,
+    nativeCurrencies,
+  ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
