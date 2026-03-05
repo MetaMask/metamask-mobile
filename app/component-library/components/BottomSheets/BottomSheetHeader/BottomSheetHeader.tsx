@@ -35,7 +35,7 @@ const BottomSheetHeader: React.FC<BottomSheetHeaderProps> = ({
       iconName={IconName.ArrowLeft}
       iconColor={IconColor.Default}
       onPress={onBack}
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       {...backButtonProps}
     />
   );

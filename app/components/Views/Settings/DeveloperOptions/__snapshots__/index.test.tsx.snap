@@ -124,9 +124,29 @@ exports[`DeveloperOptions renders correctly 1`] = `
                     "opacity": 1,
                   }
                 }
-              >
-                <View
-                  accessibilityState={
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onBlur={[Function]}
+                onClick={[Function]}
+                onFocus={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "transparent",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    },
                     {
                       "busy": undefined,
                       "checked": undefined,
@@ -158,23 +178,9 @@ exports[`DeveloperOptions renders correctly 1`] = `
                   style={
                     [
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 8,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                      {
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
+                        "color": "#131416",
+                        "height": 24,
+                        "width": 24,
                       },
                     ]
                   }
