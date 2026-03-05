@@ -69,6 +69,7 @@ import {
   parsePolymarketPositions,
   previewOrder,
   priceValid,
+  refreshBalanceAllowance,
   submitClobOrder,
 } from './utils';
 
@@ -109,6 +110,7 @@ jest.mock('./utils', () => {
     priceValid: jest.fn(),
     createApiKey: jest.fn(),
     submitClobOrder: jest.fn(),
+    refreshBalanceAllowance: jest.fn(),
     getMarketPositions: jest.fn(),
     getBalance: jest.fn(),
     previewOrder: jest.fn(),
@@ -212,6 +214,7 @@ const mockParsePolymarketPositions = parsePolymarketPositions as jest.Mock;
 const mockPriceValid = priceValid as jest.Mock;
 const mockCreateApiKey = createApiKey as jest.Mock;
 const mockSubmitClobOrder = submitClobOrder as jest.Mock;
+const mockRefreshBalanceAllowance = refreshBalanceAllowance as jest.Mock;
 const mockEncodeClaim = encodeClaim as jest.Mock;
 const mockComputeProxyAddress = computeProxyAddress as jest.Mock;
 const mockCreatePermit2FeeAuthorization =
@@ -1363,21 +1366,52 @@ describe('PolymarketProvider', () => {
   });
 
   describe('previewOrder', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    const createPreviewSigner = () => ({
+      address: '0x1234567890123456789012345678901234567890',
+      signTypedMessage: jest.fn(),
+      signPersonalMessage: jest.fn(),
+    });
+
+    const createPreviewOrderParams = () => ({
+      marketId: 'market-123',
+      outcomeId: 'outcome-456',
+      outcomeTokenId: 'token-789',
+      side: Side.BUY,
+      size: 100,
+      signer: createPreviewSigner(),
+    });
+
+    const createPermit2PreviewProvider = (fakOrdersEnabled: boolean) =>
+      createProvider({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled,
+      });
+
+    const mockPreviewOrderWithFees = () => {
+      mockPreviewOrder.mockResolvedValue({
+        fees: {
+          totalFee: 1,
+          metamaskFee: 0.5,
+          providerFee: 0.5,
+          totalFeePercentage: 1,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
+      });
+    };
+
     it('calls previewOrder utility function with correct parameters', async () => {
       const provider = createProvider();
-      const mockSigner = {
-        address: '0x1234567890123456789012345678901234567890',
-        signTypedMessage: jest.fn(),
-        signPersonalMessage: jest.fn(),
-      };
       const mockParams = {
-        marketId: 'market-123',
-        outcomeId: 'outcome-456',
-        outcomeTokenId: 'token-789',
-        side: Side.BUY,
+        ...createPreviewOrderParams(),
         amount: 100,
-        size: 100,
-        signer: mockSigner,
       };
 
       await provider.previewOrder(mockParams);
@@ -1386,6 +1420,62 @@ describe('PolymarketProvider', () => {
         ...mockParams,
         feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       });
+    });
+    it('returns FOK orderType by default', async () => {
+      const provider = createProvider();
+      const result = await provider.previewOrder(createPreviewOrderParams());
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it.each([
+      {
+        permit2Ready: true,
+        fakOrdersEnabled: true,
+        expectedOrderType: 'FAK',
+      },
+      {
+        permit2Ready: false,
+        fakOrdersEnabled: true,
+        expectedOrderType: 'FOK',
+      },
+      {
+        permit2Ready: true,
+        fakOrdersEnabled: false,
+        expectedOrderType: 'FOK',
+      },
+    ] as const)(
+      'returns $expectedOrderType orderType when permit2Ready=$permit2Ready and fakOrdersEnabled=$fakOrdersEnabled',
+      async ({ permit2Ready, fakOrdersEnabled, expectedOrderType }) => {
+        mockPreviewOrderWithFees();
+        mockHasPermit2Allowance.mockResolvedValue(permit2Ready);
+        const provider = createPermit2PreviewProvider(fakOrdersEnabled);
+
+        const result = await provider.previewOrder(createPreviewOrderParams());
+
+        expect(result.orderType).toBe(expectedOrderType);
+      },
+    );
+
+    it('returns FOK orderType when permit2 allowance check throws', async () => {
+      mockPreviewOrderWithFees();
+      mockHasPermit2Allowance.mockRejectedValue(new Error('RPC timeout'));
+      const provider = createPermit2PreviewProvider(true);
+
+      const result = await provider.previewOrder(createPreviewOrderParams());
+
+      expect(result.orderType).toBe('FOK');
+    });
+
+    it('returns FAK orderType when fees are absent and FAK flags are enabled', async () => {
+      mockPreviewOrder.mockResolvedValue({});
+      mockHasPermit2Allowance.mockResolvedValue(true);
+      const provider = createPermit2PreviewProvider(true);
+
+      const result = await provider.previewOrder(createPreviewOrderParams());
+
+      expect(result.orderType).toBe('FAK');
+      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
     });
   });
 
@@ -1513,6 +1603,97 @@ describe('PolymarketProvider', () => {
       expect(mockCreateApiKey).toHaveBeenCalledWith({
         address: mockSigner2.address,
       });
+    });
+  });
+
+  describe('placeOrder balance/allowance refresh workaround', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRefreshBalanceAllowance.mockResolvedValue(undefined);
+    });
+
+    it('calls refreshBalanceAllowance with COLLATERAL before submitting a BUY order', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      // Act
+      await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(mockRefreshBalanceAllowance).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        apiKey: expect.objectContaining({ apiKey: 'test-api-key' }),
+        side: Side.BUY,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+    });
+
+    it('calls refreshBalanceAllowance with CONDITIONAL before submitting a SELL order', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const preview = createMockOrderPreview({ side: Side.SELL });
+
+      // Act
+      await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(mockRefreshBalanceAllowance).toHaveBeenCalledWith({
+        address: mockSigner.address,
+        apiKey: expect.objectContaining({ apiKey: 'test-api-key' }),
+        side: Side.SELL,
+        outcomeTokenId: preview.outcomeTokenId,
+      });
+    });
+
+    it('calls refreshBalanceAllowance before submitClobOrder', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      const callOrder: string[] = [];
+      mockRefreshBalanceAllowance.mockImplementation(async () => {
+        callOrder.push('refresh');
+      });
+      mockSubmitClobOrder.mockImplementation(async () => {
+        callOrder.push('submit');
+        return {
+          success: true,
+          response: {
+            success: true,
+            makingAmount: '1000000',
+            orderID: 'order-123',
+            status: 'success',
+            takingAmount: '0',
+            transactionsHashes: [],
+          },
+          error: undefined,
+        };
+      });
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      // Act
+      await provider.placeOrder({ signer: mockSigner, preview });
+
+      // Assert
+      expect(callOrder).toEqual(['refresh', 'submit']);
+    });
+
+    it('proceeds with order submission when refreshBalanceAllowance fails', async () => {
+      // Arrange
+      const { provider, mockSigner } = setupPlaceOrderTest();
+      mockRefreshBalanceAllowance.mockRejectedValue(
+        new Error('Network timeout'),
+      );
+      const preview = createMockOrderPreview({ side: Side.BUY });
+
+      // Act
+      const result = await provider.placeOrder({
+        signer: mockSigner,
+        preview,
+      });
+
+      // Assert - order still submitted despite refresh failure
+      expect(mockSubmitClobOrder).toHaveBeenCalled();
+      expect(result.success).toBe(true);
     });
   });
 
@@ -1867,6 +2048,57 @@ describe('PolymarketProvider', () => {
       );
     });
   });
+  describe('placeOrder FAK order type for sell orders', () => {
+    it('submits FAK order type for sell order without fees when FAK is enabled', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
+        }),
+      );
+      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
+    });
+
+    it('submits FOK order type for sell order without fees when FAK is disabled', async () => {
+      jest.clearAllMocks();
+      const { provider, mockSigner } = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+        fakOrdersEnabled: false,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+        }),
+      );
+    });
+  });
+
   describe('placeOrder edge cases', () => {
     it('places order without fee authorization when totalFee is zero', async () => {
       // Clear mock to ensure clean state for this test

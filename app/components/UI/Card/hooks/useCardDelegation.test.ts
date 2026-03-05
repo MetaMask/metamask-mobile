@@ -9,6 +9,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { toTokenMinimalUnit } from '../../../../util/number';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { ARBITRARY_ALLOWANCE } from '../constants';
@@ -68,9 +69,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseNeedsGasFaucet = useNeedsGasFaucet as jest.MockedFunction<
   typeof useNeedsGasFaucet
 >;
@@ -155,19 +154,12 @@ describe('useCardDelegation', () => {
     });
     mockTrackEvent = jest.fn();
 
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: jest.fn().mockReturnValue(true),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getAnalyticsId: jest.fn(),
-      isDataRecorded: jest.fn().mockReturnValue(true),
-      getDeleteRegulationId: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-    } as ReturnType<typeof useAnalytics>);
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup selector mock - returns a function that returns account
     mockUseSelector.mockReturnValue(

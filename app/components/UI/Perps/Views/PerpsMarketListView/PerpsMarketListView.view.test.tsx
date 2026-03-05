@@ -80,14 +80,8 @@ describe('PerpsMarketListView', () => {
         streamOverrides: { marketData: marketDataWithCategories },
       });
 
-      const searchToggle = await screen.findByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-
-      fireEvent.press(searchToggle);
-
       const searchInput = await screen.findByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-bar`,
+        PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
       );
       fireEvent.changeText(searchInput, 'ZZZ-NOT-FOUND');
 
