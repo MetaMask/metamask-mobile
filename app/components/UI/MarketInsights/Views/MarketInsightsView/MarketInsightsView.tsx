@@ -35,6 +35,7 @@ import MarketInsightsTrendItem from '../../components/MarketInsightsTrendItem';
 import MarketInsightsTweetCard from '../../components/MarketInsightsTweetCard';
 import MarketInsightsTrendSourcesBottomSheet from '../../components/MarketInsightsTrendSourcesBottomSheet';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
+import { isSafeUrl } from '../../utils/marketInsightsFormatting';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   useSwapBridgeNavigation,
@@ -208,7 +209,9 @@ const MarketInsightsView: React.FC = () => {
   }, [navigation]);
 
   const handleTweetPress = useCallback((url: string) => {
-    Linking.openURL(url);
+    if (isSafeUrl(url)) {
+      Linking.openURL(url);
+    }
   }, []);
 
   const handleTradePress = useCallback(() => {
@@ -340,6 +343,9 @@ const MarketInsightsView: React.FC = () => {
 
   const handleSourcePress = useCallback(
     (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
       trackMarketInsightsInteraction('source_click', { source: url });
       navigation.navigate(
         Routes.BROWSER.HOME as never,
