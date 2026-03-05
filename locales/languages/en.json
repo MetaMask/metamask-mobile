@@ -103,6 +103,10 @@
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_native_post_quote": {
+      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
+      "title": "Insufficient funds for post quote"
+    },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
@@ -6002,7 +6006,6 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "no_boost": "No boost",
       "your_musd": "Your mUSD",
       "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
@@ -6032,8 +6035,8 @@
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
@@ -6049,7 +6052,7 @@
           "title": "Convert max"
         }
       },
-      "percentage_boost": "{{percentage}}% boost",
+      "percentage_bonus": "{{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
@@ -7233,6 +7236,7 @@
         "order_metal_card_description": "Order your physical Metal Card now",
         "cashback": "Cashback",
         "cashback_description": "Earn 1% back on all spending",
+        "cashback_description_metal": "Earn 3% back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7819,6 +7823,14 @@
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
+    },
+    "show_internal_error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again."
+    },
+    "show_method_error": {
+      "title": "Request failed",
+      "description": "The request could not be completed. Please try again."
     }
   },
   "network_connection_banner": {

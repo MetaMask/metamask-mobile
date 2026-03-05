@@ -5931,8 +5931,8 @@
       },
       "buy_musd": "mUSD 구매",
       "get_musd": "mUSD 받기",
-      "boost_title": "스테이블코인으로 {{percentage}}% 받기",
-      "boost_description": "스테이블코인을 mUSD로 전환하고 최대 {{percentage}}%의 보너스를 받으세요.",
+      "bonus_title": "스테이블코인으로 {{percentage}}% 받기",
+      "bonus_description": "스테이블코인을 mUSD로 전환하고 최대 {{percentage}}%의 보너스를 받으세요.",
       "powered_by_relay": "제공자: Relay"
     },
     "bonus_claim": {

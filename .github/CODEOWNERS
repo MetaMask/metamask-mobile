@@ -70,8 +70,11 @@ app/selectors/rampsController                          @MetaMask/ramp
 **/ramps/**                                             @MetaMask/ramp
 
 # Card Team
-app/components/UI/Card/              @MetaMask/card
-app/core/redux/slices/card/          @MetaMask/card
+app/components/UI/Card/                                    @MetaMask/card
+app/core/redux/slices/card/                                @MetaMask/card
+app/core/Engine/controllers/card-controller                @MetaMask/card
+app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
+app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations

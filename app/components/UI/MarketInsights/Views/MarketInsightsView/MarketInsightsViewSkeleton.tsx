@@ -25,7 +25,7 @@ const MarketInsightsViewSkeleton: React.FC<MarketInsightsViewSkeletonProps> = ({
       <MarketInsightsViewHeader onBackPress={onBackPress} />
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}
+        contentContainerStyle={tw.style(`pb-[${insets.bottom + 8}px]`)}
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="px-4 pt-4 pb-3" gap={2}>
