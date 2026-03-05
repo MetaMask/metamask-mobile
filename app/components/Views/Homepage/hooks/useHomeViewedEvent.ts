@@ -87,8 +87,8 @@ const useHomeViewedEvent = ({
         .addProperties({
           interaction_type: 'section_viewed',
           location: 'home',
-          name: sectionName,
-          index: sectionIndex,
+          section_name: sectionName,
+          section_index: sectionIndex,
           total_sections_loaded: totalSectionsLoaded,
           is_empty: isEmpty,
           item_count: itemCount,
