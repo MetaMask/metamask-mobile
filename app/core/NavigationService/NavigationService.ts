@@ -95,12 +95,18 @@ class NavigationService {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
 
-    // Agentic bridge — exposes navigation primitives on globalThis so that
-    // AI coding agents (Claude Code, Cursor, etc.) can inspect and drive the
-    // app remotely via Metro's Hermes CDP WebSocket. The bridge is consumed
-    // by the scripts in `scripts/perps/agentic/` (cdp-bridge.js).
+    // Agentic bridge — exposes navigation primitives and account helpers on
+    // globalThis so that AI coding agents (Claude Code, Cursor, etc.) can
+    // inspect and drive the app remotely via Metro's Hermes CDP WebSocket.
+    // The bridge is consumed by the scripts in `scripts/perps/agentic/`.
     //
-    // __DEV__ only — completely stripped from production builds.
+    // Why NavigationService? It is the single guaranteed init point that runs
+    // once the navigation container is ready, making it the natural place to
+    // install any __DEV__ globals that need a live app reference (nav + Engine).
+    // Account helpers (listAccounts, switchAccount) live here rather than in a
+    // separate file to avoid an extra module boundary in __DEV__-only code.
+    //
+    // __DEV__ only — completely stripped from production builds by Metro/Babel.
     // See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
     if (__DEV__) {
       Logger.log('[NavigationService] __AGENTIC__ bridge installed');

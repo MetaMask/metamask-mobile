@@ -17,6 +17,8 @@
 'use strict';
 
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,8 +27,6 @@ const http = require('node:http');
 /** Read a value from .js.env */
 function loadEnvValue(key) {
   try {
-    const fs = require('node:fs');
-    const path = require('node:path');
     const envPath = path.resolve(__dirname, '../../../.js.env');
     const content = fs.readFileSync(envPath, 'utf8');
     // .js.env uses `export KEY="value"` (shell-sourceable format),
@@ -563,8 +563,6 @@ const COMMANDS = {
       process.exit(1);
     }
 
-    const fs = require('node:fs');
-    const path = require('node:path');
     const recipesDir = path.resolve(__dirname, 'recipes');
 
     if (arg === '--list') {
