@@ -7,11 +7,7 @@ import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
-import TronStakingButtons from '../Tron/TronStakingButtons';
-import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { hasStakedTrxPositions as hasStakedTrxPositionsUtil } from '../../utils/tron';
-import useTronStakeApy from '../../hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
@@ -38,43 +34,12 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   const { isConversionToken } = useMusdConversionTokens();
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+  
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
-
   const isTron = asset?.chainId?.startsWith('tron:');
-  const isNativeTrx =
-    isTron && (asset?.ticker === 'TRX' || asset?.symbol === 'TRX');
-  const isStakedTrxAsset =
-    isTron && (asset?.ticker === 'sTRX' || asset?.symbol === 'sTRX');
-
-  const tronSpecialAssets = useSelector(
-    selectTronSpecialAssetsBySelectedAccountGroup,
-  );
-  const hasStakedTrxPositions = React.useMemo(
-    () => hasStakedTrxPositionsUtil(tronSpecialAssets),
-    [tronSpecialAssets],
-  );
-
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
 
   if (isTron && isTrxStakingEnabled) {
-    if (hasStakedTrxPositions && isStakedTrxAsset) {
-      // sTRX row: show Unstake + Stake more
-      return (
-        <TronStakingButtons asset={asset} showUnstake hasStakedPositions />
-      );
-    }
-
-    if (!hasStakedTrxPositions && isNativeTrx) {
-      // TRX native row: show CTA + single Stake button
-      return (
-        <TronStakingButtons
-          asset={asset}
-          aprText={tronApyPercent ?? undefined}
-        />
-      );
-    }
-
     return null;
   }
   ///: END:ONLY_INCLUDE_IF
