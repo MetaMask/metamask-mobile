@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
@@ -21,10 +22,10 @@ import {
   selectOnboardingId,
   resetOnboardingState,
   resetAuthenticatedData,
-  clearAllCache,
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
+import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
@@ -61,6 +62,7 @@ export const CardSDKProvider = ({
   const userCardLocation = useSelector(selectUserCardLocation);
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
@@ -146,10 +148,10 @@ export const CardSDKProvider = ({
     }
 
     dispatch(resetAuthenticatedData());
-    dispatch(clearAllCache());
+    queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [sdk, dispatch]);
+  }, [sdk, dispatch, queryClient]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(

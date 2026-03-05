@@ -105,8 +105,8 @@ describe('QRHardwareContext', () => {
       .mockReturnValue(mockedValues);
   };
 
-  it('should pass correct value of needsCameraPermission to child components', () => {
-    createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
+  it('does not disable confirm button for camera permission since scanner handles it', () => {
+    createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
       isSigningQRObject: true,
       pendingScanRequest: mockPendingScanRequest,
@@ -121,7 +121,7 @@ describe('QRHardwareContext', () => {
     );
     expect(
       getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it('does not invoke rejectPendingScan when request is cancelled id QR signing is not in progress', async () => {
