@@ -198,6 +198,79 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
   });
 
   itForPlatforms(
+    'displays empty state when trending API returns no tokens on full view',
+    async () => {
+      let callCount = 0;
+      getTrendingTokensMock.mockImplementation(async () => {
+        callCount += 1;
+        return callCount === 1 ? mockTrendingTokensData : [];
+      });
+
+      const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+
+      await waitFor(() => {
+        expect(
+          getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+        ).toBeOnTheScreen();
+      });
+
+      const viewAllButton = getByTestId('section-header-view-all-tokens');
+      fireEvent.press(viewAllButton);
+
+      await waitFor(() => {
+        expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
+      });
+
+      const emptyState = await findByTestId('empty-error-trending-state');
+      expect(emptyState).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'user sees tokens after retrying from empty state',
+    async () => {
+      let callCount = 0;
+      getTrendingTokensMock.mockImplementation(async () => {
+        callCount += 1;
+        return callCount === 1 ? mockTrendingTokensData : [];
+      });
+
+      const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+
+      await waitFor(() => {
+        expect(
+          getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+        ).toBeOnTheScreen();
+      });
+
+      const viewAllButton = getByTestId('section-header-view-all-tokens');
+      fireEvent.press(viewAllButton);
+
+      const emptyState = await findByTestId('empty-error-trending-state');
+      expect(emptyState).toBeOnTheScreen();
+
+      getTrendingTokensMock.mockResolvedValue(mockTrendingTokensData);
+
+      const retryButton = getByTestId(
+        'empty-error-trending-state--retry-button',
+      );
+      fireEvent.press(retryButton);
+
+      await waitFor(
+        async () => {
+          const ethereumRow = await findByTestId(
+            'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+          );
+          expect(ethereumRow).toBeOnTheScreen();
+          const scope = within(ethereumRow);
+          expect(scope.getByText('Ethereum')).toBeOnTheScreen();
+        },
+        { timeout: 3000 },
+      );
+    },
+  );
+
+  itForPlatforms(
     'displays only BNB tokens when BNB Chain network filter is selected',
     async () => {
       getTrendingTokensMock.mockImplementation(
