@@ -159,6 +159,7 @@ class NavigationService {
             switched: true,
             id: target.id,
             address: target.address,
+            name: target.metadata.name,
           };
         },
       };

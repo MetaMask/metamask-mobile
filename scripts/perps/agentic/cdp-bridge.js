@@ -660,6 +660,13 @@ Environment:
     process.exit(1);
   }
 
+  // `recipe --list` only reads local JSON files — skip CDP connection entirely.
+  if (command === 'recipe' && args[1] === '--list') {
+    const result = await handler(null, args.slice(1), {});
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+
   const port = loadPort();
   const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);
 
