@@ -82,7 +82,8 @@ const LedgerConfirmationModal = ({
         }
 
         showAwaitingConfirmation(operationType, () => {
-          void handleRejection();
+          // eslint-disable-next-line no-empty-function
+          handleRejection().catch(() => {});
         });
 
         try {
@@ -104,7 +105,8 @@ const LedgerConfirmationModal = ({
       }
     };
 
-    runSigningFlow();
+    // eslint-disable-next-line no-empty-function
+    runSigningFlow().catch(() => {});
   }, [
     deviceId,
     operationType,
