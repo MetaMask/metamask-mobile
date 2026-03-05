@@ -53,17 +53,6 @@ const styleSheet = (params: {
     secondaryText: {
       color: colors.text.alternative,
     },
-    secondaryTextWrapper: {
-      flexShrink: 1,
-      minWidth: 0,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    secondaryTextInner: {
-      flexShrink: 1,
-      minWidth: 0,
-      marginRight: 8,
-    },
     tertiaryText: {
       color: colors.text.alternative,
     },
@@ -74,15 +63,13 @@ const styleSheet = (params: {
       backgroundColor: colors.primary.muted,
     },
     containerRow: {
-      flex: 1,
-      minWidth: 0,
       flexDirection: 'row',
       alignItems: 'flex-start',
       marginBottom: 0,
       zIndex: 1,
     },
     arrowStyle: {
-      paddingLeft: 12,
+      paddingLeft: 8,
       paddingTop: 24,
     },
   });
