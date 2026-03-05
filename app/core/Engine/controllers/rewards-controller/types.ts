@@ -148,7 +148,16 @@ export interface CampaignDto {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignsState = {
-  campaigns: CampaignDto[];
+  campaigns: {
+    id: string;
+    type: CampaignType;
+    name: string;
+    startDate: string;
+    endDate: string;
+    termsAndConditions: Json | null;
+    excludedRegions: string[];
+    statusLabel: string;
+  }[];
   lastFetched: number;
 };
 
