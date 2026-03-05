@@ -163,7 +163,7 @@ export class TradingService {
     if (params.trackingData?.tradeAction) {
       properties[PERPS_EVENT_PROPERTY.ACTION] = params.trackingData.tradeAction;
     }
-    // Pay with any token: trade_with_token (boolean); when true, include mm_pay_token_selected and mm_pay_network_selected
+    // Pay with any token: trade_with_token (boolean); when true, include mm_pay_token_selected and mm_pay_network_selected; when false (Perps balance), include mm_pay_token_selected: "Perps Balance"
     properties[PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN] =
       params.trackingData?.tradeWithToken === true;
     if (params.trackingData?.tradeWithToken === true) {
@@ -175,6 +175,8 @@ export class TradingService {
         properties[PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED] =
           params.trackingData.mmPayNetworkSelected;
       }
+    } else if (params.trackingData !== undefined) {
+      properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] = 'Perps Balance';
     }
 
     // Add success-specific properties
