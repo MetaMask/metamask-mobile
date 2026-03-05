@@ -43,6 +43,8 @@ rg -n "Experiment Viewed|EXPERIMENT_VIEWED" app
 4. Do not manually emit `Experiment Viewed` when using `useABTest`.
 5. For business events, use `active_ab_tests: [{ key, value }]` only when assignment is active.
 6. Do not add new payloads under `ab_tests`.
+   - Compliance checker behavior is strict at diff-line level: adding any `ab_tests:` line in changed code fails by default.
+   - For rare legacy touchpoints that cannot be migrated in the same change, use `LEGACY_AB_TEST_ALLOWED` on the line and include rationale in PR/agent output.
 7. Use risk-based test scope:
    - If behavior or analytics integration changed, add/update tests.
    - If change is copy/config-only, you may skip new tests with a brief rationale.
@@ -253,6 +255,8 @@ active_ab_tests: [
 ```
 
 Note: legacy historical docs/tests may still mention `ab_tests`; the goal is no new payload additions using it.
+
+If you must touch a legacy `ab_tests` line before full migration, mark it with `LEGACY_AB_TEST_ALLOWED` and include a migration rationale.
 
 ---
 
