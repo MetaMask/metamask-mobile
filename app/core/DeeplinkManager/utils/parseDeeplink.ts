@@ -12,6 +12,9 @@ import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
 import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
 
+/** Prefix for Branch fallback simulation; rewrite to canonical link so action is recognized. */
+const BRANCH_FALLBACK_SIMULATION_PREFIX = 'metamask://__branch_fallback__/';
+
 async function parseDeeplink({
   deeplinkManager: instance,
   url,
@@ -26,17 +29,35 @@ async function parseDeeplink({
   onHandled?: () => void;
 }) {
   try {
-    const validatedUrl = new URL(url);
+    Logger.log(
+      `[DeeplinkDebug] parseDeeplink: incoming url=${JSON.stringify(url)}`,
+    );
+
+    // If URL is the simulation form (e.g. reached parse before handleDeeplink rewrote it), normalize to canonical link
+    let normalizedUrl = url;
+    if (normalizedUrl.startsWith(BRANCH_FALLBACK_SIMULATION_PREFIX)) {
+      const path = normalizedUrl
+        .slice(BRANCH_FALLBACK_SIMULATION_PREFIX.length)
+        .trim();
+      if (path) {
+        normalizedUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path}`;
+        Logger.log(
+          `[DeeplinkDebug] parseDeeplink: normalized simulation → normalizedUrl=${normalizedUrl}`,
+        );
+      }
+    }
+
+    const validatedUrl = new URL(normalizedUrl);
     DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
 
-    const { urlObj, params } = extractURLParams(url);
+    const { urlObj, params } = extractURLParams(normalizedUrl);
 
     const sdkConnect = SDKConnect.getInstance();
 
     const protocol = urlObj.protocol.replace(':', '');
     DevLogger.log(
       `DeepLinkManager:parse sdkInit=${sdkConnect.hasInitialized()} origin=${origin} protocol=${protocol}`,
-      url,
+      normalizedUrl,
     );
 
     const handled = () => (onHandled ? onHandled() : false);
@@ -49,9 +70,12 @@ async function parseDeeplink({
       case PROTOCOLS.HTTP:
       case PROTOCOLS.HTTPS: {
         // Attempts to replace the metamask protocol with the https protocol so that it is compatible with handleUniversalLink
-        const mappedUrl = url.replace(
+        const mappedUrl = normalizedUrl.replace(
           `${PROTOCOLS.METAMASK}://`,
           `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
+        );
+        Logger.log(
+          `[DeeplinkDebug] parseDeeplink: passing to handleUniversalLink url(mappedUrl)=${mappedUrl}`,
         );
         const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
         handleUniversalLink({

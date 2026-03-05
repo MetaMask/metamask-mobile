@@ -438,6 +438,32 @@ adb shell am start -W -a android.intent.action.VIEW \
   com.metamask.debug
 ```
 
+### Testing Branch Webpage Fallback (e.g. X/Twitter in-app browser)
+
+When links are opened from in-app browsers that don’t support universal links (e.g. X), the app is opened via Branch’s webpage fallback. The app now resolves the destination from Branch params (`~referring_link`) when `uri` is empty.
+
+- **Simulator – simulate the X case (dev builds only):** To test the same navigation flow as “opened from Branch webpage” without Branch or X, use the dev-only simulation URL. It rewrites to the real universal link so the full pipeline runs:
+
+  ```bash
+  xcrun simctl openurl booted "metamask://__branch_fallback__/trending"
+  xcrun simctl openurl booted "metamask://__branch_fallback__/home"
+  ```
+
+  The app should open and navigate to Trending and Home. Any supported path works (e.g. `metamask://__branch_fallback__/swap`).
+
+- **Simulator (direct universal link – regression check):** With the app installed and running (or in background), run:
+
+  ```bash
+  xcrun simctl openurl booted "https://link.metamask.io/trending"
+  xcrun simctl openurl booted "https://link.metamask.io/home"
+  ```
+
+  The app should open and navigate to Trending and Home respectively.
+
+- **Real device + X (webpage fallback):** Post `https://link.metamask.io/trending` (or `/home`) in a tweet, open the tweet in the X app, and tap the link. The X in-app browser will show the Branch “Open in app” page; tap the button. MetaMask should open and land on the correct screen (Trending or Home). Before the fix, the app opened but did not navigate to the destination.
+
+- **Unit tests:** `DeeplinkManager.test.ts` includes tests for `~referring_link` resolution in both the cold-start path and the Branch subscribe callback.
+
 ### Testing Signed Links
 
 1. **Generate Test Signature** (using link-signer-api):

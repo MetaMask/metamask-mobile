@@ -318,4 +318,42 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
+
+  it('processes deeplink from subscription when uri is empty but params has ~referring_link (Branch webpage fallback e.g. X in-app browser)', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const referringLink = 'https://metamask.app.link/trending';
+    callback({
+      uri: undefined,
+      params: {
+        '+clicked_branch_link': true,
+        '~referring_link': referringLink,
+      },
+    });
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: referringLink });
+  });
+
+  it('processes cold start deeplink when Branch params have ~referring_link (webpage fallback)', async () => {
+    const referringLink = 'https://metamask.app.link/trending';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': true,
+      '~referring_link': referringLink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: referringLink });
+  });
+
+  it('prefers $canonical_url over ~referring_link when canonical is MetaMask host (avoids short-link path)', async () => {
+    const shortLink = 'https://metamask.app.link/abc123';
+    const canonicalUrl = 'https://link.metamask.io/trending';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': true,
+      '~referring_link': shortLink,
+      $canonical_url: canonicalUrl,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: canonicalUrl });
+  });
 });

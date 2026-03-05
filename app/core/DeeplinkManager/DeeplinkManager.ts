@@ -55,6 +55,64 @@ export class DeeplinkManager {
     });
   }
 
+  /**
+   * Allowed hosts for Branch $canonical_url so we only use it when it's a MetaMask destination.
+   */
+  private static readonly METAMASK_LINK_HOSTS = [
+    AppConstants.MM_UNIVERSAL_LINK_HOST,
+    AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+    AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+  ];
+
+  /**
+   * Returns true if the URL has a host we accept for universal links.
+   */
+  private static isMetamaskUniversalLinkHost(urlString: string): boolean {
+    try {
+      const host = new URL(urlString).hostname;
+      return DeeplinkManager.METAMASK_LINK_HOSTS.includes(host);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Resolves the deeplink URL from Branch session params.
+   * Handles both non-Branch links (+non_branch_link) and Branch links opened
+   * via webpage fallback (~referring_link), e.g. when opened from in-app
+   * browsers (e.g. X/Twitter) that don't support universal links.
+   * Prefers $canonical_url over ~referring_link when it's a MetaMask host so
+   * we get the real path (e.g. /trending) instead of a Branch short-link path
+   * that would show "This page doesn't exist".
+   */
+  private static getDeeplinkFromBranchParams(
+    params: unknown,
+  ): string | undefined {
+    if (!params || typeof params !== 'object') {
+      return undefined;
+    }
+    const p = params as Record<string, unknown>;
+    const nonBranchLink = p['+non_branch_link'];
+    if (typeof nonBranchLink === 'string' && nonBranchLink) {
+      return nonBranchLink;
+    }
+    if (!p['+clicked_branch_link']) {
+      return undefined;
+    }
+    const canonicalUrl = p.$canonical_url;
+    if (
+      typeof canonicalUrl === 'string' &&
+      canonicalUrl &&
+      DeeplinkManager.isMetamaskUniversalLinkHost(canonicalUrl)
+    ) {
+      return canonicalUrl as string;
+    }
+    if (typeof p['~referring_link'] === 'string') {
+      return p['~referring_link'] as string;
+    }
+    return undefined;
+  }
+
   static start() {
     DeeplinkManager.getInstance();
 
@@ -66,7 +124,8 @@ export class DeeplinkManager {
 
       try {
         const latestParams = await branch.getLatestReferringParams();
-        const deeplink = latestParams?.['+non_branch_link'] as string;
+        const deeplink =
+          DeeplinkManager.getDeeplinkFromBranchParams(latestParams);
         if (deeplink) {
           handleDeeplink({ uri: deeplink });
         }
@@ -112,16 +171,24 @@ export class DeeplinkManager {
     getBranchDeeplink();
 
     branch.subscribe((opts) => {
-      const { error } = opts;
+      const { error, uri, params } = opts;
       if (error) {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
-      getBranchDeeplink(opts.uri);
-      //TODO: that async call in the subscribe doesn't look good to me
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
+      // Prefer uri (universal link), then Branch params (webpage fallback e.g. X in-app browser)
+      const deeplink =
+        uri || DeeplinkManager.getDeeplinkFromBranchParams(params);
+      if (deeplink) {
         handleDeeplink({ uri: deeplink });
+        return;
+      }
+      branch.getLatestReferringParams().then((val) => {
+        const fallbackDeeplink =
+          DeeplinkManager.getDeeplinkFromBranchParams(val);
+        if (fallbackDeeplink) {
+          handleDeeplink({ uri: fallbackDeeplink });
+        }
       });
     });
   }

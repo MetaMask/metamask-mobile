@@ -240,6 +240,9 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
+      Logger.log(
+        `[DeeplinkDebug] saga: about to parse deeplink=${JSON.stringify(deeplink)}`,
+      );
       // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
       setTimeout(() => {
         SharedDeeplinkManager.parse(deeplink, {

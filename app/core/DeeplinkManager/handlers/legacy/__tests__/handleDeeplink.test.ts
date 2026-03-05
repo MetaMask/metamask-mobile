@@ -137,4 +137,16 @@ describe('handleDeeplink', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockCheckForDeeplink).not.toHaveBeenCalled();
   });
+
+  it('rewrites Branch fallback simulation URL to universal link when __DEV__ (simulator X case)', () => {
+    const simulationUri = 'metamask://__branch_fallback__/trending';
+    handleDeeplink({ uri: simulationUri });
+
+    const expectedUri = __DEV__
+      ? 'https://link.metamask.io/trending'
+      : simulationUri;
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(expectedUri, undefined);
+    expect(mockCheckForDeeplink).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
+  });
 });
