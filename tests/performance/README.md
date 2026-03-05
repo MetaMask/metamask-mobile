@@ -565,6 +565,29 @@ TEST_PASSWORD_LOGIN="your test password"
 TEST_PASSWORD_ONBOARDING="your onboarding password"
 ```
 
+### Sentry Performance Instrumentation (Optional)
+
+If you want each Appwright performance scenario to upload timer data to Sentry,
+set the following variables in `.e2e.env`:
+
+```bash
+# Required to enable upload
+E2E_PERFORMANCE_SENTRY_DSN="https://<publicKey>@<host>/<projectId>"
+
+# Optional controls
+E2E_PERFORMANCE_SENTRY_ENABLED=true
+E2E_PERFORMANCE_SENTRY_SAMPLE_RATE=1
+E2E_PERFORMANCE_SENTRY_ENVIRONMENT="e2e-performance"
+E2E_PERFORMANCE_SENTRY_RELEASE="mm-mobile-e2e-<build>"
+```
+
+What gets sent per scenario:
+
+- One Sentry `transaction` event per scenario
+- Each test timer as a numeric measurement (duration in milliseconds)
+- Scenario metadata (test name, project, tags, team, retry, worker)
+- Timer details (thresholds and pass/fail validation) in `extra.timer_steps`
+
 ## Reports and Metrics
 
 ### Per-Test Reports

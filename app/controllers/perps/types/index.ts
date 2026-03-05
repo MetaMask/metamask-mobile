@@ -310,6 +310,7 @@ export type ReadyToTradeResult = {
   error?: string;
   walletConnected?: boolean;
   networkSupported?: boolean;
+  authenticatedAddress?: string;
 };
 
 export type DisconnectResult = {
@@ -592,6 +593,23 @@ export type PerpsControllerConfig = {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
+
+  /**
+   * MYX provider credentials.
+   * Passed from the init file where `process.env.X` is babel-transformed at build time.
+   */
+  myxAppIdTestnet?: string;
+  myxApiSecretTestnet?: string;
+  myxBrokerAddressTestnet?: string;
+  myxAppIdMainnet?: string;
+  myxApiSecretMainnet?: string;
+  myxBrokerAddressMainnet?: string;
+
+  /**
+   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
+   * Must match the UI selector logic so the controller and UI agree on MYX availability.
+   */
+  myxProviderEnabled?: boolean;
 };
 
 export type PriceUpdate = {
@@ -893,7 +911,7 @@ export type Order = {
 export type Funding = {
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
-  rate: string; // Funding rate applied
+  rate?: string; // Funding rate applied (undefined when not available from provider)
   timestamp: number; // Funding payment timestamp
   transactionHash?: string; // Optional transaction hash
 };
