@@ -1,0 +1,100 @@
+import SecureKeychain from '../../../SecureKeychain';
+import Logger from '../../../../util/Logger';
+
+const KEYCHAIN_PREFIX = 'com.metamask.CARD_ONBOARDING';
+
+/**
+ * Onboarding session data stored in SecureKeychain, keyed by provider ID.
+ */
+export interface CardOnboardingData {
+  onboardingId: string | null;
+  contactVerificationId: string | null;
+  consentSetId: string | null;
+  selectedCountry: string | null;
+}
+
+export const EMPTY_ONBOARDING_DATA: CardOnboardingData = {
+  onboardingId: null,
+  contactVerificationId: null,
+  consentSetId: null,
+  selectedCountry: null,
+};
+
+function scopeOptions(providerId: string) {
+  return {
+    service: `${KEYCHAIN_PREFIX}_${providerId}`,
+    accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+  };
+}
+
+/**
+ * SecureKeychain wrapper for Card onboarding session data.
+ */
+export const CardOnboardingStore = {
+  async get(providerId: string): Promise<CardOnboardingData | null> {
+    try {
+      const item = await SecureKeychain.getSecureItem(scopeOptions(providerId));
+      if (!item) return null;
+
+      const data: Partial<CardOnboardingData> = JSON.parse(item.value);
+      return {
+        ...EMPTY_ONBOARDING_DATA,
+        ...data,
+      };
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: providerId },
+        context: {
+          name: 'CardOnboardingStore',
+          data: { method: 'get' },
+        },
+      });
+      return null;
+    }
+  },
+
+  async set(
+    providerId: string,
+    data: Partial<CardOnboardingData>,
+  ): Promise<boolean> {
+    try {
+      const current =
+        (await CardOnboardingStore.get(providerId)) ?? EMPTY_ONBOARDING_DATA;
+      const merged = { ...current, ...data };
+
+      const result = await SecureKeychain.setSecureItem(
+        `CARD_ONBOARDING_${providerId}`,
+        JSON.stringify(merged),
+        scopeOptions(providerId),
+      );
+      return result !== false;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: providerId },
+        context: {
+          name: 'CardOnboardingStore',
+          data: { method: 'set' },
+        },
+      });
+      return false;
+    }
+  },
+
+  async remove(providerId: string): Promise<boolean> {
+    try {
+      const result = await SecureKeychain.clearSecureScope(
+        scopeOptions(providerId),
+      );
+      return result !== false;
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: providerId },
+        context: {
+          name: 'CardOnboardingStore',
+          data: { method: 'remove' },
+        },
+      });
+      return false;
+    }
+  },
+};
