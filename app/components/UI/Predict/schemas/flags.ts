@@ -18,15 +18,15 @@ const DEFAULT_PROVIDER_FEE = 0.02; // 2%
 
 export const PredictFeeCollectionSchema = defaulted(
   object({
-    enabled: defaulted(boolean(), true),
+    enabled: defaulted(boolean(), () => true),
     collector: defaulted(Hex, () => DEFAULT_FEE_COLLECTOR),
-    metamaskFee: defaulted(number(), DEFAULT_METAMASK_FEE),
-    providerFee: defaulted(number(), DEFAULT_PROVIDER_FEE),
-    waiveList: defaulted(array(string()), []),
-    executors: defaulted(array(string()), []),
-    permit2Enabled: defaulted(boolean(), false),
+    metamaskFee: defaulted(number(), () => DEFAULT_METAMASK_FEE),
+    providerFee: defaulted(number(), () => DEFAULT_PROVIDER_FEE),
+    waiveList: defaulted(array(string()), () => []),
+    executors: defaulted(array(string()), () => []),
+    permit2Enabled: defaulted(boolean(), () => false),
   }),
-  {
+  () => ({
     enabled: true,
     collector: DEFAULT_FEE_COLLECTOR,
     metamaskFee: DEFAULT_METAMASK_FEE,
@@ -34,5 +34,5 @@ export const PredictFeeCollectionSchema = defaulted(
     waiveList: [],
     executors: [],
     permit2Enabled: false,
-  },
+  }),
 );
