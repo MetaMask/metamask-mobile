@@ -184,7 +184,7 @@ describe('LedgerMessageSignModal', () => {
     });
   });
 
-  it('handles canGoBack returning false', async () => {
+  it('dispatches resetEventStage even when canGoBack returns false', async () => {
     mockCanGoBack.mockReturnValue(false);
     const store = createStore(RPCStageTypes.COMPLETE);
 
@@ -194,7 +194,9 @@ describe('LedgerMessageSignModal', () => {
       </Provider>,
     );
 
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalled();
+    });
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });
