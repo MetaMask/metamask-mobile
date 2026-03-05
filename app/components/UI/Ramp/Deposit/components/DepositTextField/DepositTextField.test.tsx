@@ -7,18 +7,12 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
+import { mockTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
 
 const DEPOSIT_FIELD_TEST_ID = 'deposit-field-test-id';
 
-const mockTheme = {
-  colors: {
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    text: { muted: '#888888' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    error: { default: '#FF0000' },
-  },
-  themeAppearance: 'light',
-};
+let mockCurrentTheme = mockTheme;
 
 const defaultProps = {
   label: 'Test Label',
@@ -32,11 +26,15 @@ jest.mock('../../../../../hooks/useStyles', () => ({
       label: {},
       error: {},
     },
-    theme: mockTheme,
+    theme: mockCurrentTheme,
   }),
 }));
 
 describe('DepositTextField', () => {
+  beforeEach(() => {
+    mockCurrentTheme = mockTheme;
+  });
+
   it('should render default settings correctly', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     expect(wrapper).toMatchSnapshot();
@@ -56,6 +54,20 @@ describe('DepositTextField', () => {
     expect(textFieldComponent.exists()).toBe(true);
     expect(textFieldComponent.prop('keyboardAppearance')).toBe(
       mockTheme.themeAppearance,
+    );
+  });
+
+  it('should use dark keyboard appearance in dark theme', () => {
+    mockCurrentTheme = {
+      ...mockTheme,
+      themeAppearance: AppThemeKey.dark,
+    };
+
+    const wrapper = shallow(<DepositTextField {...defaultProps} />);
+    const textFieldComponent = wrapper.find(TextField);
+
+    expect(textFieldComponent.prop('keyboardAppearance')).toBe(
+      AppThemeKey.dark,
     );
   });
 

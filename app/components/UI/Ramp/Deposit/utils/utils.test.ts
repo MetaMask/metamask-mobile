@@ -213,6 +213,12 @@ describe('hasDepositOrderField', () => {
 });
 
 describe('generateThemeParameters', () => {
+  const mockDarkTheme = {
+    ...mockTheme,
+    colors: darkTheme.colors,
+    themeAppearance: AppThemeKey.dark,
+  };
+
   it('should generate correct theme parameters for light mode', () => {
     const themeAppearance = AppThemeKey.light;
     const colors = mockTheme.colors;
@@ -243,7 +249,7 @@ describe('generateThemeParameters', () => {
 
   it('should generate correct theme parameters for dark mode', () => {
     const themeAppearance = AppThemeKey.dark;
-    const colors = darkTheme.colors;
+    const colors = mockDarkTheme.colors;
     const result = generateThemeParameters(themeAppearance, colors);
     expect(result).toEqual({
       themeColor: colors.primary.default,

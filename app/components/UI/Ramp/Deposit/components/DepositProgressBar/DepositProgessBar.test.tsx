@@ -3,9 +3,12 @@ import { render } from '@testing-library/react-native';
 import DepositProgressBar from './DepositProgressBar';
 import { mockTheme } from '../../../../../../util/theme';
 
-const mockCompletedColor = mockTheme.colors.primary.default;
-const mockCurrentColor = mockTheme.colors.success.default;
-const mockTodoColor = mockTheme.colors.border.muted;
+const COMPLETED_COLOR = mockTheme.colors.primary.default;
+const CURRENT_COLOR = mockTheme.colors.success.default;
+const TODO_COLOR = mockTheme.colors.border.muted;
+const mockCompletedColor = COMPLETED_COLOR;
+const mockCurrentColor = CURRENT_COLOR;
+const mockTodoColor = TODO_COLOR;
 
 jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
@@ -42,19 +45,19 @@ describe('DepositProgressBar', () => {
     const step4 = getByTestId('deposit-progress-step-4');
 
     expect(JSON.stringify(step0.props.style)).toContain(
-      `"backgroundColor":"${mockCompletedColor}"`,
+      `"backgroundColor":"${COMPLETED_COLOR}"`,
     );
     expect(JSON.stringify(step1.props.style)).toContain(
-      `"backgroundColor":"${mockCompletedColor}"`,
+      `"backgroundColor":"${COMPLETED_COLOR}"`,
     );
     expect(JSON.stringify(step2.props.style)).toContain(
-      `"backgroundColor":"${mockCurrentColor}"`,
+      `"backgroundColor":"${CURRENT_COLOR}"`,
     );
     expect(JSON.stringify(step3.props.style)).toContain(
-      `"backgroundColor":"${mockTodoColor}"`,
+      `"backgroundColor":"${TODO_COLOR}"`,
     );
     expect(JSON.stringify(step4.props.style)).toContain(
-      `"backgroundColor":"${mockTodoColor}"`,
+      `"backgroundColor":"${TODO_COLOR}"`,
     );
   });
 
