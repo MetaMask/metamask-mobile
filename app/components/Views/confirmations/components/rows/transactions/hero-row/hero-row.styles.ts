@@ -10,7 +10,8 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     wrapper: {
-      minHeight: 100,
+      paddingTop: 12,
+      paddingBottom: 16,
       justifyContent: 'center',
       alignItems: layout === 'horizontal' ? 'stretch' : 'center',
     },
@@ -24,13 +25,13 @@ const styleSheet = (params: {
       borderRadius: 32,
     },
     skeletonBorderRadiusMedium: {
-      borderRadius: 6,
+      borderRadius: 4,
       marginTop: 16,
     },
     skeletonBorderRadiusSmall: {
       borderRadius: 4,
       marginTop: 8,
-      marginBottom: 14,
+      marginBottom: 12,
     },
     skeletonHorizontalContainer: {
       flexDirection: 'row',

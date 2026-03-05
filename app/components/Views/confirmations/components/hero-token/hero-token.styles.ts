@@ -17,6 +17,7 @@ const styleSheet = (params: {
     },
     assetAmountText: {
       textAlign: 'center',
+      paddingTop: 12,
     },
     assetTextUnknown: {
       color: theme.colors.text.alternative,

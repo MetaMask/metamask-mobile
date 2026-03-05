@@ -1,12 +1,17 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import PerpsProviderSelectorBadge from './PerpsProviderSelectorBadge';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePerpsProvider', () => ({
@@ -18,6 +23,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
     styles: {
       badgeContainer: {},
       badgeText: {},
+      testnetDot: {},
     },
   }),
 }));
@@ -32,7 +38,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
     __esModule: true,
     default: MockText,
     TextVariant: { BodySM: 'BodySM' },
-    TextColor: { Alternative: 'Alternative' },
+    TextColor: { Alternative: 'Alternative', Warning: 'Warning' },
   };
 });
 
@@ -45,16 +51,19 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
     ),
     IconName: { ArrowDown: 'ArrowDown' },
     IconSize: { Xs: 'Xs' },
-    IconColor: { Alternative: 'Alternative' },
+    IconColor: { Alternative: 'Alternative', Warning: 'Warning' },
   };
 });
 
 const mockNavigate = jest.fn();
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
+const mockUseSelector = useSelector as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
   (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
+  // Default to mainnet
+  mockUseSelector.mockReturnValue('mainnet');
 });
 
 describe('PerpsProviderSelectorBadge', () => {
@@ -91,7 +100,7 @@ describe('PerpsProviderSelectorBadge', () => {
     expect(getByText('MYX')).toBeTruthy();
   });
 
-  it('defaults to HyperLiquid when activeProvider is aggregated', () => {
+  it('shows All Providers when activeProvider is aggregated', () => {
     mockUsePerpsProvider.mockReturnValue({
       activeProvider: 'aggregated',
       isMultiProviderEnabled: true,
@@ -99,7 +108,7 @@ describe('PerpsProviderSelectorBadge', () => {
 
     const { getByText } = render(<PerpsProviderSelectorBadge testID="badge" />);
 
-    expect(getByText('HyperLiquid')).toBeTruthy();
+    expect(getByText('All Providers')).toBeOnTheScreen();
   });
 
   it('navigates to provider selection on press', () => {
@@ -132,5 +141,21 @@ describe('PerpsProviderSelectorBadge', () => {
     const badge = getByTestId('badge');
     expect(badge.props.accessibilityRole).toBe('button');
     expect(badge.props.accessibilityLabel).toContain('MYX');
+    expect(badge.props.accessibilityLabel).toContain('Mainnet');
+  });
+
+  it('renders testnet dot and warning styling when on testnet', () => {
+    mockUseSelector.mockReturnValue('testnet');
+    mockUsePerpsProvider.mockReturnValue({
+      activeProvider: 'hyperliquid',
+      isMultiProviderEnabled: true,
+    });
+
+    const { getByTestId } = render(
+      <PerpsProviderSelectorBadge testID="badge" />,
+    );
+
+    const badge = getByTestId('badge');
+    expect(badge.props.accessibilityLabel).toContain('Testnet');
   });
 });
