@@ -240,7 +240,9 @@ describe(SmokePredictions('Claim winnings:'), () => {
         );
         await PredictDetailsPage.tapBackButton();
 
-        await WalletView.scrollToPosition(positions.Won);
+        await Utilities.waitForElementToStopMoving(
+          WalletView.PredictionsTabContainer,
+        );
 
         await WalletView.tapPredictPosition(positions.Won);
 

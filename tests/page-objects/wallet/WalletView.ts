@@ -549,13 +549,29 @@ class WalletView {
     positionName: string,
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
-    const positionElement = (await Matchers.getElementByText(
-      positionName,
-    )) as unknown as DetoxElement;
-    await Gestures.scrollToElement(
-      positionElement,
-      this.predictScrollViewIdentifier,
-      { direction },
+    const swipeDirection = direction === 'down' ? 'up' : 'down';
+    const maxAttempts = 10;
+    for (let i = 0; i < maxAttempts; i++) {
+      try {
+        await waitFor(element(by.text(positionName)).atIndex(0))
+          .toBeVisible()
+          .withTimeout(500);
+        // Wait for element to stop moving after scroll before interacting
+        await Utilities.waitForElementToStopMoving(
+          element(by.text(positionName)).atIndex(0) as unknown as DetoxElement,
+          { timeout: 3000, interval: 200, stableCount: 3 },
+        );
+        return;
+      } catch {
+        await Gestures.swipe(
+          this.PredictionsTabContainer as unknown as DetoxElement,
+          swipeDirection,
+          { speed: 'slow', percentage: 0.5 },
+        );
+      }
+    }
+    throw new Error(
+      `scrollToPosition: "${positionName}" not found after ${maxAttempts} swipe attempts`,
     );
   }
 

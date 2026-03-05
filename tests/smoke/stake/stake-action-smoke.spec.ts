@@ -12,6 +12,8 @@ import Assertions from '../../framework/Assertions';
 import StakeView from '../../page-objects/Stake/StakeView';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import { Mockttp } from 'mockttp';
+import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 describe(SmokeTrade('Stake from Actions'), (): void => {
   const FIRST_ROW: number = 0;
@@ -52,11 +54,31 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
             options: {
               chainId: 1,
               // Fork mainnet so the staking contract is available
-              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
+              forkUrl: `https://mainnet.infura.io/v3/ce960be3442049ababedfc212d57b24b`,
             },
           },
         ],
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupMockRequest(mockServer, {
+            url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/getFees/,
+            response: {
+              blockNumber: '0x1',
+              baseFeePerGas: '0x3B9ACA00',
+              priorityFeeRange: ['0x3B9ACA00', '0x77359400'],
+              estimatedBaseFees: {
+                medium: [
+                  {
+                    maxPriorityFeePerGas: '0x3B9ACA00',
+                    maxFeePerGas: '0x77359400',
+                  },
+                ],
+              },
+            },
+            requestMethod: 'POST',
+            responseCode: 200,
+          });
+        },
       },
       async () => {
         await loginToApp();
