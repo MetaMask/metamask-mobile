@@ -127,6 +127,7 @@ class SendView {
     await Utilities.waitForElementToBeEnabled(this.reviewButton);
     await Gestures.waitAndTap(this.reviewButton, {
       elemDescription: 'Review button',
+      checkStability: true,
     });
   }
 

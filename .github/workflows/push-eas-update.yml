@@ -51,6 +51,23 @@ env:
   OTA_PUSH_PLATFORM: ${{ inputs.platform }}
 
 jobs:
+  ota-summary:
+    name: OTA Update Summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Display OTA Summary
+        run: |
+          {
+            echo "### OTA Update Summary"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Update version** | ${UPDATE_MESSAGE} |"
+            echo "| **Target version** | ${BASE_BRANCH_REF} |"
+            echo "| **Environment** | ${TARGET_CHANNEL} |"
+            echo "| **Target commit** | ${TARGET_COMMIT_HASH} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   setup-dependencies:
     name: Setup Dependencies (PR)
     needs:
