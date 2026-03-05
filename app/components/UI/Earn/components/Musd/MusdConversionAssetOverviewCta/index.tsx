@@ -53,7 +53,7 @@ const MusdConversionAssetOverviewCta = ({
   const submitCtaPressedEvent = () => {
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
 
-    const ctaText = strings('earn.musd_conversion.boost_title', {
+    const ctaText = strings('earn.musd_conversion.bonus_title', {
       percentage: MUSD_CONVERSION_APY,
     });
 
