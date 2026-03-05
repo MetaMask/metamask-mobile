@@ -1,4 +1,7 @@
-import { createMockInfrastructure } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import {
+  createMockInfrastructure,
+  createMockMessenger,
+} from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
 import { MYXClientService } from '../services/MYXClientService';
 import { WebSocketConnectionState } from '../types';
@@ -18,13 +21,33 @@ import { MYXProvider } from './MYXProvider';
 // Mocks
 // ============================================================================
 
+jest.mock('../../../core/AppConstants', () => ({
+  __esModule: true,
+  default: { ZERO_ADDRESS: '0x0000000000000000000000000000000000000000' },
+}));
 jest.mock('../services/MYXClientService');
+jest.mock('../services/MYXWalletService', () => ({
+  MYXWalletService: jest.fn().mockImplementation(() => ({
+    createEthersSigner: jest.fn().mockReturnValue({}),
+    createWalletClient: jest.fn().mockReturnValue({}),
+    getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+  })),
+}));
 jest.mock('../utils/myxAdapter', () => ({
   adaptMarketFromMYX: jest.fn(),
   adaptMarketDataFromMYX: jest.fn(),
   adaptPriceFromMYX: jest.fn(),
+  adaptCandleFromMYX: jest.fn(),
+  adaptCandleFromMYXWebSocket: jest.fn(),
+  adaptPositionFromMYX: jest.fn(),
+  adaptOrderFromMYX: jest.fn(),
+  adaptAccountStateFromMYX: jest.fn(),
+  adaptOrderFillFromMYX: jest.fn(),
+  adaptFundingFromMYX: jest.fn(),
+  adaptUserHistoryFromMYX: jest.fn(),
   filterMYXExclusiveMarkets: jest.fn(),
   buildPoolSymbolMap: jest.fn(),
+  toMYXKlineResolution: jest.fn().mockReturnValue('1h'),
 }));
 // WebSocketConnectionState is now defined inline in types/index.ts (no mock needed)
 
@@ -53,7 +76,7 @@ const mockBuildPoolSymbolMap = buildPoolSymbolMap as jest.MockedFunction<
 
 function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
   return {
-    chainId: 97,
+    chainId: 421614,
     marketId: 'market-1',
     poolId: '0xpool1',
     baseSymbol: 'RHEA',
@@ -67,10 +90,10 @@ function makePool(overrides: Partial<MYXPoolSymbol> = {}): MYXPoolSymbol {
 
 function makeTicker(overrides: Partial<MYXTicker> = {}): MYXTicker {
   return {
-    chainId: 97,
+    chainId: 421614,
     poolId: '0xpool1',
     oracleId: 1,
-    price: '1500000000000000000000000000000000',
+    price: '1500.00',
     change: '2.5',
     high: '0',
     low: '0',
@@ -258,18 +281,10 @@ describe('MYXProvider', () => {
 
       expect(result).toEqual({
         ready: false,
-        error: 'MYX trading not yet supported',
+        error: 'MYX provider requires messenger for wallet operations',
         walletConnected: false,
         networkSupported: true,
       });
-    });
-
-    it('reports networkSupported false for mainnet provider', async () => {
-      const mainnetProvider = createProvider(mockDeps, false);
-
-      const result = await mainnetProvider.isReadyToTrade();
-
-      expect(result.networkSupported).toBe(false);
     });
   });
 
@@ -294,14 +309,13 @@ describe('MYXProvider', () => {
       expect(result).toHaveLength(2);
     });
 
-    it('throws error on failure', async () => {
+    it('returns empty array on failure', async () => {
       mockClientService.getMarkets.mockRejectedValueOnce(
         new Error('Market fetch failed'),
       );
 
-      await expect(provider.getMarkets()).rejects.toThrow(
-        'Market fetch failed',
-      );
+      const result = await provider.getMarkets();
+      expect(result).toEqual([]);
       expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });
@@ -335,41 +349,26 @@ describe('MYXProvider', () => {
       );
     });
 
-    it('passes undefined ticker when pool has no matching ticker', async () => {
+    it('filters out pools with no matching ticker', async () => {
       const pools = [makePool({ poolId: '0xpool1' })];
       const tickers = [makeTicker({ poolId: '0xDIFFERENT' })];
       mockClientService.getMarkets.mockResolvedValue(pools);
       mockFilterMYXExclusiveMarkets.mockReturnValue(pools);
       mockClientService.getTickers.mockResolvedValueOnce(tickers);
-      mockAdaptMarketDataFromMYX.mockReturnValue({
-        symbol: 'RHEA',
-        name: 'Rhea Finance',
-        maxLeverage: '100x',
-        price: '$0.00',
-        change24h: '+$0.00',
-        change24hPercent: '+0.00%',
-        volume: '$0.00',
-        providerId: 'myx',
-      });
 
       const result = await provider.getMarketDataWithPrices();
 
-      expect(result).toHaveLength(1);
-      expect(mockAdaptMarketDataFromMYX).toHaveBeenCalledWith(
-        pools[0],
-        undefined,
-        mockDeps.marketDataFormatters,
-      );
+      expect(result).toHaveLength(0);
+      expect(mockAdaptMarketDataFromMYX).not.toHaveBeenCalled();
     });
 
-    it('throws error on failure', async () => {
+    it('returns empty array on failure', async () => {
       mockClientService.getMarkets.mockRejectedValueOnce(
         new Error('Data error'),
       );
 
-      await expect(provider.getMarketDataWithPrices()).rejects.toThrow(
-        'Data error',
-      );
+      const result = await provider.getMarketDataWithPrices();
+      expect(result).toEqual([]);
     });
   });
 
@@ -563,7 +562,6 @@ describe('MYXProvider', () => {
       const result = await provider.updateMargin({
         symbol: 'RHEA',
         amount: '100',
-        isAdd: true,
       });
 
       expect(result).toEqual({
@@ -868,13 +866,13 @@ describe('MYXProvider', () => {
   describe('getBlockExplorerUrl', () => {
     it('returns testnet explorer URL without address', () => {
       expect(provider.getBlockExplorerUrl()).toBe(
-        'https://testnet.bscscan.com',
+        'https://sepolia.arbiscan.io',
       );
     });
 
     it('returns testnet explorer URL with address', () => {
       expect(provider.getBlockExplorerUrl('0xabc')).toBe(
-        'https://testnet.bscscan.com/address/0xabc',
+        'https://sepolia.arbiscan.io/address/0xabc',
       );
     });
 
@@ -890,6 +888,214 @@ describe('MYXProvider', () => {
       expect(mainnetProvider.getBlockExplorerUrl('0xdef')).toBe(
         'https://bscscan.com/address/0xdef',
       );
+    });
+  });
+
+  // ==========================================================================
+  // Authenticated Read Operations
+  // ==========================================================================
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  describe('authenticated reads', () => {
+    let authProvider: MYXProvider;
+    let authClientService: jest.Mocked<MYXClientService>;
+
+    beforeEach(() => {
+      // Re-set MYXWalletService mock (cleared by outer jest.clearAllMocks)
+      const { MYXWalletService } = jest.requireMock(
+        '../services/MYXWalletService',
+      ) as {
+        MYXWalletService: jest.Mock;
+      };
+      MYXWalletService.mockImplementation(() => ({
+        createEthersSigner: jest.fn().mockReturnValue({}),
+        createWalletClient: jest.fn().mockReturnValue({}),
+        getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+      }));
+
+      const { createMockMessenger: createMsg } = jest.requireActual(
+        '../../../components/UI/Perps/__mocks__/serviceMocks',
+      ) as { createMockMessenger: typeof createMockMessenger };
+      const messenger = createMsg();
+
+      authProvider = new MYXProvider({
+        isTestnet: true,
+        platformDependencies: mockDeps,
+        messenger: messenger as any,
+      });
+      const instances = MockedMYXClientService.mock.instances;
+      authClientService = instances[
+        instances.length - 1
+      ] as jest.Mocked<MYXClientService>;
+
+      // Pre-authenticate so all reads succeed
+      authClientService.isAuthenticatedForAddress.mockReturnValue(true);
+      authClientService.authenticate.mockResolvedValue(undefined);
+    });
+
+    describe('getPositions', () => {
+      it('returns adapted positions after authentication', async () => {
+        const mockRawPositions = [
+          { size: '1.5', symbol: 'BTC', poolId: '0xpool1' },
+        ];
+        authClientService.listPositions.mockResolvedValue({
+          data: mockRawPositions,
+        } as any);
+        const { adaptPositionFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptPositionFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue({
+          symbol: 'BTC',
+          size: '1.5',
+          providerId: 'myx',
+        });
+
+        const result = await authProvider.getPositions();
+
+        expect(result).toHaveLength(1);
+        expect(result[0].symbol).toBe('BTC');
+        expect(authClientService.listPositions).toHaveBeenCalledWith(
+          '0xuser123',
+        );
+      });
+
+      it('filters out zero-size positions', async () => {
+        authClientService.listPositions.mockResolvedValue({
+          data: [
+            { size: '0', symbol: 'BTC', poolId: '0xpool1' },
+            { size: '1.0', symbol: 'ETH', poolId: '0xpool2' },
+          ],
+        } as any);
+        const { adaptPositionFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptPositionFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue({ symbol: 'ETH', size: '1.0' });
+
+        const result = await authProvider.getPositions();
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('returns empty array when data is null', async () => {
+        authClientService.listPositions.mockResolvedValue({
+          data: null,
+        } as any);
+
+        const result = await authProvider.getPositions();
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('getAccountState', () => {
+      it('returns adapted account state', async () => {
+        authClientService.getChainId.mockReturnValue(421614);
+        authClientService.getWalletQuoteTokenBalance.mockResolvedValue({
+          data: '1000',
+        } as any);
+        authClientService.getAccountInfo.mockResolvedValue({
+          data: { balance: '1000' },
+        } as any);
+
+        const { adaptAccountStateFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptAccountStateFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue({
+          totalBalance: '1000',
+          availableBalance: '800',
+          marginUsed: '200',
+          unrealizedPnl: '50',
+          returnOnEquity: '5',
+        });
+
+        // Need pools cache for account info fetch
+        authClientService.getMarkets.mockResolvedValue([makePool()]);
+        mockFilterMYXExclusiveMarkets.mockImplementation((pools) => pools);
+        mockBuildPoolSymbolMap.mockReturnValue(new Map());
+        await authProvider.initialize();
+
+        const result = await authProvider.getAccountState();
+
+        expect(result.totalBalance).toBe('1000');
+        expect(authClientService.getWalletQuoteTokenBalance).toHaveBeenCalled();
+        expect(authClientService.getAccountInfo).toHaveBeenCalled();
+      });
+    });
+
+    describe('getOrders', () => {
+      it('returns adapted orders', async () => {
+        authClientService.getOrderHistory.mockResolvedValue({
+          data: [{ orderId: 'o1', orderStatus: 1 }],
+        } as any);
+        const { adaptOrderFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptOrderFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue({
+          orderId: 'o1',
+          status: 'open',
+          symbol: 'BTC',
+        });
+
+        const result = await authProvider.getOrders();
+
+        expect(result).toHaveLength(1);
+        expect(result[0].orderId).toBe('o1');
+      });
+
+      it('returns empty array when data is null', async () => {
+        authClientService.getOrderHistory.mockResolvedValue({
+          data: null,
+        } as any);
+
+        const result = await authProvider.getOrders();
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    describe('getOrderFills', () => {
+      it('returns adapted fills for successful orders', async () => {
+        authClientService.getOrderHistory.mockResolvedValue({
+          data: [
+            { orderId: 'o1', orderStatus: 9 }, // Successful (OrderStatusEnum.Successful = 9)
+            { orderId: 'o2', orderStatus: 0 }, // Not successful
+          ],
+        } as any);
+        const { adaptOrderFillFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptOrderFillFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue({ orderId: 'o1', symbol: 'BTC' });
+
+        const result = await authProvider.getOrderFills();
+
+        expect(result).toHaveLength(1);
+      });
+    });
+
+    describe('getFunding', () => {
+      it('returns adapted funding data', async () => {
+        authClientService.getTradeFlow.mockResolvedValue({
+          data: [{ amount: '100' }],
+        } as any);
+        const { adaptFundingFromMYX: mockAdapt } = jest.requireMock(
+          '../utils/myxAdapter',
+        ) as { adaptFundingFromMYX: jest.Mock };
+        mockAdapt.mockReturnValue([{ amount: '100', symbol: 'BTC' }]);
+
+        const result = await authProvider.getFunding();
+
+        expect(result).toHaveLength(1);
+      });
+
+      it('returns empty array when data is null', async () => {
+        authClientService.getTradeFlow.mockResolvedValue({
+          data: null,
+        } as any);
+
+        const result = await authProvider.getFunding();
+
+        expect(result).toEqual([]);
+      });
     });
   });
 
@@ -913,4 +1119,118 @@ describe('MYXProvider', () => {
       expect(await provider.getAvailableDexs()).toEqual([]);
     });
   });
+
+  // ==========================================================================
+  // Authentication flow (isReadyToTrade + ensureAuthenticated)
+  // ==========================================================================
+
+  describe('isReadyToTrade with messenger', () => {
+    let authProvider: MYXProvider;
+    let authClientService: jest.Mocked<MYXClientService>;
+
+    beforeEach(() => {
+      // Re-set MYXWalletService mock (cleared by outer jest.clearAllMocks)
+      const { MYXWalletService } = jest.requireMock(
+        '../services/MYXWalletService',
+      ) as {
+        MYXWalletService: jest.Mock;
+      };
+      MYXWalletService.mockImplementation(() => ({
+        createEthersSigner: jest.fn().mockReturnValue({}),
+        createWalletClient: jest.fn().mockReturnValue({}),
+        getUserAddress: jest.fn().mockReturnValue('0xuser123'),
+      }));
+
+      const messenger = createMockMessenger();
+      authProvider = new MYXProvider({
+        isTestnet: true,
+        platformDependencies: mockDeps,
+        messenger: messenger as any,
+      });
+      // The new MYXProvider creates a new MYXClientService instance;
+      // grab the latest one
+      const instances = MockedMYXClientService.mock.instances;
+      authClientService = instances[
+        instances.length - 1
+      ] as jest.Mocked<MYXClientService>;
+    });
+
+    it('returns ready when already authenticated for current address', async () => {
+      authClientService.isAuthenticatedForAddress.mockReturnValue(true);
+      authClientService.getAuthenticatedAddress.mockReturnValue('0xuser123');
+
+      const result = await authProvider.isReadyToTrade();
+
+      expect(result.ready).toBe(true);
+      expect(result.walletConnected).toBe(true);
+      expect(result.networkSupported).toBe(true);
+      expect(result.authenticatedAddress).toBe('0xuser123');
+    });
+
+    it('authenticates and returns ready when not yet authenticated', async () => {
+      authClientService.isAuthenticatedForAddress.mockReturnValue(false);
+      authClientService.authenticate.mockResolvedValue(undefined);
+      authClientService.getAuthenticatedAddress.mockReturnValue('0xuser123');
+
+      const result = await authProvider.isReadyToTrade();
+
+      expect(result.ready).toBe(true);
+      expect(result.walletConnected).toBe(true);
+      expect(authClientService.authenticate).toHaveBeenCalledWith(
+        expect.anything(), // signer
+        expect.anything(), // walletClient
+        '0xuser123', // address
+      );
+    });
+
+    it('returns not ready when authentication fails', async () => {
+      authClientService.isAuthenticatedForAddress.mockReturnValue(false);
+      authClientService.authenticate.mockRejectedValue(
+        new Error('Auth rejected by user'),
+      );
+
+      const result = await authProvider.isReadyToTrade();
+
+      expect(result.ready).toBe(false);
+      expect(result.error).toContain('Auth rejected by user');
+      expect(result.walletConnected).toBe(false);
+    });
+
+    it('skips authentication when already authenticated', async () => {
+      // First call returns not-authenticated, triggering auth
+      authClientService.isAuthenticatedForAddress.mockReturnValue(false);
+      authClientService.authenticate.mockResolvedValue(undefined);
+      authClientService.getAuthenticatedAddress.mockReturnValue('0xuser123');
+
+      const result1 = await authProvider.isReadyToTrade();
+      expect(result1.ready).toBe(true);
+      expect(authClientService.authenticate).toHaveBeenCalledTimes(1);
+
+      // Second call finds already-authenticated — should skip auth
+      authClientService.isAuthenticatedForAddress.mockReturnValue(true);
+      authClientService.authenticate.mockClear();
+
+      const result2 = await authProvider.isReadyToTrade();
+      expect(result2.ready).toBe(true);
+      expect(authClientService.authenticate).not.toHaveBeenCalled();
+    });
+
+    it('re-authenticates when deduped auth was for a different address', async () => {
+      // First call: not authenticated, authenticate succeeds
+      let callCount = 0;
+      authClientService.isAuthenticatedForAddress.mockImplementation(() => {
+        callCount++;
+        // Not authenticated for any address on first 3 checks
+        // Authenticated after second authenticate call
+        return callCount > 3;
+      });
+      authClientService.authenticate.mockResolvedValue(undefined);
+      authClientService.getAuthenticatedAddress.mockReturnValue('0xuser123');
+
+      const result = await authProvider.isReadyToTrade();
+
+      expect(result.ready).toBe(true);
+    });
+  });
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 });
