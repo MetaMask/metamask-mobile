@@ -1002,7 +1002,12 @@ class AuthenticationService {
             const mnemonicToRestore = encodedSrp;
 
             // import the new mnemonic to the current vault
-            await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+            const entropySource =
+              await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+
+            // discover multichain accounts from imported srp
+            // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
+            this.attemptMultichainAccountWalletDiscovery(entropySource);
           } else {
             Logger.error(
               new Error('SeedlessOnboardingController: Unknown secret type'),
