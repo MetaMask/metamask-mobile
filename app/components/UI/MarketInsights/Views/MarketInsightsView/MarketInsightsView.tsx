@@ -399,12 +399,13 @@ const MarketInsightsView: React.FC = () => {
       <MarketInsightsViewHeader onBackPress={handleBackPress} />
 
       <ScrollView
-        contentContainerStyle={tw.style(`pb-[${insets.bottom + 16}px]`)}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style(`pb-4`)}
         showsVerticalScrollIndicator={false}
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
-            <Text variant={TextVariant.HeadingLg}>{report.headline}</Text>
+            <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
           </Box>
 
           <Box twClassName="px-4 pb-6">
@@ -461,7 +462,7 @@ const MarketInsightsView: React.FC = () => {
 
         <Box
           alignItems={BoxAlignItems.Center}
-          twClassName="border-t border-muted px-4 pt-4 pb-5"
+          twClassName="border-t border-muted px-4 pt-4"
           testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
         >
           <Box
@@ -510,26 +511,26 @@ const MarketInsightsView: React.FC = () => {
             {strings('market_insights.helpful_prompt')}
           </Text>
         </Box>
-        <Box twClassName="px-4">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleTradePress}
-            testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
-          >
-            {strings('market_insights.trade_button')}
-          </Button>
-          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.footer_disclaimer')}
-            </Text>
-          </Box>
-        </Box>
       </ScrollView>
+
+      <Box
+        twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+      >
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleTradePress}
+          testID={MarketInsightsSelectorsIDs.TRADE_BUTTON}
+        >
+          {strings('market_insights.trade_button')}
+        </Button>
+        <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('market_insights.footer_disclaimer')}
+          </Text>
+        </Box>
+      </Box>
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet

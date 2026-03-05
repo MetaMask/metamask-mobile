@@ -31,8 +31,8 @@ exports[`Login renders matching snapshot 1`] = `
         {
           "alignSelf": "center",
           "height": 80,
-          "marginBottom": 80,
-          "marginTop": 40,
+          "marginBottom": 60,
+          "marginTop": 60,
           "tintColor": "#131416",
           "width": 160,
         }
@@ -254,7 +254,7 @@ exports[`Login renders matching snapshot 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "marginTop": 16,
+            "marginTop": 4,
             "opacity": 0.5,
             "overflow": "hidden",
             "paddingHorizontal": 16,
@@ -297,6 +297,7 @@ exports[`Login renders matching snapshot 1`] = `
             "marginVertical": 0,
             "overflow": "hidden",
             "paddingHorizontal": 16,
+            "paddingTop": 16,
           }
         }
         testID="reset-wallet-button"
@@ -304,13 +305,17 @@ exports[`Login renders matching snapshot 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Forgot password?
@@ -402,8 +407,8 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         {
           "alignSelf": "center",
           "height": 80,
-          "marginBottom": 80,
-          "marginTop": 40,
+          "marginBottom": 60,
+          "marginTop": 60,
           "tintColor": "#131416",
           "width": 160,
         }
@@ -624,7 +629,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "marginTop": 16,
+            "marginTop": 4,
             "overflow": "hidden",
             "paddingHorizontal": 16,
           }
@@ -666,6 +671,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             "marginVertical": 0,
             "overflow": "hidden",
             "paddingHorizontal": 16,
+            "paddingTop": 16,
           }
         }
         testID="reset-wallet-button"
@@ -673,13 +679,17 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#4459ff",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Forgot password?
