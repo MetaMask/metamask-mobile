@@ -5,6 +5,13 @@ import { usePredictMarket } from './usePredictMarket';
 import { PredictMarket, Recurrence } from '../types';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 const mockGetMarket = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {

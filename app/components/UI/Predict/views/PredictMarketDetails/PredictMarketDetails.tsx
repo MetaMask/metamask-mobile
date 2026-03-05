@@ -32,9 +32,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart from '../../components/PredictDetailsChart/PredictDetailsChart';
 
-import Logger from '../../../../../util/Logger';
-import { PREDICT_CONSTANTS } from '../../constants/errors';
-import { ensureError } from '../../utils/predictErrorHandler';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
 import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
@@ -81,32 +78,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
     refetch: refetchMarket,
-    error: marketError,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
   const market = marketData ?? null;
-
-  useEffect(() => {
-    if (!marketError) return;
-
-    Logger.error(ensureError(marketError), {
-      tags: {
-        feature: PREDICT_CONSTANTS.FEATURE_NAME,
-        component: 'PredictMarketDetails',
-      },
-      context: {
-        name: 'PredictMarketDetails',
-        data: {
-          method: 'queryFn',
-          action: 'market_load',
-          operation: 'data_fetching',
-          marketId: resolvedMarketId,
-        },
-      },
-    });
-  }, [marketError, resolvedMarketId]);
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
