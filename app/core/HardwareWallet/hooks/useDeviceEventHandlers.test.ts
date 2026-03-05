@@ -422,6 +422,30 @@ describe('useDeviceEventHandlers', () => {
 
       expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
     });
+
+    it('handles error when both walletType and adapter walletType are null', () => {
+      mockRefs.adapterRef.current = null;
+      const { result } = createHook(null);
+
+      act(() => {
+        result.current.handleError(new Error('Test'));
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+    });
+
+    it('handles DeviceLocked when both walletType and adapter walletType are null', () => {
+      mockRefs.adapterRef.current = null;
+      const { result } = createHook(null);
+
+      act(() => {
+        result.current.handleDeviceEvent({
+          event: DeviceEvent.DeviceLocked,
+        });
+      });
+
+      expect(lastConnectionState.status).toBe(ConnectionStatus.ErrorState);
+    });
   });
 
   describe('with null adapter', () => {
