@@ -1,6 +1,53 @@
-# Writing Tests — Steps 1 & 2
+# Writing Tests — Steps 0–2
 
 Reference: [SKILL.md](../SKILL.md) · [Navigation & Mocking](navigation-mocking.md) · [Reference](reference.md)
+
+---
+
+## Step 0: Read Before Writing
+
+Before writing any test, read:
+
+- The component file under test
+- Any existing `*.view.test.tsx` for the same component
+- The relevant preset(s) in `tests/component-view/presets/`
+- The relevant renderer(s) in `tests/component-view/renderers/`
+
+---
+
+## Step 0.5: Enumerate Use Cases
+
+**Do this before writing a single test line.** Build a candidate list scoped and deduplicated against existing tests.
+
+### 1. List user-facing actions
+
+Ask: "What can a user **do** on this screen?" — type/paste input, press a button, select from a list, scroll/refresh, open/dismiss a modal, navigate to a sub-screen, wait for async data, long-press/swipe, toggle a setting.
+
+### 2. Map each action to a valid test pattern
+
+| User action / system event                            | Valid pattern                                         |
+| ----------------------------------------------------- | ----------------------------------------------------- |
+| Presses button → UI changes                           | `fireEvent.press` → `waitFor`                         |
+| Types input → value appears                           | `userEvent.type` or `fireEvent.changeText` → `findBy` |
+| Selects item → navigates                              | `userEvent.press` → route probe                       |
+| Redux action dispatched → Engine called               | `store.dispatch` + `act` → Engine spy                 |
+| Async data arrives → list renders                     | `findBy` / `waitFor`                                  |
+| User triggers action → API called with correct params | interaction → spy assertion                           |
+| Multi-step user journey → end state visible           | Multiple `fireEvent` → final `findBy`                 |
+
+Drop anything that only produces a render scenario: "The screen shows X when state is Y", "Button is disabled without input", "Token name appears in header".
+
+### 3. Deduplicate against existing tests
+
+Read `ComponentName.view.test.tsx` (if it exists) and remove any candidate already covered.
+
+### 4. Run coverage and prioritize
+
+```bash
+yarn test:view:coverage:folder app/components/UI/MyFeature
+```
+
+Focus on low branch coverage. Prioritize candidates that cover the most uncovered paths. Proceed directly to writing — no approval step needed.
 
 ---
 
@@ -16,25 +63,7 @@ ComponentName.view.test.tsx   ← always *.view.test.tsx
 
 A good test is driven by **user interaction or a meaningful business condition** — not by what is statically visible after render. If your test has no `fireEvent`, no `act`, no `waitFor`, and no Engine spy, ask yourself: am I just checking the initial render? If yes, it's a render scenario and it's an antipattern.
 
-**Render scenarios are antipatterns — avoid all of these forms:**
-
-```typescript
-// ❌ Single condition, static assertion
-it('disables the CTA when no source amount is set', () => {
-  const { getByTestId } = renderBridgeView({ overrides: { bridge: { sourceAmount: '' } } });
-  expect(getByTestId('cta-button')).toBeDisabled();
-});
-
-// ❌ Multiple static assertions — still just a render scenario, more assertions don't make it meaningful
-it('renders input areas and hides confirm button without tokens or amount', () => {
-  const { getByTestId, queryByTestId } = renderBridgeView({ overrides: { ... } });
-  expect(getByTestId(SOURCE_AREA)).toBeOnTheScreen();
-  expect(getByTestId(DEST_AREA)).toBeOnTheScreen();
-  expect(queryByTestId(CONFIRM_BUTTON)).toBeNull();
-});
-```
-
-**Good tests are interaction-driven or verify a meaningful business rule with a non-trivial state consequence:**
+Antipattern examples are in [`reference.md — What NOT to Do`](reference.md#what-not-to-do). **Good tests are interaction-driven or verify a meaningful business rule:**
 
 ```typescript
 // ✅ User types on keypad → fiat value reacts in real time
@@ -272,16 +301,7 @@ describeForPlatforms('MyView', () => {
 
 ### Import order
 
-**Hard requirement:** `tests/component-view/mocks` must be the very first import (side-effect import that installs the Engine and native module mocks before anything else loads).
-
-For all remaining imports, follow the project's ESLint import ordering rules. The order is flexible — a typical arrangement is:
-
-1. `tests/component-view/mocks` **(must be first)**
-2. Renderer (e.g. `renderBridgeView`)
-3. Platform helpers: `describeForPlatforms`, `itForPlatforms` from `app/util/test/platform`
-4. Selector ID constants from `./ComponentName.testIds`
-5. `@testing-library/react-native` utilities
-6. Any other test-specific constants or type imports
+`tests/component-view/mocks` **must be the very first import** — it installs Engine and native mocks before anything else loads. For remaining imports follow project ESLint rules: renderer → platform helpers → testIds constants → `@testing-library/react-native` → other.
 
 ---
 

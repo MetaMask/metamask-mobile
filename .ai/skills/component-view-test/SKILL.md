@@ -36,20 +36,8 @@ tests/component-view/
 ├── mocks.ts              ← Engine + native mocks (import this first, always)
 ├── render.tsx            ← renderComponentViewScreen, renderScreenWithRoutes
 ├── stateFixture.ts       ← StateFixtureBuilder (createStateFixture)
-├── presets/
-│   ├── bridge.ts         ← initialStateBridge()
-│   ├── wallet.ts         ← initialStateWallet()
-│   ├── trending.ts       ← initialStateTrending()
-│   ├── walletActions.ts  ← initialStateWalletActions()
-│   ├── perpsStatePreset.ts ← initialStatePerps()
-│   └── predict.ts        ← initialStatePredict()
-└── renderers/
-    ├── bridge.ts         ← renderBridgeView()
-    ├── wallet.ts         ← renderWalletView()
-    ├── trending.ts       ← renderTrendingView()
-    ├── walletActions.ts  ← renderWalletActionsView()
-    ├── perpsViewRenderer.tsx ← renderPerpsView()
-    └── predict.tsx       ← renderPredictFeedView(), renderPredictFeedViewWithRoutes()
+├── presets/              ← initialState<Feature>() builders — one file per feature area
+└── renderers/            ← render<Feature>View() functions — one file per feature area
 ```
 
 ---
@@ -181,86 +169,12 @@ flowchart TD
 
 ---
 
-## Step 0: Read Before Writing
-
-Before writing any test, read:
-
-- The component file under test
-- Any existing `*.view.test.tsx` for the same component
-- The relevant preset(s) in `tests/component-view/presets/`
-- The relevant renderer(s) in `tests/component-view/renderers/`
-
----
-
-## Step 0.5: Enumerate Use Cases and Check for Duplication
-
-**Do this before writing a single test line.** Produce a candidate list that is explicitly scoped and deduplicated.
-
-### 1. List User-Facing Actions
-
-Ask: "What can a user **do** on this screen?" Be exhaustive:
-
-- Type or paste input (amount, address, search query)
-- Press a button (CTA, confirm, cancel, back, copy)
-- Select an item from a list (token, network, account, chain)
-- Scroll to load more / pull to refresh
-- Dismiss or open a modal / bottom sheet
-- Navigate to a sub-screen
-- Wait for async data to arrive (API response, Engine polling)
-- Long-press or swipe an item
-- Toggle a setting or switch
-
-### 2. Map Each Action to a Component View Test Category
-
-Only keep actions that map to a **valid test pattern**. Drop anything that would only produce a render scenario.
-
-| User action / system event                            | Valid pattern                                         |
-| ----------------------------------------------------- | ----------------------------------------------------- |
-| Presses button → UI changes                           | `fireEvent.press` → `waitFor`                         |
-| Types input → value appears                           | `userEvent.type` or `fireEvent.changeText` → `findBy` |
-| Selects item → navigates                              | `userEvent.press` → route probe                       |
-| Redux action dispatched → Engine called               | `store.dispatch` + `act` → Engine spy                 |
-| Async data arrives → list renders                     | `findBy` / `waitFor`                                  |
-| User triggers action → API called with correct params | interaction → spy assertion                           |
-| Multi-step user journey → end state visible           | Multiple `fireEvent` → final `findBy`                 |
-
-**Drop these — they are render scenarios:**
-
-- "The screen shows X when state is Y" (no interaction, no async, no dispatch)
-- "The button is disabled when no amount is set" (static check, no action)
-- "The token name appears in the header" (initial render only)
-
-### 3. Check Existing View Tests for Duplication
-
-For each remaining candidate, read `ComponentName.view.test.tsx` (if it exists) and ask:
-
-- Is there already a view test that covers this exact interaction?
-
-Remove duplicates from your candidate list.
-
-### 4. Run Coverage to Identify Impact
-
-Before finalizing the candidate list, run coverage on the feature area:
-
-```bash
-yarn test:view:coverage:folder app/components/UI/MyFeature
-```
-
-Read the coverage table output. Focus on:
-
-- Files with **low line/branch coverage**
-- **Uncovered branches** — conditions like `if (isLoading)`, `if (error)` that have no test
-
-Use this to **prioritize** your candidate list: implement the tests that cover the most uncovered paths first. Then proceed directly to writing the tests — no approval step needed.
-
----
-
 ## Supporting Files
 
 For detailed guidance, examples, and code templates, consult these files:
 
-| File                                                                   | Content                                                                                                                                                   |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`references/writing-tests.md`](references/writing-tests.md)           | Step 1 (test file structure, antipatterns, good examples, minimal template, import order) + Step 2 (renderers, presets, React Query, route params)        |
-| [`references/navigation-mocking.md`](references/navigation-mocking.md) | Step 3 (route probes, single nav push, multi-screen renderer, cross-screen journey, userEvent) + Step 4 (external service / API mocking, MSW placeholder) |
-| [`references/reference.md`](references/reference.md)                   | Step 5 (fiat), Step 6 (run commands), Step 6.5 (self-review checklist), Step 7 (failure diagnosis), Assertion Patterns, What NOT to Do, Quick Reference   |
+| File                                                                   | Content                                                                                                                                                                                                                  |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`references/writing-tests.md`](references/writing-tests.md)           | Step 0 (read before writing), Step 0.5 (enumerate use cases, deduplicate, coverage), Step 1 (test file structure, good examples, minimal template, import order), Step 2 (renderers, presets, React Query, route params) |
+| [`references/navigation-mocking.md`](references/navigation-mocking.md) | Step 3 (route probes, single nav push, multi-screen renderer, cross-screen journey, userEvent) + Step 4 (external service / API mocking, MSW placeholder)                                                                |
+| [`references/reference.md`](references/reference.md)                   | Step 5 (fiat), Step 6 (run commands), Step 6.5 (self-review checklist), Step 7 (failure diagnosis), Assertion Patterns, What NOT to Do, Quick Reference                                                                  |
