@@ -90,7 +90,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -144,7 +144,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller-init';
+import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -167,7 +167,7 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
-import { storageServiceInit } from './controllers/storage-service-init';
+import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';

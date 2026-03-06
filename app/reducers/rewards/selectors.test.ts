@@ -49,12 +49,17 @@ import {
   selectBulkLinkAccountProgress,
   selectSnapshotsLoading,
   selectSnapshotsError,
+  selectCampaigns,
+  selectCampaignsLoading,
+  selectCampaignsError,
 } from './selectors';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
   SeasonActivityTypeDto,
+  CampaignDto,
+  CampaignType,
   SeasonWayToEarnDto,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
@@ -3171,6 +3176,107 @@ describe('Rewards selectors', () => {
       it('returns true when snapshotsError is true', () => {
         const state = createMockRootState({ snapshotsError: true });
         expect(selectSnapshotsError(state)).toBe(true);
+      });
+    });
+  });
+
+  const mockCampaign: CampaignDto = {
+    id: 'campaign-1',
+    type: 'ONDO_HOLDING' as CampaignType,
+    name: 'ONDO Holding Campaign',
+    startDate: '2025-01-01T00:00:00.000Z',
+    endDate: '2027-01-01T00:00:00.000Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    statusLabel: 'Active',
+  };
+
+  describe('selectCampaigns', () => {
+    it('returns empty array when campaigns is empty', () => {
+      const mockState = { rewards: { campaigns: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns campaigns array when campaigns exist', () => {
+      const mockState = { rewards: { campaigns: [mockCampaign] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([mockCampaign]);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns empty array when campaigns is empty', () => {
+        const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns campaigns when they exist', () => {
+        const state = createMockRootState({ campaigns: [mockCampaign] });
+        expect(selectCampaigns(state)).toEqual([mockCampaign]);
+      });
+    });
+  });
+
+  describe('selectCampaignsLoading', () => {
+    it('returns false when campaigns are not loading', () => {
+      const mockState = { rewards: { campaignsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when campaigns are loading', () => {
+      const mockState = { rewards: { campaignsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsLoading is false', () => {
+        const state = createMockRootState({ campaignsLoading: false });
+        expect(selectCampaignsLoading(state)).toBe(false);
+      });
+
+      it('returns true when campaignsLoading is true', () => {
+        const state = createMockRootState({ campaignsLoading: true });
+        expect(selectCampaignsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignsError', () => {
+    it('returns false when there is no campaigns error', () => {
+      const mockState = { rewards: { campaignsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a campaigns error', () => {
+      const mockState = { rewards: { campaignsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsError is false', () => {
+        const state = createMockRootState({ campaignsError: false });
+        expect(selectCampaignsError(state)).toBe(false);
+      });
+
+      it('returns true when campaignsError is true', () => {
+        const state = createMockRootState({ campaignsError: true });
+        expect(selectCampaignsError(state)).toBe(true);
       });
     });
   });

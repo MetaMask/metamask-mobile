@@ -52,6 +52,7 @@ import {
   ParamListBase,
   RouteProp,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -182,6 +183,7 @@ import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -639,6 +641,8 @@ const Wallet = ({
   // Callbacks registered by sections to be notified of scroll events.
   // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // Tracks which sections have been viewed this visit (reset on each focus).
+  const viewedSectionsRef = useRef<Set<string>>(new Set());
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -662,6 +666,7 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
    * Object containing the balance of the current selected account
@@ -1072,27 +1077,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  useEffect(
-    () => {
-      requestAnimationFrame(async () => {
-        const { AccountTrackerController } = Engine.context;
-
-        const networkClientIDs = Object.values(evmNetworkConfigurations)
-          .map(
-            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-          )
-          .filter((c) => Boolean(c));
-
-        AccountTrackerController.refresh(networkClientIDs);
-      });
-    },
-    /* eslint-disable-next-line */
-    // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
-    // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
-  );
-
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
@@ -1100,6 +1084,8 @@ const Wallet = ({
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
+
+  const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
@@ -1392,6 +1378,20 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
+  // Reset viewed sections on each new visit so session summary starts fresh.
+  useEffect(() => {
+    viewedSectionsRef.current.clear();
+  }, [visitId]);
+
+  const notifySectionViewed = useCallback((sectionName: string) => {
+    viewedSectionsRef.current.add(sectionName);
+  }, []);
+
+  const getViewedSectionCount = useCallback(
+    () => viewedSectionsRef.current.size,
+    [],
+  );
+
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
@@ -1399,13 +1399,22 @@ const Wallet = ({
       containerScreenY,
       entryPoint,
       visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
     }),
-    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
+    [
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
+    ],
   );
 
   const content = (
     <>
-      <AssetPollingProvider />
       <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
@@ -1441,17 +1450,23 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-            <Homepage ref={homepageRef} />
-          </HomepageScrollContext.Provider>
+          <>
+            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
+              <Homepage ref={homepageRef} />
+            </HomepageScrollContext.Provider>
+          </>
         ) : (
-          <WalletTokensTabView
-            ref={walletTokensTabViewRef}
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-          />
+          <>
+            {isFocused && <AssetPollingProvider />}
+            <WalletTokensTabView
+              ref={walletTokensTabViewRef}
+              navigation={navigation}
+              onChangeTab={onChangeTab}
+              defiEnabled={defiEnabled}
+              collectiblesEnabled={collectiblesEnabled}
+            />
+          </>
         )}
       </>
     </>
