@@ -2,24 +2,22 @@ import React, { useMemo } from 'react';
 import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './QuoteDetailsCard.styles';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Text,
+  TextVariant,
+  TextColor,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -45,6 +43,14 @@ import TagColored, {
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
+import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
+import {
+  TextVariant as TextVariantLegacy,
+  TextColor as TextColorLegacy,
+} from '../../../../../component-library/components/Texts/Text';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { formatPriceImpact } from '../../utils/formatPriceImpact';
 
 if (
   Platform.OS === 'android' &&
@@ -55,6 +61,7 @@ if (
 
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
+  location,
 }) => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -64,7 +71,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
-    shouldShowPriceImpactWarning,
   } = useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -103,7 +109,28 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     });
   };
 
-  // Early return for invalid states
+  const handlePriceImpactPress = () => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+      params: {
+        type: PriceImpactModalType.Info,
+        token: sourceToken,
+        location,
+      },
+    });
+  };
+
+  const isGasless = isGaslessQuote(activeQuote?.quote);
+
+  const formattedMinToTokenAmount = formatMinimumReceived(
+    activeQuote?.minToTokenAmount?.amount || '0',
+  );
+
+  const priceImactViewData = useMemo(
+    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
+    [formattedQuoteData?.priceImpact],
+  );
+
   if (
     !sourceToken?.chainId ||
     !destToken?.chainId ||
@@ -112,14 +139,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   ) {
     return null;
   }
-
-  const { networkFee, rate, priceImpact, slippage } = formattedQuoteData;
-
-  const isGasless = isGaslessQuote(activeQuote?.quote);
-
-  const formattedMinToTokenAmount = formatMinimumReceived(
-    activeQuote?.minToTokenAmount?.amount || '0',
-  );
 
   return (
     <Box>
@@ -133,8 +152,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 gap={1}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('bridge.rate')}
                 </Text>
@@ -145,19 +164,19 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
+              iconName: IconNameLegacy.Info,
             },
           }}
           value={{
             label: (
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.8}
-                color={TextColor.Alternative}
               >
-                {rate}
+                {formattedQuoteData.rate}
               </Text>
             ),
           }}
@@ -167,7 +186,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             field={{
               label: {
                 text: strings('bridge.network_fee'),
-                variant: TextVariant.BodyMDMedium,
+                variant: TextVariantLegacy.BodyMDMedium,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
@@ -175,7 +194,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   nativeToken: nativeTokenName,
                 }),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
@@ -183,7 +202,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 <TagColored
                   color={TagColor.Success}
                   labelProps={{
-                    variant: TextVariant.BodySM,
+                    variant: TextVariantLegacy.BodySM,
                     style: {
                       textTransform: 'none',
                       textAlign: 'center',
@@ -203,7 +222,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {toSentenceCase(strings('bridge.network_fee'))}
             </Text>
             <Box
@@ -212,13 +234,16 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               gap={2}
             >
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.strikethroughText}
-                color={TextColor.Alternative}
               >
-                {networkFee}
+                {formattedQuoteData.networkFee}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('bridge.included')}
               </Text>
             </Box>
@@ -228,21 +253,21 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             field={{
               label: {
                 text: toSentenceCase(strings('bridge.network_fee')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
               },
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
               label: {
-                text: networkFee,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                text: formattedQuoteData.networkFee,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
               },
             }}
           />
@@ -252,14 +277,14 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           field={{
             label: {
               text: strings('bridge.slippage'),
-              variant: TextVariant.BodyMD,
-              color: TextColor.Alternative,
+              variant: TextVariantLegacy.BodyMD,
+              color: TextColorLegacy.Alternative,
             },
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
               size: TooltipSizes.Sm,
-              iconName: IconName.Info,
+              iconName: IconNameLegacy.Info,
             },
           }}
           value={{
@@ -271,15 +296,15 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 style={styles.slippageButton}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
-                  {slippage}
+                  {formattedQuoteData.slippage}
                 </Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                 />
               </TouchableOpacity>
             ),
@@ -291,54 +316,63 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             field={{
               label: {
                 text: toSentenceCase(strings('bridge.minimum_received')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
               },
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
                 size: TooltipSizes.Sm,
-                iconName: IconName.Info,
+                iconName: IconNameLegacy.Info,
               },
             }}
             value={{
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
               },
             }}
           />
         )}
 
-        {priceImpact && (
-          <KeyValueRow
-            field={{
-              label: {
-                text: toSentenceCase(strings('bridge.price_impact')),
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
-              tooltip: {
-                title: strings('bridge.price_impact_info_title'),
-                content: isGasless
-                  ? strings('bridge.price_impact_info_gasless_description')
-                  : strings('bridge.price_impact_info_description'),
-                size: TooltipSizes.Sm,
-                iconName: IconName.Info,
-              },
-            }}
-            value={{
-              label: {
-                text: priceImpact,
-                variant: TextVariant.BodyMD,
-                color: shouldShowPriceImpactWarning
-                  ? TextColor.Error
-                  : TextColor.Alternative,
-              },
-            }}
-          />
-        )}
+        <KeyValueRow
+          field={{
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {toSentenceCase(strings('bridge.price_impact'))}
+                </Text>
+                <TouchableOpacity
+                  testID="price-impact-info-button"
+                  onPress={handlePriceImpactPress}
+                  activeOpacity={0.6}
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </TouchableOpacity>
+              </Box>
+            ),
+          }}
+          value={{
+            icon: priceImactViewData.icon,
+            label: {
+              text: formatPriceImpact(formattedQuoteData.priceImpact),
+              variant: TextVariantLegacy.BodyMD,
+              color: priceImactViewData.textColor,
+            },
+          }}
+        />
 
         <QuoteDetailsRecipientKeyValueRow />
 
@@ -349,7 +383,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               field={{
                 label: {
                   text: toSentenceCase(strings('bridge.points')),
-                  variant: TextVariant.BodyMD,
+                  variant: TextVariantLegacy.BodyMD,
                 },
                 tooltip: {
                   title: strings('bridge.points_tooltip'),
@@ -357,7 +391,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.points_tooltip_content_1',
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
                   size: TooltipSizes.Sm,
-                  iconName: IconName.Info,
+                  iconName: IconNameLegacy.Info,
                 },
               }}
               value={{
@@ -394,7 +428,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     title: strings('bridge.points_error'),
                     content: strings('bridge.points_error_content'),
                     size: TooltipSizes.Sm,
-                    iconName: IconName.Info,
+                    iconName: IconNameLegacy.Info,
                   },
                 }),
               }}
