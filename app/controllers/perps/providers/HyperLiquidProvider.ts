@@ -2,6 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { CandlePeriod } from '../constants/chartConfig';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
@@ -14,6 +15,7 @@ import {
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
+  SPOT_ASSET_ID_OFFSET,
   TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
@@ -45,6 +47,7 @@ import type {
   CancelOrderParams,
   CancelOrderResult,
   CancelOrdersResult,
+  CandleData,
   ClosePositionParams,
   ClosePositionsParams,
   ClosePositionsResult,
@@ -1700,7 +1703,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
-    const spotAssetId = 10000 + usdhUsdcPair.index;
+    const spotAssetId = SPOT_ASSET_ID_OFFSET + usdhUsdcPair.index;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Found USDH/USDC spot pair',
@@ -7495,6 +7498,23 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       throw error;
     }
+  }
+
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    this.#clientService.ensureInitialized();
+    const result = await this.#clientService.fetchHistoricalCandles(options);
+    return (
+      result ?? {
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
+      }
+    );
   }
 
   /**
