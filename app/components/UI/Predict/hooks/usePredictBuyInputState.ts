@@ -1,13 +1,13 @@
-import { SetStateAction, useCallback, useState } from 'react';
+import { SetStateAction, useCallback, useMemo, useState } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../types/navigation';
-import { useSelector } from 'react-redux';
-import { selectPredictActiveOrder } from '../selectors/predictController';
+
+import { usePredictActiveOrder } from './usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
-  const activeOrder = useSelector(selectPredictActiveOrder);
+  const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
 
   const { amount } = route.params;
 
@@ -21,9 +21,21 @@ export const usePredictBuyInputState = () => {
   const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
     autoPlaceAmount ? autoPlaceAmount.toString() : '',
   );
-  const [isInputFocused, setIsInputFocused] = useState(
-    activeOrder?.isInputFocused ?? false,
+
+  const isInputFocused = useMemo(
+    () => activeOrder?.isInputFocused ?? false,
+    [activeOrder],
   );
+
+  const setIsInputFocused = useCallback(
+    (_isInputFocused: boolean) => {
+      updateActiveOrder({
+        isInputFocused: _isInputFocused,
+      });
+    },
+    [updateActiveOrder],
+  );
+
   const [isUserInputChange, setIsUserInputChange] = useState(false);
 
   const setCurrentValue = useCallback((value: SetStateAction<number>) => {

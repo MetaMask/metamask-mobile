@@ -10,16 +10,16 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useConfirmActions } from '../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
 import { PlaceOrderOutcome } from './usePredictPlaceOrder';
-import { OrderPreview, PlaceOrderParams } from '../types';
+import { ActiveOrderState, OrderPreview, PlaceOrderParams } from '../types';
 import { strings } from '../../../../../locales/i18n';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { usePredictActiveOrder } from './usePredictActiveOrder';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
-  setIsPayWithAnyTokenLoading: (isLoading: boolean) => void;
   depositAmount: number;
 }
 
@@ -28,7 +28,6 @@ export const usePredictBuyActions = ({
   preview,
   analyticsProperties,
   placeOrder,
-  setIsPayWithAnyTokenLoading,
 }: UsePredictBuyActionsParams) => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
@@ -36,11 +35,11 @@ export const usePredictBuyActions = ({
   const { onReject } = useConfirmActions();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
+  const { updateActiveOrder } = usePredictActiveOrder();
   const [
     isPreviewFromPayWithAnyTokenUsed,
     setIsPreviewFromPayWithAnyTokenUsed,
   ] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
 
   const {
     market,
@@ -54,21 +53,19 @@ export const usePredictBuyActions = ({
   } = route.params;
 
   const redirectToBuyPreview = useCallback(
-    ({
-      includeTransactionId,
-      includePreview,
-    }: {
-      includeTransactionId: boolean;
-      includePreview: boolean;
-    }) => {
+    (params?: { includeTransaction: boolean }) => {
       navigation.dispatch(
         StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, {
           market,
           outcome,
           outcomeToken,
           ...(currentValue > 0 ? { amount: currentValue } : {}),
-          ...(includeTransactionId && transactionId ? { transactionId } : {}),
-          ...(includePreview && preview ? { preview: { ...preview } } : {}),
+          ...(params?.includeTransaction && transactionId
+            ? { transactionId }
+            : {}),
+          ...(params?.includeTransaction && preview
+            ? { preview: { ...preview } }
+            : {}),
           animationEnabled: false,
           entryPoint,
         }),
@@ -92,23 +89,30 @@ export const usePredictBuyActions = ({
         if (tokenKey !== 'predict-balance') {
           return;
         }
-        redirectToBuyPreview({
-          includeTransactionId: false,
-          includePreview: false,
+        updateActiveOrder({
+          state: ActiveOrderState.PREVIEW,
+          transactionId: null,
         });
+        redirectToBuyPreview();
         onReject(undefined, true);
         return;
       }
       if (tokenKey !== 'predict-balance') {
-        setIsPayWithAnyTokenLoading(true);
-        await triggerPayWithAnyToken({
+        updateActiveOrder({
+          state: ActiveOrderState.REDIRECTING,
+        });
+        const response = await triggerPayWithAnyToken({
           market,
           outcome,
           outcomeToken,
           isInputFocused,
           ...(currentValue > 0 ? { amount: currentValue } : {}),
         });
-        setIsPayWithAnyTokenLoading(false);
+
+        updateActiveOrder({
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          transactionId: response?.transactionId,
+        });
       }
     },
     [
@@ -120,15 +124,17 @@ export const usePredictBuyActions = ({
       outcome,
       outcomeToken,
       redirectToBuyPreview,
-      setIsPayWithAnyTokenLoading,
       triggerPayWithAnyToken,
+      updateActiveOrder,
     ],
   );
 
   const handleDepositFailed = useCallback(
     async (depositErrorMessage?: string) => {
-      setIsPayWithAnyTokenLoading(true);
-      await triggerPayWithAnyToken({
+      updateActiveOrder({
+        state: ActiveOrderState.REDIRECTING,
+      });
+      const response = await triggerPayWithAnyToken({
         market,
         outcome,
         outcomeToken,
@@ -137,10 +143,13 @@ export const usePredictBuyActions = ({
         transactionError:
           depositErrorMessage ?? strings('predict.deposit.error_description'),
       });
-      setIsPayWithAnyTokenLoading(false);
+      updateActiveOrder({
+        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        transactionId: response?.transactionId,
+      });
     },
     [
-      setIsPayWithAnyTokenLoading,
+      updateActiveOrder,
       triggerPayWithAnyToken,
       market,
       outcome,
@@ -152,11 +161,12 @@ export const usePredictBuyActions = ({
 
   const handleConfirm = useCallback(async () => {
     if (isConfirmation) {
-      setIsConfirming(true);
-      setIsPayWithAnyTokenLoading(true);
+      updateActiveOrder({
+        state: ActiveOrderState.DEPOSITING,
+        transactionId,
+      });
       redirectToBuyPreview({
-        includeTransactionId: true,
-        includePreview: true,
+        includeTransaction: true,
       });
       await onApprovalConfirm({
         deleteAfterResult: true,
@@ -175,6 +185,9 @@ export const usePredictBuyActions = ({
         throw new Error('Preview is required');
       }
       setIsPreviewFromPayWithAnyTokenUsed(true);
+      updateActiveOrder({
+        state: ActiveOrderState.PLACING_ORDER,
+      });
       await placeOrder({
         analyticsProperties,
         preview: previewFromPayWithAnyToken,
@@ -185,6 +198,10 @@ export const usePredictBuyActions = ({
     if (!preview) {
       throw new Error('Preview is required');
     }
+
+    updateActiveOrder({
+      state: ActiveOrderState.PLACING_ORDER,
+    });
     await placeOrder({
       analyticsProperties,
       preview,
@@ -198,14 +215,18 @@ export const usePredictBuyActions = ({
     preview,
     previewFromPayWithAnyToken,
     redirectToBuyPreview,
-    setIsPayWithAnyTokenLoading,
     transactionId,
+    updateActiveOrder,
   ]);
+
+  const handlePlaceOrderSuccess = useCallback(() => {
+    navigation.dispatch(StackActions.pop());
+  }, [navigation]);
 
   return {
     handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
-    isConfirming,
+    handlePlaceOrderSuccess,
   };
 };

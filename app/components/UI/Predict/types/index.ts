@@ -13,6 +13,8 @@ export enum ActiveOrderState {
   PREVIEW = 'preview',
   DEPOSITING = 'depositing',
   PLACING_ORDER = 'placing_order',
+  REDIRECTING = 'redirecting',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
 }
 
 export enum PredictPriceHistoryInterval {

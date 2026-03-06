@@ -1,10 +1,5 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  RouteProp,
-  StackActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -48,7 +43,6 @@ import { usePredictBuyConditions } from '../../hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from '../../hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
 import { usePredictBuyActions } from '../../hooks/usePredictBuyPreviewActions';
-import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -63,12 +57,12 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import PredictPayWithAnyTokenInfo from '../../components/PredictPayWithAnyTokenInfo';
+import { usePredictInitActiveOrder } from '../../hooks/usePredictInitActiveOrder';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -81,10 +75,8 @@ const PredictBuyPreview = () => {
     isConfirmation,
   } = route.params;
 
-  usePredictActiveOrder({ shouldInit: true });
+  usePredictInitActiveOrder();
 
-  const [isPayWithAnyTokenLoading, setIsPayWithAnyTokenLoading] =
-    useState(false);
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
   const analyticsProperties = useMemo(
@@ -211,34 +203,36 @@ const PredictBuyPreview = () => {
     isPlaceOrderLoading,
   });
 
-  const { handleTokenSelected, handleConfirm, handleDepositFailed } =
-    usePredictBuyActions({
-      currentValue,
-      analyticsProperties,
-      preview,
-      placeOrder,
-      setIsPayWithAnyTokenLoading,
-      depositAmount: total - depositFee,
-    });
+  const {
+    handleTokenSelected,
+    handleConfirm,
+    handleDepositFailed,
+    handlePlaceOrderSuccess,
+  } = usePredictBuyActions({
+    currentValue,
+    analyticsProperties,
+    preview,
+    placeOrder,
+    depositAmount: total - depositFee,
+  });
 
-  const { isProcessing: isPayWithAnyTokenProcessing } =
-    usePredictPayWithAnyTokenTracking({
-      transactionId,
-      onFail: handleDepositFailed,
-      onConfirm: handleConfirm,
-    });
+  usePredictPayWithAnyTokenTracking({
+    transactionId,
+    onFail: handleDepositFailed,
+    onConfirm: handleConfirm,
+  });
 
   const {
     isPlacingOrder,
     isBelowMinimum,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
+    isPayFeesLoading,
   } = usePredictBuyConditions({
     currentValue,
     preview,
     isPreviewCalculating,
     isPlaceOrderLoading,
-    isPayWithAnyTokenProcessing,
     isUserInputChange,
   });
 
@@ -283,9 +277,9 @@ const PredictBuyPreview = () => {
 
   useEffect(() => {
     if (result?.success) {
-      dispatch(StackActions.pop());
+      handlePlaceOrderSuccess();
     }
-  }, [dispatch, result]);
+  }, [handlePlaceOrderSuccess, result]);
 
   const edges = useMemo(
     () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
@@ -330,7 +324,7 @@ const PredictBuyPreview = () => {
       >
         <PredictFeeSummary
           disabled={isInputFocused}
-          loading={isPayWithAnyTokenLoading}
+          loading={isPayFeesLoading}
           total={total}
           rewardsFeeAmountUsd={rewardsFeeAmount}
           rewardsLoadingOverride={isUserChangeTriggeringCalculation}
@@ -340,7 +334,7 @@ const PredictBuyPreview = () => {
           isLoading={isPlacingOrder}
           onPress={handleConfirm}
           disabled={!canPlaceBet}
-          showReducedOpacity={isPayWithAnyTokenLoading}
+          showReducedOpacity={!canPlaceBet}
           outcomeTokenTitle={outcomeToken?.title}
           sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
           testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}

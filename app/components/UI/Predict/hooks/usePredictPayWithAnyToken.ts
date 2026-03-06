@@ -31,7 +31,7 @@ export interface PredictPayWithAnyTokenParams {
 interface UsePredictPayWithAnyTokenResult {
   triggerPayWithAnyToken: (
     params: PredictPayWithAnyTokenParams,
-  ) => Promise<void>;
+  ) => Promise<{ transactionId?: string } | undefined>;
 }
 
 export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
@@ -111,6 +111,7 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             isConfirmation: true,
           },
         });
+        return { transactionId: response?.transactionId };
       } catch (err) {
         handleDepositError(err, 'pay_with_any_token');
       }
