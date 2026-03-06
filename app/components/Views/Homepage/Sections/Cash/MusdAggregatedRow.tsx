@@ -20,7 +20,7 @@ import {
   TextVariant as CLTextVariant,
   TextColor as CLTextColor,
 } from '../../../../../component-library/components/Texts/Text/Text.types';
-import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -137,7 +137,7 @@ const MusdAggregatedRow = () => {
               {tokenBalanceDisplay}
             </SensitiveText>
             {isClaiming ? (
-              <Spinner />
+              <AnimatedSpinner size={SpinnerSize.SM} />
             ) : hasClaimableBonus ? (
               <TouchableOpacity
                 onPress={handleClaimBonus}

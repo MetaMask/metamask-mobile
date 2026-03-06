@@ -143,10 +143,14 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
     // positive on cold start or for legitimately empty token lists.
+    // When Cash section is enabled, displayTokenKeys can be empty because we filter
+    // out mUSD (shown in Cash section); do not treat "balance but no non-mUSD tokens"
+    // as an error.
     const hasBalanceButNoTokens =
       accountGroupBalance != null &&
       accountGroupBalance.totalBalanceInUserCurrency > 0 &&
-      displayTokenKeys.length === 0;
+      displayTokenKeys.length === 0 &&
+      (!isCashSectionEnabled || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
     const refresh = useCallback(async () => {
