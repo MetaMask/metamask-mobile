@@ -1,49 +1,16 @@
-# Navigation & Mocking — Steps 3 & 4
+# Navigation & Mocking
 
 Reference: [SKILL.md](../SKILL.md) · [Writing Tests](writing-tests.md) · [Reference](reference.md)
 
 ---
 
-## Step 3: Navigation Testing
+## Navigation Testing
 
-### How route probes work
+### How `renderScreenWithRoutes` works
 
-When `renderScreenWithRoutes` registers a route, the framework automatically renders a probe element with `` testID=`route-${routeName}` `` when navigation arrives at that route. This is what makes ``findByTestId(`route-${Routes.X}`)`` work.
+`renderScreenWithRoutes(EntryComponent, entryRoute, routesArray, options)` — entry screen, its route name, an array of **1 to N** routes, and options (e.g. `{ state }`). Each route is `{ name: Routes.X }` or `{ name: Routes.X, Component: RealComponent }`.
 
-- **To assert navigation occurred**: register the route without a `Component` key. The probe element is rendered automatically — you only need ``findByTestId(`route-${routeName}`)``.
-- **To test the destination screen itself** (cross-screen journeys): register the route with `Component: RealComponent`. The real component renders instead of the probe.
-- **In renderers**: always register the real components so that cross-screen journey tests work. Probe-only routes are for one-off navigation assertions in individual tests.
-
-### Single navigation push
-
-When a test asserts that pressing something navigates to a new screen, use `renderScreenWithRoutes`. Register only the routes that test needs to assert on:
-
-```typescript
-import { renderScreenWithRoutes } from '../../../../../../../tests/component-view/render';
-import { initialStateBridge } from '../../../../../../../tests/component-view/presets/bridge';
-import Routes from '../../../../../../constants/navigation/Routes';
-
-it('opens the destination token selector when the dest token area is tapped', async () => {
-  const state = initialStateBridge()
-    .withOverrides({ bridge: { sourceToken: ETH_SOURCE } })
-    .build();
-
-  const { findByTestId, findByText } = renderScreenWithRoutes(
-    BridgeView as unknown as React.ComponentType,
-    { name: Routes.BRIDGE.ROOT },
-    [{ name: Routes.BRIDGE.TOKEN_SELECTOR }],
-    { state },
-  );
-
-  fireEvent.press(await findByText('Swap to'));
-
-  await findByTestId(`route-${Routes.BRIDGE.TOKEN_SELECTOR}`);
-});
-```
-
-### Multi-screen renderer (for feature-level tests)
-
-When a feature can navigate across several screens and you want to test those journeys end-to-end, the renderer itself should pre-register **all reachable routes** — not just the entry screen. This is the pattern used by `renderTrendingViewWithRoutes`:
+When navigation hits a registered route, the framework renders an element with `` testID=`route-${routeName}` `` so you can assert with ``await findByTestId(`route-${Routes.X}`)``. If you passed `Component`, the real component is shown instead. Use only `{ name }` when you just need to assert navigation; use `Component` when the test interacts with the destination screen. For cross-screen journeys, use a renderer that registers all reachable routes with `Component`.
 
 ```typescript
 // tests/component-view/renderers/myFeature.ts
@@ -71,8 +38,6 @@ export function renderMyFeatureWithRoutes(options = {}) {
   );
 }
 ```
-
-Then tests can navigate across screens freely without registering routes per test.
 
 ### Cross-screen journey test
 
@@ -167,7 +132,7 @@ Route names live in `app/constants/navigation/Routes.ts`.
 
 ---
 
-## Step 4: External Service / API Mocking
+## External Service / API Mocking
 
 Some views call external services **directly** (not through Engine controllers) — e.g. a `getTrendingTokens()` function imported from a package, or a `fetch()` call to an external API. These cannot be driven through Redux state overrides.
 

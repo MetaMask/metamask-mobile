@@ -15,9 +15,29 @@ Use this skill whenever you need to:
 
 - Write a new component view test file
 - Update tests after a component or preset has changed
-- Fix a failing component view test
-- Diagnose why a component view test is failing
-- Create a new renderer or preset for a new view
+- Diagnose and fix a failing component view test
+
+Your job is to figure out whether the user needs to **write a new test**, **fix a failing test**, or **update tests after a component/preset change**, then follow the corresponding path and open the relevant reference when that path indicates.
+
+**Decision tree — which reference to use:**
+
+```
+Task → What do you need?
+├─ Write new test or update after change
+│  → Read component + existing tests
+│  → Open references/writing-tests.md (use cases, coverage, renderer/preset, file structure)
+│  → If test needs navigation: also open references/navigation-mocking.md
+│  → After writing: run tests, then open references/reference.md for self-review
+│
+├─ Fix failing test
+│  → Run: yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
+│  → Identify error type → Open references/reference.md (Diagnosing Failures)
+│
+└─ Run tests or self-review after tests pass
+   → Open references/reference.md (Run the Tests, Self-Review Checklist)
+```
+
+Do not read the full reference files until the decision tree or workflow sends you there.
 
 ---
 
@@ -42,102 +62,35 @@ tests/component-view/
 
 ---
 
-## Workflow Overview
+## Workflow (summary)
 
-```mermaid
-flowchart TD
-    START([Task]) --> WHAT{What do you need?}
+- **Write new test**: Read component and existing tests → list use cases and map to test patterns → check coverage and deduplicate → use or create renderer/preset → write test (use `renderScreenWithRoutes` if asserting navigation). Every test must have at least one of: `fireEvent`, `waitFor`/`findBy`, `store.dispatch`/`act`, or Engine spy (no render-only scenarios). Run tests, then run the self-review checklist in `references/reference.md`.
+- **Fix failing test**: Run with `jest.config.view.js` → identify error type from the table in `references/reference.md` (Diagnosing Failures) → apply the fix (remove disallowed mock, add state override, add preset, wrap in `waitFor`, add `deterministicFiat`, etc.) → re-run.
+- **Update after change**: Same as write — review existing tests, extend preset/renderer if needed, update tests, run and self-review.
 
-    WHAT -->|Write new test| READ0[Step 0: Read component + existing tests]
-    WHAT -->|Fix failing test| FIX_RUN[Run with jest.config.view.js]
-    WHAT -->|Update existing test| READ0
+For full step-by-step detail (use cases, coverage, presets, route probes, self-review checklist, failure table), use the reference files when the decision tree sends you there.
 
-    READ0 --> USE_CASES[Step 0.5: List user actions on this screen]
-    USE_CASES --> MAP_CATS[Map each action to test category]
-    MAP_CATS --> DEDUP[Check existing view tests for duplication]
-    DEDUP --> RUN_COV[Run coverage report]
-    RUN_COV --> CANDIDATE[Build candidate list ordered by coverage impact]
-    CANDIDATE --> NO_CANDIDATES{Any valid candidates?}
-    NO_CANDIDATES -->|No| DONE([Done — no tests needed])
-    NO_CANDIDATES -->|Yes| NEW_RENDERER
+---
 
-    NEW_RENDERER{Renderer exists for this view?}
-    NEW_RENDERER -->|Yes| NEW_PRESET{Preset covers needed state?}
-    NEW_RENDERER -->|No| CREATE_RENDERER[Create renderer in tests/component-view/renderers/]
-    CREATE_RENDERER --> CREATE_PRESET[Create preset in tests/component-view/presets/]
-    CREATE_PRESET --> NEW_PRESET
+## Run the tests
 
-    NEW_PRESET -->|Yes| LOCAL_HELPER[Extract local helper wrapping the renderer]
-    NEW_PRESET -->|No| EXTEND_PRESET[Extend preset with .withOverrides / new builder calls]
-    EXTEND_PRESET --> LOCAL_HELPER
+Always use `jest.config.view.js` — the default Jest config does not apply component view test rules.
 
-    LOCAL_HELPER --> WRITE_TEST[Write the test]
+**Run tests (no coverage):**
 
-    WRITE_TEST --> NAV_TEST{Test needs to assert navigation?}
-    NAV_TEST -->|Yes| USE_ROUTES[renderScreenWithRoutes + route probe component]
-    NAV_TEST -->|No| USE_RENDERER[renderComponentViewScreen via feature renderer]
-
-    USE_ROUTES --> FIAT{Asserting exact currency values?}
-    USE_RENDERER --> FIAT
-    FIAT -->|Yes| DET_FIAT[deterministicFiat: true]
-    FIAT -->|No| QUALITY_CHECK
-
-    DET_FIAT --> QUALITY_CHECK
-
-    QUALITY_CHECK{Test has fireEvent / waitFor / store.dispatch / Engine spy?}
-    QUALITY_CHECK -->|No — render scenario| REWRITE[Rewrite: add user interaction or system reaction]
-    REWRITE --> QUALITY_CHECK
-    QUALITY_CHECK -->|Yes| RUN_NEW[Run: yarn jest -c jest.config.view.js]
-
-    RUN_NEW --> PASS{Tests pass?}
-    PASS -->|Yes| SELF_REVIEW[Self-review: check all rules]
-    PASS -->|No| FIX_RUN
-
-    SELF_REVIEW --> SR1{Any render scenario?\nno fireEvent / waitFor / dispatch / spy?}
-    SR1 -->|Yes| REWRITE2[Rewrite the offending test]
-    REWRITE2 --> RUN_NEW
-    SR1 -->|No| SR2
-
-    SR2{Async view has a data-completeness test?\nall fields of all base-mock items validated with within?}
-    SR2 -->|Missing| ADD_COMPLETENESS[Add data-completeness test]
-    ADD_COMPLETENESS --> RUN_NEW
-    SR2 -->|Yes| SR3
-
-    SR3{Filter / segmentation test has paired assertions?\nboth positive findBy AND negative queryBy.not?}
-    SR3 -->|Missing negatives| ADD_NEGATIVES[Add negative queryByTestId assertions]
-    ADD_NEGATIVES --> RUN_NEW
-    SR3 -->|Yes| SR4
-
-    SR4{Any raw string in getByTestId / findByTestId / queryByTestId\nnot from a testIds file?}
-    SR4 -->|Yes| ADD_TESTIDS[Create / update ComponentName.testIds.ts\nreplace raw strings with constants]
-    ADD_TESTIDS --> RUN_NEW
-    SR4 -->|No| SR5
-
-    SR5{Any arbitrary jest.mock not for Engine\nor allowed native modules?}
-    SR5 -->|Yes| FLAG_MOCK[Add eslint-disable comment + link to tracking issue]
-    FLAG_MOCK --> DONE
-    SR5 -->|No| DONE
-
-    FIX_RUN --> READ_ERROR{Error type?}
-
-    READ_ERROR -->|jest.mock not allowed| REMOVE_MOCK[Remove jest.mock\nDrive via state override instead]
-    READ_ERROR -->|Unable to find testID| CHECK_STATE[Add state override or check render condition\nUse debug to inspect tree]
-    READ_ERROR -->|Cannot read property X| ADD_PRESET[Add .withMinimalXController or override in preset]
-    READ_ERROR -->|act warning| WRAP_ACT[Wrap in waitFor / act]
-    READ_ERROR -->|Flakey number assertion| ADD_DET[Add deterministicFiat: true]
-    READ_ERROR -->|Passes locally fails CI| USE_WAITFOR[Replace inline assertion with waitFor]
-
-    REMOVE_MOCK --> RUN_FIX[Re-run]
-    CHECK_STATE --> RUN_FIX
-    ADD_PRESET --> RUN_FIX
-    WRAP_ACT --> RUN_FIX
-    ADD_DET --> RUN_FIX
-    USE_WAITFOR --> RUN_FIX
-
-    RUN_FIX --> PASS2{Tests pass?}
-    PASS2 -->|Yes| SELF_REVIEW
-    PASS2 -->|No| READ_ERROR
+```bash
+yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
 ```
+
+Example: `yarn jest -c jest.config.view.js app/components/UI/Bridge/Views/BridgeView/BridgeView.view.test.tsx --runInBand --silent --coverage=false`
+
+**Coverage for a feature folder** (use this instead of `--coverage` to avoid OOM):
+
+```bash
+yarn test:view:coverage:folder app/components/UI/MyFeature
+```
+
+For run-by-name, watch mode, or other options, see `references/reference.md` (Run the Tests).
 
 ---
 
@@ -169,12 +122,14 @@ flowchart TD
 
 ---
 
-## Supporting Files
+## Reference files (when to use)
 
-For detailed guidance, examples, and code templates, consult these files:
+Documentation is split by **action**. Open only the reference that matches what you are doing.
 
-| File                                                                   | Content                                                                                                                                                                                                                  |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [`references/writing-tests.md`](references/writing-tests.md)           | Step 0 (read before writing), Step 0.5 (enumerate use cases, deduplicate, coverage), Step 1 (test file structure, good examples, minimal template, import order), Step 2 (renderers, presets, React Query, route params) |
-| [`references/navigation-mocking.md`](references/navigation-mocking.md) | Step 3 (route probes, single nav push, multi-screen renderer, cross-screen journey, userEvent) + Step 4 (external service / API mocking, MSW placeholder)                                                                |
-| [`references/reference.md`](references/reference.md)                   | Step 5 (fiat), Step 6 (run commands), Step 6.5 (self-review checklist), Step 7 (failure diagnosis), Assertion Patterns, What NOT to Do, Quick Reference                                                                  |
+| Action                                          | File                                                                   | When to open it                                                                                                                                |
+| ----------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Writing or updating view tests**              | [`references/writing-tests.md`](references/writing-tests.md)           | New test file, new or updated preset/renderer. Read before writing, use cases and coverage, file structure, renderers, presets, route params.  |
+| **Testing navigation**                          | [`references/navigation-mocking.md`](references/navigation-mocking.md) | Route probes, single nav push, multi-screen renderer, cross-screen journey, external/API mocking.                                              |
+| **Running tests, self-review, fixing failures** | [`references/reference.md`](references/reference.md)                   | Run the Tests, Self-Review Checklist, Diagnosing Failures, assertion patterns, Deterministic Fiat Assertions, What NOT to Do, Quick Reference. |
+
+**Where self-review and What NOT to Do live:** Both are in `references/reference.md`. Self-review is the checklist you run after tests pass. What NOT to Do is the antipatterns section in the same file. Keeping them there means when you run tests or fix failures you have run commands, the checklist, the failure table, and the antipatterns in one place — open that reference for any run/fix/review task.

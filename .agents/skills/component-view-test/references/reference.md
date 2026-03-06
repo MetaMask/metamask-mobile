@@ -1,10 +1,24 @@
-# Reference — Steps 5–7, Assertion Patterns, What NOT to Do
+# Running Tests, Self-Review, and Diagnosing Failures
+
+Use this reference when you need to **run** component view tests, **self-review** after tests pass, or **diagnose and fix** failures. It also covers assertion patterns, deterministic fiat, and What NOT to Do.
 
 Reference: [SKILL.md](../SKILL.md) · [Writing Tests](writing-tests.md) · [Navigation & Mocking](navigation-mocking.md)
 
 ---
 
-## Step 5: Deterministic Fiat Assertions
+## Table of contents
+
+- [Deterministic Fiat Assertions](#deterministic-fiat-assertions)
+- [Run the Tests](#run-the-tests)
+- [Self-Review Checklist](#self-review-checklist)
+- [Diagnosing Failures](#diagnosing-failures)
+- [Assertion Patterns](#assertion-patterns)
+- [What NOT to Do](#what-not-to-do)
+- [Quick Reference](#quick-reference)
+
+---
+
+## Deterministic Fiat Assertions
 
 Pass `deterministicFiat: true` whenever a test asserts exact currency values. This injects stable exchange rates:
 
@@ -18,7 +32,7 @@ expect(getByText('$2,000.00')).toBeOnTheScreen();
 
 ---
 
-## Step 6: Run the Tests
+## Run the Tests
 
 **Always use `jest.config.view.js`** — the default Jest config does not apply the component view test rules.
 
@@ -38,7 +52,7 @@ yarn test:view:coverage:folder app/components/UI/MyFeature
 
 ---
 
-## Step 6.5: Self-Review Checklist (run after all tests pass)
+## Self-Review Checklist
 
 Before declaring the task done, go through this checklist for every test written or modified. If any item fails, fix it and re-run.
 
@@ -56,7 +70,7 @@ Before declaring the task done, go through this checklist for every test written
 
 ---
 
-## Step 7: Diagnosing Failures
+## Diagnosing Failures
 
 ### Identify the error type first
 
@@ -184,17 +198,13 @@ yarn eslint <path/to/test.tsx>
 
 **Key locations:**
 
-| What                                              | Where                                                 |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| Global Engine + native mocks                      | `tests/component-view/mocks.ts`                       |
-| renderComponentViewScreen, renderScreenWithRoutes | `tests/component-view/render.tsx`                     |
-| Bridge renderer                                   | `tests/component-view/renderers/bridge.ts`            |
-| Wallet renderer                                   | `tests/component-view/renderers/wallet.ts`            |
-| Bridge preset                                     | `tests/component-view/presets/bridge.ts`              |
-| Wallet preset                                     | `tests/component-view/presets/wallet.ts`              |
-| Predict renderer                                  | `tests/component-view/renderers/predict.tsx`          |
-| Predict preset                                    | `tests/component-view/presets/predict.ts`             |
-| StateFixtureBuilder                               | `tests/component-view/stateFixture.ts`                |
-| DeepPartial type                                  | `app/util/test/renderWithProvider` (type-only import) |
-| Framework rules                                   | `tests/component-view/COMPONENT_VIEW_TEST_RULES.md`   |
-| Routes                                            | `app/constants/navigation/Routes.ts`                  |
+| What                           | Where                                                          |
+| ------------------------------ | -------------------------------------------------------------- |
+| Engine + native mocks          | `tests/component-view/mocks.ts`                                |
+| render, renderScreenWithRoutes | `tests/component-view/render.tsx`                              |
+| StateFixtureBuilder            | `tests/component-view/stateFixture.ts`                         |
+| Feature renderers (per view)   | `tests/component-view/renderers/` (e.g. bridge, wallet)        |
+| Feature presets (per view)     | `tests/component-view/presets/` (e.g. bridge, wallet)          |
+| DeepPartial type               | `app/util/test/renderWithProvider`                             |
+| Routes                         | `app/constants/navigation/Routes.ts`                           |
+| Skill + rules                  | `.agents/skills/component-view-test/` (SKILL.md + references/) |

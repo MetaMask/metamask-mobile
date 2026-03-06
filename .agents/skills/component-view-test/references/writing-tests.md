@@ -1,10 +1,10 @@
-# Writing Tests — Steps 0–2
+# Writing Tests
 
 Reference: [SKILL.md](../SKILL.md) · [Navigation & Mocking](navigation-mocking.md) · [Reference](reference.md)
 
 ---
 
-## Step 0: Read Before Writing
+## Read Before Writing
 
 Before writing any test, read:
 
@@ -15,7 +15,7 @@ Before writing any test, read:
 
 ---
 
-## Step 0.5: Enumerate Use Cases
+## Enumerate Use Cases
 
 **Do this before writing a single test line.** Build a candidate list scoped and deduplicated against existing tests.
 
@@ -47,11 +47,11 @@ Read `ComponentName.view.test.tsx` (if it exists) and remove any candidate alrea
 yarn test:view:coverage:folder app/components/UI/MyFeature
 ```
 
-Focus on low branch coverage. Prioritize candidates that cover the most uncovered paths. Proceed directly to writing — no approval step needed.
+Focus on low branch coverage. Prioritize candidates that cover the most uncovered paths. Proceed directly to writing.
 
 ---
 
-## Step 1: Write a New Test File
+## Write a New Test File
 
 ### File naming
 
@@ -305,7 +305,7 @@ describeForPlatforms('MyView', () => {
 
 ---
 
-## Step 2: Choose the Right Renderer and Preset
+## Choose the Right Renderer and Preset
 
 ### Use an existing renderer when available
 
