@@ -165,6 +165,8 @@ const PredictionsSection = forwardRef<
   });
 
   const refresh = useCallback(async () => {
+    // Reset so newly claimable positions discovered on refresh are shown
+    setHasClaimed(false);
     await Promise.all([refreshPositions(), refreshMarkets()]);
   }, [refreshPositions, refreshMarkets]);
 
