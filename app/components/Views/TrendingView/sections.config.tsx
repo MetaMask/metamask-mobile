@@ -322,7 +322,14 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         [marketData, searchQuery],
       );
 
-      return { data: filteredData, isLoading, isFetching, refetch };
+      return {
+        data: filteredData,
+        isLoading,
+        isFetching,
+        refetch: () => {
+          refetch();
+        },
+      };
     },
   },
   sites: {

@@ -24,7 +24,12 @@ const Section: React.FC<SectionProps> = ({
   toggleSectionLoadingState,
 }) => {
   const section = SECTIONS_CONFIG[sectionId];
-  const { data, isLoading, isFetching, refetch } = section.useSectionData();
+  const {
+    data,
+    isLoading,
+    isFetching = false,
+    refetch,
+  } = section.useSectionData();
 
   // Notify parent when data is empty
   useEffect(() => {
