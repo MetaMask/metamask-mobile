@@ -660,9 +660,15 @@ function BuildQuote() {
           }
 
           if (effectiveOrderId) {
+            const orderCode = effectiveOrderId.includes('/orders/')
+              ? effectiveOrderId.split('/orders/')[1]
+              : effectiveOrderId;
             Logger.log(
-              '[Ramp][Debug] navigating to RAMPS_ORDER_DETAILS with orderId:',
+              '[Ramp][Debug] navigating to RAMPS_ORDER_DETAILS with orderCode:',
+              orderCode,
+              '(from effectiveOrderId:',
               effectiveOrderId,
+              ')',
             );
             navigation.reset({
               index: 0,
@@ -670,7 +676,7 @@ function BuildQuote() {
                 {
                   name: Routes.RAMP.RAMPS_ORDER_DETAILS,
                   params: {
-                    orderId: effectiveOrderId,
+                    orderId: orderCode,
                     showCloseButton: true,
                   },
                 },
