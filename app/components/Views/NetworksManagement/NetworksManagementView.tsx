@@ -40,7 +40,7 @@ import AdditionalNetworkItem from './components/AdditionalNetworkItem';
 /** Same as NetworkSelector: short host + path, no protocol or API key. Truncated to fit in one line without changing shared cell layout. */
 const MAX_RPC_DISPLAY_LENGTH = 36;
 
-const formatRpcUrlForDisplay = (url: string): string => {
+export const formatRpcUrlForDisplay = (url: string): string => {
   const withoutKey = hideKeyFromUrl(url);
   const withoutProtocol = hideProtocolFromUrl(withoutKey);
   let result: string;
