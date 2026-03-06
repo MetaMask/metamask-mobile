@@ -421,23 +421,24 @@ describe('PerpsCard', () => {
       );
 
       // Assert - actual values visible, no hiding dots
-      expect(getByText('+$100.50 (+5.0%)')).toBeDefined();
+      expect(getByText('+$100.50 (+5.0%)')).toBeOnTheScreen();
       expect(queryByText(DOTS_SHORT)).toBeNull();
     });
 
-    it('hides order price value when privacy mode is enabled', () => {
+    it('hides order price value but not the order type label when privacy mode is enabled', () => {
       // Arrange
       (useSelector as jest.Mock).mockReturnValue(true);
 
       // Act
-      const { queryByText, getAllByText } = render(
+      const { queryByText, getAllByText, getByText } = render(
         <PerpsCard order={mockOrder} testID="test-card" />,
       );
 
-      // Assert - order price is hidden
+      // Assert - price value is hidden, but non-financial order type label is not
       expect(queryByText('$3,000')).toBeNull();
       const hiddenElements = getAllByText(DOTS_SHORT);
       expect(hiddenElements.length).toBeGreaterThanOrEqual(1);
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
     });
 
     it('does not hide non-financial labels (symbol, direction) when privacy mode is enabled', () => {
@@ -450,8 +451,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert - left-side non-financial content is unaffected
-      expect(getByText('ETH 3x long')).toBeDefined();
-      expect(getByText('1.5 ETH')).toBeDefined();
+      expect(getByText('ETH 3x long')).toBeOnTheScreen();
+      expect(getByText('1.5 ETH')).toBeOnTheScreen();
     });
   });
 });

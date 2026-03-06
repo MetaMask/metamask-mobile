@@ -208,11 +208,11 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           <SensitiveText
             variant={TextVariant.BodySM}
             color={
-              privacyMode
+              privacyMode && !!position
                 ? TextColor.Default
                 : (displayData?.valueColor ?? TextColor.Default)
             }
-            isHidden={privacyMode}
+            isHidden={privacyMode && !!position}
             length={SensitiveTextLength.Short}
           >
             {displayData?.labelText ?? ''}
