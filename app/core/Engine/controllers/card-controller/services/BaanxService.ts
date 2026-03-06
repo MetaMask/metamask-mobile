@@ -29,9 +29,11 @@ interface RequestOptions {
 
 export class BaanxService {
   private readonly client: AxiosInstance;
+  private readonly apiKey_: string;
   private currentLocation: CardLocation = 'international';
 
   constructor({ apiKey, baseUrl }: { apiKey: string; baseUrl: string }) {
+    this.apiKey_ = apiKey;
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: DEFAULT_TIMEOUT_MS,
@@ -40,6 +42,10 @@ export class BaanxService {
         'x-client-key': apiKey,
       },
     });
+  }
+
+  get apiKey(): string {
+    return this.apiKey_;
   }
 
   setLocation(location: CardLocation): void {

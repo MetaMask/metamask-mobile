@@ -25,6 +25,10 @@ export interface CardAuthResult {
   done: boolean;
   tokenSet?: CardAuthTokens;
   nextStep?: CardAuthStep;
+  onboardingRequired?: {
+    sessionId: string;
+    phase: string;
+  };
 }
 
 // -- Auth Flow --

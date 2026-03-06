@@ -8,6 +8,14 @@ import {
 } from '../provider-types';
 
 jest.mock('../../../../../util/Logger');
+jest.mock('../../../../../components/UI/Card/util/pkceHelpers', () => ({
+  generateState: () => 'mock-state-123',
+  generatePKCEPair: () =>
+    Promise.resolve({
+      codeVerifier: 'mock-verifier',
+      codeChallenge: 'mock-challenge',
+    }),
+}));
 
 const AUTH_TOKENS: CardAuthTokens = {
   accessToken: 'test-access',
@@ -25,6 +33,7 @@ function createMockService(): jest.Mocked<BaanxService> {
     request: jest.fn(),
     setLocation: jest.fn(),
     location: 'international',
+    apiKey: 'test-api-key',
   } as unknown as jest.Mocked<BaanxService>;
 }
 
@@ -317,7 +326,7 @@ describe('BaanxProvider', () => {
   });
 
   describe('initiateAuth', () => {
-    it('returns auth session with email_password step', async () => {
+    it('returns auth session with PKCE params in metadata', async () => {
       service.get.mockResolvedValue({
         token: 'init-token',
         url: 'https://...',
@@ -327,7 +336,25 @@ describe('BaanxProvider', () => {
 
       expect(session.id).toBe('init-token');
       expect(session.currentStep).toStrictEqual({ type: 'email_password' });
-      expect(service.setLocation).toHaveBeenCalledWith('us');
+      expect(session._metadata).toStrictEqual({
+        initiateToken: 'init-token',
+        location: 'us',
+        state: 'mock-state-123',
+        codeVerifier: 'mock-verifier',
+      });
+    });
+
+    it('sends PKCE challenge and client credentials as query params', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+
+      await provider.initiateAuth('US');
+
+      const calledPath = (service.get as jest.Mock).mock.calls[0][0] as string;
+      expect(calledPath).toContain('code_challenge=mock-challenge');
+      expect(calledPath).toContain('code_challenge_method=S256');
+      expect(calledPath).toContain('state=mock-state-123');
+      expect(calledPath).toContain('client_id=test-api-key');
+      expect(calledPath).toContain('client_secret=test-api-key');
     });
 
     it('maps non-US country to international location', async () => {
@@ -336,6 +363,113 @@ describe('BaanxProvider', () => {
       await provider.initiateAuth('GB');
 
       expect(service.setLocation).toHaveBeenCalledWith('international');
+    });
+  });
+
+  describe('submitCredentials', () => {
+    it('returns onboardingRequired when login response has phase', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValue({
+        userId: 'user-123',
+        phase: 'PHONE_NUMBER',
+        isOtpRequired: false,
+        phoneNumber: null,
+        accessToken: 'login-token',
+        verificationState: 'UNVERIFIED',
+        isLinked: false,
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'email_password',
+        email: 'test@example.com',
+        password: 'pass',
+      });
+
+      expect(result.done).toBe(false);
+      expect(result.nextStep).toBeUndefined();
+      expect(result.onboardingRequired).toStrictEqual({
+        sessionId: 'user-123',
+        phase: 'PHONE_NUMBER',
+      });
+    });
+
+    it('completes auth with PKCE code_verifier and validates state', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValue({
+        userId: 'user-1',
+        phase: null,
+        isOtpRequired: false,
+        phoneNumber: null,
+        accessToken: 'login-token',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      });
+      service.request
+        .mockResolvedValueOnce({
+          state: 'mock-state-123',
+          url: '',
+          code: 'auth-code',
+        })
+        .mockResolvedValueOnce({
+          access_token: 'final-access',
+          refresh_token: 'final-refresh',
+          expires_in: 3600,
+          refresh_token_expires_in: 86400,
+        });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'email_password',
+        email: 'test@example.com',
+        password: 'pass',
+      });
+
+      expect(result.done).toBe(true);
+      expect(result.tokenSet?.accessToken).toBe('final-access');
+
+      const tokenExchangeCall = service.request.mock.calls[1];
+      expect(tokenExchangeCall[1]).toStrictEqual(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            code_verifier: 'mock-verifier',
+            redirect_uri: 'https://example.com',
+          }),
+          headers: expect.objectContaining({
+            'x-secret-key': 'test-api-key',
+          }),
+        }),
+      );
+    });
+
+    it('throws on OAuth state mismatch', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValue({
+        userId: 'user-1',
+        phase: null,
+        isOtpRequired: false,
+        phoneNumber: null,
+        accessToken: 'login-token',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      });
+      service.request.mockResolvedValueOnce({
+        state: 'wrong-state',
+        url: '',
+        code: 'auth-code',
+      });
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'email_password',
+          email: 'test@example.com',
+          password: 'pass',
+        }),
+      ).rejects.toThrow('OAuth state mismatch');
     });
   });
 

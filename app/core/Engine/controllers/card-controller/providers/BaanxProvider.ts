@@ -19,6 +19,10 @@ import {
   BAANX_MAX_LIMIT,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
+import {
+  generatePKCEPair,
+  generateState,
+} from '../../../../../components/UI/Card/util/pkceHelpers';
 import type { BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -145,14 +149,33 @@ export class BaanxProvider implements ICardProvider {
     const location = countryToLocation(country);
     this.service.setLocation(location);
 
+    const state = generateState();
+    const { codeVerifier, codeChallenge } = await generatePKCEPair();
+
+    const query = new URLSearchParams({
+      client_id: this.service.apiKey,
+      client_secret: this.service.apiKey,
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      mode: 'api',
+      response_type: 'code',
+      redirect_uri: 'https://example.com',
+    }).toString();
+
     const response = await this.service.get<CardLoginInitiateResponse>(
-      '/v1/auth/oauth/authorize/initiate',
+      `/v1/auth/oauth/authorize/initiate?${query}`,
     );
 
     return {
       id: response.token,
       currentStep: { type: 'email_password' },
-      _metadata: { initiateToken: response.token, location },
+      _metadata: {
+        initiateToken: response.token,
+        location,
+        state,
+        codeVerifier,
+      },
     };
   }
 
@@ -182,6 +205,7 @@ export class BaanxProvider implements ICardProvider {
           grant_type: 'refresh_token',
           refresh_token: tokens.refreshToken,
         },
+        headers: { 'x-secret-key': this.service.apiKey },
       },
     );
 
@@ -435,6 +459,16 @@ export class BaanxProvider implements ICardProvider {
       };
     }
 
+    if (loginResponse.phase) {
+      return {
+        done: false,
+        onboardingRequired: {
+          sessionId: loginResponse.userId,
+          phase: loginResponse.phase,
+        },
+      };
+    }
+
     return this.completeAuth(session, loginResponse);
   }
 
@@ -466,19 +500,22 @@ export class BaanxProvider implements ICardProvider {
     const metadata = session._metadata as {
       initiateToken: string;
       location: CardLocation;
+      state: string;
+      codeVerifier: string;
     };
 
     const authorizeResponse = await this.service.request<CardAuthorizeResponse>(
       '/v1/auth/oauth/authorize',
       {
         method: 'POST',
-        body: {
-          initiateAccessToken: metadata.initiateToken,
-          loginAccessToken: loginResponse.accessToken,
-        },
+        body: { token: metadata.initiateToken },
         headers: { Authorization: `Bearer ${loginResponse.accessToken}` },
       },
     );
+
+    if (authorizeResponse.state !== metadata.state) {
+      throw new Error('OAuth state mismatch — possible CSRF attack');
+    }
 
     const tokenResponse =
       await this.service.request<CardExchangeTokenRawResponse>(
@@ -488,7 +525,10 @@ export class BaanxProvider implements ICardProvider {
           body: {
             grant_type: 'authorization_code',
             code: authorizeResponse.code,
+            code_verifier: metadata.codeVerifier,
+            redirect_uri: 'https://example.com',
           },
+          headers: { 'x-secret-key': this.service.apiKey },
         },
       );
 
