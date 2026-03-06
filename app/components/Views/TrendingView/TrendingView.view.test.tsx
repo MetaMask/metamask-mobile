@@ -18,7 +18,9 @@ import {
   within,
   userEvent,
   type RenderAPI,
+  act,
 } from '@testing-library/react-native';
+import { ReactTestInstance } from 'react-test-renderer';
 
 // TODO: Anti-pattern — only Engine and native modules should be mocked here.
 // getTrendingTokens is a standalone service function called directly from
@@ -61,6 +63,19 @@ const assertTrendingTokenRowsVisibility = async (opts: {
     },
     { timeout: 2000 },
   );
+};
+
+/**
+ * Prefer using userEvent.press over fireEvent.press (better event simulation),
+ * but fallback if fails on device platforms
+ * @param elem - element to press
+ */
+const actButtonPress = async (elem: ReactTestInstance) => {
+  try {
+    await userEvent.press(elem);
+  } catch {
+    act(() => fireEvent.press(elem));
+  }
 };
 
 describeForPlatforms('ExploreFeed - Component Tests', () => {
@@ -142,7 +157,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
 
     const viewAllButton = getByTestId('section-header-view-all-tokens');
-    await userEvent.press(viewAllButton);
+    await actButtonPress(viewAllButton);
 
     await waitFor(() => {
       const header = getByTestId('trending-tokens-header');
@@ -183,7 +198,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       });
 
       const searchButton = getByTestId('explore-view-search-button');
-      await userEvent.press(searchButton);
+      await actButtonPress(searchButton);
 
       const searchInput = await findByTestId('explore-view-search-input');
       expect(searchInput).toBeOnTheScreen();
@@ -244,7 +259,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       });
 
       const viewAllButton = getByTestId('section-header-view-all-tokens');
-      await userEvent.press(viewAllButton);
+      await actButtonPress(viewAllButton);
 
       await waitFor(() => {
         expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
@@ -271,7 +286,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       });
 
       const networkButton = getByTestId('all-networks-button');
-      await userEvent.press(networkButton);
+      await actButtonPress(networkButton);
 
       await waitFor(() => {
         expect(getByTestId('close-button')).toBeOnTheScreen();
@@ -280,7 +295,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       const bnbNetworkOption = await findByText('BNB Chain');
       expect(bnbNetworkOption).toBeOnTheScreen();
 
-      await userEvent.press(bnbNetworkOption);
+      await actButtonPress(bnbNetworkOption);
 
       await assertTrendingTokenRowsVisibility({
         queryByTestId,
@@ -315,14 +330,14 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
     });
 
     const viewAllButton = getByTestId('section-header-view-all-tokens');
-    await userEvent.press(viewAllButton);
+    await actButtonPress(viewAllButton);
 
     await waitFor(() => {
       expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
     });
 
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
-    fireEvent.press(searchToggle);
+    await actButtonPress(searchToggle);
 
     const searchInput = await findByTestId('trending-tokens-header-search-bar');
     expect(searchInput).toBeOnTheScreen();
