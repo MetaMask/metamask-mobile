@@ -12,6 +12,11 @@ import {
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: () => false,
+}));
+
 jest.mock('../../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
     track: mockTrack,
