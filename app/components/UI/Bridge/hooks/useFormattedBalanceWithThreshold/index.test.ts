@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { useTokenInputAreaFormattedBalance } from '.';
+import { useFormattedBalanceWithThreshold } from '.';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import I18n from '../../../../../../locales/i18n';
@@ -18,7 +18,7 @@ const makeToken = (overrides?: Partial<BridgeToken>): BridgeToken => ({
   ...overrides,
 });
 
-describe('useTokenInputAreaFormattedBalance', () => {
+describe('useFormattedBalanceWithThreshold', () => {
   beforeEach(() => {
     mockI18n.locale = 'en';
   });
@@ -26,7 +26,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
   describe('guard clauses', () => {
     it('returns undefined when token is undefined', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('100', undefined),
+        useFormattedBalanceWithThreshold('100', undefined),
       );
 
       expect(result.current).toBeUndefined();
@@ -36,7 +36,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken({ symbol: '' });
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('100', token),
+        useFormattedBalanceWithThreshold('100', token),
       );
 
       expect(result.current).toBeUndefined();
@@ -46,7 +46,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken();
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance(undefined, token),
+        useFormattedBalanceWithThreshold(undefined, token),
       );
 
       expect(result.current).toBeUndefined();
@@ -56,7 +56,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken();
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('', token),
+        useFormattedBalanceWithThreshold('', token),
       );
 
       expect(result.current).toBeUndefined();
@@ -64,7 +64,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns undefined when both token and tokenBalance are missing', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance(undefined, undefined),
+        useFormattedBalanceWithThreshold(undefined, undefined),
       );
 
       expect(result.current).toBeUndefined();
@@ -76,7 +76,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns "< 0.00001" for a value just below threshold', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.000009', token),
+        useFormattedBalanceWithThreshold('0.000009', token),
       );
 
       expect(result.current).toBe('< 0.00001');
@@ -84,7 +84,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns "< 0.00001" for extremely small positive values', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.000000000000000001', token),
+        useFormattedBalanceWithThreshold('0.000000000000000001', token),
       );
 
       expect(result.current).toBe('< 0.00001');
@@ -92,7 +92,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('does not trigger for value equal to threshold (0.00001)', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.00001', token),
+        useFormattedBalanceWithThreshold('0.00001', token),
       );
 
       expect(result.current).not.toBe('< 0.00001');
@@ -101,7 +101,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('does not trigger for value above threshold', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.0001', token),
+        useFormattedBalanceWithThreshold('0.0001', token),
       );
 
       expect(result.current).not.toBe('< 0.00001');
@@ -110,7 +110,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('does not trigger for zero', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0', token),
+        useFormattedBalanceWithThreshold('0', token),
       );
 
       expect(result.current).toBe('0 USDC');
@@ -118,7 +118,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('does not trigger for negative values', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('-0.000001', token),
+        useFormattedBalanceWithThreshold('-0.000001', token),
       );
 
       // parseAmount can't parse negative numbers (regex doesn't match "-")
@@ -132,7 +132,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats a single digit', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('5', token),
+        useFormattedBalanceWithThreshold('5', token),
       );
 
       expect(result.current).toBe('5 USDC');
@@ -140,7 +140,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats a three-digit number without grouping', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('999', token),
+        useFormattedBalanceWithThreshold('999', token),
       );
 
       expect(result.current).toBe('999 USDC');
@@ -148,7 +148,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats thousands with grouping separator', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1000', token),
+        useFormattedBalanceWithThreshold('1000', token),
       );
 
       expect(result.current).toBe('1,000 USDC');
@@ -156,7 +156,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats millions with grouping separators', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1234567', token),
+        useFormattedBalanceWithThreshold('1234567', token),
       );
 
       expect(result.current).toBe('1,234,567 USDC');
@@ -164,7 +164,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats billions', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1000000000', token),
+        useFormattedBalanceWithThreshold('1000000000', token),
       );
 
       expect(result.current).toBe('1,000,000,000 USDC');
@@ -172,7 +172,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('strips leading zeros from integers', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('007', token),
+        useFormattedBalanceWithThreshold('007', token),
       );
 
       expect(result.current).toBe('7 USDC');
@@ -184,7 +184,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('preserves up to 5 decimal places', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1.12345', token),
+        useFormattedBalanceWithThreshold('1.12345', token),
       );
 
       expect(result.current).toBe('1.12345 USDC');
@@ -192,7 +192,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('truncates beyond 5 decimal places', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1.123456789', token),
+        useFormattedBalanceWithThreshold('1.123456789', token),
       );
 
       expect(result.current).toBe('1.12345 USDC');
@@ -200,7 +200,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('trims trailing zeros after truncation', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1.10000', token),
+        useFormattedBalanceWithThreshold('1.10000', token),
       );
 
       expect(result.current).toBe('1.1 USDC');
@@ -208,7 +208,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats decimal with thousands in integer part', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('12345.6789', token),
+        useFormattedBalanceWithThreshold('12345.6789', token),
       );
 
       expect(result.current).toBe('12,345.6789 USDC');
@@ -216,7 +216,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('handles value with only a fractional part', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('.5', token),
+        useFormattedBalanceWithThreshold('.5', token),
       );
 
       expect(result.current).toBe('0.5 USDC');
@@ -228,7 +228,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats a 12-digit integer', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('999999999999', token),
+        useFormattedBalanceWithThreshold('999999999999', token),
       );
 
       expect(result.current).toBe('999,999,999,999 USDC');
@@ -236,7 +236,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('formats a large number with decimals', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('123456789.12345', token),
+        useFormattedBalanceWithThreshold('123456789.12345', token),
       );
 
       expect(result.current).toBe('123,456,789.12345 USDC');
@@ -244,7 +244,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('handles numbers beyond safe integer range', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('99999999999999999999', token),
+        useFormattedBalanceWithThreshold('99999999999999999999', token),
       );
 
       expect(result.current).toMatch(/^[\d,]+ USDC$/);
@@ -256,7 +256,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns raw tokenBalance with symbol for strings with commas', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1,234.56', token),
+        useFormattedBalanceWithThreshold('1,234.56', token),
       );
 
       expect(result.current).toBe('1,234.56 USDC');
@@ -264,7 +264,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns raw tokenBalance with symbol for scientific notation', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1e3', token),
+        useFormattedBalanceWithThreshold('1e3', token),
       );
 
       expect(result.current).toBe('1e3 USDC');
@@ -272,7 +272,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
 
     it('returns raw tokenBalance with symbol for non-numeric strings', () => {
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('abc', token),
+        useFormattedBalanceWithThreshold('abc', token),
       );
 
       expect(result.current).toBe('abc USDC');
@@ -284,7 +284,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken({ symbol: 'ETH' });
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1.5', token),
+        useFormattedBalanceWithThreshold('1.5', token),
       );
 
       expect(result.current).toBe('1.5 ETH');
@@ -294,7 +294,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const wbtc = makeToken({ symbol: 'WBTC' });
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.00123', wbtc),
+        useFormattedBalanceWithThreshold('0.00123', wbtc),
       );
 
       expect(result.current).toBe('0.00123 WBTC');
@@ -304,7 +304,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken({ symbol: 'ETH' });
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.000001', token),
+        useFormattedBalanceWithThreshold('0.000001', token),
       );
 
       expect(result.current).toBe('< 0.00001');
@@ -315,7 +315,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken({ symbol: 'DAI' });
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1e3', token),
+        useFormattedBalanceWithThreshold('1e3', token),
       );
 
       expect(result.current).toBe('1e3 DAI');
@@ -329,7 +329,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'de-DE';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1234567.89', token),
+        useFormattedBalanceWithThreshold('1234567.89', token),
       );
 
       expect(result.current).toMatch(/1\.234\.567/);
@@ -340,7 +340,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'fr-FR';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1234567.89', token),
+        useFormattedBalanceWithThreshold('1234567.89', token),
       );
 
       // French uses narrow no-break space (U+202F) or non-breaking space for grouping
@@ -352,7 +352,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'de-DE';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('50000', token),
+        useFormattedBalanceWithThreshold('50000', token),
       );
 
       expect(result.current).toBe('50.000 USDC');
@@ -362,7 +362,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'ja-JP';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1000000', token),
+        useFormattedBalanceWithThreshold('1000000', token),
       );
 
       expect(result.current).toBe('1,000,000 USDC');
@@ -372,7 +372,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'de-DE';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('999', token),
+        useFormattedBalanceWithThreshold('999', token),
       );
 
       expect(result.current).toBe('999 USDC');
@@ -382,7 +382,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'de-DE';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('0.000001', token),
+        useFormattedBalanceWithThreshold('0.000001', token),
       );
 
       expect(result.current).toBe('< 0.00001');
@@ -392,7 +392,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       mockI18n.locale = 'pt-BR';
 
       const { result } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1234.56', token),
+        useFormattedBalanceWithThreshold('1234.56', token),
       );
 
       expect(result.current).toMatch(/1\.234/);
@@ -405,7 +405,7 @@ describe('useTokenInputAreaFormattedBalance', () => {
       const token = makeToken();
 
       const { result, rerender } = renderHook(() =>
-        useTokenInputAreaFormattedBalance('1000', token),
+        useFormattedBalanceWithThreshold('1000', token),
       );
 
       const firstResult = result.current;
