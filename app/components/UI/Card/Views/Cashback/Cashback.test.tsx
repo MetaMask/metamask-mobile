@@ -1,3 +1,4 @@
+const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -36,16 +37,23 @@ jest.mock('../../util/metrics', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      icon: { default: '#000' },
-      success: { default: '#00ff00' },
-      error: { default: '#ff0000' },
-      background: { default: '#fff' },
-    },
-  })),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      goBack: mockGoBack,
+    }),
+  };
+});
+
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -414,6 +422,51 @@ describe('Cashback Component', () => {
           labelOptions: [{ label: 'Withdrawal completed successfully' }],
         }),
       );
+    });
+
+    it('navigates back after successful withdrawal', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'success';
+
+      render();
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('does not navigate back when monitoring fails', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'failed';
+
+      render();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate back when status is idle', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'idle';
+
+      render();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('shows failure toast when monitoring fails', () => {

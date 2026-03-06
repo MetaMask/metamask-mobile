@@ -210,6 +210,11 @@ export interface RewardsDataServiceGetSnapshotsAction {
   handler: RewardsDataService['getSnapshots'];
 }
 
+export interface RewardsDataServiceGetSubscriptionAccountsAction {
+  type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
+  handler: RewardsDataService['getSubscriptionAccounts'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -234,6 +239,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
@@ -258,8 +264,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceSetRewardsEnvUrlAction
   | RewardsDataServiceGetDefaultRewardsEnvUrlAction
   | RewardsDataServiceValidateBonusCodeAction
-  | RewardsDataServiceApplyBonusCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceApplyBonusCodeAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -399,6 +404,10 @@ export class RewardsDataService {
       this.getSnapshots.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSubscriptionAccounts`,
+      this.getSubscriptionAccounts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -526,6 +535,13 @@ export class RewardsDataService {
       });
 
       clearTimeout(timeoutId);
+
+      if (response.status === 403 && subscriptionId) {
+        throw new AuthorizationFailedError(
+          `Authorization failed: ${response.status}`,
+        );
+      }
+
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -787,11 +803,6 @@ export class RewardsDataService {
 
     if (!response.ok) {
       const errorData = await response.json();
-      if (errorData?.message?.includes('Rewards authorization failed')) {
-        throw new AuthorizationFailedError(
-          'Rewards authorization failed. Please login and try again.',
-        );
-      }
 
       if (errorData?.message?.includes('Season not found')) {
         throw new SeasonNotFoundError(
@@ -1290,5 +1301,31 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
+  }
+
+  /**
+   * Get CAIP-10 encoded account addresses linked to the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Array of CAIP-10 account strings (up to 1000).
+   */
+  async getSubscriptionAccounts(subscriptionId: string): Promise<string[]> {
+    const response = await this.makeRequest(
+      `/subscriptions/accounts`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+      throw new Error(`Get subscription accounts failed: ${response.status}`);
+    }
+
+    return (await response.json()) as string[];
   }
 }

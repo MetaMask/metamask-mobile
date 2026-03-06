@@ -24,7 +24,6 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
 const LEDGER_OPERATION_TIMEOUT_MS = 10000;
 const DEFAULT_SCAN_TIMEOUT_MS = 30000;
-const CONNECTION_RESTART_LIMIT = 5;
 const MAX_DISCONNECT_RETRIES = 3;
 const RETRY_DELAY_MS = 2000;
 
@@ -43,7 +42,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   #transport: TransportBLE | null = null;
   #deviceId: string | null = null;
   #options: HardwareWalletAdapterOptions;
-  #restartCount = 0;
   #isDestroyed = false;
   #connectInFlight: Promise<void> | null = null;
   #flowComplete = false;
@@ -115,15 +113,14 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
       this.#transport = transport;
       this.#deviceId = deviceId;
-      this.#restartCount = 0;
 
       transport.on('disconnect', () => {
-        if (this.#transport != null && this.#transport !== transport) return;
+        if (this.#transport !== transport) return;
         this.#handleDisconnect();
       });
 
       transport.on('error', (error: Error) => {
-        if (this.#transport != null && this.#transport !== transport) return;
+        if (this.#transport !== transport) return;
         DevLogger.log(
           '[LedgerBluetoothAdapter] Transport error:',
           error.message,
@@ -336,8 +333,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       deviceId,
     );
 
-    this.#restartCount = 0;
-
     // Retry on transient BLE errors (e.g., device switching apps)
     for (let attempt = 1; attempt <= MAX_DISCONNECT_RETRIES; attempt++) {
       try {
@@ -508,43 +503,19 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Handle disconnect events from the transport
+   * Handle disconnect events from the transport.
    *
-   * Note: We only clear transport but preserve deviceId to allow reconnection
-   * during app switch scenarios (BOLOS → Ethereum). The deviceId is only cleared
-   * when explicitly disconnecting via disconnect() method.
-   *
-   * When checking for app readiness, we do not emit disconnect events or call
-   * onDisconnect callback since disconnects during app switch are expected.
+   * Clears the transport reference but preserves deviceId for reconnection.
+   * Does NOT call onDisconnect — disconnect handling is consolidated into
+   * ensureDeviceReady's retry loop, which catches transport errors and
+   * retries automatically. This avoids false-positive error UI from
+   * transient BLE disconnects (e.g. Ledger app switching).
    */
   #handleDisconnect(): void {
     this.#transport = null;
-    // If flow is complete, ignore disconnect events entirely
-    // This prevents errors from showing after a successful connection
-    if (this.#flowComplete) {
-      DevLogger.log(
-        '[LedgerBluetoothAdapter] handleDisconnect - flow complete, ignoring disconnect',
-      );
-      return;
-    }
-
-    // Check if we should try to reconnect (without emitting error)
-    if (this.#restartCount < CONNECTION_RESTART_LIMIT) {
-      this.#restartCount++;
-      DevLogger.log(
-        '[LedgerBluetoothAdapter] handleDisconnect - transport cleared, will attempt reconnect. restartCount:',
-        this.#restartCount,
-      );
-      return;
-    }
-
-    // Restart limit reached
     DevLogger.log(
-      '[LedgerBluetoothAdapter] handleDisconnect - restart limit reached, emitting error',
+      '[LedgerBluetoothAdapter] handleDisconnect - transport cleared',
     );
-    this.#clearTransportState();
-
-    this.#options.onDisconnect(new Error('Device disconnected'));
   }
 
   #emitEvent(payload: DeviceEventPayload): void {
@@ -566,7 +537,6 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
   #clearTransportState(): void {
     this.#transport = null;
     this.#deviceId = null;
-    this.#restartCount = 0;
   }
 
   /**

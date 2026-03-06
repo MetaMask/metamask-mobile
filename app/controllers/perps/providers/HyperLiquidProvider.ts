@@ -2,6 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
+import type { CandlePeriod } from '../constants/chartConfig';
 import {
   BASIS_POINTS_DIVISOR,
   BUILDER_FEE_CONFIG,
@@ -14,6 +15,7 @@ import {
   HYPERLIQUID_WITHDRAWAL_MINUTES,
   MAINNET_HIP3_CONFIG,
   REFERRAL_CONFIG,
+  SPOT_ASSET_ID_OFFSET,
   TESTNET_HIP3_CONFIG,
   TRADING_DEFAULTS,
   USDC_DECIMALS,
@@ -27,7 +29,6 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   HyperLiquidClientService,
@@ -46,6 +47,7 @@ import type {
   CancelOrderParams,
   CancelOrderResult,
   CancelOrdersResult,
+  CandleData,
   ClosePositionParams,
   ClosePositionsParams,
   ClosePositionsResult,
@@ -106,6 +108,7 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -333,6 +336,8 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Promise-based lock to prevent race conditions in concurrent initialization
   #initializationPromise: Promise<void> | null = null;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -340,10 +345,11 @@ export class HyperLiquidProvider implements PerpsProvider {
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
-    messenger: PerpsControllerMessenger;
+    messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
   }) {
     this.#deps = options.platformDependencies;
+    this.#messenger = options.messenger;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -354,14 +360,16 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.#useDexAbstraction = options.useDexAbstraction ?? true;
 
-    // Initialize services with injected platform dependencies and messenger
+    // Initialize services with injected platform dependencies
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
     });
     this.#walletService = new HyperLiquidWalletService(
       this.#deps,
-      options.messenger,
-      { isTestnet },
+      this.#messenger,
+      {
+        isTestnet,
+      },
     );
     this.#subscriptionService = new HyperLiquidSubscriptionService(
       this.#clientService,
@@ -1239,7 +1247,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Cache miss or skipCache=true - fetch from API
     const infoClient = this.#clientService.getInfoClient();
-    const meta = await infoClient.meta({ dex: dexKey });
+    // Pass dex only for HIP-3 DEXs; omit for main DEX (empty string).
+    // Testnet API returns null when dex="" is explicitly sent.
+    const meta = await infoClient.meta(dexKey ? { dex: dexKey } : undefined);
 
     // Defensive validation before caching
     if (!meta?.universe || !Array.isArray(meta.universe)) {
@@ -1693,7 +1703,7 @@ export class HyperLiquidProvider implements PerpsProvider {
       return { success: false, error: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND };
     }
 
-    const spotAssetId = 10000 + usdhUsdcPair.index;
+    const spotAssetId = SPOT_ASSET_ID_OFFSET + usdhUsdcPair.index;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Found USDH/USDC spot pair',
@@ -1930,15 +1940,28 @@ export class HyperLiquidProvider implements PerpsProvider {
    */
   async #buildAssetMapping(): Promise<void> {
     // Get feature-flag-validated DEXs to map (respects hip3Enabled and enabledDexs)
-    const dexsToMap = await this.#getValidatedDexs();
+    let dexsToMap: (string | null)[];
+    try {
+      dexsToMap = await this.#getValidatedDexs();
+    } catch (dexError) {
+      // If getValidatedDexs fails, fall back to main DEX only to keep the provider
+      // functional. Without this, a transient perpDexs() failure would permanently
+      // brick #ensureReady via the cached rejected promise.
+      this.#deps.debugLogger.log(
+        '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
+        { error: String(dexError) },
+      );
+      this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
+      this.#cachedValidatedDexs = this.#cachedValidatedDexs ?? [null];
+      dexsToMap = [null];
+    }
 
     // Use cached perpDexs array (populated by getValidatedDexs)
-    const allPerpDexs = this.#cachedAllPerpDexs;
-    if (!allPerpDexs) {
-      throw new Error(
-        'perpDexs not cached - getValidatedDexs must be called first',
-      );
+    // Defensive: ensure non-null even if getValidatedDexs had an unexpected issue
+    if (!this.#cachedAllPerpDexs) {
+      this.#cachedAllPerpDexs = [null];
     }
+    const allPerpDexs = this.#cachedAllPerpDexs;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -7475,6 +7498,23 @@ export class HyperLiquidProvider implements PerpsProvider {
       );
       throw error;
     }
+  }
+
+  async fetchHistoricalCandles(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData> {
+    this.#clientService.ensureInitialized();
+    const result = await this.#clientService.fetchHistoricalCandles(options);
+    return (
+      result ?? {
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
+      }
+    );
   }
 
   /**
