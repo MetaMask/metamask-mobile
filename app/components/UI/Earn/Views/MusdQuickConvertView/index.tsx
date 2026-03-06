@@ -18,6 +18,7 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import {
   createTokenChainKey,
   selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import ConvertTokenRow from '../../components/Musd/ConvertTokenRow';
@@ -81,6 +82,9 @@ const MusdQuickConvertView = () => {
   // Get convertible tokens
   const { tokens: conversionTokens } = useMusdConversionTokens();
 
+  const hasUnapprovedMusdConversion = useSelector(
+    selectHasUnapprovedMusdConversion,
+  );
   const hasInFlightMusdConversion = useSelector(
     selectHasInFlightMusdConversion,
   );
@@ -200,7 +204,9 @@ const MusdQuickConvertView = () => {
           token={item}
           onMaxPress={handleMaxPress}
           onEditPress={handleEditPress}
-          areActionsDisabled={hasInFlightMusdConversion}
+          areActionsDisabled={
+            hasUnapprovedMusdConversion || hasInFlightMusdConversion
+          }
           isConversionPending={Boolean(txStatusInfo?.isPending)}
         />
       );
@@ -210,6 +216,7 @@ const MusdQuickConvertView = () => {
       handleEditPress,
       handleMaxPress,
       hasInFlightMusdConversion,
+      hasUnapprovedMusdConversion,
     ],
   );
 
@@ -258,12 +265,12 @@ const MusdQuickConvertView = () => {
         <View style={styles.headerTextContainer}>
           <Text variant={TextVariant.HeadingLG}>
             {strings('earn.musd_conversion.quick_convert.title', {
-              apy: MUSD_CONVERSION_APY,
+              percentage: MUSD_CONVERSION_APY,
             })}
           </Text>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('earn.musd_conversion.quick_convert.subtitle', {
-              apy: MUSD_CONVERSION_APY,
+              percentage: MUSD_CONVERSION_APY,
             })}{' '}
             <Text
               variant={TextVariant.BodySM}

@@ -159,3 +159,12 @@ export const selectSnapshotsLoading = (state: RootState) =>
 
 export const selectSnapshotsError = (state: RootState) =>
   state.rewards.snapshotsError;
+
+// Campaigns selectors
+export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
+
+export const selectCampaignsLoading = (state: RootState) =>
+  state.rewards.campaignsLoading;
+
+export const selectCampaignsError = (state: RootState) =>
+  state.rewards.campaignsError;

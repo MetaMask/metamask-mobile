@@ -349,6 +349,46 @@ describe('Quotes', () => {
     });
   });
 
+  it('tracks OFFRAMP_QUOTES_EXPANDED when expanding quotes in sell mode', async () => {
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "OFFRAMP_QUOTES_EXPANDED",
+        {
+          "amount": 50,
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": "ETH",
+          "currency_source_network": "ETH",
+          "currency_source_symbol": "ETH",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "previously_used_count": 0,
+          "provider_onramp_first": "Banxa (Staging)",
+          "provider_onramp_list": [
+            "Banxa (Staging)",
+            "MoonPay (Staging)",
+            "Transak (Staging)",
+          ],
+          "refresh_count": 1,
+          "results_count": 3,
+        },
+      ]
+    `);
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
   it('calls hardware back handler ', async () => {
     const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
     const removeMock = jest.fn();
@@ -973,6 +1013,44 @@ describe('Quotes', () => {
         ],
       ]
     `);
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
+  it('tracks OFFRAMP_QUOTE_ERROR for sell quotes with errors', async () => {
+    const mockQuoteError = {
+      provider: {
+        id: '/providers/transak-staging',
+        name: 'Transak (Staging)',
+      },
+      message: 'Sell not available for this pair',
+      error: true,
+    };
+
+    mockUseRampSDKValues.rampType = RampType.SELL;
+    mockUseRampSDKValues.isSell = true;
+    mockUseRampSDKValues.isBuy = false;
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      quotesWithError: [mockQuoteError] as unknown as QuoteError[],
+    };
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_QUOTE_ERROR', {
+      amount: 50,
+      payment_method_id: '/payment-methods/test-payment-method',
+      error_message: 'Sell not available for this pair',
+      currency_destination: 'USD',
+      currency_source: 'ETH',
+      currency_source_symbol: 'ETH',
+      currency_source_network: 'ETH',
+      provider_offramp: 'Transak (Staging)',
+      chain_id_source: '1',
+    });
     act(() => {
       jest.useFakeTimers({ legacyFakeTimers: true });
     });
