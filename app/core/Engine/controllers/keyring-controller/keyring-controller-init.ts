@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { ControllerInitFunction } from '../../types';
 import {
   KeyringController,
   KeyringControllerMessenger,
@@ -11,7 +11,11 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { hmacSha512 } from '@metamask/native-utils';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../../Encryptor';
+import {
+  Encryptor,
+  LEGACY_DERIVATION_OPTIONS,
+  pbkdf2,
+} from '../../../Encryptor';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,

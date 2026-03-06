@@ -128,6 +128,25 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   },
 }));
 
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
+}));
+
 // State with preferences needed for NFT section rendering
 const stateWithPreferences = {
   engine: {
