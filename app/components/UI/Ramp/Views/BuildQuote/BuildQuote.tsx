@@ -534,18 +534,16 @@ function BuildQuote() {
       );
       const providerCode = normalizeProviderCode(selectedQuote.provider);
 
-      // For external-browser providers (e.g. PayPal), the redirectUrl baked into
-      // the quote's buyURL at quote-fetch time is the HTTPS fake-callback. The
-      // provider needs a deep link instead so it redirects back to the app.
-      // We override the buyURL's redirectUrl before fetching the widget, matching
-      // the legacy SDK's BuyAction.createWidget(deeplinkRedirectUrl) behaviour.
+      // The redirectUrl baked into the quote's buyURL at quote-fetch time is the
+      // HTTPS fake-callback. For providers that open an external OS browser (e.g.
+      // PayPal), we need a deep link instead so the browser redirects back to the
+      // app. We always override the redirectUrl before fetching the widget because
+      // the browser type is only known after the fetch (chicken-and-egg). This is
+      // safe: in-app browser providers ignore the redirectUrl parameter.
       const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
-      const quoteBuyWidget = selectedQuote.quote?.buyWidget;
-      const needsDeepLink =
-        isCustomAction || quoteBuyWidget?.browser === 'IN_APP_OS_BROWSER';
 
       let quoteForWidget = selectedQuote;
-      if (needsDeepLink && selectedQuote.quote?.buyURL) {
+      if (selectedQuote.quote?.buyURL) {
         const buyUrl = new URL(selectedQuote.quote.buyURL);
         buyUrl.searchParams.set('redirectUrl', deeplinkRedirectUrl);
         quoteForWidget = {
