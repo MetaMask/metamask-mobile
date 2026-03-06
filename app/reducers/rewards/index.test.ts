@@ -2131,6 +2131,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const action = resetRewardsState();
 
@@ -2234,6 +2237,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
