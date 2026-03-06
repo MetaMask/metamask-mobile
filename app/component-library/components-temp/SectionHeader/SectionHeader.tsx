@@ -55,7 +55,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   const tw = useTailwind();
 
   return (
-    <View style={style} testID={testID}>
+    <View style={style} testID={onPress ? undefined : testID}>
       <Box paddingHorizontal={4} twClassName={twClassName}>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -84,6 +84,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
           {onPress && (
             <TouchableOpacity
+              testID={testID}
               onPress={onPress}
               disabled={!onPress}
               accessibilityRole="button"
