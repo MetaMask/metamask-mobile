@@ -11,6 +11,7 @@ describe('GraphCursor', () => {
   const MOCK_CURRENT_X = 2;
   const MOCK_X = () => 73;
   const MOCK_Y = () => 33.17441726994484;
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   const MOCK_COLOR = '#1c8234';
 
   it('render matches snapshot', () => {

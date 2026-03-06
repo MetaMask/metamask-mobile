@@ -95,7 +95,9 @@ describe('useMerklClaimStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.Loading,
     hasNoTimeout: true,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     iconColor: '#000000',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#FFFFFF',
     hapticsType: NotificationFeedbackType.Warning,
     labelOptions: [{ label: 'Claiming bonus', isBold: true }],
@@ -104,7 +106,9 @@ describe('useMerklClaimStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.CheckBold,
     hasNoTimeout: false,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     iconColor: '#00FF00',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#FFFFFF',
     hapticsType: NotificationFeedbackType.Success,
     labelOptions: [{ label: 'Your mUSD is here!', isBold: true }],
@@ -113,7 +117,9 @@ describe('useMerklClaimStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.CircleX,
     hasNoTimeout: false,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     iconColor: '#FF0000',
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#FFFFFF',
     hapticsType: NotificationFeedbackType.Error,
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
