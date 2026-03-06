@@ -10,8 +10,10 @@ import {
   isHighlightedItemOutsideAssetList,
 } from '../../../Views/confirmations/types/token';
 import { usePerpsTrading } from './usePerpsTrading';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -22,8 +24,12 @@ jest.mock(
 );
 jest.mock('./useIsPerpsBalanceSelected');
 jest.mock('./usePerpsTrading');
-jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: jest.fn(),
+jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(),
 }));
 jest.mock('./usePerpsPaymentToken');
 jest.mock('react-redux', () => ({
@@ -53,17 +59,21 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
   typeof usePerpsTrading
 >;
-const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
-  typeof useConfirmNavigation
->;
 const mockUsePerpsPaymentToken = usePerpsPaymentToken as jest.MockedFunction<
   typeof usePerpsPaymentToken
+>;
+const mockUseNavigation = useNavigation as jest.MockedFunction<
+  typeof useNavigation
+>;
+const mockUseApprovalRequest = useApprovalRequest as jest.MockedFunction<
+  typeof useApprovalRequest
 >;
 
 describe('usePerpsBalanceTokenFilter', () => {
   const chainId = '0xa4b1';
   const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
-  const mockNavigateToConfirmation = jest.fn();
+  const mockNavigate = jest.fn();
+  const mockOnReject = jest.fn();
   const mockOnPerpsPaymentTokenChange = jest.fn();
 
   beforeEach(() => {
@@ -82,9 +92,12 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUsePerpsTrading.mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     } as unknown as ReturnType<typeof usePerpsTrading>);
-    mockUseConfirmNavigation.mockReturnValue({
-      navigateToConfirmation: mockNavigateToConfirmation,
-    } as unknown as ReturnType<typeof useConfirmNavigation>);
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as unknown as ReturnType<typeof useNavigation>);
+    mockUseApprovalRequest.mockReturnValue({
+      onReject: mockOnReject,
+    } as unknown as ReturnType<typeof useApprovalRequest>);
     mockUsePerpsPaymentToken.mockReturnValue({
       onPaymentTokenChange: mockOnPerpsPaymentTokenChange,
     } as unknown as ReturnType<typeof usePerpsPaymentToken>);
@@ -300,7 +313,7 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect((output[1] as AssetType).symbol).toBe('USDC');
     });
 
-    it('calls navigateToConfirmation and depositWithConfirmation when Add funds is pressed', () => {
+    it('calls onReject, depositWithConfirmation and navigation.navigate when Add funds is pressed', async () => {
       mockUseSelector.mockReturnValue({
         availableBalance: '500.00',
       });
@@ -322,10 +335,13 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
       if (isHighlightedItemOutsideAssetList(highlightedAction)) {
         highlightedAction.actions?.[0]?.onPress();
-        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-          stack: expect.any(String),
-        });
+        expect(mockOnReject).toHaveBeenCalledTimes(1);
         expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+        await Promise.resolve();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          { showPerpsHeader: true },
+        );
       }
     });
 
