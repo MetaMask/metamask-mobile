@@ -16,6 +16,7 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -34,6 +35,8 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
+    useMusdConfirmNavigation();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
@@ -135,7 +138,7 @@ export function useTransactionConfirm() {
           screen: Routes.PERPS.PERPS_HOME,
         });
       } else if (type === TransactionType.musdConversion) {
-        navigation.navigate(Routes.WALLET_VIEW);
+        musdConversionNavigateOnConfirm();
       } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -154,6 +157,7 @@ export function useTransactionConfirm() {
       isFullScreenConfirmation,
       isGaslessSupportedSTX,
       navigation,
+      musdConversionNavigateOnConfirm,
       onRequestConfirm,
       selectedGasFeeToken,
       transactionMetadata,

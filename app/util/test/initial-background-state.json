@@ -750,6 +750,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
@@ -771,7 +772,8 @@
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {}
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,
