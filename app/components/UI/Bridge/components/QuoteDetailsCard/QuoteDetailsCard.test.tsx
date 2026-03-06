@@ -9,6 +9,8 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -263,7 +265,10 @@ const testState = createBridgeTestState({
 });
 
 const QuoteDetailsCardTestScreen = () => (
-  <QuoteDetailsCard hasInsufficientBalance={false} />
+  <QuoteDetailsCard
+    location={MetaMetricsSwapsEventSource.MainView}
+    hasInsufficientBalance={false}
+  />
 );
 
 describe('QuoteDetailsCard', () => {
@@ -283,7 +288,7 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays fee amount', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -292,10 +297,12 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('0.01')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays quote rate', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -304,10 +311,12 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('navigates to slippage modal on edit press', () => {
-    const { getByTestId } = renderScreen(
+    const { getByTestId, getByText } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -327,10 +336,12 @@ describe('QuoteDetailsCard', () => {
         destChainId: 'evm:1',
       },
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays slippage value', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -340,6 +351,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays "Included" fee when gasIncluded7702 is true', () => {
@@ -368,7 +381,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -378,6 +391,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -402,7 +417,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -412,6 +427,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -442,7 +459,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, queryByText } = renderScreen(
+    const { getByText, getByTestId, queryByText } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -451,6 +468,8 @@ describe('QuoteDetailsCard', () => {
     expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.gas_fees_sponsored'))).toBeOnTheScreen();
     expect(queryByText('0.01')).toBeNull();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -480,7 +499,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText } = renderScreen(
+    const { getByLabelText, getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -502,6 +521,8 @@ describe('QuoteDetailsCard', () => {
       },
       screen: 'tooltipModal',
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -526,7 +547,7 @@ describe('QuoteDetailsCard', () => {
     expect(queryByTestId('quote-details-card')).toBeNull();
   });
 
-  it('handles price impact warning navigation', () => {
+  it('handles price impact info button navigation', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -550,23 +571,29 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText } = renderScreen(
+    const { getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    try {
-      const priceImpactTooltip = getByLabelText(
-        /Price Impact Warning tooltip/i,
-      );
-      fireEvent.press(priceImpactTooltip);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        params: { isGasIncluded: false },
-      });
-    } catch {
-      // Component rendered with high price impact logic
-    }
+    const priceImpactInfoButton = getByTestId('price-impact-info-button');
+    fireEvent.press(priceImpactInfoButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+      params: {
+        type: PriceImpactModalType.Info,
+        token: {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          decimals: 9,
+          name: 'Solana',
+        },
+        location: MetaMetricsSwapsEventSource.MainView,
+      },
+    });
   });
 
   it('navigates to quote selector when rate info button is pressed', () => {
@@ -597,8 +624,7 @@ describe('QuoteDetailsCard', () => {
     );
   });
 
-  it('handles shouldShowPriceImpactWarning false branch', () => {
-    // Test with low price impact to ensure shouldShowPriceImpactWarning is false
+  it('renders price impact info button for low price impact values', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -622,18 +648,17 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { queryByLabelText } = renderScreen(
+    const { getByTestId, getByText } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    // With low price impact, the warning tooltip should not exist
-    expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
-  it('handles shouldShowPriceImpactWarning true branch with color', () => {
-    // Test with very high price impact to ensure shouldShowPriceImpactWarning is true
+  it('renders price impact row with info button for high price impact values', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -657,28 +682,15 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, queryByLabelText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    // The key is testing the shouldShowPriceImpactWarning conditional branches
-    // Verify the Price Impact section is visible (this exercises the component logic)
     expect(getByText('Price impact')).toBeTruthy();
-
-    // Test the shouldShowPriceImpactWarning branches by checking for tooltip presence
-    const hasWarningTooltip =
-      queryByLabelText(/Price Impact Warning tooltip/i) !== null;
-
-    // Either way, we're testing both branches of the conditional
-    if (hasWarningTooltip) {
-      // True branch - warning tooltip exists
-      expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeTruthy();
-    } else {
-      // False branch - no warning tooltip
-      expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
-    }
+    expect(getByText('25%')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   describe('minimum received row', () => {

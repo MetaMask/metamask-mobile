@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -8,6 +8,9 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
+import RewardsInfoBanner from '../components/RewardsInfoBanner';
+import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
+import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
 
 export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
@@ -16,6 +19,18 @@ const RewardsSettingsView: React.FC = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedSettingsViewed = useRef(false);
+  const [isOffDeviceSheetOpen, setIsOffDeviceSheetOpen] = useState(false);
+
+  // Computes off-device accounts; internally fetches subscription accounts from the backend
+  const offDeviceAccounts = useLinkedOffDeviceAccounts();
+
+  const handleOpenOffDeviceSheet = useCallback(() => {
+    setIsOffDeviceSheetOpen(true);
+  }, []);
+
+  const handleCloseOffDeviceSheet = useCallback(() => {
+    setIsOffDeviceSheetOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!hasTrackedSettingsViewed.current) {
@@ -40,8 +55,31 @@ const RewardsSettingsView: React.FC = () => {
           includesTopInset
         />
         <Box twClassName="py-4 flex-1 gap-4">
+          {offDeviceAccounts.length > 0 && (
+            <Box twClassName="px-4">
+              <RewardsInfoBanner
+                title={strings(
+                  'rewards.settings.off_device_accounts_banner_title',
+                )}
+                description={strings(
+                  'rewards.settings.off_device_accounts_banner_description',
+                )}
+                onConfirm={handleOpenOffDeviceSheet}
+                confirmButtonLabel={strings(
+                  'rewards.settings.off_device_accounts_banner_cta',
+                )}
+              />
+            </Box>
+          )}
           <RewardSettingsAccountGroupList />
         </Box>
+
+        {isOffDeviceSheetOpen && (
+          <LinkedOffDeviceAccountsSheet
+            accounts={offDeviceAccounts}
+            onClose={handleCloseOffDeviceSheet}
+          />
+        )}
       </SafeAreaView>
     </ErrorBoundary>
   );
