@@ -3,7 +3,7 @@ import { useBalanceRefresh } from './useBalanceRefresh';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
-const mockListPopularEvmNetworks = jest.fn();
+let mockPopularEvmNetworks: string[] = ['0x1', '0x89'];
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -11,7 +11,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
-    listPopularEvmNetworks: mockListPopularEvmNetworks,
+    popularEvmNetworks: mockPopularEvmNetworks,
   }),
 }));
 
@@ -63,7 +63,7 @@ jest.mock('../../../../util/Logger', () => ({
 describe('useBalanceRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockListPopularEvmNetworks.mockReturnValue(['0x1', '0x89']);
+    mockPopularEvmNetworks = ['0x1', '0x89'];
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
     ).mockResolvedValue(undefined);
@@ -202,7 +202,7 @@ describe('useBalanceRefresh', () => {
   });
 
   it('calls AccountTrackerController.refresh only for popular EVM chain IDs', async () => {
-    mockListPopularEvmNetworks.mockReturnValue(['0x1']);
+    mockPopularEvmNetworks = ['0x1'];
 
     const { result } = renderHook(() => useBalanceRefresh());
 
@@ -216,7 +216,7 @@ describe('useBalanceRefresh', () => {
   });
 
   it('calls AccountTrackerController.refresh with empty array when no popular chains', async () => {
-    mockListPopularEvmNetworks.mockReturnValue([]);
+    mockPopularEvmNetworks = [];
 
     const { result } = renderHook(() => useBalanceRefresh());
 

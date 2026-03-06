@@ -359,9 +359,9 @@ describe('useNetworkSelection', () => {
         '0x89': false,
         '0x13881': true,
       },
-      listPopularEvmNetworks: jest.fn(() => []),
-      listPopularMultichainNetworks: jest.fn(() => []),
-      listPopularNetworks: jest.fn(() => []),
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
+      popularNetworks: [],
     });
 
     mockToHex.mockImplementation((value) => {
@@ -498,9 +498,9 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -572,9 +572,9 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -667,9 +667,9 @@ describe('useNetworkSelection', () => {
           '0x89': false,
           '0x13881': true,
         },
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
     });
 
@@ -859,9 +859,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -900,9 +900,9 @@ describe('useNetworkSelection', () => {
           '0x1': true,
           '0x2': false,
         },
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       renderHook(() => useNetworkSelection({ networks: mockNetworks }));
@@ -1492,9 +1492,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>
@@ -1526,9 +1526,9 @@ describe('useNetworkSelection', () => {
         enableAllPopularNetworks: mockEnableAllPopularNetworks,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        listPopularEvmNetworks: jest.fn(() => []),
-        listPopularMultichainNetworks: jest.fn(() => []),
-        listPopularNetworks: jest.fn(() => []),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { result } = renderHook(() =>

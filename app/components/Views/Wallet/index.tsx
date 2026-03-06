@@ -665,13 +665,7 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const { listPopularEvmNetworks } = useNetworkEnablement();
-  const evmChainIds = useMemo(
-    (): Hex[] => listPopularEvmNetworks(),
-    // Re-run when networkConfigurations change so listPopularEvmNetworks() is called again after add/remove network.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [listPopularEvmNetworks, networkConfigurations],
-  );
+  const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
    * Object containing the balance of the current selected account

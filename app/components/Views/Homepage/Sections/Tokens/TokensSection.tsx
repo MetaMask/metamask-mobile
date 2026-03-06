@@ -25,10 +25,7 @@ import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenB
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectNetworkConfigurations,
-} from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
@@ -61,14 +58,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
-    const { listPopularNetworks } = useNetworkEnablement();
-    const networkConfigurations = useSelector(selectNetworkConfigurations);
-    const popularChainIds = useMemo(
-      () => listPopularNetworks(),
-      // Re-run when network config changes so listPopularNetworks() reflects add/remove network.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [listPopularNetworks, networkConfigurations],
-    );
+    const { popularNetworks: popularChainIds } = useNetworkEnablement();
     const sortedTokenKeys = useSelector((state: RootState) =>
       selectSortedAssetsBySelectedAccountGroupForChainIds(
         state,

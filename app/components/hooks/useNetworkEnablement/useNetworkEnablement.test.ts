@@ -161,22 +161,22 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
       expect(result.current).toHaveProperty('tryEnableEvmNetwork');
       expect(result.current).toHaveProperty('enableAllPopularNetworks');
-      expect(result.current).toHaveProperty('listPopularEvmNetworks');
-      expect(result.current).toHaveProperty('listPopularMultichainNetworks');
-      expect(result.current).toHaveProperty('listPopularNetworks');
+      expect(result.current).toHaveProperty('popularEvmNetworks');
+      expect(result.current).toHaveProperty('popularMultichainNetworks');
+      expect(result.current).toHaveProperty('popularNetworks');
     });
 
-    it('returns functions for network operations', () => {
+    it('returns arrays for popular networks and functions for network operations', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
       expect(typeof result.current.enableAllPopularNetworks).toBe('function');
-      expect(typeof result.current.listPopularEvmNetworks).toBe('function');
-      expect(typeof result.current.listPopularMultichainNetworks).toBe(
-        'function',
+      expect(Array.isArray(result.current.popularEvmNetworks)).toBe(true);
+      expect(Array.isArray(result.current.popularMultichainNetworks)).toBe(
+        true,
       );
-      expect(typeof result.current.listPopularNetworks).toBe('function');
+      expect(Array.isArray(result.current.popularNetworks)).toBe(true);
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
       expect(typeof result.current.tryEnableEvmNetwork).toBe('function');
@@ -498,9 +498,9 @@ describe('useNetworkEnablement', () => {
         enableNetwork: expect.any(Function),
         disableNetwork: expect.any(Function),
         enableAllPopularNetworks: expect.any(Function),
-        listPopularEvmNetworks: expect.any(Function),
-        listPopularMultichainNetworks: expect.any(Function),
-        listPopularNetworks: expect.any(Function),
+        popularEvmNetworks: expect.any(Array),
+        popularMultichainNetworks: expect.any(Array),
+        popularNetworks: expect.any(Array),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
         tryEnableEvmNetwork: expect.any(Function),

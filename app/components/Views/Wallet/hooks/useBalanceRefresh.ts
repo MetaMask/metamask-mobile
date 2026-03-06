@@ -5,7 +5,6 @@ import Logger from '../../../../util/Logger';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectNativeNetworkCurrencies,
-  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectHomepageSectionsV1Enabled } from '../../../../selectors/featureFlagController/homepage';
@@ -27,20 +26,13 @@ const isRefreshTimeoutError = (error: unknown): error is Error =>
  */
 export const useBalanceRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
-  const { listPopularEvmNetworks } = useNetworkEnablement();
+  const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
 
   const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
-
-  const evmChainIds = useMemo(
-    () => listPopularEvmNetworks(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [networkConfigurations],
-  );
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,

@@ -35,12 +35,12 @@ jest.mock('./hooks', () => ({
 const mockSortedTokenKeys = jest.fn();
 const mockAccountGroupBalance = jest.fn();
 
-const mockListPopularNetworks = jest.fn();
+let mockPopularNetworks: string[] = [];
 jest.mock(
   '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
     useNetworkEnablement: () => ({
-      listPopularNetworks: mockListPopularNetworks,
+      popularNetworks: mockPopularNetworks,
     }),
   }),
 );
@@ -330,7 +330,7 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
-    mockListPopularNetworks.mockReturnValue(['eip155:1', '0xa']);
+    mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
@@ -403,7 +403,7 @@ describe('TokensSection', () => {
   it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIds)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     const popularChainIds = ['eip155:1', '0xa'];
-    mockListPopularNetworks.mockReturnValue(popularChainIds);
+    mockPopularNetworks = popularChainIds;
     mockSortedTokenKeys.mockReturnValue([]);
 
     renderWithProvider(
