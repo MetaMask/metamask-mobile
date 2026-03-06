@@ -34,12 +34,16 @@ const HomeEntryPointsValues = {
   NAVIGATED_BACK: 'navigated_back',
 } as const;
 
+const mockNotifySectionViewed = jest.fn();
+
 let mockContextValue = {
   subscribeToScroll: mockSubscribeToScroll,
   viewportHeight: 800,
   containerScreenY: 0,
   entryPoint: HomeEntryPointsValues.APP_OPENED as string,
   visitId: 0,
+  notifySectionViewed: mockNotifySectionViewed,
+  getViewedSectionCount: jest.fn(() => 0),
 };
 
 jest.mock('../context/HomepageScrollContext', () => ({
@@ -86,6 +90,8 @@ describe('useHomeViewedEvent', () => {
       containerScreenY: 0,
       entryPoint: HomeEntryPointsValues.APP_OPENED,
       visitId: 1, // Use 1 as default so "event fires" tests pass; 0 = pre-focus, no fire
+      notifySectionViewed: mockNotifySectionViewed,
+      getViewedSectionCount: jest.fn(() => 0),
     };
   });
 

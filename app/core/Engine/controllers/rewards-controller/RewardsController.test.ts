@@ -15827,6 +15827,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
@@ -15847,6 +15848,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "rewardsEnvUrl": null,
@@ -15872,6 +15874,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "offDeviceSubscriptionAccounts": {},
           "pointsEvents": {},
           "rewardsEnvUrl": null,
           "seasonStatuses": {},
@@ -18725,6 +18728,400 @@ describe('RewardsController', () => {
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh snapshots data via API call for seasonId',
         mockSeasonId,
+      );
+    });
+  });
+
+  describe('getOffDeviceSubscriptionAccounts', () => {
+    let localController: RewardsController;
+    let localMockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub-off-device-123';
+
+    // Helper to build a device account mock
+    const makeDeviceAccount = (
+      address: string,
+      scopes: string[] = ['eip155:1'],
+    ) => ({
+      address,
+      type: 'eip155:eoa' as const,
+      id: `id-${address}`,
+      scopes,
+      options: {},
+      methods: ['personal_sign'],
+      metadata: {
+        name: 'Test Account',
+        keyring: { type: 'HD Key Tree' },
+        importTime: Date.now(),
+      },
+    });
+
+    beforeEach(() => {
+      localMockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+
+      localController = new RewardsController({
+        messenger: localMockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+      });
+    });
+
+    it('returns empty array when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: localMockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual([]);
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getSubscriptionAccounts',
+        expect.anything(),
+      );
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+    });
+
+    it('returns cached accounts when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000; // 1 minute ago (within 5-minute threshold)
+      const cachedAccounts = [
+        'eip155:1:0xDeadBeef00000000000000000000000000000001',
+        'solana:mainnet:SomeBase58Address',
+      ];
+
+      localController = new RewardsController({
+        messenger: localMockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          offDeviceSubscriptionAccounts: {
+            [mockSubscriptionId]: {
+              accounts: cachedAccounts,
+              lastFetched: recentTime,
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual(cachedAccounts);
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getSubscriptionAccounts',
+        expect.anything(),
+      );
+      expect(localMockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+    });
+
+    it('fetches fresh accounts when cache is stale', async () => {
+      const staleTime = Date.now() - 360000; // 6 minutes ago (beyond 5-minute threshold)
+      const staleAccounts = ['eip155:1:0xStaleAddress'];
+      const freshAccounts = [
+        'eip155:1:0xFreshAddress00000000000000000000000001',
+      ];
+
+      localController = new RewardsController({
+        messenger: localMockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          offDeviceSubscriptionAccounts: {
+            [mockSubscriptionId]: {
+              accounts: staleAccounts,
+              lastFetched: staleTime,
+            },
+          },
+        },
+        isDisabled: () => false,
+      });
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(freshAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getSubscriptionAccounts',
+        mockSubscriptionId,
+      );
+      expect(localMockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:listMultichainAccounts',
+      );
+      expect(result).toEqual(freshAccounts);
+    });
+
+    it('writes fresh result to state cache after fetching', async () => {
+      const backendAccounts = [
+        'eip155:1:0xOffDevice0000000000000000000000000001',
+      ];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      await localController.getOffDeviceSubscriptionAccounts(
+        mockSubscriptionId,
+      );
+
+      const cached =
+        localController.state.offDeviceSubscriptionAccounts[mockSubscriptionId];
+      expect(cached).toBeDefined();
+      expect(cached.accounts).toEqual(backendAccounts);
+      expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('filters out EVM on-device accounts (case-insensitive)', async () => {
+      // Device account has checksum-cased address
+      const deviceAccount = makeDeviceAccount(
+        '0xABCDEF1234567890ABCDEF1234567890ABCDEF12',
+        ['eip155:1'],
+      );
+      // Backend returns the same address in lower-case (should be filtered)
+      const backendAccounts = [
+        'eip155:1:0xabcdef1234567890abcdef1234567890abcdef12',
+        'eip155:1:0xOffDevice0000000000000000000000000001',
+      ];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([deviceAccount]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      // The case-variant match should be excluded; only the off-device one remains
+      expect(result).toEqual([
+        'eip155:1:0xOffDevice0000000000000000000000000001',
+      ]);
+    });
+
+    it('does NOT filter EVM accounts with a different address', async () => {
+      const deviceAccount = makeDeviceAccount(
+        '0xDevice000000000000000000000000000001',
+        ['eip155:1'],
+      );
+      const backendAccounts = [
+        'eip155:1:0xOther000000000000000000000000000002',
+      ];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([deviceAccount]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual(backendAccounts);
+    });
+
+    it('filters out non-EVM on-device accounts (case-sensitive, exact match)', async () => {
+      const solanaAddress = 'SolanaBase58AddressExactCase';
+      const deviceAccount = makeDeviceAccount(solanaAddress, [
+        'solana:mainnet',
+      ]);
+      const backendAccounts = [
+        `solana:mainnet:${solanaAddress}`, // exact match → filtered
+        'solana:mainnet:DifferentSolanaAddress', // different → kept
+      ];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([deviceAccount]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual(['solana:mainnet:DifferentSolanaAddress']);
+    });
+
+    it('does NOT filter non-EVM accounts on case mismatch (case-sensitive)', async () => {
+      // Device has lower-case Solana address; backend has upper-case — must NOT be filtered
+      const deviceAccount = makeDeviceAccount('solanaaddresslower', [
+        'solana:mainnet',
+      ]);
+      const backendAccounts = ['solana:mainnet:SOLANAADDRESSUPPER'];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([deviceAccount]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual(backendAccounts);
+    });
+
+    it('filters malformed CAIP-10 strings without a colon', async () => {
+      const backendAccounts = [
+        'no-colon-here', // malformed
+        'eip155:1:0xValidOffDevice00000000000000000001',
+      ];
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve(backendAccounts);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual(['eip155:1:0xValidOffDevice00000000000000000001']);
+    });
+
+    it('handles empty backend accounts list', async () => {
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve([]);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([makeDeviceAccount('0xSomeDevice')]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      const result =
+        await localController.getOffDeviceSubscriptionAccounts(
+          mockSubscriptionId,
+        );
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws and logs when the service call fails', async () => {
+      const apiError = new Error('Network error');
+
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.reject(apiError);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      mockLogger.log.mockClear();
+
+      await expect(
+        localController.getOffDeviceSubscriptionAccounts(mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Failed to get off-device subscription accounts:',
+        'Network error',
+      );
+    });
+
+    it('logs when fetching fresh off-device subscription accounts', async () => {
+      localMockMessenger.call.mockImplementation(
+        (method: string, ..._args: unknown[]): any => {
+          if (method === 'RewardsDataService:getSubscriptionAccounts') {
+            return Promise.resolve([]);
+          }
+          if (method === 'AccountsController:listMultichainAccounts') {
+            return Promise.resolve([]);
+          }
+          return Promise.resolve(undefined);
+        },
+      );
+
+      mockLogger.log.mockClear();
+
+      await localController.getOffDeviceSubscriptionAccounts(
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh off-device subscription accounts for subscriptionId',
+        mockSubscriptionId,
       );
     });
   });
