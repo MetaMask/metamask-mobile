@@ -41,7 +41,7 @@ interface PerpsConnectionProviderProps {
   /**
    * When false, disables connect/disconnect lifecycle management in this provider.
    * Use when the top-level PerpsAlwaysOnProvider already manages the connection.
-   * Defaults to true.
+   * Defaults to false.
    */
   manageLifecycle?: boolean;
 }
@@ -60,7 +60,7 @@ export const PerpsConnectionProvider: React.FC<
   isVisible,
   isFullScreen = false,
   suppressErrorView = false,
-  manageLifecycle = true,
+  manageLifecycle = false,
 }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),

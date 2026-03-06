@@ -822,7 +822,7 @@ describe('PerpsConnectionProvider', () => {
 
     it('calls usePerpsConnectionLifecycle with correct parameters', () => {
       const { rerender } = render(
-        <PerpsConnectionProvider isVisible>
+        <PerpsConnectionProvider isVisible manageLifecycle>
           <Text>Test</Text>
         </PerpsConnectionProvider>,
       );
@@ -991,7 +991,7 @@ describe('PerpsConnectionProvider', () => {
 
     it('handles visibility changes through the hook', () => {
       const { rerender } = render(
-        <PerpsConnectionProvider isVisible>
+        <PerpsConnectionProvider isVisible manageLifecycle>
           <Text>Test</Text>
         </PerpsConnectionProvider>,
       );
@@ -1003,7 +1003,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Change to not visible
       rerender(
-        <PerpsConnectionProvider isVisible={false}>
+        <PerpsConnectionProvider isVisible={false} manageLifecycle>
           <Text>Test</Text>
         </PerpsConnectionProvider>,
       );
@@ -1014,7 +1014,7 @@ describe('PerpsConnectionProvider', () => {
 
       // Change back to visible
       rerender(
-        <PerpsConnectionProvider isVisible>
+        <PerpsConnectionProvider isVisible manageLifecycle>
           <Text>Test</Text>
         </PerpsConnectionProvider>,
       );
