@@ -6573,6 +6573,11 @@
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
+    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
+    "price_impact_high": "High price impact",
+    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
+    "proceed": "Proceed",
+    "cancel": "Cancel",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
@@ -6592,14 +6597,14 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cancel": "Cancel",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
     "custom": "Custom",
-    "invalid_recipient_address": "Invalid address"
+    "invalid_recipient_address": "Invalid address",
+     "got_it": "Got it"
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

@@ -206,4 +206,4 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   );
 };
 
-export default PerpsCard;
+export default React.memo(PerpsCard);
