@@ -54,7 +54,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
             options: {
               chainId: 1,
               // Fork mainnet so the staking contract is available
-              forkUrl: `https://mainnet.infura.io/v3/ce960be3442049ababedfc212d57b24b`,
+              forkUrl: `https://mainnet.infura.io/v3/${process.env.MM_INFURA_PROJECT_ID}`,
             },
           },
         ],
