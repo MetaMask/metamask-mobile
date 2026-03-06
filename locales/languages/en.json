@@ -8007,6 +8007,9 @@
   },
   "homepage": {
     "sections": {
+      "cash": "Cash",
+      "cash_annualized_copy": "Get {{percentage}}% annualized bonus on your stablecoins when you convert to mUSD.",
+      "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
       "tokens": "Tokens",
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",

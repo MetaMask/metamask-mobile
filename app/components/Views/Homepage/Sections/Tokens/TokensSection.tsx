@@ -41,6 +41,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
+import { isMusdToken } from '../../../../UI/Earn/constants/musd';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -120,7 +121,10 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const title = strings('homepage.sections.tokens');
 
     const displayTokenKeys = useMemo(
-      () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
+      () =>
+        sortedTokenKeys
+          .filter((key) => !isMusdToken(key.address))
+          .slice(0, MAX_TOKENS_DISPLAYED),
       [sortedTokenKeys],
     );
 

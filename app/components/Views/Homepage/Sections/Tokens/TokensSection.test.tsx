@@ -460,6 +460,26 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
+  it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
+    const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.queryByTestId(`token-item-${MUSD_ADDRESS}`)).toBeNull();
+    expect(screen.queryByTestId(`token-item-v2-${MUSD_ADDRESS}`)).toBeNull();
+    const otherToken =
+      screen.queryByTestId('token-item-0xtoken1') ??
+      screen.queryByTestId('token-item-v2-0xtoken1');
+    expect(otherToken).toBeOnTheScreen();
+  });
+
   it('navigates to tokens full view on title press', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 

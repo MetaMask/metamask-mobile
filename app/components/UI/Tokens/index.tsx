@@ -35,18 +35,25 @@ import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
+import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
+import { strings } from '../../../../locales/i18n';
 
 interface TokensProps {
   /**
    * Whether this is the full view (with header and safe area) or tab view
    */
   isFullView?: boolean;
+  /**
+   * When true, show only mUSD token positions (for Cash full view).
+   * Hides add-token bar and uses cash-specific empty state when empty.
+   */
+  showOnlyMusd?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
-  ({ isFullView = false }, ref) => {
+  ({ isFullView = false, showOnlyMusd = false }, ref) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
@@ -82,6 +89,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
+    // When showOnlyMusd: only mUSD positions. Otherwise exclude mUSD (shown in Cash section).
+    const tokenKeysForList = useMemo(
+      () =>
+        showOnlyMusd
+          ? sortedTokenKeys.filter((key) => isMusdToken(key.address))
+          : sortedTokenKeys.filter((key) => !isMusdToken(key.address)),
+      [sortedTokenKeys, showOnlyMusd],
+    );
+
     const [, forceUpdate] = useState(0);
 
     // Force re-render when coming back into focus to ensure the component
@@ -109,17 +125,18 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       trackEvent(
         createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
           .addProperties({
-            item_count: sortedTokenKeys.length,
+            item_count: tokenKeysForList.length,
             location: 'homepage',
-            is_empty: sortedTokenKeys.length === 0,
-            screen_type: 'tokens',
+            is_empty: tokenKeysForList.length === 0,
+            screen_type: showOnlyMusd ? 'cash' : 'tokens',
           })
           .build(),
       );
     }, [
       isFullView,
       hasInitialLoad,
-      sortedTokenKeys.length,
+      tokenKeysForList.length,
+      showOnlyMusd,
       trackEvent,
       createEventBuilder,
     ]);
@@ -197,16 +214,16 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
-      if (sortedTokenKeys.length > 0) {
+      if (tokenKeysForList.length > 0) {
         return (
           <>
-            {isMusdConversionFlowEnabled && isGeoEligible && (
+            {!showOnlyMusd && isMusdConversionFlowEnabled && isGeoEligible && (
               <View style={isFullView ? tw`px-4` : undefined}>
                 <MusdConversionAssetListCta />
               </View>
             )}
             <TokenList
-              tokenKeys={sortedTokenKeys}
+              tokenKeys={tokenKeysForList}
               refreshing={refreshing}
               onRefresh={onRefresh}
               showRemoveMenu={showRemoveMenu}
@@ -220,13 +237,20 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       return (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          <TokensEmptyState />
+          {showOnlyMusd ? (
+            <TokensEmptyState
+              description={strings('homepage.sections.cash_empty_description')}
+            />
+          ) : (
+            <TokensEmptyState />
+          )}
         </Box>
       );
     }, [
       hasInitialLoad,
       isFullView,
-      sortedTokenKeys,
+      tokenKeysForList,
+      showOnlyMusd,
       isMusdConversionFlowEnabled,
       tw,
       refreshing,
@@ -248,6 +272,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       >
         <TokenListControlBar
           goToAddToken={goToAddToken}
+          showAddToken={!showOnlyMusd}
+          hideSort={showOnlyMusd}
           style={isFullView ? tw`px-4 pb-4` : undefined}
         />
         {tokenContent}

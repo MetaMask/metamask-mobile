@@ -82,15 +82,26 @@ const arrangeMockComponents = () => {
 
   const mockTokenListControlBar = jest
     .spyOn(TokenListControlBarModule, 'TokenListControlBar')
-    .mockImplementation(({ goToAddToken }) => (
-      <View testID="token-list-control-bar">
-        <Button
-          testID="MOCK_TEST_ADD_TOKEN_BUTTON"
-          title="Add Token"
-          onPress={goToAddToken}
-        />
-      </View>
-    ));
+    .mockImplementation(
+      ({
+        goToAddToken,
+        showAddToken = true,
+      }: {
+        goToAddToken: () => void;
+        showAddToken?: boolean;
+      }) => (
+        <View testID="token-list-control-bar">
+          {showAddToken && (
+            <Button
+              testID="MOCK_TEST_ADD_TOKEN_BUTTON"
+              title="Add Token"
+              onPress={goToAddToken}
+            />
+          )}
+          <Button testID="MOCK_NETWORK_FILTER" title="Network" />
+        </View>
+      ),
+    );
 
   const mockTokensList = jest
     .mocked(TokenList)
@@ -164,11 +175,15 @@ const arrangeMockState = () => clone(initialRootState);
 const initialState = arrangeMockState();
 
 const Stack = createStackNavigator();
-const renderComponent = (state = initialState, isFullView: boolean = false) =>
+const renderComponent = (
+  state = initialState,
+  isFullView: boolean = false,
+  showOnlyMusd: boolean = false,
+) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Tokens" options={{}}>
-        {() => <Tokens isFullView={isFullView} />}
+        {() => <Tokens isFullView={isFullView} showOnlyMusd={showOnlyMusd} />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -346,6 +361,73 @@ describe('Tokens', () => {
             location: 'homepage',
           }),
         );
+      });
+    });
+
+    it('tracks screen_type cash when showOnlyMusd and isFullView', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'cash',
+            location: 'homepage',
+            is_empty: true,
+          }),
+        );
+      });
+    });
+  });
+
+  describe('showOnlyMusd (Cash view)', () => {
+    it('passes showAddToken false and hideSort true to TokenListControlBar', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(
+          TokenListControlBarModule.TokenListControlBar,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            showAddToken: false,
+            hideSort: true,
+          }),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('does not render add token button when showOnlyMusd', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+
+      expect(queryByTestId('MOCK_TEST_ADD_TOKEN_BUTTON')).toBeNull();
+    });
+
+    it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
       });
     });
   });
