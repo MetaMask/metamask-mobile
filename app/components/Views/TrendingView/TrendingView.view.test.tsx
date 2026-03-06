@@ -42,17 +42,17 @@ const assertTrendingTokenRowsVisibility = async (opts: {
   await waitFor(
     async () => {
       visible.forEach((result) => {
-        expect(queryByTestId(result.id)).toBeOnTheScreen();
+        const item = queryByTestId(result.id);
+        expect(item).toBeOnTheScreen();
         if (result.name) {
-          expect(queryByTestId(result.id)).toHaveTextContent(result.name, {
+          expect(item).toHaveTextContent(result.name, {
             exact: false,
           });
         }
         if (result.pricePercentageChange) {
-          expect(queryByTestId(result.id)).toHaveTextContent(
-            result.pricePercentageChange,
-            { exact: false },
-          );
+          expect(item).toHaveTextContent(result.pricePercentageChange, {
+            exact: false,
+          });
         }
       });
       missing?.forEach((result) => {
@@ -190,25 +190,20 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
 
       await userEvent.type(searchInput, 'ethereum');
 
-      await waitFor(
-        async () => {
-          const searchResultsList = await findByTestId(
-            'trending-search-results-list',
-          );
-
-          await assertTrendingTokenRowsVisibility({
-            queryByTestId: within(searchResultsList).queryByTestId,
-            visible: [
-              {
-                id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-                name: 'Ethereum',
-                pricePercentageChange: '+5.20%',
-              },
-            ],
-          });
-        },
-        { timeout: 3000 },
+      const searchResultsList = await findByTestId(
+        'trending-search-results-list',
       );
+
+      await assertTrendingTokenRowsVisibility({
+        queryByTestId: within(searchResultsList).queryByTestId,
+        visible: [
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+            name: 'Ethereum',
+            pricePercentageChange: '+5.20%',
+          },
+        ],
+      });
     },
   );
 });
@@ -270,7 +265,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
         ],
         missing: [
           {
-            id: 'trending-token-row-item-eip155:56/erc20:0xBTC00000000000000000000000000000000000000',
+            id: 'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
           },
         ],
       });
