@@ -78,12 +78,20 @@ import TradingViewChart, {
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
   usePositionManagement,
+  usePerpsTrading,
 } from '../../hooks';
-import { usePerpsLiveOrders, usePerpsLivePrices } from '../../hooks/stream';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import {
+  usePerpsLiveAccount,
+  usePerpsLiveOrders,
+  usePerpsLivePrices,
+} from '../../hooks/stream';
 import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -388,6 +396,44 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     asset: market?.symbol || '',
     loadOnMount: true,
   });
+
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const defaultPayTokenWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+  const availableBalance = Number.parseFloat(
+    account?.availableBalance?.toString() ?? '0',
+  );
+  const showAddFundsCTA =
+    isEligible &&
+    !isLoadingPosition &&
+    !existingPosition &&
+    !isAtOICap &&
+    !isLoadingAccount &&
+    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
+    defaultPayTokenWhenNoPerpsBalance === null;
+
+  const handleAddFunds = useCallback(async () => {
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ADD_FUNDS_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+    try {
+      await depositWithConfirmation();
+    } catch (err) {
+      Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+      });
+    }
+  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
 
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition
@@ -1031,6 +1077,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     );
   }
 
+  const shouldShowNewPositionActions =
+    hasLongShortButtons && !existingPosition && !isAtOICap;
+  const shouldShowAddFundsCTASection =
+    shouldShowNewPositionActions && showAddFundsCTA;
+  const shouldShowLongShortButtonsOnly =
+    shouldShowNewPositionActions && !showAddFundsCTA;
+
   return (
     <SafeAreaView
       style={styles.mainContainer}
@@ -1261,8 +1314,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Show Long/Short buttons when no position exists */}
-          {hasLongShortButtons && !existingPosition && !isAtOICap && (
+          {/* Show Add funds CTA when no perps balance and no allowlist token to preselect */}
+          {shouldShowAddFundsCTASection && (
+            <View style={styles.actionsContainer}>
+              <View style={styles.actionButtonWrapper}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.add_funds')}
+                  onPress={handleAddFunds}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+                />
+              </View>
+            </View>
+          )}
+          {/* Show Long/Short buttons when no position exists and user can trade */}
+          {shouldShowLongShortButtonsOnly && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
