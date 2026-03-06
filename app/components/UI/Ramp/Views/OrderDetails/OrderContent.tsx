@@ -43,6 +43,9 @@ const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
   },
+  inlineIcon: {
+    transform: [{ translateY: 4 }],
+  },
 });
 
 interface OrderContentProps {
@@ -288,7 +291,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   }, [hasBankDetails, getFieldValue]);
 
   return (
-    <Box twClassName="w-full">
+    <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -552,25 +555,29 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Box>
       )}
 
-      <Box twClassName="pt-4 pb-4 w-full">
+      <Box twClassName={`w-full pb-4 ${showCloseButton ? 'mt-auto' : 'pt-4'}`}>
         {order.statusDescription && (
-          <TouchableOpacity onPress={handleInfoPress}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center justify-center mb-4 px-4 flex-wrap"
-            >
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative shrink">
-                {order.statusDescription}
+          <Box twClassName={showCloseButton ? 'mb-4' : ''}>
+            <TouchableOpacity onPress={handleInfoPress}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-alternative text-center"
+              >
+                {order.statusDescription.startsWith('Your order')
+                  ? order.statusDescription.substring(
+                      order.statusDescription.indexOf('. ') + 2,
+                    )
+                  : order.statusDescription}{' '}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  twClassName="text-alternative"
+                  style={localStyles.inlineIcon}
+                />
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                twClassName="text-alternative ml-1"
-              />
-            </Box>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </Box>
         )}
-
         {showCloseButton && (
           <Button
             testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}

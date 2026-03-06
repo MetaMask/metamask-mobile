@@ -199,6 +199,7 @@ const OrderDetails = () => {
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -209,7 +210,7 @@ const OrderDetails = () => {
         }
       >
         <ScreenLayout.Body>
-          <ScreenLayout.Content>
+          <ScreenLayout.Content style={{ flex: 1 }}>
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
