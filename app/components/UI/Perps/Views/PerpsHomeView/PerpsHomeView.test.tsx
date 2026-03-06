@@ -560,9 +560,7 @@ describe('PerpsHomeView', () => {
     // Act - Press search toggle
     fireEvent.press(getByTestId('perps-home-search-toggle'));
 
-    // Assert - Should navigate to MarketListView with search enabled and 'all' category
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
       source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,

@@ -31,6 +31,7 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -64,7 +65,7 @@ import {
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -72,10 +73,10 @@ import {
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  clearAllCache,
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -158,9 +159,9 @@ const CardHome = () => {
   } = useCardPinToken();
   const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
-  const hasLoadedCardHomeView = useRef(false);
-  const hasCompletedInitialFetchRef = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
+  const hasCompletedInitialFetchRef = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
   const [
@@ -173,6 +174,7 @@ const CardHome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const theme = useTheme();
   const tw = useTailwind();
 
@@ -1085,7 +1087,7 @@ const CardHome = () => {
         }
 
         dispatch(resetAuthenticatedData());
-        dispatch(clearAllCache());
+        queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -1108,7 +1110,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation, toastRef]);
+  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -1116,7 +1118,7 @@ const CardHome = () => {
     }
     if (!hasLoadedCardHomeView.current && isAuthenticated) {
       hasLoadedCardHomeView.current = true;
-      fetchAllData().then(() => {
+      fetchAllData().finally(() => {
         hasCompletedInitialFetchRef.current = true;
       });
     }
@@ -1132,18 +1134,16 @@ const CardHome = () => {
         return;
       }
 
-      if (!externalWalletDetailsData && !isLoading) {
+      const hasInvalidatedQueries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: cardQueries.dashboard.keys.all() })
+        .some((query) => query.state.isInvalidated);
+
+      if (hasInvalidatedQueries) {
         fetchAllData();
       }
-    }, [
-      isSDKLoading,
-      isAuthenticated,
-      externalWalletDetailsData,
-      isLoading,
-      fetchAllData,
-    ]),
+    }, [isSDKLoading, isAuthenticated, fetchAllData, queryClient]),
   );
-
   /**
    * Check if the current token supports the spending limit progress bar feature.
    * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.

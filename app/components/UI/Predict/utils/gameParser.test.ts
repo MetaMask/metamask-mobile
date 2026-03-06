@@ -1,3 +1,4 @@
+import { TEST_HEX_COLORS } from '../testUtils/mockColors';
 import {
   parseGameSlugTeams,
   parseScore,
@@ -22,7 +23,7 @@ const createMockApiTeam = (
   name: 'Seattle Seahawks',
   logo: 'https://example.com/sea.png',
   abbreviation: 'SEA',
-  color: '#002244',
+  color: TEST_HEX_COLORS.TEAM_SEA,
   alias: 'Seahawks',
   ...overrides,
 });
@@ -286,7 +287,7 @@ describe('gameParser', () => {
         name: 'Seattle Seahawks',
         logo: 'https://example.com/sea.png',
         abbreviation: 'SEA',
-        color: '#002244',
+        color: TEST_HEX_COLORS.TEAM_SEA,
         alias: 'Seahawks',
       });
     });
@@ -297,7 +298,7 @@ describe('gameParser', () => {
         name: 'Custom Team',
         logo: 'https://custom.com/logo.png',
         abbreviation: 'CUS',
-        color: '#FFFFFF',
+        color: TEST_HEX_COLORS.WHITE_FULL,
         alias: 'Customs',
       });
 
@@ -307,7 +308,7 @@ describe('gameParser', () => {
       expect(result.name).toBe('Custom Team');
       expect(result.logo).toBe('https://custom.com/logo.png');
       expect(result.abbreviation).toBe('CUS');
-      expect(result.color).toBe('#FFFFFF');
+      expect(result.color).toBe(TEST_HEX_COLORS.WHITE_FULL);
       expect(result.alias).toBe('Customs');
     });
   });
@@ -318,7 +319,7 @@ describe('gameParser', () => {
       name: 'Seattle Seahawks',
       logo: 'https://example.com/sea.png',
       abbreviation: 'SEA',
-      color: '#002244',
+      color: TEST_HEX_COLORS.TEAM_SEA,
       alias: 'Seahawks',
     };
 
@@ -327,7 +328,7 @@ describe('gameParser', () => {
       name: 'Denver Broncos',
       logo: 'https://example.com/den.png',
       abbreviation: 'DEN',
-      color: '#FB4F14',
+      color: TEST_HEX_COLORS.TEAM_DEN,
       alias: 'Broncos',
     };
 
