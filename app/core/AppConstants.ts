@@ -33,6 +33,8 @@ export default {
   BRIDGE: {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
+    PRICE_IMPACT_WARNING_THRESHOLD: 5,
+    PRICE_IMPACT_ERROR_THRESHOLD: 25,
     // Check app/components/UI/Bridge/types.ts
     // for interface definition.
     SLIPPAGE_CONFIG: {
