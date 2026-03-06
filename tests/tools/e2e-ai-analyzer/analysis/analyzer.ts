@@ -120,11 +120,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
-  let usedModel = provider.getDefaultModel();
+  const requestedModel = provider.getDefaultModel();
+  let resolvedModel: string | undefined;
 
   function printTokenReport() {
     if (totalInputTokens === 0 && totalOutputTokens === 0) return;
-    const pricing = MODEL_PRICING[usedModel];
+    const pricing = MODEL_PRICING[requestedModel];
     const inputCost = pricing
       ? (totalInputTokens / 1_000_000) * pricing.inputPerM
       : null;
@@ -136,7 +137,9 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
     console.log('\n💰 Token Usage Report');
     console.log('─────────────────────────────────────');
-    console.log(`   Model:          ${usedModel}`);
+    console.log(
+      `   Model:          ${requestedModel}${resolvedModel && resolvedModel !== requestedModel ? ` (${resolvedModel})` : ''}`,
+    );
     console.log(
       `   Input tokens:   ${totalInputTokens.toLocaleString()}${pricing ? `  ($${inputCost?.toFixed(4)})` : ''}`,
     );
@@ -147,7 +150,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       console.log(`   Total cost:     $${totalCost.toFixed(4)}`);
     }
     if (!pricing) {
-      console.log(`   ⚠️  No pricing data for model "${usedModel}"`);
+      console.log(`   ⚠️  No pricing data for model "${requestedModel}"`);
     }
     console.log('─────────────────────────────────────');
   }
@@ -172,7 +175,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
     if (response.usage) {
       totalInputTokens += response.usage.inputTokens;
       totalOutputTokens += response.usage.outputTokens;
-      usedModel = response.model;
+      resolvedModel = response.model;
     }
 
     // Handle tool uses
