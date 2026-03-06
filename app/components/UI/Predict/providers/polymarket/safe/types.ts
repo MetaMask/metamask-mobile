@@ -23,16 +23,3 @@ export interface SafeFeeAuthorization {
     sig: string; // Signature of the Safe transaction
   };
 }
-
-export interface Permit2FeeAuthorization {
-  type: 'safe-permit2';
-  authorization: {
-    permit: {
-      permitted: { token: string; amount: string };
-      nonce: string;
-      deadline: string;
-    };
-    spender: string;
-    signature: string;
-  };
-}

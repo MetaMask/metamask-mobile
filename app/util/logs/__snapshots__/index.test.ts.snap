@@ -634,7 +634,6 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             },
           },
         },
-        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -1489,7 +1488,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             },
           },
         },
-        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,

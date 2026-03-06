@@ -25,7 +25,7 @@ exports[`ErrorMessage should render correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -57,7 +57,7 @@ exports[`ErrorMessage should render correctly 1`] = `
           undefined,
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "flex": 1,
               "fontSize": 14,
               "lineHeight": 17,

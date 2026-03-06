@@ -111,7 +111,6 @@ const SRPQuiz = (props: SRPQuizProps) => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       shouldUpdateNav: true,
       keyringId,
-      skipQuiz: true,
     });
   }, [navigation, trackEvent, createEventBuilder, keyringId]);
 

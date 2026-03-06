@@ -21,8 +21,6 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -36,7 +34,6 @@ export const createProcessingInfoModalNavigationDetails =
   );
 
 function ProcessingInfoModal() {
-  const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { providerName, providerSupportUrl, statusDescription } =
@@ -48,22 +45,6 @@ function ProcessingInfoModal() {
 
   const handleGoToSupport = useCallback(async () => {
     if (!providerSupportUrl) return;
-    let urlDomain: string | undefined;
-    try {
-      urlDomain = new URL(providerSupportUrl).hostname;
-    } catch {
-      urlDomain = providerSupportUrl;
-    }
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_EXTERNAL_LINK_CLICKED)
-        .addProperties({
-          location: 'Order Details',
-          external_link_description: 'Provider Support',
-          url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
     if (await InAppBrowser.isAvailable()) {
       // Close the sheet before the InAppBrowser overlay opens so the two don't overlap.
       handleClose();
@@ -80,14 +61,7 @@ function ProcessingInfoModal() {
         },
       });
     }
-  }, [
-    providerSupportUrl,
-    providerName,
-    handleClose,
-    navigation,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [providerSupportUrl, providerName, handleClose, navigation]);
 
   return (
     <BottomSheet

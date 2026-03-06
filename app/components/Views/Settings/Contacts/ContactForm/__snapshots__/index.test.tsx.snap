@@ -58,7 +58,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -76,16 +76,16 @@ exports[`ContactForm renders correctly 1`] = `
           onChangeText={[Function]}
           onSubmitEditing={[Function]}
           placeholder="Name"
-          placeholderTextColor="#babbbe"
+          placeholderTextColor="#b7bbc8"
           spellCheck={false}
           style={
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -102,7 +102,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -116,10 +116,10 @@ exports[`ContactForm renders correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -147,12 +147,12 @@ exports[`ContactForm renders correctly 1`] = `
               onChangeText={[Function]}
               onSubmitEditing={[Function]}
               placeholder="Public address (0x), or ENS"
-              placeholderTextColor="#babbbe"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -202,7 +202,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -216,10 +216,10 @@ exports[`ContactForm renders correctly 1`] = `
             [
               {
                 "alignItems": "center",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#131416",
+                "color": "#121314",
                 "flex": 1,
                 "flexDirection": "row",
                 "fontFamily": "Geist-Regular",
@@ -247,12 +247,12 @@ exports[`ContactForm renders correctly 1`] = `
               numberOfLines={1}
               onChangeText={[Function]}
               placeholder="Memo"
-              placeholderTextColor="#babbbe"
+              placeholderTextColor="#b7bbc8"
               spellCheck={false}
               style={
                 [
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "padding": 0,
                     "paddingRight": 8,
@@ -268,7 +268,7 @@ exports[`ContactForm renders correctly 1`] = `
         <Text
           style={
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Bold",
               "fontSize": 14,
               "paddingVertical": 12,
@@ -284,7 +284,7 @@ exports[`ContactForm renders correctly 1`] = `
           style={
             [
               {
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
                 "flex": 1,
@@ -340,7 +340,7 @@ exports[`ContactForm renders correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                 }
               }
             />
@@ -365,7 +365,7 @@ exports[`ContactForm renders correctly 1`] = `
             }
           >
             <SvgMock
-              color="#131416"
+              color="#121314"
               fill="currentColor"
               height={20}
               name="ArrowDown"

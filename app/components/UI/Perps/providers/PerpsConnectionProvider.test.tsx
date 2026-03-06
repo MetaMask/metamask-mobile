@@ -123,9 +123,6 @@ describe('PerpsConnectionProvider', () => {
     (PerpsConnectionManager.disconnect as jest.Mock) = mockDisconnect;
     (PerpsConnectionManager.reconnectWithNewContext as jest.Mock) =
       mockReconnectWithNewContext;
-    (PerpsConnectionManager.getActiveProviderName as jest.Mock) = jest
-      .fn()
-      .mockReturnValue('hyperliquid');
   });
 
   afterEach(() => {

@@ -112,26 +112,6 @@ const testOrders: DeepPartial<FiatOrder>[] = [
     },
   },
   {
-    id: 'test-ramps-v2-order-1',
-    account: MOCK_ADDRESS,
-    network: '1',
-    cryptoAmount: '0.5',
-    orderType: 'BUY',
-    state: FIAT_ORDER_STATES.COMPLETED,
-    createdAt: 1697242033399,
-    provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-    cryptocurrency: 'ETH',
-    amount: '1000',
-    currency: 'USD',
-    data: {
-      cryptoCurrency: {
-        decimals: 18,
-        name: 'Ethereum',
-        symbol: 'ETH',
-      },
-    },
-  },
-  {
     id: 'test-deposit-order-1',
     account: MOCK_ADDRESS,
     network: '1',
@@ -239,11 +219,6 @@ jest.mock('../../../hooks/useRampNavigation', () => ({
 }));
 
 describe('OrdersList', () => {
-  beforeEach(() => {
-    mockNavigate.mockClear();
-    mockGoToDeposit.mockClear();
-  });
-
   it('renders correctly', () => {
     render(<OrdersList />);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -304,21 +279,29 @@ describe('OrdersList', () => {
     `);
   });
 
-  it('navigates to ramps order details when pressing RAMPS_V2 order item', () => {
-    render(<OrdersList />, [testOrders[4]]);
-
-    fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
-    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
-      orderId: 'test-ramps-v2-order-1',
-    });
-  });
-
   it('navigates to deposit order details when pressing deposit order item', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
-    expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
+    fireEvent.press(screen.getByRole('button', { name: /USDC Deposit/ }));
+    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+      [
+        [
+          "OrderDetails",
+          {
+            "orderId": "test-order-2",
+          },
+        ],
+        [
+          "RampsOrderDetails",
+          {
+            "orderId": "test-deposit-order-1",
+          },
+        ],
+      ]
+    `);
+    expect(mockNavigate).toHaveBeenCalledWith('RampsOrderDetails', {
       orderId: 'test-deposit-order-1',
     });
   });
@@ -327,7 +310,7 @@ describe('OrdersList', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
-    fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
+    fireEvent.press(screen.getByRole('button', { name: /USDT Deposit/ }));
 
     expect(mockGoToDeposit).toHaveBeenCalledWith();
   });

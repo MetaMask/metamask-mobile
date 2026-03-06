@@ -110,34 +110,7 @@ describe('PaymentMethodSelectorModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks OFFRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in sell flow', () => {
-    mockUseParams.mockReturnValue({
-      ...defaultParams,
-      location: 'Amount to Sell Screen' as const,
-    });
-    mockUseRampSDKValues = {
-      ...mockUseRampSDKInitialValues,
-      rampType: RampType.SELL,
-      isBuy: false,
-    };
-
-    const { getByText } = render(PaymentMethodSelectorModal);
-
-    const paymentMethodElement = getByText('Bank Transfer');
-    fireEvent.press(paymentMethodElement);
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      'OFFRAMP_PAYMENT_METHOD_SELECTED',
-      {
-        payment_method_id: 'payment-method-2',
-        available_payment_method_ids: ['payment-method-1', 'payment-method-2'],
-        region: 'US',
-        location: 'Amount to Sell Screen',
-      },
-    );
-  });
-
-  it('tracks ONRAMP_PAYMENT_METHOD_SELECTED event when payment method is selected in buy flow', () => {
+  it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
     const paymentMethodElement = getByText('Bank Transfer');
@@ -153,7 +126,7 @@ describe('PaymentMethodSelectorModal', () => {
       },
     );
   });
-  it('does not track ONRAMP_PAYMENT_METHOD_SELECTED event when the same payment method is selected', () => {
+  it('does not track RAMPS_PAYMENT_METHOD_SELECTED event when the same payment method is selected', () => {
     const { getByText } = render(PaymentMethodSelectorModal);
 
     const paymentMethodElement = getByText('Credit Card');

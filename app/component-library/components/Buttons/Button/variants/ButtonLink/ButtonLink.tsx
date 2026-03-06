@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `TextButton` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React, { useState, useCallback } from 'react';
 import { GestureResponderEvent, StyleProp, TextStyle } from 'react-native';
@@ -22,11 +26,6 @@ import {
   DEFAULT_BUTTONLINK_LABEL_COLOR_ERROR_PRESSED,
 } from './ButtonLink.constants';
 
-/**
- * @deprecated Please update your code to use `TextButton` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TextButton/README.md}
- */
 const ButtonLink: React.FC<ButtonLinkProps> = ({
   style,
   onPressIn,

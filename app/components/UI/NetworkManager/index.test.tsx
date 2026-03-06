@@ -7,7 +7,6 @@ import NetworkManager from './index';
 import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import Engine from '../../../core/Engine';
-import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 
 // Create mock functions that we can spy on
 const mockNavigate = jest.fn();
@@ -129,12 +128,16 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
     addTraitsToUser: mockAddTraitsToUser,
   }),
+  MetaMetricsEvents: {
+    ASSET_FILTER_SELECTED: 'asset_filter_selected',
+    ASSET_FILTER_CUSTOM_SELECTED: 'asset_filter_custom_selected',
+  },
 }));
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
@@ -253,6 +256,14 @@ jest.mock('../../../core/Engine', () => ({
         removeNetwork: jest.fn(),
       },
     },
+  },
+}));
+
+jest.mock('../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: () => ({
+      addTraitsToUser: mockAddTraitsToUser,
+    }),
   },
 }));
 
@@ -788,7 +799,7 @@ describe('NetworkManager Component', () => {
       // Assert - Analytics event is tracked
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'test_event' });
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.ASSET_FILTER_SELECTED,
+        'asset_filter_selected',
       );
     });
   });

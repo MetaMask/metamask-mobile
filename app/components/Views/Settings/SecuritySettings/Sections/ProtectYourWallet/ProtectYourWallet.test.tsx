@@ -203,9 +203,9 @@ describe('ProtectYourWallet', () => {
         getByText(strings('reveal_credential.seed_phrase_title')),
       );
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          shouldUpdateNav: true,
+          screen: Routes.MODAL.SRP_REVEAL_QUIZ,
         },
       );
     });

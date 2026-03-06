@@ -25,7 +25,7 @@ const PerpsSectionWithProvider = forwardRef<SectionRefreshHandle>((_, ref) => {
   }
 
   return (
-    <PerpsConnectionProvider key={selectedAddress} suppressErrorView>
+    <PerpsConnectionProvider key={selectedAddress}>
       <PerpsStreamProvider>
         <PerpsSection ref={ref} />
       </PerpsStreamProvider>

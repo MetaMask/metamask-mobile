@@ -29,13 +29,7 @@ function processOrder(
       const unrecognizedProviderError = new Error(
         'FiatOrders::ProcessOrder unrecognized provider',
       );
-      Logger.error(unrecognizedProviderError, {
-        orderId: order.id,
-        provider: order.provider,
-        orderType: order.orderType,
-        state: order.state,
-        network: order.network,
-      });
+      Logger.error(unrecognizedProviderError, order);
       return order;
     }
   }

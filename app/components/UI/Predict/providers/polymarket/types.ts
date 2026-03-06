@@ -1,5 +1,5 @@
 import { PredictGamePeriod, Side } from '../../types';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
+import { SafeFeeAuthorization } from './safe/types';
 
 export interface PolymarketPosition {
   conditionId: string;
@@ -119,7 +119,7 @@ export type ClobHeaders = {
 export interface PolymarketOffchainTradeParams {
   clobOrder: ClobOrderObject;
   headers: ClobHeaders;
-  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization;
 }
 
 // Polymarket API response types

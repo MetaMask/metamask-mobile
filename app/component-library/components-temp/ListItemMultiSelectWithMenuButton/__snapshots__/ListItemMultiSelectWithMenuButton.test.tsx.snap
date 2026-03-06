@@ -63,7 +63,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#949596",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 4,
                 "borderWidth": 2,
                 "height": 20,
@@ -113,7 +113,7 @@ exports[`ListItemMultiSelectWithMenuButton should render correctly with default 
       testID="button-menu-select-with-menu-button-test-id"
     >
       <SvgMock
-        color="#131416"
+        color="#121314"
         fill="currentColor"
         height={20}
         name="MoreVertical"

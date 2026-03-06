@@ -29,7 +29,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
@@ -65,7 +65,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -108,7 +108,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -130,7 +130,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -173,7 +173,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -195,7 +195,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -238,7 +238,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -282,7 +282,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
@@ -318,7 +318,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -361,7 +361,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -383,7 +383,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -426,7 +426,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -448,7 +448,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -491,7 +491,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -535,7 +535,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -551,7 +551,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -573,7 +573,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
@@ -636,7 +636,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -679,7 +679,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -701,7 +701,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -744,7 +744,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,

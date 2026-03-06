@@ -6,14 +6,6 @@ import { KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
-import { useABTest } from '../../../../../hooks';
-import {
-  NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-  NumpadQuickActionsVariant,
-} from './abTestConfig';
-import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -33,15 +25,6 @@ export const GaslessQuickPickOptions = ({
     decimals: token?.decimals,
     chainId: token?.chainId,
   });
-  const { variantName } = useABTest(
-    NUMPAD_QUICK_ACTIONS_AB_KEY,
-    NUMPAD_QUICK_ACTIONS_VARIANTS,
-  );
-  const selectedVariant =
-    variantName === NumpadQuickActionsVariant.Treatment
-      ? NumpadQuickActionsVariant.Treatment
-      : NumpadQuickActionsVariant.Control;
-  const trackInputAmountChange = useTrackInputAmountChange();
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
@@ -57,47 +40,64 @@ export const GaslessQuickPickOptions = ({
         valueAsNumber: Number(amount),
         pressedKey: Keys.Initial,
       });
-
-      const preset = `${percentage}%`;
-      trackInputAmountChange({ inputValue: amount.toString(), preset });
     },
-    [tokenBalance, token?.decimals, onChange, trackInputAmountChange],
+    [tokenBalance, onChange, token?.decimals],
   );
 
-  const handleTrackedMaxPress = useCallback(() => {
-    onMaxPress();
-    trackInputAmountChange({ inputValue: '', preset: 'MAX' });
-  }, [onMaxPress, trackInputAmountChange]);
+  const standardQuickPickOptions = useMemo(
+    () =>
+      [
+        {
+          label: '25%',
+          onPress: onQuickOptionPress(25),
+        },
+        {
+          label: '50%',
+          onPress: onQuickOptionPress(50),
+        },
+        {
+          label: '75%',
+          onPress: onQuickOptionPress(75),
+        },
+        {
+          label: '90%',
+          onPress: onQuickOptionPress(90),
+        },
+      ] satisfies QuickPickButtonOption[],
+    [onQuickOptionPress],
+  );
+
+  const gasslessQuickPickOptions = useMemo(
+    () =>
+      [
+        {
+          label: '25%',
+          onPress: onQuickOptionPress(25),
+        },
+        {
+          label: '50%',
+          onPress: onQuickOptionPress(50),
+        },
+        {
+          label: '75%',
+          onPress: onQuickOptionPress(75),
+        },
+        {
+          label: 'Max',
+          onPress: onMaxPress,
+        },
+      ] satisfies QuickPickButtonOption[],
+    [onMaxPress, onQuickOptionPress],
+  );
 
   const shouldRenderMaxOption = useShouldRenderMaxOption(
     token,
     tokenBalance?.displayBalance,
     isQuoteSponsored,
   );
-
-  const quickPickOptions = useMemo(() => {
-    const quickActions = shouldRenderMaxOption
-      ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
-      : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant];
-    return quickActions.map((action) => {
-      if (action === 'MAX') {
-        return {
-          label: 'Max',
-          onPress: handleTrackedMaxPress,
-        };
-      }
-
-      return {
-        label: `${action}%`,
-        onPress: onQuickOptionPress(action),
-      };
-    }) satisfies QuickPickButtonOption[];
-  }, [
-    handleTrackedMaxPress,
-    onQuickOptionPress,
-    shouldRenderMaxOption,
-    selectedVariant,
-  ]);
+  const quickPickOptions = shouldRenderMaxOption
+    ? gasslessQuickPickOptions
+    : standardQuickPickOptions;
 
   return <QuickPickButtons options={quickPickOptions} show />;
 };

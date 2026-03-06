@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
@@ -27,6 +28,7 @@ const createStyles = () =>
     },
     noNetworkFeeContainer: {
       alignSelf: 'center',
+      height: 22,
     },
   });
 
@@ -66,17 +68,10 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({
             <TagColored
               color={TagColor.Success}
               style={styles.noNetworkFeeContainer}
-              labelProps={{
-                variant: TextVariant.BodySM,
-                style: {
-                  textTransform: 'none',
-                  textAlign: 'center',
-                  bottom: 1,
-                  fontWeight: 'normal',
-                },
-              }}
             >
-              {strings('networks.no_network_fee')}
+              <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                {strings('networks.no_network_fee')}
+              </Text>
             </TagColored>
           ) : null}
         </Box>

@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import Avatar, {
   AvatarSize,
@@ -25,30 +25,14 @@ import Icon, {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Engine from '../../../../../../core/Engine';
 
-interface SwitchAccountTypeModalRouteParams {
-  address?: Hex;
-}
-
-interface SwitchAccountTypeModalParamList {
-  ConfirmationSwitchAccountType: SwitchAccountTypeModalRouteParams;
-  [key: string]: object | undefined;
-}
-
-interface SwitchAccountTypeModalProps {
-  route: RouteProp<
-    SwitchAccountTypeModalParamList,
-    'ConfirmationSwitchAccountType'
-  >;
-}
-
-const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
+const SwitchAccountTypeModal = () => {
   const { styles } = useStyles(styleSheet, {});
+  const route = useRoute();
   const navigation = useNavigation();
-  const selectedAccountAddress =
+  const address =
+    (route?.params as { address: Hex })?.address ??
     Engine.context.AccountsController.getSelectedAccount()?.address;
-  const address: Hex | undefined =
-    route?.params?.address ?? (selectedAccountAddress as Hex | undefined);
-  const { network7702List, pending } = useEIP7702Networks(address ?? '');
+  const { network7702List, pending } = useEIP7702Networks(address);
   const internalAccounts = useSelector(selectInternalAccounts);
   const account = internalAccounts.find(
     ({ address: accAddress }) => accAddress === address,
@@ -57,27 +41,6 @@ const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
   const goBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-
-  // Handle case when no address is available
-  if (!address) {
-    return (
-      <BottomSheet>
-        <TouchableOpacity onPress={goBack} testID="switch-account-goback">
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Sm}
-            color={IconColor.Default}
-            style={styles.backIcon}
-          />
-        </TouchableOpacity>
-        <View style={styles.wrapper}>
-          <View style={styles.spinner} testID="no-address-fallback">
-            <Text variant={TextVariant.BodyMD}>No account selected</Text>
-          </View>
-        </View>
-      </BottomSheet>
-    );
-  }
 
   return (
     <BottomSheet>
@@ -109,7 +72,6 @@ const SwitchAccountTypeModal = ({ route }: SwitchAccountTypeModalProps) => {
             <View>
               {network7702List?.map((networkConfiguration) => (
                 <AccountNetworkRow
-                  key={networkConfiguration.chainId}
                   network={networkConfiguration}
                   address={address}
                 />

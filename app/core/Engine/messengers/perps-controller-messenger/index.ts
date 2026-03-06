@@ -9,12 +9,6 @@ import {
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
  *
- * PerpsController uses the messenger for all cross-controller communication:
- * NetworkController, KeyringController, TransactionController,
- * RemoteFeatureFlagController, AccountTreeController, AuthenticationController.
- * The root messenger already registers actions for these controllers,
- * so the child messenger can call them through the parent.
- *
  * @param rootExtendedMessenger - The root extended messenger.
  * @returns The PerpsControllerMessenger.
  */
@@ -33,16 +27,19 @@ export function getPerpsControllerMessenger(
   rootExtendedMessenger.delegate({
     actions: [
       'NetworkController:getState',
-      'NetworkController:getNetworkClientById',
-      'NetworkController:findNetworkClientIdByChainId',
-      'KeyringController:getState',
-      'KeyringController:signTypedMessage',
-      'TransactionController:addTransaction',
+      'AuthenticationController:getBearerToken',
       'RemoteFeatureFlagController:getState',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      'AuthenticationController:getBearerToken',
+      'KeyringController:getState',
+      'KeyringController:signTypedMessage',
+      'NetworkController:getNetworkClientById',
+      'NetworkController:findNetworkClientIdByChainId',
+      'TransactionController:addTransaction',
     ],
     events: [
+      'TransactionController:transactionSubmitted',
+      'TransactionController:transactionConfirmed',
+      'TransactionController:transactionFailed',
       'RemoteFeatureFlagController:stateChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],

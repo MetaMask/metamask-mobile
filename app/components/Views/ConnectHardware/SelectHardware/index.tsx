@@ -10,8 +10,7 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
+import HeaderStackedStandard from '../../../../component-library/components-temp/HeaderStackedStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
@@ -157,19 +156,21 @@ const SelectHardwareWallet = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
-      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
-      <TitleStandard
-        title={strings('connect_hardware.title_select_hardware')}
-        bottomAccessory={
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Alternative}
-            style={styles.subtitle}
-          >
-            {strings('connect_hardware.select_hardware')}
-          </Text>
-        }
-        twClassName="px-4 pt-1 pb-3"
+      <HeaderStackedStandard
+        includesTopInset
+        onBack={navigation.goBack}
+        titleStandardProps={{
+          title: strings('connect_hardware.title_select_hardware'),
+          bottomAccessory: (
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Alternative}
+              style={styles.subtitle}
+            >
+              {strings('connect_hardware.select_hardware')}
+            </Text>
+          ),
+        }}
       />
       <View style={styles.buttonsContainer}>
         <LedgerButton />

@@ -337,7 +337,6 @@ const V2EnterAddress = (): JSX.Element => {
                 testID="country-input"
                 containerStyle={styles.nameInputContainer}
                 isDisabled
-                numberOfLines={1}
                 startAccessory={
                   userRegion?.country?.flag ? (
                     <Text style={styles.countryFlag}>

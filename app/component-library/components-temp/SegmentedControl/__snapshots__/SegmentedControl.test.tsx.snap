@@ -38,7 +38,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
@@ -84,7 +84,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -100,7 +100,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -132,7 +132,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
@@ -178,7 +178,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -194,7 +194,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -242,7 +242,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#131416",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 40,
@@ -288,7 +288,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -304,7 +304,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -336,7 +336,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -352,7 +352,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -384,7 +384,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#b4b4b528",
+          "backgroundColor": "#3c4d9d0f",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -400,7 +400,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Medium",
             "fontSize": 16,
             "letterSpacing": 0,

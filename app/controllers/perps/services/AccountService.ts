@@ -6,6 +6,7 @@ import {
 } from '../constants/eventNames';
 import { USDC_SYMBOL } from '../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   PerpsAnalyticsEvent,
@@ -19,7 +20,6 @@ import type {
   PerpsPlatformDependencies,
 } from '../types';
 import type { ServiceContext } from './ServiceContext';
-import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -37,17 +37,17 @@ import { ensureError } from '../utils/errorUtils';
 export class AccountService {
   readonly #deps: PerpsPlatformDependencies;
 
-  readonly #messenger: PerpsControllerMessengerBase;
+  readonly #messenger: PerpsControllerMessenger;
 
   /**
    * Create a new AccountService instance
    *
    * @param deps - Platform dependencies for logging, metrics, etc.
-   * @param messenger - Controller messenger for cross-controller communication.
+   * @param messenger - Messenger for inter-controller communication
    */
   constructor(
     deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessengerBase,
+    messenger: PerpsControllerMessenger,
   ) {
     this.#deps = deps;
     this.#messenger = messenger;
@@ -121,11 +121,7 @@ export class AccountService {
           const netAmount = Math.max(0, grossAmount - feeAmount);
 
           // Get current account address via messenger
-          const evmAccount = getSelectedEvmAccount(
-            this.#messenger.call(
-              'AccountTreeController:getAccountsFromSelectedAccountGroup',
-            ),
-          );
+          const evmAccount = getSelectedEvmAccount(this.#messenger);
           const accountAddress = evmAccount?.address ?? 'unknown';
 
           this.#deps.debugLogger.log(

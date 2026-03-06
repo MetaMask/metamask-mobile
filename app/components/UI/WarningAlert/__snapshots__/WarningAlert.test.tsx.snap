@@ -77,7 +77,7 @@ exports[`WarningAlert should render correctly 1`] = `
       style={
         [
           {
-            "color": "#131416",
+            "color": "#121314",
             "fontFamily": "Geist-Regular",
             "fontSize": 30,
             "marginVertical": 2,
@@ -109,7 +109,7 @@ exports[`WarningAlert should render correctly 1`] = `
           undefined,
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "flex": 1,
               "fontSize": 14,
               "lineHeight": 17,
@@ -125,7 +125,7 @@ exports[`WarningAlert should render correctly 1`] = `
         style={
           [
             {
-              "color": "#131416",
+              "color": "#121314",
               "fontFamily": "Geist-Regular",
               "fontSize": 30,
               "marginVertical": 2,
@@ -141,7 +141,7 @@ exports[`WarningAlert should render correctly 1`] = `
             undefined,
             undefined,
             {
-              "color": "#131416",
+              "color": "#121314",
             },
             undefined,
             undefined,
@@ -158,7 +158,7 @@ exports[`WarningAlert should render correctly 1`] = `
               "marginVertical": 0,
             },
             {
-              "color": "#131416",
+              "color": "#121314",
               "lineHeight": 18,
               "paddingLeft": 4,
             },
@@ -196,7 +196,7 @@ exports[`WarningAlert should render correctly 1`] = `
                 "fontSize": 30,
               },
               {
-                "color": "#131416",
+                "color": "#121314",
               },
               {
                 "fontFamily": "Ionicons",

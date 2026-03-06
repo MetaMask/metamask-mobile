@@ -5,7 +5,7 @@ exports[`WebsiteIcon renders correctly when only title is provided 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -40,7 +40,7 @@ exports[`WebsiteIcon renders correctly when only title is provided 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -55,7 +55,7 @@ exports[`WebsiteIcon renders correctly when title and url are null 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -90,7 +90,7 @@ exports[`WebsiteIcon renders correctly when title and url are null 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -105,7 +105,7 @@ exports[`WebsiteIcon renders correctly when title and url are provided 1`] = `
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -140,7 +140,7 @@ exports[`WebsiteIcon renders correctly when title and url are provided 1`] = `
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -155,7 +155,7 @@ exports[`WebsiteIcon renders correctly when title is null and url is provided 1`
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -190,7 +190,7 @@ exports[`WebsiteIcon renders correctly when title is null and url is provided 1`
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }
@@ -205,7 +205,7 @@ exports[`WebsiteIcon renders correctly when title is null and url is undefined 1
   <View
     placeholderStyle={
       {
-        "backgroundColor": "#f3f3f4",
+        "backgroundColor": "#f3f5f9",
       }
     }
     useNativeDriver={true}
@@ -240,7 +240,7 @@ exports[`WebsiteIcon renders correctly when title is null and url is undefined 1
               "backgroundColor": "#eee",
             },
             {
-              "backgroundColor": "#f3f3f4",
+              "backgroundColor": "#f3f5f9",
             },
           ]
         }

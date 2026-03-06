@@ -82,7 +82,6 @@ const createMockInitMessenger = (
         },
       },
     }),
-    subscribe: jest.fn(),
   } as unknown as RampsControllerInitMessenger;
 };
 
@@ -177,7 +176,6 @@ describe('ramps controller init', () => {
           },
         },
       },
-      orders: [],
     };
 
     initRequestMock.persistedState = {

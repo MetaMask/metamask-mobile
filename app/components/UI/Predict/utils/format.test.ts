@@ -1980,101 +1980,21 @@ describe('format utils', () => {
       });
     });
 
-    describe('with currencyCode param', () => {
-      it('defaults to USD when no currencyCode is provided', () => {
+    describe('Negative values', () => {
+      it('formats negative regular price', () => {
         // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(1.99);
+        const result = formatPriceWithSubscriptNotation(-1.99);
 
         // Assert
-        expect(result).toBe('$1.99');
+        expect(result).toBe('-$1.99');
       });
 
-      it('formats regular price with EUR', () => {
+      it('formats negative large price', () => {
         // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(1.99, 'EUR');
+        const result = formatPriceWithSubscriptNotation(-1234.56);
 
         // Assert
-        expect(result).toBe('€1.99');
-      });
-
-      it('formats price with up to 4 decimal places with EUR', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.144566, 'EUR');
-
-        // Assert
-        expect(result).toBe('€0.1446');
-      });
-
-      it('formats large price with GBP (not in symbol map, uses suffix)', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(1234.56, 'GBP');
-
-        // Assert
-        expect(result).toBe('1,234.56 GBP');
-      });
-
-      it('accepts lowercase currency code', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(99.99, 'eur');
-
-        // Assert
-        expect(result).toBe('€99.99');
-      });
-
-      it('formats subscript value with EUR symbol', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.00000614, 'EUR');
-
-        // Assert
-        expect(result).toBe('€0.0₅614');
-      });
-
-      it('formats subscript value with GBP (not in symbol map, uses suffix)', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.00001, 'GBP');
-
-        // Assert
-        expect(result).toBe('0.0₄1 GBP');
-      });
-
-      it('returns dash for zero regardless of currency', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0, 'EUR');
-
-        // Assert
-        expect(result).toBe('—');
-      });
-
-      it('formats whole number with EUR showing 2 decimals', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(100, 'EUR');
-
-        // Assert
-        expect(result).toBe('€100.00');
-      });
-
-      it('uses currency code as suffix for currencies not in the symbol map (e.g. PLN)', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.00001263, 'PLN');
-
-        // Assert
-        expect(result).toBe('0.0₄1263 PLN');
-      });
-
-      it('uses currency code as suffix for subscript values with unknown currency', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.00000614, 'CHF');
-
-        // Assert
-        expect(result).toBe('0.0₅614 CHF');
-      });
-
-      it('accepts lowercase unknown currency code and uppercases it as suffix', () => {
-        // Arrange & Act
-        const result = formatPriceWithSubscriptNotation(0.00001, 'pln');
-
-        // Assert
-        expect(result).toBe('0.0₄1 PLN');
+        expect(result).toBe('-$1,234.56');
       });
     });
 
@@ -2097,6 +2017,8 @@ describe('format utils', () => {
       [0.00000614, '$0.0₅614'],
       [0.0000001234, '$0.0₆1234'],
       [0.000000001, '$0.0₈1'],
+      [-1.99, '-$1.99'],
+      [-1234.56, '-$1,234.56'],
     ])('formats %f as %s', (input, expected) => {
       expect(formatPriceWithSubscriptNotation(input)).toBe(expected);
     });

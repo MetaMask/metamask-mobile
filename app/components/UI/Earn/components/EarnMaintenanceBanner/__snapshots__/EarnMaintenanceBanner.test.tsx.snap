@@ -48,11 +48,11 @@ exports[`EarnMaintenanceBanner renders banner and maintenance message 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#131416",
+          "color": "#121314",
           "fontFamily": "Geist-Regular",
-          "fontSize": 14,
+          "fontSize": 16,
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

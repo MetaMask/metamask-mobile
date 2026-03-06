@@ -153,7 +153,6 @@ class DappConnectionModal {
         }
 
         const element = await this.getNetworkButton(networkName);
-        await AppwrightGestures.scrollIntoView(this.device, element);
         await AppwrightGestures.tap(element)
     }
 

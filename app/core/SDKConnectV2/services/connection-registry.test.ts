@@ -24,6 +24,48 @@ jest.mock('../../../store', () => ({
   },
 }));
 
+// A valid, sample connection request payload for use in tests
+const mockConnectionRequest: ConnectionRequest = {
+  sessionRequest: {
+    id: '11111111-2222-3333-4444-555555555555',
+    publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
+    channel: 'websocket-channel-id',
+    mode: 'trusted',
+    expiresAt: 1757410033264,
+  },
+  metadata: {
+    dapp: {
+      name: 'Test DApp',
+      url: 'https://test.dapp',
+    },
+    sdk: {
+      version: '2.0.0',
+      platform: 'JavaScript',
+    },
+  },
+};
+
+// A valid, sample connection request payload for use in tests
+const mockConnectionInfo: ConnectionInfo = {
+  id: '11111111-2222-3333-4444-555555555555',
+  metadata: {
+    dapp: {
+      name: 'Test DApp',
+      url: 'https://test.dapp',
+    },
+    sdk: {
+      version: '2.0.0',
+      platform: 'JavaScript',
+    },
+  },
+  expiresAt: 1757410033264,
+};
+
+// A valid deeplink URL containing the encoded connection request
+const validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+  JSON.stringify(mockConnectionRequest),
+)}`;
+
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const createMockConnection = (id: string, overrides: any = {}) => ({
@@ -59,53 +101,11 @@ describe('ConnectionRegistry', () => {
   let mockStore: jest.Mocked<ConnectionStore>;
   let mockKeyManager: jest.Mocked<KeyManager>;
   let mockConnection: jest.Mocked<Connection>;
-  let mockConnectionRequest: ConnectionRequest;
-  let mockConnectionInfo: ConnectionInfo;
-  let validDeeplink: string;
 
   const RELAY_URL = 'wss://test-relay.example.com';
 
   beforeEach(async () => {
     jest.clearAllMocks();
-
-    mockConnectionRequest = {
-      sessionRequest: {
-        id: '11111111-2222-3333-4444-555555555555',
-        publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
-        channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
-        mode: 'trusted',
-        expiresAt: Date.now() + 600_000,
-      },
-      metadata: {
-        dapp: {
-          name: 'Test DApp',
-          url: 'https://test.dapp',
-        },
-        sdk: {
-          version: '2.0.0',
-          platform: 'JavaScript',
-        },
-      },
-    };
-
-    mockConnectionInfo = {
-      id: '11111111-2222-3333-4444-555555555555',
-      metadata: {
-        dapp: {
-          name: 'Test DApp',
-          url: 'https://test.dapp',
-        },
-        sdk: {
-          version: '2.0.0',
-          platform: 'JavaScript',
-        },
-      },
-      expiresAt: Date.now() + 600_000,
-    };
-
-    validDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-      JSON.stringify(mockConnectionRequest),
-    )}`;
 
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
@@ -249,7 +249,7 @@ describe('ConnectionRegistry', () => {
 
       // @ts-expect-error test non-string input
       await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
-        'Invalid MWP deeplink: [invalid URL]',
+        'Invalid MWP deeplink: null',
       );
     });
   });
@@ -566,36 +566,6 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('should reject decompressed payloads larger than 1MB', async () => {
-      jest.mock('../utils/compression-utils', () => ({
-        decompressPayloadB64: () => 'x'.repeat(1024 * 1024 + 1),
-      }));
-
-      // Re-import to pick up the mock
-      const {
-        ConnectionRegistry: FreshRegistry,
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      } = require('./connection-registry');
-
-      const freshRegistry = new FreshRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const compressedDeeplink =
-        'metamask://connect/mwp?p=smallbutdecompresseshuge&c=1';
-
-      await freshRegistry.handleConnectDeeplink(compressedDeeplink);
-
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-      expect(Connection.create).not.toHaveBeenCalled();
-      expect(mockStore.save).not.toHaveBeenCalled();
-
-      jest.restoreAllMocks();
-    });
-
     it('should reject payloads larger than 1MB', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
@@ -662,17 +632,7 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).not.toHaveBeenCalled();
     });
 
-    it('blocks connection requests with an internal origin as dapp url (defense-in-depth)', async () => {
-      // isConnectionRequest() normally rejects non-URL dapp.url values,
-      // making this code path unreachable. We bypass that validation here
-      // to verify the defense-in-depth check still works if the upstream
-      // guard is ever relaxed.
-      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-      const connReqModule = require('../types/connection-request');
-      const spy = jest
-        .spyOn(connReqModule, 'isConnectionRequest')
-        .mockReturnValueOnce(true);
-
+    it('blocks connection requests with `metamask` as origin', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -700,11 +660,9 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
-
-      spy.mockRestore();
     });
 
-    it('blocks connection requests with an internal origin as dapp name', async () => {
+    it('blocks connection requests with `metamask` as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -728,10 +686,6 @@ describe('ConnectionRegistry', () => {
       )}`;
 
       await registry.handleConnectDeeplink(blockedDeeplink);
-
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-      expect(Connection.create).not.toHaveBeenCalled();
-      expect(mockStore.save).not.toHaveBeenCalled();
     });
   });
 

@@ -56,87 +56,117 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
     [
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-1",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "COMPLETED",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-3",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "0.5",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "1000",
-        "fiatCurrencyCode": "USD",
-        "id": "test-ramps-v2-order-1",
-        "network": "1",
-        "orderType": "BUY",
-        "providerName": "...",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "100",
-        "cryptoCurrencySymbol": "USDC",
-        "fiatAmount": "100",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-1",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "20",
-        "cryptoCurrencySymbol": "USDT",
-        "fiatAmount": "20",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-2",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "CREATED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 0,
-        "cryptoAmount": 0,
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": undefined,
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-4",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "unsupported": true,
+          },
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
       },
     ]
   }
@@ -229,7 +259,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -243,7 +273,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -262,7 +292,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -317,7 +347,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -331,7 +361,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -405,7 +435,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -419,7 +449,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -438,7 +468,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -473,11 +503,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-1"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -499,7 +528,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -521,6 +550,125 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -530,7 +678,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -577,16 +725,15 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-1"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -594,14 +741,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-1"
               >
                 $34.23 
               </Text>
@@ -623,11 +769,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-2"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -649,7 +794,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -671,6 +816,125 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -680,7 +944,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -727,16 +991,15 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-2"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -744,14 +1007,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-2"
               >
                 $34.23 
               </Text>
@@ -773,11 +1035,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-3"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -799,7 +1060,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -807,7 +1068,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
               }
             >
-              Oct 13 at 8:07 pm
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
             </Text>
           </View>
           <View
@@ -821,6 +1082,125 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -830,7 +1210,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -838,13 +1218,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                ...: Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#457a39",
+                    "color": "#4459ff",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -852,7 +1232,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Completed
+                Pending
               </Text>
             </View>
             <View
@@ -877,16 +1257,15 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-3"
               >
-                0.5
+                ...
                  
                 ETH
               </Text>
@@ -894,16 +1273,15 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-3"
               >
-                $1000 
+                ...
               </Text>
             </View>
           </View>
@@ -923,11 +1301,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-4"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -949,7 +1326,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -971,6 +1348,125 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -980,7 +1476,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -988,7 +1484,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Transak: Purchased USDC
+                USDC Deposit
               </Text>
               <Text
                 accessibilityRole="text"
@@ -1027,14 +1523,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-4"
               >
                 100
                  
@@ -1044,14 +1539,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-4"
               >
                 $100 
               </Text>
@@ -1073,11 +1567,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-5"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1099,7 +1592,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1121,6 +1614,125 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -1130,7 +1742,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1138,13 +1750,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   }
                 }
               >
-                Transak: Purchased USDT
+                USDT Deposit
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -1177,14 +1789,13 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-5"
               >
                 20
                  
@@ -1194,166 +1805,15 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-5"
               >
                 $20 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
-          }
-        }
-        testID="orders-list-row-buy-6"
-        underlayColor="#f3f3f4"
-      >
-        <View
-          accessibilityRole="none"
-          accessible={true}
-          style={
-            {
-              "padding": 16,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "marginBottom": 10,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#131416",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Dec 31 at 7:00 pm
-            </Text>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Test Provider: Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              accessible={false}
-              style={
-                {
-                  "width": 16,
-                }
-              }
-              testID="listitem-gap"
-            />
-            <View
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "flex": -1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="orders-list-crypto-amount-buy-6"
-              >
-                0
-                 
-                ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="orders-list-fiat-amount-buy-6"
-              >
-                ...
               </Text>
             </View>
           </View>
@@ -1420,101 +1880,140 @@ exports[`OrdersList renders correctly 1`] = `
     [
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-1",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "COMPLETED",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-2",
         "network": "1",
         "orderType": "SELL",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-3",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "0.5",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "1000",
-        "fiatCurrencyCode": "USD",
-        "id": "test-ramps-v2-order-1",
-        "network": "1",
-        "orderType": "BUY",
-        "providerName": "...",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "100",
-        "cryptoCurrencySymbol": "USDC",
-        "fiatAmount": "100",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-1",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "20",
-        "cryptoCurrencySymbol": "USDT",
-        "fiatAmount": "20",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-2",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "CREATED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 0,
-        "cryptoAmount": 0,
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": undefined,
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-4",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "unsupported": true,
+          },
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
       },
     ]
   }
@@ -1607,7 +2106,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1621,7 +2120,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -1695,7 +2194,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1709,7 +2208,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -1728,7 +2227,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1783,7 +2282,7 @@ exports[`OrdersList renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -1797,7 +2296,7 @@ exports[`OrdersList renders correctly 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -1816,7 +2315,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -1851,11 +2350,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-1"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1877,7 +2375,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -1899,6 +2397,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -1908,7 +2525,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -1955,16 +2572,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-1"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -1972,14 +2588,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-1"
               >
                 $34.23 
               </Text>
@@ -2001,11 +2616,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-sell-2"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2027,7 +2641,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2049,6 +2663,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -2058,7 +2791,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2105,16 +2838,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-sell-2"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -2122,14 +2854,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-sell-2"
               >
                 $34.23 
               </Text>
@@ -2151,11 +2882,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-3"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2177,7 +2907,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2199,6 +2929,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -2208,7 +3057,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2255,16 +3104,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-3"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -2272,14 +3120,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-3"
               >
                 $34.23 
               </Text>
@@ -2301,11 +3148,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-4"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2327,7 +3173,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2335,7 +3181,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
               }
             >
-              Oct 13 at 8:07 pm
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
             </Text>
           </View>
           <View
@@ -2349,6 +3195,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -2358,7 +3323,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2366,13 +3331,13 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                ...: Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#457a39",
+                    "color": "#4459ff",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2380,7 +3345,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Completed
+                Pending
               </Text>
             </View>
             <View
@@ -2405,16 +3370,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-4"
               >
-                0.5
+                ...
                  
                 ETH
               </Text>
@@ -2422,16 +3386,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-4"
               >
-                $1000 
+                ...
               </Text>
             </View>
           </View>
@@ -2451,11 +3414,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-5"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2477,7 +3439,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2499,6 +3461,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -2508,7 +3589,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2516,7 +3597,7 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Transak: Purchased USDC
+                USDC Deposit
               </Text>
               <Text
                 accessibilityRole="text"
@@ -2555,14 +3636,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-5"
               >
                 100
                  
@@ -2572,14 +3652,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-5"
               >
                 $100 
               </Text>
@@ -2601,11 +3680,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-6"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2627,7 +3705,7 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -2649,6 +3727,125 @@ exports[`OrdersList renders correctly 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -2658,7 +3855,7 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2666,13 +3863,13 @@ exports[`OrdersList renders correctly 1`] = `
                   }
                 }
               >
-                Transak: Purchased USDT
+                USDT Deposit
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -2705,14 +3902,13 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-6"
               >
                 20
                  
@@ -2722,166 +3918,15 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-6"
               >
                 $20 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
-          }
-        }
-        testID="orders-list-row-buy-7"
-        underlayColor="#f3f3f4"
-      >
-        <View
-          accessibilityRole="none"
-          accessible={true}
-          style={
-            {
-              "padding": 16,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "marginBottom": 10,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#131416",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Dec 31 at 7:00 pm
-            </Text>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Test Provider: Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              accessible={false}
-              style={
-                {
-                  "width": 16,
-                }
-              }
-              testID="listitem-gap"
-            />
-            <View
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "flex": -1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="orders-list-crypto-amount-buy-7"
-              >
-                0
-                 
-                ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="orders-list-fiat-amount-buy-7"
-              >
-                ...
               </Text>
             </View>
           </View>
@@ -3034,7 +4079,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3048,7 +4093,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -3067,7 +4112,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3122,7 +4167,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3136,7 +4181,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -3210,7 +4255,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3224,7 +4269,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -3243,7 +4288,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3301,7 +4346,7 @@ exports[`OrdersList renders empty buy message 1`] = `
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -3463,7 +4508,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3477,7 +4522,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -3496,7 +4541,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3551,7 +4596,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3565,7 +4610,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -3584,7 +4629,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3639,7 +4684,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3653,7 +4698,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -3730,7 +4775,7 @@ exports[`OrdersList renders empty sell message 1`] = `
           style={
             [
               {
-                "color": "#66676a",
+                "color": "#686e7d",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 16,
                 "fontWeight": 400,
@@ -3806,17 +4851,26 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
     [
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-2",
         "network": "1",
         "orderType": "SELL",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
     ]
   }
@@ -3909,7 +4963,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -3923,7 +4977,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -3942,7 +4996,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -3997,7 +5051,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4011,7 +5065,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -4030,7 +5084,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4085,7 +5139,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4099,7 +5153,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -4153,11 +5207,10 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-sell-1"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -4179,7 +5232,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -4201,6 +5254,125 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -4210,7 +5382,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4257,16 +5429,15 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-sell-1"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -4274,14 +5445,13 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-sell-1"
               >
                 $34.23 
               </Text>
@@ -4350,17 +5520,26 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
     [
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-2",
         "network": "1",
         "orderType": "SELL",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
     ]
   }
@@ -4453,7 +5632,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4467,7 +5646,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -4486,7 +5665,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4541,7 +5720,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4555,7 +5734,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -4574,7 +5753,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -4629,7 +5808,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -4643,7 +5822,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -4697,11 +5876,10 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-sell-1"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -4723,7 +5901,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -4745,6 +5923,125 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -4754,7 +6051,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -4801,16 +6098,15 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-sell-1"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -4818,14 +6114,13 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-sell-1"
               >
                 $34.23 
               </Text>
@@ -4894,101 +6189,140 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
     [
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-1",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "COMPLETED",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-2",
         "network": "1",
         "orderType": "SELL",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
         "createdAt": 1697242033399,
         "cryptoAmount": "0.01231324",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "34.23",
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-3",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
       },
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "0.5",
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": "1000",
-        "fiatCurrencyCode": "USD",
-        "id": "test-ramps-v2-order-1",
-        "network": "1",
-        "orderType": "BUY",
-        "providerName": "...",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "100",
-        "cryptoCurrencySymbol": "USDC",
-        "fiatAmount": "100",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-1",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "COMPLETED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 1697242033399,
-        "cryptoAmount": "20",
-        "cryptoCurrencySymbol": "USDT",
-        "fiatAmount": "20",
-        "fiatCurrencyCode": "USD",
-        "id": "test-deposit-order-2",
-        "network": "1",
-        "orderType": "DEPOSIT",
-        "providerName": "Transak",
-        "source": "legacy",
-        "status": "CREATED",
-      },
-      {
-        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
-        "createdAt": 0,
-        "cryptoAmount": 0,
-        "cryptoCurrencySymbol": "ETH",
-        "fiatAmount": undefined,
-        "fiatCurrencyCode": "USD",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
         "id": "test-order-4",
         "network": "1",
         "orderType": "BUY",
-        "providerName": "Test Provider",
-        "source": "legacy",
-        "status": "PENDING",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "100",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "100",
+        "cryptocurrency": "USDC",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
+            "name": "USD Coin",
+            "symbol": "USDC",
+          },
+          "providerOrderLink": "https://transak.com/order/123",
+        },
+        "id": "test-deposit-order-1",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "20",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "20",
+        "cryptocurrency": "USDT",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "assetId": "eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "chainId": "eip155:1",
+            "decimals": 6,
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xdAC17F958D2ee523a2206206994597C13D831ec7.png",
+            "name": "Tether USD",
+            "symbol": "USDT",
+            "unsupported": true,
+          },
+        },
+        "id": "test-deposit-order-2",
+        "network": "1",
+        "orderType": "DEPOSIT",
+        "provider": "DEPOSIT",
+        "state": "CREATED",
       },
     ]
   }
@@ -5081,7 +6415,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5095,7 +6429,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#131416",
+                      "backgroundColor": "#121314",
                     },
                     undefined,
                   ],
@@ -5169,7 +6503,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5183,7 +6517,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -5202,7 +6536,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -5257,7 +6591,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#b4b4b528",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderRadius": 12,
                     "columnGap": 8,
                     "flexDirection": "row",
@@ -5271,7 +6605,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   },
                   [
                     {
-                      "backgroundColor": "#b4b4b528",
+                      "backgroundColor": "#3c4d9d0f",
                     },
                     undefined,
                   ],
@@ -5290,7 +6624,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   [
                     {
-                      "color": "#131416",
+                      "color": "#121314",
                       "flexGrow": 0,
                       "flexShrink": 1,
                       "flexWrap": "wrap",
@@ -5325,11 +6659,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-1"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -5351,7 +6684,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5373,6 +6706,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -5382,7 +6834,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5429,16 +6881,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-1"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -5446,14 +6897,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-1"
               >
                 $34.23 
               </Text>
@@ -5475,11 +6925,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-sell-2"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -5501,7 +6950,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5523,6 +6972,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -5532,7 +7100,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5579,16 +7147,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-sell-2"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -5596,14 +7163,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-sell-2"
               >
                 $34.23 
               </Text>
@@ -5625,11 +7191,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-3"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -5651,7 +7216,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5673,6 +7238,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -5682,7 +7366,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5729,16 +7413,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-3"
               >
-                0.01231324
+                0.01231
                  
                 ETH
               </Text>
@@ -5746,14 +7429,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-3"
               >
                 $34.23 
               </Text>
@@ -5775,11 +7457,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-buy-4"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -5801,7 +7482,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5809,7 +7490,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
               }
             >
-              Oct 13 at 8:07 pm
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
             </Text>
           </View>
           <View
@@ -5823,6 +7504,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -5832,7 +7632,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5840,13 +7640,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                ...: Purchased ETH
+                Test Provider: Purchased ETH
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#457a39",
+                    "color": "#4459ff",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -5854,7 +7654,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Completed
+                Pending
               </Text>
             </View>
             <View
@@ -5879,16 +7679,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-buy-4"
               >
-                0.5
+                ...
                  
                 ETH
               </Text>
@@ -5896,16 +7695,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-buy-4"
               >
-                $1000 
+                ...
               </Text>
             </View>
           </View>
@@ -5925,11 +7723,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-5"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -5951,7 +7748,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -5973,6 +7770,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -5982,7 +7898,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -5990,7 +7906,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Transak: Purchased USDC
+                USDC Deposit
               </Text>
               <Text
                 accessibilityRole="text"
@@ -6029,14 +7945,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-5"
               >
                 100
                  
@@ -6046,14 +7961,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-5"
               >
                 $100 
               </Text>
@@ -6075,11 +7989,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
           }
         }
-        testID="orders-list-row-deposit-6"
-        underlayColor="#f3f3f4"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -6101,7 +8014,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -6123,6 +8036,125 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
             <View
               style={
                 {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignSelf": "flex-start",
+                    "position": "relative",
+                  }
+                }
+                testID="badge-wrapper-badge"
+              >
+                <View>
+                  <Image
+                    resizeMode="stretch"
+                    source={1}
+                    style={
+                      {
+                        "height": 28,
+                        "width": 28,
+                      }
+                    }
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "aspectRatio": 1,
+                      "height": 0,
+                      "justifyContent": "center",
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateX": 0,
+                        },
+                        {
+                          "translateY": -0,
+                        },
+                      ],
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "aspectRatio": 1,
+                        "height": "50%",
+                        "justifyContent": "center",
+                        "maxHeight": 24,
+                        "minHeight": 8,
+                        "opacity": 0,
+                      }
+                    }
+                    testID="badgenetwork"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderColor": "#ffffff",
+                          "borderRadius": 8,
+                          "borderWidth": 2,
+                          "height": 32,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "shadowColor": "#0000001a",
+                          "shadowOffset": {
+                            "height": 2,
+                            "width": 0,
+                          },
+                          "shadowOpacity": 1,
+                          "shadowRadius": 4,
+                          "transform": [
+                            {
+                              "scale": 1,
+                            },
+                          ],
+                          "width": 32,
+                        }
+                      }
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 32,
+                            "width": 32,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
                   "flex": 1,
                 }
               }
@@ -6132,7 +8164,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -6140,13 +8172,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   }
                 }
               >
-                Transak: Purchased USDT
+                USDT Deposit
               </Text>
               <Text
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Bold",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -6179,14 +8211,13 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#131416",
+                    "color": "#121314",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
                 }
-                testID="orders-list-crypto-amount-deposit-6"
               >
                 20
                  
@@ -6196,166 +8227,15 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#66676a",
+                    "color": "#686e7d",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
                 }
-                testID="orders-list-fiat-amount-deposit-6"
               >
                 $20 
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableHighlight>
-    </View>
-    <View
-      onFocusCapture={[Function]}
-      onLayout={[Function]}
-      style={null}
-    >
-      <TouchableHighlight
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        style={
-          {
-            "borderBottomWidth": 0.5,
-            "borderColor": "#b4b4b566",
-          }
-        }
-        testID="orders-list-row-buy-7"
-        underlayColor="#f3f3f4"
-      >
-        <View
-          accessibilityRole="none"
-          accessible={true}
-          style={
-            {
-              "padding": 16,
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "marginBottom": 10,
-              }
-            }
-          >
-            <Text
-              accessibilityRole="text"
-              style={
-                {
-                  "color": "#131416",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-            >
-              Dec 31 at 7:00 pm
-            </Text>
-          </View>
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "flex": 1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Test Provider: Purchased ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#4459ff",
-                    "fontFamily": "Geist-Bold",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-              >
-                Pending
-              </Text>
-            </View>
-            <View
-              accessible={false}
-              style={
-                {
-                  "width": 16,
-                }
-              }
-              testID="listitem-gap"
-            />
-            <View
-              style={
-                {
-                  "alignItems": "flex-end",
-                  "flex": -1,
-                }
-              }
-              testID="listitemcolumn"
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-                testID="orders-list-crypto-amount-buy-7"
-              >
-                0
-                 
-                ETH
-              </Text>
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#66676a",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 14,
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
-                testID="orders-list-fiat-amount-buy-7"
-              >
-                ...
               </Text>
             </View>
           </View>

@@ -88,7 +88,7 @@ const DepositOrderDetails = () => {
         Logger.error(fetchError as Error, {
           message:
             'FiatOrders::DepositOrderDetails error while processing order',
-          orderId: order.id,
+          order,
         });
         setError(
           fetchError instanceof Error && fetchError.message

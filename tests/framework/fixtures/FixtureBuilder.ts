@@ -215,32 +215,9 @@ class FixtureBuilder {
     this.fixture.state.browser.tabs[0].url = `http://localhost:${getMockServerPortForFixture()}/health-check`;
 
     // 3. Ganache port for localhost network RPC URL
-    const networkConfigs =
-      this.fixture.state.engine.backgroundState.NetworkController
-        .networkConfigurationsByChainId;
-    if (!networkConfigs['0x539']) {
-      const networkClientId = `networkClientId${
-        Object.keys(networkConfigs).length + 1
-      }`;
-      networkConfigs['0x539'] = {
-        blockExplorerUrls: ['https://localhost'],
-        chainId: '0x539',
-        defaultBlockExplorerUrlIndex: 0,
-        defaultRpcEndpointIndex: 0,
-        name: 'Localhost',
-        nativeCurrency: 'ETH',
-        rpcEndpoints: [
-          {
-            networkClientId,
-            name: 'Localhost default RPC',
-            type: 'custom',
-            url: '',
-          },
-        ],
-      };
-    }
-    networkConfigs['0x539'].rpcEndpoints[0].url =
-      `http://localhost:${getGanachePortForFixture()}`;
+    this.fixture.state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
+      '0x539'
+    ].rpcEndpoints[0].url = `http://localhost:${getGanachePortForFixture()}`;
 
     return this;
   }
@@ -481,9 +458,6 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
-    this.fixture.state.fiatOrders.detectedGeolocation =
-      selectedRegion.countryIsoCode;
-
     return this;
   }
 
@@ -496,18 +470,6 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
-    return this;
-  }
-
-  /**
-   * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
-   * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
-   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   */
-  withDetectedGeolocation(countryCode: string) {
-    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
     return this;
   }
 
@@ -1806,13 +1768,6 @@ class FixtureBuilder {
       enabledNetworkMap: data,
       nativeAssetIdentifiers: {},
     };
-
-    if (
-      !this.fixture.state.engine.backgroundState.NetworkEnablementController
-    ) {
-      this.fixture.state.engine.backgroundState.NetworkEnablementController =
-        {};
-    }
 
     merge(
       this.fixture.state.engine.backgroundState.NetworkEnablementController,

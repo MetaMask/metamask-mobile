@@ -23,7 +23,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
     style={
       [
         {
-          "backgroundColor": "#0a0d135c",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -73,7 +73,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#b4b4b566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 24,
             "borderTopRightRadius": 24,
             "borderWidth": 1,
@@ -110,7 +110,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#b4b4b566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -144,7 +144,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
@@ -174,7 +174,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               {
                 "fontFamily": "Geist-Bold",
-                "fontSize": 20,
+                "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -188,7 +188,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
           style={
             [
               {
-                "color": "#131416",
+                "color": "#121314",
                 "fontFamily": "Geist-Regular",
                 "fontSize": 30,
                 "marginVertical": 2,
@@ -226,7 +226,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 30,
                   "marginVertical": 2,
@@ -268,7 +268,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 30,
                   "marginVertical": 2,
@@ -284,7 +284,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 undefined,
                 undefined,
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                 },
                 undefined,
                 undefined,
@@ -330,7 +330,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#b4b4b528",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -348,7 +348,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#131416",
+                  "color": "#121314",
                   "fontFamily": "Geist-Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -370,7 +370,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#131416",
+                "backgroundColor": "#121314",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",

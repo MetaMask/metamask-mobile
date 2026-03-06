@@ -1,23 +1,13 @@
 /* eslint-disable import/no-nodejs-modules */
 import { execSync } from 'child_process';
-import path from 'path';
-import fs from 'fs';
 import { expect } from 'appwright';
 import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import { login } from '../../framework/utils/Flows.js';
-import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants.ts';
 
 // Default port for the browser playground dapp server
 const DEFAULT_DAPP_PORT = 8090;
 
 const UNLOCK_WAIT_MS = 3000;
-
-// Path from metamask-mobile root to the playground release APK in the sibling connect-monorepo
-const PLAYGROUND_APK_RELATIVE =
-  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk';
 
 /**
  * If the app auto-locked and the unlock/login screen is displayed, enter password and unlock.
@@ -108,66 +98,5 @@ export function cleanupAdbReverse(port) {
     console.log(`ADB reverse port ${port} removed`);
   } catch {
     // Ignore cleanup errors
-  }
-}
-
-/**
- * Wait for the wallet to be visible, then cycle the app twice to ensure all
- * account groups (including Solana) are created and syncing completes.
- * Must be called from native context after login.
- * @param {import('appwright').Device} device - Appwright device
- */
-export async function ensureAccountGroupsFinishedLoading(device) {
-  await WalletMainScreen.isMainWalletViewVisible();
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.isComponentDisplayed();
-  await AccountListComponent.waitForSyncingToComplete();
-  await AppwrightGestures.terminateApp(device);
-  await AppwrightGestures.activateApp(device);
-  await login(device);
-  await WalletMainScreen.isMainWalletViewVisible();
-}
-
-/**
- * Ensure the React Native playground release APK is installed on the
- * connected emulator. Uninstalls any existing version first, then installs
- * the pre-built release APK so the device always has a clean copy.
- *
- * The APK must be built manually before running the test — see
- * tests/performance/mm-connect/README.md for instructions.
- *
- * @throws {Error} If the APK file has not been built or adb install fails.
- */
-export function ensurePlaygroundInstalled() {
-  const apkPath = path.resolve(process.cwd(), PLAYGROUND_APK_RELATIVE);
-  if (!fs.existsSync(apkPath)) {
-    throw new Error(
-      `Playground release APK not found at ${apkPath}.\n` +
-        'Build it first:\n' +
-        '  cd connect-monorepo && yarn install && yarn build\n' +
-        '  cd playground/react-native-playground && npx expo prebuild --platform android\n' +
-        '  cd android && ./gradlew assembleRelease\n\n' +
-        'See tests/performance/mm-connect/README.md for full setup instructions.',
-    );
-  }
-
-  // Uninstall any existing version (debug or release) to guarantee a clean state
-  try {
-    execSync(`adb uninstall ${PLAYGROUND_PACKAGE_ID}`, { stdio: 'pipe' });
-    console.log(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
-  } catch {
-    // Package was not installed; nothing to uninstall
-  }
-
-  console.log(`Installing playground release APK from ${apkPath}...`);
-  try {
-    execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
-    console.log('Playground APK installed successfully');
-  } catch (error) {
-    throw new Error(`Failed to install playground APK: ${error.message}`);
   }
 }

@@ -1,5 +1,9 @@
 /* eslint-disable react/prop-types */
 
+/**
+ * @deprecated Please update your code to use `Text` from `@metamask/design-system-react-native`
+ */
+
 // Third party dependencies.
 import React from 'react';
 import { Text as RNText } from 'react-native';
@@ -12,11 +16,6 @@ import { TextProps } from './Text.types';
 import styleSheet from './Text.styles';
 import { DEFAULT_TEXT_COLOR, DEFAULT_TEXT_VARIANT } from './Text.constants';
 
-/**
- * @deprecated Please update your code to use `Text` from `@metamask/design-system-react-native`.
- * The API may have changed — compare props before migrating.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Text/README.md}
- */
 const Text: React.FC<TextProps> = ({
   variant = DEFAULT_TEXT_VARIANT,
   color = DEFAULT_TEXT_COLOR,

@@ -47,7 +47,6 @@ export const ConfirmationRowComponentIDs = {
   TOTAL: 'total',
   RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
-  NETWORK_FEE: 'network-fee',
   AMOUNT: 'amount',
 } as const;
 
@@ -101,5 +100,4 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_FIAT: 'pay-with-fiat',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
-  PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
 };

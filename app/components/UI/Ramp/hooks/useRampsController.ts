@@ -16,7 +16,6 @@ import {
   type UseRampsPaymentMethodsResult,
 } from './useRampsPaymentMethods';
 import { useRampsQuotes, type UseRampsQuotesResult } from './useRampsQuotes';
-import { useRampsOrders, type UseRampsOrdersResult } from './useRampsOrders';
 
 /**
  * Result returned by the useRampsController hook.
@@ -58,14 +57,6 @@ export interface UseRampsControllerResult {
   // Quotes
   getQuotes: UseRampsQuotesResult['getQuotes'];
   getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
-
-  // Orders
-  orders: UseRampsOrdersResult['orders'];
-  getOrderById: UseRampsOrdersResult['getOrderById'];
-  addOrder: UseRampsOrdersResult['addOrder'];
-  removeOrder: UseRampsOrdersResult['removeOrder'];
-  refreshOrder: UseRampsOrdersResult['refreshOrder'];
-  getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
 }
 
 /**
@@ -149,19 +140,12 @@ export function useRampsController(): UseRampsControllerResult {
 
   const { getQuotes, getWidgetUrl } = useRampsQuotes();
 
-  const {
-    orders,
-    getOrderById,
-    addOrder,
-    removeOrder,
-    refreshOrder,
-    getOrderFromCallback,
-  } = useRampsOrders();
-
   return {
+    // User region
     userRegion,
     setUserRegion,
 
+    // Selected provider
     selectedProvider,
     setSelectedProvider,
 
@@ -169,31 +153,28 @@ export function useRampsController(): UseRampsControllerResult {
     providersLoading,
     providersError,
 
+    // Tokens
     tokens,
     selectedToken,
     setSelectedToken,
     tokensLoading,
     tokensError,
 
+    // Countries
     countries,
     countriesLoading,
     countriesError,
 
+    // Payment methods
     paymentMethods,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
 
+    // Quotes
     getQuotes,
     getWidgetUrl,
-
-    orders,
-    getOrderById,
-    addOrder,
-    removeOrder,
-    refreshOrder,
-    getOrderFromCallback,
   };
 }
 

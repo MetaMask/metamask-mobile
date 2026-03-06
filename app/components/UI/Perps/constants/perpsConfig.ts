@@ -6,7 +6,7 @@
  *
  * This file contains:
  * - UI-only configuration constants (layout, display, navigation)
- * - Mobile-specific exports (TokenI)
+ * - Mobile-specific exports (TokenI, @metamask/swaps-controller dependencies)
  */
 import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
@@ -16,7 +16,7 @@ export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
 
 /** Chain id used for the "Perps balance" payment option. */
-export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+export { ARBITRUM_CHAIN_ID as PERPS_BALANCE_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 /**
  * Minimum number of aggregators (exchanges) a token must be listed on

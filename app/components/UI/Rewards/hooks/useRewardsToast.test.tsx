@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
-import { mockTheme } from '../../../../util/theme';
 import useRewardsToast, { RewardsToastOptions } from './useRewardsToast';
 import {
   ToastVariants,
@@ -33,13 +32,25 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock('../../../../util/theme', () => {
-  const actualTheme = jest.requireActual('../../../../util/theme');
-  return {
-    ...actualTheme,
-    useAppThemeFromContext: () => actualTheme.mockTheme,
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useAppThemeFromContext: () => ({
+    colors: {
+      primary: {
+        default: '#4459ff',
+        muted: '#4459ff1a',
+      },
+      background: {
+        muted: '#3c4d9d0f',
+      },
+      success: {
+        default: '#457a39',
+      },
+      error: {
+        default: '#ca3542',
+      },
+    },
+  }),
+}));
 
 describe('useRewardsToast', () => {
   let mockShowToast: jest.Mock;
@@ -96,7 +107,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: mockTheme.colors.success.default,
+        iconColor: '#457a39',
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
@@ -120,7 +131,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
-        iconColor: mockTheme.colors.success.default,
+        iconColor: '#457a39',
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         hasNoTimeout: false,
@@ -143,7 +154,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
-        iconColor: mockTheme.colors.error.default,
+        iconColor: '#ca3542',
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
@@ -167,7 +178,7 @@ describe('useRewardsToast', () => {
       expect(config).toMatchObject({
         variant: ToastVariants.Icon,
         iconName: IconName.Danger,
-        iconColor: mockTheme.colors.error.default,
+        iconColor: '#ca3542',
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         hasNoTimeout: false,
