@@ -134,7 +134,10 @@ collect_explicit_files() {
 }
 
 extract_added_lines_from_diff() {
-  grep '^+' | grep -v '^+++' | sed 's/^+//' || true
+  awk '
+    /^\+\+\+ / { next }
+    /^\+/ { sub(/^\+/, ""); print }
+  ' || true
 }
 
 get_added_lines() {
