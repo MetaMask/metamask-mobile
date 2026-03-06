@@ -93,8 +93,7 @@ const LedgerConfirmationModal = ({
         } catch (signingError) {
           hideAwaitingConfirmation();
 
-          // Don't show error UI for user cancellation on device
-          if (!isUserCancellation(signingError)) {
+          if (!hasRejectedRef.current && !isUserCancellation(signingError)) {
             showHardwareWalletError(signingError);
           }
 

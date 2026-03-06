@@ -51,10 +51,11 @@ const LedgerMessageSignModal = () => {
   const hasNavigatedRef = useRef(false);
   const goBack = useCallback(() => {
     if (hasNavigatedRef.current) return;
-    if (!navigation.canGoBack()) return;
     hasNavigatedRef.current = true;
     dispatch(resetEventStage(signingEvent.rpcName));
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   }, [dispatch, signingEvent.rpcName, navigation]);
 
   useEffect(() => {
