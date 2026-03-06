@@ -83,7 +83,7 @@ describe('PerpsAlwaysOnProvider', () => {
         <Text>child content</Text>
       </PerpsAlwaysOnProvider>,
     );
-    expect(getByText('child content')).toBeTruthy();
+    expect(getByText('child content')).toBeOnTheScreen();
   });
 
   it('calls connect on mount when perps is enabled', () => {

@@ -1083,7 +1083,7 @@ describe('Wallet', () => {
       mockPredictGTMModalEnabled = false; // Reset to default
     });
 
-    it('should render PerpsTabView without visibility props when Perps is enabled', () => {
+    it('renders PerpsTabView without visibility props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1119,7 +1119,7 @@ describe('Wallet', () => {
       expect(perpsTabViewProps.isVisible).toBeUndefined();
     });
 
-    it('should render PerpsTabView with only tab-related props when Perps is enabled', () => {
+    it('renders PerpsTabView with only tab-related props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
