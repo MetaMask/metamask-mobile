@@ -1,7 +1,7 @@
 import React from 'react';
 import { screen, fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import PerpsSection from './PerpsSection';
+import PerpsSection, { positionDisplayKey } from './PerpsSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import {
@@ -240,6 +240,73 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     NFTS: 'nfts',
   },
 }));
+
+describe('positionDisplayKey', () => {
+  it('returns stable key from position display fields', () => {
+    const position = makePosition({
+      symbol: 'BTC',
+      entryPrice: '98500',
+      size: '-0.0015',
+      unrealizedPnl: '9.4',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+    }) as Parameters<typeof positionDisplayKey>[0];
+    expect(positionDisplayKey(position)).toBe('BTC:98500:-0.0015:9.4::');
+  });
+
+  it('uses empty string for undefined optional fields', () => {
+    const position = makePosition({
+      symbol: 'ETH',
+      entryPrice: undefined,
+      size: '1',
+      unrealizedPnl: undefined,
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+    }) as Parameters<typeof positionDisplayKey>[0];
+    expect(positionDisplayKey(position)).toBe('ETH::1:::');
+  });
+
+  it('includes takeProfitPrice and stopLossPrice when set', () => {
+    const position = makePosition({
+      symbol: 'SOL',
+      entryPrice: '180',
+      size: '10',
+      unrealizedPnl: '-5',
+      takeProfitPrice: '200',
+      stopLossPrice: '160',
+    }) as Parameters<typeof positionDisplayKey>[0];
+    expect(positionDisplayKey(position)).toBe('SOL:180:10:-5:200:160');
+  });
+
+  it('returns different keys when display-relevant fields differ', () => {
+    const base = makePosition({ symbol: 'BTC' }) as Parameters<
+      typeof positionDisplayKey
+    >[0];
+    const withPnl = makePosition({
+      symbol: 'BTC',
+      unrealizedPnl: '100',
+    }) as Parameters<typeof positionDisplayKey>[0];
+    expect(positionDisplayKey(base)).not.toBe(positionDisplayKey(withPnl));
+  });
+
+  it('returns same key when only non-display fields differ', () => {
+    const a = makePosition({
+      symbol: 'BTC',
+      entryPrice: '50000',
+      size: '1',
+      unrealizedPnl: '100',
+      positionValue: '50000',
+    }) as Parameters<typeof positionDisplayKey>[0];
+    const b = makePosition({
+      symbol: 'BTC',
+      entryPrice: '50000',
+      size: '1',
+      unrealizedPnl: '100',
+      positionValue: '99999',
+    }) as Parameters<typeof positionDisplayKey>[0];
+    expect(positionDisplayKey(a)).toBe(positionDisplayKey(b));
+  });
+});
 
 describe('PerpsSection', () => {
   beforeEach(() => {
@@ -811,7 +878,7 @@ describe('PerpsSection', () => {
       fireEvent.press(screen.getByTestId('perps-view-more-card'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
+        screen: Routes.PERPS.MARKET_LIST,
         params: { source: 'home_section' },
       });
     });
