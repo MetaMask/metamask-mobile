@@ -95,9 +95,12 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+      const backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        hardwareBackPress,
+      );
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+        backHandlerSubscription.remove();
       };
     }, [onCloseCB, isInteractable]);
 
