@@ -612,4 +612,4 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   );
 };
 
-export default PerpsPositionCard;
+export default React.memo(PerpsPositionCard);

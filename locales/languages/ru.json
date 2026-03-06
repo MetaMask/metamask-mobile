@@ -5931,8 +5931,8 @@
       },
       "buy_musd": "Купить mUSD",
       "get_musd": "Получить mUSD",
-      "boost_title": "Получите {{percentage}}% на ваши стейблкоины",
-      "boost_description": "Конвертируйте свои стейблкоины в mUSD и получите бонус до {{percentage}}%.",
+      "bonus_title": "Получите {{percentage}}% на ваши стейблкоины",
+      "bonus_description": "Конвертируйте свои стейблкоины в mUSD и получите бонус до {{percentage}}%.",
       "powered_by_relay": "При поддержке Relay"
     },
     "bonus_claim": {

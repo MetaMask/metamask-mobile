@@ -487,8 +487,8 @@ describe('TrendingTokenNetworkBottomSheet', () => {
     expect(queryByTestId('bottom-sheet')).toBeNull();
   });
 
-  it('calls onOpenBottomSheet when isVisible becomes true', () => {
-    const { rerender } = renderWithProvider(
+  it('renders when isVisible becomes true', () => {
+    const { rerender, queryByTestId } = renderWithProvider(
       <TrendingTokenNetworkBottomSheet
         isVisible={false}
         onClose={mockOnClose}
@@ -498,7 +498,7 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       false,
     );
 
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+    expect(queryByTestId('bottom-sheet')).toBeNull();
 
     rerender(
       <TrendingTokenNetworkBottomSheet
@@ -508,6 +508,6 @@ describe('TrendingTokenNetworkBottomSheet', () => {
       />,
     );
 
-    expect(mockOnOpenBottomSheet).toHaveBeenCalled();
+    expect(queryByTestId('bottom-sheet')).toBeOnTheScreen();
   });
 });
