@@ -1372,22 +1372,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
-        metaAndAssetCtxs: jest
-          .fn()
-          .mockResolvedValue([
-            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
-            [
-              {
-                funding: '0.0001',
-                openInterest: '1000',
-                prevDayPx: '49000',
-                dayNtlVlm: '1000000',
-                markPx: '50000',
-                midPx: '50000',
-                oraclePx: '50000',
-              },
-            ],
-          ]),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1476,22 +1474,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
         }),
-        metaAndAssetCtxs: jest
-          .fn()
-          .mockResolvedValue([
-            { universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }] },
-            [
-              {
-                funding: '0.0001',
-                openInterest: '500',
-                prevDayPx: '2900',
-                dayNtlVlm: '500000',
-                markPx: '3000',
-                midPx: '3000',
-                oraclePx: '3000',
-              },
-            ],
-          ]),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '500',
+              prevDayPx: '2900',
+              dayNtlVlm: '500000',
+              markPx: '3000',
+              midPx: '3000',
+              oraclePx: '3000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1656,22 +1652,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
-        metaAndAssetCtxs: jest
-          .fn()
-          .mockResolvedValue([
-            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
-            [
-              {
-                funding: '0.0001',
-                openInterest: '1000',
-                prevDayPx: '49000',
-                dayNtlVlm: '1000000',
-                markPx: '50000',
-                midPx: '50000',
-                oraclePx: '50000',
-              },
-            ],
-          ]),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1755,22 +1749,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
-        metaAndAssetCtxs: jest
-          .fn()
-          .mockResolvedValue([
-            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
-            [
-              {
-                funding: '0.0001',
-                openInterest: '1000',
-                prevDayPx: '49000',
-                dayNtlVlm: '1000000',
-                markPx: '50000',
-                midPx: '50000',
-                oraclePx: '50000',
-              },
-            ],
-          ]),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
