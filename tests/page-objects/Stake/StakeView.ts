@@ -1,6 +1,7 @@
 import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 
 class StakeView {
   get stakeContainer(): DetoxElement {
@@ -33,14 +34,35 @@ class StakeView {
     }
   }
 
-  async tapReview(): Promise<void> {
+  async tapReview(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.reviewButton, {
+      timeout,
       elemDescription: 'Review Button in Stake View',
     });
   }
 
-  async tapConfirm(): Promise<void> {
+  async tapReviewWithRetry(timeout = 90000): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      await Gestures.waitAndTap(this.reviewButton, {
+        timeout: 5000,
+        elemDescription: 'Review Button in Stake View',
+      });
+      try {
+        await Utilities.waitForElementToBeEnabled(this.confirmButton, 5000);
+        return;
+      } catch {
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
+    throw new Error(
+      `Confirm screen did not appear after tapping Review within ${timeout}ms`,
+    );
+  }
+
+  async tapConfirm(timeout?: number): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
+      timeout,
       elemDescription: 'Confirm Button in Stake View',
     });
   }

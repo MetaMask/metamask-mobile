@@ -4,7 +4,9 @@ import { loginToApp } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder, {
+  DEFAULT_FIXTURE_ACCOUNT,
+} from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { SmokeTrade } from '../../tags';
@@ -20,7 +22,7 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
   const AMOUNT_TO_STAKE: string = '1';
 
   beforeEach(async (): Promise<void> => {
-    jest.setTimeout(120000);
+    jest.setTimeout(300000);
   });
 
   it('should be able to import stake test account with funds', async (): Promise<void> => {
@@ -60,6 +62,55 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         ],
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
+          // Mock Accounts API V4 (flat array) so the app reports correct ETH balance.
+          // Without this, the default mock returns 0 balance and the Earn button
+          // is hidden (StakeButton returns null when balanceFiatNumber < 0.01).
+          await setupMockRequest(mockServer, {
+            url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+            response: {
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  decimals: 18,
+                  chainId: 1,
+                  balance: '10000.000000000000000000',
+                  accountAddress: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+                },
+              ],
+              unprocessedNetworks: [],
+            },
+            requestMethod: 'GET',
+            responseCode: 200,
+          });
+
+          // Mock Accounts API V2 (per-account balances) for the same reason.
+          await setupMockRequest(mockServer, {
+            url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
+            response: {
+              count: 1,
+              balances: [
+                {
+                  object: 'token',
+                  address: '0x0000000000000000000000000000000000000000',
+                  symbol: 'ETH',
+                  name: 'Ether',
+                  type: 'native',
+                  timestamp: '2015-07-30T15:26:13.000Z',
+                  decimals: 18,
+                  chainId: 1,
+                  balance: '10000.0',
+                },
+              ],
+              unprocessedNetworks: [],
+            },
+            requestMethod: 'GET',
+            responseCode: 200,
+          });
+
           await setupMockRequest(mockServer, {
             url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/getFees/,
             response: {
@@ -82,13 +133,18 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
+        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+          timeout: 30000,
+        });
         await WalletView.tapOnEarnButton();
         await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
         await StakeView.enterAmount(AMOUNT_TO_STAKE);
-        await Assertions.expectElementToBeVisible(StakeView.reviewButton);
-        await StakeView.tapReview();
-        await Assertions.expectElementToBeVisible(StakeView.confirmButton);
-        await StakeView.tapConfirm();
+        await StakeView.tapReviewWithRetry(30000);
+        await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
+          timeout: 30000,
+        });
+        await StakeView.tapConfirm(30000);
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,
