@@ -136,11 +136,24 @@ jest.mock(
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+  selectPooledStakingEnabledFlag: jest.fn(() => false),
+  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
 jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
+const mockUseMusdConversionTokens = jest.fn(() => ({
+  tokens: [],
+  filterAllowedTokens: (tokens: unknown[]) => tokens,
+  isConversionToken: () => false,
+  isMusdSupportedOnChain: () => false,
+  hasConvertibleTokensByChainId: () => false,
+}));
+jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
 }));
 
 // Mock useHomeViewedEvent to avoid analytics side-effects in
