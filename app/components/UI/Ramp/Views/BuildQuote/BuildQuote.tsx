@@ -617,6 +617,35 @@ function BuildQuote() {
             });
           }
 
+          // DEV-ONLY: skip external browser and go straight to order details.
+          // The order is already pre-created on the API via getBuyWidgetData,
+          // so we can test the full order-details + polling flow without PayPal.
+          // Remove this block once end-to-end PayPal redirect is verified.
+          if (__DEV__) {
+            Logger.log(
+              '[Ramp][Debug][MockBypass] skipping browser, navigating directly to order details',
+            );
+            if (effectiveOrderId) {
+              const orderCode = effectiveOrderId.includes('/orders/')
+                ? effectiveOrderId.split('/orders/')[1]
+                : effectiveOrderId;
+              Logger.log('[Ramp][Debug][MockBypass] orderCode:', orderCode);
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+                    params: {
+                      orderId: orderCode,
+                      showCloseButton: true,
+                    },
+                  },
+                ],
+              });
+            }
+            return;
+          }
+
           const isAndroid = Device.isAndroid();
           const inAppBrowserAvailable =
             !isAndroid && (await InAppBrowser.isAvailable());
