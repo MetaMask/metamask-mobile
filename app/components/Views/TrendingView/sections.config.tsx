@@ -236,7 +236,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
-      <PerpsConnectionProvider suppressErrorView manageLifecycle={false}>
+      <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>{children}</PerpsStreamProvider>
       </PerpsConnectionProvider>
     ),

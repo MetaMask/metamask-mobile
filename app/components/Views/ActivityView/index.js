@@ -252,7 +252,7 @@ const ActivityView = () => {
                 style={styles.tabWrapper}
               >
                 {isPerpsTabActive ? (
-                  <PerpsConnectionProvider manageLifecycle={false}>
+                  <PerpsConnectionProvider>
                     <PerpsStreamProvider>
                       <PerpsTransactionsView />
                     </PerpsStreamProvider>

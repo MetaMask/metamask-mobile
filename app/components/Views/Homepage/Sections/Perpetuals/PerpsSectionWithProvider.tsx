@@ -27,7 +27,7 @@ const PerpsSectionWithProvider = forwardRef<
   }
 
   return (
-    <PerpsConnectionProvider suppressErrorView manageLifecycle={false}>
+    <PerpsConnectionProvider suppressErrorView>
       <PerpsStreamProvider>
         <PerpsSection
           ref={ref}

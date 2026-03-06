@@ -43,7 +43,7 @@ const PerpsTabViewWithProvider: React.FC<
   }
 
   return (
-    <PerpsConnectionProvider manageLifecycle={false}>
+    <PerpsConnectionProvider>
       <PerpsStreamProvider>
         <PerpsStreamBridge />
         <PerpsTabView />

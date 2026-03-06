@@ -93,7 +93,7 @@ const PerpsModalStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen manageLifecycle={false}>
+    <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
           mode="modal"
@@ -191,7 +191,7 @@ const PerpsClosePositionBottomSheetStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen manageLifecycle={false}>
+    <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <ModalStack.Navigator
           mode="modal"
@@ -234,7 +234,7 @@ const PerpsScreenStack = () => {
   }
 
   return (
-    <PerpsConnectionProvider isFullScreen manageLifecycle={false}>
+    <PerpsConnectionProvider isFullScreen>
       <PerpsStreamProvider>
         <PerpsStreamBridge />
         <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
