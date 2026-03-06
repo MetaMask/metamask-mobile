@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { brandColor } from '@metamask/design-tokens';
 
 // External dependencies
 import { ThemeContext } from '../../../util/theme';
