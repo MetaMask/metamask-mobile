@@ -529,13 +529,37 @@ function BuildQuote() {
 
     setIsContinueLoading(true);
     try {
-      const buyWidget = await getBuyWidgetData(selectedQuote);
+      const isCustomAction = Boolean(
+        (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
+      );
+      const providerCode = normalizeProviderCode(selectedQuote.provider);
+
+      // For external-browser providers (e.g. PayPal), the redirectUrl baked into
+      // the quote's buyURL at quote-fetch time is the HTTPS fake-callback. The
+      // provider needs a deep link instead so it redirects back to the app.
+      // We override the buyURL's redirectUrl before fetching the widget, matching
+      // the legacy SDK's BuyAction.createWidget(deeplinkRedirectUrl) behaviour.
+      const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+      const quoteBuyWidget = selectedQuote.quote?.buyWidget;
+      const needsDeepLink =
+        isCustomAction || quoteBuyWidget?.browser === 'IN_APP_OS_BROWSER';
+
+      let quoteForWidget = selectedQuote;
+      if (needsDeepLink && selectedQuote.quote?.buyURL) {
+        const buyUrl = new URL(selectedQuote.quote.buyURL);
+        buyUrl.searchParams.set('redirectUrl', deeplinkRedirectUrl);
+        quoteForWidget = {
+          ...selectedQuote,
+          quote: {
+            ...selectedQuote.quote,
+            buyURL: buyUrl.toString(),
+          },
+        };
+      }
+
+      const buyWidget = await getBuyWidgetData(quoteForWidget);
 
       if (buyWidget?.url) {
-        const isCustomAction = Boolean(
-          (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
-        );
-        const providerCode = normalizeProviderCode(selectedQuote.provider);
         const chainId = selectedToken?.chainId as CaipChainId | undefined;
         const network = chainId?.includes(':')
           ? chainId.split(':')[1] || ''
@@ -555,7 +579,6 @@ function BuildQuote() {
             });
           }
 
-          const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
           if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
             await Linking.openURL(buyWidget.url);
           } else {
