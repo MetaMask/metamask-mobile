@@ -150,7 +150,7 @@ describe('usePredictMarketData', () => {
     jest.restoreAllMocks();
   });
 
-  it('fetches market data successfully', async () => {
+  it('returns market data for default trending category', async () => {
     const { Wrapper } = createWrapper();
     mockGetMarkets.mockResolvedValue(mockMarketData);
 
@@ -295,7 +295,7 @@ describe('usePredictMarketData', () => {
   });
 
   describe('pagination', () => {
-    it('loads next page via fetchMore and sets hasMore to false on partial page', async () => {
+    it('loads next page via fetchMore', async () => {
       const { Wrapper } = createWrapper();
       const PAGE_SIZE = 20;
 
@@ -310,7 +310,7 @@ describe('usePredictMarketData', () => {
         }),
       );
 
-      // Generate second page: fewer than 20 items (partial page, so hasMore = false)
+      // Generate second page: fewer than 20 items (partial page)
       const secondPage: PredictMarket[] = Array.from({ length: 5 }, (_, i) => ({
         ...mockMarketData[0],
         id: `page2-market-${i}`,
@@ -355,6 +355,51 @@ describe('usePredictMarketData', () => {
       expect(mockGetMarkets).toHaveBeenLastCalledWith(
         expect.objectContaining({ offset: PAGE_SIZE, limit: PAGE_SIZE }),
       );
+    });
+
+    it('sets hasMore to false on partial page', async () => {
+      const { Wrapper } = createWrapper();
+      const PAGE_SIZE = 20;
+
+      // Generate first page: 20 items (full page, so hasMore = true)
+      const firstPage: PredictMarket[] = Array.from(
+        { length: PAGE_SIZE },
+        (_, i) => ({
+          ...mockMarketData[0],
+          id: `page1-market-${i}`,
+          slug: `page1-market-${i}`,
+          title: `Page 1 Market ${i}`,
+        }),
+      );
+
+      // Generate second page: fewer than 20 items (partial page, so hasMore = false)
+      const secondPage: PredictMarket[] = Array.from({ length: 5 }, (_, i) => ({
+        ...mockMarketData[0],
+        id: `page2-market-${i}`,
+        slug: `page2-market-${i}`,
+        title: `Page 2 Market ${i}`,
+      }));
+
+      mockGetMarkets
+        .mockResolvedValueOnce(firstPage)
+        .mockResolvedValueOnce(secondPage);
+
+      const { result } = renderHook(() => usePredictMarketData(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isFetching).toBe(false);
+      });
+
+      // Fetch second page (partial)
+      await act(async () => {
+        await result.current.fetchMore();
+      });
+
+      await waitFor(() => {
+        expect(result.current.marketData).toHaveLength(PAGE_SIZE + 5);
+      });
 
       expect(result.current.hasMore).toBe(false);
     });
