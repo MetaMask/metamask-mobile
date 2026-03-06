@@ -69,7 +69,6 @@ export class DeeplinkManager {
         const deeplink = latestParams?.$deeplink_path
           ? `metamask://${latestParams.$deeplink_path}`
           : (latestParams?.['+non_branch_link'] as string);
-        Logger.log(`getBranchDeeplink - deeplink: ${deeplink}`);
         if (deeplink) {
           handleDeeplink({ uri: deeplink });
         }
@@ -126,19 +125,13 @@ export class DeeplinkManager {
       // try to get routing from Branch params instead
       const isBranchUrl = uri && /\.(app|test-app)\.link\//.test(uri);
 
-      Logger.log(`Received deeplink: ${uri}, isBranchUrl: ${isBranchUrl}`);
-
       if (uri && !isBranchUrl) {
         handleDeeplink({ uri });
       } else {
         branch.getLatestReferringParams().then((params) => {
-          Logger.log(
-            `branch.getLatestReferringParams: ${JSON.stringify(params)}`,
-          );
           const deeplink = params?.$deeplink_path
             ? `metamask://${params.$deeplink_path}`
             : (params?.['+non_branch_link'] as string);
-          Logger.log(`branch.subscribe - deeplink: ${deeplink}`);
           if (deeplink) {
             handleDeeplink({ uri: deeplink });
           }
