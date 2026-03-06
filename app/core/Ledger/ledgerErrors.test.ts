@@ -3,6 +3,8 @@ import {
   isEthAppNotOpenStatusCode,
   isEthAppNotOpenErrorMessage,
   isEthAppNotOpenError,
+  DISCONNECT_ERROR_NAMES,
+  isDisconnectError,
 } from './ledgerErrors';
 
 describe('ledgerErrors', () => {
@@ -246,6 +248,82 @@ describe('ledgerErrors', () => {
         };
         expect(isEthAppNotOpenError(error)).toBe(false);
       });
+    });
+  });
+
+  describe('DISCONNECT_ERROR_NAMES', () => {
+    it('contains DisconnectedDeviceDuringOperation', () => {
+      expect(DISCONNECT_ERROR_NAMES).toContain(
+        'DisconnectedDeviceDuringOperation',
+      );
+    });
+
+    it('contains DisconnectedDevice', () => {
+      expect(DISCONNECT_ERROR_NAMES).toContain('DisconnectedDevice');
+    });
+
+    it('has exactly 2 entries', () => {
+      expect(DISCONNECT_ERROR_NAMES).toHaveLength(2);
+    });
+  });
+
+  describe('isDisconnectError', () => {
+    it('returns true for DisconnectedDeviceDuringOperation', () => {
+      const error = new Error('disconnected');
+      error.name = 'DisconnectedDeviceDuringOperation';
+
+      expect(isDisconnectError(error)).toBe(true);
+    });
+
+    it('returns true for DisconnectedDevice', () => {
+      const error = new Error('disconnected');
+      error.name = 'DisconnectedDevice';
+
+      expect(isDisconnectError(error)).toBe(true);
+    });
+
+    it('returns false for TransportStatusError', () => {
+      const error = new Error('status error');
+      error.name = 'TransportStatusError';
+
+      expect(isDisconnectError(error)).toBe(false);
+    });
+
+    it('returns false for generic Error', () => {
+      expect(isDisconnectError(new Error('generic'))).toBe(false);
+    });
+
+    it('returns false for TransportRaceCondition', () => {
+      const error = new Error('race');
+      error.name = 'TransportRaceCondition';
+
+      expect(isDisconnectError(error)).toBe(false);
+    });
+
+    it('returns false for null', () => {
+      expect(isDisconnectError(null)).toBe(false);
+    });
+
+    it('returns false for undefined', () => {
+      expect(isDisconnectError(undefined)).toBe(false);
+    });
+
+    it('returns false for string', () => {
+      expect(isDisconnectError('DisconnectedDevice')).toBe(false);
+    });
+
+    it('returns false for number', () => {
+      expect(isDisconnectError(42)).toBe(false);
+    });
+
+    it('returns true for plain object with matching name', () => {
+      expect(
+        isDisconnectError({ name: 'DisconnectedDeviceDuringOperation' }),
+      ).toBe(true);
+    });
+
+    it('returns false for plain object with non-matching name', () => {
+      expect(isDisconnectError({ name: 'SomeOtherError' })).toBe(false);
     });
   });
 });

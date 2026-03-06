@@ -6,6 +6,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '../constants/eventNames';
+import { ESTIMATED_FEE_RATE } from '../constants/hyperLiquidConfig';
 import { isTPSLOrder } from '../constants/orderTypes';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
@@ -1894,7 +1895,7 @@ export class TradingService {
       const entryPrice = parseFloat(position.entryPrice);
       const flipSize = positionSize * 2;
       const notionalValue = flipSize * entryPrice;
-      const estimatedFees = notionalValue * 0.0009;
+      const estimatedFees = notionalValue * ESTIMATED_FEE_RATE;
 
       if (estimatedFees > availableBalance) {
         throw new Error(
