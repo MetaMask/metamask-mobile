@@ -569,7 +569,8 @@ const OrderContent: React.FC<OrderContentProps> = ({
               >
                 {(order.status === RampsOrderStatus.Pending ||
                   order.status === RampsOrderStatus.Created ||
-                  order.status === RampsOrderStatus.Precreated) &&
+                  order.status === RampsOrderStatus.Precreated ||
+                  order.status === RampsOrderStatus.Unknown) &&
                 order.statusDescription.startsWith('Your order') &&
                 order.statusDescription.includes('. ')
                   ? order.statusDescription.substring(
