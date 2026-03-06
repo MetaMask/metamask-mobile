@@ -1,31 +1,36 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { getNavigationOptionsTitle } from '../../Navbar';
+import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { useTheme } from '../../../../util/theme';
-import { Box } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import RewardSettingsAccountGroupList from '../components/Settings/RewardSettingsAccountGroupList';
+import RewardsInfoBanner from '../components/RewardsInfoBanner';
+import LinkedOffDeviceAccountsSheet from '../components/Settings/LinkedOffDeviceAccountsSheet';
+import { useLinkedOffDeviceAccounts } from '../hooks/useLinkedOffDeviceAccounts';
+
+export const REWARDS_SETTINGS_SAFE_AREA_TEST_ID = 'rewards-settings-safe-area';
 
 const RewardsSettingsView: React.FC = () => {
+  const tw = useTailwind();
   const navigation = useNavigation();
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedSettingsViewed = useRef(false);
+  const [isOffDeviceSheetOpen, setIsOffDeviceSheetOpen] = useState(false);
 
-  // Set navigation title with back button
-  useEffect(() => {
-    navigation.setOptions({
-      ...getNavigationOptionsTitle(
-        strings('rewards.settings.title'),
-        navigation,
-        false,
-        colors,
-      ),
-      headerTitleAlign: 'center',
-    });
-  }, [colors, navigation]);
+  // Computes off-device accounts; internally fetches subscription accounts from the backend
+  const offDeviceAccounts = useLinkedOffDeviceAccounts();
+
+  const handleOpenOffDeviceSheet = useCallback(() => {
+    setIsOffDeviceSheetOpen(true);
+  }, []);
+
+  const handleCloseOffDeviceSheet = useCallback(() => {
+    setIsOffDeviceSheetOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!hasTrackedSettingsViewed.current) {
@@ -38,9 +43,44 @@ const RewardsSettingsView: React.FC = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsSettingsView">
-      <Box twClassName="py-4 flex-1 gap-4">
-        <RewardSettingsAccountGroupList />
-      </Box>
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={REWARDS_SETTINGS_SAFE_AREA_TEST_ID}
+      >
+        <HeaderCompactStandard
+          title={strings('rewards.settings.title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: 'header-back-button' }}
+          includesTopInset
+        />
+        <Box twClassName="py-4 flex-1 gap-4">
+          {offDeviceAccounts.length > 0 && (
+            <Box twClassName="px-4">
+              <RewardsInfoBanner
+                title={strings(
+                  'rewards.settings.off_device_accounts_banner_title',
+                )}
+                description={strings(
+                  'rewards.settings.off_device_accounts_banner_description',
+                )}
+                onConfirm={handleOpenOffDeviceSheet}
+                confirmButtonLabel={strings(
+                  'rewards.settings.off_device_accounts_banner_cta',
+                )}
+              />
+            </Box>
+          )}
+          <RewardSettingsAccountGroupList />
+        </Box>
+
+        {isOffDeviceSheetOpen && (
+          <LinkedOffDeviceAccountsSheet
+            accounts={offDeviceAccounts}
+            onClose={handleCloseOffDeviceSheet}
+          />
+        )}
+      </SafeAreaView>
     </ErrorBoundary>
   );
 };

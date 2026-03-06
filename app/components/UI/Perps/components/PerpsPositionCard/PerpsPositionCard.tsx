@@ -120,7 +120,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
 
-  // ROE is always stored as a decimal (e.g., 0.171 for 17.1%)
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%)
   // Convert to percentage for display
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
@@ -203,7 +203,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     const roeRaw = Number.parseFloat(position.returnOnEquity || '');
     const hasValidRoe = !Number.isNaN(roeRaw) && Number.isFinite(roeRaw);
     const roeDisplay = hasValidRoe
-      ? formatPercentage(roeRaw * 100, 1)
+      ? formatPercentage(roeRaw * 100, 2)
       : PERPS_CONSTANTS.FallbackPercentageDisplay;
 
     const isPositionVariant = compactVariant === 'position';
@@ -612,4 +612,4 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   );
 };
 
-export default PerpsPositionCard;
+export default React.memo(PerpsPositionCard);

@@ -619,6 +619,20 @@ function setupPredictMarketDetailsTest(
           PreferencesController: {
             privacyMode: false,
           },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictFeeCollection: {
+                enabled: true,
+                collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+                metamaskFee: 0.02,
+                providerFee: 0.02,
+                waiveList: ['middle-east'],
+                executors: [],
+                permit2Enabled: false,
+              },
+            },
+            cacheTimestamp: 0,
+          },
         },
       },
     },
@@ -3298,10 +3312,10 @@ describe('PredictMarketDetails', () => {
   });
 
   describe('Fee Exemption Display', () => {
-    it('displays fee exemption message when market has Middle East tag', () => {
-      const marketWithMiddleEastTag = createMockMarket({
+    it('displays fee exemption message when market tag matches waiveList', () => {
+      const marketWithWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Middle East'],
+        tags: ['middle-east'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3315,17 +3329,17 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(marketWithMiddleEastTag);
+      setupPredictMarketDetailsTest(marketWithWaivedTag);
 
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
     });
 
-    it('hides fee exemption message when market does not have Middle East tag', () => {
-      const marketWithoutMiddleEastTag = createMockMarket({
+    it('hides fee exemption message when market tags do not match waiveList', () => {
+      const marketWithNonWaivedTags = createMockMarket({
         status: 'open',
-        tags: ['Sports', 'Politics'],
+        tags: ['sports', 'politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3339,7 +3353,7 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(marketWithoutMiddleEastTag);
+      setupPredictMarketDetailsTest(marketWithNonWaivedTags);
 
       expect(
         screen.queryByText('predict.market_details.fee_exemption'),
@@ -3394,10 +3408,10 @@ describe('PredictMarketDetails', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('displays fee exemption message when Middle East tag exists among multiple tags', () => {
+    it('displays fee exemption message when waiveList tag exists among multiple tags', () => {
       const marketWithMultipleTags = createMockMarket({
         status: 'open',
-        tags: ['Politics', 'Middle East', 'International'],
+        tags: ['politics', 'middle-east', 'international'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3418,10 +3432,10 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays fee exemption message when market is closed with Middle East tag', () => {
-      const closedMarketWithMiddleEastTag = createMockMarket({
+    it('displays fee exemption message when market is closed with waiveList tag', () => {
+      const closedMarketWithWaivedTag = createMockMarket({
         status: 'closed',
-        tags: ['Middle East'],
+        tags: ['middle-east'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3432,23 +3446,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarketWithMiddleEastTag);
+      setupPredictMarketDetailsTest(closedMarketWithWaivedTag);
 
-      // Note: The component currently shows the fee exemption message for closed markets
-      // if they have the Middle East tag. This behavior matches the current implementation.
+      // Note: The component shows the fee exemption message for closed markets
+      // if they have a tag matching the waiveList. This matches the current implementation.
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
     });
 
-    it('removes fee exemption message when market updates without Middle East tag', async () => {
+    it('removes fee exemption message when market updates without waiveList tag', async () => {
       const { usePredictMarket } = jest.requireMock(
         '../../hooks/usePredictMarket',
       );
 
-      const marketWithMiddleEastTag = createMockMarket({
+      const marketWithWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Middle East', 'Politics'],
+        tags: ['middle-east', 'politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3462,17 +3476,15 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { rerender } = setupPredictMarketDetailsTest(
-        marketWithMiddleEastTag,
-      );
+      const { rerender } = setupPredictMarketDetailsTest(marketWithWaivedTag);
 
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
 
-      const marketWithoutMiddleEastTag = createMockMarket({
+      const marketWithoutWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Politics'],
+        tags: ['politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3487,7 +3499,7 @@ describe('PredictMarketDetails', () => {
       });
 
       usePredictMarket.mockReturnValue({
-        market: marketWithoutMiddleEastTag,
+        market: marketWithoutWaivedTag,
         isFetching: false,
         refetch: jest.fn(),
       });
