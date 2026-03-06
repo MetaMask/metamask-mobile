@@ -56,6 +56,11 @@ jest.mock(
   '../../../../Views/confirmations/hooks/metrics/useConfirmationMetricEvents',
 );
 jest.mock('../../hooks/usePerpsEventTracking');
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: jest.fn(() => ({
+    navigateToConfirmation: jest.fn(),
+  })),
+}));
 jest.mock('../../../../../util/address');
 jest.mock('../../../../Base/TokenIcon', () => jest.fn(() => null));
 jest.mock('../../../../../util/networks', () => ({
