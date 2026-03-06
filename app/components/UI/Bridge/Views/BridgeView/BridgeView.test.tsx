@@ -288,15 +288,15 @@ jest.mock(
   () => {
     const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    const { BridgeViewSelectorsIDs: BridgeViewTestIds } = jest.requireActual(
-      './BridgeView.testIds',
-    );
+    const TrendingTokensSectionTestIds = jest.requireActual(
+      '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds',
+    ).BridgeTrendingTokensSectionTestIds;
 
     return {
       __esModule: true,
       default: () =>
         React.createElement(View, {
-          testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
+          testID: TrendingTokensSectionTestIds.SECTION,
         }),
     };
   },
