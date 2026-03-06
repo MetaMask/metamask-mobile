@@ -378,7 +378,11 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
-        .flatMap(([_, chainAssets]) => chainAssets);
+        .flatMap(([_, chainAssets]) =>
+          chainAssets.filter(
+            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+          ),
+        );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
         stakedAssets,
