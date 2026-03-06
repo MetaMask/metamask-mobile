@@ -43,7 +43,7 @@ const mockSelectMultichainAssetsRates =
 
 const MOCK_MARKET_DATA = {
   '0x1': { '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': { price: 1 } },
-} as ReturnType<typeof selectTokenMarketData>;
+} as unknown as ReturnType<typeof selectTokenMarketData>;
 
 const MOCK_CURRENCY_RATES = {
   ETH: { conversionRate: 2500, usdConversionRate: 2500 },

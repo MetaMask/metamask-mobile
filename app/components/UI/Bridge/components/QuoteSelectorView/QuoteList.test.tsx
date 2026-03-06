@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { QuoteList } from './QuoteList';
 import { QuoteRowProps } from './QuoteRow';
-import { BigNumber } from 'ethers';
 
 jest.mock('./QuoteRow', () => ({
   QuoteRow: ({ provider, quoteRequestId }: QuoteRowProps) => {
@@ -29,10 +28,6 @@ describe('QuoteList', () => {
     formattedTotalCost: '$100.00',
     quoteRequestId: 'quote-123',
     onPress: mockOnPress,
-    latestSourceBalance: {
-      displayBalance: '1000',
-      atomicBalance: BigNumber.from('1000000000000000000'),
-    },
     ...overrides,
   });
 
@@ -107,10 +102,8 @@ describe('QuoteList', () => {
         provider: { name: 'Lifi' },
         quoteRequestId: 'quote-1',
         formattedTotalCost: '$200.50',
-        formattedNetworkFee: '$5.00',
         isLowestCost: true,
         selected: true,
-        isGasless: true,
       });
 
       const { getByText } = render(<QuoteList data={[quote]} />);
@@ -178,11 +171,8 @@ describe('QuoteList', () => {
       const quote = createMockQuote({
         provider: { name: 'Socket' },
         quoteRequestId: 'minimal-quote',
-        formattedNetworkFee: undefined,
         isLowestCost: undefined,
         selected: undefined,
-        isGasless: undefined,
-        quoteGasSponsored: undefined,
         loading: undefined,
       });
 
