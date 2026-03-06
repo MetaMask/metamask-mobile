@@ -29,7 +29,6 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
