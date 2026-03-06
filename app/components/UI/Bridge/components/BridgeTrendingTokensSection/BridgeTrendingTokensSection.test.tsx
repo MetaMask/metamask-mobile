@@ -4,6 +4,7 @@ import React from 'react';
 import BridgeTrendingTokensSection from './BridgeTrendingTokensSection';
 import { useTokenListFilters } from '../../../Trending/hooks/useTokenListFilters/useTokenListFilters';
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
+import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({})),
@@ -30,12 +31,12 @@ jest.mock('../../../Trending/utils/sortTrendingTokens', () => ({
 jest.mock(
   '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => {
-    const React = jest.requireActual('react');
+    const ReactLib = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({ token }: { token: { assetId: string } }) =>
-        React.createElement(View, { testID: `row-${token.assetId}` }),
+        ReactLib.createElement(View, { testID: `row-${token.assetId}` }),
     };
   },
 );
@@ -43,11 +44,11 @@ jest.mock(
 jest.mock(
   '../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
   () => {
-    const React = jest.requireActual('react');
+    const ReactLib = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: () => React.createElement(View, { testID: 'skeleton-row' }),
+      default: () => ReactLib.createElement(View, { testID: 'skeleton-row' }),
     };
   },
 );
@@ -118,7 +119,9 @@ describe('BridgeTrendingTokensSection', () => {
 
     const rows = getAllByTestId(/^row-/);
     expect(rows).toHaveLength(12);
-    expect(getByTestId('bridge-trending-show-more')).toBeTruthy();
+    expect(
+      getByTestId(BridgeTrendingTokensSectionTestIds.SHOW_MORE),
+    ).toBeTruthy();
   });
 
   it('appends one chunk when isNearBottom becomes true', () => {
@@ -143,7 +146,9 @@ describe('BridgeTrendingTokensSection', () => {
     rerender(<BridgeTrendingTokensSection />);
 
     expect(getAllByTestId(/^row-/)).toHaveLength(8);
-    expect(queryByTestId('bridge-trending-show-more')).toBeNull();
+    expect(
+      queryByTestId(BridgeTrendingTokensSectionTestIds.SHOW_MORE),
+    ).toBeNull();
   });
 
   it('does not append chunk while a bottom sheet is open', () => {
@@ -151,7 +156,9 @@ describe('BridgeTrendingTokensSection', () => {
       <BridgeTrendingTokensSection />,
     );
 
-    fireEvent.press(getByTestId('bridge-trending-price-filter'));
+    fireEvent.press(
+      getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
+    );
 
     rerender(<BridgeTrendingTokensSection isNearBottom />);
 

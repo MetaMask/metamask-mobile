@@ -10,10 +10,14 @@ import {
 } from '@metamask/keyring-api';
 import { KnownCaipNamespace } from '@metamask/utils';
 import type { RootState } from '../../reducers';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { createDeepEqualSelector } from '../util';
 import {
+  createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
+  selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
 import I18n from '../../../locales/i18n';
@@ -752,6 +756,269 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
     expect(stakingRewardsAsset).toBeUndefined();
     expect(inLockPeriodAsset).toBeUndefined();
 
+    expect(tronAssets).toHaveLength(1);
+  });
+});
+
+describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
+  it('returns selector that filters by custom enabled-networks selector', () => {
+    const onlyMainnetSelector = createDeepEqualSelector(
+      [selectEnabledNetworksByNamespace],
+      (enabledNetworksByNamespace) => {
+        const enabled = Object.values(enabledNetworksByNamespace).flatMap(
+          (network) =>
+            Object.entries(network)
+              .filter(([_, isEnabled]) => isEnabled)
+              .map(([networkId]) => networkId),
+        );
+        return enabled.filter((id) => id === '0x1');
+      },
+    );
+    const customSelectSorted =
+      createSelectSortedAssetsBySelectedAccountGroup(onlyMainnetSelector);
+    const state = mockState();
+    const result = customSelectSorted(state);
+
+    expect(result.every((item) => item.chainId === '0x1')).toBe(true);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          isStaked: true,
+        },
+        {
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          isStaked: false,
+        },
+        {
+          address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+          chainId: '0x1',
+          isStaked: false,
+        },
+        {
+          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]),
+    );
+  });
+
+  it('returns same shape as default selectSortedAssetsBySelectedAccountGroup when using selectEnabledNetworks', () => {
+    const state = mockState();
+    const defaultResult = selectSortedAssetsBySelectedAccountGroup(state);
+    const customResult =
+      createSelectSortedAssetsBySelectedAccountGroup()(state);
+    expect(customResult).toEqual(defaultResult);
+  });
+});
+
+describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
+  it('filters assets by explicit chain IDs (CAIP-2 and Hex)', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      state,
+      chainIds,
+    );
+
+    const chainIdsInResult = [...new Set(result.map((r) => r.chainId))];
+    expect(chainIdsInResult.sort()).toEqual(['0x1', '0xa']);
+    expect(
+      result.every((r) => r.chainId === '0x1' || r.chainId === '0xa'),
+    ).toBe(true);
+  });
+
+  it('returns only mainnet assets when chainIds is [eip155:1]', () => {
+    const state = mockState();
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      'eip155:1',
+    ]);
+
+    expect(result.every((item) => item.chainId === '0x1')).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('returns empty array when chainIds is empty', () => {
+    const state = mockState();
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      state,
+      [],
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('includes both 0x1 and eip155:1 in allowed set so EVM assets are included', () => {
+    const state = mockState();
+    const byCaip = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      'eip155:1',
+    ]);
+    const byHex = selectSortedAssetsBySelectedAccountGroupForChainIds(state, [
+      '0x1',
+    ]);
+    expect(byCaip).toEqual(byHex);
+  });
+
+  it('filters out Tron special assets when Tron is in chainIds (Energy, Bandwidth, staking)', () => {
+    const stateWithTronAssets = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          MultichainAssetsController: {
+            accountsAssets: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
+                'tron:728126428/slip44:energy',
+                'tron:728126428/slip44:bandwidth',
+                'tron:728126428/slip44:195-ready-for-withdrawal',
+                'tron:728126428/slip44:195-staking-rewards',
+                'tron:728126428/slip44:195-in-lock-period',
+                'tron:728126428/slip44:195',
+              ],
+            },
+            assetsMetadata: {
+              'tron:728126428/slip44:energy': {
+                name: 'Energy',
+                symbol: 'ENERGY',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'Energy', symbol: 'ENERGY', decimals: 0 }],
+              },
+              'tron:728126428/slip44:bandwidth': {
+                name: 'Bandwidth',
+                symbol: 'BANDWIDTH',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
+                ],
+              },
+              'tron:728126428/slip44:195-ready-for-withdrawal': {
+                name: 'Ready for Withdrawal',
+                symbol: 'TRX-READY-FOR-WITHDRAWAL',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Ready for Withdrawal',
+                    symbol: 'TRX-READY-FOR-WITHDRAWAL',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195-staking-rewards': {
+                name: 'Staking Rewards',
+                symbol: 'TRX-STAKING-REWARDS',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'Staking Rewards',
+                    symbol: 'TRX-STAKING-REWARDS',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195-in-lock-period': {
+                name: 'In Lock Period',
+                symbol: 'TRX-IN-LOCK-PERIOD',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [
+                  {
+                    name: 'In Lock Period',
+                    symbol: 'TRX-IN-LOCK-PERIOD',
+                    decimals: 6,
+                  },
+                ],
+              },
+              'tron:728126428/slip44:195': {
+                name: 'TRON',
+                symbol: 'TRX',
+                fungible: true as const,
+                iconUrl: 'test-url',
+                units: [{ name: 'TRON', symbol: 'TRX', decimals: 6 }],
+              },
+            },
+            allIgnoredAssets: {},
+          },
+          MultichainBalancesController: {
+            balances: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': {
+                  amount: '400',
+                  unit: 'ENERGY',
+                },
+                'tron:728126428/slip44:bandwidth': {
+                  amount: '604',
+                  unit: 'BANDWIDTH',
+                },
+                'tron:728126428/slip44:195-ready-for-withdrawal': {
+                  amount: '10',
+                  unit: 'TRX-READY-FOR-WITHDRAWAL',
+                },
+                'tron:728126428/slip44:195-staking-rewards': {
+                  amount: '5',
+                  unit: 'TRX-STAKING-REWARDS',
+                },
+                'tron:728126428/slip44:195-in-lock-period': {
+                  amount: '20',
+                  unit: 'TRX-IN-LOCK-PERIOD',
+                },
+                'tron:728126428/slip44:195': { amount: '1000', unit: 'TRX' },
+              },
+            },
+          },
+          MultichainAssetsRatesController: {
+            conversionRates: {
+              'tron:728126428/slip44:195': {
+                rate: '0.12',
+                currency: 'swift:0/iso4217:USD',
+              },
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      stateWithTronAssets,
+      ['tron:728126428', 'eip155:1'],
+    );
+
+    const tronAssets = result.filter(
+      (asset) =>
+        asset.chainId?.includes('tron') || asset.chainId === 'tron:728126428',
+    );
+
+    expect(
+      tronAssets.find((a) => a.address === 'tron:728126428/slip44:195'),
+    ).toBeDefined();
+    expect(
+      tronAssets.find((a) => a.address === 'tron:728126428/slip44:energy'),
+    ).toBeUndefined();
+    expect(
+      tronAssets.find((a) => a.address === 'tron:728126428/slip44:bandwidth'),
+    ).toBeUndefined();
+    expect(
+      tronAssets.find((a) => a.address?.includes('195-ready-for-withdrawal')),
+    ).toBeUndefined();
+    expect(
+      tronAssets.find((a) => a.address?.includes('staking-rewards')),
+    ).toBeUndefined();
+    expect(
+      tronAssets.find((a) => a.address?.includes('in-lock-period')),
+    ).toBeUndefined();
     expect(tronAssets).toHaveLength(1);
   });
 });
