@@ -106,7 +106,8 @@ const PredictionsSection = forwardRef<
     claimablePositions?.reduce((sum, p) => sum + (p.currentValue ?? 0), 0) ?? 0;
 
   // Determine if user has positions
-  const hasPositions = (positions && positions.length > 0) ?? false;
+  const positionCount = positions?.length ?? 0;
+  const hasPositions = positionCount > 0;
 
   // Use ref so refresh always reads the latest value without stale closures
   const hasPositionsRef = useRef(hasPositions);
@@ -124,7 +125,7 @@ const PredictionsSection = forwardRef<
   const isEmpty =
     !isLoading && !hasPositions && markets.length === 0 && !hasError;
 
-  const itemCount = hasPositions ? positions?.length : markets.length;
+  const itemCount = hasPositions ? positionCount : markets.length;
 
   // Determine whether the section will actually render visible content.
   // Pass null when the section returns null so the event fires immediately.
