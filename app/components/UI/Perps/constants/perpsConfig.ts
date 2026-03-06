@@ -17,6 +17,20 @@ export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
 
 /** Chain id used for the "Perps balance" payment option. */
 export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import {
+  HYPERLIQUID_MAINNET_CHAIN_ID,
+  HYPERLIQUID_TESTNET_CHAIN_ID,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
+
+export { HYPERLIQUID_MAINNET_CHAIN_ID, HYPERLIQUID_TESTNET_CHAIN_ID };
+
+/**
+ * Minimum perps balance (USD) threshold for default pay token logic.
+ * When available perps balance is above this, we do not preselect a pay token.
+ * When below, we may preselect the allowlist token with highest balance.
+ * Also used as the minimum token balance (USD) to consider for preselection.
+ */
+export const PERPS_MIN_BALANCE_THRESHOLD = 0.01;
 
 /**
  * Minimum number of aggregators (exchanges) a token must be listed on
@@ -257,3 +271,39 @@ export const PROVIDER_CONFIG = {
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: false,
 } as const;
+
+/** Network mode for perps (testnet vs mainnet). */
+export type PerpsNetwork = 'mainnet' | 'testnet';
+
+/**
+ * Chain IDs for each perps provider by network.
+ * Identifies the provider's native chain (where "Perps balance" lives) so callers
+ * can exclude it from pay-with-any-token allowlist or filter tokens.
+ * Add entries when integrating new providers (e.g. MYX).
+ */
+export const PERPS_PROVIDER_CHAIN_IDS: Record<
+  string,
+  Partial<Record<PerpsNetwork, string>>
+> = {
+  hyperliquid: {
+    mainnet: HYPERLIQUID_MAINNET_CHAIN_ID,
+    testnet: HYPERLIQUID_TESTNET_CHAIN_ID,
+  },
+  // myx: add mainnet/testnet chain IDs when MYX integration provides them
+};
+
+/**
+ * Returns the chain ID for the given perps provider and network.
+ * Used to exclude the provider's native chain from pay-with-any-token options.
+ *
+ * @param provider - Perps provider (e.g. 'hyperliquid'). Use concrete provider;
+ * for 'aggregated' mode callers should pass PROVIDER_CONFIG.DefaultProvider.
+ * @param network - 'mainnet' or 'testnet'
+ * @returns Chain ID hex string, or undefined if provider has no chain configured
+ */
+export function getPerpsProviderChainId(
+  provider: string,
+  network: PerpsNetwork,
+): string | undefined {
+  return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
+}
