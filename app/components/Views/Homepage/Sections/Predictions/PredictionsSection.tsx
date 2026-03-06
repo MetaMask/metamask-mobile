@@ -8,7 +8,7 @@ import { ScrollView, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
 import FadingScrollContainer from '../../components/FadingScrollContainer';
@@ -276,8 +276,7 @@ const PredictionsSection = forwardRef<
                   ))}
                   <ViewMoreCard
                     onPress={handleViewAllPredictions}
-                    twClassName="w-[180px] h-[180px]"
-                    textVariant={TextVariant.BodyLg}
+                    twClassName="w-[180px] flex-1"
                   />
                 </>
               )}

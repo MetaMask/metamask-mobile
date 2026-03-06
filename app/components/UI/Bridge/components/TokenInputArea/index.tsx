@@ -286,7 +286,7 @@ export const TokenInputArea = forwardRef<
                   isReadonly={tokenType === TokenInputAreaType.Destination}
                   showSoftInputOnFocus={false}
                   caretHidden={false}
-                  autoFocus
+                  autoFocus={false}
                   placeholder="0"
                   testID={`${testID}-input`}
                   onPressIn={() => {

@@ -110,7 +110,6 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers

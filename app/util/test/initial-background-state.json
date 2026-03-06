@@ -750,6 +750,7 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
