@@ -38,6 +38,12 @@ interface PerpsConnectionProviderProps {
   isFullScreen?: boolean;
   /** When true, silently renders children instead of showing the error view on connection failure. */
   suppressErrorView?: boolean;
+  /**
+   * When false, disables connect/disconnect lifecycle management in this provider.
+   * Use when the top-level PerpsAlwaysOnProvider already manages the connection.
+   * Defaults to true.
+   */
+  manageLifecycle?: boolean;
 }
 
 /**
@@ -54,6 +60,7 @@ export const PerpsConnectionProvider: React.FC<
   isVisible,
   isFullScreen = false,
   suppressErrorView = false,
+  manageLifecycle = true,
 }) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
@@ -212,9 +219,11 @@ export const PerpsConnectionProvider: React.FC<
     [],
   );
 
-  // Use the connection lifecycle hook to manage visibility and app state
+  // Use the connection lifecycle hook to manage visibility and app state.
+  // When manageLifecycle is false (always-on provider handles it), pass
+  // isVisible=false to suppress all connect/disconnect calls from this hook.
   usePerpsConnectionLifecycle({
-    isVisible,
+    isVisible: manageLifecycle ? isVisible : false,
     onConnect: async () => {
       try {
         await PerpsConnectionManager.connect();

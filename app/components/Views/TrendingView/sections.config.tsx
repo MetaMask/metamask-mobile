@@ -17,10 +17,7 @@ import type { PerpsNavigationParamList } from '../../UI/Perps/types/navigation';
 import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketData';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
-import {
-  PerpsConnectionProvider,
-  PerpsConnectionContext,
-} from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsConnectionContext } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { IconName as DSIconName } from '@metamask/design-system-react-native';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -236,9 +233,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     // Using trending skeleton cause PerpsMarketRowSkeleton has too much spacing
     Skeleton: TrendingTokensSkeleton,
     SectionWrapper: ({ children }) => (
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>{children}</PerpsStreamProvider>
-      </PerpsConnectionProvider>
+      <PerpsStreamProvider>{children}</PerpsStreamProvider>
     ),
     Section: SectionCard,
     useSectionData: (searchQuery) => {

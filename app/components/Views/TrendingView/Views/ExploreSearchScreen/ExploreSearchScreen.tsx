@@ -6,7 +6,6 @@ import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import ExploreSearchResults from '../../components/ExploreSearchResults/ExploreSearchResults';
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
-import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -33,11 +32,9 @@ const ExploreSearchScreen: React.FC = () => {
         />
       </Box>
 
-      <PerpsConnectionProvider suppressErrorView>
-        <PerpsStreamProvider>
-          <ExploreSearchResults searchQuery={searchQuery} />
-        </PerpsStreamProvider>
-      </PerpsConnectionProvider>
+      <PerpsStreamProvider>
+        <ExploreSearchResults searchQuery={searchQuery} />
+      </PerpsStreamProvider>
     </Box>
   );
 };
