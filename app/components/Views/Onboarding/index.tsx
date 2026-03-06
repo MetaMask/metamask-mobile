@@ -904,11 +904,11 @@ const Onboarding = () => {
     updateNavBar();
     operationTestSign({
       // baseUrl: 'http://localhost:3000',
-      baseUrl: 'https://mpc-service-non-enclave.dev-api.cx.metamask.io',
-      // baseUrl: 'https://mpc-service.dev-api.cx.metamask.io',
-      dkmProtocol: SupportedDKMProtocols.CL24_ED25519,
-      protocol: SupportedProtocols.FROST,
-      message: 'hello worlda',
+      baseUrl: 'https://mpc-service.dev-api.cx.metamask.io',
+      // baseUrl: 'https://mpc-service-non-enclave.dev-api.cx.metamask.io',
+      dkmProtocol: SupportedDKMProtocols.CL24_SECP256K1,
+      protocol: SupportedProtocols.DKLS,
+      message: 'hello world',
     }).catch((error) => {
       Logger.log(error as Error, 'error');
     });

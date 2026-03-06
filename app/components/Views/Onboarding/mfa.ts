@@ -2,11 +2,11 @@ import { getRandomBytes } from '../../../core/Encryptor/bytes';
 import { p256 } from '@noble/curves/p256';
 import { sha256 } from '@noble/hashes/sha256';
 import { Dkls19TssLib } from '@metamask/mfa-wallet-dkls19-lib';
-import { FrostTssLib } from '@metamask/mfa-wallet-frost-lib';
+// import { FrostTssLib } from '@metamask/mfa-wallet-frost-lib';
 
 import {
   dkls19Lib as dkls19LibReactNative,
-  frostLib as frostLibReactNative,
+  // frostLib as frostLibReactNative,
 } from '@metamask/mpc-libs-react-native/src/wrapper';
 
 import { TSSLibrary, ThresholdKey } from '@metamask/mfa-wallet-interface';
@@ -25,7 +25,11 @@ import {
 import { keccak_256 } from '@noble/hashes/sha3';
 import Logger from '../../../util/Logger';
 
-const CENTRIFUGE_URL = process.env.CENTRIFUGE_URL || '';
+// const CENTRIFUGE_URL = process.env.CENTRIFUGE_URL || '';
+// const CENTRIFUGE_JWT_SIGNING_KEY = process.env.CENTRIFUGE_JWT_SIGNING_KEY || '';
+
+const CENTRIFUGE_URL =
+  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
 const CENTRIFUGE_JWT_SIGNING_KEY = process.env.CENTRIFUGE_JWT_SIGNING_KEY || '';
 
 export enum SupportedProtocols {
@@ -59,9 +63,12 @@ const randomGenerator = {
   generateRandomBytes: getRandomBytes,
 };
 function createTssInstance(protocol: SupportedProtocols): TSSLibrary {
-  return protocol === SupportedProtocols.FROST
-    ? new FrostTssLib(frostLibReactNative, randomGenerator)
-    : new Dkls19TssLib(dkls19LibReactNative, randomGenerator);
+  Logger.log('dkls19LibReactNative', protocol);
+
+  return new Dkls19TssLib(dkls19LibReactNative, randomGenerator, true);
+  // return protocol === SupportedProtocols.FROST
+  //   ? new FrostTssLib(frostLibReactNative, randomGenerator)
+  //   : new Dkls19TssLib(dkls19LibReactNative, randomGenerator);
 }
 
 // single client instance sign
@@ -73,6 +80,7 @@ export const createSingleClientSignPromise = async (params: {
   sessionNonce: string;
   protocol: SupportedProtocols;
   networkManager: MfaNetworkManager;
+  setupData?: Uint8Array;
 }) => {
   const {
     key,
@@ -82,6 +90,7 @@ export const createSingleClientSignPromise = async (params: {
     sessionNonce,
     protocol,
     networkManager,
+    setupData,
   } = params;
 
   const sessionId = createScopedSessionId(custodians, sessionNonce);
@@ -96,6 +105,7 @@ export const createSingleClientSignPromise = async (params: {
     signers: [...custodians],
     message,
     networkSession,
+    setup: setupData,
   });
 
   return signature;
@@ -108,7 +118,8 @@ export const createSingleClientDKMCreatePromise = async (params: {
   threshold: number;
   dkmProtocol: SupportedDKMProtocols;
   sessionNonce: string;
-}) => {
+  withDKLS19Setup: boolean;
+}): Promise<{ clientKey: ThresholdKey; setupData?: Uint8Array }> => {
   const {
     clientSignerIdentity,
     custodians,
@@ -116,6 +127,7 @@ export const createSingleClientDKMCreatePromise = async (params: {
     dkmProtocol,
     networkManager,
     sessionNonce,
+    withDKLS19Setup,
   } = params;
 
   const sessionId = createScopedSessionId(custodians, sessionNonce);
@@ -125,12 +137,32 @@ export const createSingleClientDKMCreatePromise = async (params: {
   );
   const dkm = createDKMInstance(dkmProtocol);
 
-  const result = await dkm.createKey({
-    threshold,
-    custodians,
-    networkSession,
-  });
-  return result;
+  if (withDKLS19Setup) {
+    const subsessionCreate = networkSession.createSubsession('create-key');
+    const subsessionSetup = networkSession.createSubsession('dkls19-setup');
+
+    const result = await dkm.createKey({
+      threshold,
+      custodians,
+      networkSession: subsessionCreate,
+    });
+
+    const dkls19Tss = createTssInstance(SupportedProtocols.DKLS);
+    const setupData = await dkls19Tss.setup?.({
+      custodians,
+      shareIndexes: result.shareIndexes,
+      networkSession: subsessionSetup,
+    });
+
+    return { clientKey: result, setupData };
+  }
+    const result = await dkm.createKey({
+      threshold,
+      custodians,
+      networkSession,
+    });
+    return { clientKey: result };
+
 };
 
 // ============================================================================
@@ -319,7 +351,7 @@ export async function operationTestSign(params: {
         return array;
       },
     },
-    getToken: () => generateToken('test'),
+    // getToken: () => generateToken('test'),
   });
 
   // Step 1: Create client identity
@@ -327,13 +359,16 @@ export async function operationTestSign(params: {
 
   // Step 2: Key creation via API
   const nonce = crypto.randomUUID();
+  Logger.log('nonce', nonce);
 
+  const withDKLS19Setup = true;
   const createKeyResp = await fetch(`${baseUrl}${MPC_API_PREFIX}/create-key`, {
     method: 'POST',
     body: JSON.stringify({
       nonce,
       protocol: dkmProtocol.toString(),
       custodianId: clientSignerIdentity.partyId,
+      withDKLS19Setup,
     }),
     headers: { 'Content-Type': 'application/json' },
   });
@@ -358,13 +393,14 @@ export async function operationTestSign(params: {
   const createKeySessionId = createScopedSessionId(custodians, nonce);
 
   // Step 3: Run client-side DKM
-  const clientKey = await createSingleClientDKMCreatePromise({
+  const { clientKey, setupData } = await createSingleClientDKMCreatePromise({
     clientSignerIdentity,
     networkManager,
     custodians,
     threshold: DEFAULT_THRESHOLD,
     dkmProtocol,
     sessionNonce: nonce,
+    withDKLS19Setup,
   });
 
   Logger.log('clientKey complete', clientKey);
@@ -382,6 +418,11 @@ export async function operationTestSign(params: {
   }
 
   Logger.log('Key created successfully. Public key:', clientKey.publicKey);
+
+  Logger.log(
+    'Key created successfully. Public key length:',
+    clientKey.publicKey.length,
+  );
 
   // Step 5: Sign via API
   const signNonce = crypto.randomUUID();
@@ -427,6 +468,7 @@ export async function operationTestSign(params: {
     sessionNonce: signNonce,
     protocol,
     networkManager,
+    setupData,
   });
 
   // Step 7: Wait for server to complete signing

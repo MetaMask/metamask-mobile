@@ -152,6 +152,9 @@ import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
+import { AddMpcWalletPage } from '../../Views/Mpc/AddMpcWallet';
+import { JoinMpcWalletPage } from '../../Views/Mpc/JoinMpcWallet';
+import { MpcWalletManagementPage } from '../../Views/Mpc/MpcWalletManagement';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -941,6 +944,24 @@ const AppFlow = () => (
         options={{ animationEnabled: true }}
       />
     }
+
+    {/* MPC Wallet screens */}
+    <Stack.Screen
+      name={Routes.MPC_WALLET.ADD}
+      component={AddMpcWalletPage}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.MPC_WALLET.JOIN}
+      component={JoinMpcWalletPage}
+      options={{ animationEnabled: true }}
+    />
+    <Stack.Screen
+      name={Routes.MPC_WALLET.MANAGE}
+      component={MpcWalletManagementPage}
+      options={{ animationEnabled: true }}
+    />
+
     <Stack.Screen
       name="ConnectQRHardwareFlow"
       component={ConnectQRHardwareFlow}

@@ -7261,89 +7261,33 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/account-tree-controller@npm:3.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/snaps-sdk": "npm:^9.0.0"
-    "@metamask/snaps-utils": "npm:^11.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.8.1"
-    fast-deep-equal: "npm:^3.1.3"
-    lodash: "npm:^4.17.21"
-  peerDependencies:
-    "@metamask/account-api": ^0.12.0
-    "@metamask/accounts-controller": ^34.0.0
-    "@metamask/keyring-controller": ^24.0.0
-    "@metamask/multichain-account-service": ^3.0.0
-    "@metamask/profile-sync-controller": ^26.0.0
-    "@metamask/providers": ^22.0.0
-    "@metamask/snaps-controllers": ^14.0.0
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/dfa740197f7e30f9892d34cb98c80c7fc3cd9d3da392f3518aac66bbc1959bea426577ed1f1366760432211b8665b8a8b4f28961a70c2e5673f5b2ef5d96fc1f
-  languageName: node
-  linkType: hard
-
-"@metamask/account-tree-controller@npm:^4.0.0":
+"@metamask/account-tree-controller@file:./metamask-account-tree-controller-4.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 4.0.0
-  resolution: "@metamask/account-tree-controller@npm:4.0.0"
+  resolution: "@metamask/account-tree-controller@file:./metamask-account-tree-controller-4.0.0.tgz#./metamask-account-tree-controller-4.0.0.tgz::hash=4608d4&locator=metamask%40workspace%3A."
   dependencies:
+    "@metamask/accounts-controller": "npm:^35.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/keyring-controller": "npm:^25.0.0"
     "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/snaps-sdk": "npm:^9.0.0"
-    "@metamask/snaps-utils": "npm:^11.0.0"
+    "@metamask/multichain-account-service": "npm:^5.0.0"
+    "@metamask/profile-sync-controller": "npm:^27.0.0"
+    "@metamask/snaps-controllers": "npm:^17.2.0"
+    "@metamask/snaps-sdk": "npm:^10.3.0"
+    "@metamask/snaps-utils": "npm:^11.7.0"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/utils": "npm:^11.9.0"
     fast-deep-equal: "npm:^3.1.3"
     lodash: "npm:^4.17.21"
   peerDependencies:
-    "@metamask/account-api": ^0.12.0
-    "@metamask/accounts-controller": ^35.0.0
-    "@metamask/keyring-controller": ^25.0.0
-    "@metamask/multichain-account-service": ^4.0.0
-    "@metamask/profile-sync-controller": ^27.0.0
     "@metamask/providers": ^22.0.0
-    "@metamask/snaps-controllers": ^14.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/ec581b720ca3a8aefd1befd4994211e45443352938f0d02e7636b85374ff423b4bca453367cf8f60e586012fd7cdbb1a282b0e20bddae7307f5cd29caa5f6016
+  checksum: 10/b8255c679c54a0aed03d4dfefeab3c3dcf69a927338e1181cc9fc9b44f5a54c1d6bcaecc695710b29a39eb5bbc7c91a80fca85159dd2f99d20df3e0311e2575e
   languageName: node
   linkType: hard
 
-"@metamask/accounts-controller@npm:^34.0.0":
-  version: 34.0.0
-  resolution: "@metamask/accounts-controller@npm:34.0.0"
-  dependencies:
-    "@ethereumjs/util": "npm:^9.1.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/eth-snap-keyring": "npm:^18.0.0"
-    "@metamask/keyring-api": "npm:^21.0.0"
-    "@metamask/keyring-internal-api": "npm:^9.0.0"
-    "@metamask/keyring-utils": "npm:^3.1.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/snaps-sdk": "npm:^9.0.0"
-    "@metamask/snaps-utils": "npm:^11.0.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/utils": "npm:^11.8.1"
-    deepmerge: "npm:^4.2.2"
-    ethereum-cryptography: "npm:^2.1.2"
-    immer: "npm:^9.0.6"
-    lodash: "npm:^4.17.21"
-    uuid: "npm:^8.3.2"
-  peerDependencies:
-    "@metamask/keyring-controller": ^24.0.0
-    "@metamask/network-controller": ^25.0.0
-    "@metamask/providers": ^22.0.0
-    "@metamask/snaps-controllers": ^14.0.0
-    webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/3345443dcbe614545d1aabf897b4220d58a39040097a62c146ed3e062d8214389ffb5d89d16843214e3aa6049119b9caf88104cfa44ad638997553bd83aeaacf
-  languageName: node
-  linkType: hard
-
-"@metamask/accounts-controller@npm:^35.0.0, @metamask/accounts-controller@npm:^35.0.2":
-  version: 35.0.2
-  resolution: "@metamask/accounts-controller@npm:35.0.2"
+"@metamask/accounts-controller@npm:@metamask-previews/accounts-controller@35.0.0-preview-91e0d8c4":
+  version: 35.0.0-preview-91e0d8c4
+  resolution: "@metamask-previews/accounts-controller@npm:35.0.0-preview-91e0d8c4"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7353,7 +7297,7 @@ __metadata:
     "@metamask/keyring-internal-api": "npm:^9.0.0"
     "@metamask/keyring-utils": "npm:^3.1.0"
     "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/network-controller": "npm:^29.0.0"
+    "@metamask/network-controller": "npm:^27.2.0"
     "@metamask/snaps-controllers": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^10.3.0"
     "@metamask/snaps-utils": "npm:^11.7.0"
@@ -7367,7 +7311,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/f63101ea9804dde3a9d3810ecc3a1c7184aa1a9c479d05eeb6c1246e8103618aa435bbcaa414c573acbe01ecfe9684c891cdd572d7f196309af9fd0537d2496d
+  checksum: 10/738e3d432b7f756a4baf455c6953e01cb366ceaa2b5073e832a9df535e2c86d6657d243b8d055300bd64279fa8eaa608d15ffad6913e1885026bd576603f0e27
   languageName: node
   linkType: hard
 
@@ -8117,6 +8061,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/eth-mpc-keyring@file:./metamask-eth-mpc-keyring-0.0.0.tgz::locator=metamask%40workspace%3A.":
+  version: 0.0.0
+  resolution: "@metamask/eth-mpc-keyring@file:./metamask-eth-mpc-keyring-0.0.0.tgz#./metamask-eth-mpc-keyring-0.0.0.tgz::hash=6a286a&locator=metamask%40workspace%3A."
+  dependencies:
+    "@ethereumjs/util": "npm:^9.1.0"
+    "@metamask/eth-sig-util": "npm:^8.2.0"
+    "@metamask/mfa-wallet-cl24-lib": "npm:^0.0.0"
+    "@metamask/mfa-wallet-dkls19-lib": "npm:^0.0.0"
+    "@metamask/mfa-wallet-e2ee": "npm:^0.0.0"
+    "@metamask/mfa-wallet-network": "npm:^0.0.0"
+    "@metamask/mfa-wallet-util": "npm:^0.0.0"
+  checksum: 10/2f613e6b5d8ac3b902cc5563b0d33cdb2af1f930cfda33fcf15873580da991b40492f515470734d2cbeec2147fffc28d446567ce8dd4b825593524459cf79855
+  languageName: node
+  linkType: hard
+
 "@metamask/eth-qr-keyring@npm:^1.1.0":
   version: 1.1.0
   resolution: "@metamask/eth-qr-keyring@npm:1.1.0"
@@ -8429,9 +8388,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-controller@npm:^25.0.0, @metamask/keyring-controller@npm:^25.1.0":
-  version: 25.1.0
-  resolution: "@metamask/keyring-controller@npm:25.1.0"
+"@metamask/keyring-controller@npm:@metamask-previews/keyring-controller@25.0.0-preview-1137ade3":
+  version: 25.0.0-preview-1137ade3
+  resolution: "@metamask-previews/keyring-controller@npm:25.0.0-preview-1137ade3"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -8448,7 +8407,7 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
     ulid: "npm:^2.3.0"
-  checksum: 10/e81fccb901ea3627b97e725a789832eb1e1f2ae61bfc00eaee6ce5717d65a39c73d6c683c8643b87de1ce6d98db76fc3e60004acb0a4b5ea21f05a404204f708
+  checksum: 10/814f426afb7dcb5b5f8f37ec8cf246f14d8e95f2c18c3fb44b912428a0638870a12e628c1915e087be122ba0dc27f49fb217c90d46a8be06d251a20fd993b82b
   languageName: node
   linkType: hard
 
@@ -8571,22 +8530,22 @@ __metadata:
 
 "@metamask/mfa-wallet-cl24-lib@file:./metamask-mfa-wallet-cl24-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-cl24-lib@file:./metamask-mfa-wallet-cl24-lib-0.0.0.tgz#./metamask-mfa-wallet-cl24-lib-0.0.0.tgz::hash=6f19f0&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-wallet-cl24-lib@file:./metamask-mfa-wallet-cl24-lib-0.0.0.tgz#./metamask-mfa-wallet-cl24-lib-0.0.0.tgz::hash=c5dc05&locator=metamask%40workspace%3A."
   dependencies:
     "@msgpack/msgpack": "npm:^3.1.2"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
-  checksum: 10/3779f3d5d370082ea2dd27163670f6085f9863049a35f605019d4fc8883c7101f92726c37a5b12b2d6ab62e768b0f8cd297cd5076a9864a608c24c739cb132d1
+  checksum: 10/7b6e99196366ef2dabc3ce1db8ee91467bc2ba0b1eab5965a7044f9dafb687433d586bf4ecd84f287849183583f1999d848c52a95e972cfc17cf89a86f0c7c2e
   languageName: node
   linkType: hard
 
 "@metamask/mfa-wallet-dkls19-lib@file:./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-dkls19-lib@file:./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz#./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz::hash=4b0e4f&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-wallet-dkls19-lib@file:./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz#./metamask-mfa-wallet-dkls19-lib-0.0.0.tgz::hash=f33924&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mfa-wallet-util": "npm:^0.0.0"
     "@noble/curves": "npm:^1.9.2"
-  checksum: 10/c6171512e90737102f190c152ae636ad5fade75ea0225eb0d008e19dd108e5b0cc0b2348a7301df6b0ef0df7661f2664662a4b947d2f06d865bf6535d8a60619
+  checksum: 10/ec6c5ef34943e64e89570618d5a714f37e82e9be37d8c1fdaf5a901a46e40322338554437ffefa232972182c8c936c1163604aa49bc1f60a5b492be4efdd5547
   languageName: node
   linkType: hard
 
@@ -8604,29 +8563,29 @@ __metadata:
 
 "@metamask/mfa-wallet-frost-lib@file:./metamask-mfa-wallet-frost-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-frost-lib@file:./metamask-mfa-wallet-frost-lib-0.0.0.tgz#./metamask-mfa-wallet-frost-lib-0.0.0.tgz::hash=132d1e&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-wallet-frost-lib@file:./metamask-mfa-wallet-frost-lib-0.0.0.tgz#./metamask-mfa-wallet-frost-lib-0.0.0.tgz::hash=3b1ab1&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mfa-wallet-util": "npm:^0.0.0"
-  checksum: 10/2ca9b6e6d67a9619ab1064800b0798aaf20b4e46b03212a04a2258caf19c53c258859f75aba89b5dd861595f37102823492f098f5cf07d942b9ef47ee18e02d7
+  checksum: 10/96d9ab6a2172b046c91224f32f43185e882d4d9173340de5ac1e16864ce72e79b0f10a74a26393f46428360513895c6bd2ca58c5a7737b457698336d230b9204
   languageName: node
   linkType: hard
 
 "@metamask/mfa-wallet-interface@file:./metamask-mfa-wallet-interface-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-interface@file:./metamask-mfa-wallet-interface-0.0.0.tgz#./metamask-mfa-wallet-interface-0.0.0.tgz::hash=42e214&locator=metamask%40workspace%3A."
-  checksum: 10/f2396f9d3694c06c8e64f0f12e7c1eccf23cd90694d8214745e08d24c3b1540e4beb39d4b56577bf0ffa1ea55a76980bb7f9b275d2323712a6dc654617235ad4
+  resolution: "@metamask/mfa-wallet-interface@file:./metamask-mfa-wallet-interface-0.0.0.tgz#./metamask-mfa-wallet-interface-0.0.0.tgz::hash=b0172f&locator=metamask%40workspace%3A."
+  checksum: 10/c91acabafd1830b1e01ebb3f1e47fcc956233b105772c4891752efff5c19e5c4cbca3d50047aac6a3c71ce479339e733c8c0c8f542e48ba0ff9ea32f8b65e27d
   languageName: node
   linkType: hard
 
 "@metamask/mfa-wallet-network@file:./metamask-mfa-wallet-network-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-network@file:./metamask-mfa-wallet-network-0.0.0.tgz#./metamask-mfa-wallet-network-0.0.0.tgz::hash=f6cd5b&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mfa-wallet-network@file:./metamask-mfa-wallet-network-0.0.0.tgz#./metamask-mfa-wallet-network-0.0.0.tgz::hash=eec0a8&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mfa-wallet-e2ee": "npm:^0.0.0"
     "@msgpack/msgpack": "npm:^3.1.2"
     "@noble/hashes": "npm:^1.8.0"
     centrifuge: "npm:^5.5.2"
-  checksum: 10/2594c89bb7e161caabe19f9eacad08aa75259236cce7d9442d9c3ac880cc1be16b2182a27f881ade04cf77d26e60f1c44295a8be5951b56a15ce6c35a0cdd69c
+  checksum: 10/3c3c50bdbd7a531ab4c6ec1d11bb53fde4db69e07dcf9f626ca66b0068a2087fd1b3e2c4eab83f9006c9b449d3711218b5f7cce816d87703b8bbc34719652a6b
   languageName: node
   linkType: hard
 
@@ -8642,8 +8601,8 @@ __metadata:
 
 "@metamask/mfa-wallet-util@file:./metamask-mfa-wallet-util-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mfa-wallet-util@file:./metamask-mfa-wallet-util-0.0.0.tgz#./metamask-mfa-wallet-util-0.0.0.tgz::hash=9f8f8e&locator=metamask%40workspace%3A."
-  checksum: 10/3c81433065dbc1cf597ee71b0a447f7ec7b9c389b9b70070de6eee2871be863f6ae03220d5b1ea5f98740ec83781df527e0c5396a88267f1840feef27aca39e3
+  resolution: "@metamask/mfa-wallet-util@file:./metamask-mfa-wallet-util-0.0.0.tgz#./metamask-mfa-wallet-util-0.0.0.tgz::hash=24be98&locator=metamask%40workspace%3A."
+  checksum: 10/aef5061019305e5a112753396aad5d05390dc877eb22d8e74df58c5b6180564f49a85e5bac573c91397b54081e4c30cc8c6b6d593b6c2319f4473a19bd243bcd
   languageName: node
   linkType: hard
 
@@ -8689,21 +8648,21 @@ __metadata:
 
 "@metamask/mpc-libs-interface@file:./metamask-mpc-libs-interface-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/mpc-libs-interface@file:./metamask-mpc-libs-interface-0.0.0.tgz#./metamask-mpc-libs-interface-0.0.0.tgz::hash=c606bf&locator=metamask%40workspace%3A."
-  checksum: 10/737f6c569e66f21898262a2304bff7048b5a58ae93c4d42688081a8cf6c7d4fbaf669cc90b08fec09e75c959ce798ad5ba021e04e53f1567d6f05b2c101b4a9d
+  resolution: "@metamask/mpc-libs-interface@file:./metamask-mpc-libs-interface-0.0.0.tgz#./metamask-mpc-libs-interface-0.0.0.tgz::hash=95a8c1&locator=metamask%40workspace%3A."
+  checksum: 10/171a8bf0fc792376d7ab9422be94e43a11013f955cba1ed7c833b07b326d6accc947184fd929dfed7e2e3bdf7a0e34cac2bc6e693994c6491f40a1cf7ccc2668
   languageName: node
   linkType: hard
 
 "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.1.0
-  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=8222f3&locator=metamask%40workspace%3A."
+  resolution: "@metamask/mpc-libs-react-native@file:./metamask-mpc-libs-react-native-0.1.0.tgz#./metamask-mpc-libs-react-native-0.1.0.tgz::hash=828c81&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/mpc-libs-interface": "workspace:*"
     uniffi-bindgen-react-native: "npm:^0.29.3-1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/e437f6b7ed8dc6d4a9ed5143c9f692a3d3984d78abd9ab9b4e7ab430047922c4262b586f19a47f224d7cc63565467810105811c71fcdc9bbee78023f66a8b679
+  checksum: 10/e5348120cb0e131e3a5aebdbbe037756f1ad452a22411079da47b7395c77524a4ec1cf0845f48d59cdc3fa328998b69a8ca034396e90596083ea59026fbdc042
   languageName: node
   linkType: hard
 
@@ -8836,7 +8795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-controller@npm:^27.0.0":
+"@metamask/network-controller@npm:^27.0.0, @metamask/network-controller@npm:^27.2.0":
   version: 27.2.0
   resolution: "@metamask/network-controller@npm:27.2.0"
   dependencies:
@@ -9861,8 +9820,8 @@ __metadata:
 
 "@metamask/tss-dkls19-lib@file:./metamask-tss-dkls19-lib-0.0.0.tgz::locator=metamask%40workspace%3A.":
   version: 0.0.0
-  resolution: "@metamask/tss-dkls19-lib@file:./metamask-tss-dkls19-lib-0.0.0.tgz#./metamask-tss-dkls19-lib-0.0.0.tgz::hash=96ff64&locator=metamask%40workspace%3A."
-  checksum: 10/4af48363cc19ec6a8f1055a86b79d853ebdb7e57c71f5505562679ac6193c7bf7ae16c9de26d13adf2c87953db79d2d0c10664321046fbfb18a6cb5ad60e61c2
+  resolution: "@metamask/tss-dkls19-lib@file:./metamask-tss-dkls19-lib-0.0.0.tgz#./metamask-tss-dkls19-lib-0.0.0.tgz::hash=3646d8&locator=metamask%40workspace%3A."
+  checksum: 10/a3e248f41adf8b6d18683a94c43b869ad34470f9a97f4b63948e10357c16686fa334d9a80d8c8b8e58b01cd6d47c8339e9e6d5cd40a008f5e760f6610070747a
   languageName: node
   linkType: hard
 
@@ -34791,8 +34750,8 @@ __metadata:
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.34.1"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^0.12.0"
-    "@metamask/account-tree-controller": "npm:^3.0.0"
-    "@metamask/accounts-controller": "npm:^34.0.0"
+    "@metamask/account-tree-controller": ./metamask-account-tree-controller-4.0.0.tgz
+    "@metamask/accounts-controller": "npm:@metamask-previews/accounts-controller@35.0.0-preview-91e0d8c4"
     "@metamask/address-book-controller": "npm:^7.0.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
@@ -34825,6 +34784,7 @@ __metadata:
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
     "@metamask/eth-json-rpc-middleware": "npm:^22.0.0"
     "@metamask/eth-ledger-bridge-keyring": "npm:11.1.0"
+    "@metamask/eth-mpc-keyring": ./metamask-eth-mpc-keyring-0.0.0.tgz
     "@metamask/eth-qr-keyring": "npm:^1.1.0"
     "@metamask/eth-query": "npm:^4.0.0"
     "@metamask/eth-sig-util": "npm:^8.0.0"
@@ -34840,7 +34800,7 @@ __metadata:
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
     "@metamask/keyring-api": "npm:^21.3.0"
-    "@metamask/keyring-controller": "npm:^25.0.0"
+    "@metamask/keyring-controller": "npm:@metamask-previews/keyring-controller@25.0.0-preview-1137ade3"
     "@metamask/keyring-internal-api": "npm:^9.1.0"
     "@metamask/keyring-snap-client": "npm:^8.1.0"
     "@metamask/logging-controller": "npm:^7.0.0"

@@ -6625,6 +6625,37 @@
       "search_placeholder": "Search networks",
       "no_networks_found": "No networks found",
       "no_networks_available": "No networks available"
+    },
+    "mpc_wallet": {
+      "add_mpc_wallet": "Add an MPC wallet",
+      "add_mpc_wallet_description": "The MPC wallet will be setup between your device and the cloud. It is super secure because the private key does not exist in one place.",
+      "create_mpc_wallet": "Create MPC Wallet",
+      "join_mpc_wallet": "Join MPC Wallet",
+      "join_mpc_wallet_description": "Paste the join data provided by the wallet initiator to join an existing MPC wallet.",
+      "join_data_label": "Join Data",
+      "enter_join_data": "Paste join data from initiator",
+      "joining_mpc_wallet": "Joining...",
+      "your_custodian_id": "Your Custodian ID",
+      "manage_mpc_wallet": "Manage MPC wallet",
+      "custodians": "Custodians",
+      "no_custodians": "No custodians found",
+      "add_custodian": "Add custodian",
+      "generate_join_data": "Generate Join Data",
+      "generating_join_data": "Generating...",
+      "join_data_description": "Share this join data with the new custodian. They will use it to join the wallet.",
+      "waiting_for_custodian": "Waiting for custodian...","adding": "Adding...",
+      "cloud": "Cloud",
+      "user": "User",
+      "close": "Close",
+
+      "passkeys": "Passkeys",
+      "passkeys_enabled_description": "Signing operations require passkey verification.",
+      "passkeys_disabled_description": "Passkey verification is disabled. Signing will proceed without biometric authentication.",
+      "mpc_passkey_assertion_title": "Authorize MPC Wallet Operation",
+      "mpc_passkey_assertion_description": "Use your passkey to authorize this MPC wallet operation. Your browser will prompt you for biometric verification.",
+      "mpc_passkey_assertion_submit": "Authorize with Passkey",
+      "mpc_passkey_assertion_not_found": "No passkey found for this MPC wallet. You may need to re-create the wallet.",
+      "mpc_passkey_assertion_failed": "Passkey authentication failed. Please try again."
     }
   },
   "deep_link_modal": {

@@ -12,6 +12,7 @@ import {
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { hmacSha512 } from '@metamask/native-utils';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../../Encryptor';
+import { mpcKeyringInit } from './mpc-controller/keyring';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -70,6 +71,11 @@ export const keyringControllerInit: ControllerInitFunction<
   const snapKeyringBuilder = getController('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
+
+  if (process.env.MPC_ENABLED) {
+    const mpcKeyring = mpcKeyringInit();
+    additionalKeyrings.push(mpcKeyring);
+  }
 
   const preferencesController = getController('PreferencesController');
 

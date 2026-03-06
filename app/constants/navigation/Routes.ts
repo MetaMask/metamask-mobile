@@ -355,6 +355,11 @@ const Routes = {
   MULTI_SRP: {
     IMPORT: 'ImportSRPView',
   },
+  MPC_WALLET: {
+    ADD: 'AddMpcWallet',
+    JOIN: 'JoinMpcWallet',
+    MANAGE: 'MpcWalletManagement',
+  },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
