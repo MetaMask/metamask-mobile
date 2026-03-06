@@ -17,6 +17,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
+import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -52,6 +53,8 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   );
 
   const totalSectionsLoaded = enabledSections.length;
+
+  useHomeSessionSummary({ totalSectionsLoaded });
 
   const getSectionIndex = useCallback(
     (name: HomeSectionName) =>
