@@ -16,10 +16,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  usePredictMarketsForHomepage,
-  usePredictPositionsForHomepage,
-} from './hooks';
+import { usePredictMarketsForHomepage } from './hooks';
 import {
   PredictMarketCard,
   PredictMarketCardSkeleton,
@@ -35,6 +32,7 @@ import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { usePredictPositions } from '../../../../UI/Predict/hooks/usePredictPositions';
 
 const MAX_MARKETS_DISPLAYED = 5;
 
@@ -84,11 +82,11 @@ const PredictionsSection = forwardRef<
 
   // Fetch both positions and markets
   const {
-    positions,
+    data: positions,
     isLoading: isLoadingPositions,
     error: positionsError,
-    refresh: refreshPositions,
-  } = usePredictPositionsForHomepage();
+    refetch: refreshPositions,
+  } = usePredictPositions({ claimable: false });
 
   const {
     markets,
@@ -97,24 +95,18 @@ const PredictionsSection = forwardRef<
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const {
-    positions: claimablePositions,
-    isLoading: isLoadingClaimable,
-    refresh: refreshClaimable,
-  } = usePredictPositionsForHomepage(undefined, true);
+  const { data: claimablePositions, isLoading: isLoadingClaimable } =
+    usePredictPositions({ claimable: true });
 
   const handleClaim = useCallback(async () => {
     await claim();
-    await refreshClaimable();
-  }, [claim, refreshClaimable]);
+  }, [claim]);
 
-  const totalClaimable = claimablePositions.reduce(
-    (sum, p) => sum + (p.currentValue ?? 0),
-    0,
-  );
+  const totalClaimable =
+    claimablePositions?.reduce((sum, p) => sum + (p.currentValue ?? 0), 0) ?? 0;
 
   // Determine if user has positions
-  const hasPositions = positions.length > 0;
+  const hasPositions = positions?.length && positions.length > 0;
 
   // Use ref so refresh always reads the latest value without stale closures
   const hasPositionsRef = useRef(hasPositions);
@@ -132,7 +124,7 @@ const PredictionsSection = forwardRef<
   const isEmpty =
     !isLoading && !hasPositions && markets.length === 0 && !hasError;
 
-  const itemCount = hasPositions ? positions.length : markets.length;
+  const itemCount = hasPositions ? positions?.length : markets.length;
 
   // Determine whether the section will actually render visible content.
   // Pass null when the section returns null so the event fires immediately.
@@ -154,16 +146,8 @@ const PredictionsSection = forwardRef<
 
   // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
-    if (hasPositionsRef.current) {
-      await Promise.all([
-        refreshPositions(),
-        refreshMarkets(),
-        refreshClaimable(),
-      ]);
-    } else {
-      await Promise.all([refreshMarkets(), refreshClaimable()]);
-    }
-  }, [refreshPositions, refreshMarkets, refreshClaimable]);
+    await Promise.all([refreshMarkets(), refreshPositions()]);
+  }, [refreshMarkets, refreshPositions]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -221,7 +205,7 @@ const PredictionsSection = forwardRef<
                 <PredictPositionRowSkeleton />
               </>
             ) : (
-              positions.map((position) => (
+              positions?.map((position) => (
                 <PredictPositionRow
                   key={`${position.outcomeId}:${position.outcomeIndex}`}
                   position={position}
