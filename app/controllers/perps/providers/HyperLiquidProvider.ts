@@ -1964,12 +1964,13 @@ export class HyperLiquidProvider implements PerpsProvider {
       // If getValidatedDexs fails, fall back to main DEX only to keep the provider
       // functional. Without this, a transient perpDexs() failure would permanently
       // brick #ensureReady via the cached rejected promise.
+      // Do not set #cachedAllPerpDexs or #cachedValidatedDexs here — leave them null
+      // so #getValidatedDexs retries on the next call (same as #fetchValidatedDexsInternal).
       this.#deps.debugLogger.log(
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
         { error: String(dexError) },
       );
       this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
-      this.#cachedValidatedDexs = this.#cachedValidatedDexs ?? [null];
       dexsToMap = [null];
     }
 
