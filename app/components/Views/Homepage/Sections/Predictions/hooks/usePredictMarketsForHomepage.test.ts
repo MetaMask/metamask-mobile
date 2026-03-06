@@ -1,19 +1,6 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import {
-  usePredictMarketsForHomepage,
-  _clearMarketsCache,
-} from './usePredictMarketsForHomepage';
+import { renderHook } from '@testing-library/react-native';
+import { usePredictMarketsForHomepage } from './usePredictMarketsForHomepage';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
-
-const mockGetMarkets = jest.fn();
-
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      getMarkets: (...args: unknown[]) => mockGetMarkets(...args),
-    },
-  },
-}));
 
 let mockIsPredictEnabled = true;
 
@@ -34,6 +21,29 @@ jest.mock('../../../../../UI/Predict', () => ({
   selectPredictEnabledFlag: jest.fn(),
 }));
 
+const mockRefetch = jest.fn().mockResolvedValue(undefined);
+let mockUsePredictMarketDataReturn: {
+  marketData: PredictMarket[];
+  isFetching: boolean;
+  isFetchingMore: boolean;
+  error: string | null;
+  hasMore: boolean;
+  refetch: jest.Mock;
+  fetchMore: jest.Mock;
+} = {
+  marketData: [],
+  isFetching: false,
+  isFetchingMore: false,
+  error: null,
+  hasMore: false,
+  refetch: mockRefetch,
+  fetchMore: jest.fn(),
+};
+
+jest.mock('../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => mockUsePredictMarketDataReturn,
+}));
+
 const createMockMarket = (id: string): PredictMarket =>
   ({
     id,
@@ -51,30 +61,28 @@ const createMockMarket = (id: string): PredictMarket =>
 describe('usePredictMarketsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    _clearMarketsCache();
     mockIsPredictEnabled = true;
-
-    mockGetMarkets.mockResolvedValue([
-      createMockMarket('1'),
-      createMockMarket('2'),
-      createMockMarket('3'),
-    ]);
+    mockUsePredictMarketDataReturn = {
+      marketData: [
+        createMockMarket('1'),
+        createMockMarket('2'),
+        createMockMarket('3'),
+      ],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: mockRefetch,
+      fetchMore: jest.fn(),
+    };
   });
 
-  it('fetches markets on mount when predict is enabled', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    await waitForNextUpdate();
+  it('returns markets from usePredictMarketData', () => {
+    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
     expect(result.current.markets).toHaveLength(3);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(mockGetMarkets).toHaveBeenCalledWith({
-      category: 'trending',
-      limit: 5,
-    });
   });
 
   it('returns empty markets when predict is disabled', () => {
@@ -83,134 +91,67 @@ describe('usePredictMarketsForHomepage', () => {
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
     expect(result.current.markets).toHaveLength(0);
-    expect(result.current.isLoading).toBe(false);
-    expect(mockGetMarkets).not.toHaveBeenCalled();
   });
 
-  it('limits markets to the specified limit', async () => {
-    mockGetMarkets.mockResolvedValue([
+  it('slices markets to the specified limit', () => {
+    mockUsePredictMarketDataReturn.marketData = [
       createMockMarket('1'),
       createMockMarket('2'),
       createMockMarket('3'),
       createMockMarket('4'),
       createMockMarket('5'),
-    ]);
+    ];
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(3),
-    );
-
-    await waitForNextUpdate();
+    const { result } = renderHook(() => usePredictMarketsForHomepage(3));
 
     expect(result.current.markets).toHaveLength(3);
+    expect(result.current.markets[0].id).toBe('1');
+    expect(result.current.markets[2].id).toBe('3');
   });
 
-  it('sets error state when fetch fails', async () => {
-    mockGetMarkets.mockRejectedValue(new Error('Network error'));
+  it('forwards isFetching as isLoading', () => {
+    mockUsePredictMarketDataReturn.isFetching = true;
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
+    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    await waitForNextUpdate();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('forwards error from usePredictMarketData', () => {
+    mockUsePredictMarketDataReturn.error = 'Network error';
+
+    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
     expect(result.current.error).toBe('Network error');
-    expect(result.current.markets).toHaveLength(0);
-    expect(result.current.isLoading).toBe(false);
   });
 
-  it('sets fallback error for non-Error throws', async () => {
-    mockGetMarkets.mockRejectedValue('string error');
+  it('returns null error when no error', () => {
+    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    await waitForNextUpdate();
-
-    expect(result.current.error).toBe('Failed to fetch prediction markets');
-  });
-
-  it('handles null response from getMarkets', async () => {
-    mockGetMarkets.mockResolvedValue(null);
-
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    await waitForNextUpdate();
-
-    expect(result.current.markets).toHaveLength(0);
     expect(result.current.error).toBeNull();
   });
 
-  it('uses cached data on subsequent renders within TTL', async () => {
-    const { waitForNextUpdate, unmount } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-    unmount();
-
-    const { result: result2 } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    expect(result2.current.markets).toHaveLength(3);
-    expect(result2.current.isLoading).toBe(false);
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-  });
-
-  it('clears cache and refetches on refresh', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
-      usePredictMarketsForHomepage(5),
-    );
-
-    await waitForNextUpdate();
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
-  });
-
-  it('returns error when Engine context is null', async () => {
-    const engineMock = jest.requireMock('../../../../../../core/Engine');
-    const savedContext = engineMock.context;
-    engineMock.context = null;
-
+  it('calls refetch when refresh is invoked', async () => {
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    // Allow the async fetchMarkets to settle
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await result.current.refresh();
 
-    expect(result.current.error).toBe('Engine not initialized');
-    expect(result.current.isLoading).toBe(false);
-
-    engineMock.context = savedContext;
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('returns error when PredictController is null', async () => {
-    const engineMock = jest.requireMock('../../../../../../core/Engine');
-    const savedController = engineMock.context.PredictController;
-    engineMock.context.PredictController = null;
+  it('defaults limit to 5', () => {
+    mockUsePredictMarketDataReturn.marketData = [
+      createMockMarket('1'),
+      createMockMarket('2'),
+      createMockMarket('3'),
+      createMockMarket('4'),
+      createMockMarket('5'),
+      createMockMarket('6'),
+      createMockMarket('7'),
+    ];
 
-    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
+    const { result } = renderHook(() => usePredictMarketsForHomepage());
 
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    expect(result.current.error).toBe('Predict controller not available');
-    expect(result.current.isLoading).toBe(false);
-
-    engineMock.context.PredictController = savedController;
+    expect(result.current.markets).toHaveLength(5);
   });
 });

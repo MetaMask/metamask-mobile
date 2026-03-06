@@ -97,21 +97,12 @@ const PredictionsSection = forwardRef<
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const {
-    positions: claimablePositions,
-    isLoading: isLoadingClaimable,
-    refresh: refreshClaimable,
-  } = usePredictPositionsForHomepage(undefined, true);
+  const { totalClaimableValue, isLoading: isLoadingClaimable } =
+    usePredictPositionsForHomepage({ claimable: true });
 
   const handleClaim = useCallback(async () => {
     await claim();
-    await refreshClaimable();
-  }, [claim, refreshClaimable]);
-
-  const totalClaimable = claimablePositions.reduce(
-    (sum, p) => sum + (p.currentValue ?? 0),
-    0,
-  );
+  }, [claim]);
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
@@ -152,18 +143,13 @@ const PredictionsSection = forwardRef<
     itemCount,
   });
 
-  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
     if (hasPositionsRef.current) {
-      await Promise.all([
-        refreshPositions(),
-        refreshMarkets(),
-        refreshClaimable(),
-      ]);
+      await Promise.all([refreshPositions(), refreshMarkets()]);
     } else {
-      await Promise.all([refreshMarkets(), refreshClaimable()]);
+      await refreshMarkets();
     }
-  }, [refreshPositions, refreshMarkets, refreshClaimable]);
+  }, [refreshPositions, refreshMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -231,10 +217,10 @@ const PredictionsSection = forwardRef<
             )}
             {!isLoadingPositions &&
               !isLoadingClaimable &&
-              totalClaimable > 0 && (
+              totalClaimableValue > 0 && (
                 <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
                   <PredictClaimButton
-                    amount={totalClaimable}
+                    amount={totalClaimableValue}
                     onPress={handleClaim}
                   />
                 </Box>
