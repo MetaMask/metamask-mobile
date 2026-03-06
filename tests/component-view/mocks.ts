@@ -89,6 +89,24 @@ jest.mock('../../app/core/Engine', () => {
         enableNetworkInNamespace() {
           return undefined;
         },
+        enableNetwork() {
+          return undefined;
+        },
+        disableNetwork() {
+          return undefined;
+        },
+        enableAllPopularNetworks() {
+          return undefined;
+        },
+        listPopularEvmNetworks() {
+          return [];
+        },
+        listPopularMultichainNetworks() {
+          return [];
+        },
+        listPopularNetworks() {
+          return [];
+        },
       },
       MultichainAssetsRatesController: {
         startPolling() {

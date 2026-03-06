@@ -1,10 +1,10 @@
-import { ControllerInitFunction } from '../types';
-import { SnapKeyringBuilderInitMessenger } from '../messengers/snap-keyring-builder-messenger';
+import { ControllerInitFunction } from '../../types';
+import { SnapKeyringBuilderInitMessenger } from '../../messengers/snap-keyring-builder-messenger';
 import {
   snapKeyringBuilder,
   SnapKeyringBuilder,
-} from '../../SnapKeyring/SnapKeyring';
-import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
+} from '../../../SnapKeyring/SnapKeyring';
+import { SnapKeyringBuilderMessenger } from '../../../SnapKeyring/types';
 
 /**
  * Initialize the Snap keyring builder.
