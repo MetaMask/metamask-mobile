@@ -14,6 +14,7 @@ import { Alert } from '../../../types/alerts';
 import { GasFeeToken } from '@metamask/transaction-controller';
 import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert');
 jest.mock('../../../hooks/gas/useEstimationFailed');
@@ -47,6 +48,8 @@ describe('SelectedGasFeeToken', () => {
     gasFeeTokens = [],
     transactionMetadata,
     estimationFailed = false,
+    excludeNativeTokenForFee,
+    chainId = '0x1',
   }: {
     insufficientBalance?: Alert[];
     selectedGasFeeToken?: ReturnType<typeof useSelectedGasFeeToken>;
@@ -58,6 +61,8 @@ describe('SelectedGasFeeToken', () => {
     > | null;
     expectModal?: boolean;
     estimationFailed?: boolean;
+    excludeNativeTokenForFee?: boolean;
+    chainId?: Hex;
   } = {}) => {
     mockUseInsufficientBalanceAlert.mockReturnValue(insufficientBalance);
     mockUseEstimationFailed.mockReturnValue(estimationFailed);
@@ -81,14 +86,16 @@ describe('SelectedGasFeeToken', () => {
       mockUseTransactionMetadataRequest.mockReturnValue(transactionMetadata);
     } else if (gasFeeTokens.length > 0) {
       mockUseTransactionMetadataRequest.mockReturnValue({
-        chainId: '0x1',
+        chainId,
         gasFeeTokens,
+        excludeNativeTokenForFee,
       } as Partial<
         ReturnType<typeof useTransactionMetadataRequest>
       > as ReturnType<typeof useTransactionMetadataRequest>);
     } else {
       mockUseTransactionMetadataRequest.mockReturnValue({
-        chainId: '0x1',
+        chainId,
+        excludeNativeTokenForFee,
       } as Partial<
         ReturnType<typeof useTransactionMetadataRequest>
       > as ReturnType<typeof useTransactionMetadataRequest>);
@@ -145,6 +152,18 @@ describe('SelectedGasFeeToken', () => {
     expect(getByText('ETH')).toBeOnTheScreen();
   });
 
+  it('renders local native symbol if `gasFeeTokens` is empty and `excludeNativeTokenForFee` is set (Tempo)', () => {
+    const { getByTestId, getByText } = setupTest({
+      chainId: '0x1079',
+      selectedGasFeeToken: undefined,
+      gaslessSupported: true,
+      gasFeeTokens: [] as unknown as GasFeeToken[],
+      excludeNativeTokenForFee: true,
+    });
+    expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
+    expect(getByText('pathUSD')).toBeOnTheScreen();
+  });
+
   it('renders the arrow icon when gas fee tokens are available', () => {
     const { getByTestId, getByText } = setupTest({
       selectedGasFeeToken: {
@@ -166,6 +185,39 @@ describe('SelectedGasFeeToken', () => {
   it('does not render the arrow icon when no gas fee tokens are available', () => {
     const { queryByTestId } = setupTest();
     expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
+  });
+
+  it('does not render arrow icon if only one gas fee token and `excludeNativeTokenForFee` is set', () => {
+    const { queryByTestId } = setupTest({
+      selectedGasFeeToken: {
+        tokenAddress: '0xTokenAddress',
+        symbol: 'DAI',
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      gaslessSupported: true,
+      gasFeeTokens: [
+        { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+      ] as unknown as GasFeeToken[],
+      excludeNativeTokenForFee: true,
+    });
+    expect(queryByTestId('selected-gas-fee-token-arrow')).toBeNull();
+  });
+
+  it('still renders the arrow icon if two non-native gas fee tokens and `excludeNativeTokenForFee` is set', () => {
+    const { getByTestId, getByText } = setupTest({
+      selectedGasFeeToken: {
+        tokenAddress: '0xTokenAddress',
+        symbol: 'DAI',
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      gaslessSupported: true,
+      gasFeeTokens: [
+        { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+        { tokenAddress: '0xOtherTokenAddress', symbol: 'USDS' },
+      ] as unknown as GasFeeToken[],
+      excludeNativeTokenForFee: true,
+    });
+    expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
+    expect(getByText('DAI')).toBeOnTheScreen();
+    expect(getByTestId('selected-gas-fee-token-arrow')).toBeOnTheScreen();
   });
 
   describe('Modal', () => {

@@ -102,6 +102,12 @@ import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddlewa
 import createDupeReqFilterStream from './createDupeReqFilterStream';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { createWalletSnapPermissionMiddleware } from '@metamask/snaps-rpc-methods';
+import { getChainIdFromNetworkClientId } from '../../util/transaction-controller';
+import {
+  getTempoExtraOptionsForChain,
+  isTempoChain,
+} from '../../util/tempo/tempo-tx-utils';
+import { accountSupports7702 } from '../../util/transactions/account-supports-7702';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -113,6 +119,27 @@ const legacyNetworkId = () => {
     NetworkStatus.Available
     ? NETWORK_ID_LOADING
     : networkId;
+};
+
+const getChainExtraParamsForWalletSendCalls = async ({
+  networkClientId,
+  from,
+}) => {
+  const chainId = getChainIdFromNetworkClientId(networkClientId);
+  if (!isTempoChain(chainId)) {
+    return {};
+  }
+  const isEip7702SupportedByAccount = await accountSupports7702(
+    from,
+    Engine.context.KeyringController,
+  );
+  if (!isEip7702SupportedByAccount) {
+    console.warn(
+      'wallet_sendCalls: Tempo chain but wallet does not support 7702. Falling back to legacy transactions',
+    );
+    return {};
+  }
+  return getTempoExtraOptionsForChain(chainId);
 };
 
 export class BackgroundBridge extends EventEmitter {
@@ -875,14 +902,22 @@ export class BackgroundBridge extends EventEmitter {
       processSendCalls: processSendCalls.bind(
         null,
         {
-          addTransaction:
-            Engine.context.TransactionController.addTransaction.bind(
-              Engine.context.TransactionController,
-            ),
-          addTransactionBatch:
-            Engine.context.TransactionController.addTransactionBatch.bind(
-              Engine.context.TransactionController,
-            ),
+          addTransaction: async (txParams, options) =>
+            Engine.context.TransactionController.addTransaction(txParams, {
+              ...options,
+              ...(await getChainExtraParamsForWalletSendCalls({
+                networkClientId: options.networkClientId,
+                from: txParams.from,
+              })),
+            }),
+          addTransactionBatch: async (request) =>
+            Engine.context.TransactionController.addTransactionBatch({
+              ...request,
+              ...(await getChainExtraParamsForWalletSendCalls({
+                networkClientId: request.networkClientId,
+                from: request.from,
+              })),
+            }),
           getDismissSmartAccountSuggestionEnabled: () =>
             Engine.context.PreferencesController.state
               .dismissSmartAccountSuggestionEnabled,

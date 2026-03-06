@@ -1,0 +1,102 @@
+import { TransactionParams } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
+
+// Seem to be set by dApps only for batch calls.
+// For single-txs, this type doesn't appear.
+const TEMPO_TRANSACTION_TYPE: Hex = '0x76';
+
+interface TempoConfig {
+  perChainConfig: {
+    [key: Hex]: {
+      defaultFeeToken: Hex;
+    };
+  };
+}
+
+const TEMPO_CONFIG: TempoConfig = {
+  perChainConfig: {
+    '0x1079': {
+      defaultFeeToken: '0x20c0000000000000000000000000000000000000',
+    },
+    '0xa5bf': {
+      defaultFeeToken: '0x20c0000000000000000000000000000000000000',
+    },
+  },
+} as const;
+
+interface TempoCall {
+  to: Hex;
+  // In our tests we see '0x' (probably to signal no native token),
+  // However '0x' is invalid as a value and we use '0x0' when transforming.
+  value: Hex | '0x';
+  data: Hex;
+}
+
+interface TempoTransactionParams {
+  from: Hex;
+  type: '0x76';
+  calls: TempoCall[];
+  feeToken?: Hex;
+}
+
+export function getTempoConfig() {
+  return TEMPO_CONFIG;
+}
+
+export function buildBatchTransactionsFromTempoTransactionCalls(
+  params: TempoTransactionParams,
+) {
+  return params.calls.map(({ data, to }) => ({
+    params: {
+      data,
+      to,
+      // Tempo Transactions 'calls' parameters differ in a least having '0x'
+      // (probably to signal absence of native token) instead of '0x0'.
+      value: '0x0' as Hex,
+    },
+  }));
+}
+
+const TEMPO_CHAINS = Object.keys(TEMPO_CONFIG.perChainConfig);
+
+export function isTempoChain(chainId: Hex) {
+  return TEMPO_CHAINS.includes(chainId);
+}
+
+export function getTempoExtraOptionsForChain(
+  chainId: Hex,
+): { gasFeeToken: Hex; excludeNativeTokenForFee: true } | {} {
+  const tempoConfigForChain =
+    isTempoChain(chainId) && getTempoConfig().perChainConfig[chainId];
+  if (!tempoConfigForChain) {
+    return {};
+  }
+  return {
+    excludeNativeTokenForFee: true,
+    gasFeeToken: tempoConfigForChain.defaultFeeToken,
+  };
+}
+
+export function isTempoTransactionType(params: TransactionParams) {
+  return params.type === TEMPO_TRANSACTION_TYPE;
+}
+
+export function checkIsValidTempoTransaction(
+  params: TransactionParams,
+): asserts params is TempoTransactionParams {
+  if (!isTempoTransactionType(params)) {
+    throw new Error(
+      `Tempo Transaction: Transaction doesn't have Tempo transaction type (0x76)`,
+    );
+  }
+  if (typeof params.from !== 'string' || !params.from.startsWith('0x')) {
+    throw new Error(`Tempo Transaction: Missing or invalid field 'from'`);
+  }
+  if (
+    !('calls' in params) ||
+    !Array.isArray(params.calls) ||
+    params.calls.length === 0
+  ) {
+    throw new Error(`Tempo Transaction: Missing or invalid field 'calls'`);
+  }
+}

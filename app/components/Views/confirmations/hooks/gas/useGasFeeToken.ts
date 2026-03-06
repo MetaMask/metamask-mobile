@@ -26,14 +26,20 @@ export function useGasFeeToken({ tokenAddress }: { tokenAddress?: Hex }) {
 
   const locale = I18n.locale;
   const nativeFeeToken = useNativeGasFeeToken();
-  const { gasFeeTokens, chainId } = transactionMeta || {};
+  const { gasFeeTokens, chainId, excludeNativeTokenForFee } =
+    transactionMeta || {};
 
   let gasFeeToken = gasFeeTokens?.find(
     (token) => token.tokenAddress.toLowerCase() === tokenAddress?.toLowerCase(),
   );
 
   if (!gasFeeToken) {
-    gasFeeToken = nativeFeeToken;
+    // If `excludeNativeTokenForFee` is set to true, we select any available fee token
+    // if available instead of the native token.
+    gasFeeToken =
+      excludeNativeTokenForFee && gasFeeTokens && gasFeeTokens.length > 0
+        ? gasFeeTokens[0]
+        : nativeFeeToken;
   }
 
   const {

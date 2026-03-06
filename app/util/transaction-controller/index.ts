@@ -6,17 +6,137 @@ import {
   TransactionController as BaseTransactionController,
   IsAtomicBatchSupportedRequest,
   IsAtomicBatchSupportedResult,
+  Result,
 } from '@metamask/transaction-controller';
 import { NetworkClientId } from '@metamask/network-controller';
+import { KeyringController } from '@metamask/keyring-controller';
 
 import Engine from '../../core/Engine';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
+import {
+  buildBatchTransactionsFromTempoTransactionCalls,
+  checkIsValidTempoTransaction,
+  getTempoConfig,
+  isTempoChain,
+  isTempoTransactionType,
+} from '../tempo/tempo-tx-utils';
+import { accountSupports7702 } from '../transactions/account-supports-7702';
+
+// Making the function graceful to avoid regression risks.
+export function getChainIdFromNetworkClientId(
+  networkClientId: string,
+): Hex | undefined {
+  try {
+    const { NetworkController } = Engine.context;
+    const networkConfig =
+      NetworkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId,
+      );
+    if (!networkConfig) {
+      return undefined;
+    }
+    const { chainId } = networkConfig;
+    return chainId;
+  } catch (err) {
+    console.warn('Unable to get chain id from neworkClientId', networkClientId);
+    return undefined;
+  }
+}
+
+async function addTempoTransaction(
+  transaction: TransactionParams,
+  opts: Parameters<BaseTransactionController['addTransaction']>[1],
+): Promise<Result> {
+  const chainId = getChainIdFromNetworkClientId(opts.networkClientId);
+  if (!chainId) {
+    throw new Error(
+      `No network config found for networkClientId: ${opts.networkClientId}`,
+    );
+  }
+  const tempoConfig = getTempoConfig();
+  // There doesn't seem to be any alternative to chainId here.
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const tempoConfigForChain = tempoConfig.perChainConfig[chainId];
+
+  if (!tempoConfigForChain) {
+    throw new Error(
+      `Tempo transactions are not supported for chain: ${chainId}`,
+    );
+  }
+  const { TransactionController } = Engine.context;
+
+  // Classic transaction, we simply set pathUSD as default
+  // and add excludeNativeTokenForFee to signal to ignore native.
+  // We enter this flow is dApp non-0x76 txs as well as send flow.
+  if (!isTempoTransactionType(transaction)) {
+    return TransactionController.addTransaction(transaction, {
+      ...opts,
+      gasFeeToken: tempoConfigForChain.defaultFeeToken,
+      excludeNativeTokenForFee: true,
+    });
+  }
+
+  checkIsValidTempoTransaction(transaction);
+
+  const tempoBatchRequestParams = {
+    from: transaction.from as Hex,
+    transactions: buildBatchTransactionsFromTempoTransactionCalls(transaction),
+    // If no token is provided, we force a default one so we don't fall in
+    // fee preference algo: https://docs.tempo.xyz/protocol/fees/spec-fee#fee-token-preferences
+    gasFeeToken: transaction.feeToken || tempoConfigForChain.defaultFeeToken,
+    excludeNativeTokenForFee: true,
+  };
+
+  const result = await TransactionController.addTransactionBatch({
+    ...tempoBatchRequestParams,
+    ...opts,
+  });
+
+  const { batchId } = result;
+  const transactionMeta = TransactionController?.getTransactions({
+    searchCriteria: { batchId },
+  })?.[0];
+
+  if (!transactionMeta) {
+    throw new Error(
+      `Batch submitted with id ${batchId} but no matching transaction found in transactionController.`,
+    );
+  }
+
+  if (!transactionMeta.hash) {
+    throw new Error(
+      `Batch submitted with id ${batchId} but transaction found in transactionController does not have a hash.`,
+    );
+  }
+
+  return {
+    transactionMeta,
+    result: Promise.resolve(transactionMeta.hash),
+  };
+}
 
 export async function addTransaction(
   transaction: TransactionParams,
   opts: Parameters<BaseTransactionController['addTransaction']>[1],
 ) {
+  const chainId = getChainIdFromNetworkClientId(opts.networkClientId);
+  if (chainId && isTempoChain(chainId)) {
+    const { KeyringController: keyringController } = Engine.context as {
+      KeyringController: KeyringController;
+    };
+    const isEip7702SupportedByAccount = await accountSupports7702(
+      transaction.from,
+      keyringController as Parameters<typeof accountSupports7702>[1],
+    );
+    if (isEip7702SupportedByAccount) {
+      return await addTempoTransaction(transaction, opts);
+    }
+    console.warn(
+      'addTransactionOrUserOperation: Tempo chain but wallet does not support 7702. Falling back to legacy transactions',
+    );
+  }
+
   const { TransactionController } = Engine.context;
 
   return await TransactionController.addTransaction(transaction, opts);

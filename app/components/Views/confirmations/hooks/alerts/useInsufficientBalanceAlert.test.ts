@@ -424,6 +424,43 @@ describe('useInsufficientBalanceAlert', () => {
       ]);
     });
 
+    it('returns alert when `excludeNativeTokenForFee` is set and `selectedGasFeeToken` exists but `gasFeeTokens` is empty (Tempo)', () => {
+      useIsGaslessSupportedMock.mockReturnValueOnce({
+        isSmartTransaction: false,
+        isSupported: true,
+        pending: false,
+      });
+      mockSelectUseTransactionSimulations.mockReturnValueOnce(true);
+      useIsTransactionPayLoadingMock.mockReturnValue(false);
+
+      const txOnTempo = {
+        ...mockTransaction,
+        chainId: '0x1079',
+        excludeNativeTokenForFee: true,
+        gasFeeTokens: [],
+        selectedGasFeeToken: '0x20c0000000000000000000000000000000000000',
+      } as unknown as TransactionMeta;
+      mockUseTransactionMetadataRequest.mockReturnValue(txOnTempo);
+
+      const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+      expect(result.current).toEqual([
+        {
+          action: {
+            label: 'Buy pathUSD',
+            callback: expect.any(Function),
+          },
+          isBlocking: true,
+          field: RowAlertKey.EstimatedFee,
+          key: AlertKeys.InsufficientBalance,
+          message: 'Insufficient pathUSD balance',
+          title: 'Insufficient Balance',
+          severity: Severity.Danger,
+          skipConfirmation: true,
+        },
+      ]);
+    });
+
     it('returns alert when quotes loading is undefined (default case)', () => {
       useIsGaslessSupportedMock.mockReturnValueOnce({
         isSmartTransaction: true,

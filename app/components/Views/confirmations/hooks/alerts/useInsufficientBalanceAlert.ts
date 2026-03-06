@@ -15,6 +15,7 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import { CURRENCY_SYMBOL_BY_CHAIN_ID } from '../../../../../constants/network';
 
 const IGNORE_TYPES = [
   TransactionType.perpsWithdraw,
@@ -43,8 +44,13 @@ export const useInsufficientBalanceAlert = ({
       return [];
     }
 
-    const { selectedGasFeeToken, isGasFeeSponsored, gasFeeTokens } =
-      transactionMetadata;
+    const {
+      selectedGasFeeToken,
+      isGasFeeSponsored,
+      gasFeeTokens,
+      excludeNativeTokenForFee,
+      chainId,
+    } = transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
 
@@ -58,7 +64,14 @@ export const useInsufficientBalanceAlert = ({
     const isSimulationComplete = !isSimulationEnabled || Boolean(gasFeeTokens);
 
     // Check if user has selected a gas fee token (or we're ignoring that check)
-    const hasNoGasFeeTokenSelected = ignoreGasFeeToken || !selectedGasFeeToken;
+    // Note: In the case of chains with no native token (ex: Tempo), `selectedGasFeeToken`
+    // may be populated despite no gas token being available.
+    // For those chains, `excludeNativeTokenForFee` will always be `true`, hence we can
+    // rely on the combination of `excludeNativeTokenForFee` and `isGasFeeTokensEmpty`.
+    const hasNoGasFeeTokenSelected =
+      ignoreGasFeeToken ||
+      !selectedGasFeeToken ||
+      (excludeNativeTokenForFee && isGasFeeTokensEmpty);
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
@@ -78,6 +91,12 @@ export const useInsufficientBalanceAlert = ({
       !hasTransactionType(transactionMetadata, IGNORE_TYPES) &&
       !isSponsoredTransaction;
 
+    const nativeSymbolToDisplay = excludeNativeTokenForFee
+      ? (CURRENCY_SYMBOL_BY_CHAIN_ID[
+          chainId as keyof typeof CURRENCY_SYMBOL_BY_CHAIN_ID
+        ] ?? nativeCurrency)
+      : nativeCurrency;
+
     if (!showAlert) {
       return [];
     }
@@ -86,7 +105,7 @@ export const useInsufficientBalanceAlert = ({
       {
         action: {
           label: strings('alert_system.insufficient_balance.buy_action', {
-            nativeCurrency,
+            nativeCurrency: nativeSymbolToDisplay,
           }),
           callback: () => {
             goToBuy();
@@ -97,7 +116,7 @@ export const useInsufficientBalanceAlert = ({
         field: RowAlertKey.EstimatedFee,
         key: AlertKeys.InsufficientBalance,
         message: strings('alert_system.insufficient_balance.message', {
-          nativeCurrency,
+          nativeCurrency: nativeSymbolToDisplay,
         }),
         title: strings('alert_system.insufficient_balance.title'),
         severity: Severity.Danger,
