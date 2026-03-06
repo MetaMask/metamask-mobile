@@ -553,9 +553,23 @@ function BuildQuote() {
             buyURL: buyUrl.toString(),
           },
         };
+        // TODO: remove debug logging after PayPal redirect is verified
+        Logger.log(
+          '[Ramp][PayPal] buyURL with redirectUrl override:',
+          buyUrl.toString(),
+        );
+      } else {
+        Logger.log(
+          '[Ramp][PayPal] no buyURL on quote, skipping redirectUrl override',
+        );
       }
 
       const buyWidget = await getBuyWidgetData(quoteForWidget);
+      // TODO: remove debug logging after PayPal redirect is verified
+      Logger.log(
+        '[Ramp][PayPal] buyWidget response:',
+        JSON.stringify(buyWidget),
+      );
 
       if (buyWidget?.url) {
         const chainId = selectedToken?.chainId as CaipChainId | undefined;
@@ -585,7 +599,15 @@ function BuildQuote() {
                 buyWidget.url,
                 deeplinkRedirectUrl,
               );
+              // TODO: remove debug logging after PayPal redirect is verified
+              Logger.log(
+                '[Ramp][PayPal] InAppBrowser result:',
+                JSON.stringify(result),
+              );
               if (result.type !== 'success' || !result.url) {
+                Logger.log(
+                  '[Ramp][PayPal] browser cancelled or no URL, returning early',
+                );
                 return;
               }
             } finally {
