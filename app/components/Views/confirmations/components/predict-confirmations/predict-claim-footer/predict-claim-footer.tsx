@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import Avatar, {
@@ -41,8 +41,15 @@ export function PredictClaimFooter({
     }),
   );
 
-  if (!wonPositions?.length) {
-    onError(new Error('Tried to claim but no positions were won'));
+  const hasNoPositions = !wonPositions?.length;
+
+  useEffect(() => {
+    if (hasNoPositions) {
+      onError(new Error('Tried to claim but no positions were won'));
+    }
+  }, [hasNoPositions, onError]);
+
+  if (hasNoPositions) {
     return null;
   }
 

@@ -9,7 +9,7 @@ import {
   otherControllersMock,
 } from '../../../__mocks__/controllers/other-controllers-mock';
 import { strings } from '../../../../../../../locales/i18n';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 function render({
   address,
@@ -81,7 +81,7 @@ describe('PredictClaimFooter', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('calls onError when there are no won positions', () => {
+  it('calls onError when there are no won positions', async () => {
     // Arrange - state with no claimable positions for the given address
     const onErrorMock = jest.fn();
     const state = merge(
@@ -103,9 +103,11 @@ describe('PredictClaimFooter', () => {
 
     // Assert - component returns null and calls onError
     expect(queryByTestId('predict-claim-footer')).toBeNull();
-    expect(onErrorMock).toHaveBeenCalledWith(
-      new Error('Tried to claim but no positions were won'),
-    );
+    await waitFor(() => {
+      expect(onErrorMock).toHaveBeenCalledWith(
+        new Error('Tried to claim but no positions were won'),
+      );
+    });
   });
 
   it('renders extra info for single win', () => {
