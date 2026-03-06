@@ -19,7 +19,8 @@ import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsTrading } from './usePerpsTrading';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useNavigation } from '@react-navigation/native';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
@@ -45,18 +46,30 @@ export function usePerpsBalanceTokenFilter(): (
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const { depositWithConfirmation } = usePerpsTrading();
-  const { navigateToConfirmation } = useConfirmNavigation();
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
   ]);
 
+  const { onReject: handleReject } = useApprovalRequest();
+
+  const navigation = useNavigation();
+
   const handlePerpsDepositPress = useCallback(() => {
-    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-    depositWithConfirmation().catch(() => {
-      // Deposit flow handles errors (e.g. user rejection).
-    });
-  }, [navigateToConfirmation, depositWithConfirmation]);
+    handleReject();
+    depositWithConfirmation()
+      .then(() => {
+        navigation.navigate(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            showPerpsHeader: true,
+          },
+        );
+      })
+      .catch(() => {
+        // Deposit flow handles errors (e.g. user rejection).
+      });
+  }, [navigation, depositWithConfirmation, handleReject]);
 
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
