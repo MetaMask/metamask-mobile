@@ -125,10 +125,10 @@ describe('HeroNft', () => {
       },
     );
 
-    expect(getByText('Sending')).toBeDefined();
-    expect(getByText('Test Dapp NFTs')).toBeDefined();
-    expect(getByText('#12345')).toBeDefined();
-    expect(getByTestId('nft-image')).toBeDefined();
+    expect(getByText('Sending')).toBeOnTheScreen();
+    expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
+    expect(getByText('#12345')).toBeOnTheScreen();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
   });
 
   it('renders NFT image correctly when image is defined in collection.imageUrl', () => {
