@@ -21,6 +21,7 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
+import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
@@ -281,6 +282,25 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
+jest.mock(
+  '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection',
+  () => {
+    const React = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    const { BridgeViewSelectorsIDs: BridgeViewTestIds } = jest.requireActual(
+      './BridgeView.testIds',
+    );
+
+    return {
+      __esModule: true,
+      default: () =>
+        React.createElement(View, {
+          testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
+        }),
+    };
+  },
+);
+
 // Mock BottomSheetDialog so that onCloseDialog synchronously calls onClose,
 // allowing keypad close() to work in tests (the real component uses reanimated
 // withTiming which never completes in JSDOM).
@@ -331,8 +351,8 @@ describe('BridgeView', () => {
     jest.clearAllMocks();
   });
 
-  it('renders', async () => {
-    const { toJSON } = renderScreen(
+  it('renders source and destination token areas', async () => {
+    const { getByTestId } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -340,7 +360,10 @@ describe('BridgeView', () => {
       { state: mockState },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA)).toBeTruthy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+    ).toBeTruthy();
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
@@ -393,7 +416,12 @@ describe('BridgeView', () => {
       { state: mockState },
     );
 
-    // Verify keypad is open (opened by useBridgeViewOnFocus on mount)
+    const sourceInput = getByTestId('source-token-area-input');
+    await act(async () => {
+      sourceInput.props.onPressIn();
+    });
+
+    // Verify keypad is open
     await waitFor(() => {
       expect(getByText('1')).toBeTruthy();
       expect(queryByTestId('keypad-delete-button')).toBeTruthy();
@@ -433,6 +461,11 @@ describe('BridgeView', () => {
       },
       { state: mockState },
     );
+
+    const sourceInput = getByTestId('source-token-area-input');
+    await act(async () => {
+      sourceInput.props.onPressIn();
+    });
 
     // Press number buttons to input
     fireEvent.press(getByText('9'));
@@ -755,8 +788,8 @@ describe('BridgeView', () => {
         .mockImplementation(() => mockUseBridgeQuoteData);
     });
 
-    it('displays keypad when no amount is entered', () => {
-      const { getByText } = renderScreen(
+    it('does not display keypad on initial render when no amount is entered', () => {
+      const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -764,12 +797,10 @@ describe('BridgeView', () => {
         { state: mockState },
       );
 
-      // Keypad is visible instead of "Select amount" text
-      expect(getByText('1')).toBeTruthy();
-      expect(getByText('5')).toBeTruthy();
+      expect(queryByTestId('keypad-delete-button')).toBeNull();
     });
 
-    it('displays keypad when amount is zero', () => {
+    it('does not display keypad on initial render when amount is zero', () => {
       const stateWithZeroAmount = {
         ...mockState,
         bridge: {
@@ -778,7 +809,7 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText } = renderScreen(
+      const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -786,12 +817,10 @@ describe('BridgeView', () => {
         { state: stateWithZeroAmount },
       );
 
-      // Keypad is visible instead of "Select amount" text
-      expect(getByText('1')).toBeTruthy();
-      expect(getByText('5')).toBeTruthy();
+      expect(queryByTestId('keypad-delete-button')).toBeNull();
     });
 
-    it('displays "Fetching quote" when quotes are loading and there is no active quote', () => {
+    it('shows loading mode with quote skeleton only', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quotesLastFetched: null,
@@ -806,7 +835,7 @@ describe('BridgeView', () => {
           activeQuote: null,
         }));
 
-      const { getByText } = renderScreen(
+      const { getByTestId, queryByTestId, queryByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -814,7 +843,182 @@ describe('BridgeView', () => {
         { state: testState },
       );
 
-      expect(getByText('Fetching quote')).toBeTruthy();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+      ).toBeTruthy();
+      expect(queryByTestId('banneralert')).toBeNull();
+      expect(queryByTestId('edit-slippage-button')).toBeNull();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+      ).toBeNull();
+      expect(queryByText('Fetching quote')).toBeNull();
+    });
+
+    it('keeps quote mode content visible while refreshing an existing quote', async () => {
+      const now = Date.now();
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: now,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: true,
+          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('edit-slippage-button')).toBeTruthy();
+      });
+
+      expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+      ).toBeNull();
+    });
+
+    it('shows error mode with banner and without quote or zero state', async () => {
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [],
+          quotesLastFetched: 12,
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: null,
+          isLoading: false,
+          quoteFetchError: 'Error fetching quote',
+          isNoQuotesAvailable: true,
+        }));
+
+      const { queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('banneralert')).toBeTruthy();
+      });
+      expect(queryByTestId('edit-slippage-button')).toBeNull();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+      ).toBeNull();
+    });
+
+    it('shows quote mode with quote content and confirm button', async () => {
+      const now = Date.now();
+      const testState = createBridgeTestState({
+        bridgeControllerOverrides: {
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
+          quotesLastFetched: now,
+        },
+        bridgeReducerOverrides: {
+          sourceAmount: '1.0',
+        },
+      });
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          isLoading: false,
+          activeQuote: mockQuoteWithMetadata as unknown as QuoteResponse,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('edit-slippage-button')).toBeTruthy();
+      });
+      expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+      ).toBeNull();
+    });
+
+    it('shows zero mode with trending section and without quote content', () => {
+      const testState = createBridgeTestState(
+        {
+          bridgeControllerOverrides: {
+            quotesLoadingStatus: RequestStatus.FETCHED,
+            quotes: [],
+            quotesLastFetched: 12,
+          },
+          bridgeReducerOverrides: {
+            sourceAmount: undefined,
+          },
+        },
+        {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine?.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsTrendingTokens: true,
+                },
+                cacheTimestamp: 0,
+              },
+            },
+          },
+        } as DeepPartial<RootState>,
+      );
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: null,
+          isLoading: false,
+          quoteFetchError: null,
+          isNoQuotesAvailable: false,
+          destTokenAmount: undefined,
+        }));
+
+      const { getByTestId, queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+      ).toBeTruthy();
+      expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
     it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
@@ -932,7 +1136,7 @@ describe('BridgeView', () => {
       });
     });
 
-    it('blurs input when opening QuoteExpiredModal', async () => {
+    it('navigates to QuoteExpiredModal when quote expires and leaves quote content hidden', async () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -943,7 +1147,7 @@ describe('BridgeView', () => {
           activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
-      const { toJSON } = renderScreen(
+      const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -956,8 +1160,7 @@ describe('BridgeView', () => {
           screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
         });
       });
-
-      expect(toJSON()).toMatchSnapshot();
+      expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
     it('displays hardware wallet not supported banner when using hardware wallet with Solana source', async () => {

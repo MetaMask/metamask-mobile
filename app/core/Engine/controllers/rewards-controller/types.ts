@@ -837,6 +837,12 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OffDeviceSubscriptionAccountsState = {
+  accounts: string[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SnapshotsState = {
   snapshots: {
     id: string;
@@ -1193,6 +1199,9 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
+  offDeviceSubscriptionAccounts: {
+    [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1533,6 +1542,14 @@ export interface RewardsControllerGetSnapshotsAction {
 }
 
 /**
+ * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
+ */
+export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
+  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
+  handler: (subscriptionId: string) => Promise<string[]>;
+}
+
+/**
  * Action for claiming a reward
  */
 export interface RewardsControllerClaimRewardAction {
@@ -1626,6 +1643,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
   | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction

@@ -4510,4 +4510,98 @@ describe('RewardsDataService', () => {
       );
     });
   });
+
+  describe('getSubscriptionAccounts', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockAccountsResponse = [
+      'eip155:1:0xabc1234567890abcdef1234567890abcdef12345',
+      'eip155:137:0xdef9876543210fedcba9876543210fedcba98765',
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockAccountsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully return subscription accounts', async () => {
+      // Act
+      const result = await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual(mockAccountsResponse);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should call the correct endpoint with subscription auth', async () => {
+      // Act
+      await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/subscriptions/accounts',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should throw AuthorizationFailedError on 401 response', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response);
+
+      // Act & Assert
+      await expect(
+        service.getSubscriptionAccounts(mockSubscriptionId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+    });
+
+    it('should throw a generic Error on other non-OK responses', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      } as unknown as Response);
+
+      // Act & Assert
+      await expect(
+        service.getSubscriptionAccounts(mockSubscriptionId),
+      ).rejects.toThrow('Get subscription accounts failed: 500');
+    });
+
+    it('should return an empty array when the backend returns no accounts', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue([]),
+      } as unknown as Response);
+
+      // Act
+      const result = await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
 });

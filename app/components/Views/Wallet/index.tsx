@@ -642,6 +642,8 @@ const Wallet = ({
   // Callbacks registered by sections to be notified of scroll events.
   // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // Tracks which sections have been viewed this visit (reset on each focus).
+  const viewedSectionsRef = useRef<Set<string>>(new Set());
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -1421,6 +1423,20 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
+  // Reset viewed sections on each new visit so session summary starts fresh.
+  useEffect(() => {
+    viewedSectionsRef.current.clear();
+  }, [visitId]);
+
+  const notifySectionViewed = useCallback((sectionName: string) => {
+    viewedSectionsRef.current.add(sectionName);
+  }, []);
+
+  const getViewedSectionCount = useCallback(
+    () => viewedSectionsRef.current.size,
+    [],
+  );
+
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
@@ -1428,8 +1444,18 @@ const Wallet = ({
       containerScreenY,
       entryPoint,
       visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
     }),
-    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
+    [
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
+    ],
   );
 
   const content = (
