@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import PerpsCard from './PerpsCard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
@@ -19,6 +20,15 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false), // Default: privacy mode off
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({ track: jest.fn() })),
+}));
 
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: () => ({
@@ -50,6 +60,8 @@ describe('PerpsCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: privacy mode off
+    (useSelector as jest.Mock).mockReturnValue(false);
     // Set up default mock return value
     mockUsePerpsMarkets.mockReturnValue({
       markets: [
@@ -366,6 +378,80 @@ describe('PerpsCard', () => {
       expect(getByText('$2,000')).toBeDefined();
       expect(getByText('perps.order.limit_price')).toBeDefined();
       expect(queryByText('perps.order.market_price')).toBeNull();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const DOTS_SHORT = '•'.repeat(6); // SensitiveTextLength.Short
+
+    it('hides position value and PnL label when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+      const positivePosition = {
+        ...mockPosition,
+        positionValue: '4350.00',
+        unrealizedPnl: '150.00',
+        returnOnEquity: '10.3',
+      };
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - right-side financial values replaced with dots
+      expect(queryByText('$4,350')).toBeNull();
+      expect(queryByText(/\+\$150/)).toBeNull();
+      const hiddenElements = getAllByText(DOTS_SHORT);
+      expect(hiddenElements.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('shows position value and PnL label when privacy mode is disabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(false);
+      const positivePosition = {
+        ...mockPosition,
+        unrealizedPnl: '100.50',
+        returnOnEquity: '0.05',
+      };
+
+      // Act
+      const { getByText, queryByText } = render(
+        <PerpsCard position={positivePosition} testID="test-card" />,
+      );
+
+      // Assert - actual values visible, no hiding dots
+      expect(getByText('+$100.50 (+5.0%)')).toBeDefined();
+      expect(queryByText(DOTS_SHORT)).toBeNull();
+    });
+
+    it('hides order price value when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      // Act
+      const { queryByText, getAllByText } = render(
+        <PerpsCard order={mockOrder} testID="test-card" />,
+      );
+
+      // Assert - order price is hidden
+      expect(queryByText('$3,000')).toBeNull();
+      const hiddenElements = getAllByText(DOTS_SHORT);
+      expect(hiddenElements.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('does not hide non-financial labels (symbol, direction) when privacy mode is enabled', () => {
+      // Arrange
+      (useSelector as jest.Mock).mockReturnValue(true);
+
+      // Act
+      const { getByText } = render(
+        <PerpsCard position={mockPosition} testID="test-card" />,
+      );
+
+      // Assert - left-side non-financial content is unaffected
+      expect(getByText('ETH 3x long')).toBeDefined();
+      expect(getByText('1.5 ETH')).toBeDefined();
     });
   });
 });
