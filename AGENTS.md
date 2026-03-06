@@ -101,15 +101,15 @@ scripts/                  # Build and automation scripts
 
 **Detailed guidelines are in `.cursor/rules/`** - these are automatically applied by Cursor:
 
-| Rule File                         | Scope                                                                      |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization                       |
-| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling                           |
-| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA                             |
-| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects                                |
-| `component-view-test.mdc`         | Component testing — delegates to `.ai/skills/component-view-test/SKILL.md` |
-| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                                            |
-| `pr-creation-guidelines.mdc`      | Pull request standards                                                     |
+| Rule File                         | Scope                                                                          |
+| --------------------------------- | ------------------------------------------------------------------------------ |
+| `general-coding-guidelines.mdc`   | Always applied - coding standards, file organization                           |
+| `ui-development-guidelines.mdc`   | UI components - design system, Tailwind, styling                               |
+| `unit-testing-guidelines.mdc`     | `*.test.*` files - test patterns, mocking, AAA                                 |
+| `e2e-testing-guidelines.mdc`      | Always applied - E2E patterns, Page Objects                                    |
+| `component-view-test.mdc`         | Component testing — delegates to `.agents/skills/component-view-test/SKILL.md` |
+| `deeplink-handler-guidelines.mdc` | Deeplink handler implementation                                                |
+| `pr-creation-guidelines.mdc`      | Pull request standards                                                         |
 
 ### Quick Reference
 

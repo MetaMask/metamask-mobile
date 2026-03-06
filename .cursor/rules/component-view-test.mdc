@@ -25,9 +25,9 @@ yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
 
 For the full workflow, golden rules, and code templates, read:
 
-`.ai/skills/component-view-test/SKILL.md`
+`.agents/skills/component-view-test/SKILL.md`
 
 Reference files:
-- `.ai/skills/component-view-test/references/writing-tests.md` (Steps 1–2)
-- `.ai/skills/component-view-test/references/navigation-mocking.md` (Steps 3–4)
-- `.ai/skills/component-view-test/references/reference.md` (Steps 5–7, checklist, patterns)
+- `.agents/skills/component-view-test/references/writing-tests.md` (Steps 1–2)
+- `.agents/skills/component-view-test/references/navigation-mocking.md` (Steps 3–4)
+- `.agents/skills/component-view-test/references/reference.md` (Steps 5–7, checklist, patterns)
