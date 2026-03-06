@@ -29,7 +29,11 @@ import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
-import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
+import {
+  BackupAndSyncSettings,
+  getRegionLocationCode,
+  RampsRegion,
+} from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
   TEST_ANALYTICS_ID,
@@ -483,8 +487,8 @@ class FixtureBuilder {
 
     // Keep GeolocationController in sync so selectors reading from
     // engine.backgroundState.GeolocationController.location return the
-    // ISO 3166-2 location code (e.g. 'US', 'US-NY', 'FR').
-    this.withDetectedGeolocation(selectedRegion.countryIsoCode);
+    // ISO 3166-2 location code (e.g. 'US-CA', 'FR').
+    this.withDetectedGeolocation(getRegionLocationCode(selectedRegion));
 
     return this;
   }
