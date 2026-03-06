@@ -15,7 +15,6 @@ import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
 import styleSheet from './predict-claim-footer.styles';
 import { selectPredictWonPositions } from '../../../../../UI/Predict/selectors/predictController';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { PredictPosition } from '../../../../../UI/Predict';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -24,22 +23,26 @@ import ButtonHero from '../../../../../../component-library/components-temp/Butt
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export interface PredictClaimFooterProps {
+  address: string;
   onPress: () => void;
+  onError: (error?: Error) => void;
 }
 
-export function PredictClaimFooter({ onPress }: PredictClaimFooterProps) {
+export function PredictClaimFooter({
+  address,
+  onPress,
+  onError,
+}: PredictClaimFooterProps) {
   const { styles } = useStyles(styleSheet, {});
-
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountAddress) ?? '0x0';
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
-      address: selectedAddress,
+      address,
     }),
   );
 
   if (!wonPositions?.length) {
+    onError(new Error('Tried to claim but no positions were won'));
     return null;
   }
 
