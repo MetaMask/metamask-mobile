@@ -504,6 +504,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       expect(percentageText.props.style.color).toBe('#457a39');
     });
 
