@@ -83,7 +83,7 @@ export const HeroRow = ({ amountWei, layout }: HeroRowProps) => {
       {isPending && <HeroRowSkeleton layout={layout} />}
       {!isPending &&
         (isNft ? (
-          <HeroNft />
+          <HeroNft layout={layout} />
         ) : (
           <HeroToken amountWei={amountWei} layout={layout} />
         ))}
