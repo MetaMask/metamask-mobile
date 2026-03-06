@@ -567,7 +567,10 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {order.statusDescription.startsWith('Your order') &&
+                {(order.status === RampsOrderStatus.Pending ||
+                  order.status === RampsOrderStatus.Created ||
+                  order.status === RampsOrderStatus.Precreated) &&
+                order.statusDescription.startsWith('Your order') &&
                 order.statusDescription.includes('. ')
                   ? order.statusDescription.substring(
                       order.statusDescription.indexOf('. ') + 2,
