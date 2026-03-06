@@ -83,8 +83,8 @@ export const QuoteSelectorView = () => {
             new BigNumber(quote.sentAmount.usd ?? '0').plus(
               isGaslessQuote(quote.quote)
                 ? (quote.includedTxFees?.usd ?? '0')
-                : (quote.totalNetworkFee.usd ??
-                    quote.gasFee.effective.usd ??
+                : (quote.totalNetworkFee?.usd ??
+                    quote.gasFee?.effective?.usd ??
                     '0'),
             ),
             currency,

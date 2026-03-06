@@ -2079,7 +2079,7 @@ describe('BridgeView', () => {
         },
       };
 
-      const { getByText, store } = renderScreen(
+      const { getByText, getByTestId, store } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -2089,6 +2089,11 @@ describe('BridgeView', () => {
 
       const initialAmount = store.getState().bridge.sourceAmount;
       expect(initialAmount).toBe(maxLengthAmount);
+      // Open the keypad first by pressing on the source token input
+      const sourceInput = getByTestId('source-token-area-input');
+      await act(async () => {
+        sourceInput.props.onPressIn();
+      });
 
       // Try to add another digit
       fireEvent.press(getByText('9'));
