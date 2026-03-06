@@ -75,9 +75,10 @@ const baseChange = {
 
 /**
  * Prefixes a hex string with '0x' or '-0x' and returns it. Idempotent.
+ * Non-string values are returned unchanged.
  *
- * @param {string} str - The string to prefix.
- * @returns {string} The prefixed string.
+ * @param {unknown} str - The value to prefix. Non-string values are returned as-is.
+ * @returns {string} The prefixed string, or the original value cast as string if not a string input.
  */
 export const addHexPrefix = (str) => {
   if (typeof str !== 'string') {
