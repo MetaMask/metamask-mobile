@@ -18,6 +18,7 @@ import type { CaipAccountId } from '@metamask/utils';
 
 import { SubscriptionMultiplexer } from '../aggregation/SubscriptionMultiplexer';
 import { ProviderRouter } from '../routing/ProviderRouter';
+import { WebSocketConnectionState } from '../types';
 import type {
   AccountState,
   AggregatedProviderConfig,
@@ -676,6 +677,37 @@ export class AggregatedPerpsProvider implements PerpsProvider {
 
   async ping(timeoutMs?: number): Promise<void> {
     return this.#getDefaultProvider().ping(timeoutMs);
+  }
+
+  getWebSocketConnectionState(): WebSocketConnectionState {
+    const provider = this.#getDefaultProvider();
+    if (provider.getWebSocketConnectionState) {
+      return provider.getWebSocketConnectionState();
+    }
+    return WebSocketConnectionState.Disconnected;
+  }
+
+  subscribeToConnectionState(
+    listener: (
+      state: WebSocketConnectionState,
+      reconnectionAttempt: number,
+    ) => void,
+  ): () => void {
+    const provider = this.#getDefaultProvider();
+    if (provider.subscribeToConnectionState) {
+      return provider.subscribeToConnectionState(listener);
+    }
+    listener(WebSocketConnectionState.Disconnected, 0);
+    return () => {
+      /* noop */
+    };
+  }
+
+  async reconnect(): Promise<void> {
+    const provider = this.#getDefaultProvider();
+    if (provider.reconnect) {
+      await provider.reconnect();
+    }
   }
 
   // ============================================================================
