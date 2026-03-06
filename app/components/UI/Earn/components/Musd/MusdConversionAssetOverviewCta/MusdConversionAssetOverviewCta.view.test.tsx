@@ -474,7 +474,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct boost title text', () => {
+  it('renders CTA with correct bonus title text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()
@@ -507,7 +507,7 @@ describeForPlatforms('MusdConversionAssetOverviewCta', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders CTA with correct boost description text', () => {
+  it('renders CTA with correct bonus description text', () => {
     // Arrange
     const state = initialStateWallet()
       .withMinimalMultichainAssets()

@@ -57,7 +57,17 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         const domain = 'metamask.domain';
         await RedesignedSendView.enterZeroAmount();
         await RedesignedSendView.pressContinueButton();
-        await RedesignedSendView.inputRecipientAddress(domain);
+
+        // Manually replacing the test to avoid flakiness from the '\n' input
+        // added to the end of the text to hide the keyboard
+        await Gestures.replaceText(
+          RedesignedSendView.recipientAddressInput,
+          domain,
+          {
+            elemDescription: 'Enter recipient address',
+          },
+        );
+
         await RedesignedSendView.pressReviewButton();
         await TransactionConfirmView.tapAdvancedDetails();
 
@@ -66,6 +76,10 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
             domain,
             device.getPlatform() === 'ios' ? 1 : 0,
           ),
+          {
+            elemDescription: 'Recipient address',
+            delay: 1000, // There's a animation that can cause flakiness
+          },
         );
 
         await Assertions.expectTextDisplayed(
