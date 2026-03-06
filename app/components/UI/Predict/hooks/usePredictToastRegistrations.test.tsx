@@ -65,6 +65,7 @@ jest.mock('./usePredictWithdraw', () => ({
 }));
 
 jest.mock('../utils/accounts', () => ({
+  ...jest.requireActual('../utils/accounts'),
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: selectedAddress,
   })),

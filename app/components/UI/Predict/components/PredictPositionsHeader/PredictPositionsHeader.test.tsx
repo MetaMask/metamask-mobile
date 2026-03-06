@@ -8,6 +8,7 @@ import MarketsWonCard from './PredictPositionsHeader';
 
 // Mock account utilities
 jest.mock('../../utils/accounts', () => ({
+  ...jest.requireActual('../../utils/accounts'),
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     id: 'test-account-id',
     address: '0x1234567890123456789012345678901234567890',

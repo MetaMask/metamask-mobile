@@ -15,6 +15,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('../utils/accounts', () => ({
+  ...jest.requireActual('../utils/accounts'),
   getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
     address: MOCK_ADDRESS,
   })),

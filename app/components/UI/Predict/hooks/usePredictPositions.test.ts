@@ -18,6 +18,7 @@ const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
   type: 'eip155:eoa',
 }));
 jest.mock('../utils/accounts', () => ({
+  ...jest.requireActual('../utils/accounts'),
   getEvmAccountFromSelectedAccountGroup: () =>
     mockGetEvmAccountFromSelectedAccountGroup(),
 }));
