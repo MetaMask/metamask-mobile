@@ -12,7 +12,6 @@ import {
   RegistrationSettingsResponse,
   CardLocation,
   CardStatus,
-  CardType,
 } from '../../../../../components/UI/Card/types';
 import {
   ARBITRARY_ALLOWANCE,
@@ -99,30 +98,6 @@ export class BaanxProvider implements ICardProvider {
     fundingChains: ['eip155:59144', 'eip155:8453'],
     supportsFreeze: true,
     supportsPushProvisioning: true,
-    cardTypes: [CardType.VIRTUAL, CardType.PHYSICAL, CardType.METAL],
-    supportedCountries: [
-      'US',
-      'GB',
-      'FR',
-      'DE',
-      'ES',
-      'IT',
-      'NL',
-      'BE',
-      'AT',
-      'IE',
-      'PT',
-      'FI',
-      'LT',
-      'LV',
-      'EE',
-      'SK',
-      'SI',
-      'MT',
-      'CY',
-      'LU',
-      'GR',
-    ],
     onboarding: {
       type: 'steps',
       steps: [

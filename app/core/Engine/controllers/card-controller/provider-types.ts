@@ -65,8 +65,6 @@ export interface CardProviderCapabilities {
   fundingChains: CaipChainId[];
   supportsFreeze: boolean;
   supportsPushProvisioning: boolean;
-  cardTypes: CardType[];
-  supportedCountries: string[];
   onboarding: CardOnboardingCapability;
 }
 
