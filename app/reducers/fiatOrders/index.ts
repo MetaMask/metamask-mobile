@@ -136,11 +136,6 @@ export const removeFiatSellTxHash = (orderId: string) => ({
   payload: orderId,
 });
 
-export const setDetectedGeolocation = (geolocation: string | undefined) => ({
-  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
-  payload: geolocation,
-});
-
 export const setRampRoutingDecision = (
   routingDecision: FiatOrdersState['rampRoutingDecision'],
 ) => ({
@@ -350,7 +345,6 @@ export const initialState: FiatOrdersState = {
   getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
-  detectedGeolocation: undefined,
   rampRoutingDecision: null,
 };
 
@@ -638,12 +632,6 @@ const fiatOrderReducer: (
           },
           ...orders.slice(index + 1),
         ],
-      };
-    }
-    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
-      return {
-        ...state,
-        detectedGeolocation: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {

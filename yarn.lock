@@ -8698,14 +8698,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/geolocation-controller@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@metamask/geolocation-controller@npm:0.1.0"
+"@metamask/geolocation-controller@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@metamask/geolocation-controller@npm:0.1.1"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/9720810bc8e6baf6cef40111539ff0c83f45495df2440abfc91dfbf1aeb7aac6714f070a588337e7e9bd281a142b99b647fb845038f7c420c6a04c67c3704a5c
+  checksum: 10/fb8bd2997911b87acb47931c2a9903d4a25cc8bf4681aa8ada98d1869fceb2a3d642423644863fb4eb991f8e8c611ba10fd6f5c9cd55602849af0a3c094db600
   languageName: node
   linkType: hard
 
@@ -35430,7 +35430,7 @@ __metadata:
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^25.0.0"
     "@metamask/gator-permissions-controller": "npm:^0.3.0"
-    "@metamask/geolocation-controller": "npm:^0.1.0"
+    "@metamask/geolocation-controller": "npm:^0.1.1"
     "@metamask/hw-wallet-sdk": "npm:^0.4.0"
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"

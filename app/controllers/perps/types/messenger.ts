@@ -2,6 +2,7 @@ import type {
   AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
   AccountTreeControllerSelectedAccountGroupChangeEvent,
 } from '@metamask/account-tree-controller';
+import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import type {
   KeyringControllerGetStateAction,
   KeyringControllerSignTypedMessageAction,
@@ -18,11 +19,6 @@ import type {
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
 import type { TransactionControllerAddTransactionAction } from '@metamask/transaction-controller';
-
-type GeolocationControllerGetGeolocationAction = {
-  type: 'GeolocationController:getGeolocation';
-  handler: () => Promise<string>;
-};
 
 /**
  * Actions from other controllers that PerpsController is allowed to call.

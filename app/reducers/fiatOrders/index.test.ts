@@ -57,7 +57,6 @@ import fiatOrderReducer, {
   removeFiatSellTxHash,
   getOrdersProviders,
   getDetectedGeolocation,
-  setDetectedGeolocation,
   getRampRoutingDecision,
   setRampRoutingDecision,
   UnifiedRampRoutingType,
@@ -844,28 +843,6 @@ describe('fiatOrderReducer', () => {
     );
 
     expect(stateWithoutChanges).toEqual(stateWithOrder1);
-  });
-
-  it('sets the detected geolocation', () => {
-    const stateWithGeolocation = fiatOrderReducer(
-      initialState,
-      setDetectedGeolocation('US'),
-    );
-    expect(stateWithGeolocation.detectedGeolocation).toBe('US');
-
-    const otherStateWithGeolocation = fiatOrderReducer(
-      stateWithGeolocation,
-      setDetectedGeolocation('CL'),
-    );
-    expect(otherStateWithGeolocation.detectedGeolocation).toBe('CL');
-  });
-
-  it('sets the detected geolocation to undefined', () => {
-    const stateWithGeolocation = fiatOrderReducer(
-      initialState,
-      setDetectedGeolocation(undefined),
-    );
-    expect(stateWithGeolocation.detectedGeolocation).toBeUndefined();
   });
 
   it('sets the ramp routing decision', () => {

@@ -38,7 +38,7 @@ export const geolocationControllerInit: ControllerInitFunction<
 
   if (!hasKnownLocation) {
     controller.getGeolocation().catch(() => {
-      // Intentionally swallowed — geolocation is best-effort
+      // Best-effort fetch; errors are surfaced via controller state.
     });
   }
 

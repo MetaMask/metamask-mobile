@@ -4046,6 +4046,7 @@ export class PerpsController extends BaseController<
       const geoLocation = await this.messenger.call(
         'GeolocationController:getGeolocation',
       );
+
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,
         geoLocation,

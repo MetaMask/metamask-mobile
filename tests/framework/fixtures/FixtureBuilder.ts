@@ -483,7 +483,7 @@ class FixtureBuilder {
 
     // Keep GeolocationController in sync so selectors reading from
     // engine.backgroundState.GeolocationController.location return the
-    // 2-letter ISO 3166-1 alpha-2 country code (e.g. 'US', 'FR').
+    // ISO 3166-2 location code (e.g. 'US', 'US-NY', 'FR').
     this.withDetectedGeolocation(selectedRegion.countryIsoCode);
 
     return this;
@@ -504,7 +504,7 @@ class FixtureBuilder {
   /**
    * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
    * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
-   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
+   * @param {string} countryCode - ISO 3166-2 location code (e.g. 'AR', 'US-NY').
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withDetectedGeolocation(countryCode: string) {

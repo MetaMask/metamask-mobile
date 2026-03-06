@@ -17,9 +17,9 @@ export const createGeolocationResponse = (
     { env: 'prod', url: 'https://on-ramp.api.cx.metamask.io/geolocation' },
   ];
 
-  // The real /geolocation endpoint returns a plain-text ISO 3166-1 alpha-2
-  // country code (e.g. 'US', 'FR'). The GeolocationApiService validates the
-  // response against /^[A-Z]{2}$/ and rejects anything else as UNKNOWN.
+  // The real /geolocation endpoint returns an ISO 3166-2 location code
+  // (e.g. 'US-NY', 'FR'). The GeolocationApiService validates the response
+  // against /^[A-Z]{2}(-[A-Z0-9]{1,3})?$/ and rejects anything else as UNKNOWN.
   return envConfigs.map(({ url }) => ({
     urlEndpoint: url,
     responseCode: 200,
