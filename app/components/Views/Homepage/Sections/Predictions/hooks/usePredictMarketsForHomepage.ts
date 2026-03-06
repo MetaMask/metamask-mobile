@@ -9,8 +9,8 @@ export interface UsePredictMarketsForHomepageResult {
   markets: PredictMarket[];
   /** Whether the hook is still loading */
   isLoading: boolean;
-  /** Error message if fetch failed */
-  error: string | null;
+  /** Error if fetch failed */
+  error: Error | null;
   /** Refetch function to manually refetch data */
   refetch: () => Promise<unknown>;
 }
