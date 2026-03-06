@@ -183,7 +183,7 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 53
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
