@@ -583,7 +583,13 @@ function BuildQuote() {
             await Linking.openURL(buyWidget.url);
           } else {
             try {
-              await InAppBrowser.openAuth(buyWidget.url, deeplinkRedirectUrl);
+              const result = await InAppBrowser.openAuth(
+                buyWidget.url,
+                deeplinkRedirectUrl,
+              );
+              if (result.type !== 'success' || !result.url) {
+                return;
+              }
             } finally {
               InAppBrowser.closeAuth();
             }
