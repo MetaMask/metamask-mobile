@@ -211,7 +211,7 @@ jest.mock('../../app/core/Engine', () => {
         ]),
         startMarketDataPreload: jest.fn(),
         stopMarketDataPreload: jest.fn(),
-        isCurrentlyReinitializing: jest.fn().mockResolvedValue(false),
+        isCurrentlyReinitializing: jest.fn().mockReturnValue(false),
       },
     },
     controllerMessenger: {
