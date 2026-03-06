@@ -58,7 +58,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { colors } = useTheme();
-  const { claim, isClaimPending } = usePredictClaim();
+  const { claim } = usePredictClaim();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
@@ -459,7 +459,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           market={market}
           openOutcomes={openOutcomes}
           yesPercentage={yesPercentage}
-          isClaimDisabled={isClaimPending}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
         />

@@ -45,7 +45,6 @@ export interface PredictActionButtonsProps {
   onBetPress: (token: PredictOutcomeToken) => void;
   onClaimPress?: () => void;
   claimableAmount?: number;
-  isClaimDisabled?: boolean;
   isLoading?: boolean;
   testID?: string;
   isCarousel?: boolean;

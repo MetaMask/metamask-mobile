@@ -25,7 +25,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   onClaimPress,
   onInfoPress,
   claimableAmount = 0,
-  isClaimDisabled = false,
   isLoading = false,
   testID = 'predict-game-details-footer',
 }) => {
@@ -95,7 +94,6 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
         onBetPress={onBetPress}
         onClaimPress={onClaimPress}
         claimableAmount={claimableAmount}
-        isClaimDisabled={isClaimDisabled}
         isLoading={isLoading}
         testID={`${testID}-action-buttons`}
       />

@@ -38,7 +38,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   onBetPress,
   onClaimPress,
   claimableAmount = 0,
-  isClaimDisabled = false,
   isLoading = false,
 }) => {
   const tw = useTailwind();
@@ -133,7 +132,6 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         onClaimPress={onClaimPress}
         onInfoPress={handleInfoPress}
         claimableAmount={claimableAmount}
-        isClaimDisabled={isClaimDisabled}
         isLoading={isLoading}
       />
 

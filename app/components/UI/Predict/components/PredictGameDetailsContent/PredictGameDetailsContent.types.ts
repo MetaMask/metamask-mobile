@@ -8,6 +8,5 @@ export interface PredictGameDetailsContentProps {
   onBetPress: (token: PredictOutcomeToken) => void;
   onClaimPress?: () => void;
   claimableAmount?: number;
-  isClaimDisabled?: boolean;
   isLoading?: boolean;
 }

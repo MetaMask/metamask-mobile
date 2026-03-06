@@ -73,7 +73,7 @@ const PredictPositionsHeader = forwardRef<
 >((props, ref) => {
   const { onError } = props;
   const privacyMode = useSelector(selectPrivacyMode);
-  const { claim, isClaimPending } = usePredictClaim();
+  const { claim } = usePredictClaim();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
@@ -205,7 +205,6 @@ const PredictPositionsHeader = forwardRef<
         <ButtonHero
           size={ButtonSizeHero.Lg}
           testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
-          isDisabled={isClaimPending}
           onPress={handleClaim}
           style={tw.style('w-full')}
         >

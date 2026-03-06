@@ -35,7 +35,6 @@ export interface PredictMarketDetailsActionsProps {
   market: PredictMarket | null;
   openOutcomes: PredictOutcome[];
   yesPercentage: number;
-  isClaimDisabled: boolean;
   onClaimPress: () => void;
   onBuyPress: (token: PredictOutcomeToken) => void;
 }
@@ -50,7 +49,6 @@ const PredictMarketDetailsActions = memo(
     market,
     openOutcomes,
     yesPercentage,
-    isClaimDisabled,
     onClaimPress,
     onBuyPress,
   }: PredictMarketDetailsActionsProps) => {
@@ -64,7 +62,6 @@ const PredictMarketDetailsActions = memo(
               <ButtonHero
                 size={ButtonSizeHero.Lg}
                 style={tw.style('w-full')}
-                isDisabled={isClaimDisabled}
                 onPress={onClaimPress}
                 testID={PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON}
               >
