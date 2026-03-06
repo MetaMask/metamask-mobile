@@ -64,6 +64,7 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { Signer } from '../providers/types';
 import {
   AccountState,
+  ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
   GameUpdateCallback,
@@ -83,8 +84,6 @@ import {
   PredictClaimStatus,
   PredictMarket,
   PredictOrderType,
-  PredictOutcome,
-  PredictOutcomeToken,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -154,13 +153,10 @@ export type PredictControllerState = {
   withdrawTransaction: PredictWithdraw | null;
 
   activeOrder?: {
-    market: PredictMarket;
-    outcome: PredictOutcome;
-    outcomeToken: PredictOutcomeToken;
-    amountUsd?: number;
+    amount?: number;
     transactionId?: string;
     isInputFocused?: boolean;
-    transactionError?: string;
+    state: ActiveOrderState;
   } | null;
 
   selectedPaymentToken: {

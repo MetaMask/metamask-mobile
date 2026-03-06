@@ -12,7 +12,7 @@ export const usePredictBuyInputState = () => {
   const { amount } = route.params;
 
   const autoPlaceAmount =
-    activeOrder?.amountUsd ??
+    activeOrder?.amount ??
     (typeof amount === 'number' && amount > 0 ? amount : undefined);
 
   const [currentValue, setCurrentValueState] = useState(

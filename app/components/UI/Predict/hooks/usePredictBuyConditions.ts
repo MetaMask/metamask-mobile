@@ -35,14 +35,12 @@ export const usePredictBuyConditions = ({
       !!preview &&
       !isPlaceOrderLoading &&
       !isRateLimited &&
-      !isPreviewCalculating &&
       !isBalanceLoading,
     [
       isBelowMinimum,
       preview,
       isPlaceOrderLoading,
       isRateLimited,
-      isPreviewCalculating,
       isBalanceLoading,
     ],
   );

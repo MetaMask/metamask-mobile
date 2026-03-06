@@ -4,6 +4,7 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PredictTradeStatus } from '../constants/eventNames';
 import { selectPredictActiveOrder } from '../selectors/predictController';
+import { ActiveOrderState } from '../types';
 import { PredictNavigationParamList } from '../types/navigation';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
@@ -56,9 +57,7 @@ export const usePredictActiveOrder = ({
     }
 
     updateActiveOrder({
-      market,
-      outcome,
-      outcomeToken,
+      state: ActiveOrderState.PREVIEW,
     });
     PredictController.setSelectedPaymentToken(null);
     PredictController.trackPredictOrderEvent({

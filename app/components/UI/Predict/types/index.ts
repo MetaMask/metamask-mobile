@@ -9,6 +9,12 @@ export enum Side {
 
 export type PredictOrderType = 'FOK' | 'FAK';
 
+export enum ActiveOrderState {
+  PREVIEW = 'preview',
+  DEPOSITING = 'depositing',
+  PLACING_ORDER = 'placing_order',
+}
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
