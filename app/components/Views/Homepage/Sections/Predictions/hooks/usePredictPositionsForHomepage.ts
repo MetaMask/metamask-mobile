@@ -1,7 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useMemo } from 'react';
 import { usePredictPositions } from '../../../../../UI/Predict/hooks/usePredictPositions';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 export interface UsePredictPositionsForHomepageResult {
@@ -10,7 +8,7 @@ export interface UsePredictPositionsForHomepageResult {
   totalClaimableValue: number;
   isLoading: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
+  refetch: () => Promise<unknown>;
 }
 
 interface UsePredictPositionsForHomepageOptions {
@@ -22,17 +20,16 @@ interface UsePredictPositionsForHomepageOptions {
  * Lightweight wrapper around the Predict team's usePredictPositions hook,
  * adapted for homepage display with optional slicing and claimable value sum.
  *
- * Delegates all caching, deduplication, and error handling to the underlying
- * React Query-backed hook.
+ * The feature flag check is handled at the UI level (Homepage conditionally
+ * renders the Predictions section), so this hook assumes it is only called
+ * when predictions are enabled.
  */
 export const usePredictPositionsForHomepage = (
   options: UsePredictPositionsForHomepageOptions = {},
 ): UsePredictPositionsForHomepageResult => {
   const { maxPositions, claimable = false } = options;
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const { data, isLoading, error, refetch } = usePredictPositions({
-    enabled: isPredictEnabled,
     claimable,
   });
 
@@ -54,10 +51,6 @@ export const usePredictPositionsForHomepage = (
     [claimable, allPositions],
   );
 
-  const refresh = useCallback(async () => {
-    await refetch();
-  }, [refetch]);
-
   return {
     positions,
     totalClaimableValue,
@@ -67,7 +60,7 @@ export const usePredictPositionsForHomepage = (
         ? error.message
         : String(error)
       : null,
-    refresh,
+    refetch,
   };
 };
 

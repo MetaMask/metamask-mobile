@@ -1,7 +1,4 @@
-import { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { usePredictMarketData } from '../../../../../UI/Predict/hooks/usePredictMarketData';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 
 /**
@@ -14,43 +11,34 @@ export interface UsePredictMarketsForHomepageResult {
   isLoading: boolean;
   /** Error message if fetch failed */
   error: string | null;
-  /** Refresh function to manually refetch data */
-  refresh: () => Promise<void>;
+  /** Refetch function to manually refetch data */
+  refetch: () => Promise<unknown>;
 }
 
 /**
  * Lightweight wrapper around the Predict team's usePredictMarketData hook,
  * adapted for homepage display with trending markets.
  *
- * Delegates all caching, retry logic, and error handling to the underlying hook.
+ * The feature flag check is handled at the UI level (Homepage conditionally
+ * renders the Predictions section), so this hook assumes it is only called
+ * when predictions are enabled.
  *
  * @param limit - Maximum number of markets to return (default: 5)
- * @returns Object with markets, isLoading, error, refresh
+ * @returns Object with markets, isLoading, error, refetch
  */
 export const usePredictMarketsForHomepage = (
   limit = 5,
 ): UsePredictMarketsForHomepageResult => {
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-
   const { marketData, isFetching, error, refetch } = usePredictMarketData({
     category: 'trending',
     pageSize: limit,
   });
 
-  const markets = useMemo(
-    () => (isPredictEnabled ? marketData.slice(0, limit) : []),
-    [isPredictEnabled, marketData, limit],
-  );
-
-  const refresh = useCallback(async () => {
-    await refetch();
-  }, [refetch]);
-
   return {
-    markets,
+    markets: marketData,
     isLoading: isFetching,
     error,
-    refresh,
+    refetch,
   };
 };
 

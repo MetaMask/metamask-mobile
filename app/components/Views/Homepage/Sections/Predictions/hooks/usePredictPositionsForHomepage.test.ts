@@ -2,25 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
-let mockIsPredictEnabled = true;
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (...args: unknown[]) => unknown) => {
-    if (
-      selector ===
-      jest.requireMock('../../../../../UI/Predict').selectPredictEnabledFlag
-    ) {
-      return mockIsPredictEnabled;
-    }
-    return undefined;
-  },
-}));
-
-jest.mock('../../../../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(),
-}));
-
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 let mockUsePredictPositionsReturn: {
   data: PredictPosition[] | undefined;
@@ -55,7 +36,6 @@ const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
 describe('usePredictPositionsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsPredictEnabled = true;
     mockUsePredictPositionsReturn = {
       data: [
         createMockPosition('1'),
@@ -138,10 +118,10 @@ describe('usePredictPositionsForHomepage', () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it('calls refetch when refresh is invoked', async () => {
+  it('exposes refetch from usePredictPositions', async () => {
     const { result } = renderHook(() => usePredictPositionsForHomepage());
 
-    await result.current.refresh();
+    await result.current.refetch();
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });

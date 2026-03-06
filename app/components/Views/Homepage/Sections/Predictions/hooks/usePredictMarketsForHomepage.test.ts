@@ -2,25 +2,6 @@ import { renderHook } from '@testing-library/react-native';
 import { usePredictMarketsForHomepage } from './usePredictMarketsForHomepage';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 
-let mockIsPredictEnabled = true;
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: (selector: (...args: unknown[]) => unknown) => {
-    if (
-      selector ===
-      jest.requireMock('../../../../../UI/Predict').selectPredictEnabledFlag
-    ) {
-      return mockIsPredictEnabled;
-    }
-    return undefined;
-  },
-}));
-
-jest.mock('../../../../../UI/Predict', () => ({
-  selectPredictEnabledFlag: jest.fn(),
-}));
-
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 let mockUsePredictMarketDataReturn: {
   marketData: PredictMarket[];
@@ -61,7 +42,6 @@ const createMockMarket = (id: string): PredictMarket =>
 describe('usePredictMarketsForHomepage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsPredictEnabled = true;
     mockUsePredictMarketDataReturn = {
       marketData: [
         createMockMarket('1'),
@@ -83,30 +63,6 @@ describe('usePredictMarketsForHomepage', () => {
     expect(result.current.markets).toHaveLength(3);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
-  });
-
-  it('returns empty markets when predict is disabled', () => {
-    mockIsPredictEnabled = false;
-
-    const { result } = renderHook(() => usePredictMarketsForHomepage(5));
-
-    expect(result.current.markets).toHaveLength(0);
-  });
-
-  it('slices markets to the specified limit', () => {
-    mockUsePredictMarketDataReturn.marketData = [
-      createMockMarket('1'),
-      createMockMarket('2'),
-      createMockMarket('3'),
-      createMockMarket('4'),
-      createMockMarket('5'),
-    ];
-
-    const { result } = renderHook(() => usePredictMarketsForHomepage(3));
-
-    expect(result.current.markets).toHaveLength(3);
-    expect(result.current.markets[0].id).toBe('1');
-    expect(result.current.markets[2].id).toBe('3');
   });
 
   it('forwards isFetching as isLoading', () => {
@@ -131,27 +87,11 @@ describe('usePredictMarketsForHomepage', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('calls refetch when refresh is invoked', async () => {
+  it('exposes refetch from usePredictMarketData', async () => {
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    await result.current.refresh();
+    await result.current.refetch();
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('defaults limit to 5', () => {
-    mockUsePredictMarketDataReturn.marketData = [
-      createMockMarket('1'),
-      createMockMarket('2'),
-      createMockMarket('3'),
-      createMockMarket('4'),
-      createMockMarket('5'),
-      createMockMarket('6'),
-      createMockMarket('7'),
-    ];
-
-    const { result } = renderHook(() => usePredictMarketsForHomepage());
-
-    expect(result.current.markets).toHaveLength(5);
   });
 });

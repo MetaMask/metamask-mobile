@@ -87,14 +87,14 @@ const PredictionsSection = forwardRef<
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
-    refresh: refreshPositions,
+    refetch: refetchPositions,
   } = usePredictPositionsForHomepage();
 
   const {
     markets,
     isLoading: isLoadingMarkets,
     error: marketsError,
-    refresh: refreshMarkets,
+    refetch: refetchMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
@@ -106,10 +106,6 @@ const PredictionsSection = forwardRef<
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
-
-  // Use ref so refresh always reads the latest value without stale closures
-  const hasPositionsRef = useRef(hasPositions);
-  hasPositionsRef.current = hasPositions;
 
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
@@ -144,12 +140,8 @@ const PredictionsSection = forwardRef<
   });
 
   const refresh = useCallback(async () => {
-    if (hasPositionsRef.current) {
-      await Promise.all([refreshPositions(), refreshMarkets()]);
-    } else {
-      await refreshMarkets();
-    }
-  }, [refreshPositions, refreshMarkets]);
+    await Promise.all([refetchPositions(), refetchMarkets()]);
+  }, [refetchPositions, refetchMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
