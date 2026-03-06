@@ -49,7 +49,8 @@ const useHomeSessionSummary = ({
   }, [totalSectionsLoaded]);
 
   useFocusEffect(
-    useCallback(() => () => {
+    useCallback(
+      () => () => {
         // Blur — user is leaving the homepage. Skip if never actually focused.
         if (visitIdRef.current === 0) return;
         const sessionTime = Math.round(
@@ -67,7 +68,9 @@ const useHomeSessionSummary = ({
             })
             .build(),
         );
-      }, [trackEvent, createEventBuilder, getViewedSectionCount]),
+      },
+      [trackEvent, createEventBuilder, getViewedSectionCount],
+    ),
   );
 };
 
