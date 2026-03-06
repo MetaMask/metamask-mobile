@@ -212,6 +212,13 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       });
     }, [navigation]);
 
+    const handleViewMorePerps = useCallback(() => {
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_LIST,
+        params: { source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION },
+      });
+    }, [navigation]);
+
     const handlePositionPress = useCallback(
       (position: Position) => {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -330,7 +337,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                     />
                   ))}
                   <ViewMoreCard
-                    onPress={handleViewAllPerps}
+                    onPress={handleViewMorePerps}
                     twClassName="w-[180px] flex-1"
                     testID="perps-view-more-card"
                   />
