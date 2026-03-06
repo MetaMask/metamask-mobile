@@ -304,6 +304,17 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
+  it('normalizes $deeplink_path by stripping leading slash (avoids triple-slash URL)', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      $deeplink_path: '/dapp/example.com',
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'metamask://dapp/example.com',
+    });
+  });
+
   it('subscribes to Branch deeplink events', async () => {
     DeeplinkManager.start();
     expect(branch.subscribe).toHaveBeenCalled();
@@ -317,5 +328,19 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     callback({ uri: mockUri });
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('normalizes $deeplink_path in subscribe path by stripping leading slash', async () => {
+    (branch.getLatestReferringParams as jest.Mock)
+      .mockResolvedValueOnce({}) // cold start
+      .mockResolvedValueOnce({ $deeplink_path: '/dapp/example.com' });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    callback({ uri: 'https://metamask.app.link/something' });
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'metamask://dapp/example.com',
+    });
   });
 });

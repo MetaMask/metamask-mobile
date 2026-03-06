@@ -66,8 +66,10 @@ export class DeeplinkManager {
 
       try {
         const latestParams = await branch.getLatestReferringParams();
-        const deeplink = latestParams?.$deeplink_path
-          ? `metamask://${latestParams.$deeplink_path}`
+        const raw = latestParams?.$deeplink_path;
+        const path = typeof raw === 'string' ? raw.replace(/^\//, '') : raw;
+        const deeplink = path
+          ? `metamask://${path}`
           : (latestParams?.['+non_branch_link'] as string);
         if (deeplink) {
           handleDeeplink({ uri: deeplink });
@@ -129,8 +131,10 @@ export class DeeplinkManager {
         handleDeeplink({ uri });
       } else {
         branch.getLatestReferringParams().then((params) => {
-          const deeplink = params?.$deeplink_path
-            ? `metamask://${params.$deeplink_path}`
+          const raw = params?.$deeplink_path;
+          const path = typeof raw === 'string' ? raw.replace(/^\//, '') : raw;
+          const deeplink = path
+            ? `metamask://${path}`
             : (params?.['+non_branch_link'] as string);
           if (deeplink) {
             handleDeeplink({ uri: deeplink });
