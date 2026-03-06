@@ -89,6 +89,24 @@ jest.mock('../../app/core/Engine', () => {
         enableNetworkInNamespace() {
           return undefined;
         },
+        enableNetwork() {
+          return undefined;
+        },
+        disableNetwork() {
+          return undefined;
+        },
+        enableAllPopularNetworks() {
+          return undefined;
+        },
+        listPopularEvmNetworks() {
+          return [];
+        },
+        listPopularMultichainNetworks() {
+          return [];
+        },
+        listPopularNetworks() {
+          return [];
+        },
       },
       MultichainAssetsRatesController: {
         startPolling() {
@@ -144,6 +162,18 @@ jest.mock('../../app/core/Engine', () => {
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+      },
+      PredictController: {
+        getMarkets: jest.fn().mockResolvedValue([]),
+        getMarket: jest.fn().mockResolvedValue(null),
+        getBalance: jest.fn().mockResolvedValue(0),
+        getPositions: jest.fn().mockResolvedValue([]),
+        getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
+        trackFeedViewed: jest.fn(),
+        trackTabChanged: jest.fn(),
+        trackMarketDetailsOpened: jest.fn(),
+        trackGeoBlockTriggered: jest.fn(),
+        refreshEligibility: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"

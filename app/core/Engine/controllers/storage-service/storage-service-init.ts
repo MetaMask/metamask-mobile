@@ -1,7 +1,7 @@
 import type { Json } from '@metamask/utils';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 
-import { ControllerInitFunction } from '../types';
+import { ControllerInitFunction } from '../../types';
 import {
   StorageService,
   StorageServiceMessenger,
@@ -9,12 +9,12 @@ import {
   StorageGetResult,
   STORAGE_KEY_PREFIX,
 } from '@metamask/storage-service';
-import Device from '../../../util/device';
-import Logger from '../../../util/Logger';
+import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 import {
   encodeStorageKey,
   decodeStorageKey,
-} from '../utils/storage-service-utils';
+} from '../../utils/storage-service-utils';
 
 /**
  * Mobile-specific storage adapter using FilesystemStorage.

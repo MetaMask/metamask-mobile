@@ -35,9 +35,21 @@ jest.mock('./hooks', () => ({
 const mockSortedTokenKeys = jest.fn();
 const mockAccountGroupBalance = jest.fn();
 
+let mockPopularNetworks: string[] = [];
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      popularNetworks: mockPopularNetworks,
+    }),
+  }),
+);
+
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroup: (state: unknown) =>
-    mockSortedTokenKeys(state),
+  selectSortedAssetsBySelectedAccountGroupForChainIds: (
+    state: unknown,
+    chainIds: string[],
+  ) => mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -57,6 +69,13 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest
     .fn()
     .mockReturnValue(() => undefined),
+}));
+
+const mockNetworkConfigurations = {};
+jest.mock('../../../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../../../selectors/networkController'),
+  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+  selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
 const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
@@ -311,6 +330,7 @@ describe('TokensSection', () => {
     mockRefreshTokens.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
+    mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
@@ -378,6 +398,22 @@ describe('TokensSection', () => {
     expect(mockGoToBuy).toHaveBeenCalledWith({
       assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
     });
+  });
+
+  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIds)', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    const popularChainIds = ['eip155:1', '0xa'];
+    mockPopularNetworks = popularChainIds;
+    mockSortedTokenKeys.mockReturnValue([]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockSortedTokenKeys).toHaveBeenCalledWith(
+      expect.anything(),
+      popularChainIds,
+    );
   });
 
   it('renders token list items for account with tokens', () => {
