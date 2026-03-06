@@ -67,10 +67,11 @@ export const useNetworkEnablement = () => {
   );
 
   const popularEvmNetworksList =
-    networkEnablementController.listPopularEvmNetworks();
+    networkEnablementController?.listPopularEvmNetworks?.() ?? [];
   const popularMultichainNetworksList =
-    networkEnablementController.listPopularMultichainNetworks();
-  const popularNetworksList = networkEnablementController.listPopularNetworks();
+    networkEnablementController?.listPopularMultichainNetworks?.() ?? [];
+  const popularNetworksList =
+    networkEnablementController?.listPopularNetworks?.() ?? [];
 
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
