@@ -78,6 +78,15 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
+jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
 const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
 jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
   refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
@@ -349,6 +358,11 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
+    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -462,6 +476,10 @@ describe('TokensSection', () => {
 
   it('filters out mUSD from displayed tokens (mUSD is shown only in Cash section)', () => {
     const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
