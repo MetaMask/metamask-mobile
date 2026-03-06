@@ -395,13 +395,17 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Rate
@@ -502,13 +506,17 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   minimumFontScale={0.8}
                                   numberOfLines={1}
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   1 ETH = 24.4 USDC
@@ -785,29 +793,34 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#66676a",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     0.5%
                                   </Text>
                                   <SvgMock
-                                    color="#66676a"
                                     fill="currentColor"
-                                    height={16}
                                     name="Edit"
                                     style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "height": 16,
+                                          "width": 16,
+                                        },
+                                        undefined,
+                                      ]
                                     }
-                                    width={16}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -854,55 +867,58 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
-                                  }
-                                  testID="label"
-                                >
-                                  Price impact
-                                </Text>
-                                <TouchableOpacity
-                                  accessibilityLabel="Price impact tooltip"
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "borderRadius": 8,
-                                      "height": 24,
-                                      "justifyContent": "center",
-                                      "opacity": 1,
-                                      "width": 24,
-                                    }
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={16}
-                                    name="Info"
-                                    style={
+                                    [
                                       {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
                                     }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                  >
+                                    Price impact
+                                  </Text>
+                                  <TouchableOpacity
+                                    activeOpacity={0.6}
+                                    onPress={[Function]}
+                                    testID="price-impact-info-button"
+                                  >
+                                    <SvgMock
+                                      fill="currentColor"
+                                      name="Info"
+                                      style={
+                                        [
+                                          {
+                                            "color": "#66676a",
+                                            "height": 16,
+                                            "width": 16,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    />
+                                  </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -944,7 +960,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  -0.06%
+                                  0%
                                 </Text>
                               </View>
                             </View>
