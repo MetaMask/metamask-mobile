@@ -336,45 +336,43 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        {formattedQuoteData.priceImpact && (
-          <KeyValueRow
-            field={{
-              label: (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={1}
+        <KeyValueRow
+          field={{
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {toSentenceCase(strings('bridge.price_impact'))}
-                  </Text>
-                  <TouchableOpacity
-                    testID="price-impact-info-button"
-                    onPress={handlePriceImpactPress}
-                    activeOpacity={0.6}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.IconAlternative}
-                    />
-                  </TouchableOpacity>
-                </Box>
-              ),
-            }}
-            value={{
-              icon: priceImactViewData.icon,
-              label: {
-                text: formatPriceImpact(formattedQuoteData.priceImpact),
-                variant: TextVariantLegacy.BodyMD,
-                color: priceImactViewData.textColor,
-              },
-            }}
-          />
-        )}
+                  {toSentenceCase(strings('bridge.price_impact'))}
+                </Text>
+                <TouchableOpacity
+                  testID="price-impact-info-button"
+                  onPress={handlePriceImpactPress}
+                  activeOpacity={0.6}
+                >
+                  <Icon
+                    name={IconName.Info}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </TouchableOpacity>
+              </Box>
+            ),
+          }}
+          value={{
+            icon: priceImactViewData.icon,
+            label: {
+              text: formatPriceImpact(formattedQuoteData.priceImpact),
+              variant: TextVariantLegacy.BodyMD,
+              color: priceImactViewData.textColor,
+            },
+          }}
+        />
 
         <QuoteDetailsRecipientKeyValueRow />
 

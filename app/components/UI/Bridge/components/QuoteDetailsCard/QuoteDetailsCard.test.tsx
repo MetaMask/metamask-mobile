@@ -288,7 +288,7 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays fee amount', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -297,10 +297,12 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('0.01')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays quote rate', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -309,10 +311,12 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('navigates to slippage modal on edit press', () => {
-    const { getByTestId } = renderScreen(
+    const { getByTestId, getByText } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -332,10 +336,12 @@ describe('QuoteDetailsCard', () => {
         destChainId: 'evm:1',
       },
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays slippage value', () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -345,6 +351,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays "Included" fee when gasIncluded7702 is true', () => {
@@ -373,7 +381,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -383,6 +391,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -407,7 +417,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
@@ -417,6 +427,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -447,7 +459,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, queryByText } = renderScreen(
+    const { getByText, getByTestId, queryByText } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -456,6 +468,8 @@ describe('QuoteDetailsCard', () => {
     expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.gas_fees_sponsored'))).toBeOnTheScreen();
     expect(queryByText('0.01')).toBeNull();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -485,7 +499,7 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText } = renderScreen(
+    const { getByLabelText, getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -507,6 +521,8 @@ describe('QuoteDetailsCard', () => {
       },
       screen: 'tooltipModal',
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -581,7 +597,7 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('handles quote info navigation', () => {
-    const { getByLabelText } = renderScreen(
+    const { getByLabelText, getByText, getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
@@ -599,6 +615,8 @@ describe('QuoteDetailsCard', () => {
       },
       screen: 'tooltipModal',
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('renders price impact info button for low price impact values', () => {
