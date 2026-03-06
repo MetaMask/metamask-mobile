@@ -554,15 +554,31 @@ function BuildQuote() {
               chainId: network || undefined,
             });
           }
+
+          const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
           if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
             await Linking.openURL(buyWidget.url);
           } else {
-            const redirectUrl = getRampCallbackBaseUrl();
             try {
-              await InAppBrowser.openAuth(buyWidget.url, redirectUrl);
+              await InAppBrowser.openAuth(buyWidget.url, deeplinkRedirectUrl);
             } finally {
               InAppBrowser.closeAuth();
             }
+          }
+
+          if (effectiveOrderId) {
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+                  params: {
+                    orderId: effectiveOrderId,
+                    showCloseButton: true,
+                  },
+                },
+              ],
+            });
           }
           return;
         }
