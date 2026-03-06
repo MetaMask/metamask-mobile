@@ -254,6 +254,7 @@ jobs:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 
       - name: Cache updated fixture
+        if: ${{ !cancelled() }}
         uses: actions/cache/save@v4
         with:
           path: tests/framework/fixtures/json/default-fixture.json
@@ -270,7 +271,7 @@ jobs:
       - prepare
       - is-fork-pull-request
       - update-fixtures
-    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
