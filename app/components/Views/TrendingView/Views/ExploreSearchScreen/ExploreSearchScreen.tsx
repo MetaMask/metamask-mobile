@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import ExploreSearchResults from '../../components/ExploreSearchResults/ExploreSearchResults';
+import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 
 const ExploreSearchScreen: React.FC = () => {
@@ -32,9 +33,11 @@ const ExploreSearchScreen: React.FC = () => {
         />
       </Box>
 
-      <PerpsStreamProvider>
-        <ExploreSearchResults searchQuery={searchQuery} />
-      </PerpsStreamProvider>
+      <PerpsConnectionProvider suppressErrorView manageLifecycle={false}>
+        <PerpsStreamProvider>
+          <ExploreSearchResults searchQuery={searchQuery} />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
     </Box>
   );
 };

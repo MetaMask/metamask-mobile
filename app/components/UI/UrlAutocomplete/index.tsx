@@ -54,6 +54,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { PerpsConnectionProvider } from '../Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { isCaipChainId, parseCaipChainId, type Hex } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../constants/bridge';
@@ -182,7 +183,7 @@ interface SearchContentProps {
 
 /**
  * Inner component that uses omni-search hook
- * Must be rendered inside PerpsStreamProvider
+ * Must be rendered inside PerpsConnectionProvider and PerpsStreamProvider
  */
 const SearchContent: React.FC<SearchContentProps> = ({
   searchQuery,
@@ -620,17 +621,19 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with PerpsStreamProvider for omni-search
-          <PerpsStreamProvider>
-            <SearchContent
-              searchQuery={searchQuery}
-              browserHistory={browserHistory}
-              bookmarks={bookmarks}
-              onSelect={onSelect}
-              hide={hide}
-              styles={styles}
-            />
-          </PerpsStreamProvider>
+          // Search mode: wrap with PerpsConnectionProvider (context only) and PerpsStreamProvider for omni-search
+          <PerpsConnectionProvider suppressErrorView manageLifecycle={false}>
+            <PerpsStreamProvider>
+              <SearchContent
+                searchQuery={searchQuery}
+                browserHistory={browserHistory}
+                bookmarks={bookmarks}
+                onSelect={onSelect}
+                hide={hide}
+                styles={styles}
+              />
+            </PerpsStreamProvider>
+          </PerpsConnectionProvider>
         ) : (
           // Empty state: show Recents and Favorites
           <>
