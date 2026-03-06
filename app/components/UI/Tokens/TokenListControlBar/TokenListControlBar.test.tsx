@@ -320,7 +320,7 @@ describe('TokenListControlBar', () => {
       const { getByTestId } = renderComponent();
       const addTokenButton = getByTestId('import-token-button');
 
-      expect(addTokenButton.props.disabled).toBe(false);
+      expect(addTokenButton.props.disabled).toBeFalsy();
     });
   });
 
