@@ -40,14 +40,20 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let lastAppState = AppState.currentState;
 
     const subscription = AppState.addEventListener('change', (nextState) => {
+      const prevState = lastAppState;
+      lastAppState = nextState;
+
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
         reconnectTimer = undefined;
       }
 
-      if (nextState.match(/inactive|background/)) {
+      // Only disconnect when leaving active state — avoids the duplicate
+      // disconnect on iOS where backgrounding fires active → inactive → background.
+      if (prevState === 'active' && nextState.match(/inactive|background/)) {
         PerpsConnectionManager.disconnect();
       } else if (nextState === 'active') {
         // Small delay to allow system to stabilize after background

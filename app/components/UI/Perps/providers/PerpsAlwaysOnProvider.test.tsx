@@ -64,6 +64,14 @@ describe('PerpsAlwaysOnProvider', () => {
         return { remove: mockSubscriptionRemove };
       });
 
+    // In real app, AppState.currentState starts as 'active'.
+    // In Jest (native not initialized) it's null — mock it so lastAppState
+    // initializes correctly and the prevState === 'active' guard works.
+    Object.defineProperty(AppState, 'currentState', {
+      get: () => 'active',
+      configurable: true,
+    });
+
     // Default: perps enabled
     mockUseSelector.mockReturnValue(true);
   });
@@ -212,6 +220,53 @@ describe('PerpsAlwaysOnProvider', () => {
     // connect should NOT have been called (timer was cancelled)
     expect(mockConnect).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('only disconnects once on iOS active→inactive→background sequence', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    mockDisconnect.mockClear();
+
+    // iOS fires active → inactive → background when backgrounding.
+    // Only the first transition (active → inactive) should trigger disconnect.
+    act(() => {
+      mockAppStateListener?.('inactive'); // prevState='active' → disconnect
+    });
+    act(() => {
+      mockAppStateListener?.('background'); // prevState='inactive' → no-op
+    });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not double-disconnect on iOS pull-down notification center (active→inactive→active)', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    mockConnect.mockClear();
+    mockDisconnect.mockClear();
+
+    // Pull-down: active → inactive → active
+    act(() => {
+      mockAppStateListener?.('inactive'); // prevState='active' → disconnect once
+    });
+    act(() => {
+      mockAppStateListener?.('active'); // schedule reconnect
+    });
+
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(mockConnect).toHaveBeenCalledTimes(1);
   });
 
   it('calls disconnect and removes AppState subscription on unmount', () => {
