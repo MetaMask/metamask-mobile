@@ -534,6 +534,21 @@ function BuildQuote() {
       );
       const providerCode = normalizeProviderCode(selectedQuote.provider);
 
+      // TODO: remove all [Ramp][Debug] logging after PayPal redirect is verified
+      Logger.log('[Ramp][Debug] === handleContinuePress START ===');
+      Logger.log('[Ramp][Debug] provider:', selectedQuote.provider);
+      Logger.log('[Ramp][Debug] providerCode:', providerCode);
+      Logger.log('[Ramp][Debug] isCustomAction:', isCustomAction);
+      Logger.log('[Ramp][Debug] quote.buyURL:', selectedQuote.quote?.buyURL);
+      Logger.log(
+        '[Ramp][Debug] quote.buyWidget:',
+        JSON.stringify(selectedQuote.quote?.buyWidget),
+      );
+      Logger.log(
+        '[Ramp][Debug] quote keys:',
+        JSON.stringify(Object.keys(selectedQuote.quote ?? {})),
+      );
+
       // The redirectUrl baked into the quote's buyURL at quote-fetch time is the
       // HTTPS fake-callback. For providers that open an external OS browser (e.g.
       // PayPal), we need a deep link instead so the browser redirects back to the
@@ -541,10 +556,15 @@ function BuildQuote() {
       // the browser type is only known after the fetch (chicken-and-egg). This is
       // safe: in-app browser providers ignore the redirectUrl parameter.
       const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+      Logger.log('[Ramp][Debug] deeplinkRedirectUrl:', deeplinkRedirectUrl);
 
       let quoteForWidget = selectedQuote;
       if (selectedQuote.quote?.buyURL) {
         const buyUrl = new URL(selectedQuote.quote.buyURL);
+        Logger.log(
+          '[Ramp][Debug] original buyURL redirectUrl param:',
+          buyUrl.searchParams.get('redirectUrl'),
+        );
         buyUrl.searchParams.set('redirectUrl', deeplinkRedirectUrl);
         quoteForWidget = {
           ...selectedQuote,
@@ -553,25 +573,25 @@ function BuildQuote() {
             buyURL: buyUrl.toString(),
           },
         };
-        // TODO: remove debug logging after PayPal redirect is verified
-        Logger.log(
-          '[Ramp][PayPal] buyURL with redirectUrl override:',
-          buyUrl.toString(),
-        );
+        Logger.log('[Ramp][Debug] overridden buyURL:', buyUrl.toString());
       } else {
         Logger.log(
-          '[Ramp][PayPal] no buyURL on quote, skipping redirectUrl override',
+          '[Ramp][Debug] no buyURL on quote, skipping redirectUrl override',
         );
       }
 
+      Logger.log('[Ramp][Debug] calling getBuyWidgetData...');
       const buyWidget = await getBuyWidgetData(quoteForWidget);
-      // TODO: remove debug logging after PayPal redirect is verified
       Logger.log(
-        '[Ramp][PayPal] buyWidget response:',
+        '[Ramp][Debug] getBuyWidgetData result:',
         JSON.stringify(buyWidget),
       );
 
       if (buyWidget?.url) {
+        Logger.log('[Ramp][Debug] buyWidget.url:', buyWidget.url);
+        Logger.log('[Ramp][Debug] buyWidget.browser:', buyWidget.browser);
+        Logger.log('[Ramp][Debug] buyWidget.orderId:', buyWidget.orderId);
+
         const chainId = selectedToken?.chainId as CaipChainId | undefined;
         const network = chainId?.includes(':')
           ? chainId.split(':')[1] || ''
@@ -580,9 +600,15 @@ function BuildQuote() {
 
         const useExternalBrowser =
           isCustomAction || buyWidget.browser === 'IN_APP_OS_BROWSER';
+        Logger.log('[Ramp][Debug] useExternalBrowser:', useExternalBrowser);
+
         if (useExternalBrowser) {
           const effectiveOrderId = buyWidget.orderId?.trim() || null;
+          Logger.log('[Ramp][Debug] effectiveOrderId:', effectiveOrderId);
+          Logger.log('[Ramp][Debug] effectiveWallet:', effectiveWallet);
+
           if (effectiveOrderId && effectiveWallet) {
+            Logger.log('[Ramp][Debug] calling addPrecreatedOrder...');
             addPrecreatedOrder({
               orderId: effectiveOrderId,
               providerCode,
@@ -591,31 +617,53 @@ function BuildQuote() {
             });
           }
 
-          if (Device.isAndroid() || !(await InAppBrowser.isAvailable())) {
+          const isAndroid = Device.isAndroid();
+          const inAppBrowserAvailable =
+            !isAndroid && (await InAppBrowser.isAvailable());
+          Logger.log('[Ramp][Debug] isAndroid:', isAndroid);
+          Logger.log(
+            '[Ramp][Debug] InAppBrowser available:',
+            inAppBrowserAvailable,
+          );
+
+          if (isAndroid || !inAppBrowserAvailable) {
+            Logger.log(
+              '[Ramp][Debug] opening with Linking.openURL:',
+              buyWidget.url,
+            );
             await Linking.openURL(buyWidget.url);
           } else {
+            Logger.log('[Ramp][Debug] opening InAppBrowser.openAuth');
+            Logger.log('[Ramp][Debug]   url:', buyWidget.url);
+            Logger.log('[Ramp][Debug]   redirectUrl:', deeplinkRedirectUrl);
             try {
               const result = await InAppBrowser.openAuth(
                 buyWidget.url,
                 deeplinkRedirectUrl,
               );
-              // TODO: remove debug logging after PayPal redirect is verified
               Logger.log(
-                '[Ramp][PayPal] InAppBrowser result:',
+                '[Ramp][Debug] InAppBrowser result:',
                 JSON.stringify(result),
               );
               if (result.type !== 'success' || !result.url) {
                 Logger.log(
-                  '[Ramp][PayPal] browser cancelled or no URL, returning early',
+                  '[Ramp][Debug] browser cancelled or no URL, returning early',
                 );
                 return;
               }
+              Logger.log(
+                '[Ramp][Debug] InAppBrowser success, proceeding to order details',
+              );
             } finally {
               InAppBrowser.closeAuth();
             }
           }
 
           if (effectiveOrderId) {
+            Logger.log(
+              '[Ramp][Debug] navigating to RAMPS_ORDER_DETAILS with orderId:',
+              effectiveOrderId,
+            );
             navigation.reset({
               index: 0,
               routes: [
@@ -628,10 +676,13 @@ function BuildQuote() {
                 },
               ],
             });
+          } else {
+            Logger.log('[Ramp][Debug] no orderId, skipping navigation');
           }
           return;
         }
 
+        Logger.log('[Ramp][Debug] in-app browser flow, navigating to Checkout');
         navigation.navigate(
           ...createCheckoutNavDetails({
             url: buyWidget.url,
@@ -648,6 +699,7 @@ function BuildQuote() {
           }),
         );
       } else {
+        Logger.log('[Ramp][Debug] buyWidget is null or has no url');
         Logger.error(
           new Error('No widget URL available for aggregator provider'),
           { provider: selectedQuote.provider },
@@ -655,6 +707,7 @@ function BuildQuote() {
         setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
       }
     } catch (error) {
+      Logger.log('[Ramp][Debug] handleContinuePress CAUGHT ERROR:', error);
       Logger.error(error as Error, {
         provider: selectedQuote.provider,
         message: 'Failed to fetch widget URL',
