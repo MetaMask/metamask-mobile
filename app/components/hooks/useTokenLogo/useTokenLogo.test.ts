@@ -7,9 +7,13 @@ const mockUseTheme = jest.fn().mockReturnValue({
   themeAppearance: 'light' as const,
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => mockUseTheme(),
-}));
+jest.mock('../../../util/theme', () => {
+  const actual = jest.requireActual('../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => mockUseTheme(),
+  };
+});
 
 describe('useTokenLogo', () => {
   const mockAssetsRequiringLightBg = new Set(['ETH', 'XRP']);

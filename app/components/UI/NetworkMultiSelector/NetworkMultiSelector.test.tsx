@@ -27,6 +27,7 @@ import {
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
 } from '../../../selectors/multichainNetworkController';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/hideKeyFromUrl', () => jest.fn());
 
@@ -464,19 +465,13 @@ describe('NetworkMultiSelector', () => {
       build: mockBuild,
     });
 
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: () => true,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      getAnalyticsId: jest.fn(),
-    });
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+        isEnabled: jest.fn().mockReturnValue(true),
+      }),
+    );
   });
 
   // TODO: Refactor tests - they aren't up to par

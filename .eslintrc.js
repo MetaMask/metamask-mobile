@@ -54,6 +54,19 @@ module.exports = {
       },
     },
     {
+      // Restore color-no-hex enforcement for excluded component folders' source files
+      files: [
+        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+      ],
+      excludedFiles: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
+      rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
+      },
+    },
+    {
       files: ['*.js', '*.jsx'],
       parser: '@babel/eslint-parser',
       parserOptions: {
