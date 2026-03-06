@@ -556,11 +556,11 @@ describe('ManualBackupStep3', () => {
 
   describe('hardwareBackPress', () => {
     it('handler returns empty object (prevents default back)', async () => {
-      let capturedHandler: (() => object) | undefined;
+      let capturedHandler: (() => unknown) | undefined;
       const addSpy = jest
         .spyOn(BackHandler, 'addEventListener')
         .mockImplementation((_event, handler) => {
-          capturedHandler = handler as () => object;
+          capturedHandler = handler as () => unknown;
           return { remove: jest.fn() };
         });
 
