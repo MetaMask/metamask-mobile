@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { useDispatch, useSelector } from 'react-redux';
@@ -78,16 +78,10 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     }, [fetchCampaigns]),
   );
 
-  const invalidateEvents = useMemo(
-    () =>
-      [
-        'RewardsController:accountLinked',
-        'RewardsController:balanceUpdated',
-      ] as const,
-    [],
+  useInvalidateByRewardEvents(
+    ['RewardsController:accountLinked', 'RewardsController:balanceUpdated'],
+    fetchCampaigns,
   );
-
-  useInvalidateByRewardEvents(invalidateEvents, fetchCampaigns);
 
   return {
     campaigns: campaigns ?? [],
