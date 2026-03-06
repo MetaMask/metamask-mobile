@@ -22,6 +22,7 @@ Use these entrypoints:
 
 - SSOT policy + execution standard: this document
 - Codex skill entrypoint: `.agents/skills/ab-testing-implementation/SKILL.md` (`$ab-testing-implementation`)
+- Claude skill entrypoint: `.claude/skills/ab-testing-implementation/SKILL.md`
 - Claude command entrypoint: `.claude/commands/create-ab-test.md`
 - Cursor command entrypoint: `.cursor/commands/create-ab-test.md`
 - Compliance check: `bash .agents/skills/ab-testing-implementation/scripts/check-ab-testing-compliance.sh --staged`
