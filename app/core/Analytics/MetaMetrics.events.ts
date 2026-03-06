@@ -622,6 +622,7 @@ enum EVENT_NAME {
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
   MARKET_INSIGHTS_VIEWED = 'Market Insights Viewed',
   MARKET_INSIGHTS_INTERACTION = 'Market Insights Interaction',
+  MARKET_INSIGHTS_CARD_SEEN = 'Market Insights Card Seen',
 
   // Share
   SHARE_ACTION = 'Share Action',
@@ -1526,6 +1527,7 @@ const events = {
   MARKET_INSIGHTS_INTERACTION: generateOpt(
     EVENT_NAME.MARKET_INSIGHTS_INTERACTION,
   ),
+  MARKET_INSIGHTS_CARD_SEEN: generateOpt(EVENT_NAME.MARKET_INSIGHTS_CARD_SEEN),
   // Card
   CARD_BUTTON_VIEWED: generateOpt(EVENT_NAME.CARD_BUTTON_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),

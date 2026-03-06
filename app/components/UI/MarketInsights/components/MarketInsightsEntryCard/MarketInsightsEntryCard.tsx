@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Animated, Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -20,6 +20,9 @@ import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.typ
 import { getUniqueSourcesByFavicon } from '../../utils/marketInsightsFormatting';
 import { endTrace, TraceName } from '../../../../../util/trace';
 import SourceLogoGroup from '../SourceLogoGroup';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const SparkleIcon: React.FC = () => {
   const opacity = useRef(new Animated.Value(0.45)).current;
@@ -68,10 +71,22 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const uniqueSources = useMemo(
     () => getUniqueSourcesByFavicon(report.sources ?? []),
     [report.sources],
   );
+
+  const handleVisible = useCallback(() => {
+    const event = createEventBuilder(
+      MetaMetricsEvents.MARKET_INSIGHTS_CARD_SEEN,
+    )
+      .addProperties({ caip19: caip19Id })
+      .build();
+    trackEvent(event);
+  }, [trackEvent, createEventBuilder, caip19Id]);
+
+  const { ref: viewportRef, onLayout } = useViewportTracking(handleVisible);
 
   useEffect(() => {
     // End the trace started by the parent (AssetOverviewContent) to measure
@@ -84,6 +99,9 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   return (
     <Pressable
+      ref={viewportRef}
+      collapsable={false}
+      onLayout={onLayout}
       onPress={onPress}
       style={({ pressed }) => tw.style('px-4 mt-2', pressed && 'opacity-80')}
       testID={testID}
