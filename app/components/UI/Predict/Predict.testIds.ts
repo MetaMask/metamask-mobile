@@ -176,7 +176,7 @@ export const PredictActivityDetailsSelectorsIDs = {
 
 export const PredictSearchSelectorsIDs = {
   SEARCH_BUTTON: 'predict-search-button',
-  CLEAR_BUTTON: 'clear-button',
+  CLEAR_BUTTON: 'predict-clear-button',
   ERROR_STATE: 'predict-error-state',
 } as const;
 
