@@ -1,6 +1,9 @@
-import { useCallback } from 'react';
-import { useQueries } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef } from 'react';
+import { useQueries, UseQueryResult } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import {
   PredictPriceHistoryInterval,
   PredictPriceHistoryPoint,
@@ -61,9 +64,45 @@ export const usePredictPriceHistory = (
       : 'Failed to fetch price history';
   });
 
+  // Track which market errors have already been reported to Sentry
+  const reportedErrorsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    queries.forEach((q, i) => {
+      const marketId = marketIds[i];
+      if (q.error && marketId && !reportedErrorsRef.current.has(marketId)) {
+        reportedErrorsRef.current.add(marketId);
+        Logger.error(ensureError(q.error), {
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            component: 'usePredictPriceHistory',
+          },
+          context: {
+            name: 'usePredictPriceHistory',
+            data: {
+              method: 'loadPriceHistory',
+              action: 'price_history_load_single',
+              operation: 'data_fetching',
+              marketId,
+              interval,
+              fidelity,
+            },
+          },
+        });
+      } else if (!q.error && marketId) {
+        reportedErrorsRef.current.delete(marketId);
+      }
+    });
+  }, [queries, marketIds, interval, fidelity]);
+
+  // Use a ref so refetch has a stable identity across renders
+  const queriesRef =
+    useRef<UseQueryResult<PredictPriceHistoryPoint[]>[]>(queries);
+  queriesRef.current = queries;
+
   const refetch = useCallback(async () => {
-    await Promise.all(queries.map((q) => q.refetch()));
-  }, [queries]);
+    await Promise.all(queriesRef.current.map((q) => q.refetch()));
+  }, []);
 
   return {
     priceHistories: enabled ? priceHistories : [],

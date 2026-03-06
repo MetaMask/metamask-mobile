@@ -16,8 +16,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: { log: jest.fn() },
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 const createWrapper = () => {

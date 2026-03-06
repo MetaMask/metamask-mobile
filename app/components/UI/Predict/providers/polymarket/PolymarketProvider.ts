@@ -25,7 +25,6 @@ import {
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
-  PredictSportsLeague,
   PriceResult,
   Side,
   UnrealizedPnL,
@@ -75,6 +74,7 @@ import {
   getSafeUsdcAmount,
   getWithdrawTransactionCallData,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
 import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
@@ -107,7 +107,6 @@ import {
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
-import { isLiveSportsEvent } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -215,6 +214,22 @@ export class PolymarketProvider implements PredictProvider {
     );
   }
 
+  async #isPermit2AllowanceReady(ownerAddress: string): Promise<boolean> {
+    const safeAddress =
+      this.#accountStateByAddress.get(ownerAddress)?.address ??
+      computeProxyAddress(ownerAddress);
+
+    try {
+      return await hasPermit2Allowance({ address: safeAddress });
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Permit2 allowance check failed', {
+        error,
+        ownerAddress,
+      });
+      return false;
+    }
+  }
+
   public async getMarketDetails({
     marketId,
   }: {
@@ -225,23 +240,20 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
-      const { liveSportsLeagues } = this.#getFeatureFlags();
-      const isSportsEvent = isLiveSportsEvent(
-        event,
-        liveSportsLeagues as PredictSportsLeague[],
-      );
+      const liveSportsEnabled = liveSportsLeagues.length > 0;
 
-      if (isSportsEvent) {
+      if (liveSportsEnabled) {
         await TeamsCache.getInstance().ensureLeaguesLoaded(
           liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
         );
       }
 
-      const teamLookup = isSportsEvent
+      const teamLookup = liveSportsEnabled
         ? (
             league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
             abbreviation: string,
@@ -257,7 +269,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return isSportsEvent
+      return liveSportsEnabled
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
     } catch (error) {
@@ -1013,18 +1025,31 @@ export class PolymarketProvider implements PredictProvider {
 
     // Determine intended order type from feature flags.
     // FAK is used when Permit2 config is active and FAK orders are enabled.
-    // placeOrder() guarantees the Permit2 allowance is set before submission,
-    // so we can always use FAK when the config allows it.
+    // The Permit2 allowance check is only needed when fees must be collected.
     let orderType = OrderType.FOK;
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      orderType = OrderType.FAK;
+    const couldUseFak = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    });
+
+    if (couldUseFak) {
+      const hasFees =
+        basePreview.fees !== undefined && basePreview.fees.totalFee > 0;
+      if (hasFees) {
+        // TODO: remove this once placeOrder guarantees Permit2 allowance
+        // is set automatically before order submission.
+        const permit2Ready = await this.#isPermit2AllowanceReady(
+          params.signer.address,
+        );
+        if (permit2Ready) {
+          orderType = OrderType.FAK;
+        }
+      } else {
+        // No fees to collect via Permit2 — FAK can be used directly.
+        orderType = OrderType.FAK;
+      }
     }
 
     if (params.signer) {
@@ -1214,20 +1239,30 @@ export class PolymarketProvider implements PredictProvider {
         );
 
         if (shouldUsePermit2) {
-          // Always use Permit2 fee authorization when permit2 is enabled.
-          // The relay will submit the allowancesTx on-chain first (if
-          // attached) before redeeming the Permit2 authorization.
-          permit2FeeReady = true;
           const executors = fees.executors ?? [];
-          const randomIndex = new Uint32Array(1);
-          global.crypto.getRandomValues(randomIndex);
-          executor = executors[randomIndex[0] % executors.length];
-          feeAuthorization = await createPermit2FeeAuthorization({
-            safeAddress,
-            signer,
-            amount: feeAmountInUsdc,
-            spender: executor,
-          });
+          const permit2Ready = await this.#isPermit2AllowanceReady(
+            signer.address,
+          );
+
+          if (permit2Ready) {
+            permit2FeeReady = true;
+            const randomIndex = new Uint32Array(1);
+            global.crypto.getRandomValues(randomIndex);
+            executor = executors[randomIndex[0] % executors.length];
+            feeAuthorization = await createPermit2FeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              spender: executor,
+            });
+          } else {
+            feeAuthorization = await createSafeFeeAuthorization({
+              safeAddress,
+              signer,
+              amount: feeAmountInUsdc,
+              to: fees.collector,
+            });
+          }
         } else {
           feeAuthorization = await createSafeFeeAuthorization({
             safeAddress,
@@ -1238,59 +1273,9 @@ export class PolymarketProvider implements PredictProvider {
         }
       }
 
-      let allowancesTx: { to: string; data: string } | undefined;
-      let permit2AllowanceReady = false;
-
-      // When Permit2 is enabled via feature flags, ensure the proxy wallet
-      // has the required allowances. If not, generate a signed Safe TX that
-      // the relay will submit on-chain before processing the order.
-      // This uses the feature flag (not per-order fees) so it works for
-      // both BUY orders (with fees) and SELL orders (no fees).
-      //
-      // IMPORTANT: Skip when a Safe fee authorization was already signed,
-      // because both transactions read the same on-chain Safe nonce and
-      // the relay would invalidate one when executing the other.
-      const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
-
-      if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
-        try {
-          const accountState = await this.getAccountState({
-            ownerAddress: signer.address,
-          });
-
-          if (accountState.hasAllowances) {
-            permit2AllowanceReady = true;
-          } else {
-            const allowanceTx = await getProxyWalletAllowancesTransaction({
-              signer,
-              extraUsdcSpenders: [PERMIT2_ADDRESS],
-            });
-
-            allowancesTx = allowanceTx.params;
-            permit2AllowanceReady = true;
-          }
-        } catch (allowanceError) {
-          // Log but don't block the order — the relay will fall back
-          // to FOK if FAK isn't viable without allowances.
-          DevLogger.log(
-            'PolymarketProvider: Failed to generate allowances transaction',
-            { error: allowanceError },
-          );
-          Logger.error(
-            allowanceError instanceof Error
-              ? allowanceError
-              : new Error(String(allowanceError)),
-            this.getErrorContext('placeOrder:allowancesTx', {
-              operation: 'generate_allowances_tx',
-            }),
-          );
-        }
-      }
-
-      // Determine order type: FAK when Permit2 config is active and
-      // FAK orders are enabled. For orders with fees, the relay also
-      // needs Permit2 allowances (either already on-chain or via
-      // the attached allowancesTx).
+      // Determine order type independently of fee authorization.
+      // FAK depends on feature flags only; the Permit2 allowance check
+      // is only needed when fees must be collected via Permit2.
       if (
         this.#shouldUseFakOrderType({
           permit2Enabled: feeCollection.permit2Enabled,
@@ -1299,7 +1284,7 @@ export class PolymarketProvider implements PredictProvider {
         })
       ) {
         const hasFees = fees !== undefined && fees.totalFee > 0;
-        if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+        if (!hasFees || permit2FeeReady) {
           orderType = OrderType.FAK;
         }
       }
@@ -1344,7 +1329,6 @@ export class PolymarketProvider implements PredictProvider {
         clobOrder,
         feeAuthorization,
         executor,
-        allowancesTx,
       });
 
       if (!success) {
