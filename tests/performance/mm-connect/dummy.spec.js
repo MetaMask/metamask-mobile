@@ -12,18 +12,23 @@ test('CHRIS:: Dummy test', async ({ device }) => {
     'http://bs-local.com:5173',
   );
 
-  // Inject console interceptor to capture browser logs
+  // Inject console interceptor that persists across same-origin refreshes via sessionStorage
   await webDriverClient.executeScript(
     `
-    window.__consoleLogs = [];
-    ['log', 'warn', 'error', 'info', 'debug'].forEach(function(method) {
-      var orig = console[method];
-      console[method] = function() {
-        var args = Array.prototype.slice.call(arguments);
-        window.__consoleLogs.push({ method: method, args: args.map(String), ts: Date.now() });
-        orig.apply(console, args);
-      };
-    });
+    if (!window.__consoleInterceptorActive) {
+      window.__consoleInterceptorActive = true;
+      window.__consoleLogs = JSON.parse(sessionStorage.getItem('__consoleLogs') || '[]');
+      ['log', 'warn', 'error', 'info', 'debug'].forEach(function(method) {
+        var orig = console[method];
+        console[method] = function() {
+          var args = Array.prototype.slice.call(arguments);
+          var entry = { method: method, args: args.map(String), ts: Date.now() };
+          window.__consoleLogs.push(entry);
+          try { sessionStorage.setItem('__consoleLogs', JSON.stringify(window.__consoleLogs)); } catch(e) {}
+          orig.apply(console, args);
+        };
+      });
+    }
   `,
     [],
   );
