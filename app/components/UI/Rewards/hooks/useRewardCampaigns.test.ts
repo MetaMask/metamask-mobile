@@ -273,6 +273,36 @@ describe('useRewardCampaigns', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(false));
     });
+
+    it('does not trigger concurrent fetches when already loading', async () => {
+      setupSelectorMocks();
+      let resolveFirstFetch: (value: CampaignDto[]) => void;
+      const firstFetchPromise = new Promise<CampaignDto[]>((resolve) => {
+        resolveFirstFetch = resolve;
+      });
+      mockEngineCall.mockReturnValueOnce(firstFetchPromise);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      // Start first fetch without awaiting
+      act(() => {
+        result.current.fetchCampaigns();
+      });
+
+      // Attempt concurrent fetch — should be skipped
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      // Engine should only be called once
+      expect(mockEngineCall).toHaveBeenCalledTimes(1);
+
+      // Resolve the first fetch
+      await act(async () => {
+        resolveFirstFetch([]);
+        await firstFetchPromise;
+      });
+    });
   });
 
   describe('useFocusEffect integration', () => {
