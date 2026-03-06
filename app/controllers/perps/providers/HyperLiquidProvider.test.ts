@@ -4,6 +4,7 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { CandlePeriod } from '../constants/chartConfig';
 import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
@@ -8543,6 +8544,62 @@ describe('HyperLiquidProvider', () => {
         expect(infoClient.perpDexs).not.toHaveBeenCalled();
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('fetchHistoricalCandles', () => {
+    const options = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      limit: 100,
+    };
+
+    it('returns candle data from clientService', async () => {
+      // Arrange
+      const mockCandles = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            open: '50000',
+            close: '51000',
+            high: '51500',
+            low: '49500',
+            volume: '100',
+            time: 1000,
+          },
+        ],
+      };
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(mockCandles);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(mockClientService.ensureInitialized).toHaveBeenCalled();
+      expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+        options,
+      );
+      expect(result).toStrictEqual(mockCandles);
+    });
+
+    it('returns empty candles when clientService returns null', async () => {
+      // Arrange
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(null);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(result).toStrictEqual({
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
       });
     });
   });

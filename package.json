@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.69.0",
+  "version": "7.70.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -131,8 +131,16 @@
     "gen-bundle:android": "yarn react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/main.jsbundle",
     "circular:deps": "dpdm ./app/* --circular --exit-code circular:1 --warning=false",
     "generate-icons": "yarn ts-node app/component-library/components/Icons/Icon/scripts/generate-assets.ts",
+<<<<<<< feat/devex_worktrees_scripts
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts"
+=======
+    "a:start": "scripts/perps/agentic/start-metro.sh",
+    "a:stop": "scripts/perps/agentic/stop-metro.sh",
+    "a:status": "scripts/perps/agentic/app-state.sh status",
+    "a:reload": "scripts/perps/agentic/reload-metro.sh",
+    "a:navigate": "scripts/perps/agentic/app-navigate.sh"
+>>>>>>> main
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -214,7 +222,7 @@
     "@metamask/core-backend": "^5.0.0",
     "@metamask/delegation-controller": "^2.0.1",
     "@metamask/delegation-deployments": "^0.15.0",
-    "@metamask/design-system-react-native": "^0.8.0",
+    "@metamask/design-system-react-native": "^0.10.0",
     "@metamask/design-system-twrnc-preset": "^0.3.0",
     "@metamask/design-tokens": "^8.2.2",
     "@metamask/earn-controller": "^10.0.0",
@@ -297,7 +305,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^62.19.0",
-    "@metamask/transaction-pay-controller": "^16.1.2",
+    "@metamask/transaction-pay-controller": "^16.3.0",
     "@metamask/tron-wallet-snap": "1.22.1",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
