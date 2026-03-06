@@ -122,7 +122,6 @@ module.exports = {
         'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
