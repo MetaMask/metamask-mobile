@@ -176,7 +176,8 @@ export class TradingService {
           params.trackingData.mmPayNetworkSelected;
       }
     } else if (params.trackingData !== undefined) {
-      properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] = 'Perps Balance';
+      properties[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
+        PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
     }
 
     // Add success-specific properties

@@ -111,7 +111,7 @@ export function usePerpsOrderExecution(
               }
             } else if (orderParams.trackingData !== undefined) {
               partialProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-                'Perps Balance';
+                PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
             }
             track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, partialProps);
           }
@@ -177,7 +177,7 @@ export function usePerpsOrderExecution(
             }
           } else if (orderParams.trackingData !== undefined) {
             failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-              'Perps Balance';
+              PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
           }
           track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, failedProps);
 
@@ -236,7 +236,7 @@ export function usePerpsOrderExecution(
           }
         } else if (orderParams.trackingData !== undefined) {
           exceptionProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
-            'Perps Balance';
+            PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE;
         }
         track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION, exceptionProps);
 

@@ -417,6 +417,10 @@ export const PERPS_EVENT_VALUE = {
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
   },
+  /** Value for mm_pay_token_selected when user pays with Perps balance (not a token) */
+  MM_PAY_TOKEN: {
+    PERPS_BALANCE: 'Perps Balance',
+  },
   // A/B testing values
   AB_TEST: {
     // Test IDs

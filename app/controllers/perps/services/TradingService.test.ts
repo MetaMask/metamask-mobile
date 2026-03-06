@@ -4,6 +4,7 @@ import {
   createMockPerpsControllerState,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { PERPS_EVENT_VALUE } from '../constants/eventNames';
 import { PerpsAnalyticsEvent } from '../types';
 import type {
   PerpsProvider,
@@ -359,7 +360,7 @@ describe('TradingService', () => {
         expect.objectContaining({
           status: 'executed',
           trade_with_token: false,
-          mm_pay_token_selected: 'Perps Balance',
+          mm_pay_token_selected: PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
         }),
       );
     });
