@@ -349,3 +349,71 @@ jobs:
             ${{ steps.rename.outputs.android_apk_path }}
             ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error
+
+  # Upload iOS device build to TestFlight (only when version bump was applied).
+  # Requires GitHub Environment secrets: APP_STORE_CONNECT_API_KEY_ISSUER_ID,
+  # APP_STORE_CONNECT_API_KEY_KEY_ID, APP_STORE_CONNECT_API_KEY_KEY_CONTENT (.p8 content).
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [prepare, build]
+    if: |
+      always() && !cancelled() &&
+      !inputs.skip_version_bump &&
+      needs.build.result == 'success' &&
+      (inputs.platform == 'ios' || inputs.platform == 'both') &&
+      (inputs.build_name == 'main-rc' || inputs.build_name == 'main-exp' || inputs.build_name == 'main-prod')
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: ${{ needs.prepare.outputs.github_environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-${{ inputs.build_name }}
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          # Portable absolute path (realpath not always on macOS)
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          ./scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          ./scripts/upload-to-testflight.sh \
+            "github_actions_${{ inputs.build_name }}" \
+            "${{ github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
