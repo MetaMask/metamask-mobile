@@ -533,6 +533,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
       [
         {
           "display": "flex",
+          "paddingBottom": 16,
           "paddingTop": 16,
           "width": "100%",
         },
@@ -1027,6 +1028,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       [
         {
           "display": "flex",
+          "paddingBottom": 16,
           "paddingTop": 16,
           "width": "100%",
         },

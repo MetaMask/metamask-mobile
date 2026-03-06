@@ -555,7 +555,11 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Box>
       )}
 
-      <Box twClassName={`w-full pb-4 ${showCloseButton ? 'mt-auto' : 'pt-4'}`}>
+      <Box
+        twClassName={
+          showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
+        }
+      >
         {order.statusDescription && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
             <TouchableOpacity onPress={handleInfoPress}>
@@ -563,7 +567,8 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
               >
-                {order.statusDescription.startsWith('Your order')
+                {order.statusDescription.startsWith('Your order') &&
+                order.statusDescription.includes('. ')
                   ? order.statusDescription.substring(
                       order.statusDescription.indexOf('. ') + 2,
                     )
