@@ -11,6 +11,7 @@ import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/Marke
 import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
 import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
+import { PriceImpactModal } from './components/PriceImpactModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -78,6 +79,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL}
       component={NetworkListModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
+      component={PriceImpactModal}
     />
   </ModalStack.Navigator>
 );

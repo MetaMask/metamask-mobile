@@ -27,10 +27,11 @@ import {
 import { safeParseBigNumber } from '../../util/number/bignumber';
 import { selectAccountsByChainId } from '../accountTrackerController';
 import {
-  TRON_RESOURCE,
-  TRON_RESOURCE_SYMBOLS_SET,
-  TronResourceSymbol,
+  TRON_SPECIAL_ASSET_SYMBOLS,
+  TRON_SPECIAL_ASSET_SYMBOLS_SET,
+  TronSpecialAssetSymbol,
 } from '../../core/Multichain/constants';
+import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
 import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
@@ -38,10 +39,14 @@ import { selectSelectedInternalAccountByScope } from '../multichainAccounts/acco
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 
 /**
- * Structured map of Tron resources for efficient access.
- * Each property corresponds to a specific Tron resource type.
+ * Structured map of Tron special assets for efficient access.
+ *
+ * Includes network resources (Energy, Bandwidth and their max capacities),
+ * staking-related assets (staked TRX for Energy/Bandwidth, total staked TRX),
+ * and additional staking lifecycle assets (Ready for Withdrawal, Staking
+ * Rewards, In Lock Period).
  */
-export interface TronResourcesMap {
+export interface TronSpecialAssetsMap {
   /** Current available energy */
   energy: Asset | undefined;
   /** Current available bandwidth */
@@ -56,12 +61,18 @@ export interface TronResourcesMap {
   stakedTrxForBandwidth: Asset | undefined;
   /** Total staked TRX (sum of energy + bandwidth staking) */
   totalStakedTrx: number;
+  /** TRX ready for withdrawal (unstaked TRX that has completed the lock period) */
+  trxReadyForWithdrawal: Asset | undefined;
+  /** TRX staking rewards */
+  trxStakingRewards: Asset | undefined;
+  /** TRX in lock period (unstaked but waiting for lock period to end) */
+  trxInLockPeriod: Asset | undefined;
 }
 
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
  */
-const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
+const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -69,6 +80,9 @@ const EMPTY_TRON_RESOURCES_MAP: TronResourcesMap = Object.freeze({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
 });
 
 const getStateForAssetSelector = (state: RootState) => {
@@ -245,7 +259,11 @@ export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
   (bip44Assets, enabledNetworks, tokenSortConfig, stakedAssets) => {
     const assets = Object.entries(bip44Assets)
       .filter(([networkId, _]) => enabledNetworks.includes(networkId))
-      .flatMap(([_, chainAssets]) => chainAssets);
+      .flatMap(([_, chainAssets]) =>
+        chainAssets.filter(
+          (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
+        ),
+      );
 
     const stakedAssetsArray = [];
     for (const asset of assets) {
@@ -425,22 +443,26 @@ function assetToToken(
 }
 
 /**
- * Selects Tron resources (Energy, Bandwidth, Max values, and staked TRX) for the
- * currently selected account group.
+ * Selects Tron special assets for the currently selected account group.
  *
- * Returns a structured object with all resources pre-mapped for efficient access,
- * eliminating the need for consumers to iterate/search the array.
+ * This includes:
+ * - **Network resources**: Energy, Bandwidth, and their maximum capacities.
+ * - **Staking assets**: TRX staked for Energy/Bandwidth and a pre-computed `totalStakedTrx` sum.
+ * - **Staking lifecycle assets**: TRX Ready for Withdrawal, Staking Rewards, and TRX In Lock Period.
+ *
+ * Returns a structured {@link TronSpecialAssetsMap} with all assets pre-mapped by type
+ * for efficient access, eliminating the need for consumers to iterate or search the array.
  */
-export const selectTronResourcesBySelectedAccountGroup =
+export const selectTronSpecialAssetsBySelectedAccountGroup =
   createDeepEqualSelector(
     [getStateForAssetSelector, selectEnabledNetworks],
-    (assetsState, enabledNetworks): TronResourcesMap => {
+    (assetsState, enabledNetworks): TronSpecialAssetsMap => {
       const enabledTronNetworks = enabledNetworks.filter((networkId) =>
         networkId.startsWith('tron:'),
       );
 
       if (enabledTronNetworks.length === 0) {
-        return EMPTY_TRON_RESOURCES_MAP;
+        return EMPTY_TRON_SPECIAL_ASSETS_MAP;
       }
 
       const allAssets = _selectAssetsBySelectedAccountGroup(assetsState, {
@@ -449,7 +471,7 @@ export const selectTronResourcesBySelectedAccountGroup =
 
       const enabledTronNetworksSet = new Set(enabledTronNetworks);
 
-      const resourceMap: TronResourcesMap = {
+      const specialAssetsMap: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -457,33 +479,45 @@ export const selectTronResourcesBySelectedAccountGroup =
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
       };
 
       for (const [networkId, chainAssets] of Object.entries(allAssets)) {
         if (!enabledTronNetworksSet.has(networkId)) continue;
 
         for (const asset of chainAssets) {
-          const symbol = asset.symbol?.toLowerCase() as TronResourceSymbol;
-          if (!TRON_RESOURCE_SYMBOLS_SET.has(symbol)) continue;
+          const symbol = asset.symbol?.toLowerCase() as TronSpecialAssetSymbol;
+          if (!TRON_SPECIAL_ASSET_SYMBOLS_SET.has(symbol)) continue;
 
           switch (symbol) {
-            case TRON_RESOURCE.ENERGY:
-              resourceMap.energy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.ENERGY:
+              specialAssetsMap.energy = asset;
               break;
-            case TRON_RESOURCE.BANDWIDTH:
-              resourceMap.bandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.BANDWIDTH:
+              specialAssetsMap.bandwidth = asset;
               break;
-            case TRON_RESOURCE.MAX_ENERGY:
-              resourceMap.maxEnergy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_ENERGY:
+              specialAssetsMap.maxEnergy = asset;
               break;
-            case TRON_RESOURCE.MAX_BANDWIDTH:
-              resourceMap.maxBandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_BANDWIDTH:
+              specialAssetsMap.maxBandwidth = asset;
               break;
-            case TRON_RESOURCE.STRX_ENERGY:
-              resourceMap.stakedTrxForEnergy = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_ENERGY:
+              specialAssetsMap.stakedTrxForEnergy = asset;
               break;
-            case TRON_RESOURCE.STRX_BANDWIDTH:
-              resourceMap.stakedTrxForBandwidth = asset;
+            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_BANDWIDTH:
+              specialAssetsMap.stakedTrxForBandwidth = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_READY_FOR_WITHDRAWAL:
+              specialAssetsMap.trxReadyForWithdrawal = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_STAKING_REWARDS:
+              specialAssetsMap.trxStakingRewards = asset;
+              break;
+            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_IN_LOCK_PERIOD:
+              specialAssetsMap.trxInLockPeriod = asset;
               break;
           }
         }
@@ -493,17 +527,17 @@ export const selectTronResourcesBySelectedAccountGroup =
        * Compute total staked TRX using BigNumber to avoid floating-point precision errors
        */
       const stakedTrxForEnergyBN = safeParseBigNumber(
-        resourceMap.stakedTrxForEnergy?.balance,
+        specialAssetsMap.stakedTrxForEnergy?.balance,
       );
       const stakedTrxForBandwidthBN = safeParseBigNumber(
-        resourceMap.stakedTrxForBandwidth?.balance,
+        specialAssetsMap.stakedTrxForBandwidth?.balance,
       );
       const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
         stakedTrxForBandwidthBN,
       );
 
-      resourceMap.totalStakedTrx = totalStakedTrxBN.toNumber();
+      specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
 
-      return resourceMap;
+      return specialAssetsMap;
     },
   );
