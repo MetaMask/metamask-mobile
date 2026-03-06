@@ -52,6 +52,7 @@ describe('useDeviceEventHandlers', () => {
       adapterRef: { current: mockAdapter },
       isConnectingRef: { current: false },
       abortControllerRef: { current: null },
+      targetWalletTypeRef: { current: null },
     };
 
     // Track last connection state for assertion

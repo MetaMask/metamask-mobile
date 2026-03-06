@@ -435,7 +435,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
         percentage: MUSD_CONVERSION_APY,
       });
 
@@ -484,7 +484,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
         percentage: MUSD_CONVERSION_APY,
       });
 
@@ -534,7 +534,7 @@ describe('MusdConversionAssetOverviewCta', () => {
       });
 
       // Assert
-      const expectedCtaText = strings('earn.musd_conversion.boost_title', {
+      const expectedCtaText = strings('earn.musd_conversion.bonus_title', {
         percentage: MUSD_CONVERSION_APY,
       });
 

@@ -61,6 +61,7 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  SignatureType,
   TickSize,
   OrderBook,
 } from './types';
@@ -185,6 +186,76 @@ export const getL2Headers = async ({
   };
 
   return headers;
+};
+
+/**
+ * TEMPORARY WORKAROUND for Polymarket infrastructure issue.
+ *
+ * Polymarket's CLOB infrastructure intermittently returns 400 errors with
+ * "not enough balance / allowance" when placing orders at high request rates.
+ * Calling this endpoint before each order refreshes the balance/allowance state
+ * on their end and prevents most of these spurious failures.
+ *
+ * For BUY orders: refreshes COLLATERAL (USDC) balance/allowance.
+ * For SELL orders: refreshes CONDITIONAL token balance/allowance.
+ *
+ * TODO: Remove this workaround once Polymarket resolves the underlying
+ * infrastructure issue. Track removal in a follow-up ticket.
+ */
+export const refreshBalanceAllowance = async ({
+  address,
+  apiKey,
+  side,
+  outcomeTokenId,
+  signatureType = SignatureType.POLY_GNOSIS_SAFE,
+}: {
+  address: string;
+  apiKey: ApiKeyCreds;
+  side: Side;
+  outcomeTokenId: string;
+  signatureType?: SignatureType;
+}): Promise<void> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  const queryParams = new URLSearchParams({
+    signature_type: String(signatureType),
+  });
+
+  if (side === Side.BUY) {
+    queryParams.set('asset_type', 'COLLATERAL');
+  } else {
+    queryParams.set('asset_type', 'CONDITIONAL');
+    queryParams.set('token_id', outcomeTokenId);
+  }
+
+  const requestPath = `/balance-allowance/update`;
+
+  const headers = await getL2Headers({
+    l2HeaderArgs: {
+      method: 'GET',
+      requestPath,
+    },
+    address,
+    apiKey,
+  });
+
+  const response = await fetch(
+    `${CLOB_ENDPOINT}${requestPath}?${queryParams.toString()}`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+
+  if (!response.ok) {
+    DevLogger.log(
+      'refreshBalanceAllowance: Pre-order balance/allowance refresh failed',
+      {
+        status: response.status,
+        side,
+      },
+    );
+  }
 };
 
 export const deriveApiKey = async ({ address }: { address: string }) => {
@@ -395,21 +466,25 @@ export const submitClobOrder = async ({
   clobOrder,
   feeAuthorization,
   executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
   executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
   const body: ClobOrderObject & {
     feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
     executor?: string;
+    allowancesTx?: { to: string; data: string };
   } = {
     ...clobOrder,
     feeAuthorization,
     ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -740,7 +815,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -1075,7 +1150,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({

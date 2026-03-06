@@ -30,7 +30,7 @@ describe('link component', () => {
           children: 'link',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: mockTheme.colors.info.default,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -75,7 +75,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: mockTheme.colors.info.default,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -120,7 +120,7 @@ describe('link component', () => {
           children: 'Visit ',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: mockTheme.colors.info.default,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
@@ -133,7 +133,7 @@ describe('link component', () => {
           children: 'MetaMask',
           key: expect.any(String),
           props: {
-            color: '#4459ff',
+            color: mockTheme.colors.info.default,
             style: {
               fontWeight: undefined,
               textAlign: undefined,
