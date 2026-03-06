@@ -10,7 +10,6 @@ interface UsePredictBuyConditionsParams {
   isPlaceOrderLoading: boolean;
   isPayWithAnyTokenProcessing: boolean;
   isUserInputChange: boolean;
-  isConfirming: boolean;
 }
 
 export const usePredictBuyConditions = ({
@@ -20,7 +19,6 @@ export const usePredictBuyConditions = ({
   isPlaceOrderLoading,
   isPayWithAnyTokenProcessing,
   isUserInputChange,
-  isConfirming,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
 
@@ -38,8 +36,7 @@ export const usePredictBuyConditions = ({
       !isPlaceOrderLoading &&
       !isRateLimited &&
       !isPreviewCalculating &&
-      !isBalanceLoading &&
-      !isConfirming,
+      !isBalanceLoading,
     [
       isBelowMinimum,
       preview,
@@ -47,13 +44,12 @@ export const usePredictBuyConditions = ({
       isRateLimited,
       isPreviewCalculating,
       isBalanceLoading,
-      isConfirming,
     ],
   );
 
   const isPlacingOrder = useMemo(
-    () => isPlaceOrderLoading || isPayWithAnyTokenProcessing || isConfirming,
-    [isPlaceOrderLoading, isPayWithAnyTokenProcessing, isConfirming],
+    () => isPlaceOrderLoading || isPayWithAnyTokenProcessing,
+    [isPlaceOrderLoading, isPayWithAnyTokenProcessing],
   );
 
   const isUserChangeTriggeringCalculation = useMemo(
