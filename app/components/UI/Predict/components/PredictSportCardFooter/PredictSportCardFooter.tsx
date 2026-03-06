@@ -65,7 +65,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
     navigation,
   });
 
-  const { claim } = usePredictClaim();
+  const { claim, isClaimPending } = usePredictClaim();
 
   const outcome = market.outcomes?.[0];
   const isMarketOpen =
@@ -188,6 +188,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
           onBetPress={handleBetPress}
           onClaimPress={handleClaimPress}
           claimableAmount={claimableAmount}
+          isClaimDisabled={isClaimPending}
           testID={testID ? `${testID}-action-buttons` : undefined}
           isCarousel={isCarousel}
         />

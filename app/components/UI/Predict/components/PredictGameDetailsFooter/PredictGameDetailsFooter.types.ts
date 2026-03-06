@@ -11,6 +11,7 @@ export interface PredictGameDetailsFooterProps {
   onClaimPress?: () => void;
   onInfoPress: () => void;
   claimableAmount?: number;
+  isClaimDisabled?: boolean;
   isLoading?: boolean;
   testID?: string;
 }

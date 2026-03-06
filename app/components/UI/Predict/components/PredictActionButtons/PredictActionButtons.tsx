@@ -13,6 +13,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   onBetPress,
   onClaimPress,
   claimableAmount = 0,
+  isClaimDisabled = false,
   isLoading = false,
   testID = 'predict-action-buttons',
   isCarousel,
@@ -76,6 +77,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         <PredictClaimButton
           amount={market.game ? undefined : claimableAmount}
           onPress={onClaimPress}
+          disabled={isClaimDisabled}
           testID={`${testID}-claim`}
         />
       </Box>

@@ -1,6 +1,6 @@
 import { NavigationProp } from '@react-navigation/native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -75,6 +75,18 @@ const mockToastRef = {
   },
 };
 
+const createDeferred = () => {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+
+  const promise = new Promise<void>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+
+  return { promise, resolve, reject };
+};
+
 describe('usePredictClaim', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,6 +136,7 @@ describe('usePredictClaim', () => {
 
       // Assert
       expect(result.current.claim).toBeInstanceOf(Function);
+      expect(result.current.isClaimPending).toBe(false);
     });
   });
 
@@ -135,7 +148,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -154,10 +169,111 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockClaimWinnings).toHaveBeenCalledWith({});
+    });
+
+    it('sets isClaimPending during claim initialization', async () => {
+      // Arrange
+      const deferred = createDeferred();
+      mockClaimWinnings.mockReturnValue(deferred.promise);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      act(() => {
+        void result.current.claim();
+      });
+
+      // Assert
+      expect(result.current.isClaimPending).toBe(true);
+
+      // Cleanup
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+    });
+
+    it('ignores a second claim call while pending', async () => {
+      // Arrange
+      const deferred = createDeferred();
+      mockClaimWinnings.mockReturnValue(deferred.promise);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      act(() => {
+        void result.current.claim();
+      });
+
+      act(() => {
+        void result.current.claim();
+      });
+
+      // Assert
+      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+      expect(mockClaimWinnings).toHaveBeenCalledTimes(1);
+
+      // Cleanup
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+    });
+
+    it('resets isClaimPending after success', async () => {
+      // Arrange
+      const deferred = createDeferred();
+      mockClaimWinnings.mockReturnValue(deferred.promise);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      act(() => {
+        void result.current.claim();
+      });
+
+      // Assert
+      expect(result.current.isClaimPending).toBe(true);
+
+      // Act
+      await act(async () => {
+        deferred.resolve();
+        await deferred.promise;
+      });
+
+      // Assert
+      expect(result.current.isClaimPending).toBe(false);
+    });
+
+    it('resets isClaimPending after failure', async () => {
+      // Arrange
+      const deferred = createDeferred();
+      mockClaimWinnings.mockReturnValue(deferred.promise);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      act(() => {
+        void result.current.claim();
+      });
+
+      // Assert
+      expect(result.current.isClaimPending).toBe(true);
+
+      // Act
+      await act(async () => {
+        deferred.reject(new Error('Claim failed'));
+        await deferred.promise.catch(() => undefined);
+      });
+
+      // Assert
+      expect(result.current.isClaimPending).toBe(false);
     });
   });
 
@@ -170,7 +286,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
@@ -222,7 +340,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act - first claim attempt fails
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert - first attempt should call goBack and captureException
       expect(mockGoBack).toHaveBeenCalledTimes(1);
@@ -256,7 +376,9 @@ describe('usePredictClaim', () => {
       mockLoggerError.mockClear();
 
       // Act - retry claim
-      await retryFunction();
+      await act(async () => {
+        await retryFunction();
+      });
 
       // Assert - second attempt should succeed
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
@@ -278,7 +400,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
@@ -309,7 +433,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
@@ -341,7 +467,9 @@ describe('usePredictClaim', () => {
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert
       expect(mockGoBack).toHaveBeenCalled();
@@ -387,7 +515,9 @@ describe('usePredictClaim', () => {
       });
 
       // Act
-      await result.current.claim();
+      await act(async () => {
+        await result.current.claim();
+      });
 
       // Assert - captures exception and goes back even without toastRef
       expect(mockGoBack).toHaveBeenCalled();

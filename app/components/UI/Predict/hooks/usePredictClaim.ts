@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useCallback, useContext } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -19,8 +19,15 @@ export const usePredictClaim = () => {
   const theme = useAppThemeFromContext();
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
+  const [isClaimPending, setIsClaimPending] = useState(false);
 
   const claim = useCallback(async () => {
+    if (isClaimPending) {
+      return;
+    }
+
+    setIsClaimPending(true);
+
     try {
       navigateToConfirmation({
         headerShown: false,
@@ -66,13 +73,16 @@ export const usePredictClaim = () => {
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),
           onPress: () => {
-            claim();
+            void claim();
           },
         },
       });
+    } finally {
+      setIsClaimPending(false);
     }
   }, [
     claimWinnings,
+    isClaimPending,
     navigateToConfirmation,
     navigation,
     theme.colors.accent04.normal,
@@ -82,5 +92,6 @@ export const usePredictClaim = () => {
 
   return {
     claim,
+    isClaimPending,
   };
 };

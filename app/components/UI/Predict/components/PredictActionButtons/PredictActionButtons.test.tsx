@@ -193,6 +193,25 @@ describe('PredictActionButtons', () => {
       expect(screen.getByTestId('action-buttons-claim')).toBeOnTheScreen();
       expect(screen.queryByText('Claim $50.25')).not.toBeOnTheScreen();
     });
+
+    it('disables claim button when isClaimDisabled is true', () => {
+      const mockOnClaimPress = jest.fn();
+      const props = createDefaultProps({
+        claimableAmount: 50.25,
+        isClaimDisabled: true,
+        onClaimPress: mockOnClaimPress,
+      });
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      const claimButton = screen.getByTestId('action-buttons-claim');
+
+      expect(claimButton).toBeDisabled();
+
+      fireEvent.press(claimButton);
+
+      expect(mockOnClaimPress).not.toHaveBeenCalled();
+    });
   });
 
   describe('bet buttons for standard markets', () => {
