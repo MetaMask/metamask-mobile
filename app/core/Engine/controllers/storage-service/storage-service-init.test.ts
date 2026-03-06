@@ -1,7 +1,7 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getStorageServiceMessenger } from '../messengers/storage-service-messenger';
-import { ControllerInitRequest } from '../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { getStorageServiceMessenger } from '../../messengers/storage-service-messenger';
+import { ControllerInitRequest } from '../../types';
 import { storageServiceInit } from './storage-service-init';
 import {
   StorageService,
@@ -10,8 +10,8 @@ import {
 } from '@metamask/storage-service';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../../../util/device';
-import Logger from '../../../util/Logger';
+import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 
 jest.mock('@metamask/storage-service');
 jest.mock('redux-persist-filesystem-storage');

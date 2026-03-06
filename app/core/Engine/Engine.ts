@@ -90,7 +90,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -144,7 +144,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller-init';
+import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
