@@ -444,6 +444,76 @@ describe('BaanxProvider', () => {
       );
     });
 
+    it('returns OTP step with userId stored in session metadata', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValueOnce({
+        userId: 'user-1',
+        phase: null,
+        isOtpRequired: true,
+        phoneNumber: '+1234',
+        accessToken: null,
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'email_password',
+        email: 'test@example.com',
+        password: 'pass',
+      });
+
+      expect(result.done).toBe(false);
+      expect(result.nextStep).toStrictEqual({
+        type: 'otp',
+        destination: '+1234',
+      });
+      expect(session._metadata.otpUserId).toBe('user-1');
+    });
+
+    it('completes auth when re-submitting credentials with otpCode', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValueOnce({
+        userId: 'user-1',
+        phase: null,
+        isOtpRequired: false,
+        phoneNumber: null,
+        accessToken: 'login-token-after-otp',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      });
+      service.request
+        .mockResolvedValueOnce({
+          state: 'mock-state-123',
+          url: '',
+          code: 'auth-code',
+        })
+        .mockResolvedValueOnce({
+          access_token: 'final-access',
+          refresh_token: 'final-refresh',
+          expires_in: 3600,
+          refresh_token_expires_in: 86400,
+        });
+
+      const result = await provider.submitCredentials(session, {
+        type: 'email_password',
+        email: 'test@example.com',
+        password: 'pass',
+        otpCode: '123456',
+      });
+
+      expect(result.done).toBe(true);
+      expect(result.tokenSet?.accessToken).toBe('final-access');
+
+      const loginCall = service.post.mock.calls[0];
+      expect(loginCall[1]).toStrictEqual(
+        expect.objectContaining({ otpCode: '123456' }),
+      );
+    });
+
     it('throws on OAuth state mismatch', async () => {
       service.get.mockResolvedValue({ token: 'init-token', url: '' });
       const session = await provider.initiateAuth('US');
@@ -470,6 +540,31 @@ describe('BaanxProvider', () => {
           password: 'pass',
         }),
       ).rejects.toThrow('OAuth state mismatch');
+    });
+  });
+
+  describe('sendOtp', () => {
+    it('posts userId to the OTP trigger endpoint', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      session._metadata.otpUserId = 'user-1';
+      service.post.mockResolvedValue({});
+
+      await provider.sendOtp(session);
+
+      expect(service.post).toHaveBeenCalledWith('/v1/auth/login/otp', {
+        userId: 'user-1',
+      });
+    });
+
+    it('throws when no userId in session metadata', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      await expect(provider.sendOtp(session)).rejects.toThrow(
+        'No userId in session',
+      );
     });
   });
 

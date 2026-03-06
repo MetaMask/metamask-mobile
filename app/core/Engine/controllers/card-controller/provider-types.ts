@@ -46,8 +46,12 @@ export interface CardAuthSession {
 }
 
 export type CardCredentials =
-  | { type: 'email_password'; email: string; password: string }
-  | { type: 'otp'; code: string }
+  | {
+      type: 'email_password';
+      email: string;
+      password: string;
+      otpCode?: string;
+    }
   | { type: 'siwe'; signature: string };
 
 // -- Capabilities --
@@ -160,14 +164,16 @@ export interface CardHomeData {
   actions: CardAction[];
 }
 
-export const EMPTY_CARD_HOME_DATA: CardHomeData = {
-  primaryAsset: null,
-  assets: [],
-  card: null,
-  account: null,
-  alerts: [],
-  actions: [],
-};
+export function emptyCardHomeData(): CardHomeData {
+  return {
+    primaryAsset: null,
+    assets: [],
+    card: null,
+    account: null,
+    alerts: [],
+    actions: [],
+  };
+}
 
 // -- Funding --
 
@@ -235,6 +241,7 @@ export interface ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult>;
+  sendOtp?(session: CardAuthSession): Promise<void>;
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;

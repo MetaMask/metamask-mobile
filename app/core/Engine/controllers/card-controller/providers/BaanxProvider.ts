@@ -47,7 +47,7 @@ import {
   RegistrationStatus,
   WalletOperations,
   FundingAssetStatus,
-  EMPTY_CARD_HOME_DATA,
+  emptyCardHomeData,
 } from '../provider-types';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
@@ -161,10 +161,17 @@ export class BaanxProvider implements ICardProvider {
     if (credentials.type === 'email_password') {
       return this.handleEmailPassword(session, credentials);
     }
-    if (credentials.type === 'otp') {
-      return this.handleOtp(session, credentials);
-    }
     throw new Error(`Unsupported credential type: ${credentials.type}`);
+  }
+
+  async sendOtp(session: CardAuthSession): Promise<void> {
+    const userId = session._metadata.otpUserId as string | undefined;
+    if (!userId) {
+      throw new Error(
+        'No userId in session — initiateAuth or login must be called first',
+      );
+    }
+    await this.service.post('/v1/auth/login/otp', { userId });
   }
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
@@ -260,7 +267,7 @@ export class BaanxProvider implements ICardProvider {
       return { primaryAsset, assets, card, account, alerts, actions };
     } catch (error) {
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
-      return EMPTY_CARD_HOME_DATA;
+      return emptyCardHomeData();
     }
   }
 
@@ -408,7 +415,7 @@ export class BaanxProvider implements ICardProvider {
 
   async getOnChainAssets(_address: string): Promise<CardHomeData> {
     return {
-      ...EMPTY_CARD_HOME_DATA,
+      ...emptyCardHomeData(),
       actions: [{ type: 'add_funds', enabled: true }],
     };
   }
@@ -421,10 +428,15 @@ export class BaanxProvider implements ICardProvider {
   ): Promise<CardAuthResult> {
     const loginResponse = await this.service.post<CardLoginResponse>(
       '/v1/auth/login',
-      { email: credentials.email, password: credentials.password },
+      {
+        email: credentials.email,
+        password: credentials.password,
+        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+      },
     );
 
     if (loginResponse.isOtpRequired) {
+      session._metadata.otpUserId = loginResponse.userId;
       return {
         done: false,
         nextStep: {
@@ -442,27 +454,6 @@ export class BaanxProvider implements ICardProvider {
           phase: loginResponse.phase,
         },
       };
-    }
-
-    return this.completeAuth(session, loginResponse);
-  }
-
-  private async handleOtp(
-    session: CardAuthSession,
-    credentials: Extract<CardCredentials, { type: 'otp' }>,
-  ): Promise<CardAuthResult> {
-    const metadata = session._metadata as { loginAccessToken?: string };
-
-    const loginResponse = await this.service.post<CardLoginResponse>(
-      '/v1/auth/login/otp',
-      { otpCode: credentials.code },
-    );
-
-    if (metadata.loginAccessToken) {
-      return this.completeAuth(session, {
-        ...loginResponse,
-        accessToken: metadata.loginAccessToken,
-      });
     }
 
     return this.completeAuth(session, loginResponse);
