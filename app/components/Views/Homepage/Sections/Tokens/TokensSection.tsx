@@ -42,6 +42,8 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 import { isMusdToken } from '../../../../UI/Earn/constants/musd';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -118,14 +120,23 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       }
     }, [selectedAccountId]);
 
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+
     const title = strings('homepage.sections.tokens');
 
+    // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
       () =>
         sortedTokenKeys
-          .filter((key) => !isMusdToken(key.address))
+          .filter((key) =>
+            isCashSectionEnabled ? !isMusdToken(key.address) : true,
+          )
           .slice(0, MAX_TOKENS_DISPLAYED),
-      [sortedTokenKeys],
+      [sortedTokenKeys, isCashSectionEnabled],
     );
 
     // Show error when an explicit refresh failed, or when balance data has loaded

@@ -18,6 +18,7 @@ import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
+import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
 // eslint-disable-next-line import/no-namespace
 import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
 // eslint-disable-next-line import/no-namespace
@@ -30,13 +31,14 @@ import * as RefreshTokensModule from './util/refreshTokens';
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
+const mockUseMusdConversionEligibility = jest.fn(() => ({
+  isEligible: true,
+  isLoading: false,
+  geolocation: 'US',
+  blockedCountries: [],
+}));
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: true,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
-  }),
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 // Mocking versioning for some selectors
@@ -428,6 +430,38 @@ describe('Tokens', () => {
 
       await waitFor(() => {
         expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+    });
+
+    it('includes mUSD in main token list when Cash section is disabled', async () => {
+      mockUseMusdConversionEligibility.mockReturnValueOnce({
+        isEligible: false,
+        isLoading: false,
+        geolocation: 'US',
+        blockedCountries: [],
+      });
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        { address: '0xToken2', chainId: '0x2', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(initialState, true, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+        );
       });
     });
   });

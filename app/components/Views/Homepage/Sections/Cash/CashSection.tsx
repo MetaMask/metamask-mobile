@@ -7,7 +7,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
@@ -79,15 +78,9 @@ const CashSection = ({
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
             >
-              Get{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {MUSD_CONVERSION_APY}%
-              </Text>{' '}
-              annualized bonus on your stablecoins when you convert to mUSD.
+              {strings('homepage.sections.cash_annualized_copy', {
+                percentage: MUSD_CONVERSION_APY,
+              })}
             </Text>
           </SectionRow>
         )}

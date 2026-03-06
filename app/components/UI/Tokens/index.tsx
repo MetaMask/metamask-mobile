@@ -80,6 +80,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectIsMusdConversionFlowEnabledFlag,
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -89,13 +90,15 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD positions. Otherwise exclude mUSD (shown in Cash section).
+    // When showOnlyMusd: only mUSD. When Cash section enabled: exclude mUSD (shown there). Otherwise include all.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd
           ? sortedTokenKeys.filter((key) => isMusdToken(key.address))
-          : sortedTokenKeys.filter((key) => !isMusdToken(key.address)),
-      [sortedTokenKeys, showOnlyMusd],
+          : isCashSectionEnabled
+            ? sortedTokenKeys.filter((key) => !isMusdToken(key.address))
+            : sortedTokenKeys,
+      [sortedTokenKeys, showOnlyMusd, isCashSectionEnabled],
     );
 
     const [, forceUpdate] = useState(0);
