@@ -595,11 +595,13 @@ describe('LedgerSelectAccount', () => {
     it('appends legacy label to new accounts when on legacy path', async () => {
       mockGetHDPath.mockResolvedValue(LEDGER_LEGACY_PATH);
       const newAccount = '0xnewaccount1234567890abcdef1234567890abcdef';
+      const newAccountName = 'Ledger 1';
+
       mockGetLedgerAccounts.mockResolvedValue([newAccount]);
       (mockAccountsController.getAccountByAddress as jest.Mock).mockReturnValue(
         {
           id: 'account-id',
-          metadata: { name: 'Ledger 1' },
+          metadata: { name: newAccountName },
         },
       );
 
@@ -610,7 +612,7 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(mockAccountsController.setAccountName).toHaveBeenCalledWith(
           'account-id',
-          expect.stringContaining('Ledger 1'),
+          expect.stringContaining(newAccountName),
         );
       });
     });
