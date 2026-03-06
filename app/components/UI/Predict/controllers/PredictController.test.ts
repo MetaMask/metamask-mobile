@@ -2434,6 +2434,41 @@ describe('PredictController', () => {
         },
       );
     });
+
+    it('succeeds when state key is checksummed but signer address is lowercase', async () => {
+      // Arrange - simulates the real-world case mismatch: selector returns
+      // checksummed EIP-55 address, but state was keyed by a differently-cased address
+      const checksummedAddress =
+        '0x1234567890123456789012345678901234567890'.toUpperCase() as `0x${string}`;
+      const mockBatchId = 'claim-batch-case';
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([
+            createMockPosition({ id: 'pos-1', claimable: true }),
+          ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+
+        // Seed state with the checksummed key
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[checksummedAddress] = [
+            createMockPosition({ id: 'pos-1', claimable: true }),
+          ];
+        });
+
+        // Act - signer address comes back as lowercase (default mock)
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert - should find the positions despite the case difference
+        expect(result.batchId).toBe(mockBatchId);
+        expect(result.status).toBe(PredictClaimStatus.PENDING);
+      });
+    });
   });
 
   describe('getUnrealizedPnL', () => {
@@ -4967,6 +5002,38 @@ describe('PredictController', () => {
 
         // Assert - should not throw, state should still be cleared
         expect(controller.state.claimablePositions[testAddress]).toEqual([]);
+      });
+    });
+
+    it('matches state key case-insensitively when address casing differs', async () => {
+      // Arrange - state keyed by checksummed address, but confirmClaim called with lowercase
+      await withController(async ({ controller }) => {
+        const checksummedKey = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
+        const lowercaseArg = checksummedKey.toLowerCase() as `0x${string}`;
+        const mockPositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+          }),
+        ];
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions[checksummedKey] = mockPositions;
+        });
+
+        mockPolymarketProvider.confirmClaim = jest.fn();
+
+        // Act
+        controller.confirmClaim({ address: lowercaseArg });
+
+        // Assert - found the positions despite case mismatch; state cleared.
+        // getSigner is called with matchedKey (the checksummed state key),
+        // so the signer address reflects that casing.
+        expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith({
+          positions: mockPositions,
+          signer: expect.objectContaining({ address: checksummedKey }),
+        });
+        expect(controller.state.claimablePositions[checksummedKey]).toEqual([]);
       });
     });
   });

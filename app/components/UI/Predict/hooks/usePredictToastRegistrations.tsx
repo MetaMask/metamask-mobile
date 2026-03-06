@@ -24,6 +24,7 @@ import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAc
 import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
+import { _clearPositionsCache } from '../../../Views/Homepage/Sections/Predictions/hooks/usePredictPositionsForHomepage';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
@@ -253,6 +254,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           queryClient.invalidateQueries({
             queryKey: predictQueries.positions.keys.all(),
           });
+
+          // Clear homepage positions cache so next visit fetches fresh data
+          _clearPositionsCache();
 
           showSuccessToast({
             showToast,

@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -83,9 +84,9 @@ const PredictionsSection = forwardRef<
   const title = strings('homepage.sections.predictions');
   const { claim } = usePredictClaim();
 
-  // Fetch both positions and markets
+  // Fetch all positions in a single call; split client-side via p.claimable
   const {
-    positions,
+    positions: allPositions,
     isLoading: isLoadingPositions,
     error: positionsError,
     refresh: refreshPositions,
@@ -98,41 +99,44 @@ const PredictionsSection = forwardRef<
     refresh: refreshMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const {
-    positions: claimablePositions,
-    isLoading: isLoadingClaimable,
-    refresh: refreshClaimable,
-  } = usePredictPositionsForHomepage(undefined, true);
+  const positions = useMemo(
+    () => allPositions.filter((p) => !p.claimable),
+    [allPositions],
+  );
+
+  const claimablePositions = useMemo(
+    () => allPositions.filter((p) => p.claimable),
+    [allPositions],
+  );
+
+  const totalClaimable = useMemo(
+    () => claimablePositions.reduce((sum, p) => sum + (p.currentValue ?? 0), 0),
+    [claimablePositions],
+  );
 
   const [isClaiming, setIsClaiming] = useState(false);
+  const [hasClaimed, setHasClaimed] = useState(false);
 
   const handleClaim = useCallback(async () => {
     setIsClaiming(true);
     try {
-      await claim();
-      await refreshClaimable();
+      const { wasCancelled } = await claim();
+      if (!wasCancelled) {
+        setHasClaimed(true);
+      }
+      await refreshPositions();
     } finally {
       setIsClaiming(false);
     }
-  }, [claim, refreshClaimable]);
-
-  const totalClaimable = claimablePositions.reduce(
-    (sum, p) => sum + (p.currentValue ?? 0),
-    0,
-  );
+  }, [claim, refreshPositions]);
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
-  // Use ref so refresh always reads the latest value without stale closures
-  const hasPositionsRef = useRef(hasPositions);
-  hasPositionsRef.current = hasPositions;
-
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
   const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
+    !isLoading &&
     !hasPositions &&
     markets.length === 0 &&
     (positionsError || marketsError);
@@ -160,18 +164,9 @@ const PredictionsSection = forwardRef<
     itemCount,
   });
 
-  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
-    if (hasPositionsRef.current) {
-      await Promise.all([
-        refreshPositions(),
-        refreshMarkets(),
-        refreshClaimable(),
-      ]);
-    } else {
-      await Promise.all([refreshMarkets(), refreshClaimable()]);
-    }
-  }, [refreshPositions, refreshMarkets, refreshClaimable]);
+    await Promise.all([refreshPositions(), refreshMarkets()]);
+  }, [refreshPositions, refreshMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -220,7 +215,7 @@ const PredictionsSection = forwardRef<
   if (
     hasPositions ||
     isLoadingPositions ||
-    (!isLoadingClaimable && totalClaimable > 0)
+    (!isLoadingPositions && totalClaimable > 0)
   ) {
     return (
       <View ref={sectionViewRef}>
@@ -242,8 +237,8 @@ const PredictionsSection = forwardRef<
               ))
             )}
             {!isLoadingPositions &&
-              !isLoadingClaimable &&
               !isClaiming &&
+              !hasClaimed &&
               totalClaimable > 0 && (
                 <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
                   <PredictClaimButton

@@ -12,6 +12,7 @@ import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import Routes from '../../../../constants/navigation/Routes';
+import { PredictClaimStatus } from '../types';
 
 export const usePredictClaim = () => {
   const { navigateToConfirmation } = useConfirmNavigation();
@@ -20,7 +21,7 @@ export const usePredictClaim = () => {
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
 
-  const claim = useCallback(async () => {
+  const claim = useCallback(async (): Promise<{ wasCancelled: boolean }> => {
     try {
       navigateToConfirmation({
         headerShown: false,
@@ -28,7 +29,8 @@ export const usePredictClaim = () => {
         // TODO: remove once navigation stack is fixed properly
         stack: Routes.PREDICT.ROOT,
       });
-      await claimWinnings({});
+      const result = await claimWinnings({});
+      return { wasCancelled: result?.status === PredictClaimStatus.CANCELLED };
     } catch (err) {
       // Log error with claim context
       Logger.error(ensureError(err), {
@@ -70,6 +72,7 @@ export const usePredictClaim = () => {
           },
         },
       });
+      return { wasCancelled: false };
     }
   }, [
     claimWinnings,

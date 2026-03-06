@@ -1566,6 +1566,17 @@ export class PredictController extends BaseController<
     }
   }
 
+  private getClaimablePositionsByAddress(
+    address: string,
+  ): { positions: PredictPosition[]; matchedKey: string } | undefined {
+    const normalizedAddress = address.toLowerCase();
+    const matchedKey = Object.keys(this.state.claimablePositions).find(
+      (key) => key.toLowerCase() === normalizedAddress,
+    );
+    if (!matchedKey) return undefined;
+    return { positions: this.state.claimablePositions[matchedKey], matchedKey };
+  }
+
   async claimWithConfirmation(
     _params: ClaimParams = {},
   ): Promise<PredictClaim> {
@@ -1596,13 +1607,9 @@ export class PredictController extends BaseController<
       const signer = this.getSigner();
 
       // Get claimable positions from state (case-insensitive address match)
-      const normalizedSignerAddress = signer.address.toLowerCase();
-      const matchedAddress = Object.keys(this.state.claimablePositions).find(
-        (addressKey) => addressKey.toLowerCase() === normalizedSignerAddress,
-      );
-      const claimablePositions = matchedAddress
-        ? this.state.claimablePositions[matchedAddress]
-        : undefined;
+      const claimablePositions = this.getClaimablePositionsByAddress(
+        signer.address,
+      )?.positions;
 
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
@@ -1729,22 +1736,15 @@ export class PredictController extends BaseController<
   public confirmClaim({ address }: { address?: string }): void {
     const provider = this.provider;
 
-    const normalizedAddress = (
-      address ?? this.getSigner().address
-    ).toLowerCase();
-    const matchedAddress = Object.keys(this.state.claimablePositions).find(
-      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
-    );
+    const resolvedAddress = address ?? this.getSigner().address;
+    const claimResult = this.getClaimablePositionsByAddress(resolvedAddress);
 
-    if (!matchedAddress) {
+    if (!claimResult || claimResult.positions.length === 0) {
       return;
     }
 
-    const signer = this.getSigner(matchedAddress);
-    const claimedPositions = this.state.claimablePositions[matchedAddress];
-    if (!claimedPositions || claimedPositions.length === 0) {
-      return;
-    }
+    const { positions: claimedPositions, matchedKey } = claimResult;
+    const signer = this.getSigner(matchedKey);
 
     provider.confirmClaim?.({
       positions: claimedPositions,
@@ -1752,7 +1752,7 @@ export class PredictController extends BaseController<
     });
 
     this.update((state) => {
-      state.claimablePositions[matchedAddress] = [];
+      state.claimablePositions[matchedKey] = [];
     });
   }
 
