@@ -58,8 +58,40 @@ export const createMockEngineContext = () => ({
 const mockEngineContext = createMockEngineContext();
 jest.mock('../../../../core/Engine', () => ({ context: mockEngineContext }));
 
-import { getEvmAccountFromSelectedAccountGroup } from './accounts';
+import {
+  findAddressKey,
+  getEvmAccountFromSelectedAccountGroup,
+} from './accounts';
 import Engine from '../../../../core/Engine';
+
+describe('findAddressKey', () => {
+  const CHECKSUMMED = '0xABCDEF1234567890ABCDeF1234567890ABCDEF12';
+  const LOWERCASE = CHECKSUMMED.toLowerCase();
+
+  it('finds a key when the map uses checksummed casing and query is lowercase', () => {
+    const map = { [CHECKSUMMED]: ['pos1'] };
+    expect(findAddressKey(map, LOWERCASE)).toBe(CHECKSUMMED);
+  });
+
+  it('finds a key when the map uses lowercase casing and query is checksummed', () => {
+    const map = { [LOWERCASE]: ['pos1'] };
+    expect(findAddressKey(map, CHECKSUMMED)).toBe(LOWERCASE);
+  });
+
+  it('finds a key when both casings match exactly', () => {
+    const map = { [CHECKSUMMED]: ['pos1'] };
+    expect(findAddressKey(map, CHECKSUMMED)).toBe(CHECKSUMMED);
+  });
+
+  it('returns undefined when address is not in the map', () => {
+    const map = { '0x1111111111111111111111111111111111111111': [] };
+    expect(findAddressKey(map, CHECKSUMMED)).toBeUndefined();
+  });
+
+  it('returns undefined for an empty map', () => {
+    expect(findAddressKey({}, CHECKSUMMED)).toBeUndefined();
+  });
+});
 
 describe('accountUtils', () => {
   beforeEach(() => {

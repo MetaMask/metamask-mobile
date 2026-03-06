@@ -21,7 +21,10 @@ export const usePredictClaim = () => {
   const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation();
 
-  const claim = useCallback(async (): Promise<{ wasCancelled: boolean }> => {
+  const claim = useCallback(async (): Promise<{
+    wasCancelled: boolean;
+    succeeded: boolean;
+  }> => {
     try {
       navigateToConfirmation({
         headerShown: false,
@@ -30,7 +33,10 @@ export const usePredictClaim = () => {
         stack: Routes.PREDICT.ROOT,
       });
       const result = await claimWinnings({});
-      return { wasCancelled: result?.status === PredictClaimStatus.CANCELLED };
+      return {
+        wasCancelled: result?.status === PredictClaimStatus.CANCELLED,
+        succeeded: result?.status === PredictClaimStatus.PENDING,
+      };
     } catch (err) {
       // Log error with claim context
       Logger.error(ensureError(err), {
@@ -72,7 +78,7 @@ export const usePredictClaim = () => {
           },
         },
       });
-      return { wasCancelled: false };
+      return { wasCancelled: false, succeeded: false };
     }
   }, [
     claimWinnings,

@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
+import { findAddressKey } from '../../utils/accounts';
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -26,10 +27,7 @@ const selectPredictClaimablePositionsByAddress = ({
   address: string;
 }) =>
   createSelector(selectPredictClaimablePositions, (claimablePositions) => {
-    const normalizedAddress = address.toLowerCase();
-    const matchedKey = Object.keys(claimablePositions).find(
-      (key) => key.toLowerCase() === normalizedAddress,
-    );
+    const matchedKey = findAddressKey(claimablePositions, address);
     return matchedKey ? claimablePositions[matchedKey] : [];
   });
 

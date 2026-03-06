@@ -120,8 +120,8 @@ const PredictionsSection = forwardRef<
   const handleClaim = useCallback(async () => {
     setIsClaiming(true);
     try {
-      const { wasCancelled } = await claim();
-      if (!wasCancelled) {
+      const { succeeded } = await claim();
+      if (succeeded) {
         setHasClaimed(true);
       }
       await refreshPositions();

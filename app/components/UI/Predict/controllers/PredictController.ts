@@ -56,6 +56,7 @@ import {
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
+import { findAddressKey } from '../utils/accounts';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { Signer } from '../providers/types';
@@ -1569,10 +1570,7 @@ export class PredictController extends BaseController<
   private getClaimablePositionsByAddress(
     address: string,
   ): { positions: PredictPosition[]; matchedKey: string } | undefined {
-    const normalizedAddress = address.toLowerCase();
-    const matchedKey = Object.keys(this.state.claimablePositions).find(
-      (key) => key.toLowerCase() === normalizedAddress,
-    );
+    const matchedKey = findAddressKey(this.state.claimablePositions, address);
     if (!matchedKey) return undefined;
     return { positions: this.state.claimablePositions[matchedKey], matchedKey };
   }

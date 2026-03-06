@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectPredictEnabledFlag } from '../../../../../UI/Predict';
+import { selectPredictEnabledFlag } from '../../../../../UI/Predict/selectors/featureFlags';
 import type { PredictPosition } from '../../../../../UI/Predict/types';
 
 export interface UsePredictPositionsForHomepageResult {

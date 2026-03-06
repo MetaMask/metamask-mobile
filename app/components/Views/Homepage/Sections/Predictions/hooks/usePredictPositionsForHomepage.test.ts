@@ -23,7 +23,8 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (...args: unknown[]) => unknown) => {
     if (
       selector ===
-      jest.requireMock('../../../../../UI/Predict').selectPredictEnabledFlag
+      jest.requireMock('../../../../../UI/Predict/selectors/featureFlags')
+        .selectPredictEnabledFlag
     ) {
       return mockIsPredictEnabled;
     }
@@ -38,7 +39,7 @@ jest.mock('react-redux', () => ({
   },
 }));
 
-jest.mock('../../../../../UI/Predict', () => ({
+jest.mock('../../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(),
 }));
 
