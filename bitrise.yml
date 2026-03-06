@@ -130,7 +130,7 @@ pipelines:
         - pr_check_build_cache
   expo_dev_pipeline:
     stages:
-      - create_build_qa_and_expo: {}
+      - create_build_dev_expo: {}
       # - app_launch_times_test_stage: {}
   #Main expo pipeline
   expo_main_pipeline:
@@ -187,7 +187,7 @@ pipelines:
         - bump_version_code
       upload_ios_main_to_testflight:
         depends_on:
-        - build_ios_main_exp    
+        - build_ios_main_exp
   rc_builds_to_testflight_pipeline:
     workflows:
       bump_version_code: {}
@@ -254,13 +254,11 @@ stages:
   deploy_android_release:
     workflows:
       - deploy_android_to_store: {}
-  create_build_qa_and_expo:
+  create_build_dev_expo:
     workflows:
       - build_android_devbuild: {}
-      - build_android_qa: {}
       - build_ios_devbuild: {}
       - build_ios_simbuild: {}
-      - build_ios_qa: {}
   create_build_main_expo:
     workflows:
       - build_android_devbuild: {}
@@ -1816,15 +1814,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2267,15 +2265,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2374,6 +2372,15 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/generated/sourcemaps/react/$OUTPUT_PATH
+            - is_compress: true
+            - zip_name: Android_Sourcemaps_$OUTPUT_PATH
+          title: Deploy Android Sourcemaps
       - script@1:
           title: Prepare Android build outputs for caching
           run_if: '{{and (getenv "ANDROID_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -2475,15 +2482,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2959,15 +2966,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -3050,6 +3057,14 @@ workflows:
           inputs:
             - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
       - save-cache@1:
           title: Save iOS PR Build Cache
           run_if: '{{and (getenv "IOS_PR_BUILD_CACHE_KEY" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
@@ -3405,7 +3420,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-                
+
                 ./scripts/setup-app-store-connect-api-key.sh \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
@@ -3417,7 +3432,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-                
+
                 bash ./scripts/upload-to-testflight.sh \
                   "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
                   "${BITRISE_GIT_BRANCH:-Unknown}" \
@@ -3516,13 +3531,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.69.0
+      VERSION_NAME: 7.70.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 3821
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.69.0
+      FLASK_VERSION_NAME: 7.70.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 3821
