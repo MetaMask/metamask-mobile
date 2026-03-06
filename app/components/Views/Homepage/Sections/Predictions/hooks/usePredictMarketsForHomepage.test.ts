@@ -5,6 +5,7 @@ import type { PredictMarket } from '../../../../../UI/Predict/types';
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 let mockUsePredictMarketDataReturn: {
   marketData: PredictMarket[];
+  isLoading: boolean;
   isFetching: boolean;
   isFetchingMore: boolean;
   error: Error | null;
@@ -13,6 +14,7 @@ let mockUsePredictMarketDataReturn: {
   fetchMore: jest.Mock;
 } = {
   marketData: [],
+  isLoading: false,
   isFetching: false,
   isFetchingMore: false,
   error: null,
@@ -48,6 +50,7 @@ describe('usePredictMarketsForHomepage', () => {
         createMockMarket('2'),
         createMockMarket('3'),
       ],
+      isLoading: false,
       isFetching: false,
       isFetchingMore: false,
       error: null,
@@ -65,8 +68,8 @@ describe('usePredictMarketsForHomepage', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('forwards isFetching as isLoading', () => {
-    mockUsePredictMarketDataReturn.isFetching = true;
+  it('forwards isLoading from usePredictMarketData', () => {
+    mockUsePredictMarketDataReturn.isLoading = true;
 
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 

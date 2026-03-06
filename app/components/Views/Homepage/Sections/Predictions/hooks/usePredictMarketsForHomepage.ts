@@ -29,14 +29,14 @@ export interface UsePredictMarketsForHomepageResult {
 export const usePredictMarketsForHomepage = (
   limit = 5,
 ): UsePredictMarketsForHomepageResult => {
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
+  const { marketData, isLoading, error, refetch } = usePredictMarketData({
     category: 'trending',
     pageSize: limit,
   });
 
   return {
     markets: marketData,
-    isLoading: isFetching,
+    isLoading,
     error,
     refetch,
   };
