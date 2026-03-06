@@ -4811,7 +4811,11 @@ describe('setCampaigns', () => {
       ...initialState,
       campaigns: [mockCampaign],
     };
-    const newCampaign: CampaignDto = { ...mockCampaign, id: 'campaign-2', name: 'New Campaign' };
+    const newCampaign: CampaignDto = {
+      ...mockCampaign,
+      id: 'campaign-2',
+      name: 'New Campaign',
+    };
     const action = setCampaigns([newCampaign]);
 
     const state = rewardsReducer(stateWithCampaigns, action);
