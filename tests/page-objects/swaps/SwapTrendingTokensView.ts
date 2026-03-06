@@ -1,89 +1,121 @@
 import { Assertions, Gestures, Matchers } from '../../framework';
+import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
+import { BridgeTrendingTokensSectionTestIds } from '../../../app/components/UI/Bridge/components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 
-const SwapTrendingTokensSelectorIDs = {
-  SECTION: 'bridge-trending-tokens-section',
-  PRICE_FILTER: 'bridge-trending-price-filter',
-  NETWORK_FILTER: 'bridge-trending-network-filter',
-  TIME_FILTER: 'bridge-trending-time-filter',
+const SwapTrendingTokensViewTestIds = {
   PRICE_BOTTOM_SHEET: 'trending-token-price-change-bottom-sheet',
   NETWORK_BOTTOM_SHEET: 'trending-token-network-bottom-sheet',
   TIME_BOTTOM_SHEET: 'trending-token-time-bottom-sheet',
   INNER_LIST: 'trending-tokens-list',
   CLOSE_BUTTON: 'close-button',
   TIME_SELECT_6H: 'time-select-6h',
-  BRIDGE_VIEW_SCROLL: 'bridge-view-scroll',
+  TOKEN_ROW_PREFIX: 'trending-token-row-item-',
 } as const;
 
 class SwapTrendingTokensView {
-  private el(id: string): DetoxElement {
-    return Matchers.getElementByID(id);
+  public get section(): DetoxElement {
+    return Matchers.getElementByID(BridgeTrendingTokensSectionTestIds.SECTION);
+  }
+
+  public get priceFilter(): DetoxElement {
+    return Matchers.getElementByID(
+      BridgeTrendingTokensSectionTestIds.PRICE_FILTER,
+    );
+  }
+
+  public get networkFilter(): DetoxElement {
+    return Matchers.getElementByID(
+      BridgeTrendingTokensSectionTestIds.NETWORK_FILTER,
+    );
+  }
+
+  public get timeFilter(): DetoxElement {
+    return Matchers.getElementByID(
+      BridgeTrendingTokensSectionTestIds.TIME_FILTER,
+    );
+  }
+
+  public get priceBottomSheet(): DetoxElement {
+    return Matchers.getElementByID(
+      SwapTrendingTokensViewTestIds.PRICE_BOTTOM_SHEET,
+    );
+  }
+
+  public get networkBottomSheet(): DetoxElement {
+    return Matchers.getElementByID(
+      SwapTrendingTokensViewTestIds.NETWORK_BOTTOM_SHEET,
+    );
+  }
+
+  public get timeBottomSheet(): DetoxElement {
+    return Matchers.getElementByID(
+      SwapTrendingTokensViewTestIds.TIME_BOTTOM_SHEET,
+    );
+  }
+
+  public get innerList(): DetoxElement {
+    return Matchers.getElementByID(SwapTrendingTokensViewTestIds.INNER_LIST);
+  }
+
+  public get closeButton(): DetoxElement {
+    return Matchers.getElementByID(SwapTrendingTokensViewTestIds.CLOSE_BUTTON);
+  }
+
+  public get timeSelectSixHours(): DetoxElement {
+    return Matchers.getElementByID(
+      SwapTrendingTokensViewTestIds.TIME_SELECT_6H,
+    );
   }
 
   async expectSectionVisible(timeout = 10000): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.SECTION),
-      {
-        timeout,
-        description: 'Trending section should be visible',
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.section, {
+      timeout,
+      description: 'Trending section should be visible',
+    });
   }
 
   async expectSectionNotVisible(timeout = 10000): Promise<void> {
-    await Assertions.expectElementToNotBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.SECTION),
-      {
-        timeout,
-        description: 'Trending section should not be visible',
-      },
-    );
+    await Assertions.expectElementToNotBeVisible(this.section, {
+      timeout,
+      description: 'Trending section should not be visible',
+    });
   }
 
   async expectNoInnerList(): Promise<void> {
-    await Assertions.expectElementToNotBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.INNER_LIST),
-      {
-        description:
-          'Bridge trending should not render an inner list scroll container',
-      },
-    );
+    await Assertions.expectElementToNotBeVisible(this.innerList, {
+      description:
+        'Bridge trending should not render an inner list scroll container',
+    });
   }
 
   async expectPriceBottomSheetVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.PRICE_BOTTOM_SHEET),
-      {
-        description: 'Price sort bottom sheet should be visible',
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.priceBottomSheet, {
+      description: 'Price sort bottom sheet should be visible',
+    });
   }
 
   async expectTimeBottomSheetVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.TIME_BOTTOM_SHEET),
-      {
-        description: 'Time bottom sheet should be visible',
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.timeBottomSheet, {
+      description: 'Time bottom sheet should be visible',
+    });
   }
 
   async expectNetworkBottomSheetVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      this.el(SwapTrendingTokensSelectorIDs.NETWORK_BOTTOM_SHEET),
-      {
-        description: 'Network bottom sheet should be visible',
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.networkBottomSheet, {
+      description: 'Network bottom sheet should be visible',
+    });
   }
 
   tokenRow(assetId: string): DetoxElement {
-    return Matchers.getElementByID(`trending-token-row-item-${assetId}`);
+    return Matchers.getElementByID(
+      `${SwapTrendingTokensViewTestIds.TOKEN_ROW_PREFIX}${assetId}`,
+    );
   }
 
   async scrollToFilters(): Promise<void> {
     await Gestures.scrollToElement(
-      this.el(SwapTrendingTokensSelectorIDs.PRICE_FILTER),
-      Matchers.getIdentifier(SwapTrendingTokensSelectorIDs.BRIDGE_VIEW_SCROLL),
+      this.priceFilter,
+      Matchers.getIdentifier(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL),
       {
         direction: 'down',
         scrollAmount: 250,
@@ -93,48 +125,33 @@ class SwapTrendingTokensView {
   }
 
   async openPriceFilter(): Promise<void> {
-    await Gestures.waitAndTap(
-      this.el(SwapTrendingTokensSelectorIDs.PRICE_FILTER),
-      {
-        elemDescription: 'Tap trending price filter',
-      },
-    );
+    await Gestures.waitAndTap(this.priceFilter, {
+      elemDescription: 'Tap trending price filter',
+    });
   }
 
   async openTimeFilter(): Promise<void> {
-    await Gestures.waitAndTap(
-      this.el(SwapTrendingTokensSelectorIDs.TIME_FILTER),
-      {
-        elemDescription: 'Tap trending time filter',
-      },
-    );
+    await Gestures.waitAndTap(this.timeFilter, {
+      elemDescription: 'Tap trending time filter',
+    });
   }
 
   async openNetworkFilter(): Promise<void> {
-    await Gestures.waitAndTap(
-      this.el(SwapTrendingTokensSelectorIDs.NETWORK_FILTER),
-      {
-        elemDescription: 'Tap trending network filter',
-      },
-    );
+    await Gestures.waitAndTap(this.networkFilter, {
+      elemDescription: 'Tap trending network filter',
+    });
   }
 
   async closeBottomSheet(): Promise<void> {
-    await Gestures.waitAndTap(
-      this.el(SwapTrendingTokensSelectorIDs.CLOSE_BUTTON),
-      {
-        elemDescription: 'Close trending bottom sheet',
-      },
-    );
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Close trending bottom sheet',
+    });
   }
 
   async selectTimeSixHours(): Promise<void> {
-    await Gestures.waitAndTap(
-      this.el(SwapTrendingTokensSelectorIDs.TIME_SELECT_6H),
-      {
-        elemDescription: 'Select 6h time filter',
-      },
-    );
+    await Gestures.waitAndTap(this.timeSelectSixHours, {
+      elemDescription: 'Select 6h time filter',
+    });
   }
 
   async selectNetworkByName(networkName: string): Promise<void> {
