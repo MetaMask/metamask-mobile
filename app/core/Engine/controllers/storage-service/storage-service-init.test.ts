@@ -15,8 +15,8 @@ import Logger from '../../../../util/Logger';
 
 jest.mock('@metamask/storage-service');
 jest.mock('redux-persist-filesystem-storage');
-jest.mock('../../../util/device');
-jest.mock('../../../util/Logger');
+jest.mock('../../../../util/device');
+jest.mock('../../../../util/Logger');
 
 const mockFilesystemStorage = jest.mocked(FilesystemStorage);
 const mockDevice = jest.mocked(Device);
