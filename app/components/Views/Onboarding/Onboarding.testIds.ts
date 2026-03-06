@@ -21,4 +21,5 @@ export const OnboardingSelectorIDs = {
 
 export const OnboardingSelectorText = {
   SUCCESSFUL_WALLET_RESET: enContent.onboarding.your_wallet,
+  UNLOCK_BUTTON: enContent.onboarding.unlock,
 };

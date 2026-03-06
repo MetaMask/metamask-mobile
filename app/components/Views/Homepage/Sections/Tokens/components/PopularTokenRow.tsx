@@ -27,6 +27,7 @@ import { useRampNavigation } from '../../../../../UI/Ramp/hooks/useRampNavigatio
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PopularToken } from '../hooks/usePopularTokens';
+import { useRampsButtonClickedEvent } from '../hooks';
 import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/constants';
 
 // Zero address used for native EVM tokens (ETH, BNB, etc.)
@@ -145,6 +146,7 @@ const formatPercentageChange = (
 const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   const navigation = useNavigation();
   const { goToBuy } = useRampNavigation();
+  const { trackBuyButtonClicked } = useRampsButtonClickedEvent();
   const currentCurrency = useSelector(selectCurrentCurrency);
 
   const handleRowPress = useCallback(() => {
@@ -165,8 +167,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   }, [navigation, token.assetId, token.symbol]);
 
   const handleBuy = useCallback(() => {
+    trackBuyButtonClicked();
     goToBuy({ assetId: token.assetId });
-  }, [goToBuy, token.assetId]);
+  }, [trackBuyButtonClicked, goToBuy, token.assetId]);
 
   const priceDisplay = useMemo(() => {
     if (token.price === undefined) {

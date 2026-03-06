@@ -5931,8 +5931,8 @@
       },
       "buy_musd": "购买 mUSD",
       "get_musd": "获取 mUSD",
-      "boost_title": "获得稳定币的 {{percentage}}% 奖励",
-      "boost_description": "将您的稳定币兑换为 mUSD，即可获得高达 {{percentage}}% 的奖励。",
+      "bonus_title": "获得稳定币的 {{percentage}}% 奖励",
+      "bonus_description": "将您的稳定币兑换为 mUSD，即可获得高达 {{percentage}}% 的奖励。",
       "powered_by_relay": "由 Relay 提供技术支持"
     },
     "bonus_claim": {

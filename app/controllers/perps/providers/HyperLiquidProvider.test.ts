@@ -4,6 +4,7 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { CandlePeriod } from '../constants/chartConfig';
 import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
@@ -8544,6 +8545,84 @@ describe('HyperLiquidProvider', () => {
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
+    });
+  });
+
+  describe('fetchHistoricalCandles', () => {
+    const options = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      limit: 100,
+    };
+
+    it('returns candle data from clientService', async () => {
+      // Arrange
+      const mockCandles = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            open: '50000',
+            close: '51000',
+            high: '51500',
+            low: '49500',
+            volume: '100',
+            time: 1000,
+          },
+        ],
+      };
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(mockCandles);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(mockClientService.ensureInitialized).toHaveBeenCalled();
+      expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+        options,
+      );
+      expect(result).toStrictEqual(mockCandles);
+    });
+
+    it('returns empty candles when clientService returns null', async () => {
+      // Arrange
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(null);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(result).toStrictEqual({
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
+      });
+    });
+  });
+
+  describe('buildAssetMapping with perpDexs network failure', () => {
+    it('completes asset mapping using fallback when perpDexs throws', async () => {
+      // Arrange — perpDexs throws, so getValidatedDexs falls back to [null]
+      const freshProvider = createTestProvider({ hip3Enabled: true });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          perpDexs: jest.fn().mockRejectedValue(new Error('Network timeout')),
+        }),
+      );
+      MockedHyperLiquidClientService.mockImplementation(
+        () => mockClientService,
+      );
+
+      // Act — triggering ensureReady -> buildAssetMapping via getPositions
+      await freshProvider.initialize();
+      const markets = await freshProvider.getMarkets();
+
+      // Assert — provider remains functional with main DEX only
+      expect(Array.isArray(markets)).toBe(true);
     });
   });
 });
