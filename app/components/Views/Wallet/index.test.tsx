@@ -1083,7 +1083,7 @@ describe('Wallet', () => {
       mockPredictGTMModalEnabled = false; // Reset to default
     });
 
-    it('should register visibility callback when Perps is enabled', () => {
+    it('should render PerpsTabView without visibility props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1109,20 +1109,17 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Debug: Check if TabsList was rendered
       expect(mockTabsListComponent).toHaveBeenCalled();
-
-      // Check that PerpsTabView was rendered
       expect(mockPerpsTabView).toHaveBeenCalled();
 
-      // Check the props it was called with
+      // With PerpsAlwaysOnProvider managing lifecycle, PerpsTabView no longer
+      // receives visibility props — lifecycle is centralized at the wallet root.
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.onVisibilityChange).toBeDefined();
-      expect(typeof perpsTabViewProps.onVisibilityChange).toBe('function');
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.onVisibilityChange).toBeUndefined();
+      expect(perpsTabViewProps.isVisible).toBeUndefined();
     });
 
-    it('should calculate correct perpsTabIndex when Perps is enabled', () => {
+    it('should render PerpsTabView with only tab-related props when Perps is enabled', () => {
       const state = {
         ...mockInitialState,
         engine: {
@@ -1148,9 +1145,10 @@ describe('Wallet', () => {
         { state },
       );
 
-      // Perps should be at index 1 when enabled (after Tokens at index 0)
+      expect(mockPerpsTabView).toHaveBeenCalled();
+      // tabLabel and key are the only props passed — no isVisible or onVisibilityChange
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
-      expect(perpsTabViewProps.isVisible).toBe(false); // Initially not visible (tab 0 is selected)
+      expect(perpsTabViewProps.tabLabel).toBeDefined();
     });
 
     it('should not render PerpsTabView when Perps is disabled', () => {
