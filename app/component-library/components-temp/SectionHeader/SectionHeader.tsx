@@ -57,38 +57,38 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   return (
     <View style={style} testID={testID}>
       <Box paddingHorizontal={4} twClassName={twClassName}>
-        <TouchableOpacity
-          onPress={onPress}
-          disabled={!onPress}
-          accessibilityRole={onPress ? 'button' : undefined}
-          accessibilityLabel={typeof title === 'string' ? title : undefined}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
         >
+          {/* Left side: Title + optional endAccessory */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
+            gap={1}
           >
-            {/* Left side: Title + optional endAccessory */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
-              {typeof title === 'string' ? (
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  color={TextColor.TextDefault}
-                >
-                  {title}
-                </Text>
-              ) : (
-                title
-              )}
-              {endAccessory}
-            </Box>
+            {typeof title === 'string' ? (
+              <Text
+                variant={TextVariant.HeadingMd}
+                color={TextColor.TextDefault}
+              >
+                {title}
+              </Text>
+            ) : (
+              title
+            )}
+            {endAccessory}
+          </Box>
 
-            {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
-            {onPress && (
+          {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
+          {onPress && (
+            <TouchableOpacity
+              onPress={onPress}
+              disabled={!onPress}
+              accessibilityRole="button"
+              accessibilityLabel={typeof title === 'string' ? title : undefined}
+            >
               <View
                 pointerEvents="none"
                 style={tw.style(
@@ -98,9 +98,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
               >
                 <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
               </View>
-            )}
-          </Box>
-        </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        </Box>
       </Box>
     </View>
   );
