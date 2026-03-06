@@ -5,7 +5,7 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-import type { CandleData } from './perps-types';
+import type { CandleData, OrderType } from './perps-types';
 import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 /**
@@ -71,9 +71,6 @@ export type TradeConfiguration = {
     timestamp: number; // When the config was saved (for expiration check)
   };
 };
-
-// Order type enumeration
-export type OrderType = 'market' | 'limit';
 
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
@@ -1066,6 +1063,17 @@ export type PerpsProvider = {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
+
+  /**
+   * Fetch historical OHLCV candle data for a symbol.
+   * Optional: only providers that support historical candles need to implement this.
+   */
+  fetchHistoricalCandles?(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData>;
 };
 
 // ============================================================================

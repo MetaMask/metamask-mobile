@@ -19,6 +19,7 @@ import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
@@ -45,6 +46,7 @@ export function usePerpsBalanceTokenFilter(): (
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const { depositWithConfirmation } = usePerpsTrading();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
   const { navigateToConfirmation } = useConfirmNavigation();
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
@@ -52,11 +54,20 @@ export function usePerpsBalanceTokenFilter(): (
   ]);
 
   const handlePerpsDepositPress = useCallback(() => {
-    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-    depositWithConfirmation().catch(() => {
-      // Deposit flow handles errors (e.g. user rejection).
-    });
-  }, [navigateToConfirmation, depositWithConfirmation]);
+    ensureArbitrumNetworkExists()
+      .then(() => {
+        navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+        return depositWithConfirmation();
+      })
+      .catch((_err) => {
+        // Deposit flow handles errors (e.g. user rejection or missing network).
+        // ensureArbitrumNetworkExists errors are logged inside the hook itself.
+      });
+  }, [
+    ensureArbitrumNetworkExists,
+    navigateToConfirmation,
+    depositWithConfirmation,
+  ]);
 
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();

@@ -3,12 +3,12 @@ import { useTokenBalance } from './useTokenBalance';
 import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
-  selectTronResourcesBySelectedAccountGroup,
-  TronResourcesMap,
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsMap,
 } from '../../../../selectors/assets/assets-list';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 
-const createEmptyResourcesMap = (): TronResourcesMap => ({
+const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   energy: undefined,
   bandwidth: undefined,
   maxEnergy: undefined,
@@ -16,12 +16,15 @@ const createEmptyResourcesMap = (): TronResourcesMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
 });
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(
-    (): TronResourcesMap => ({
+  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(
+    (): TronSpecialAssetsMap => ({
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,
@@ -29,6 +32,9 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
       stakedTrxForEnergy: undefined,
       stakedTrxForBandwidth: undefined,
       totalStakedTrx: 0,
+      trxReadyForWithdrawal: undefined,
+      trxStakingRewards: undefined,
+      trxInLockPeriod: undefined,
     }),
   ),
 }));
@@ -39,14 +45,14 @@ jest.mock('../../AssetOverview/utils/createStakedTrxAsset', () => ({
 
 const mockSelectAsset = jest.mocked(selectAsset);
 const mockSelectTronResources = jest.mocked(
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
 );
 const mockCreateStakedTrxAsset = jest.mocked(createStakedTrxAsset);
 
 describe('useTokenBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTronResources.mockReturnValue(createEmptyResourcesMap());
+    mockSelectTronResources.mockReturnValue(createEmptySpecialAssetsMap());
   });
 
   afterEach(() => {
@@ -119,10 +125,10 @@ describe('useTokenBalance', () => {
     } as TokenI);
 
     mockSelectTronResources.mockReturnValue({
-      ...createEmptyResourcesMap(),
+      ...createEmptySpecialAssetsMap(),
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '100' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '200' },
-    } as TronResourcesMap);
+    } as TronSpecialAssetsMap);
 
     mockCreateStakedTrxAsset.mockReturnValue(mockStakedAsset);
 
