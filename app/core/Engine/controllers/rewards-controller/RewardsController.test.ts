@@ -19187,10 +19187,46 @@ describe('RewardsController', () => {
       );
     });
 
+    it('returns empty array when campaigns feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => false,
+      });
+
+      const result = await disabledController.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual([]);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getCampaigns',
+        expect.anything(),
+      );
+    });
+
+    it('fetches campaigns when campaigns feature flag is enabled', async () => {
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
+      });
+
+      const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
+      mockMessenger.call.mockResolvedValue(mockCampaigns);
+
+      const result = await controller.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual(mockCampaigns);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getCampaigns',
+        mockSubscriptionId,
+      );
+    });
+
     it('fetches campaigns from API and caches result', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [
@@ -19231,6 +19267,7 @@ describe('RewardsController', () => {
             },
           },
         },
+        isCampaignsEnabled: () => true,
       });
 
       const result = await controller.getCampaigns(mockSubscriptionId);
@@ -19255,6 +19292,7 @@ describe('RewardsController', () => {
             },
           },
         },
+        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(freshCampaigns);
@@ -19272,6 +19310,7 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue([]);

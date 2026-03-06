@@ -314,6 +314,7 @@ export class RewardsController extends BaseController<
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
   #isSnapshotsEnabled: () => boolean;
+  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -467,6 +468,7 @@ export class RewardsController extends BaseController<
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
     isSnapshotsEnabled,
+    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
@@ -474,6 +476,7 @@ export class RewardsController extends BaseController<
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
     isSnapshotsEnabled?: () => boolean;
+    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -489,6 +492,7 @@ export class RewardsController extends BaseController<
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
     this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
+    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -3433,6 +3437,9 @@ export class RewardsController extends BaseController<
   async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
+      return [];
+    }
+    if (!this.#isCampaignsEnabled()) {
       return [];
     }
     const result = await wrapWithCache<CampaignDto[]>({
