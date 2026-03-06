@@ -53,6 +53,19 @@ function getDefaultFeatureFlagsArray(): Record<string, unknown>[] {
 }
 
 /**
+ * E2E-safe overrides applied before user overrides.
+ * Production flag values that would block debug/test builds are neutralized here.
+ * Individual tests can still override these by passing their own values in flagOverrides.
+ */
+const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
+  // Production appMinimumBuild (3727) exceeds Android debug versionCode (3607),
+  // triggering the UpdateNeeded modal and blocking all Android E2E tests.
+  mobileMinimumVersions: {
+    appMinimumBuild: 1,
+  },
+};
+
+/**
  * Creates a remote feature flags mock with custom overrides
  * @param flagOverrides - Object containing flag overrides (e.g., { rewards: true })
  * @param distribution - Distribution type (main, flask)
@@ -67,8 +80,11 @@ export const createRemoteFeatureFlagsMock = (
     JSON.stringify(getDefaultFeatureFlagsArray()),
   ) as Record<string, unknown>[];
 
+  // Apply E2E-safe defaults first, then user overrides (user overrides take precedence)
+  const effectiveOverrides = { ...E2E_SAFE_DEFAULTS, ...flagOverrides };
+
   // Apply overrides by finding and merging with existing objects or adding new ones
-  Object.entries(flagOverrides).forEach(([flagName, flagValue]) => {
+  Object.entries(effectiveOverrides).forEach(([flagName, flagValue]) => {
     const existingIndex = result.findIndex((obj) =>
       Object.prototype.hasOwnProperty.call(obj, flagName),
     );
