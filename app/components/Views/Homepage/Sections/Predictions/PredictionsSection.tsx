@@ -106,7 +106,7 @@ const PredictionsSection = forwardRef<
     claimablePositions?.reduce((sum, p) => sum + (p.currentValue ?? 0), 0) ?? 0;
 
   // Determine if user has positions
-  const hasPositions = positions?.length && positions.length > 0;
+  const hasPositions = (positions && positions.length > 0) ?? false;
 
   // Use ref so refresh always reads the latest value without stale closures
   const hasPositionsRef = useRef(hasPositions);
