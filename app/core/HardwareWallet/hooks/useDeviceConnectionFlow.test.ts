@@ -80,7 +80,7 @@ describe('useDeviceConnectionFlow', () => {
       // Resolve the pending readiness promise so it doesn't leak
       await act(async () => {
         result.current.closeFlow();
-        await readyPromise!;
+        await readyPromise;
       });
     });
   });
