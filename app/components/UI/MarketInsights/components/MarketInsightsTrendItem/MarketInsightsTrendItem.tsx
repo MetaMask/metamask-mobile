@@ -25,14 +25,14 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
     const articleSources: MarketInsightsSource[] = trend.articles.map(
       (article) => ({
         name: article.source,
-        type: 'article',
+        type: 'news',
         url: article.url || article.source,
       }),
     );
     const tweetSources: MarketInsightsSource[] = (trend.tweets ?? []).map(
       (tweet) => ({
         name: 'X',
-        type: 'tweet',
+        type: 'social',
         url: tweet.url || 'https://x.com',
       }),
     );
@@ -60,7 +60,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       accessibilityRole={onPress ? 'button' : undefined}
     >
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.HeadingSm}
         fontWeight={FontWeight.Medium}
         twClassName="mb-2"
       >

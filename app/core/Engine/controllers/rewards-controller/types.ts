@@ -2,7 +2,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
@@ -86,6 +86,80 @@ export interface ApplyBonusCodeDto {
    */
   bonusCode: string;
 }
+
+/**
+ * Campaign type enum matching the backend CampaignType
+ */
+export enum CampaignType {
+  ONDO_HOLDING = 'ONDO_HOLDING',
+}
+
+/**
+ * DTO for campaign data from the backend
+ */
+export interface CampaignDto {
+  /**
+   * The unique identifier of the campaign
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The type of campaign
+   * @example CampaignType.ONDO_HOLDING
+   */
+  type: CampaignType;
+
+  /**
+   * The name of the campaign
+   * @example 'ONDO Holding Campaign'
+   */
+  name: string;
+
+  /**
+   * The start date of the campaign
+   * @example '2024-01-01T00:00:00.000Z'
+   */
+  startDate: string;
+
+  /**
+   * The end date of the campaign
+   * @example '2024-12-31T23:59:59.999Z'
+   */
+  endDate: string;
+
+  /**
+   * Terms and conditions content from Contentful (may be null)
+   */
+  termsAndConditions: Json | null;
+
+  /**
+   * Regions excluded from this campaign
+   * @example ['US', 'GB']
+   */
+  excludedRegions: string[];
+
+  /**
+   * Status label for the campaign
+   * @example 'Active'
+   */
+  statusLabel: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignsState = {
+  campaigns: {
+    id: string;
+    type: CampaignType;
+    name: string;
+    startDate: string;
+    endDate: string;
+    termsAndConditions: Json | null;
+    excludedRegions: string[];
+    statusLabel: string;
+  }[];
+  lastFetched: number;
+};
 
 /**
  * DTO for snapshot data from the backend
@@ -837,6 +911,12 @@ export type UnlockedRewardsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OffDeviceSubscriptionAccountsState = {
+  accounts: string[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SnapshotsState = {
   snapshots: {
     id: string;
@@ -1193,6 +1273,10 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
+  offDeviceSubscriptionAccounts: {
+    [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
+  };
+  campaigns: { [subscriptionId: string]: CampaignsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1525,11 +1609,27 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
+ * Action for getting campaigns
+ */
+export interface RewardsControllerGetCampaignsAction {
+  type: 'RewardsController:getCampaigns';
+  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
+}
+
+/**
  * Action for getting snapshots for a season
  */
 export interface RewardsControllerGetSnapshotsAction {
   type: 'RewardsController:getSnapshots';
   handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+}
+
+/**
+ * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
+ */
+export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
+  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
+  handler: (subscriptionId: string) => Promise<string[]>;
 }
 
 /**
@@ -1625,7 +1725,9 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetCampaignsAction
   | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction

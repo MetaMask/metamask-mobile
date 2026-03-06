@@ -205,6 +205,7 @@ const MusdConversionAssetListCta = () => {
 
       <Button
         variant={ButtonVariant.Secondary}
+        style={styles.button}
         onPress={() => handlePress(CTA_CLICK_TARGET.CTA_BUTTON)}
         size={ButtonSize.Sm}
       >

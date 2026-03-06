@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
@@ -243,7 +244,7 @@ describe('PerpsPositionCard', () => {
       },
     });
 
-    // Default eligibility mock
+    // Default selector mocks: eligible, privacy mode off
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
@@ -251,6 +252,9 @@ describe('PerpsPositionCard', () => {
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
       }
       return undefined;
     });
@@ -577,6 +581,157 @@ describe('PerpsPositionCard', () => {
         PerpsPositionCardSelectorsIDs.SHARE_BUTTON,
       );
       expect(shareButton).toBeNull();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const DOTS_SHORT = '•'.repeat(6); // SensitiveTextLength.Short
+
+    const enablePrivacyMode = () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) return true;
+        if (selector === selectPrivacyMode) return true;
+        return undefined;
+      });
+    };
+
+    it('hides PnL value when privacy mode is enabled', () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert - actual PnL text absent, dots present
+      expect(screen.queryByText(/\+\$250\.00/)).toBeNull();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE),
+      ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('hides ROE value when privacy mode is enabled', () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert
+      expect(screen.queryByText(/\+1250\.00%/)).toBeNull();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.RETURN_VALUE),
+      ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('hides margin value when privacy mode is enabled', () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert
+      expect(screen.queryByText(/\$500/)).toBeNull();
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.MARGIN_VALUE),
+      ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('hides size value when privacy mode is enabled', () => {
+      // Arrange
+      enablePrivacyMode();
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert - position size in token units is hidden
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SIZE_VALUE),
+      ).toHaveTextContent(DOTS_SHORT);
+    });
+
+    it('shows identical PnL text for positive and negative positions when privacy mode is enabled (color does not leak direction)', () => {
+      // Arrange
+      enablePrivacyMode();
+      const positivePosition = { ...mockPosition, unrealizedPnl: '250.00' };
+      const negativePosition = {
+        ...mockPosition,
+        unrealizedPnl: '-250.00',
+        returnOnEquity: '-12.5',
+      };
+
+      // Act
+      const { unmount } = render(
+        <PerpsPositionCard position={positivePosition} />,
+      );
+      const positivePnlText = screen
+        .getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE)
+        .props.children?.toString();
+      unmount();
+
+      render(<PerpsPositionCard position={negativePosition} />);
+      const negativePnlText = screen
+        .getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE)
+        .props.children?.toString();
+
+      // Assert - both show the same dots regardless of profit/loss
+      expect(positivePnlText).toBe(negativePnlText);
+      expect(positivePnlText).toBe(DOTS_SHORT);
+    });
+
+    it('shows actual PnL value when privacy mode is disabled', () => {
+      // Arrange - privacy mode off (default from beforeEach)
+
+      // Act
+      render(<PerpsPositionCard position={mockPosition} />);
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE),
+      ).toHaveTextContent(/\+\$250\.00/);
+      expect(screen.queryByText(DOTS_SHORT)).toBeNull();
+    });
+
+    describe('Compact mode', () => {
+      it('hides position value and PnL in compact default variant', () => {
+        // Arrange
+        enablePrivacyMode();
+
+        // Act
+        render(
+          <PerpsPositionCard
+            position={mockPosition}
+            compact
+            compactVariant="default"
+          />,
+        );
+
+        // Assert - financial values replaced with dots
+        const hiddenValues = screen.getAllByText(DOTS_SHORT);
+        expect(hiddenValues.length).toBeGreaterThanOrEqual(2);
+      });
+
+      it('hides ROE in compact position variant', () => {
+        // Arrange
+        enablePrivacyMode();
+
+        // Act
+        render(
+          <PerpsPositionCard
+            position={mockPosition}
+            compact
+            compactVariant="position"
+          />,
+        );
+
+        // Assert
+        const hiddenValues = screen.getAllByText(DOTS_SHORT);
+        expect(hiddenValues.length).toBeGreaterThanOrEqual(1);
+      });
     });
   });
 });
