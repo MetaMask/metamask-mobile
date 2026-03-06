@@ -406,6 +406,12 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   })),
 }));
 
+jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
+  useConfirmNavigation: jest.fn(() => ({
+    navigateToConfirmation: jest.fn(),
+  })),
+}));
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
   () => ({
