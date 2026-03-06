@@ -6,6 +6,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './bottom-modal.styles';
 
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
 const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
   avoidKeyboard?: boolean;
