@@ -6,10 +6,15 @@ import { type PerpsMarketData } from '@metamask/perps-controller';
 const { TouchableOpacity } = jest.requireActual('react-native');
 
 const mockThemeColors = {
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   background: { default: '#1a1a2e', section: '#2a2a3e', subsection: '#3a3a4e' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   border: { muted: '#333' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   success: { default: '#28a745' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   error: { default: '#dc3545' },
+  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
   icon: { alternative: '#6a737d' },
 };
 
@@ -86,6 +91,17 @@ jest.mock('../SparklineChart', () => {
   };
 });
 
+jest.mock('../../../../../../UI/Perps/hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+}));
+
+const { usePerpsLivePrices } = jest.requireMock(
+  '../../../../../../UI/Perps/hooks/stream',
+);
+const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
+  typeof usePerpsLivePrices
+>;
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => false),
@@ -109,6 +125,7 @@ describe('PerpsMarketTileCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsLivePrices.mockReturnValue({});
   });
 
   it('renders market symbol and leverage', () => {
@@ -176,7 +193,23 @@ describe('PerpsMarketTileCard', () => {
     expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
   });
 
-  it('displays market change24hPercent', () => {
+  it('uses live percentage change when available', () => {
+    mockUsePerpsLivePrices.mockReturnValue({
+      BTC: {
+        price: '55000',
+        percentChange24h: '5.50',
+        volume24h: 3000000000,
+      },
+    });
+
+    render(<PerpsMarketTileCard market={mockMarketData} />);
+
+    expect(screen.getByText('+5.50%')).toBeOnTheScreen();
+  });
+
+  it('falls back to market data when no live prices', () => {
+    mockUsePerpsLivePrices.mockReturnValue({});
+
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
     expect(screen.getByText('+4.00%')).toBeOnTheScreen();

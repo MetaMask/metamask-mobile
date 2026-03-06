@@ -186,14 +186,12 @@ jest.mock('../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: { alternative: '#666666' },
-      primary: { default: '#037DD6' },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../CollectibleMedia', () => () => null);
 jest.mock('@metamask/design-system-react-native', () => ({
