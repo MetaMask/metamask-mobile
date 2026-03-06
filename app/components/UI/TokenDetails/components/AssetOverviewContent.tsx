@@ -68,7 +68,12 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -292,22 +297,27 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
-    if (!onMarketInsightsDisplayResolved) {
-      return;
-    }
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved(false);
+      onMarketInsightsDisplayResolved?.(false);
       return;
     }
     if (isMarketInsightsLoading) {
       return;
     }
-    onMarketInsightsDisplayResolved(Boolean(marketInsightsReport));
+    if (!marketInsightsReport && marketInsightsCaip19Id) {
+      // No report available — cancel the orphaned trace that was started during render
+      endTrace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
+    marketInsightsCaip19Id,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered
