@@ -7,6 +7,7 @@ import { TokenDetailsSource } from '../../../../../UI/TokenDetails/constants/con
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
+const mockTrackBuyButtonClicked = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -21,6 +22,12 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../hooks', () => ({
+  useRampsButtonClickedEvent: () => ({
+    trackBuyButtonClicked: mockTrackBuyButtonClicked,
   }),
 }));
 
@@ -248,6 +255,16 @@ describe('PopularTokenRow', () => {
       expect(mockGoToBuy).toHaveBeenCalledWith({
         assetId: 'eip155:1/erc20:0x1234567890abcdef1234567890abcdef12345678',
       });
+    });
+
+    it('fires Ramps Button Clicked analytics event when Buy is pressed', () => {
+      const token = createMockToken();
+
+      renderWithProvider(<PopularTokenRow token={token} />);
+
+      fireEvent.press(screen.getByText('Buy'));
+
+      expect(mockTrackBuyButtonClicked).toHaveBeenCalledTimes(1);
     });
   });
 

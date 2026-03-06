@@ -105,6 +105,7 @@ const NetworkDetailsView = () => {
 
   const isActionDisabled =
     !formHook.enableAction ||
+    formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
 

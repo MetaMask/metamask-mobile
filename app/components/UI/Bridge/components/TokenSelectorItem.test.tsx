@@ -321,7 +321,7 @@ describe('TokenSelectorItem', () => {
   });
 
   describe('text truncation', () => {
-    it('truncates long token names to 2 lines', () => {
+    it('truncates long token names to 1 line', () => {
       const token = createMockTokenWithBalance({
         name: 'Very Long Token Name That Should Be Truncated',
       });
@@ -334,7 +334,7 @@ describe('TokenSelectorItem', () => {
         'Very Long Token Name That Should Be Truncated',
       );
 
-      expect(tokenNameElement.props.numberOfLines).toBe(2);
+      expect(tokenNameElement.props.numberOfLines).toBe(1);
     });
 
     it('applies tail ellipsize mode to token names', () => {
@@ -351,6 +351,35 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(tokenNameElement.props.ellipsizeMode).toBe('tail');
+    });
+
+    it('renders token balance in a single line', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        symbol: 'TOKEN',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      const tokenBalanceElement = getByText('50 TOKEN');
+
+      expect(tokenBalanceElement.props.numberOfLines).toBe(1);
+    });
+
+    it('renders fiat balance in a single line', () => {
+      const token = createMockTokenWithBalance({
+        balanceFiat: '$1,234.56',
+      });
+
+      const { getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      const fiatBalanceElement = getByText('$1,234.56');
+
+      expect(fiatBalanceElement.props.numberOfLines).toBe(1);
     });
   });
 });
