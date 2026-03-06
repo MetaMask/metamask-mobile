@@ -4,7 +4,9 @@ import { render } from '@testing-library/react-native';
 // Mock useTheme hook
 const mockUseTheme = jest.fn().mockReturnValue({
   colors: {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     background: { default: '#FFFFFF' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     text: { default: '#000000' },
   },
   themeAppearance: 'light',
@@ -125,7 +127,9 @@ describe('FoxRiveLoaderAnimation', () => {
     // Arrange
     mockUseTheme.mockReturnValueOnce({
       colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         background: { default: '#000000' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         text: { default: '#FFFFFF' },
       },
       themeAppearance: 'dark',

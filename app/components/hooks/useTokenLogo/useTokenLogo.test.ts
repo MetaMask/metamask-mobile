@@ -1,17 +1,10 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useTokenLogo } from './useTokenLogo';
-
-// Mock useTheme hook
-const mockColors = {
-  background: { default: '#FFFFFF' },
-  text: { default: '#000000' },
-  icon: { default: '#000000' },
-  border: { muted: '#E5E7EB' },
-};
+import { mockTheme } from '../../../util/theme';
 
 const mockUseTheme = jest.fn().mockReturnValue({
-  colors: mockColors,
-  themeAppearance: 'light',
+  ...mockTheme,
+  themeAppearance: 'light' as const,
 });
 
 jest.mock('../../../util/theme', () => ({
@@ -25,8 +18,8 @@ describe('useTokenLogo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue({
-      colors: mockColors,
-      themeAppearance: 'light',
+      ...mockTheme,
+      themeAppearance: 'light' as const,
     });
   });
 

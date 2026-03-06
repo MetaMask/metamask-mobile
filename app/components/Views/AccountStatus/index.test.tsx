@@ -35,9 +35,12 @@ const createMockRoute = (params = {}) => ({
   name: 'AccountStatus' as const,
 });
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({ colors: { text: { default: '#24292E' } } }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),

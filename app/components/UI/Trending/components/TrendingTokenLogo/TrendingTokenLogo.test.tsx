@@ -24,6 +24,7 @@ jest.mock('../../../../hooks/useTokenLogo', () => ({
     fallbackTextStyle: {
       fontSize: 18,
       fontWeight: '600',
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       color: '#000000',
     },
     handleLoadStart: jest.fn(),
@@ -32,15 +33,12 @@ jest.mock('../../../../hooks/useTokenLogo', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 describe('TrendingTokenLogo', () => {
   beforeEach(() => {

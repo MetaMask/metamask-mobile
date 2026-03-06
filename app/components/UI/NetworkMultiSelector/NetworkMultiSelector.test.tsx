@@ -17,7 +17,6 @@ import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constant
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -31,13 +30,12 @@ import {
 
 jest.mock('../../../util/hideKeyFromUrl', () => jest.fn());
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0378FF' },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
   useStyles: jest.fn(() => ({
@@ -49,9 +47,11 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
     theme: {
       colors: {
         icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#666666',
         },
         text: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           alternative: '#999999',
         },
       },
@@ -217,7 +217,9 @@ describe('NetworkMultiSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
-  const mockUseAnalytics = jest.mocked(useAnalytics);
+  const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+    typeof useAnalytics
+  >;
 
   // Shared helper functions for all tests
   const createMockNetwork = (
@@ -334,9 +336,6 @@ describe('NetworkMultiSelector', () => {
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
       enabledNetworksForAllNamespaces: mockEnabledNetworks,
-      popularEvmNetworks: [],
-      popularMultichainNetworks: [],
-      popularNetworks: [],
     });
 
     mockUseNetworksByNamespace.mockReturnValue({
@@ -465,12 +464,19 @@ describe('NetworkMultiSelector', () => {
       build: mockBuild,
     });
 
-    mockUseAnalytics.mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+      isEnabled: () => true,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      getAnalyticsId: jest.fn(),
+    });
   });
 
   // TODO: Refactor tests - they aren't up to par
@@ -564,9 +570,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -605,9 +608,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -694,9 +694,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -753,9 +750,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -836,9 +830,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -918,9 +909,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -992,9 +980,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -2429,9 +2414,6 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderWithProvider(
