@@ -1,6 +1,9 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictMarketListSelectorsIDs,
+  PredictSearchSelectorsIDs,
+} from '../../Predict.testIds';
 import PredictFeed from './PredictFeed';
 
 jest.mock('react-native-pager-view', () => {
@@ -475,11 +478,13 @@ describe('PredictFeed', () => {
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
       fireEvent.changeText(searchInput, 'test query');
-      fireEvent.press(getByTestId('clear-button'));
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON));
 
       // After clearing search, the clear button should no longer be visible
       // (only shows when searchQuery.length > 0)
-      expect(queryByTestId('clear-button')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(PredictSearchSelectorsIDs.CLEAR_BUTTON),
+      ).not.toBeOnTheScreen();
       // Trending results visible when no search query is empty
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
     });

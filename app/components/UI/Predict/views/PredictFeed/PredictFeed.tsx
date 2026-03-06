@@ -47,6 +47,7 @@ import {
 } from '@react-navigation/native';
 import {
   PredictMarketListSelectorsIDs,
+  PredictSearchSelectorsIDs,
   getPredictMarketListSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
@@ -528,7 +529,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
+            <Pressable
+              testID={PredictSearchSelectorsIDs.CLEAR_BUTTON}
+              onPress={() => onSearchChange('')}
+            >
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
