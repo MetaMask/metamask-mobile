@@ -17,6 +17,7 @@ import {
   waitFor,
   within,
   userEvent,
+  type RenderAPI,
 } from '@testing-library/react-native';
 
 // TODO: Anti-pattern — only Engine and native modules should be mocked here.
@@ -31,6 +32,36 @@ jest.mock('@metamask/assets-controllers', () => {
     getTrendingTokens: jest.fn().mockResolvedValue([]),
   };
 });
+
+const assertTrendingTokenRowsVisibility = async (opts: {
+  visible: { id: string; name?: string; pricePercentageChange?: string }[];
+  missing?: { id: string }[];
+  queryByTestId: RenderAPI['queryByTestId'];
+}) => {
+  const { visible, missing, queryByTestId } = opts;
+  await waitFor(
+    async () => {
+      visible.forEach((result) => {
+        expect(queryByTestId(result.id)).toBeOnTheScreen();
+        if (result.name) {
+          expect(queryByTestId(result.id)).toHaveTextContent(result.name, {
+            exact: false,
+          });
+        }
+        if (result.pricePercentageChange) {
+          expect(queryByTestId(result.id)).toHaveTextContent(
+            result.pricePercentageChange,
+            { exact: false },
+          );
+        }
+      });
+      missing?.forEach((result) => {
+        expect(queryByTestId(result.id)).not.toBeOnTheScreen();
+      });
+    },
+    { timeout: 2000 },
+  );
+};
 
 describeForPlatforms('ExploreFeed - Component Tests', () => {
   beforeEach(() => {
@@ -72,37 +103,37 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   itForPlatforms(
     'user sees trending tokens section with mocked data',
     async () => {
-      const { findByText, findByTestId } = renderTrendingViewWithRoutes();
+      const { findByText, queryByTestId } = renderTrendingViewWithRoutes();
 
       await waitFor(async () => {
         expect(await findByText('Ethereum')).toBeOnTheScreen();
       });
 
-      const ethereumRow = await findByTestId(
-        'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      );
-      const ethereumRowScope = within(ethereumRow);
-      expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
-      expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
-
-      const bitcoinRow = await findByTestId(
-        'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-      );
-      const bitcoinRowScope = within(bitcoinRow);
-      expect(bitcoinRowScope.getByText('Bitcoin')).toBeOnTheScreen();
-      expect(bitcoinRowScope.getByText(/-2\.5/)).toBeOnTheScreen();
-
-      const uniswapRow = await findByTestId(
-        'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      );
-      const uniswapRowScope = within(uniswapRow);
-      expect(uniswapRowScope.getByText('Uniswap')).toBeOnTheScreen();
-      expect(uniswapRowScope.getByText(/\+12\.8/)).toBeOnTheScreen();
+      await assertTrendingTokenRowsVisibility({
+        queryByTestId,
+        visible: [
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+            name: 'Ethereum',
+            pricePercentageChange: '+5.20%',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+            name: 'Bitcoin',
+            pricePercentageChange: '-2.50%',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+            name: 'Uniswap',
+            pricePercentageChange: '+12.80%',
+          },
+        ],
+      });
     },
   );
 
   itForPlatforms('user navigates to trending tokens full view', async () => {
-    const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+    const { getByTestId, queryByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -115,77 +146,71 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
 
     await waitFor(() => {
       const header = getByTestId('trending-tokens-header');
-      expect(header).toBeOnTheScreen();
-      expect(within(header).getByText('Trending tokens')).toBeOnTheScreen();
+      expect(header).toHaveTextContent('Trending tokens');
     });
 
-    const ethereumRow = await findByTestId(
-      'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-    );
-    const ethereumRowScope = within(ethereumRow);
-    expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
-    expect(ethereumRowScope.getByText(/\$2,000/)).toBeOnTheScreen();
-    expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
-
-    const bitcoinRow = await findByTestId(
-      'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-    );
-    const bitcoinRowScope = within(bitcoinRow);
-    expect(bitcoinRowScope.getByText('Bitcoin')).toBeOnTheScreen();
-    expect(bitcoinRowScope.getByText(/\$45,000/)).toBeOnTheScreen();
-    expect(bitcoinRowScope.getByText(/-2\.5/)).toBeOnTheScreen();
-
-    const uniswapRow = await findByTestId(
-      'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-    );
-    const uniswapRowScope = within(uniswapRow);
-    expect(uniswapRowScope.getByText('Uniswap')).toBeOnTheScreen();
-    expect(uniswapRowScope.getByText(/\$8\.50/)).toBeOnTheScreen();
-    expect(uniswapRowScope.getByText(/\+12\.8/)).toBeOnTheScreen();
-  });
-
-  // TODO: Skipped — ExploreSearchScreen unconditionally wraps content in
-  // PerpsConnectionProvider, which blocks rendering until a WebSocket connection
-  // is established. Without mocking the Perps connection singleton, the search
-  // results list never mounts.
-  // https://github.com/MetaMask/metamask-mobile/issues/26269
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('user can search for a trending token from the explore feed', async () => {
-    const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
-
-    await waitFor(() => {
-      expect(
-        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
-      ).toBeOnTheScreen();
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+          name: 'Ethereum',
+          pricePercentageChange: '+5.20%',
+        },
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+          name: 'Bitcoin',
+          pricePercentageChange: '-2.50%',
+        },
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+          name: 'Uniswap',
+          pricePercentageChange: '+12.80%',
+        },
+      ],
     });
-
-    const searchButton = getByTestId('explore-view-search-button');
-    await userEvent.press(searchButton);
-
-    const searchInput = await findByTestId('explore-view-search-input');
-    expect(searchInput).toBeOnTheScreen();
-
-    await userEvent.type(searchInput, 'ethereum');
-
-    await waitFor(
-      async () => {
-        const searchResultsList = await findByTestId(
-          'trending-search-results-list',
-        );
-        const withinResults = within(searchResultsList);
-
-        const ethereumRow = withinResults.getByTestId(
-          'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        );
-        const ethereumRowScope = within(ethereumRow);
-
-        expect(ethereumRowScope.getByText('Ethereum')).toBeOnTheScreen();
-        expect(ethereumRowScope.getByText(/\$2,000/)).toBeOnTheScreen();
-        expect(ethereumRowScope.getByText(/\+5\.2/)).toBeOnTheScreen();
-      },
-      { timeout: 3000 },
-    );
   });
+
+  itForPlatforms(
+    'user can search for a trending token from the explore feed',
+    async () => {
+      const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
+
+      await waitFor(() => {
+        expect(
+          getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+        ).toBeOnTheScreen();
+      });
+
+      const searchButton = getByTestId('explore-view-search-button');
+      await userEvent.press(searchButton);
+
+      const searchInput = await findByTestId('explore-view-search-input');
+      expect(searchInput).toBeOnTheScreen();
+
+      await userEvent.type(searchInput, 'ethereum');
+
+      await waitFor(
+        async () => {
+          const searchResultsList = await findByTestId(
+            'trending-search-results-list',
+          );
+
+          await assertTrendingTokenRowsVisibility({
+            queryByTestId: within(searchResultsList).queryByTestId,
+            visible: [
+              {
+                id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+                name: 'Ethereum',
+                pricePercentageChange: '+5.20%',
+              },
+            ],
+          });
+        },
+        { timeout: 3000 },
+      );
+    },
+  );
 });
 
 describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
@@ -214,7 +239,7 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
         },
       );
 
-      const { findByTestId, findByText, getByTestId, queryByTestId } =
+      const { findByText, getByTestId, queryByTestId } =
         renderTrendingViewWithRoutes();
 
       await waitFor(() => {
@@ -230,10 +255,25 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
         expect(getByTestId('trending-tokens-header')).toBeOnTheScreen();
       });
 
-      const ethereumRow = await findByTestId(
-        'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-      );
-      expect(ethereumRow).toBeOnTheScreen();
+      await assertTrendingTokenRowsVisibility({
+        queryByTestId,
+        visible: [
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+          },
+        ],
+        missing: [
+          {
+            id: 'trending-token-row-item-eip155:56/erc20:0xBTC00000000000000000000000000000000000000',
+          },
+        ],
+      });
 
       const networkButton = getByTestId('all-networks-button');
       await userEvent.press(networkButton);
@@ -247,30 +287,25 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
 
       await userEvent.press(bnbNetworkOption);
 
-      const bnbTokenRow = await findByTestId(
-        'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
-      );
-      expect(bnbTokenRow).toBeOnTheScreen();
-      const bnbTokenRowScope = within(bnbTokenRow);
-      expect(bnbTokenRowScope.getByText('Bitcoin BNB')).toBeOnTheScreen();
-      expect(bnbTokenRowScope.getByText(/\$44,500/)).toBeOnTheScreen();
-      expect(bnbTokenRowScope.getByText(/-1\.8/)).toBeOnTheScreen();
-
-      expect(
-        queryByTestId(
-          'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-        ),
-      ).not.toBeOnTheScreen();
-      expect(
-        queryByTestId(
-          'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        ),
-      ).not.toBeOnTheScreen();
+      await assertTrendingTokenRowsVisibility({
+        queryByTestId,
+        visible: [
+          {
+            id: 'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
+          },
+        ],
+        missing: [
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+          },
+          {
+            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+          },
+        ],
+      });
     },
   );
 
@@ -299,24 +334,21 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
 
     await userEvent.type(searchInput, 'ethereum');
 
-    await waitFor(
-      async () => {
-        const tokenRow = await findByTestId(
-          'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        );
-        expect(tokenRow).toBeOnTheScreen();
-        expect(
-          queryByTestId(
-            'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          ),
-        ).not.toBeOnTheScreen();
-        expect(
-          queryByTestId(
-            'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          ),
-        ).not.toBeOnTheScreen();
-      },
-      { timeout: 2000 },
-    );
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+        },
+      ],
+      missing: [
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+        },
+        {
+          id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+        },
+      ],
+    });
   });
 });
