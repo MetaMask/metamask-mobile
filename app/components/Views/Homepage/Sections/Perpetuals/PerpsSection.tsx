@@ -52,6 +52,41 @@ const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
 
+/** Key fields that affect position card display; skip re-render if unchanged. Exported for testing. */
+export function positionDisplayKey(p: Position): string {
+  return `${p.symbol}:${p.entryPrice ?? ''}:${p.size ?? ''}:${p.unrealizedPnl ?? ''}:${p.takeProfitPrice ?? ''}:${p.stopLossPrice ?? ''}`;
+}
+
+/**
+ * Memoized row so only the position card whose data changed re-renders on stream updates.
+ */
+const PositionCardItem = React.memo<{
+  position: Position;
+  tpSlLoading: boolean;
+  onPositionPress: (position: Position) => void;
+}>(
+  ({ position, tpSlLoading, onPositionPress }) => {
+    const handlePress = useCallback(
+      () => onPositionPress(position),
+      [onPositionPress, position],
+    );
+    return (
+      <PerpsPositionCard
+        position={position}
+        compact
+        compactVariant="position"
+        tpSlLoading={tpSlLoading}
+        onPress={handlePress}
+        testID={`perps-position-row-${position.symbol}`}
+      />
+    );
+  },
+  (prev, next) =>
+    prev.tpSlLoading === next.tpSlLoading &&
+    prev.onPositionPress === next.onPositionPress &&
+    positionDisplayKey(prev.position) === positionDisplayKey(next.position),
+);
+
 /**
  * PerpsSection — single "Perpetuals" section on the homepage.
  *
@@ -172,7 +207,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const allCarouselMarkets = useMemo(
       () =>
-        [...watchlistMarkets, ...trendingMarkets].slice(
+        [...(watchlistMarkets ?? []), ...(trendingMarkets ?? [])].slice(
           0,
           MAX_TRENDING_MARKETS,
         ),
@@ -180,12 +215,13 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     const watchlistSymbolSet = useMemo(
-      () => new Set(watchlistMarkets.map((m) => m.symbol)),
+      () => new Set((watchlistMarkets ?? []).map((m) => m.symbol)),
       [watchlistMarkets],
     );
 
     const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+      () =>
+        showTrending ? (allCarouselMarkets ?? []).map((m) => m.symbol) : [],
       [showTrending, allCarouselMarkets],
     );
     const { sparklines, refresh: refreshSparklines } =
@@ -298,14 +334,11 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             <SectionRow>
               <Box testID="homepage-perps-positions">
                 {displayPositions.map((position) => (
-                  <PerpsPositionCard
+                  <PositionCardItem
                     key={position.symbol}
                     position={position}
-                    compact
-                    compactVariant="position"
                     tpSlLoading={!tpSlReady}
-                    onPress={() => handlePositionPress(position)}
-                    testID={`perps-position-row-${position.symbol}`}
+                    onPositionPress={handlePositionPress}
                   />
                 ))}
                 {displayOrders.map((order) => (
@@ -327,7 +360,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                   testID="homepage-trending-perps-carousel"
                   {...scrollProps}
                 >
-                  {allCarouselMarkets.map((market) => (
+                  {(allCarouselMarkets ?? []).map((market) => (
                     <PerpsMarketTileCard
                       key={market.symbol}
                       market={market}

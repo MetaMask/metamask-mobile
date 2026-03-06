@@ -30,6 +30,7 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
+import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -303,15 +304,15 @@ jest.mock(
   () => {
     const React = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
-    const { BridgeViewSelectorsIDs: BridgeViewTestIds } = jest.requireActual(
-      './BridgeView.testIds',
-    );
+    const TrendingTokensSectionTestIds = jest.requireActual(
+      '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds',
+    ).BridgeTrendingTokensSectionTestIds;
 
     return {
       __esModule: true,
       default: () =>
         React.createElement(View, {
-          testID: BridgeViewTestIds.TRENDING_TOKENS_SECTION,
+          testID: TrendingTokensSectionTestIds.SECTION,
         }),
     };
   },
@@ -865,7 +866,7 @@ describe('BridgeView', () => {
       expect(queryByTestId('banneralert')).toBeNull();
       expect(queryByTestId('edit-slippage-button')).toBeNull();
       expect(
-        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeNull();
       expect(queryByText('Fetching quote')).toBeNull();
     });
@@ -941,7 +942,7 @@ describe('BridgeView', () => {
       });
       expect(queryByTestId('edit-slippage-button')).toBeNull();
       expect(
-        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeNull();
     });
 
@@ -979,7 +980,7 @@ describe('BridgeView', () => {
       });
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeTruthy();
       expect(
-        queryByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+        queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeNull();
     });
 
@@ -1032,7 +1033,7 @@ describe('BridgeView', () => {
       );
 
       expect(
-        getByTestId(BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION),
+        getByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
       ).toBeTruthy();
       expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
