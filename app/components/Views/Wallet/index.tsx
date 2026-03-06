@@ -1441,8 +1441,8 @@ const Wallet = ({
   );
 
   return (
-    <PerpsAlwaysOnProvider>
-      <ErrorBoundary navigation={navigation} view="Wallet">
+    <ErrorBoundary navigation={navigation} view="Wallet">
+      <PerpsAlwaysOnProvider>
         <View style={baseStyles.flexGrow}>
           {selectedInternalAccount ? (
             <View
@@ -1507,8 +1507,8 @@ const Wallet = ({
             renderLoader()
           )}
         </View>
-      </ErrorBoundary>
-    </PerpsAlwaysOnProvider>
+      </PerpsAlwaysOnProvider>
+    </ErrorBoundary>
   );
 };
 
