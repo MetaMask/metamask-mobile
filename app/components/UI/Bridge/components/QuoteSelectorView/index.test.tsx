@@ -27,10 +27,10 @@ jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: (params: unknown) => mockUseLatestBalance(params),
 }));
 
-const mockFormatNetworkFee = jest.fn();
-jest.mock('../../utils/formatNetworkFee', () => ({
-  formatNetworkFee: (currency: string, quote: unknown) =>
-    mockFormatNetworkFee(currency, quote),
+const mockFormatFiat = jest.fn();
+jest.mock('../../../../../util/formatFiat', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) => mockFormatFiat(...args),
 }));
 
 const mockIsGaslessQuote = jest.fn();
@@ -151,17 +151,17 @@ describe('QuoteSelectorView', () => {
     },
     sentAmount: {
       amount: '1',
-      usd: '2000',
+      usd: '9999',
       valueInCurrency: '2000',
     },
     totalNetworkFee: {
       amount: '0.01',
-      usd: '20',
+      usd: '9999',
       valueInCurrency: '20',
     },
     estimatedProcessingTimeInSeconds: 60,
     adjustedReturn: {
-      usd: '1980',
+      usd: '9999',
       valueInCurrency: '1980',
     },
   };
@@ -182,7 +182,7 @@ describe('QuoteSelectorView', () => {
       isExpired: false,
     });
     mockUseLatestBalance.mockReturnValue(mockLatestBalance);
-    mockFormatNetworkFee.mockReturnValue('$20.00');
+    mockFormatFiat.mockReturnValue('$2,020.00');
     mockIsGaslessQuote.mockReturnValue(false);
     mockUseTrackAllQuotesSortedEvent.mockReturnValue(
       mockTrackAllQuotesSortedEvent,
@@ -370,23 +370,7 @@ describe('QuoteSelectorView', () => {
   });
 
   describe('formattedTotalCost calculation', () => {
-    it('includes only sent amount for gasless quotes', () => {
-      mockIsGaslessQuote.mockReturnValue(true);
-      mockUseBridgeQuoteData.mockReturnValue({
-        validQuotes: [mockQuote],
-        bestQuote: mockQuote,
-        isLoading: false,
-        blockaidError: null,
-        quoteFetchError: null,
-        isExpired: false,
-      });
-
-      render(<QuoteSelectorView />);
-
-      expect(mockIsGaslessQuote).toHaveBeenCalledWith(mockQuote.quote);
-    });
-
-    it('includes sent amount plus network fee for non-gasless quotes', () => {
+    it('uses valueInCurrency (not usd) for sentAmount in non-gasless quotes', () => {
       mockIsGaslessQuote.mockReturnValue(false);
       mockUseBridgeQuoteData.mockReturnValue({
         validQuotes: [mockQuote],
@@ -400,6 +384,32 @@ describe('QuoteSelectorView', () => {
       render(<QuoteSelectorView />);
 
       expect(mockIsGaslessQuote).toHaveBeenCalledWith(mockQuote.quote);
+      expect(mockFormatFiat).toHaveBeenCalled();
+      const [totalCostArg] = mockFormatFiat.mock.calls[0];
+      // sentAmount.valueInCurrency (2000) + totalNetworkFee.valueInCurrency (20) = 2020
+      // NOT sentAmount.usd (9999) + totalNetworkFee.usd (9999) = 19998
+      expect(totalCostArg.toString()).toBe('2020');
+    });
+
+    it('uses valueInCurrency (not usd) for sentAmount in gasless quotes', () => {
+      mockIsGaslessQuote.mockReturnValue(true);
+      mockUseBridgeQuoteData.mockReturnValue({
+        validQuotes: [mockQuote],
+        bestQuote: mockQuote,
+        isLoading: false,
+        blockaidError: null,
+        quoteFetchError: null,
+        isExpired: false,
+      });
+
+      render(<QuoteSelectorView />);
+
+      expect(mockIsGaslessQuote).toHaveBeenCalledWith(mockQuote.quote);
+      expect(mockFormatFiat).toHaveBeenCalled();
+      const [totalCostArg] = mockFormatFiat.mock.calls[0];
+      // sentAmount.valueInCurrency (2000) + includedTxFees.valueInCurrency (absent → 0) = 2000
+      // NOT sentAmount.usd (9999)
+      expect(totalCostArg.toString()).toBe('2000');
     });
 
     it('handles multiple quotes with mixed gasless and non-gasless', () => {
@@ -427,6 +437,9 @@ describe('QuoteSelectorView', () => {
 
       expect(getByTestId('quote-list-count')).toHaveTextContent('2');
       expect(mockIsGaslessQuote).toHaveBeenCalledTimes(2);
+      // formatFiat called once per quote — verify both use valueInCurrency
+      expect(mockFormatFiat.mock.calls[0][0].toString()).toBe('2000'); // gasless: sentAmount only
+      expect(mockFormatFiat.mock.calls[1][0].toString()).toBe('2020'); // non-gasless: + network fee
     });
   });
 
