@@ -1,13 +1,13 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
-import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getKeyringControllerMessenger } from '../messengers/keyring-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { ExtendedMessenger } from '../../../ExtendedMessenger';
+import { getKeyringControllerMessenger } from '../../messengers/keyring-controller-messenger';
+import { ControllerInitRequest } from '../../types';
 import { keyringControllerInit } from './keyring-controller-init';
 import {
   KeyringController,
   KeyringControllerMessenger,
 } from '@metamask/keyring-controller';
-import { Encryptor } from '../../Encryptor';
+import { Encryptor } from '../../../Encryptor';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/keyring-controller');
