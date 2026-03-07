@@ -75,7 +75,7 @@ interface SectionConfig {
     data: unknown[];
     isLoading: boolean;
     isFetching?: boolean;
-    refetch: () => Promise<void> | void;
+    refetch: () => unknown;
   };
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
@@ -326,9 +326,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         data: filteredData,
         isLoading,
         isFetching,
-        refetch: () => {
-          refetch();
-        },
+        refetch,
       };
     },
   },
