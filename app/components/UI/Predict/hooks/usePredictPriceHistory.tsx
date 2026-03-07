@@ -67,6 +67,7 @@ export const usePredictPriceHistory = (
   // Track which market errors have already been reported to Sentry
   const reportedErrorsRef = useRef<Set<string>>(new Set());
 
+  const marketIdsKey = marketIds.join(',');
   const queryErrorsKey = queries.map((q) => q.error?.message ?? '').join(',');
 
   useEffect(() => {
@@ -98,7 +99,7 @@ export const usePredictPriceHistory = (
     // Stable string that only changes when actual errors change, avoiding
     // re-runs caused by useQueries returning a new array reference each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryErrorsKey, marketIds, interval, fidelity]);
+  }, [queryErrorsKey, marketIdsKey, interval, fidelity]);
 
   // Use a ref so refetch has a stable identity across renders
   const queriesRef =
