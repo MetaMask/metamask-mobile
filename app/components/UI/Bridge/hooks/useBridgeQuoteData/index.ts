@@ -131,7 +131,9 @@ export const useBridgeQuoteData = ({
       // (e.g., "solana:.../token:EPj...").
       // Use destAsset.assetId (CAIP format) for comparison.
       // For EVM chains, use the original address comparison.
-      const quoteDestAddress = isNonEvmChainId(destToken.chainId)
+      // We use destAsset.chainId from the quote to determine the format, not destToken.chainId,
+      // because the quote's destAsset structure depends on the actual destination chain in the quote.
+      const quoteDestAddress = isNonEvmChainId(destAsset.chainId)
         ? (destAsset.assetId ?? destAsset.address)
         : destAsset.address;
 
