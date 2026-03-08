@@ -8,6 +8,7 @@ import {
   Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextVariant,
   TextColor,
@@ -17,8 +18,11 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ApprovalItem, Verdict } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
@@ -41,15 +45,26 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   backButton: {
     padding: 4,
   },
-  headerTitleContainer: {
-    flex: 1,
+  accountSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  learnMoreRow: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   searchContainer: {
     paddingTop: 4,
@@ -71,10 +86,6 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     padding: 4,
-  },
-  learnMoreRow: {
-    paddingHorizontal: 16,
-    paddingBottom: 4,
   },
   loadingContainer: {
     paddingTop: 8,
@@ -101,6 +112,7 @@ const SKELETON_COUNT = 5;
 const TokenApprovalsView: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const {
     approvals,
@@ -124,7 +136,6 @@ const TokenApprovalsView: React.FC = () => {
     onToggleSelection,
     onSelectAll,
     onClearSelection,
-    onEnterSelectionMode,
     onExitSelectionMode,
   } = useApprovalFilters();
 
@@ -136,16 +147,6 @@ const TokenApprovalsView: React.FC = () => {
     }
     navigation.goBack();
   }, [navigation, selectionMode, onExitSelectionMode]);
-
-  const handleToggleSelectionMode = useCallback(() => {
-    if (selectionMode) {
-      onExitSelectionMode();
-    } else {
-      onEnterSelectionMode();
-    }
-  }, [selectionMode, onEnterSelectionMode, onExitSelectionMode]);
-
-  const showSelectButton = filteredApprovals.length > 0;
 
   const handleApprovalPress = useCallback(
     (approval: ApprovalItem) => {
@@ -159,7 +160,6 @@ const TokenApprovalsView: React.FC = () => {
 
   const handleRevoke = useCallback(
     (approval: ApprovalItem) => {
-      // Skip intermediate confirmation, go straight to standard MetaMask confirmation UI
       revokeApproval(approval);
     },
     [revokeApproval],
@@ -253,43 +253,41 @@ const TokenApprovalsView: React.FC = () => {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <Icon
-            name={IconName.ArrowLeft}
-            size={IconSize.Md}
-            color={IconColor.Default}
-          />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity
+            onPress={handleBack}
+            style={styles.backButton}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon
+              name={IconName.ArrowLeft}
+              size={IconSize.Md}
+              color={IconColor.Default}
+            />
+          </TouchableOpacity>
           <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('token_approvals.title')}
           </Text>
         </View>
-        {showSelectButton && (
-          <TouchableOpacity
-            onPress={handleToggleSelectionMode}
-            accessibilityRole="button"
-            accessibilityLabel={
-              selectionMode
-                ? strings('token_approvals.cancel_button')
-                : strings('token_approvals.select_button')
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMD}
-              color={selectionMode ? TextColor.Error : TextColor.Info}
-            >
-              {selectionMode
-                ? strings('token_approvals.cancel_button')
-                : strings('token_approvals.select_button')}
-            </Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={styles.accountSelector}
+          accessibilityRole="button"
+          accessibilityLabel="Switch account"
+        >
+          <AvatarAccount
+            size={AvatarSize.Xs}
+            accountAddress={selectedAccount?.address ?? ''}
+          />
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {selectedAccount?.metadata?.name ?? 'Account'}
+          </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Xs}
+            color={IconColor.Default}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Learn more link */}
@@ -312,7 +310,7 @@ const TokenApprovalsView: React.FC = () => {
         <View
           style={[
             styles.searchBar,
-            { backgroundColor: colors.background.alternative },
+            { backgroundColor: colors.background.section },
           ]}
         >
           <Icon

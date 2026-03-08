@@ -39,8 +39,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 14,
+    gap: 12,
   },
   sectionHeaderLeft: {
     flexDirection: 'row',
@@ -48,31 +48,27 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 10,
   },
-  riskIndicator: {
-    width: 4,
-    height: 28,
-    borderRadius: 2,
-  },
-  sectionTitleColumn: {
-    flex: 1,
-  },
   sectionTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    flex: 1,
+    gap: 8,
   },
-  countBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 10,
-    minWidth: 20,
+  sectionHeaderRight: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   selectAllContainer: {
-    marginRight: 4,
+    width: 24,
+    alignItems: 'center',
   },
   separator: {
     height: 2,
+  },
+  sectionSeparator: {
+    height: 1,
+    marginHorizontal: 16,
   },
   collapsedHint: {
     paddingHorizontal: 16,
@@ -81,8 +77,10 @@ const styles = StyleSheet.create({
   },
 });
 
+type SectionKey = 'malicious' | 'open';
+
 interface RiskSection {
-  verdict: Verdict;
+  key: SectionKey;
   title: string;
   data: ApprovalItem[];
 }
@@ -100,47 +98,23 @@ interface RiskGroupedListProps {
 }
 
 const SECTION_CONFIG: Record<
-  Verdict,
+  SectionKey,
   {
     titleKey: string;
-    colorKey: 'error' | 'warning' | 'success' | 'background';
-    iconName: IconName;
-    iconColor: IconColor;
-    textColor: TextColor;
-    defaultExpanded: boolean;
+    iconName?: IconName;
+    iconColor?: IconColor;
+    collapsible: boolean;
   }
 > = {
-  [Verdict.Malicious]: {
+  malicious: {
     titleKey: 'token_approvals.section_malicious',
-    colorKey: 'error',
     iconName: IconName.Danger,
-    iconColor: IconColor.Error,
-    textColor: TextColor.Error,
-    defaultExpanded: true,
-  },
-  [Verdict.Warning]: {
-    titleKey: 'token_approvals.section_warning',
-    colorKey: 'warning',
-    iconName: IconName.Warning,
     iconColor: IconColor.Warning,
-    textColor: TextColor.Warning,
-    defaultExpanded: true,
+    collapsible: true,
   },
-  [Verdict.Benign]: {
+  open: {
     titleKey: 'token_approvals.section_benign',
-    colorKey: 'success',
-    iconName: IconName.SecurityTick,
-    iconColor: IconColor.Success,
-    textColor: TextColor.Success,
-    defaultExpanded: true,
-  },
-  [Verdict.Error]: {
-    titleKey: 'token_approvals.section_benign',
-    colorKey: 'background',
-    iconName: IconName.Info,
-    iconColor: IconColor.Muted,
-    textColor: TextColor.Alternative,
-    defaultExpanded: true,
+    collapsible: false,
   },
 };
 
@@ -158,33 +132,33 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
   const { colors } = useTheme();
 
   const sections = useMemo(() => {
-    const groups: Record<Verdict, ApprovalItem[]> = {
-      [Verdict.Malicious]: [],
-      [Verdict.Warning]: [],
-      [Verdict.Benign]: [],
-      [Verdict.Error]: [],
-    };
+    const malicious: ApprovalItem[] = [];
+    const open: ApprovalItem[] = [];
 
     for (const a of approvals) {
-      groups[a.verdict].push(a);
+      if (a.verdict === Verdict.Malicious) {
+        malicious.push(a);
+      } else {
+        open.push(a);
+      }
     }
 
     const result: RiskSection[] = [];
-    const order = [
-      Verdict.Malicious,
-      Verdict.Warning,
-      Verdict.Benign,
-      Verdict.Error,
-    ];
 
-    for (const verdict of order) {
-      if (groups[verdict].length > 0) {
-        result.push({
-          verdict,
-          title: strings(SECTION_CONFIG[verdict].titleKey),
-          data: groups[verdict],
-        });
-      }
+    if (malicious.length > 0) {
+      result.push({
+        key: 'malicious',
+        title: strings(SECTION_CONFIG.malicious.titleKey),
+        data: malicious,
+      });
+    }
+
+    if (open.length > 0) {
+      result.push({
+        key: 'open',
+        title: strings(SECTION_CONFIG.open.titleKey),
+        data: open,
+      });
     }
 
     return result;
@@ -194,11 +168,12 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
     Record<string, boolean>
   >({});
 
-  const toggleSection = useCallback((verdict: string) => {
+  const toggleSection = useCallback((key: SectionKey) => {
+    if (!SECTION_CONFIG[key].collapsible) return;
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setCollapsedSections((prev) => ({
       ...prev,
-      [verdict]: !prev[verdict],
+      [key]: !prev[key],
     }));
   }, []);
 
@@ -210,11 +185,9 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
       );
 
       if (allAlreadySelected) {
-        // Deselect this section's items, keep others
         const remaining = selectedIds.filter((id) => !sectionIds.includes(id));
         onSelectAll(remaining);
       } else {
-        // Add all section items to current selection
         const merged = [...new Set([...selectedIds, ...sectionIds])];
         onSelectAll(merged);
       }
@@ -224,7 +197,7 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
 
   const renderItem = useCallback(
     ({ item, section }: { item: ApprovalItem; section: RiskSection }) => {
-      if (collapsedSections[section.verdict]) {
+      if (collapsedSections[section.key]) {
         return null;
       }
       return (
@@ -252,16 +225,8 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: RiskSection }) => {
-      const config = SECTION_CONFIG[section.verdict];
-      const isCollapsed = collapsedSections[section.verdict] ?? false;
-      const indicatorColor =
-        config.colorKey === 'background'
-          ? colors.border.muted
-          : colors[config.colorKey].default;
-      const badgeBg =
-        config.colorKey === 'background'
-          ? colors.background.alternative
-          : colors[config.colorKey].muted;
+      const config = SECTION_CONFIG[section.key];
+      const isCollapsed = collapsedSections[section.key] ?? false;
 
       const sectionIds = section.data.map((a) => a.id);
       const allSelected =
@@ -270,47 +235,51 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
 
       return (
         <View>
+          <View
+            style={[
+              styles.sectionSeparator,
+              { backgroundColor: colors.border.muted },
+            ]}
+          />
           <TouchableOpacity
             style={styles.sectionHeader}
-            onPress={() => toggleSection(section.verdict)}
-            activeOpacity={0.7}
+            onPress={() => toggleSection(section.key)}
+            activeOpacity={config.collapsible ? 0.7 : 1}
             accessibilityRole="button"
             accessibilityLabel={`${section.title}, ${section.data.length} items, ${isCollapsed ? 'collapsed' : 'expanded'}`}
           >
-            {selectionMode && (
-              <View style={styles.selectAllContainer}>
-                <Checkbox
-                  isChecked={allSelected}
-                  onPress={() => handleSelectAllInSection(section.data)}
-                />
-              </View>
-            )}
-            <View
-              style={[
-                styles.riskIndicator,
-                { backgroundColor: indicatorColor },
-              ]}
-            />
-            <View style={styles.sectionTitleColumn}>
-              <View style={styles.sectionTitleRow}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                >
-                  {section.title}
-                </Text>
-                <View style={[styles.countBadge, { backgroundColor: badgeBg }]}>
-                  <Text variant={TextVariant.BodyXS} color={config.textColor}>
-                    {section.data.length}
-                  </Text>
-                </View>
-              </View>
+            {/* Section checkbox */}
+            <View style={styles.selectAllContainer}>
+              <Checkbox
+                isChecked={allSelected}
+                onPress={() => handleSelectAllInSection(section.data)}
+              />
             </View>
-            <Icon
-              name={isCollapsed ? IconName.ArrowRight : IconName.ArrowDown}
-              size={IconSize.Sm}
-              color={IconColor.Muted}
-            />
+
+            {/* Title and count */}
+            <View style={styles.sectionTitleRow}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {section.title} ({section.data.length})
+              </Text>
+            </View>
+
+            {/* Right side: warning icon + chevron */}
+            <View style={styles.sectionHeaderRight}>
+              {config.iconName && config.iconColor && (
+                <Icon
+                  name={config.iconName}
+                  size={IconSize.Sm}
+                  color={config.iconColor}
+                />
+              )}
+              {config.collapsible && (
+                <Icon
+                  name={isCollapsed ? IconName.ArrowRight : IconName.ArrowUp}
+                  size={IconSize.Sm}
+                  color={IconColor.Muted}
+                />
+              )}
+            </View>
           </TouchableOpacity>
         </View>
       );
@@ -318,7 +287,6 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
     [
       collapsedSections,
       colors,
-      selectionMode,
       selectedIds,
       toggleSection,
       handleSelectAllInSection,
@@ -327,11 +295,11 @@ const RiskGroupedList: React.FC<RiskGroupedListProps> = ({
 
   const renderSectionFooter = useCallback(
     ({ section }: { section: RiskSection }) => {
-      if (!collapsedSections[section.verdict]) return null;
+      if (!collapsedSections[section.key]) return null;
       return (
         <TouchableOpacity
           style={styles.collapsedHint}
-          onPress={() => toggleSection(section.verdict)}
+          onPress={() => toggleSection(section.key)}
           activeOpacity={0.7}
         >
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

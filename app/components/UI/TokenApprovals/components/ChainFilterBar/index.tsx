@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView, TouchableOpacity, View, StyleSheet } from 'react-native';
 import Text, {
   TextVariant,
@@ -48,10 +48,32 @@ const ChainFilterBar: React.FC<ChainFilterBarProps> = ({
 }) => {
   const { colors } = useTheme();
 
-  const isSelected = useCallback(
-    (chainId: string) => selectedChains.includes(chainId),
-    [selectedChains],
+  const totalCount = useMemo(
+    () => chains.reduce((sum, c) => sum + c.count, 0),
+    [chains],
   );
+
+  const isAllSelected = useMemo(
+    () =>
+      selectedChains.length === 0 || selectedChains.length === chains.length,
+    [selectedChains, chains],
+  );
+
+  const isChainSelected = useCallback(
+    (chainId: string) => !isAllSelected && selectedChains.includes(chainId),
+    [selectedChains, isAllSelected],
+  );
+
+  const handleAllPress = useCallback(() => {
+    // Clear all filters to show all chains
+    if (!isAllSelected) {
+      for (const chain of chains) {
+        if (selectedChains.includes(chain.chainId)) {
+          onChainToggle(chain.chainId);
+        }
+      }
+    }
+  }, [isAllSelected, chains, selectedChains, onChainToggle]);
 
   if (chains.length <= 1) {
     return null;
@@ -64,8 +86,32 @@ const ChainFilterBar: React.FC<ChainFilterBarProps> = ({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* All chip */}
+        <TouchableOpacity
+          style={[
+            styles.chip,
+            {
+              backgroundColor: isAllSelected
+                ? colors.primary.default
+                : colors.background.alternative,
+            },
+          ]}
+          onPress={handleAllPress}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isAllSelected }}
+          accessibilityLabel={`${strings('token_approvals.filter_all')} ${totalCount}`}
+        >
+          <Text
+            variant={TextVariant.BodySM}
+            color={isAllSelected ? TextColor.Inverse : TextColor.Default}
+          >
+            {strings('token_approvals.filter_all')} ({totalCount})
+          </Text>
+        </TouchableOpacity>
+
+        {/* Chain chips */}
         {chains.map((chain) => {
-          const selected = isSelected(chain.chainId);
+          const selected = isChainSelected(chain.chainId);
           const networkImage = getNetworkImageSource({
             chainId: chain.chainId,
           });
@@ -83,7 +129,7 @@ const ChainFilterBar: React.FC<ChainFilterBarProps> = ({
               onPress={() => onChainToggle(chain.chainId)}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              accessibilityLabel={`${chain.displayName} ${strings('token_approvals.filter_all')} ${chain.count}`}
+              accessibilityLabel={`${chain.displayName} ${chain.count}`}
             >
               {networkImage && (
                 <AvatarNetwork
