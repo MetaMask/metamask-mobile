@@ -43,9 +43,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: mockUseTheme,
+    mockTheme,
+  };
+});
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 // Mock PnL calculations
 jest.mock('../../utils/pnlCalculations', () => ({
@@ -195,19 +202,9 @@ describe('PerpsPositionCard', () => {
     stopLossCount: 0,
   };
 
-  const mockTheme = {
-    colors: {
-      background: { section: '#ffffff' },
-      text: { default: '#000000', muted: '#666666' },
-      border: { muted: '#e1e1e1' },
-      success: { default: '#00ff00', muted: '#ccffcc' },
-      error: { default: '#ff0000', muted: '#ffcccc' },
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     // Reset the PnL calculation mock to default value
     const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
       '../../utils/pnlCalculations',
