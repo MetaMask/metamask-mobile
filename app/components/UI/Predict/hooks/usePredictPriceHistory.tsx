@@ -71,6 +71,14 @@ export const usePredictPriceHistory = (
   const queryErrorsKey = queries.map((q) => q.error?.message ?? '').join(',');
 
   useEffect(() => {
+    // Clean up reported errors for market IDs that are no longer in the list
+    const currentMarketIds = new Set(marketIds);
+    for (const id of reportedErrorsRef.current) {
+      if (!currentMarketIds.has(id)) {
+        reportedErrorsRef.current.delete(id);
+      }
+    }
+
     queries.forEach((q, i) => {
       const marketId = marketIds[i];
       if (q.error && marketId && !reportedErrorsRef.current.has(marketId)) {
@@ -112,7 +120,7 @@ export const usePredictPriceHistory = (
 
   return {
     priceHistories: enabled ? priceHistories : [],
-    isFetching,
+    isFetching: enabled ? isFetching : false,
     errors: enabled ? errors : [],
     refetch,
   };
