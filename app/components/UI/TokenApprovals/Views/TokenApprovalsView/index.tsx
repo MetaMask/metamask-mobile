@@ -24,6 +24,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import Routes from '../../../../../constants/navigation/Routes';
+import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { ApprovalItem, Verdict } from '../../types';
 import { useTokenApprovals } from '../../hooks/useTokenApprovals';
 import { useApprovalFilters } from '../../hooks/useApprovalFilters';
@@ -272,6 +273,9 @@ const TokenApprovalsView: React.FC = () => {
         </View>
         <TouchableOpacity
           style={styles.accountSelector}
+          onPress={() =>
+            navigation.navigate(...createAccountSelectorNavDetails({}))
+          }
           accessibilityRole="button"
           accessibilityLabel="Switch account"
         >
