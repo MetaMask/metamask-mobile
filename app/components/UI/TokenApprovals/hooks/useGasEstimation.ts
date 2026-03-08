@@ -15,6 +15,7 @@ import { getMediumGasPriceHex } from '../../../../util/confirmation/gas';
 import { weiToFiatNumber } from '../../../../util/number';
 import { CHAIN_DISPLAY_NAMES } from '../constants/chains';
 import { store } from '../../../../store';
+import Engine from '../../../../core/Engine';
 
 interface ChainGasEstimate {
   chainId: string;
@@ -105,13 +106,18 @@ export function useGasEstimation(
             // gasEstimation.gas is a BN instance
             const gasLimitBN = gasEstimation.gas;
 
-            // Read current state snapshot for gas price and conversion rate
+            // Read current state snapshot for conversion rate
             const currentState = store.getState();
 
-            // Get the medium gas price from GasFeeController cached estimates
-            const gasFeeEstimates =
-              currentState.engine?.backgroundState?.GasFeeController
-                ?.gasFeeEstimatesByChainId?.[chainId]?.gasFeeEstimates;
+            // Actively fetch gas fee estimates for this chain (not just read cache)
+            const { GasFeeController } = Engine.context;
+            const { gasFeeEstimates } =
+              await GasFeeController.fetchGasFeeEstimates({
+                networkClientId,
+              });
+
+            if (cancelled) return null;
+
             const mediumGasPriceHex = getMediumGasPriceHex(
               gasFeeEstimates as Parameters<typeof getMediumGasPriceHex>[0],
             );

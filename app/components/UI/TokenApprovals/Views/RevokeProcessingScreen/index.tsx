@@ -29,8 +29,8 @@ import type { ChainBatchInfo } from '../../hooks/useBatchRevokeSupport';
 import type { ChainProgressEntry } from '../../types';
 
 // Large spinner ring
-const RING_SIZE = 96;
-const RING_STROKE = 6;
+const RING_SIZE = 72;
+const RING_STROKE = 5;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   ringContainer: {
     width: RING_SIZE,
     height: RING_SIZE,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   smallRingContainer: {
     width: SMALL_RING_SIZE,
@@ -86,9 +86,9 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
   },
   statusIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -175,6 +175,34 @@ function buildRows(
   return rows;
 }
 
+// Shared rotation context so all spinners use one Animated.loop
+const SharedRotationContext = React.createContext<Animated.Value | null>(null);
+
+const SharedRotationProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      }),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [rotateAnim]);
+
+  return (
+    <SharedRotationContext.Provider value={rotateAnim}>
+      {children}
+    </SharedRotationContext.Provider>
+  );
+};
+
 const SpinningRing: React.FC<{
   size: number;
   stroke: number;
@@ -194,11 +222,16 @@ const SpinningRing: React.FC<{
   trackColor,
   containerStyle,
 }) => {
-  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const sharedAnim = React.useContext(SharedRotationContext);
+
+  // Fallback for usage outside the provider (shouldn't happen)
+  const localAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = sharedAnim ?? localAnim;
 
   useEffect(() => {
+    if (sharedAnim) return; // shared provider handles animation
     const animation = Animated.loop(
-      Animated.timing(rotateAnim, {
+      Animated.timing(localAnim, {
         toValue: 1,
         duration: 1200,
         easing: Easing.linear,
@@ -207,7 +240,7 @@ const SpinningRing: React.FC<{
     );
     animation.start();
     return () => animation.stop();
-  }, [rotateAnim]);
+  }, [sharedAnim, localAnim]);
 
   const rotate = rotateAnim.interpolate({
     inputRange: [0, 1],
@@ -255,7 +288,7 @@ const StatusIcon: React.FC<{
       >
         <Icon
           name={IconName.Check}
-          size={IconSize.Md}
+          size={IconSize.Xs}
           color={IconColor.Inverse}
         />
       </View>
@@ -298,12 +331,18 @@ const StatusIcon: React.FC<{
 
   // waiting
   return (
-    <View
-      style={[
-        styles.statusIconContainer,
-        { backgroundColor: colors.background.alternative },
-      ]}
-    />
+    <View style={styles.statusIconContainer}>
+      <SpinningRing
+        size={SMALL_RING_SIZE}
+        stroke={SMALL_RING_STROKE}
+        radius={SMALL_RING_RADIUS}
+        circumference={SMALL_RING_CIRCUMFERENCE}
+        arcRatio={0.3}
+        color={colors.icon.muted}
+        trackColor={colors.background.alternative}
+        containerStyle={styles.smallRingContainer}
+      />
+    </View>
   );
 };
 
@@ -385,88 +424,98 @@ const RevokeProcessingScreen: React.FC = () => {
   const rows = buildRows(chainBreakdown, session.chainProgress);
 
   return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background.default }]}
-    >
-      {/* Header title */}
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        style={styles.headerTitle}
+    <SharedRotationProvider>
+      <SafeAreaView
+        style={[
+          styles.container,
+          { backgroundColor: colors.background.default },
+        ]}
       >
-        {strings('token_approvals.processing_title')}
-      </Text>
-
-      {/* Spinner section */}
-      <View style={styles.spinnerSection}>
-        <SpinningRing
-          size={RING_SIZE}
-          stroke={RING_STROKE}
-          radius={RING_RADIUS}
-          circumference={RING_CIRCUMFERENCE}
-          color={colors.primary.default}
-          trackColor={colors.primary.muted}
-          containerStyle={styles.ringContainer}
-        />
+        {/* Header title */}
         <Text
-          variant={TextVariant.BodyMDBold}
+          variant={TextVariant.HeadingMD}
           color={TextColor.Default}
-          style={styles.progressTextBold}
+          style={styles.headerTitle}
         >
-          {strings('token_approvals.processing_tx_of', {
-            current: Math.min(currentTxIndex, totalTxCount).toString(),
-            total: totalTxCount.toString(),
-          })}
+          {strings('token_approvals.processing_title')}
         </Text>
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles.walletPrompt}
-        >
-          {strings('token_approvals.processing_confirm_wallet')}
-        </Text>
-      </View>
 
-      {/* Chain/approval progress card */}
-      <View style={[styles.card, { backgroundColor: colors.background.muted }]}>
-        {rows.map((row, index) => (
-          <React.Fragment key={row.key}>
-            {index > 0 && (
-              <View
-                style={[
-                  styles.separator,
-                  { backgroundColor: colors.border.muted },
-                ]}
-              />
-            )}
-            <View style={styles.row}>
-              <StatusIcon status={row.status} />
-              <View style={styles.rowContent}>
-                <Text
-                  variant={TextVariant.BodyMDBold}
-                  color={TextColor.Default}
-                >
-                  {row.title}
-                </Text>
+        {/* Spinner section */}
+        <View style={styles.spinnerSection}>
+          <SpinningRing
+            size={RING_SIZE}
+            stroke={RING_STROKE}
+            radius={RING_RADIUS}
+            circumference={RING_CIRCUMFERENCE}
+            color={colors.primary.default}
+            trackColor={colors.primary.muted}
+            containerStyle={styles.ringContainer}
+          />
+          <Text
+            variant={TextVariant.BodyMDBold}
+            color={TextColor.Default}
+            style={styles.progressTextBold}
+          >
+            {strings('token_approvals.processing_tx_of', {
+              current: Math.min(currentTxIndex, totalTxCount).toString(),
+              total: totalTxCount.toString(),
+            })}
+          </Text>
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.walletPrompt}
+          >
+            {strings('token_approvals.processing_confirm_wallet')}
+          </Text>
+        </View>
+
+        {/* Chain/approval progress card */}
+        <View
+          style={[styles.card, { backgroundColor: colors.background.muted }]}
+        >
+          {rows.map((row, index) => (
+            <React.Fragment key={row.key}>
+              {index > 0 && (
+                <View
+                  style={[
+                    styles.separator,
+                    { backgroundColor: colors.border.muted },
+                  ]}
+                />
+              )}
+              <View style={styles.row}>
+                <StatusIcon
+                  key={`${row.key}-${row.status}`}
+                  status={row.status}
+                />
+                <View style={styles.rowContent}>
+                  <Text
+                    variant={TextVariant.BodyMDBold}
+                    color={TextColor.Default}
+                  >
+                    {row.title}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Alternative}
+                    style={styles.rowSubtitle}
+                  >
+                    {row.subtitle}
+                  </Text>
+                </View>
                 <Text
                   variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.rowSubtitle}
+                  color={getStatusColor(row.status)}
                 >
-                  {row.subtitle}
+                  {getStatusText(row.status)}
                 </Text>
               </View>
-              <Text
-                variant={TextVariant.BodySM}
-                color={getStatusColor(row.status)}
-              >
-                {getStatusText(row.status)}
-              </Text>
-            </View>
-          </React.Fragment>
-        ))}
-      </View>
-    </SafeAreaView>
+            </React.Fragment>
+          ))}
+        </View>
+      </SafeAreaView>
+    </SharedRotationProvider>
   );
 };
 
