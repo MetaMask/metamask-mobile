@@ -472,6 +472,8 @@ const Routes = {
   TOKEN_APPROVALS: {
     ROOT: 'TokenApprovalsRoot',
     VIEW: 'TokenApprovalsView',
+    REVOKE_PROCESSING: 'RevokeProcessingScreen',
+    REVOKE_RESULT: 'RevokeResultScreen',
     MODALS: {
       ROOT: 'TokenApprovalsModals',
       APPROVAL_DETAIL: 'ApprovalDetailSheet',

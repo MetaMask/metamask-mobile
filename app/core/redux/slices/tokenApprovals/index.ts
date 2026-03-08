@@ -5,9 +5,21 @@ import {
   VerdictFilter,
   SortOption,
   RevocationStatus,
+  RevocationSession,
+  ChainProgressEntry,
 } from '../../../../components/UI/TokenApprovals/types';
 
 export type { TokenApprovalsState };
+
+const initialRevocationSession: RevocationSession = {
+  isActive: false,
+  totalApprovals: 0,
+  completedCount: 0,
+  failedCount: 0,
+  totalExposureUsd: 0,
+  revokedExposureUsd: 0,
+  chainProgress: [],
+};
 
 export const initialState: TokenApprovalsState = {
   approvals: [],
@@ -22,6 +34,7 @@ export const initialState: TokenApprovalsState = {
   isSelectionModeActive: false,
   revocations: {},
   hasSeenEducation: false,
+  revocationSession: initialRevocationSession,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -105,6 +118,54 @@ const tokenApprovalsSlice = createSlice({
     setHasSeenEducation: (state, action: PayloadAction<boolean>) => {
       state.hasSeenEducation = action.payload;
     },
+    startRevocationSession: (
+      state,
+      action: PayloadAction<{
+        totalApprovals: number;
+        totalExposureUsd: number;
+        chainProgress: ChainProgressEntry[];
+      }>,
+    ) => {
+      state.revocationSession = {
+        isActive: true,
+        totalApprovals: action.payload.totalApprovals,
+        completedCount: 0,
+        failedCount: 0,
+        totalExposureUsd: action.payload.totalExposureUsd,
+        revokedExposureUsd: 0,
+        chainProgress: action.payload.chainProgress,
+      };
+    },
+    updateChainProgress: (
+      state,
+      action: PayloadAction<{
+        chainId: string;
+        update: Partial<ChainProgressEntry>;
+      }>,
+    ) => {
+      const entry = state.revocationSession.chainProgress.find(
+        (c) => c.chainId === action.payload.chainId,
+      );
+      if (entry) {
+        Object.assign(entry, action.payload.update);
+      }
+    },
+    incrementCompleted: (
+      state,
+      action: PayloadAction<{ exposureUsd: number }>,
+    ) => {
+      state.revocationSession.completedCount += 1;
+      state.revocationSession.revokedExposureUsd += action.payload.exposureUsd;
+    },
+    incrementFailed: (state) => {
+      state.revocationSession.failedCount += 1;
+    },
+    endRevocationSession: (state) => {
+      state.revocationSession.isActive = false;
+    },
+    clearRevocationSession: (state) => {
+      state.revocationSession = initialRevocationSession;
+    },
     resetTokenApprovals: (state) => {
       Object.assign(state, {
         ...initialState,
@@ -144,6 +205,12 @@ export const {
   clearRevocationStatuses,
   removeApproval,
   setHasSeenEducation,
+  startRevocationSession,
+  updateChainProgress,
+  incrementCompleted,
+  incrementFailed,
+  endRevocationSession,
+  clearRevocationSession,
   resetTokenApprovals,
 } = tokenApprovalsSlice.actions;
 

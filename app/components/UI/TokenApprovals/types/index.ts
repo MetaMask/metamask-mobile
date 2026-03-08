@@ -62,6 +62,27 @@ export interface RevocationStatus {
   error?: string;
 }
 
+export interface ChainProgressEntry {
+  chainId: string;
+  chainName: string;
+  isBatch: boolean;
+  totalApprovals: number;
+  currentIndex: number;
+  currentApprovalLabel?: string;
+  status: 'waiting' | 'signing' | 'done' | 'failed';
+  error?: string;
+}
+
+export interface RevocationSession {
+  isActive: boolean;
+  totalApprovals: number;
+  completedCount: number;
+  failedCount: number;
+  totalExposureUsd: number;
+  revokedExposureUsd: number;
+  chainProgress: ChainProgressEntry[];
+}
+
 export interface TokenApprovalsState {
   approvals: ApprovalItem[];
   isLoading: boolean;
@@ -75,4 +96,5 @@ export interface TokenApprovalsState {
   isSelectionModeActive: boolean;
   revocations: Record<string, RevocationStatus>;
   hasSeenEducation: boolean;
+  revocationSession: RevocationSession;
 }

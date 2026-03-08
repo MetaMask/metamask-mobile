@@ -147,6 +147,11 @@ export const selectAvailableChains = createSelector(
   },
 );
 
+export const selectRevocationSession = createSelector(
+  selectTokenApprovalsState,
+  (tokenApprovals) => tokenApprovals.revocationSession,
+);
+
 export const selectGroupedByVerdict = createSelector(
   selectFilteredApprovals,
   (approvals) => {

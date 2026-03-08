@@ -11,4 +11,8 @@ export const TOKEN_APPROVALS_EVENTS = {
   EDUCATION_VIEWED: 'Approvals Education Viewed',
   EDUCATION_DISMISSED: 'Approvals Education Dismissed',
   BLOCK_EXPLORER_OPENED: 'Block Explorer Opened From Approvals',
+  REVOKE_CONFIRM_VIEWED: 'Revoke Confirm Viewed',
+  REVOKE_PROCESSING_VIEWED: 'Revoke Processing Viewed',
+  REVOKE_RESULT_VIEWED: 'Revoke Result Viewed',
+  REVOKE_RESULT_DONE_TAPPED: 'Revoke Result Done Tapped',
 } as const;
