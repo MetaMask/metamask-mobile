@@ -23,6 +23,7 @@ const QuoteDetailsCardSkeleton = () => (
     {ROWS.map(([left, right], i) => (
       <Box
         key={i}
+        testID="quote-details-card-loading-row"
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}

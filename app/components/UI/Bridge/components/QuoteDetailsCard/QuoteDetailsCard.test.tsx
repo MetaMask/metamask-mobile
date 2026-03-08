@@ -3,6 +3,7 @@ import '../../_mocks_/initialState';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';
+import QuoteDetailsCardSkeleton from './QuoteDetailsCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
@@ -11,6 +12,7 @@ import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
+import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -271,9 +273,26 @@ const QuoteDetailsCardTestScreen = () => (
   />
 );
 
+const QuoteDetailsCardSkeletonTestScreen = () => <QuoteDetailsCardSkeleton />;
+
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('renders a four-row loading skeleton', () => {
+    const { getByTestId, getAllByTestId } = renderScreen(
+      QuoteDetailsCardSkeletonTestScreen,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: testState },
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+    ).toBeDefined();
+    expect(getAllByTestId('quote-details-card-loading-row')).toHaveLength(4);
   });
 
   it('renders initial state', () => {
