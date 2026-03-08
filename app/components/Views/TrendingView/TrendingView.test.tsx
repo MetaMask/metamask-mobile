@@ -28,6 +28,7 @@ jest.mock('react-redux', () => ({
 }));
 
 import { ExploreFeed } from './TrendingView';
+import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
   selectChainId,
   selectPopularNetworkConfigurationsByCaipChainId,
@@ -316,6 +317,30 @@ describe('TrendingView', () => {
     );
 
     expect(getByText('Explore')).toBeOnTheScreen();
+  });
+
+  it('wraps screen in SafeAreaView', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SAFE_AREA),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders HeaderRoot', () => {
+    const { getByTestId } = render(
+      <NavigationContainer>
+        <TrendingView />
+      </NavigationContainer>,
+    );
+
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT),
+    ).toBeOnTheScreen();
   });
 
   it('renders search bar button', () => {

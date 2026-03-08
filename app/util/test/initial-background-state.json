@@ -516,13 +516,8 @@
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "selectedPaymentToken": null,
-    "cachedMarketData": null,
-    "cachedMarketDataTimestamp": 0,
-    "cachedPositions": null,
-    "cachedOrders": null,
-    "cachedAccountState": null,
-    "cachedUserDataTimestamp": 0,
-    "cachedUserDataAddress": null
+    "cachedMarketDataByProvider": {},
+    "cachedUserDataByProvider": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -679,6 +674,13 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "CardController": {
+    "selectedCountry": null,
+    "activeProviderId": null,
+    "isAuthenticated": false,
+    "cardholderAccounts": [],
+    "providerData": {}
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -748,9 +750,11 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
+    "campaigns": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -769,7 +773,8 @@
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {}
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,

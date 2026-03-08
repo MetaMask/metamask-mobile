@@ -395,21 +395,25 @@ export const submitClobOrder = async ({
   clobOrder,
   feeAuthorization,
   executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
   executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
   const body: ClobOrderObject & {
     feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
     executor?: string;
+    allowancesTx?: { to: string; data: string };
   } = {
     ...clobOrder,
     feeAuthorization,
     ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -740,7 +744,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -1075,7 +1079,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
