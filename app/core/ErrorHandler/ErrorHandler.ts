@@ -25,6 +25,9 @@ export const handleCustomError = (error: Error, isFatal: boolean) => {
     error.message?.includes('KeystoneError#Tx_canceled')
   ) {
     console.error('Keystone error: ', error.message);
+  } else if (error.message === 'Premature close') {
+    // Stream/connection closed early (e.g. config registry fetch in RN). Non-fatal; don't crash the app.
+    console.error('Premature close (non-fatal): ', error.message);
   } else {
     // Pass the error to react native error handler
     reactNativeDefaultHandler(error, isFatal);

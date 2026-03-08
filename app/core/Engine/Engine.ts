@@ -171,6 +171,7 @@ import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
+import { configRegistryControllerInit } from './controllers/config-registry-controller-init';
 import { multichainRouterInit } from './controllers/multichain-router-init';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
@@ -365,6 +366,7 @@ export class Engine {
         DelegationController: DelegationControllerInit,
         AddressBookController: addressBookControllerInit,
         ConnectivityController: connectivityControllerInit,
+        ConfigRegistryController: configRegistryControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
@@ -503,6 +505,7 @@ export class Engine {
       AddressBookController: addressBookController,
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
+      ConfigRegistryController: controllersByName.ConfigRegistryController,
       AssetsContractController: assetsContractController,
       AssetsController: controllersByName.AssetsController,
       NftController: nftController,
@@ -1296,6 +1299,7 @@ export default {
       BridgeController,
       BridgeStatusController,
       CardController,
+      ConfigRegistryController,
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
@@ -1364,6 +1368,7 @@ export default {
       AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
+      ConfigRegistryController: ConfigRegistryController.state,
       ConnectivityController: ConnectivityController.state,
       CurrencyRateController: CurrencyRateController.state,
       DeFiPositionsController: DeFiPositionsController.state,

@@ -86,4 +86,40 @@ describe('ExtendedMessenger', () => {
       expect(handler).not.toHaveBeenCalled();
     });
   });
+
+  describe('unsubscribe', () => {
+    it('does not throw when subscription is already gone (cleanup tolerance)', () => {
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const handler = jest.fn();
+
+      messenger.subscribe(EVENT_TYPE_MOCK, handler);
+      messenger.unsubscribe(EVENT_TYPE_MOCK, handler);
+      expect(() => {
+        messenger.unsubscribe(EVENT_TYPE_MOCK, handler);
+      }).not.toThrow();
+    });
+
+    it('still unsubscribes when subscription exists', () => {
+      const messenger = new ExtendedMessenger<
+        MockAnyNamespace,
+        never,
+        EventMock
+      >({
+        namespace: MOCK_ANY_NAMESPACE,
+      });
+      const handler = jest.fn();
+
+      messenger.subscribe(EVENT_TYPE_MOCK, handler);
+      messenger.unsubscribe(EVENT_TYPE_MOCK, handler);
+      messenger.publish(EVENT_TYPE_MOCK, EVENT_ARG_MOCK);
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+  });
 });

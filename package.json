@@ -212,6 +212,7 @@
     "@metamask/bridge-controller": "^67.4.0",
     "@metamask/bridge-status-controller": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
     "@metamask/chain-agnostic-permission": "^1.3.0",
+    "@metamask/config-registry-controller": "0.1.0",
     "@metamask/connectivity-controller": "^0.1.0",
     "@metamask/controller-utils": "^11.18.0",
     "@metamask/core-backend": "^5.0.0",

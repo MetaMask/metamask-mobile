@@ -68,4 +68,17 @@ describe('ErrorHandler', () => {
       'DisconnectedDevice',
     );
   });
+
+  it('handles Premature close error without crashing the app', () => {
+    setReactNativeDefaultHandler(mockHandler);
+    mockHandler.mockClear();
+    const mockError = new Error('Premature close');
+    console.error = jest.fn();
+    handleCustomError(mockError, true);
+    expect(console.error).toHaveBeenCalledWith(
+      'Premature close (non-fatal): ',
+      'Premature close',
+    );
+    expect(mockHandler).not.toHaveBeenCalled();
+  });
 });

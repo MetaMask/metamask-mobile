@@ -97,6 +97,10 @@ import {
   ConnectivityControllerState,
 } from '@metamask/connectivity-controller';
 import {
+  ConfigRegistryController,
+  type ConfigRegistryControllerState,
+} from '@metamask/config-registry-controller';
+import {
   KeyringController,
   KeyringControllerActions,
   KeyringControllerEvents,
@@ -661,9 +665,10 @@ export type Controllers = {
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
-  ConnectivityController: ConnectivityController;
-  ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  ConnectivityController: ConnectivityController;
+  ConfigRegistryController: ConfigRegistryController;
+  ApprovalController: ApprovalController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
@@ -757,6 +762,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -854,6 +860,7 @@ export type ControllersToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'ConnectivityController'
+  | 'ConfigRegistryController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
   | 'CronjobController'
