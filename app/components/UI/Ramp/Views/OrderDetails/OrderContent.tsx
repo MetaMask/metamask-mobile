@@ -571,11 +571,11 @@ const OrderContent: React.FC<OrderContentProps> = ({
                   order.status === RampsOrderStatus.Created ||
                   order.status === RampsOrderStatus.Precreated ||
                   order.status === RampsOrderStatus.Unknown) &&
-                order.statusDescription.startsWith('Your order') &&
-                order.statusDescription.includes('. ')
-                  ? order.statusDescription.substring(
-                      order.statusDescription.indexOf('. ') + 2,
-                    )
+                order.statusDescription.startsWith('Your order')
+                  ? order.statusDescription.replace(
+                      /^Your order.*?is processing\.\s*/,
+                      '',
+                    ) || order.statusDescription
                   : order.statusDescription}{' '}
                 <Icon
                   name={IconName.Info}
