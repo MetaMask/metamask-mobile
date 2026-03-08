@@ -17,10 +17,6 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
-  DevLogger: { log: jest.fn() },
-}));
-
 const mockGetAccountState = Engine.context.PredictController
   .getAccountState as jest.Mock;
 
