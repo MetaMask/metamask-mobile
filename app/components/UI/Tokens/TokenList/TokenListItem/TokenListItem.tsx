@@ -103,7 +103,7 @@ const createStyles = (colors: Colors) =>
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (arg: boolean) => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;

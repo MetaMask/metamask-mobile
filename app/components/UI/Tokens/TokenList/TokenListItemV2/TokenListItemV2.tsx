@@ -23,6 +23,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIcon';
+import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectMusdQuickConvertEnabledFlag,
@@ -65,7 +66,10 @@ import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
-import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import {
+  selectNativeCurrencyByChainId,
+  selectProviderType,
+} from '../../../../../selectors/networkController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { addCurrencySymbol } from '../../../../../util/number';
@@ -141,7 +145,7 @@ const createStyles = (colors: Colors) =>
 interface TokenListItemV2Props {
   assetKey: FlashListAssetKey;
   showRemoveMenu: (arg: TokenI) => void;
-  setShowScamWarningModal: (arg: boolean) => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
@@ -185,6 +189,16 @@ export const TokenListItemV2 = React.memo(
     );
 
     const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+
+    const providerType = useSelector(selectProviderType) ?? '';
+    const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
+      chainId ?? '',
+      asset?.ticker ?? asset?.symbol,
+      providerType,
+    );
+    const showScamWarningIcon =
+      isOriginalNativeTokenSymbol === false &&
+      (asset?.isNative || asset?.isETH);
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -495,6 +509,7 @@ export const TokenListItemV2 = React.memo(
 
     const hideFiatForTestnet =
       asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
+    const hideFiatForScamWarning = showScamWarningIcon;
     const fiatBalance = asset.balanceFiat || '—';
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
@@ -567,28 +582,35 @@ export const TokenListItemV2 = React.memo(
               )}
             </View>
 
-            {/* Fiat Balance */}
-            <SensitiveText
-              variant={
-                asset?.hasBalanceError ||
-                asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                hideFiatForTestnet
-                  ? TextVariant.BodySM
-                  : TextVariant.BodyMDBold
-              }
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Medium}
-              testID={BALANCE_TEST_ID}
-            >
-              {hideFiatForTestnet ? (
-                '—'
-              ) : fiatBalance === TOKEN_BALANCE_LOADING ||
-                fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <SkeletonText thin style={styles.skeleton} />
-              ) : (
-                fiatBalance
-              )}
-            </SensitiveText>
+            {/* Fiat Balance — or scam warning icon when native symbol is not original */}
+            {hideFiatForScamWarning ? (
+              <ScamWarningIcon
+                asset={asset as TokenI & { chainId: string }}
+                setShowScamWarningModal={setShowScamWarningModal}
+              />
+            ) : (
+              <SensitiveText
+                variant={
+                  asset?.hasBalanceError ||
+                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                  hideFiatForTestnet
+                    ? TextVariant.BodySM
+                    : TextVariant.BodyMDBold
+                }
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
+                testID={BALANCE_TEST_ID}
+              >
+                {hideFiatForTestnet ? (
+                  '—'
+                ) : fiatBalance === TOKEN_BALANCE_LOADING ||
+                  fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                  <SkeletonText thin style={styles.skeleton} />
+                ) : (
+                  fiatBalance
+                )}
+              </SensitiveText>
+            )}
           </Box>
 
           {/* Row: 2 - Token price and percentage change and token balance */}
@@ -608,7 +630,7 @@ export const TokenListItemV2 = React.memo(
                       variant={TextVariant.BodySMMedium}
                       style={styles.balanceFiat}
                     >
-                      {tokenPriceInFiat
+                      {tokenPriceInFiat && !hideFiatForScamWarning
                         ? addCurrencySymbol(
                             tokenPriceInFiat,
                             currentCurrency,
@@ -620,21 +642,30 @@ export const TokenListItemV2 = React.memo(
                     </Text>
                   )}
 
-                  <TouchableOpacity
-                    disabled={!secondaryBalanceDisplay.onPress}
-                    onPress={secondaryBalanceDisplay.onPress}
-                    testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                  >
-                    <SensitiveText
+                  {hideFiatForScamWarning ? (
+                    <Text
                       variant={TextVariant.BodySMMedium}
-                      color={secondaryBalanceDisplay.color}
-                      isHidden={false}
-                      length={SensitiveTextLength.Short}
-                      testID={SECONDARY_BALANCE_TEST_ID}
+                      style={styles.balanceFiat}
                     >
-                      {secondaryBalanceDisplay.text || '-'}
-                    </SensitiveText>
-                  </TouchableOpacity>
+                      {'-'}
+                    </Text>
+                  ) : (
+                    <TouchableOpacity
+                      disabled={!secondaryBalanceDisplay.onPress}
+                      onPress={secondaryBalanceDisplay.onPress}
+                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                    >
+                      <SensitiveText
+                        variant={TextVariant.BodySMMedium}
+                        color={secondaryBalanceDisplay.color}
+                        isHidden={false}
+                        length={SensitiveTextLength.Short}
+                        testID={SECONDARY_BALANCE_TEST_ID}
+                      >
+                        {secondaryBalanceDisplay.text || '-'}
+                      </SensitiveText>
+                    </TouchableOpacity>
+                  )}
                 </>
               )}
             </View>
@@ -654,12 +685,6 @@ export const TokenListItemV2 = React.memo(
             </Box>
           </Box>
         </Box>
-
-        {/* Scam warning icon */}
-        <ScamWarningIcon
-          asset={asset as TokenI & { chainId: string }}
-          setShowScamWarningModal={setShowScamWarningModal}
-        />
       </TouchableOpacity>
     );
   },
