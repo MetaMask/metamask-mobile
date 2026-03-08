@@ -2197,6 +2197,7 @@
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
