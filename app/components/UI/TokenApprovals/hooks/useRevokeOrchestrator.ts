@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { TransactionType } from '@metamask/transaction-controller';
 import { selectApprovals } from '../selectors';
 import {
   startRevocationSession,
@@ -13,7 +12,7 @@ import {
   clearSelection,
   removeApproval,
 } from '../../../../core/redux/slices/tokenApprovals';
-import { ApprovalItem, ApprovalAssetType, ChainProgressEntry } from '../types';
+import { ApprovalItem, ChainProgressEntry } from '../types';
 import {
   addTransaction,
   addTransactionBatch,
@@ -21,6 +20,7 @@ import {
 import {
   buildRevokeTransactionData,
   getNetworkClientIdForChain,
+  getTransactionType,
 } from '../utils/revokeTransaction';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { isUserRejection } from '../utils/isUserRejection';
@@ -34,16 +34,6 @@ const DRY_RUN_DELAY_MS = 1500;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getTransactionType(approval: ApprovalItem) {
-  if (
-    approval.asset.type === ApprovalAssetType.ERC721 ||
-    approval.asset.type === ApprovalAssetType.ERC1155
-  ) {
-    return TransactionType.tokenMethodSetApprovalForAll;
-  }
-  return TransactionType.tokenMethodApprove;
 }
 
 export function useRevokeOrchestrator() {
@@ -90,9 +80,13 @@ export function useRevokeOrchestrator() {
               value: '0x0' as Hex,
             };
 
+            // User already confirmed in BatchRevokeConfirmSheet (which shows gas costs,
+            // chain breakdown, and tx count). requireApproval: false skips N separate
+            // confirmation dialogs, preserving the batch UX. This is the only feature
+            // using requireApproval: false — all other features use the standard approval flow.
             const result = await addTransaction(txParams, {
               networkClientId,
-              origin: 'MetaMask',
+              origin: ORIGIN_METAMASK,
               type: getTransactionType(approval),
               requireApproval: false,
             });
@@ -155,6 +149,9 @@ export function useRevokeOrchestrator() {
             type: getTransactionType(approval),
           }));
 
+          // User already confirmed in BatchRevokeConfirmSheet (which shows gas costs,
+          // chain breakdown, and tx count). requireApproval: false skips N separate
+          // confirmation dialogs, preserving the batch UX.
           await addTransactionBatch({
             from: address as Hex,
             networkClientId,

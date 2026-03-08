@@ -1,11 +1,22 @@
 import { Interface } from '@ethersproject/abi';
 import type { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { ApprovalItem, ApprovalAssetType } from '../types';
 import {
   ERC20_APPROVE_ABI,
   ERC721_SET_APPROVAL_FOR_ALL_ABI,
 } from '../constants/approvals';
+
+export function getTransactionType(approval: ApprovalItem) {
+  if (
+    approval.asset.type === ApprovalAssetType.ERC721 ||
+    approval.asset.type === ApprovalAssetType.ERC1155
+  ) {
+    return TransactionType.tokenMethodSetApprovalForAll;
+  }
+  return TransactionType.tokenMethodApprove;
+}
 
 export function buildRevokeTransactionData(approval: ApprovalItem): string {
   if (
@@ -26,16 +37,11 @@ export function buildRevokeTransactionData(approval: ApprovalItem): string {
 
 export function getNetworkClientIdForChain(chainId: string): string {
   const { NetworkController } = Engine.context;
-  try {
-    const clientId = NetworkController.findNetworkClientIdByChainId(
-      chainId as Hex,
-    );
-    if (clientId) return clientId;
-  } catch {
-    // findNetworkClientIdByChainId throws if chain not found
+  const clientId = NetworkController.findNetworkClientIdByChainId(
+    chainId as Hex,
+  );
+  if (!clientId) {
+    throw new Error(`No network client found for chain ${chainId}`);
   }
-
-  // Fallback: use the currently selected network's client ID
-  const { selectedNetworkClientId } = NetworkController.state;
-  return selectedNetworkClientId;
+  return clientId;
 }

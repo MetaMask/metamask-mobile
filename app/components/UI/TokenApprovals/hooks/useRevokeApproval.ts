@@ -1,29 +1,20 @@
 import { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { addTransaction } from '../../../../util/transaction-controller';
 import {
   setRevocationStatus,
   clearRevocationStatuses,
   removeApproval,
 } from '../../../../core/redux/slices/tokenApprovals';
-import { ApprovalItem, ApprovalAssetType } from '../types';
+import { ApprovalItem } from '../types';
 import {
   buildRevokeTransactionData,
   getNetworkClientIdForChain,
+  getTransactionType,
 } from '../utils/revokeTransaction';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { isUserRejection } from '../utils/isUserRejection';
-
-function getTransactionType(approval: ApprovalItem) {
-  if (
-    approval.asset.type === ApprovalAssetType.ERC721 ||
-    approval.asset.type === ApprovalAssetType.ERC1155
-  ) {
-    return TransactionType.tokenMethodSetApprovalForAll;
-  }
-  return TransactionType.tokenMethodApprove;
-}
 
 export function useRevokeApproval() {
   const dispatch = useDispatch();
@@ -51,7 +42,7 @@ export function useRevokeApproval() {
 
         const result = await addTransaction(txParams, {
           networkClientId,
-          origin: 'MetaMask',
+          origin: ORIGIN_METAMASK,
           type: getTransactionType(approval),
         });
 
