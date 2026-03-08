@@ -62,7 +62,7 @@ describe('useRemoveToken', () => {
     const { result } = renderHook(() => useRemoveToken());
 
     expect(result.current.removeTokenState.isVisible).toBe(false);
-    expect(result.current.showScamWarningModal).toBe(false);
+    expect(result.current.showScamWarningModal).toBeNull();
   });
 
   it('sets removeTokenState visible when showRemoveMenu is called', () => {
