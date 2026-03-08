@@ -67,6 +67,7 @@ export interface ChainProgressEntry {
   chainName: string;
   isBatch: boolean;
   totalApprovals: number;
+  totalTransactions: number;
   currentIndex: number;
   currentApprovalLabel?: string;
   status: 'waiting' | 'signing' | 'done' | 'failed';

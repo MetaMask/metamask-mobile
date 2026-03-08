@@ -2,6 +2,10 @@ import { useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import {
+  TransactionStatus,
+  type TransactionBatchMeta,
+} from '@metamask/transaction-controller';
 import { selectApprovals } from '../selectors';
 import {
   startRevocationSession,
@@ -18,6 +22,10 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import {
+  selectTransactionBatchMetadataById,
+  selectTransactionsByBatchId,
+} from '../../../../selectors/transactionController';
+import {
   buildRevokeTransactionData,
   getNetworkClientIdForChain,
   getTransactionType,
@@ -26,6 +34,8 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import { isUserRejection } from '../utils/isUserRejection';
 import { CHAIN_DISPLAY_NAMES } from '../constants/chains';
 import type { ChainBatchInfo } from './useBatchRevokeSupport';
+import { store } from '../../../../store';
+import { getChainTransactionCount } from '../utils/revocationProgress';
 
 // Toggle to test UI flow without submitting real transactions
 // eslint-disable-next-line no-underscore-dangle
@@ -34,6 +44,72 @@ const DRY_RUN_DELAY_MS = 1500;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const TERMINAL_BATCH_STATUSES = new Set<TransactionStatus>([
+  TransactionStatus.confirmed,
+  TransactionStatus.failed,
+  TransactionStatus.rejected,
+  TransactionStatus.dropped,
+  TransactionStatus.cancelled,
+]);
+
+class BatchRevocationError extends Error {
+  batchId: string;
+
+  status: TransactionStatus;
+
+  constructor(batchId: string, status: TransactionStatus, message: string) {
+    super(message);
+    this.name = 'BatchRevocationError';
+    this.batchId = batchId;
+    this.status = status;
+  }
+}
+
+function waitForBatchToReachTerminalStatus(batchId: string) {
+  return new Promise<TransactionBatchMeta>((resolve) => {
+    let unsubscribe: () => void = () => undefined;
+
+    const checkBatchStatus = () => {
+      const batchMeta = selectTransactionBatchMetadataById(
+        store.getState(),
+        batchId,
+      );
+
+      if (!batchMeta || !TERMINAL_BATCH_STATUSES.has(batchMeta.status)) {
+        return;
+      }
+
+      unsubscribe();
+      resolve(batchMeta);
+    };
+
+    unsubscribe = store.subscribe(checkBatchStatus);
+    checkBatchStatus();
+  });
+}
+
+function getBatchFailureMessage(batchId: string, status: TransactionStatus) {
+  const batchTransactions = selectTransactionsByBatchId(
+    store.getState(),
+    batchId,
+  );
+  const transactionError = batchTransactions.find((tx) => tx.error?.message)
+    ?.error?.message;
+
+  if (
+    status === TransactionStatus.rejected ||
+    status === TransactionStatus.cancelled
+  ) {
+    return 'User rejected';
+  }
+
+  if (status === TransactionStatus.dropped) {
+    return 'Batch transaction dropped';
+  }
+
+  return transactionError ?? 'Batch transaction failed';
 }
 
 export function useRevokeOrchestrator() {
@@ -80,15 +156,11 @@ export function useRevokeOrchestrator() {
               value: '0x0' as Hex,
             };
 
-            // User already confirmed in BatchRevokeConfirmSheet (which shows gas costs,
-            // chain breakdown, and tx count). requireApproval: false skips N separate
-            // confirmation dialogs, preserving the batch UX. This is the only feature
-            // using requireApproval: false — all other features use the standard approval flow.
             const result = await addTransaction(txParams, {
               networkClientId,
               origin: ORIGIN_METAMASK,
               type: getTransactionType(approval),
-              requireApproval: false,
+              requireApproval: true,
             });
 
             await result.result;
@@ -98,18 +170,29 @@ export function useRevokeOrchestrator() {
           if (!DRY_RUN) {
             dispatch(removeApproval(approval.id));
           }
+          dispatch(
+            updateChainProgress({
+              chainId,
+              update: { currentIndex: i + 1 },
+            }),
+          );
         } catch (err) {
-          if (isUserRejection(err)) {
-            dispatch(incrementFailed());
-            dispatch(
-              updateChainProgress({
-                chainId,
-                update: { status: 'failed', error: 'User rejected' },
-              }),
-            );
-            return;
-          }
           dispatch(incrementFailed());
+          dispatch(
+            updateChainProgress({
+              chainId,
+              update: {
+                status: 'failed',
+                currentIndex: i,
+                error: isUserRejection(err)
+                  ? 'User rejected'
+                  : err instanceof Error
+                    ? err.message
+                    : 'Transaction failed',
+              },
+            }),
+          );
+          return;
         }
       }
 
@@ -149,16 +232,27 @@ export function useRevokeOrchestrator() {
             type: getTransactionType(approval),
           }));
 
-          // User already confirmed in BatchRevokeConfirmSheet (which shows gas costs,
-          // chain breakdown, and tx count). requireApproval: false skips N separate
-          // confirmation dialogs, preserving the batch UX.
-          await addTransactionBatch({
+          const { batchId } = await addTransactionBatch({
             from: address as Hex,
             networkClientId,
             origin: ORIGIN_METAMASK,
             transactions,
-            requireApproval: false,
+            requireApproval: true,
           });
+
+          if (!batchId) {
+            throw new Error('Failed to create revoke batch transaction');
+          }
+
+          const batchMeta = await waitForBatchToReachTerminalStatus(batchId);
+
+          if (batchMeta.status !== TransactionStatus.confirmed) {
+            throw new BatchRevocationError(
+              batchId,
+              batchMeta.status,
+              getBatchFailureMessage(batchId, batchMeta.status),
+            );
+          }
         }
 
         for (const approval of chainInfo.approvals) {
@@ -173,32 +267,28 @@ export function useRevokeOrchestrator() {
             chainId: chainInfo.chainId,
             update: {
               status: 'done',
-              currentIndex: chainInfo.approvals.length,
+              currentIndex: 1,
             },
           }),
         );
       } catch (err) {
-        if (isUserRejection(err)) {
-          dispatch(
-            updateChainProgress({
-              chainId: chainInfo.chainId,
-              update: { status: 'failed', error: 'User rejected' },
-            }),
-          );
-        } else {
-          dispatch(
-            updateChainProgress({
-              chainId: chainInfo.chainId,
-              update: {
-                status: 'failed',
-                error:
-                  err instanceof Error
-                    ? err.message
-                    : 'Batch transaction failed',
-              },
-            }),
-          );
-        }
+        dispatch(
+          updateChainProgress({
+            chainId: chainInfo.chainId,
+            update: {
+              status: 'failed',
+              currentIndex: 1,
+              error:
+                err instanceof BatchRevocationError
+                  ? err.message
+                  : isUserRejection(err)
+                    ? 'User rejected'
+                    : err instanceof Error
+                      ? err.message
+                      : 'Batch transaction failed',
+            },
+          }),
+        );
         chainInfo.approvals.forEach(() => {
           dispatch(incrementFailed());
         });
@@ -240,6 +330,10 @@ export function useRevokeOrchestrator() {
             chainName: CHAIN_DISPLAY_NAMES[chainId] ?? chainId,
             isBatch,
             totalApprovals: chainApprovals.length,
+            totalTransactions: getChainTransactionCount({
+              isBatch,
+              totalApprovals: chainApprovals.length,
+            }),
             currentIndex: 0,
             status: 'waiting' as const,
           };

@@ -2979,7 +2979,7 @@
     "batch_confirm_sequential": "{{count}} individual tx",
     "batch_confirm_upgrade_title": "Account upgrade included",
     "batch_confirm_upgrade_description": "Your account will be upgraded to a smart account on {{chains}} to enable batch transactions. This is a one-time upgrade per network.",
-    "batch_confirm_cta": "Confirm revoke",
+    "batch_confirm_cta": "Continue",
     "confirm_single_title": "Confirm revoke",
     "confirm_single_spender_on": "{{spender}} on {{chain}}",
     "confirm_single_what_title": "What this does",

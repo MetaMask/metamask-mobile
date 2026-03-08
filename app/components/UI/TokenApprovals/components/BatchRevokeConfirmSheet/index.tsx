@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useMemo } from 'react';
+import React, { useRef, useCallback, useMemo, useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -186,7 +186,7 @@ const BatchRevokeConfirmSheet: React.FC = () => {
     isLoading: gasLoading,
   } = useGasEstimation(selectedApprovals, chainBreakdown);
 
-  const isSingle = approvalIds.length === 1;
+  const isInvalidBatchSelection = selectedApprovals.length < 2;
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -208,132 +208,14 @@ const BatchRevokeConfirmSheet: React.FC = () => {
     .map((c) => c.chainName)
     .join(', ');
 
-  // --- Single Approval Variant ---
-  if (isSingle && selectedApprovals.length === 1) {
-    const approval = selectedApprovals[0];
-    const gasEstimate = chainEstimates.find(
-      (e) => e.chainId === approval.chainId,
-    );
+  useEffect(() => {
+    if (isInvalidBatchSelection) {
+      navigation.goBack();
+    }
+  }, [isInvalidBatchSelection, navigation]);
 
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        shouldNavigateBack
-        keyboardAvoidingViewEnabled={false}
-      >
-        <BottomSheetHeader onClose={handleClose}>
-          <Text variant={TextVariant.HeadingSM}>
-            {strings('token_approvals.confirm_single_title')}
-          </Text>
-        </BottomSheetHeader>
-
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Token row */}
-          <View
-            style={[
-              styles.tokenRow,
-              { backgroundColor: colors.background.muted },
-            ]}
-          >
-            <View
-              style={[
-                styles.tokenAvatar,
-                { backgroundColor: colors.primary.muted },
-              ]}
-            >
-              <Text variant={TextVariant.BodyMDBold} color={TextColor.Primary}>
-                {approval.asset.symbol.charAt(0)}
-              </Text>
-            </View>
-            <View style={styles.tokenInfo}>
-              <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
-                {approval.asset.symbol}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('token_approvals.confirm_single_spender_on', {
-                  spender:
-                    approval.spender.label ??
-                    approval.spender.address.slice(0, 10) + '...',
-                  chain: approval.chainName,
-                })}
-              </Text>
-            </View>
-            {approval.exposure_usd > 0 && (
-              <View
-                style={[
-                  styles.exposureBadge,
-                  { backgroundColor: colors.error.muted },
-                ]}
-              >
-                <Text variant={TextVariant.BodySMBold} color={TextColor.Error}>
-                  ${approval.exposure_usd.toFixed(2)}
-                </Text>
-              </View>
-            )}
-          </View>
-
-          {/* What this does section */}
-          <View
-            style={[
-              styles.whatSection,
-              { backgroundColor: colors.background.muted },
-            ]}
-          >
-            <Text
-              variant={TextVariant.BodyMDBold}
-              color={TextColor.Default}
-              style={styles.whatTitle}
-            >
-              {strings('token_approvals.confirm_single_what_title')}
-            </Text>
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {strings('token_approvals.confirm_single_what_description', {
-                spender:
-                  approval.spender.label ??
-                  approval.spender.address.slice(0, 10) + '...',
-                token: approval.asset.symbol,
-              })}
-            </Text>
-          </View>
-
-          {/* Gas estimate */}
-          <View
-            style={[
-              styles.gasRow,
-              { backgroundColor: colors.background.muted },
-            ]}
-          >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('token_approvals.confirm_gas_estimate')}
-            </Text>
-            <Text variant={TextVariant.BodyMDBold} color={TextColor.Default}>
-              {formatGasUsd(gasEstimate?.gasUsd ?? 0, gasLoading)}
-            </Text>
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              label={strings('token_approvals.cancel_button')}
-              onPress={handleClose}
-              style={styles.footerButton}
-              width={ButtonWidthTypes.Full}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              label={strings('token_approvals.confirm_single_revoke_cta')}
-              onPress={handleConfirm}
-              style={styles.footerButton}
-              width={ButtonWidthTypes.Full}
-              isDisabled={batchLoading}
-            />
-          </View>
-        </ScrollView>
-      </BottomSheet>
-    );
+  if (isInvalidBatchSelection) {
+    return null;
   }
 
   // --- Multi Approval Variant ---

@@ -166,15 +166,37 @@ const TokenApprovalsView: React.FC = () => {
     [revokeApproval],
   );
 
+  const handleRevokeSelection = useCallback(
+    (approvalIds: string[]) => {
+      if (approvalIds.length === 1) {
+        const approval = approvals.find((item) => item.id === approvalIds[0]);
+        if (!approval) {
+          return;
+        }
+
+        onClearSelection();
+        revokeApproval(approval);
+        return;
+      }
+
+      if (approvalIds.length < 2) {
+        return;
+      }
+
+      navigation.navigate(
+        Routes.TOKEN_APPROVALS.MODALS.ROOT as never,
+        {
+          screen: Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM,
+          params: { approvalIds },
+        } as never,
+      );
+    },
+    [approvals, navigation, onClearSelection, revokeApproval],
+  );
+
   const handleBatchRevoke = useCallback(() => {
-    navigation.navigate(
-      Routes.TOKEN_APPROVALS.MODALS.ROOT as never,
-      {
-        screen: Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM,
-        params: { approvalIds: selectedApprovalIds },
-      } as never,
-    );
-  }, [navigation, selectedApprovalIds]);
+    handleRevokeSelection(selectedApprovalIds);
+  }, [handleRevokeSelection, selectedApprovalIds]);
 
   const handleRevokeAllRisky = useCallback(() => {
     const riskyIds = approvals
@@ -182,16 +204,8 @@ const TokenApprovalsView: React.FC = () => {
         (a) => a.verdict === Verdict.Malicious || a.verdict === Verdict.Warning,
       )
       .map((a) => a.id);
-    if (riskyIds.length > 0) {
-      navigation.navigate(
-        Routes.TOKEN_APPROVALS.MODALS.ROOT as never,
-        {
-          screen: Routes.TOKEN_APPROVALS.MODALS.BATCH_REVOKE_CONFIRM,
-          params: { approvalIds: riskyIds },
-        } as never,
-      );
-    }
-  }, [approvals, navigation]);
+    handleRevokeSelection(riskyIds);
+  }, [approvals, handleRevokeSelection]);
 
   const handleLearnMore = useCallback(() => {
     Linking.openURL(LEARN_MORE_URL);

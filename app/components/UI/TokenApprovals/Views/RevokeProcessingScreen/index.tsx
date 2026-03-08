@@ -27,6 +27,10 @@ import { useRevokeOrchestrator } from '../../hooks/useRevokeOrchestrator';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { ChainBatchInfo } from '../../hooks/useBatchRevokeSupport';
 import type { ChainProgressEntry } from '../../types';
+import {
+  getCurrentProcessingTransactionIndex,
+  getTotalTransactionCount,
+} from '../../utils/revocationProgress';
 
 // Large spinner ring
 const RING_SIZE = 72;
@@ -384,12 +388,10 @@ const RevokeProcessingScreen: React.FC = () => {
     }
   }, [session.isActive, session.totalApprovals, navigation]);
 
-  const currentTxIndex =
-    session.chainProgress.reduce((sum, c) => sum + c.currentIndex, 0) + 1;
-  const totalTxCount = session.chainProgress.reduce(
-    (sum, c) => sum + (c.isBatch ? 1 : c.totalApprovals),
-    0,
+  const currentTxIndex = getCurrentProcessingTransactionIndex(
+    session.chainProgress,
   );
+  const totalTxCount = getTotalTransactionCount(session.chainProgress);
 
   const rows = useMemo(
     () => buildRows(chainBreakdown, session.chainProgress),
@@ -428,7 +430,7 @@ const RevokeProcessingScreen: React.FC = () => {
             style={styles.progressTextBold}
           >
             {strings('token_approvals.processing_tx_of', {
-              current: Math.min(currentTxIndex, totalTxCount).toString(),
+              current: currentTxIndex.toString(),
               total: totalTxCount.toString(),
             })}
           </Text>
