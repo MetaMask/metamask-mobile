@@ -68,14 +68,7 @@ export const usePredictPriceHistory = (
   const reportedErrorsRef = useRef<Set<string>>(new Set());
 
   const marketIdsKey = marketIds.join(',');
-  const queryErrorsKey = queries
-    .map((q) => {
-      if (!q.error) return '';
-      return q.error instanceof Error
-        ? q.error.message
-        : 'Failed to fetch price history';
-    })
-    .join(',');
+  const queryErrorsKey = errors.join(',');
 
   useEffect(() => {
     // Clean up reported errors for market IDs that are no longer in the list
