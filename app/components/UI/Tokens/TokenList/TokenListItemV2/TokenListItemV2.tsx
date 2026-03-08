@@ -66,6 +66,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../../selectors/networkController';
+import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { addCurrencySymbol } from '../../../../../util/number';
 import { safeToChecksumAddress } from '../../../../../util/address';
@@ -183,6 +184,8 @@ export const TokenListItemV2 = React.memo(
       selectNativeCurrencyByChainId(state, chainId),
     );
 
+    const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+
     const currentCurrency = useSelector(selectCurrentCurrency);
 
     const networkName = useNetworkName(chainId);
@@ -259,29 +262,42 @@ export const TokenListItemV2 = React.memo(
         return undefined;
       }
 
+      if (isTestNet(asset.chainId) && !showFiatOnTestnets) {
+        return undefined;
+      }
+
       // Get the checksummed address for market data lookup
       const addressToUse = asset.isNative
         ? getNativeTokenAddress(asset.chainId as Hex)
         : safeToChecksumAddress(asset.address);
 
-      // Get token price in native currency (e.g., token price in ETH)
-      const tokenPriceInNative =
+      // Token price in native currency: tokenMarketData first, then currencyRates for native
+      const marketPriceInNative =
         tokenMarketData?.[asset.chainId as Hex]?.[addressToUse as Hex]?.price;
+      const currencyRateAsFiat = currencyRates?.[asset.symbol]?.conversionRate;
+      const tokenPriceInNative = marketPriceInNative ?? currencyRateAsFiat;
 
-      // Get native currency to fiat conversion rate (e.g., ETH to USD)
-      const nativeToFiatRate = currencyRates[nativeCurrency]?.conversionRate;
-
-      if (!tokenPriceInNative || !nativeToFiatRate) {
+      if (!tokenPriceInNative) {
         return undefined;
       }
 
-      // Calculate final fiat price
+      // currencyRateAsFiat is already in fiat; market price is in native, so convert with nativeToFiatRate
+      if (currencyRateAsFiat != null && marketPriceInNative == null) {
+        return currencyRateAsFiat;
+      }
+
+      const nativeToFiatRate = currencyRates[nativeCurrency]?.conversionRate;
+      if (!nativeToFiatRate) {
+        return undefined;
+      }
+
       return tokenPriceInNative * nativeToFiatRate;
     }, [
       asset,
       tokenMarketData,
       currencyRates,
       nativeCurrency,
+      showFiatOnTestnets,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       multichainAssetsRates,
       ///: END:ONLY_INCLUDE_IF
@@ -477,6 +493,8 @@ export const TokenListItemV2 = React.memo(
       ? ACCOUNT_TYPE_LABELS[asset.accountType]
       : undefined;
 
+    const hideFiatForTestnet =
+      asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
     const fiatBalance = asset.balanceFiat || '—';
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
@@ -553,7 +571,8 @@ export const TokenListItemV2 = React.memo(
             <SensitiveText
               variant={
                 asset?.hasBalanceError ||
-                asset.balanceFiat === TOKEN_RATE_UNDEFINED
+                asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
+                hideFiatForTestnet
                   ? TextVariant.BodySM
                   : TextVariant.BodyMDBold
               }
@@ -561,8 +580,10 @@ export const TokenListItemV2 = React.memo(
               length={SensitiveTextLength.Medium}
               testID={BALANCE_TEST_ID}
             >
-              {fiatBalance === TOKEN_BALANCE_LOADING ||
-              fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+              {hideFiatForTestnet ? (
+                '—'
+              ) : fiatBalance === TOKEN_BALANCE_LOADING ||
+                fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
                 <SkeletonText thin style={styles.skeleton} />
               ) : (
                 fiatBalance
