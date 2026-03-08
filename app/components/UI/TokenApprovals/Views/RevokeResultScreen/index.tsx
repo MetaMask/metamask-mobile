@@ -27,6 +27,7 @@ import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { selectRevocationSession } from '../../selectors';
 import { clearRevocationSession } from '../../../../../core/redux/slices/tokenApprovals';
+import { formatUsd } from '../../utils/formatUsd';
 
 const styles = StyleSheet.create({
   container: {
@@ -94,16 +95,6 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
 });
-
-function formatUsd(value: number): string {
-  if (value >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`;
-  }
-  if (value >= 1000) {
-    return `$${Math.round(value).toLocaleString()}`;
-  }
-  return `$${value.toFixed(2)}`;
-}
 
 const RevokeResultScreen: React.FC = () => {
   const navigation = useNavigation();

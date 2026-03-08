@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -31,14 +31,10 @@ import type { ChainProgressEntry } from '../../types';
 // Large spinner ring
 const RING_SIZE = 72;
 const RING_STROKE = 5;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 // Small inline spinner for signing rows
 const SMALL_RING_SIZE = 28;
 const SMALL_RING_STROKE = 3;
-const SMALL_RING_RADIUS = (SMALL_RING_SIZE - SMALL_RING_STROKE) / 2;
-const SMALL_RING_CIRCUMFERENCE = 2 * Math.PI * SMALL_RING_RADIUS;
 
 const styles = StyleSheet.create({
   container: {
@@ -206,22 +202,13 @@ const SharedRotationProvider: React.FC<{ children: React.ReactNode }> = ({
 const SpinningRing: React.FC<{
   size: number;
   stroke: number;
-  radius: number;
-  circumference: number;
   arcRatio?: number;
   color: string;
   trackColor: string;
   containerStyle?: object;
-}> = ({
-  size,
-  stroke,
-  radius,
-  circumference,
-  arcRatio = 0.35,
-  color,
-  trackColor,
-  containerStyle,
-}) => {
+}> = ({ size, stroke, arcRatio = 0.35, color, trackColor, containerStyle }) => {
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
   const sharedAnim = React.useContext(SharedRotationContext);
 
   // Fallback for usage outside the provider (shouldn't happen)
@@ -295,53 +282,36 @@ const StatusIcon: React.FC<{
     );
   }
 
-  if (status === 'signing') {
+  if (status === 'signing' || status === 'waiting') {
+    const spinnerColor =
+      status === 'signing' ? colors.primary.default : colors.icon.muted;
+    const spinnerTrack =
+      status === 'signing'
+        ? colors.primary.muted
+        : colors.background.alternative;
     return (
       <View style={styles.statusIconContainer}>
         <SpinningRing
           size={SMALL_RING_SIZE}
           stroke={SMALL_RING_STROKE}
-          radius={SMALL_RING_RADIUS}
-          circumference={SMALL_RING_CIRCUMFERENCE}
           arcRatio={0.3}
-          color={colors.primary.default}
-          trackColor={colors.primary.muted}
+          color={spinnerColor}
+          trackColor={spinnerTrack}
           containerStyle={styles.smallRingContainer}
         />
       </View>
     );
   }
 
-  if (status === 'failed') {
-    return (
-      <View
-        style={[
-          styles.statusIconContainer,
-          { backgroundColor: colors.error.muted },
-        ]}
-      >
-        <Icon
-          name={IconName.Danger}
-          size={IconSize.Md}
-          color={IconColor.Error}
-        />
-      </View>
-    );
-  }
-
-  // waiting
+  // failed
   return (
-    <View style={styles.statusIconContainer}>
-      <SpinningRing
-        size={SMALL_RING_SIZE}
-        stroke={SMALL_RING_STROKE}
-        radius={SMALL_RING_RADIUS}
-        circumference={SMALL_RING_CIRCUMFERENCE}
-        arcRatio={0.3}
-        color={colors.icon.muted}
-        trackColor={colors.background.alternative}
-        containerStyle={styles.smallRingContainer}
-      />
+    <View
+      style={[
+        styles.statusIconContainer,
+        { backgroundColor: colors.error.muted },
+      ]}
+    >
+      <Icon name={IconName.Danger} size={IconSize.Md} color={IconColor.Error} />
     </View>
   );
 };
@@ -421,7 +391,10 @@ const RevokeProcessingScreen: React.FC = () => {
     0,
   );
 
-  const rows = buildRows(chainBreakdown, session.chainProgress);
+  const rows = useMemo(
+    () => buildRows(chainBreakdown, session.chainProgress),
+    [chainBreakdown, session.chainProgress],
+  );
 
   return (
     <SharedRotationProvider>
@@ -445,8 +418,6 @@ const RevokeProcessingScreen: React.FC = () => {
           <SpinningRing
             size={RING_SIZE}
             stroke={RING_STROKE}
-            radius={RING_RADIUS}
-            circumference={RING_CIRCUMFERENCE}
             color={colors.primary.default}
             trackColor={colors.primary.muted}
             containerStyle={styles.ringContainer}

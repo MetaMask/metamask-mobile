@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import type { Hex } from '@metamask/utils';
 import { BN } from 'ethereumjs-util';
@@ -43,10 +43,14 @@ export function useGasEstimation(
   const hasEstimatedRef = useRef<string | null>(null);
 
   // Stable key for the current set of approvals
-  const approvalKey = approvalItems
-    .map((a) => a.id)
-    .sort()
-    .join(',');
+  const approvalKey = useMemo(
+    () =>
+      approvalItems
+        .map((a) => a.id)
+        .sort()
+        .join(','),
+    [approvalItems],
+  );
 
   useEffect(() => {
     if (approvalItems.length === 0 || !address) {

@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
@@ -167,9 +167,10 @@ const BatchRevokeConfirmSheet: React.FC = () => {
   };
 
   const allApprovals = useSelector(selectApprovals);
-  const selectedApprovals = allApprovals.filter((a) =>
-    approvalIds.includes(a.id),
-  );
+  const selectedApprovals = useMemo(() => {
+    const idSet = new Set(approvalIds);
+    return allApprovals.filter((a) => idSet.has(a.id));
+  }, [allApprovals, approvalIds]);
 
   const {
     chainBreakdown,

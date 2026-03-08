@@ -29,7 +29,7 @@ import type { ChainBatchInfo } from './useBatchRevokeSupport';
 
 // Toggle to test UI flow without submitting real transactions
 // eslint-disable-next-line no-underscore-dangle
-const DRY_RUN = __DEV__ && true;
+const DRY_RUN = __DEV__ && false;
 const DRY_RUN_DELAY_MS = 1500;
 
 function delay(ms: number) {
