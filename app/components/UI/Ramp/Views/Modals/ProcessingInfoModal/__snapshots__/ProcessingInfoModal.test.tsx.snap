@@ -197,6 +197,7 @@ exports[`ProcessingInfoModal renders correctly 1`] = `
               "fontSize": 16,
               "letterSpacing": 0,
               "lineHeight": 24,
+              "textAlign": "center",
             }
           }
         >

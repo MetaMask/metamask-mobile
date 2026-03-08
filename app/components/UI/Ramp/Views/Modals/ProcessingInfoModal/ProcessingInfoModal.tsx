@@ -103,7 +103,11 @@ function ProcessingInfoModal() {
 
       {statusDescription && (
         <Box twClassName="px-6 pb-4">
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={{ textAlign: 'center' }}
+          >
             {statusDescription}
           </Text>
         </Box>
