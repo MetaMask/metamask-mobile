@@ -7,21 +7,21 @@ import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
-import { PayTokenInfo } from './types';
 import { TransactionSummaryLine } from './transaction-summary-line';
 
-export function RelayDepositSummaryLine({
+export function DepositSummaryLine({
   transactionMeta,
   parentTransaction,
-  payTokenInfo,
 }: {
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
-  payTokenInfo: PayTokenInfo;
 }) {
+  const tokenAddress = parentTransaction.metamaskPay?.tokenAddress;
+  const tokenChainId = parentTransaction.metamaskPay?.chainId;
+
   const sourceToken = useTokenWithBalance(
-    payTokenInfo.tokenAddress ?? '0x0',
-    payTokenInfo.chainId ?? transactionMeta.chainId,
+    tokenAddress ?? '0x0',
+    tokenChainId ?? transactionMeta.chainId,
   );
 
   const sourceNetworkName = useNetworkName(transactionMeta.chainId);

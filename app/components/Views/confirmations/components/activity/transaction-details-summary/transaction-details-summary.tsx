@@ -18,13 +18,10 @@ import {
 import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
-import { RelayDepositSummaryLine } from './relay-deposit-summary-line';
+import { DepositSummaryLine } from './deposit-summary-line';
 import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
-import { PayTokenInfo } from './types';
-
-export type { PayTokenInfo } from './types';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
@@ -32,7 +29,6 @@ export function TransactionDetailsSummary() {
     batchId,
     id: transactionId,
     requiredTransactionIds,
-    metamaskPay,
   } = transactionMeta;
 
   const batchTransactions = useSelector((state: RootState) =>
@@ -56,11 +52,6 @@ export function TransactionDetailsSummary() {
     selectTransactionsByIds(state, transactionIds),
   );
 
-  const payTokenInfo: PayTokenInfo = {
-    tokenAddress: metamaskPay?.tokenAddress,
-    chainId: metamaskPay?.chainId,
-  };
-
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
@@ -70,7 +61,6 @@ export function TransactionDetailsSummary() {
             key={transaction.id}
             transactionMeta={transaction}
             parentTransaction={transactionMeta}
-            payTokenInfo={payTokenInfo}
           />
         ))}
       </ProgressList>
@@ -81,19 +71,16 @@ export function TransactionDetailsSummary() {
 function TransactionSummaryLine({
   transactionMeta,
   parentTransaction,
-  payTokenInfo,
 }: {
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
-  payTokenInfo: PayTokenInfo;
 }) {
   // Relay deposit types render as send lines
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
-      <RelayDepositSummaryLine
+      <DepositSummaryLine
         transactionMeta={transactionMeta}
         parentTransaction={parentTransaction}
-        payTokenInfo={payTokenInfo}
       />
     );
   }

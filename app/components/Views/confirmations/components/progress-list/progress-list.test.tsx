@@ -1,7 +1,7 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { ProgressList, ProgressListItem } from './progress-list';
+import { render } from '@testing-library/react-native';
+import { ProgressList } from './progress-list';
+import { ProgressListItem } from './progress-list-item';
 
 describe('ProgressList', () => {
   it('renders dividers between items but not after the last', () => {
@@ -66,50 +66,5 @@ describe('ProgressList', () => {
 
     expect(queryAllByTestId('progress-list-divider')).toHaveLength(1);
     expect(queryAllByTestId('progress-list-item-subtitle')).toHaveLength(2);
-  });
-});
-
-describe('ProgressListItem', () => {
-  it('renders subtitle text', () => {
-    const { getByTestId } = render(
-      <ProgressListItem
-        title="Line"
-        subtitle="Aug 20, 2025"
-        severity="success"
-      />,
-    );
-
-    const subtitle = getByTestId('progress-list-item-subtitle');
-
-    expect(subtitle.props.children).toBe('Aug 20, 2025');
-  });
-
-  it('renders button icon and handles press', () => {
-    const onButtonPress = jest.fn();
-    const { getByTestId } = render(
-      <ProgressListItem
-        title="Line"
-        subtitle="Aug 20, 2025"
-        severity="success"
-        buttonIcon={IconName.Export}
-        onButtonPress={onButtonPress}
-      />,
-    );
-
-    fireEvent.press(getByTestId('block-explorer-button'));
-
-    expect(onButtonPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not render button when no icon provided', () => {
-    const { queryByTestId } = render(
-      <ProgressListItem
-        title="Line"
-        subtitle="Aug 20, 2025"
-        severity="success"
-      />,
-    );
-
-    expect(queryByTestId('block-explorer-button')).toBeNull();
   });
 });

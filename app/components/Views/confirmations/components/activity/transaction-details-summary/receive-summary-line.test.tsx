@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import {
   TransactionMeta,
   TransactionType,
@@ -8,15 +7,13 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useNetworkName } from '../../../hooks/useNetworkName';
+import { POLYGON_USDCE } from '../../../constants/predict';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { ReceiveSummaryLine } from './receive-summary-line';
-
-const mockNavigate = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/useNetworkName');
@@ -28,7 +25,7 @@ jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
 }));
 
@@ -109,23 +106,78 @@ describe('ReceiveSummaryLine', () => {
     expect(queryByTestId('block-explorer-button')).toBeNull();
   });
 
-  it('navigates to block explorer when button is pressed', () => {
-    const { getByTestId } = render({
+  it('renders predict deposit receive title', () => {
+    const { getByText } = render({
       id: 'tx-id',
       chainId: '0x1' as Hex,
       hash: '0x123',
       submittedTime: 1755719285723,
-      type: TransactionType.perpsDeposit,
+      type: TransactionType.predictDeposit,
     });
 
-    fireEvent.press(getByTestId('block-explorer-button'));
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: POLYGON_USDCE.symbol,
+          targetChain: 'Arbitrum',
+        }),
+      ),
+    ).toBeDefined();
+  });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: 'https://app.hyperliquid.xyz/explorer/tx/0x123',
-        title: 'Hyperliquid',
-      },
+  it('renders mUSD conversion receive title', () => {
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0x1' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.musdConversion,
     });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: 'mUSD',
+          targetChain: 'Arbitrum',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders mUSD claim receive title', () => {
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0x1' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.musdClaim,
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: 'mUSD',
+          targetChain: 'Arbitrum',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('renders loading title when network name is unavailable', () => {
+    useNetworkNameMock.mockReturnValue(undefined);
+
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0x1' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.musdConversion,
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive_loading'),
+      ),
+    ).toBeDefined();
   });
 });

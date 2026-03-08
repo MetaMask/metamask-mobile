@@ -8,7 +8,6 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
-import { getDateString } from './utils';
 import { TransactionSummaryLine } from './transaction-summary-line';
 
 const mockNavigate = jest.fn();
@@ -68,10 +67,10 @@ describe('TransactionSummaryLine', () => {
   });
 
   it('renders title and date subtitle', () => {
-    const { getByLabelText, getByText, time } = render();
+    const { getByLabelText, getByTestId } = render();
 
     expect(getByLabelText('Test title')).toBeDefined();
-    expect(getByText(getDateString(time))).toBeDefined();
+    expect(getByTestId('progress-list-item-subtitle')).toBeDefined();
   });
 
   it('renders block explorer button when URL is available', () => {

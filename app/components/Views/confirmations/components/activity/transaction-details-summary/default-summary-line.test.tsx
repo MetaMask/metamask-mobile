@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import {
   TransactionMeta,
   TransactionType,
@@ -8,14 +7,11 @@ import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { DefaultSummaryLine } from './default-summary-line';
-
-const mockNavigate = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../../../../selectors/bridgeStatusController');
@@ -26,7 +22,7 @@ jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
 }));
 
@@ -97,17 +93,11 @@ describe('DefaultSummaryLine', () => {
     ).toBeDefined();
   });
 
-  it('navigates to block explorer when button is pressed', () => {
-    const { getByTestId } = render(TransactionType.swap);
+  it('renders swap approval title', () => {
+    const { getByText } = render(TransactionType.swapApproval);
 
-    fireEvent.press(getByTestId('block-explorer-button'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: 'https://explorer.example',
-        title: 'Explorer',
-      },
-    });
+    expect(
+      getByText(strings('transaction_details.summary_title.swap_approval')),
+    ).toBeDefined();
   });
 });

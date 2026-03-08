@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
 import {
   TransactionMeta,
   TransactionType,
@@ -7,15 +6,12 @@ import {
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { ApprovalSummaryLine } from './approval-summary-line';
-
-const mockNavigate = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
@@ -27,7 +23,7 @@ jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: mockNavigate,
+    navigate: jest.fn(),
   }),
 }));
 
@@ -106,17 +102,17 @@ describe('ApprovalSummaryLine', () => {
     expect(useTokenWithBalanceMock).toHaveBeenCalledWith('0x999', '0x1');
   });
 
-  it('navigates to block explorer when button is pressed', () => {
-    const { getByTestId } = render();
+  it('renders loading title when token symbol is unavailable', () => {
+    useTokenWithBalanceMock.mockReturnValue(
+      {} as ReturnType<typeof useTokenWithBalance>,
+    );
 
-    fireEvent.press(getByTestId('block-explorer-button'));
+    const { getByText } = render();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
-        url: 'https://explorer.example',
-        title: 'Explorer',
-      },
-    });
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_approval_loading'),
+      ),
+    ).toBeDefined();
   });
 });

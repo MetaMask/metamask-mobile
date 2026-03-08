@@ -9,22 +9,13 @@ import {
 import { TransactionDetailsSummary } from './transaction-details-summary';
 import { transactionIdMock } from '../../../__mocks__/controllers/transaction-controller-mock';
 
-const mockNavigate = jest.fn();
-
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-  }),
-}));
-
-jest.mock('./relay-deposit-summary-line', () => ({
-  RelayDepositSummaryLine: () => {
+jest.mock('./deposit-summary-line', () => ({
+  DepositSummaryLine: () => {
     const ReactNative = require('react-native');
 
-    return <ReactNative.Text>RelayDepositSummaryLine</ReactNative.Text>;
+    return <ReactNative.Text>DepositSummaryLine</ReactNative.Text>;
   },
 }));
 
@@ -87,7 +78,7 @@ describe('TransactionDetailsSummary', () => {
     });
   });
 
-  it('routes relay deposit transactions to RelayDepositSummaryLine', () => {
+  it('routes relay deposit transactions to DepositSummaryLine', () => {
     const { getByText } = render({
       transactions: [
         {
@@ -98,7 +89,7 @@ describe('TransactionDetailsSummary', () => {
       ],
     });
 
-    expect(getByText('RelayDepositSummaryLine')).toBeDefined();
+    expect(getByText('DepositSummaryLine')).toBeDefined();
   });
 
   it('routes approval transactions to ApprovalSummaryLine', () => {
@@ -233,7 +224,7 @@ describe('TransactionDetailsSummary', () => {
       ],
     });
 
-    expect(getByText('RelayDepositSummaryLine')).toBeDefined();
+    expect(getByText('DepositSummaryLine')).toBeDefined();
     expect(getByText('ReceiveSummaryLine')).toBeDefined();
     expect(queryByText('DefaultSummaryLine')).toBeNull();
   });
