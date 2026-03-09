@@ -244,6 +244,12 @@ describe('PredictController', () => {
         getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
         getNetworkState?: jest.MockedFunction<() => NetworkState>;
         getRemoteFeatureFlagState?: jest.MockedFunction<() => any>;
+        estimateGas?: jest.MockedFunction<
+          (
+            txParams: TransactionMeta['txParams'],
+            networkClientId: string,
+          ) => Promise<{ gas: string; simulationFails: undefined }>
+        >;
         findNetworkClientIdByChainId?: jest.MockedFunction<
           (chainId: string) => string
         >;
@@ -289,9 +295,11 @@ describe('PredictController', () => {
 
     rootMessenger.registerActionHandler(
       'TransactionController:estimateGas',
-      jest.fn().mockResolvedValue({
-        gas: '0x5208',
-      }),
+      mocks.estimateGas ??
+        jest.fn().mockResolvedValue({
+          gas: '0x5208',
+          simulationFails: undefined,
+        }),
     );
 
     rootMessenger.registerActionHandler(
@@ -388,7 +396,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('handles refreshEligibility errors in constructor', () => {
+    it('handles refreshEligibility errors in constructor', async () => {
       // Mock isEligible to throw during constructor
       const originalIsEligible = mockPolymarketProvider.isEligible;
       mockPolymarketProvider.isEligible = jest
@@ -402,8 +410,24 @@ describe('PredictController', () => {
         });
       }).not.toThrow();
 
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(DevLogger.log).toHaveBeenCalled();
+
       // Restore original method
       mockPolymarketProvider.isEligible = originalIsEligible;
+    });
+
+    it('passes feature flag resolver function to polymarket provider', () => {
+      withController(() => undefined);
+
+      const constructorArgs = (
+        PolymarketProvider as unknown as jest.MockedClass<
+          typeof PolymarketProvider
+        >
+      ).mock.calls[0][0] as { getFeatureFlags?: () => unknown };
+
+      expect(typeof constructorArgs.getFeatureFlags).toBe('function');
+      expect(() => constructorArgs.getFeatureFlags?.()).not.toThrow();
     });
 
     it('subscribes to transaction events in constructor', () => {
@@ -965,6 +989,23 @@ describe('PredictController', () => {
         ).rejects.toThrow('Order placement failed');
 
         expect(controller.state.lastError).toBe('Order placement failed');
+      });
+    });
+
+    it('throws provider error when placeOrder returns success false', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: false,
+          error: 'Order rejected by provider',
+        } as any);
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await expect(
+          controller.placeOrder({
+            preview,
+          }),
+        ).rejects.toThrow('Order rejected by provider');
       });
     });
 
@@ -2365,6 +2406,26 @@ describe('PredictController', () => {
       });
     });
 
+    it('throws error when prepareClaim returns undefined', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(undefined as never);
+        await controller.getPositions({ claimable: true });
+
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'Failed to prepare claim transaction',
+        );
+      });
+    });
+
     it('throws error when prepareClaim returns no chainId', async () => {
       // Arrange
       await withController(async ({ controller }) => {
@@ -3150,6 +3211,33 @@ describe('PredictController', () => {
     // at the module level, which is complex with the current test setup.
     // These error paths are indirectly tested through integration tests.
 
+    it('throw error when network client is not found for deposit chain', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      await withController(
+        async ({ controller }) => {
+          await expect(controller.depositWithConfirmation({})).rejects.toThrow(
+            'Network client not found for chain ID: 0x89',
+          );
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest.fn().mockReturnValue(undefined),
+          },
+        },
+      );
+    });
+
     it('throw error when addTransactionBatch returns no batchId', async () => {
       // Given addTransactionBatch returns empty result
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
@@ -3796,6 +3884,35 @@ describe('PredictController', () => {
           'PredictController:transactionStatusChanged',
           transactionStatusChangedHandler,
         );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not publish event when transaction status cannot be mapped', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+        });
+
+        transactionMeta.status = 'unapproved' as TransactionStatus;
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [accountAddress]: 'claim-batch-1',
+          };
+        });
 
         messenger.publish('TransactionController:transactionStatusUpdated', {
           transactionMeta,
@@ -4457,6 +4574,17 @@ describe('PredictController', () => {
             }),
           }),
         );
+
+        const signer = mockPolymarketProvider.previewOrder.mock.calls[0][0]
+          .signer as {
+          signTypedMessage: (
+            params: unknown,
+            version: unknown,
+          ) => Promise<string>;
+          signPersonalMessage: (params: unknown) => Promise<string>;
+        };
+        await signer.signTypedMessage({} as never, 'V4' as never);
+        await signer.signPersonalMessage({} as never);
       });
     });
 
@@ -4475,6 +4603,24 @@ describe('PredictController', () => {
             size: 100,
           }),
         ).rejects.toThrow('Preview failed');
+      });
+    });
+
+    it('handles synchronous preview errors thrown by provider', async () => {
+      mockPolymarketProvider.previewOrder.mockImplementation(() => {
+        throw new Error('Preview failed synchronously');
+      });
+
+      await withController(async ({ controller }) => {
+        await expect(
+          controller.previewOrder({
+            marketId: 'market-1',
+            outcomeId: 'outcome-1',
+            outcomeTokenId: 'token-1',
+            side: Side.BUY,
+            size: 100,
+          }),
+        ).rejects.toThrow('Preview failed synchronously');
       });
     });
   });
@@ -4947,6 +5093,44 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow('Confirmation preparation failed');
       });
+    });
+
+    it('sets withdraw transaction status to error when gas estimation fails', async () => {
+      mockPolymarketProvider.signWithdraw?.mockResolvedValue({
+        callData: '0xnewdata' as `0x${string}`,
+        amount: 100,
+      });
+
+      await withController(
+        async ({ controller }) => {
+          controller.updateStateForTesting((state) => {
+            state.withdrawTransaction = {
+              chainId: 137,
+              status: PredictWithdrawStatus.IDLE,
+              providerId: POLYMARKET_PROVIDER_ID,
+              predictAddress: '0xPredict' as `0x${string}`,
+              transactionId: 'tx-1',
+              amount: 0,
+            };
+          });
+
+          const result = await controller.beforeSign({
+            transactionMeta: mockTransactionMeta as any,
+          });
+
+          expect(result).toBeUndefined();
+          expect(controller.state.withdrawTransaction?.status).toBe(
+            PredictWithdrawStatus.ERROR,
+          );
+        },
+        {
+          mocks: {
+            estimateGas: jest
+              .fn()
+              .mockRejectedValue(new Error('Gas estimation failed')),
+          },
+        },
+      );
     });
 
     it('return undefined when nestedTransactions is undefined', async () => {

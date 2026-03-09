@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PredictActionButtons from './PredictActionButtons';
+import PredictBetButton from './PredictBetButton';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import {
@@ -236,6 +237,19 @@ describe('PredictActionButtons', () => {
 
       expect(screen.queryByText('YES · 65¢')).not.toBeOnTheScreen();
       expect(screen.queryByText('NO · 35¢')).not.toBeOnTheScreen();
+    });
+
+    it('passes carousel mode to bet buttons', () => {
+      const props = createDefaultProps({ isCarousel: true });
+
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <PredictActionButtons {...props} />,
+      );
+
+      const betButtons = UNSAFE_getAllByType(PredictBetButton);
+
+      expect(betButtons[0].props.size).toBe('md');
+      expect(betButtons[1].props.size).toBe('md');
     });
   });
 

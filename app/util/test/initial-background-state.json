@@ -768,12 +768,12 @@
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
+    "pendingClaims": {},
     "withdrawTransaction": null,
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
+    "marketInsights": {}
   },
   "RampsController": {
     "userRegion": null,
