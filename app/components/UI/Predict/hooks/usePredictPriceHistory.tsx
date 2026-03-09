@@ -55,10 +55,14 @@ export const usePredictPriceHistory = (
     })),
   });
 
+  const marketIdsKey = marketIds.join(',');
+  const dataUpdatedAtKey = queries.map((q) => q.dataUpdatedAt).join(',');
+  const queryErrorKey = queries.map((q) => q.error).join(',');
+
   const priceHistories = useMemo(
     () => queries.map((q) => q.data ?? []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queries.map((q) => q.dataUpdatedAt).join(',')],
+    [dataUpdatedAtKey, marketIdsKey],
   );
   const isFetching = queries.some((q) => q.isFetching);
   const errors = useMemo(
@@ -70,13 +74,12 @@ export const usePredictPriceHistory = (
           : 'Failed to fetch price history';
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queries.map((q) => q.error).join(',')],
+    [queryErrorKey, marketIdsKey],
   );
 
   // Track which market errors have already been reported to Sentry
   const reportedErrorsRef = useRef<Set<string>>(new Set());
 
-  const marketIdsKey = marketIds.join(',');
   const queryErrorsKey = errors.join(',');
 
   useEffect(() => {
