@@ -64,6 +64,7 @@ const useHomeViewedEvent = ({
     containerScreenY,
     entryPoint,
     visitId,
+    notifySectionViewed,
   } = useHomepageScrollContext();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -97,6 +98,7 @@ const useHomeViewedEvent = ({
         })
         .build(),
     );
+    notifySectionViewed(sectionName);
   }, [
     visitId,
     sectionName,
@@ -107,6 +109,7 @@ const useHomeViewedEvent = ({
     entryPoint,
     trackEvent,
     createEventBuilder,
+    notifySectionViewed,
   ]);
 
   // Reset on each homepage visit so the event re-fires.

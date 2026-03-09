@@ -52,6 +52,7 @@ import {
   ParamListBase,
   RouteProp,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -164,6 +165,7 @@ import {
   selectPerpsEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
+import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import {
   selectPredictEnabledFlag,
@@ -182,6 +184,7 @@ import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -454,10 +457,6 @@ const WalletTokensTabView = forwardRef<
     },
   }));
 
-  // Calculate Perps tab visibility
-  const perpsTabIndex = isPerpsEnabled ? 1 : -1;
-  const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
-
   // Calculate Predict tab visibility
   let predictTabIndex = -1;
   if (isPerpsEnabled && isPredictEnabled) {
@@ -466,18 +465,6 @@ const WalletTokensTabView = forwardRef<
     predictTabIndex = 1;
   }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
-
-  // Store the visibility update callback from PerpsTabView
-  const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
-    null,
-  );
-
-  // Update Perps visibility when tab changes
-  useEffect(() => {
-    if (isPerpsEnabled && perpsVisibilityCallback.current) {
-      perpsVisibilityCallback.current(isPerpsTabVisible);
-    }
-  }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
   // Background preload perps market data when feature is enabled
   useEffect(() => {
@@ -511,16 +498,7 @@ const WalletTokensTabView = forwardRef<
     ];
 
     if (isPerpsEnabled) {
-      tabs.push(
-        <PerpsTabView
-          {...perpsTabProps}
-          key={perpsTabProps.key}
-          isVisible={isPerpsTabVisible}
-          onVisibilityChange={(callback) => {
-            perpsVisibilityCallback.current = callback;
-          }}
-        />,
-      );
+      tabs.push(<PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />);
     }
 
     if (isPredictEnabled) {
@@ -558,7 +536,6 @@ const WalletTokensTabView = forwardRef<
     tokensTabProps,
     isPerpsEnabled,
     perpsTabProps,
-    isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
     isPredictTabVisible,
@@ -639,6 +616,8 @@ const Wallet = ({
   // Callbacks registered by sections to be notified of scroll events.
   // Using a ref+Set avoids any React state updates (and re-renders) on scroll.
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
+  // Tracks which sections have been viewed this visit (reset on each focus).
+  const viewedSectionsRef = useRef<Set<string>>(new Set());
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -662,6 +641,7 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
    * Object containing the balance of the current selected account
@@ -1072,27 +1052,6 @@ const Wallet = ({
     accountBalanceByChainId?.balance,
   ]);
 
-  useEffect(
-    () => {
-      requestAnimationFrame(async () => {
-        const { AccountTrackerController } = Engine.context;
-
-        const networkClientIDs = Object.values(evmNetworkConfigurations)
-          .map(
-            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-          )
-          .filter((c) => Boolean(c));
-
-        AccountTrackerController.refresh(networkClientIDs);
-      });
-    },
-    /* eslint-disable-next-line */
-    // TODO: The need of usage of this chainId as a dependency is not clear, we shouldn't need to refresh the native balances when the chainId changes. Since the pooling is always working in the back. Check with assets team.
-    // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-    [navigation, chainId, evmNetworkConfigurations, selectedInternalAccount],
-  );
-
   const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
@@ -1100,6 +1059,8 @@ const Wallet = ({
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
+
+  const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
@@ -1392,6 +1353,20 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
+  // Reset viewed sections on each new visit so session summary starts fresh.
+  useEffect(() => {
+    viewedSectionsRef.current.clear();
+  }, [visitId]);
+
+  const notifySectionViewed = useCallback((sectionName: string) => {
+    viewedSectionsRef.current.add(sectionName);
+  }, []);
+
+  const getViewedSectionCount = useCallback(
+    () => viewedSectionsRef.current.size,
+    [],
+  );
+
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
@@ -1399,13 +1374,22 @@ const Wallet = ({
       containerScreenY,
       entryPoint,
       visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
     }),
-    [subscribeToScroll, viewportHeight, containerScreenY, entryPoint, visitId],
+    [
+      subscribeToScroll,
+      viewportHeight,
+      containerScreenY,
+      entryPoint,
+      visitId,
+      notifySectionViewed,
+      getViewedSectionCount,
+    ],
   );
 
   const content = (
     <>
-      <AssetPollingProvider />
       <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
@@ -1441,17 +1425,23 @@ const Wallet = ({
         {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
 
         {isHomepageSectionsV1Enabled ? (
-          <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-            <Homepage ref={homepageRef} />
-          </HomepageScrollContext.Provider>
+          <>
+            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
+              <Homepage ref={homepageRef} />
+            </HomepageScrollContext.Provider>
+          </>
         ) : (
-          <WalletTokensTabView
-            ref={walletTokensTabViewRef}
-            navigation={navigation}
-            onChangeTab={onChangeTab}
-            defiEnabled={defiEnabled}
-            collectiblesEnabled={collectiblesEnabled}
-          />
+          <>
+            {isFocused && <AssetPollingProvider />}
+            <WalletTokensTabView
+              ref={walletTokensTabViewRef}
+              navigation={navigation}
+              onChangeTab={onChangeTab}
+              defiEnabled={defiEnabled}
+              collectiblesEnabled={collectiblesEnabled}
+            />
+          </>
         )}
       </>
     </>
@@ -1467,70 +1457,72 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? (
-          <View
-            ref={containerViewRef}
-            style={styles.wrapper}
-            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-            onLayout={(e) => {
-              setViewportHeight(e.nativeEvent.layout.height);
-              // measureInWindow gives the absolute screen Y of the container
-              // top, which is needed to form correct visible bounds when
-              // sections call measureInWindow on themselves.
-              containerViewRef.current?.measureInWindow((_x, y) => {
-                setContainerScreenY(y);
-              });
-            }}
-          >
-            <ConditionalScrollView
-              ref={scrollViewRef}
-              isScrollEnabled={shouldEnableParentScroll}
-              scrollViewProps={{
-                contentContainerStyle: scrollViewContentStyle,
-                showsVerticalScrollIndicator: false,
-                onScroll: isHomepageSectionsV1Enabled
-                  ? handleVerticalScroll
-                  : undefined,
-                onContentSizeChange: isHomepageSectionsV1Enabled
-                  ? handleScrollContentSizeChange
-                  : undefined,
-                onLayout: isHomepageSectionsV1Enabled
-                  ? handleScrollLayout
-                  : undefined,
-                scrollEventThrottle: 16,
-                refreshControl: shouldEnableParentScroll ? (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                ) : undefined,
+      <PerpsAlwaysOnProvider>
+        <View style={baseStyles.flexGrow}>
+          {selectedInternalAccount ? (
+            <View
+              ref={containerViewRef}
+              style={styles.wrapper}
+              testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+              onLayout={(e) => {
+                setViewportHeight(e.nativeEvent.layout.height);
+                // measureInWindow gives the absolute screen Y of the container
+                // top, which is needed to form correct visible bounds when
+                // sections call measureInWindow on themselves.
+                containerViewRef.current?.measureInWindow((_x, y) => {
+                  setContainerScreenY(y);
+                });
               }}
             >
-              {content}
-            </ConditionalScrollView>
-            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-              <LinearGradient
-                pointerEvents="none"
-                colors={[
-                  colorWithOpacity(colors.background.default, 0),
-                  colors.background.default,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={[
-                  styles.bottomFadeOverlay,
-                  { opacity: bottomFadeOpacity },
-                ]}
-              />
-            )}
-          </View>
-        ) : (
-          renderLoader()
-        )}
-      </View>
+              <ConditionalScrollView
+                ref={scrollViewRef}
+                isScrollEnabled={shouldEnableParentScroll}
+                scrollViewProps={{
+                  contentContainerStyle: scrollViewContentStyle,
+                  showsVerticalScrollIndicator: false,
+                  onScroll: isHomepageSectionsV1Enabled
+                    ? handleVerticalScroll
+                    : undefined,
+                  onContentSizeChange: isHomepageSectionsV1Enabled
+                    ? handleScrollContentSizeChange
+                    : undefined,
+                  onLayout: isHomepageSectionsV1Enabled
+                    ? handleScrollLayout
+                    : undefined,
+                  scrollEventThrottle: 16,
+                  refreshControl: shouldEnableParentScroll ? (
+                    <RefreshControl
+                      colors={[colors.primary.default]}
+                      tintColor={colors.icon.default}
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  ) : undefined,
+                }}
+              >
+                {content}
+              </ConditionalScrollView>
+              {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
+                <LinearGradient
+                  pointerEvents="none"
+                  colors={[
+                    colorWithOpacity(colors.background.default, 0),
+                    colors.background.default,
+                  ]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  style={[
+                    styles.bottomFadeOverlay,
+                    { opacity: bottomFadeOpacity },
+                  ]}
+                />
+              )}
+            </View>
+          ) : (
+            renderLoader()
+          )}
+        </View>
+      </PerpsAlwaysOnProvider>
     </ErrorBoundary>
   );
 };
