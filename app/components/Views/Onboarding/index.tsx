@@ -833,7 +833,10 @@ const Onboarding = () => {
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
             isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            style={{ backgroundColor: importedColors.applePayBlack }}
+            style={tw.style({
+              backgroundColor: importedColors.applePayBlack,
+              borderColor: 'transparent',
+            })}
           >
             {SEEDLESS_ONBOARDING_ENABLED
               ? strings('onboarding.import_using_srp_social_login')
@@ -842,7 +845,12 @@ const Onboarding = () => {
         </OnboardingAnimation>
       </Box>
     ),
-    [state.startOnboardingAnimation, setStartFoxAnimation, handleCtaActions],
+    [
+      state.startOnboardingAnimation,
+      setStartFoxAnimation,
+      handleCtaActions,
+      tw,
+    ],
   );
 
   const handleSimpleNotification =
