@@ -4,7 +4,6 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import type { PerpsPlatformDependencies } from '../types';
 
 import { DataLakeService } from './DataLakeService';
@@ -21,12 +20,32 @@ global.setTimeout = jest.fn((fn: () => void) => {
 describe('DataLakeService', () => {
   let mockContext: ServiceContext;
   let mockDeps: jest.Mocked<PerpsPlatformDependencies>;
-  let mockMessenger: jest.Mocked<PerpsControllerMessenger>;
+  let mockMessenger: ReturnType<typeof createMockMessenger>;
   let dataLakeService: DataLakeService;
   const mockEvmAccount = createMockEvmAccount();
   const mockToken = 'mock-bearer-token';
 
+  /**
+   * Sets up the default messenger mock that returns a valid account and token.
+   * Called in beforeEach and after any mid-test jest.clearAllMocks().
+   */
+  function setupDefaultMessenger() {
+    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (
+        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+      ) {
+        return [mockEvmAccount];
+      }
+      if (action === 'AuthenticationController:getBearerToken') {
+        return Promise.resolve(mockToken);
+      }
+      return undefined;
+    });
+  }
+
   beforeEach(() => {
+    jest.clearAllMocks();
+
     mockDeps = createMockInfrastructure();
     mockMessenger = createMockMessenger();
     dataLakeService = new DataLakeService(mockDeps, mockMessenger);
@@ -39,19 +58,7 @@ describe('DataLakeService', () => {
       },
     });
 
-    // Configure messenger to return expected values
-    (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
-      if (
-        action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
-      ) {
-        return [mockEvmAccount];
-      }
-      if (action === 'AuthenticationController:getBearerToken') {
-        return Promise.resolve(mockToken);
-      }
-      return undefined;
-    });
-    jest.clearAllMocks();
+    setupDefaultMessenger();
   });
 
   afterEach(() => {
@@ -278,6 +285,8 @@ describe('DataLakeService', () => {
       expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 1000);
 
       jest.clearAllMocks();
+      setupDefaultMessenger();
+      (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
         action: 'open',
@@ -289,6 +298,8 @@ describe('DataLakeService', () => {
       expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 2000);
 
       jest.clearAllMocks();
+      setupDefaultMessenger();
+      (fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
 
       await dataLakeService.reportOrder({
         action: 'open',

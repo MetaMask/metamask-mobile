@@ -1,26 +1,50 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectUserRegion } from '../../../../selectors/rampsController';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 
 /**
- * Hook that hydrates RampsController state (tokens and providers) on mount
- * if the user has a saved region and V2 unified is enabled.
- * This preloads ramps data for faster UX when the user navigates to buy/sell flows.
+ * Hook that ensures RampsController has tokens (and providers) loaded.
  *
- * Should be called from a top-level component like Wallet that mounts early.
+ * - When V2 is enabled and userRegion is set: calls hydrateState() to refresh
+ * tokens and providers (e.g. when region is already loaded from persistence).
+ * - When V2 is enabled and userRegion is null: calls controller.init() once so
+ * tokens load when the Ramp UI mounts (backup if Engine init hasn't run or
+ * completed yet). Uses a ref to avoid duplicate in-flight init.
+ *
+ * Should be called from a top-level component that mounts early (e.g. FiatOrders in Main nav).
  */
 export function useHydrateRampsController(): void {
   const userRegion = useSelector(selectUserRegion);
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
+  const hasTriggeredInitRef = useRef(false);
 
   useEffect(() => {
-    if (isV2UnifiedEnabled && userRegion?.regionCode) {
-      const { RampsController } = Engine.context;
+    if (!isV2UnifiedEnabled) {
+      return;
+    }
+
+    const { RampsController } = Engine.context;
+
+    if (userRegion?.regionCode) {
       Promise.resolve(RampsController.hydrateState()).catch(() => {
         // Error is stored in state
       });
+      return;
+    }
+
+    // userRegion is null: ensure init runs so tokens load when Ramp UI is shown
+    // (backup to Engine init, which may not have run or completed yet).
+    if (!hasTriggeredInitRef.current) {
+      hasTriggeredInitRef.current = true;
+      Promise.resolve(RampsController.init())
+        .then(() => {
+          RampsController.startOrderPolling();
+        })
+        .catch(() => {
+          hasTriggeredInitRef.current = false;
+        });
     }
   }, [isV2UnifiedEnabled, userRegion?.regionCode]);
 }

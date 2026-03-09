@@ -29,7 +29,7 @@ interface UseDeviceConnectionFlowOptions {
 }
 
 interface UseDeviceConnectionFlowResult {
-  ensureDeviceReady: (targetDeviceId?: string) => Promise<boolean>;
+  ensureDeviceReady: (targetDeviceId?: string | null) => Promise<boolean>;
   connect: (targetDeviceId: string) => Promise<void>;
   retryEnsureDeviceReady: () => Promise<void>;
   closeFlow: () => void;
@@ -182,7 +182,7 @@ export const useDeviceConnectionFlow = ({
   );
 
   const ensureDeviceReady = useCallback(
-    async (targetDeviceId?: string): Promise<boolean> => {
+    async (targetDeviceId?: string | null): Promise<boolean> => {
       DevLogger.log(
         '[HardwareWallet] ensureDeviceReady called with deviceId:',
         targetDeviceId,
@@ -195,9 +195,14 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = null;
       }
 
-      const targetType = walletType ?? HardwareWalletType.Ledger;
-      const deviceIdToUse =
-        targetDeviceId === undefined ? undefined : targetDeviceId;
+      const targetType =
+        refs.targetWalletTypeRef.current ??
+        walletType ??
+        HardwareWalletType.Ledger;
+
+      if (!targetDeviceId) {
+        setters.setDeviceId(null);
+      }
 
       const adapter = resolveOrCreateAdapter(targetType);
 
@@ -212,7 +217,7 @@ export const useDeviceConnectionFlow = ({
       }
 
       return createBlockingPromise(() => {
-        if (!deviceIdToUse) {
+        if (!targetDeviceId) {
           DevLogger.log(
             '[HardwareWallet] No device ID - starting device selection',
           );
@@ -227,7 +232,7 @@ export const useDeviceConnectionFlow = ({
         (async () => {
           try {
             refs.abortControllerRef.current = new AbortController();
-            await tryEnsureReady(adapter, deviceIdToUse);
+            await tryEnsureReady(adapter, targetDeviceId);
           } catch (error) {
             DevLogger.log('[HardwareWallet] ensureDeviceReady error:', error);
             handleError(error);
@@ -239,6 +244,7 @@ export const useDeviceConnectionFlow = ({
     },
     [
       refs,
+      setters,
       handleError,
       walletType,
       updateConnectionState,
