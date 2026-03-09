@@ -410,7 +410,7 @@ jobs:
 
       - name: Setup App Store Connect API Key
         run: |
-          ./scripts/setup-app-store-connect-api-key.sh \
+          bash scripts/setup-app-store-connect-api-key.sh \
             "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
             "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
@@ -421,7 +421,7 @@ jobs:
 
       - name: Upload to TestFlight
         run: |
-          ./scripts/upload-to-testflight.sh \
+          bash scripts/upload-to-testflight.sh \
             "github_actions_${{ inputs.build_name }}" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
