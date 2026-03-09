@@ -144,10 +144,10 @@ const LedgerSelectAccount = () => {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const accounts = await getLedgerAccountsByOperation(
+      const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_FIRST_PAGE,
       );
-      setAccounts(accounts);
+      setAccounts(_accounts);
     } catch (e) {
       setErrorMsg((e as Error).message);
     }
@@ -282,11 +282,16 @@ const LedgerSelectAccount = () => {
     return LEDGER_UNKNOWN_STRING;
   };
 
+  const isUnlockingRef = useRef(false);
   const onUnlock = useCallback(
     async (accountIndexes: number[]) => {
+      if (isUnlockingRef.current) return;
+      isUnlockingRef.current = true;
+
       try {
         const isReady = await ensureDeviceReady(deviceId);
         if (!isReady) {
+          isUnlockingRef.current = false;
           return;
         }
 
@@ -321,10 +326,12 @@ const LedgerSelectAccount = () => {
         );
         setBlockingModalVisible(false);
         setErrorMsg((err as Error).message);
+        isUnlockingRef.current = false;
         return;
       }
 
       setBlockingModalVisible(false);
+      isUnlockingRef.current = false;
     },
     [
       updateNewLegacyAccountsLabel,
@@ -372,8 +379,8 @@ const LedgerSelectAccount = () => {
         (pathOption) => pathOption.key === path,
       );
       if (!option) return;
-      setSelectedOption(option);
       await setHDPath(path);
+      setSelectedOption(option);
     },
     [ledgerPathOptions],
   );
