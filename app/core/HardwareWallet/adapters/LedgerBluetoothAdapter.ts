@@ -18,6 +18,7 @@ import {
   openEthereumAppOnLedger,
   closeRunningAppOnLedger,
 } from '../../Ledger/Ledger';
+import { DISCONNECT_ERROR_NAMES } from '../../Ledger/ledgerErrors';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 const DEVICE_LOCKED_STATUS_CODE = 0x6b0c;
@@ -621,9 +622,8 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    */
   #isTransientBleError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
-    const transientBleErrorNames = [
-      'DisconnectedDevice',
-      'DisconnectedDeviceDuringOperation',
+    const transientBleErrorNames: readonly string[] = [
+      ...DISCONNECT_ERROR_NAMES,
       'PairingFailed',
       'PeerRemovedPairing',
       'BleError',

@@ -32,6 +32,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 jest.mock('./usePerpsPaymentToken');
+jest.mock('./usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -80,15 +85,17 @@ describe('usePerpsBalanceTokenFilter', () => {
     jest.clearAllMocks();
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector.name === 'selectPerpsAccountState') {
-        return { availableBalance: '1500.00' };
-      }
-      if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
-        return [];
-      }
-      return undefined;
-    });
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => {
+        if (selector.name === 'selectPerpsAccountState') {
+          return { availableBalance: '1500.00' };
+        }
+        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
+          return [];
+        }
+        return undefined;
+      },
+    );
     mockUsePerpsTrading.mockReturnValue({
       depositWithConfirmation: mockDepositWithConfirmation,
     } as unknown as ReturnType<typeof usePerpsTrading>);
@@ -204,12 +211,14 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('uses zero balance when perps account is null', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectPerpsAccountState') return null;
-        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-          return [];
-        return undefined;
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.name === 'selectPerpsAccountState') return null;
+          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+            return [];
+          return undefined;
+        },
+      );
       const inputTokens: AssetType[] = [];
 
       const { result } = renderHook(() => usePerpsBalanceTokenFilter());
@@ -224,13 +233,15 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('clears isSelected on other tokens when perps balance is selected', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectPerpsAccountState')
-          return { availableBalance: '1500.00' };
-        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-          return [];
-        return undefined;
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.name === 'selectPerpsAccountState')
+            return { availableBalance: '1500.00' };
+          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+            return [];
+          return undefined;
+        },
+      );
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       const inputTokens: AssetType[] = [
         {
@@ -255,13 +266,15 @@ describe('usePerpsBalanceTokenFilter', () => {
     });
 
     it('keeps token isSelected when perps balance is not selected', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector.name === 'selectPerpsAccountState')
-          return { availableBalance: '1500.00' };
-        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-          return [];
-        return undefined;
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector.name === 'selectPerpsAccountState')
+            return { availableBalance: '1500.00' };
+          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
+            return [];
+          return undefined;
+        },
+      );
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       const inputTokens: AssetType[] = [
         {
@@ -280,11 +293,12 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('filters to only allowlisted tokens when allowlist is set', () => {
       const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
-      let selectorCallIndex = 0;
+      let callIndex = 0;
       mockUseSelector.mockImplementation(() => {
-        selectorCallIndex += 1;
-        if (selectorCallIndex === 1) return { availableBalance: '100.00' };
-        if (selectorCallIndex === 2) return [allowlistKey];
+        callIndex += 1;
+        // Hook calls selectPerpsAccountState first, then selectPerpsPayWithAnyTokenAllowlistAssets
+        if (callIndex === 1) return { availableBalance: '100.00' };
+        if (callIndex === 2) return [allowlistKey];
         return [];
       });
       const inputTokens: AssetType[] = [
