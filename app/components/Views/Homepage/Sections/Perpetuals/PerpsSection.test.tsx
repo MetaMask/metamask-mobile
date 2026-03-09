@@ -152,16 +152,6 @@ jest.mock('./components/PerpsMarketTileCard', () => {
   };
 });
 
-jest.mock('react-native-linear-gradient', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: Record<string, unknown>) => (
-      <View {...props}>{children as React.ReactNode}</View>
-    ),
-  };
-});
-
 const { usePerpsLivePositions, usePerpsLiveOrders, usePerpsMarkets } =
   jest.requireMock('../../../../UI/Perps/hooks');
 
