@@ -1,4 +1,8 @@
-import { selectPredictEnabledFlag, selectPredictHotTabFlag } from '.';
+import {
+  selectPredictEnabledFlag,
+  selectPredictFeeCollectionFlag,
+  selectPredictHotTabFlag,
+} from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
   mockedState,
@@ -636,6 +640,155 @@ describe('Predict Feature Flag Selectors', () => {
 
         expect(result).toBeUndefined();
       });
+    });
+  });
+
+  describe('selectPredictFeeCollectionFlag', () => {
+    it('returns fee collection config when present in remote feature flags', () => {
+      const feeCollectionConfig = {
+        enabled: true,
+        collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+        metamaskFee: 0.03,
+        providerFee: 0.01,
+        waiveList: ['middle-east'],
+        executors: ['0x1234'],
+        permit2Enabled: true,
+      };
+      const stateWithFeeCollection = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictFeeCollection: feeCollectionConfig,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictFeeCollectionFlag(stateWithFeeCollection);
+
+      expect(result).toEqual(feeCollectionConfig);
+    });
+
+    it('returns default flag when remote flag is missing', () => {
+      const result = selectPredictFeeCollectionFlag(mockedEmptyFlagsState);
+
+      expect(result).toEqual({
+        enabled: true,
+        collector: expect.any(String),
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        waiveList: [],
+        executors: [],
+        permit2Enabled: false,
+      });
+    });
+
+    it('returns default flag when remote flag is null', () => {
+      const stateWithNullFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictFeeCollection: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictFeeCollectionFlag(stateWithNullFlag);
+
+      expect(result).toEqual({
+        enabled: true,
+        collector: expect.any(String),
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        waiveList: [],
+        executors: [],
+        permit2Enabled: false,
+      });
+    });
+
+    it('returns default flag when controller is undefined', () => {
+      const stateWithUndefinedController = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: undefined,
+          },
+        },
+      };
+
+      const result = selectPredictFeeCollectionFlag(
+        stateWithUndefinedController,
+      );
+
+      expect(result).toEqual({
+        enabled: true,
+        collector: expect.any(String),
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        waiveList: [],
+        executors: [],
+        permit2Enabled: false,
+      });
+    });
+
+    it('returns remote config with custom waiveList', () => {
+      const stateWithWaiveList = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictFeeCollection: {
+                  enabled: true,
+                  collector: '0xabc',
+                  metamaskFee: 0.05,
+                  providerFee: 0.03,
+                  waiveList: ['middle-east', 'humanitarian'],
+                  executors: [],
+                  permit2Enabled: false,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictFeeCollectionFlag(stateWithWaiveList);
+
+      expect(result.waiveList).toEqual(['middle-east', 'humanitarian']);
+      expect(result.metamaskFee).toBe(0.05);
+      expect(result.providerFee).toBe(0.03);
+    });
+
+    it('returns remote config when fee collection is disabled', () => {
+      const stateWithDisabledFees = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictFeeCollection: {
+                  enabled: false,
+                  collector: '0x0',
+                  metamaskFee: 0,
+                  providerFee: 0,
+                  waiveList: [],
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictFeeCollectionFlag(stateWithDisabledFees);
+
+      expect(result.enabled).toBe(false);
     });
   });
 });

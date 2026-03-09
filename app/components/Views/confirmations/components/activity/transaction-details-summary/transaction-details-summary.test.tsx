@@ -682,7 +682,7 @@ describe('TransactionDetailsSummary', () => {
       });
     });
 
-    it('renders receive line without block explorer link when hash is 0x0', () => {
+    it('falls back to relay deposit hash when musdConversion hash is 0x0', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           id: transactionIdMock,
@@ -717,7 +717,42 @@ describe('TransactionDetailsSummary', () => {
         ],
       });
 
-      // No fallback when hash is 0x0
+      // Call #1: relayDeposit send line always uses SEND_HASH
+      // Call #2: musdConversion receive line should fall back to relay deposit hash
+      expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenNthCalledWith(2, {
+        chainId: Number(SOURCE_CHAIN_ID_MOCK),
+        txHash: SEND_HASH,
+      });
+    });
+
+    it('renders receive line without block explorer link when hash is 0x0 and no relay deposit exists', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          id: transactionIdMock,
+          chainId: SOURCE_CHAIN_ID_MOCK,
+          submittedTime: TRANSACTION_META_MOCK.submittedTime,
+          type: TransactionType.musdConversion,
+          requiredTransactionIds: [],
+          hash: '0x0',
+          metamaskPay: {
+            chainId: SOURCE_CHAIN_ID_MOCK,
+            tokenAddress: '0x123',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      render({
+        transactions: [
+          {
+            id: transactionIdMock,
+            chainId: SOURCE_CHAIN_ID_MOCK,
+            hash: '0x0',
+            type: TransactionType.musdConversion,
+            submittedTime: TRANSACTION_META_MOCK.submittedTime,
+          },
+        ],
+      });
+
       expect(useMultichainBlockExplorerTxUrlMock).toHaveBeenCalledWith({
         chainId: Number(SOURCE_CHAIN_ID_MOCK),
         txHash: undefined,

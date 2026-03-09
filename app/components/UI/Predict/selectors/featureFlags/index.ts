@@ -4,8 +4,11 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictHotTabFlag } from '../../types/flags';
-import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+import { PredictFeatureFlags, PredictHotTabFlag } from '../../types/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HOT_TAB_FLAG,
+} from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 
 /**
@@ -104,6 +107,24 @@ export const selectPredictHotTabFlag = createSelector(
       typeof flag.queryParams !== 'string'
     ) {
       return DEFAULT_HOT_TAB_FLAG;
+    }
+
+    return flag;
+  },
+);
+
+/**
+ * Selector for Predict fee collection config flag
+ */
+export const selectPredictFeeCollectionFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const flag = unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+      remoteFeatureFlags?.predictFeeCollection,
+    );
+
+    if (!flag) {
+      return DEFAULT_FEE_COLLECTION_FLAG;
     }
 
     return flag;

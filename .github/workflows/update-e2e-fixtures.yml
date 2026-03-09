@@ -254,6 +254,7 @@ jobs:
           PREBUILT_IOS_APP_PATH: artifacts/main-qa-MetaMask.app
 
       - name: Cache updated fixture
+        if: ${{ !cancelled() }}
         uses: actions/cache/save@v4
         with:
           path: tests/framework/fixtures/json/default-fixture.json
@@ -263,21 +264,22 @@ jobs:
     name: Commit the updated fixtures
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
     needs:
       - prepare
       - is-fork-pull-request
       - update-fixtures
-    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ACTIONS_WRITE_TOKEN }}
 
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
       - name: Restore updated fixture
@@ -318,7 +320,7 @@ jobs:
           fi
         env:
           HAS_CHANGES: ${{ steps.fixture-changes.outputs.HAS_CHANGES }}
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
   check-status:
@@ -346,6 +348,9 @@ jobs:
     if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
     needs:
       - is-fork-pull-request
       - check-status

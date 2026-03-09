@@ -216,7 +216,18 @@ describe('useAnalytics', () => {
     expect(analytics.optOut).toHaveBeenCalledTimes(1);
   });
 
-  it('calls analytics identify with traits', async () => {
+  it('calls analytics identify via identify()', async () => {
+    const userTraits = { test: 'value' };
+    const { result } = renderHook(() => useAnalytics());
+
+    await act(async () => {
+      await result.current.identify(userTraits);
+    });
+
+    expect(analytics.identify).toHaveBeenCalledWith(userTraits);
+  });
+
+  it('calls analytics identify via deprecated addTraitsToUser()', async () => {
     const userTraits = { test: 'value' };
     const { result } = renderHook(() => useAnalytics());
 
