@@ -163,7 +163,7 @@ describe('useBridgeQuoteData', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: '0.20' },
+              priceData: { priceImpact: '0.04' },
               gasIncluded,
               gasIncluded7702,
             },
@@ -186,9 +186,9 @@ describe('useBridgeQuoteData', () => {
       });
 
       expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
-        '0.20',
+        '0.04',
       );
-      // priceImpact '0.20' < warning threshold 5 → shouldShowPriceImpactWarning is false
+      // priceImpact 0.04 (4%) < warning threshold 0.05 (5%) → shouldShowPriceImpactWarning is false
       expect(result.current.shouldShowPriceImpactWarning).toEqual(
         shouldShowPriceImpactWarning,
       );

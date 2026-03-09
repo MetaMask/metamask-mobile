@@ -1125,10 +1125,16 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
-            priceImpact: '30%', // 30 > PRICE_IMPACT_ERROR_THRESHOLD (25)
+            priceImpact: '30%',
           },
         }));
 
@@ -1159,7 +1165,13 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
@@ -1182,12 +1194,18 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('navigates to PriceImpactModal when priceImpact is exactly at the threshold', async () => {
-      // 25 >= 25, so the modal IS shown and the transaction is not submitted
+      // 0.25 >= 0.25, so the modal IS shown and the transaction is not submitted
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.25' }, // exactly at the danger threshold 0.25
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
@@ -1222,7 +1240,13 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.10' }, // 0.10 < danger threshold 0.25
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '10%',
@@ -1248,12 +1272,18 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('submits the transaction when priceImpact is undefined', async () => {
-      // Falsy priceImpact defaults to 0, which is not > 25
+      // Falsy priceImpact defaults to 0, which is not >= 0.25
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: undefined },
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: undefined,
@@ -1278,12 +1308,18 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('submits the transaction when priceImpact is not a finite number', async () => {
-      // Number.parseFloat('NaN%') → NaN → Number.isFinite(NaN) = false → skip modal
+      // Number.parseFloat('NaN') → NaN → Number.isFinite(NaN) = false → skip modal
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: 'NaN' },
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: 'NaN%',
@@ -1316,7 +1352,13 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
@@ -1346,17 +1388,23 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('reads the danger threshold from bridge feature flags state', async () => {
-      // priceImpact of 25% exactly meets the danger threshold configured in
-      // mockState (defaultBridgeConfigV2.priceImpactThreshold.danger = 25),
+      // priceImpact raw value 0.25 exactly meets the danger threshold configured
+      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.danger = 0.25),
       // confirming the component reads bridgeFeatureFlags from the Redux store.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.25' }, // 0.25 >= 0.25 → modal shown
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
-            priceImpact: '25%', // 25 >= 25 → modal shown
+            priceImpact: '25%',
           },
         }));
 
@@ -1408,10 +1456,16 @@ describe('SwapsConfirmButton', () => {
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
-          activeQuote: mockActiveQuote,
+          activeQuote: {
+            ...mockActiveQuote,
+            quote: {
+              ...mockActiveQuote.quote,
+              priceData: { priceImpact: '0.22' }, // 0.22 < AppConstants fallback 0.25 → no modal shown
+            },
+          },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
-            priceImpact: '22%', // 22 < 25 fallback → no modal shown
+            priceImpact: '22%',
           },
         }));
 
