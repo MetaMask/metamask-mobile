@@ -5,14 +5,14 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { NetworksManagementViewSelectorsIDs } from './NetworksManagementView.testIds';
-import NetworksManagementView, {
-  formatRpcUrlForDisplay,
-} from './NetworksManagementView';
+import NetworksManagementView from './NetworksManagementView';
 import { SECTION_KEYS } from './NetworksManagementView.constants';
+import {
+  formatRpcUrlForDisplay,
+  MAX_RPC_DISPLAY_LENGTH,
+} from './NetworksManagementView.utils';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
-
-const MAX_RPC_DISPLAY_LENGTH = 36;
 
 jest.mock('../../../util/hideKeyFromUrl', () => ({
   __esModule: true,
