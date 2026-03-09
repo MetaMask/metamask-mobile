@@ -85,6 +85,9 @@ function getDepositAnalyticsPayload(
         processing_fee: order.partnerFees ? Number(order.partnerFees) : 0,
         total_fee: Number(order.totalFeesFiat),
         error_message: order.statusDescription || 'transaction_failed',
+        error_code: (order as Record<string, unknown>).errorCode as
+          | string
+          | undefined,
       },
     ];
   }

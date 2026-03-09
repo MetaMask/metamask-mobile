@@ -79,8 +79,34 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'Payment failed',
+      error_code: undefined,
       provider_onramp: 'TRANSAK',
     });
+  });
+
+  it('returns correct parameters for failed deposit order with error code', () => {
+    const failedOrder = {
+      ...mockDepositOrder,
+      state: FIAT_ORDER_STATES.FAILED,
+      data: {
+        ...mockDepositOrder.data,
+        statusDescription: 'Order already exists',
+        errorCode: '4005',
+      },
+    };
+
+    const [eventName, params] = getDepositAnalyticsPayload(
+      failedOrder as unknown as FiatOrder,
+      MOCK_ROOT_STATE,
+    );
+
+    expect(eventName).toBe('RAMPS_TRANSACTION_FAILED');
+    expect(params).toEqual(
+      expect.objectContaining({
+        error_message: 'Order already exists',
+        error_code: '4005',
+      }),
+    );
   });
 
   it('returns correct parameters for failed deposit order with default error message', () => {
@@ -111,6 +137,7 @@ describe('getDepositAnalyticsPayload', () => {
       currency_destination_network: 'Ethereum',
       currency_source: 'USD',
       error_message: 'transaction_failed',
+      error_code: undefined,
       provider_onramp: 'TRANSAK',
     });
   });
