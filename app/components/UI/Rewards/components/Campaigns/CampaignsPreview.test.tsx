@@ -221,6 +221,29 @@ describe('CampaignsPreview', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
   });
 
+  it('navigates to campaign details when the upcoming banner is pressed', () => {
+    const upcomingCampaign = createTestCampaign({
+      id: 'up-1',
+      name: 'Upcoming Campaign',
+    });
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      categorizedCampaigns: {
+        ...emptyCategorized,
+        upcoming: [upcomingCampaign],
+      },
+    });
+
+    const { getByTestId } = render(<CampaignsPreview />);
+    fireEvent.press(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW_UPCOMING_BANNER),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_DETAILS, {
+      campaign: upcomingCampaign,
+    });
+  });
+
   it('only shows the first active campaign even when multiple exist', () => {
     const first = createTestCampaign({ id: 'a1', name: 'First Active' });
     const second = createTestCampaign({ id: 'a2', name: 'Second Active' });

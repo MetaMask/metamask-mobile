@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import CampaignTile from './CampaignTile';
 import {
@@ -8,6 +8,13 @@ import {
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -143,6 +150,17 @@ describe('CampaignTile', () => {
     render(<CampaignTile campaign={campaign} />);
 
     expect(getCampaignStatusInfo).toHaveBeenCalledWith(campaign);
+  });
+
+  it('navigates to campaign details on press', () => {
+    const campaign = createTestCampaign();
+
+    const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+    fireEvent.press(getByTestId(`campaign-tile-${campaign.id}`));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_DETAILS, {
+      campaign,
+    });
   });
 
   describe('enter now label', () => {
