@@ -81,14 +81,19 @@ declare global {
 /**
  * Walk a fiber sub-tree depth-first, calling `visitor` on each node.
  * Returns true as soon as visitor returns true (short-circuit).
+ * Sibling traversal is iterative to avoid stack overflow on wide trees.
  */
 function walkFiber(
   fiber: FiberNode | null,
   visitor: (f: FiberNode) => boolean,
 ): boolean {
-  if (!fiber) return false;
-  if (visitor(fiber)) return true;
-  return walkFiber(fiber.child, visitor) || walkFiber(fiber.sibling, visitor);
+  let current: FiberNode | null = fiber;
+  while (current) {
+    if (visitor(current)) return true;
+    if (walkFiber(current.child, visitor)) return true;
+    current = current.sibling;
+  }
+  return false;
 }
 
 /**
@@ -218,27 +223,36 @@ const AgenticService = {
           animated = false,
         } = options;
         try {
-          const tryScroll = (fiber: FiberNode | null): boolean => {
-            if (!fiber) return false;
-            const sn = fiber.stateNode;
-            if (sn) {
-              if (typeof sn.scrollTo === 'function') {
-                sn.scrollTo({ y: offset, animated });
-                return true;
+          // walkSiblings=false when starting from a testId anchor: the anchor's
+          // siblings are unrelated components, not the scroll view containing it.
+          const tryScroll = (
+            start: FiberNode | null,
+            walkSiblings = true,
+          ): boolean => {
+            let current: FiberNode | null = start;
+            while (current) {
+              const sn = current.stateNode;
+              if (sn) {
+                if (typeof sn.scrollTo === 'function') {
+                  sn.scrollTo({ y: offset, animated });
+                  return true;
+                }
+                if (typeof sn.scrollToOffset === 'function') {
+                  sn.scrollToOffset({ offset, animated });
+                  return true;
+                }
               }
-              if (typeof sn.scrollToOffset === 'function') {
-                sn.scrollToOffset({ offset, animated });
-                return true;
-              }
+              if (tryScroll(current.child)) return true;
+              current = walkSiblings ? current.sibling : null;
             }
-            return tryScroll(fiber.child) || tryScroll(fiber.sibling);
+            return false;
           };
 
           const found = walkFiberRoots((rootFiber) => {
             if (scrollTestId) {
               const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              return tryScroll(anchor);
+              return tryScroll(anchor, false);
             }
             return tryScroll(rootFiber);
           });
