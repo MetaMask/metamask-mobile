@@ -19,7 +19,10 @@ import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -72,10 +75,10 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,

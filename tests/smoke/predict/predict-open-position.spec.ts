@@ -7,7 +7,11 @@ import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBot
 import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
@@ -16,10 +20,9 @@ import {
   POLYMARKET_POST_OPEN_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
+import WalletView from '../../page-objects/wallet/WalletView';
 
 /*
 Test Scenario: Open position on Celtics vs. Nets market
@@ -42,6 +45,8 @@ const positionDetails = {
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -104,15 +109,7 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictMarketList.tapBackButton();
         await device.enableSynchronization();
 
-        // Verify position appears in current positions list on homepage
-
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          description: `Position card should have text "${positionDetails.name}"`,
-        });
-
-        await TabBarComponent.tapActivity();
-        await ActivitiesView.tapOnPredictionsTab();
-        await ActivitiesView.tapPredictPosition(positionDetails.name);
+        await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
 
         /*
         When opening a position, the balance is optimistically updated in PredictController
@@ -124,7 +121,7 @@ describe(SmokePredictions('Predictions'), () => {
        */
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'open-position');
 
-        await PredictActivityDetails.tapBackButton();
+        await PredictDetailsPage.tapBackButton();
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
         await Assertions.expectTextDisplayed(positionDetails.newBalance);

@@ -4,6 +4,8 @@ import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 
 import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -20,6 +22,8 @@ import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBot
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
   }); // we need to mock the confirmations redesign Feature flag
   await POLYMARKET_USDC_BALANCE_MOCKS(mockServer); // Sets up all RPC mocks needed for withdraw flow

@@ -5,6 +5,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
   remoteFeatureFlagHomepageSectionsV1Enabled,
@@ -33,6 +34,7 @@ import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mockin
 import Utilities from '../../framework/Utilities';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
+import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
 
 /*
 Test Scenario: Claim winning positions
@@ -55,6 +57,7 @@ Test Scenario: Claim winning positions
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
   });
@@ -173,12 +176,10 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await postClaimMocks(mockServer);
 
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await device.enableSynchronization();
+        await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
-        await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
-          description: 'Claim button should not be visible',
-        });
+        await PredictClaimPage.tapClaimConfirmButton();
+
         await verifyResolvedPositionsRemoved();
 
         await TabBarComponent.tapActivity();

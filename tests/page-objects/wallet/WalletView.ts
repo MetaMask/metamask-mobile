@@ -107,7 +107,7 @@ class WalletView {
     description: string,
   ): Promise<void> {
     // Sections-only mode precondition.
-    await Utilities.waitForElementToBeVisible(this.homepageContainer, 15000);
+    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
     for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
       try {
         await Gestures.waitAndTap(target, {
@@ -170,7 +170,7 @@ class WalletView {
     description: string,
   ): Promise<void> {
     // Sections-only mode precondition.
-    await Utilities.waitForElementToBeVisible(this.homepageContainer, 15000);
+    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
     const tryScrollUntilVisible = async (
       direction: 'up' | 'down',
     ): Promise<boolean> => {
@@ -827,101 +827,118 @@ class WalletView {
   }
 
   async scrollAndTapPredictionsSection(): Promise<void> {
-    await Utilities.waitForElementToBeVisible(this.homepageContainer, 15000);
+    await this.scrollToPredictionsSection();
+    try {
+      await Gestures.waitAndTap(this.predictionsSectionHeader, {
+        timeout: 2000,
+        checkStability: true,
+        elemDescription: 'Predictions section',
+      });
+    } catch {
+      await Gestures.waitAndTap(this.predictionsTab, {
+        timeout: 2000,
+        checkStability: true,
+        elemDescription: 'Predict section',
+      });
+    }
+  }
 
-    const waitForWalletScrollToSettle = async (): Promise<void> => {
-      try {
-        await Utilities.waitForElementToStopMoving(this.walletScrollView, {
-          timeout: 1500,
-          interval: 150,
-          stableCount: 2,
+  private async progressiveSwipeMainWalletUntilVisible(
+    targets: DetoxElement[],
+    options: {
+      directions?: ('up' | 'down')[];
+      iterationsPerDirection?: number;
+      percentage?: number;
+      description: string;
+    },
+  ): Promise<boolean> {
+    const {
+      directions = ['up', 'down'],
+      iterationsPerDirection = 8,
+      percentage = 0.25,
+      description,
+    } = options;
+
+    for (const direction of directions) {
+      for (let i = 0; i < iterationsPerDirection; i++) {
+        for (const target of targets) {
+          if (await Utilities.isElementVisible(target, 500)) {
+            return true;
+          }
+        }
+
+        await Gestures.swipe(this.walletScrollView, direction, {
+          timeout: 1200,
+          speed: 'slow',
+          percentage,
+          checkVisibility: false,
+          checkEnabled: false,
+          elemDescription: `${description} (${direction})`,
         });
-      } catch {
-        // Best-effort settle guard; continue with progressive strategy.
       }
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    };
-
-    const tryTapWithProgressiveScroll = async (
-      target: DetoxElement,
-      description: string,
-      direction: 'up' | 'down',
-    ): Promise<boolean> => {
-      for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-        try {
-          await waitForWalletScrollToSettle();
-          await Gestures.waitAndTap(target, {
-            timeout: 1500,
-            checkStability: true,
-            elemDescription: description,
-          });
-          return true;
-        } catch {
-          await waitForWalletScrollToSettle();
-          await Gestures.swipe(this.walletScrollView, direction, {
-            timeout: 1200,
-            speed: 'slow',
-            percentage: 0.2,
-            checkVisibility: false,
-            checkEnabled: false,
-            elemDescription: `Predictions section progressive swipe ${direction}`,
-          });
-          await new Promise((resolve) => setTimeout(resolve, 350));
-        }
-      }
-      return false;
-    };
-
-    const tryTargetWithPreferredDirection = async (
-      target: DetoxElement,
-      description: string,
-    ): Promise<boolean> => {
-      const directions = await this.getPreferredScrollDirections(target);
-      for (const direction of directions) {
-        if (await tryTapWithProgressiveScroll(target, description, direction)) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    if (
-      (await tryTargetWithPreferredDirection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-      )) ||
-      (await tryTargetWithPreferredDirection(
-        this.predictionsTab,
-        'Predict section',
-      ))
-    ) {
-      return;
     }
 
-    await waitForWalletScrollToSettle();
-    await Gestures.waitAndTap(this.predictionsSectionHeader, {
-      checkStability: true,
-      elemDescription:
-        'Predictions section (after progressive scroll retries up/down)',
-    });
+    return false;
   }
 
   async scrollToPredictionsSection(): Promise<void> {
-    try {
-      await this.scrollToSection(
-        this.predictionsSectionHeader,
-        'Predictions section',
-      );
-    } catch {
-      await this.scrollToSection(this.predictionsTab, 'Predict section');
+    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
+
+    const found = await this.progressiveSwipeMainWalletUntilVisible(
+      [this.predictionsSectionHeader, this.predictionsTab],
+      {
+        directions: ['up', 'down'],
+        iterationsPerDirection: 8,
+        percentage: 0.3,
+        description: 'Swipe main wallet to Predictions section',
+      },
+    );
+
+    if (found) {
+      return;
     }
+
+    await Assertions.expectElementToBeVisible(this.predictionsSectionHeader, {
+      timeout: 2500,
+      description: 'Predictions section should be visible after scrolling',
+    });
+  }
+
+  async scrollAndTapPredictionPosition(positionName: string): Promise<void> {
+    const target = Matchers.getElementByText(positionName);
+    await Gestures.swipe(target, 'up', {
+      percentage: 0.5,
+      speed: 'slow',
+      elemDescription: 'Wallet View Prediction Position',
+    });
+    await Gestures.waitAndTap(target, {
+      elemDescription: 'Wallet View Prediction Position',
+    });
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
-    await this.scrollAndTapSection(
-      Matchers.getElementByText(positionName),
-      `Predictions Position: ${positionName}`,
-    );
+    await this.scrollToPredictionsSection();
+
+    const target = Matchers.getElementByText(positionName);
+
+    const found = await this.progressiveSwipeMainWalletUntilVisible([target], {
+      directions: ['up', 'down'],
+      iterationsPerDirection: 8,
+      percentage: 0.22,
+      description: `Swipe main wallet to prediction position: ${positionName}`,
+    });
+
+    if (!found) {
+      await Assertions.expectElementToBeVisible(target, {
+        timeout: 2500,
+        description: `Predictions position "${positionName}" should be visible after scrolling`,
+      });
+    }
+
+    await Gestures.waitAndTap(target, {
+      checkStability: true,
+      elemDescription: `Predictions Position: ${positionName}`,
+    });
   }
 
   async scrollAndTapNftsSection(): Promise<void> {

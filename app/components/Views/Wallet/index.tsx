@@ -1478,6 +1478,7 @@ const Wallet = ({
                 ref={scrollViewRef}
                 isScrollEnabled={shouldEnableParentScroll}
                 scrollViewProps={{
+                  testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
                   contentContainerStyle: scrollViewContentStyle,
                   showsVerticalScrollIndicator: false,
                   onScroll: isHomepageSectionsV1Enabled

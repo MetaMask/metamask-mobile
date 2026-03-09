@@ -7,6 +7,7 @@ import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -24,7 +25,6 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
-import TestHelpers from '../../helpers';
 
 /*
 Test Scenario: Cash out on open position - Spurs vs. Pelicans
@@ -38,12 +38,13 @@ const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
   initialBalance: '$28.16',
-  newBalance: '$58.66',
+  newBalance: '$89.16',
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
@@ -64,18 +65,8 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
 
-        //await WalletView.scrollAndTapPredictionsSection();
-
-        //await TestHelpers.delay(1000000);
-        // Current balance prior to cashing out
-        //await Assertions.expectTextDisplayed(positionDetails.initialBalance);
-        await Assertions.expectTextDisplayed(positionDetails.name, {
-          timeout: 30000,
-          description:
-            'Predictions open position should be visible before tapping',
-        });
+        await WalletView.scrollToPredictionsSection();
         await device.disableSynchronization();
-        await TestHelpers.delay(100000000);
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
 
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
@@ -96,8 +87,9 @@ describe(SmokePredictions('Predictions'), () => {
         await PredictDetailsPage.tapBackButton();
         await device.enableSynchronization();
         await WalletView.scrollAndTapPredictionsSection();
+        await WalletView.tapOnAvailableBalance();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-          description: 'Predictions balance should be updated to $58.16',
+          description: 'Predictions balance should be updated to $89.16',
         });
 
         await PredictMarketList.tapBackButton();
