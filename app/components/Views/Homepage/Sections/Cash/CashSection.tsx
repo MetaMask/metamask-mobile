@@ -2,13 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -19,8 +13,8 @@ import useHomeViewedEvent, {
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
-import { MUSD_CONVERSION_APY } from '../../../../UI/Earn/constants/musd';
 import MusdAggregatedRow from './MusdAggregatedRow';
+import CashAnnualizedCopy from './CashAnnualizedCopy';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
 
@@ -70,11 +64,6 @@ const CashSection = ({
   }
 
   const title = strings('homepage.sections.cash');
-  const copyStr = strings('homepage.sections.cash_annualized_copy', {
-    percentage: MUSD_CONVERSION_APY,
-  });
-  const percentagePart = `${MUSD_CONVERSION_APY}%`;
-  const copyParts = copyStr.split(percentagePart);
 
   return (
     <View ref={sectionViewRef}>
@@ -87,25 +76,7 @@ const CashSection = ({
         ) : (
           <>
             <SectionRow>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {copyParts.length >= 2 ? (
-                  <>
-                    {copyParts[0]}
-                    <Text
-                      color={TextColor.SuccessDefault}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      {percentagePart}
-                    </Text>
-                    {copyParts[1]}
-                  </>
-                ) : (
-                  copyStr
-                )}
-              </Text>
+              <CashAnnualizedCopy />
             </SectionRow>
             <SectionRow>
               <MusdAggregatedRow />

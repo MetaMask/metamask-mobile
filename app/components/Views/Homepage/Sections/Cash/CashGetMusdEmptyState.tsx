@@ -30,6 +30,7 @@ import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../../core/NavigationService';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import CashAnnualizedCopy from './CashAnnualizedCopy';
 
 /**
  * Empty state for the Cash (mUSD) full view when the user has no mUSD.
@@ -46,7 +47,6 @@ const CashGetMusdEmptyState = () => {
   } = useMusdConversionFlowData();
   const { initiateCustomConversion } = useMusdConversion();
 
-  // Same destination as token list / trending tokens: Token Details (root "Asset" screen = TokenDetails)
   const handleTokenRowPress = useCallback(() => {
     NavigationService.navigation.navigate(
       'Asset' as never,
@@ -99,34 +99,9 @@ const CashGetMusdEmptyState = () => {
     initiateCustomConversion,
   ]);
 
-  const copyStr = strings('homepage.sections.cash_annualized_copy', {
-    percentage: MUSD_CONVERSION_APY,
-  });
-  const percentagePart = `${MUSD_CONVERSION_APY}%`;
-  const copyParts = copyStr.split(percentagePart);
-
   return (
     <Box testID={CashGetMusdEmptyStateSelectors.CONTAINER} twClassName="gap-3">
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="px-0"
-      >
-        {copyParts.length >= 2 ? (
-          <>
-            {copyParts[0]}
-            <Text
-              color={TextColor.SuccessDefault}
-              fontWeight={FontWeight.Medium}
-            >
-              {percentagePart}
-            </Text>
-            {copyParts[1]}
-          </>
-        ) : (
-          copyStr
-        )}
-      </Text>
+      <CashAnnualizedCopy twClassName="px-0" />
 
       <View style={tw.style('flex-row items-center justify-between py-2')}>
         <Pressable
