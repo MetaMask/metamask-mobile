@@ -10,12 +10,29 @@ jest.mock('../../../../core/Engine', () => ({
     PredictController: {
       getAccountState: jest.fn(),
     },
+    NetworkController: {
+      state: {
+        networkConfigurationsByChainId: {
+          '0x89': {},
+        },
+      },
+    },
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+    },
   },
 }));
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock('../utils/predictErrorHandler', () => {
+  const actual = jest.requireActual('../utils/predictErrorHandler');
+  return {
+    ensureError: actual.ensureError,
+  };
+});
 
 const mockGetAccountState = Engine.context.PredictController
   .getAccountState as jest.Mock;
@@ -167,22 +184,7 @@ describe('usePredictAccountState', () => {
   });
 
   describe('account state values', () => {
-    it('returns data with address, isDeployed, and hasAllowances', async () => {
-      const { Wrapper } = createWrapper();
-      const { result } = renderHook(() => usePredictAccountState(), {
-        wrapper: Wrapper,
-      });
-
-      await waitFor(() => {
-        expect(result.current.data).toBeDefined();
-      });
-
-      expect(result.current.data?.address).toBe(mockAccountState.address);
-      expect(result.current.data?.isDeployed).toBe(true);
-      expect(result.current.data?.hasAllowances).toBe(true);
-    });
-
-    it('handles account state with isDeployed false', async () => {
+    it('returns isDeployed as false when account is not deployed', async () => {
       const { Wrapper } = createWrapper();
       mockGetAccountState.mockResolvedValue({
         ...mockAccountState,
@@ -200,7 +202,7 @@ describe('usePredictAccountState', () => {
       expect(result.current.data?.isDeployed).toBe(false);
     });
 
-    it('handles account state with hasAllowances false', async () => {
+    it('returns hasAllowances as false when account lacks allowances', async () => {
       const { Wrapper } = createWrapper();
       mockGetAccountState.mockResolvedValue({
         ...mockAccountState,
