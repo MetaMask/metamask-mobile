@@ -38,7 +38,6 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 import { trace, TraceName } from '../../../../../../util/trace';
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
-import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 
 export interface OtpCodeParams {
   email: string;
@@ -86,7 +85,7 @@ const OtpCode = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown' | 'contactSupport'
+    'resend' | 'cooldown' | 'contactSupport' | 'resendError'
   >('resend');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -162,10 +161,7 @@ const OtpCode = () => {
         region: selectedRegion?.isoCode || '',
       });
     } catch (e) {
-      setError(
-        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
-      );
-      setResendButtonState('resend');
+      setResendButtonState('resendError');
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [
@@ -220,7 +216,11 @@ const OtpCode = () => {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
-        setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
+        setError(
+          e instanceof Error && e.message
+            ? e.message
+            : strings('deposit.otp_code.error'),
+        );
         Logger.error(
           e as Error,
           'Error submitting OTP code, setAuthToken, or routing after authentication',
@@ -337,6 +337,13 @@ const OtpCode = () => {
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.need_help"
+                button="deposit.otp_code.contact_support"
+              />
+            ) : null}
+            {resendButtonState === 'resendError' ? (
+              <ResendButton
+                onPress={handleContactSupport}
+                text="deposit.otp_code.resend_code_error"
                 button="deposit.otp_code.contact_support"
               />
             ) : null}
