@@ -6093,7 +6093,8 @@
       "fee": "Fee",
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
-      }
+      },
+      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking."
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
