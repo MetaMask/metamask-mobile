@@ -174,7 +174,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-[10px]"
+          twClassName="gap-2.5"
         >
           <Box twClassName="flex-1 h-px bg-border-muted" />
           <Text
