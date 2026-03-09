@@ -7,4 +7,4 @@ summary:
   a new renderer or preset for a view.
 ---
 
-Delegates to the canonical cross-harness skill `.agents/skills/component-view-test/SKILL.md`
+**BLOCKING REQUIREMENT**: When the user asks anything about component view tests, view test, component tests (\*.view.test.tsx), invoke this skill `.agents/skills/component-view-test/SKILL.md` via the Skill tool **immediately**, before reading any files or exploring the codebase.
