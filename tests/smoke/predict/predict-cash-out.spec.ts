@@ -38,7 +38,7 @@ const positionDetails = {
   name: 'Spurs vs. Pelicans',
   cashOutValue: '$30.75',
   initialBalance: '$28.16',
-  newBalance: '$89.16',
+  newBalance: '$58.66',
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {

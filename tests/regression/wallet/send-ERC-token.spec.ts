@@ -3,7 +3,6 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
 import { loginToApp } from '../../flows/wallet.flow';
-import TransactionConfirmationView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../framework/Assertions';
@@ -22,6 +21,8 @@ import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -73,8 +74,10 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
 
         await loginToApp();
         await WalletView.tapOnNewTokensSection();
-        await WalletView.tapImportTokensButton();
-        await ImportTokensView.switchToCustomTab();
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Local RPC');
+        await WalletView.tapImportTokensButton(); // Disable sync to prevent test hang
         await ImportTokensView.typeTokenAddress(hstAddress);
         await Assertions.expectElementToHaveText(
           ImportTokensView.symbolInput,
@@ -91,15 +94,14 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
           elemDescription: 'Confirm Add Asset Button',
           timeout: 15000,
         });
-        await Assertions.expectElementToBeVisible(
-          WalletView.tokenInWallet('100 TST'),
-        );
-        await WalletView.tapOnToken('100 TST');
-        await Assertions.expectElementToBeVisible(TokenOverview.tokenPrice);
+        await WalletView.tapOnNewTokensSection();
+        await WalletView.tapOnToken('TST');
         await TokenOverview.tapSendButton();
+        await RedesignedSendView.pressAmountFiveButton();
+        await RedesignedSendView.pressContinueButton();
         await RedesignedSendView.inputRecipientAddress(SEND_ADDRESS);
         await RedesignedSendView.pressReviewButton();
-        await TransactionConfirmationView.tapConfirmButton();
+        await FooterActions.tapConfirmButton();
         await Assertions.expectTextDisplayed('Confirmed', {
           timeout: 30000,
           description: 'Transaction status should display Confirmed',

@@ -884,24 +884,29 @@ class WalletView {
   async scrollToPredictionsSection(): Promise<void> {
     await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
 
-    const found = await this.progressiveSwipeMainWalletUntilVisible(
-      [this.predictionsSectionHeader, this.predictionsTab],
-      {
-        directions: ['up', 'down'],
-        iterationsPerDirection: 8,
-        percentage: 0.3,
-        description: 'Swipe main wallet to Predictions section',
-      },
-    );
-
-    if (found) {
-      return;
+    try {
+      await Gestures.scrollToElement(
+        this.predictionsSectionHeader,
+        this.walletScrollViewIdentifier,
+        {
+          direction: 'down',
+          scrollAmount: 260,
+          timeout: 12000,
+          elemDescription: 'Scroll to Predictions section',
+        },
+      );
+    } catch {
+      await Gestures.scrollToElement(
+        this.predictionsSectionHeader,
+        this.walletScrollViewIdentifier,
+        {
+          direction: 'up',
+          scrollAmount: 260,
+          timeout: 12000,
+          elemDescription: 'Scroll up fallback to Predictions section',
+        },
+      );
     }
-
-    await Assertions.expectElementToBeVisible(this.predictionsSectionHeader, {
-      timeout: 2500,
-      description: 'Predictions section should be visible after scrolling',
-    });
   }
 
   async scrollAndTapPredictionPosition(positionName: string): Promise<void> {
@@ -920,18 +925,19 @@ class WalletView {
     await this.scrollToPredictionsSection();
 
     const target = Matchers.getElementByText(positionName);
-
-    const found = await this.progressiveSwipeMainWalletUntilVisible([target], {
-      directions: ['up', 'down'],
-      iterationsPerDirection: 8,
-      percentage: 0.22,
-      description: `Swipe main wallet to prediction position: ${positionName}`,
-    });
-
-    if (!found) {
-      await Assertions.expectElementToBeVisible(target, {
-        timeout: 2500,
-        description: `Predictions position "${positionName}" should be visible after scrolling`,
+    try {
+      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+        direction: 'down',
+        scrollAmount: 220,
+        timeout: 12000,
+        elemDescription: `Scroll to prediction position: ${positionName}`,
+      });
+    } catch {
+      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+        direction: 'up',
+        scrollAmount: 220,
+        timeout: 12000,
+        elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
       });
     }
 
