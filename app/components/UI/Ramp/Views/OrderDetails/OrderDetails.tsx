@@ -55,6 +55,15 @@ const PENDING_STATUSES = new Set([
  * Legacy orders (DEPOSIT, RAMPS_V2 in Redux) are routed to the aggregator
  * detail screen by OrdersList — they never reach this component.
  */
+const styles = StyleSheet.create({
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});
+
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
@@ -221,14 +230,5 @@ const OrderDetails = () => {
     </ScreenLayout>
   );
 };
-
-const styles = StyleSheet.create({
-  scrollContentContainer: {
-    flexGrow: 1,
-  },
-  contentContainer: {
-    flex: 1,
-  },
-});
 
 export default OrderDetails;

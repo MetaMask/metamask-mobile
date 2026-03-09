@@ -36,6 +36,12 @@ export const createProcessingInfoModalNavigationDetails =
     Routes.RAMP.MODALS.PROCESSING_INFO,
   );
 
+const styles = StyleSheet.create({
+  centeredText: {
+    textAlign: 'center',
+  },
+});
+
 function ProcessingInfoModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -128,11 +134,5 @@ function ProcessingInfoModal() {
     </BottomSheet>
   );
 }
-
-const styles = StyleSheet.create({
-  centeredText: {
-    textAlign: 'center',
-  },
-});
 
 export default ProcessingInfoModal;
