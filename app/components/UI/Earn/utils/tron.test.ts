@@ -3,11 +3,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
-import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
+import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
 import {
   buildTronEarnTokenIfEligible,
   getLocalizedErrorMessage,
-  getStakedTrxTotalFromResources,
+  getStakedTrxTotalFromSpecialAssets,
   handleTronStakingNavigationResult,
   hasStakedTrxPositions,
 } from './tron';
@@ -51,22 +51,21 @@ describe('tron utils', () => {
     };
   });
 
-  describe('getStakedTrxTotalFromResources', () => {
-    it('returns zero when resources are missing', () => {
-      const total = getStakedTrxTotalFromResources(undefined);
+  describe('getStakedTrxTotalFromSpecialAssets', () => {
+    it('returns zero when special assets are missing', () => {
+      const total = getStakedTrxTotalFromSpecialAssets(undefined);
 
       expect(total).toBe(0);
     });
 
-    it('returns zero when resources are null', () => {
-      const total = getStakedTrxTotalFromResources(null);
+    it('returns zero when special assets are null', () => {
+      const total = getStakedTrxTotalFromSpecialAssets(null);
 
       expect(total).toBe(0);
     });
 
-    it('returns totalStakedTrx from resources', () => {
-      // totalStakedTrx is now pre-computed in the selector
-      const resources: TronResourcesMap = {
+    it('returns totalStakedTrx from special assets', () => {
+      const specialAssets: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -74,26 +73,27 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 15,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
       };
 
-      const total = getStakedTrxTotalFromResources(resources);
+      const total = getStakedTrxTotalFromSpecialAssets(specialAssets);
 
       expect(total).toBe(15);
     });
 
     it('defaults to zero when totalStakedTrx is undefined at runtime', () => {
-      // Simulates a malformed object where totalStakedTrx is missing,
-      // exercising the ?? 0 fallback in getStakedTrxTotalFromResources
-      const resources = {
+      const specialAssets = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
         maxBandwidth: undefined,
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
-      } as unknown as TronResourcesMap;
+      } as unknown as TronSpecialAssetsMap;
 
-      const total = getStakedTrxTotalFromResources(resources);
+      const total = getStakedTrxTotalFromSpecialAssets(specialAssets);
 
       expect(total).toBe(0);
     });
@@ -101,7 +101,7 @@ describe('tron utils', () => {
 
   describe('hasStakedTrxPositions', () => {
     it('returns false when totalStakedTrx is zero', () => {
-      const resources: TronResourcesMap = {
+      const specialAssets: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -109,15 +109,18 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 0,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
       };
 
-      const result = hasStakedTrxPositions(resources);
+      const result = hasStakedTrxPositions(specialAssets);
 
       expect(result).toBe(false);
     });
 
     it('returns true when totalStakedTrx is greater than zero', () => {
-      const resources: TronResourcesMap = {
+      const specialAssets: TronSpecialAssetsMap = {
         energy: undefined,
         bandwidth: undefined,
         maxEnergy: undefined,
@@ -125,9 +128,12 @@ describe('tron utils', () => {
         stakedTrxForEnergy: undefined,
         stakedTrxForBandwidth: undefined,
         totalStakedTrx: 1,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
       };
 
-      const result = hasStakedTrxPositions(resources);
+      const result = hasStakedTrxPositions(specialAssets);
 
       expect(result).toBe(true);
     });

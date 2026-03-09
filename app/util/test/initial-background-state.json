@@ -750,9 +750,11 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
+    "campaigns": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -771,7 +773,8 @@
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {}
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,
