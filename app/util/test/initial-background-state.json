@@ -770,6 +770,7 @@
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
+    "pendingClaims": {},
     "withdrawTransaction": null,
     "accountMeta": {}
   },
