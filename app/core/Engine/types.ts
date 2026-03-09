@@ -99,6 +99,7 @@ import {
 import {
   ConfigRegistryController,
   type ConfigRegistryControllerState,
+  type ConfigRegistryControllerEvents,
 } from '@metamask/config-registry-controller';
 import {
   KeyringController,
@@ -557,6 +558,7 @@ type GlobalEvents =
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
+  | ConfigRegistryControllerEvents
   | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents

@@ -71,7 +71,7 @@ describe('ErrorHandler', () => {
 
   it('handles Premature close error without crashing the app', () => {
     setReactNativeDefaultHandler(mockHandler);
-    mockHandler.mockClear();
+    (mockHandler as jest.Mock).mockClear();
     const mockError = new Error('Premature close');
     console.error = jest.fn();
     handleCustomError(mockError, true);

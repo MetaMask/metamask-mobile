@@ -3,6 +3,7 @@ import type {
   RegistryNetworkConfig,
 } from '@metamask/config-registry-controller';
 import { add0x, parseCaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import type { ImageSourcePropType } from 'react-native';
 
 /**
  * Default state for ConfigRegistryController when no persisted state exists.
@@ -27,7 +28,7 @@ export interface PopularListNetworkShape {
   rpcPrefs: {
     blockExplorerUrl: string;
     imageUrl?: string;
-    imageSource?: unknown;
+    imageSource?: ImageSourcePropType;
   };
   ticker: string;
   failoverRpcUrls?: string[];
