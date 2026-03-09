@@ -2,12 +2,16 @@ import { NavigationProp } from '@react-navigation/native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
+import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
+import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -29,6 +33,30 @@ jest.mock('../../../../util/Logger', () => ({
 
 jest.mock('./usePredictEligibility');
 jest.mock('./usePredictTrading');
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../selectors/predictController', () => ({
+  ...jest.requireActual('../selectors/predictController'),
+  selectPredictPendingClaimByAddress: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupId: jest.fn(),
+  }),
+);
+
+jest.mock('../utils/accounts', () => ({
+  getEvmAccountFromSelectedAccountGroup: jest.fn(),
+}));
 
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -58,6 +86,19 @@ const mockUsePredictTrading = usePredictTrading as jest.MockedFunction<
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
 >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectPredictPendingClaimByAddress =
+  selectPredictPendingClaimByAddress as jest.MockedFunction<
+    typeof selectPredictPendingClaimByAddress
+  >;
+const mockSelectSelectedAccountGroupId =
+  selectSelectedAccountGroupId as jest.MockedFunction<
+    typeof selectSelectedAccountGroupId
+  >;
+const mockGetEvmAccountFromSelectedAccountGroup =
+  getEvmAccountFromSelectedAccountGroup as jest.MockedFunction<
+    typeof getEvmAccountFromSelectedAccountGroup
+  >;
 const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
 >;
@@ -75,16 +116,31 @@ const mockToastRef = {
   },
 };
 
-const createDeferred = () => {
-  let resolve!: () => void;
-  let reject!: (error: Error) => void;
+let pendingClaimValue: string | undefined;
+const pendingClaimSelectorMock = ((_) => pendingClaimValue) as ReturnType<
+  typeof selectPredictPendingClaimByAddress
+>;
 
-  const promise = new Promise<void>((res, rej) => {
-    resolve = res;
-    reject = rej;
+const setUseSelectorState = ({
+  selectedAccountGroupId = 'test-account-group-id',
+  pendingClaim,
+}: {
+  selectedAccountGroupId?: string;
+  pendingClaim?: string;
+}) => {
+  pendingClaimValue = pendingClaim;
+
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === mockSelectSelectedAccountGroupId) {
+      return selectedAccountGroupId;
+    }
+
+    if (selector === pendingClaimSelectorMock) {
+      return pendingClaim;
+    }
+
+    return undefined;
   });
-
-  return { promise, resolve, reject };
 };
 
 describe('usePredictClaim', () => {
@@ -109,6 +165,16 @@ describe('usePredictClaim', () => {
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     } as ReturnType<typeof useConfirmNavigation>);
+
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: '0xTestAddress',
+    } as ReturnType<typeof getEvmAccountFromSelectedAccountGroup>);
+
+    mockSelectPredictPendingClaimByAddress.mockReturnValue(
+      pendingClaimSelectorMock,
+    );
+
+    setUseSelectorState({ pendingClaim: undefined });
   });
 
   afterEach(() => {
@@ -177,32 +243,19 @@ describe('usePredictClaim', () => {
       expect(mockClaimWinnings).toHaveBeenCalledWith({});
     });
 
-    it('sets isClaimPending during claim initialization', async () => {
+    it('sets isClaimPending from pending claim selector', () => {
       // Arrange
-      const deferred = createDeferred();
-      mockClaimWinnings.mockReturnValue(deferred.promise);
+      setUseSelectorState({ pendingClaim: 'claim-batch-id' });
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
-      // Act
-      act(() => {
-        void result.current.claim();
-      });
-
       // Assert
       expect(result.current.isClaimPending).toBe(true);
-
-      // Cleanup
-      await act(async () => {
-        deferred.resolve();
-        await deferred.promise;
-      });
     });
 
     it('ignores a second claim call while pending', async () => {
       // Arrange
-      const deferred = createDeferred();
-      mockClaimWinnings.mockReturnValue(deferred.promise);
+      setUseSelectorState({ pendingClaim: 'claim-batch-id' });
 
       const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
@@ -216,64 +269,30 @@ describe('usePredictClaim', () => {
       });
 
       // Assert
-      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
-      expect(mockClaimWinnings).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
+      expect(mockClaimWinnings).not.toHaveBeenCalled();
+    });
 
-      // Cleanup
-      await act(async () => {
-        deferred.resolve();
-        await deferred.promise;
+    it('passes selected EVM address to pending claim selector', () => {
+      // Arrange
+      renderHook(() => usePredictClaim(), { wrapper });
+
+      // Assert
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
+        address: '0xTestAddress',
       });
     });
 
-    it('resets isClaimPending after success', async () => {
+    it('falls back to 0x0 when no EVM account is selected', () => {
       // Arrange
-      const deferred = createDeferred();
-      mockClaimWinnings.mockReturnValue(deferred.promise);
+      mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
 
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Act
-      act(() => {
-        void result.current.claim();
-      });
+      renderHook(() => usePredictClaim(), { wrapper });
 
       // Assert
-      expect(result.current.isClaimPending).toBe(true);
-
-      // Act
-      await act(async () => {
-        deferred.resolve();
-        await deferred.promise;
+      expect(mockSelectPredictPendingClaimByAddress).toHaveBeenCalledWith({
+        address: '0x0',
       });
-
-      // Assert
-      expect(result.current.isClaimPending).toBe(false);
-    });
-
-    it('resets isClaimPending after failure', async () => {
-      // Arrange
-      const deferred = createDeferred();
-      mockClaimWinnings.mockReturnValue(deferred.promise);
-
-      const { result } = renderHook(() => usePredictClaim(), { wrapper });
-
-      // Act
-      act(() => {
-        void result.current.claim();
-      });
-
-      // Assert
-      expect(result.current.isClaimPending).toBe(true);
-
-      // Act
-      await act(async () => {
-        deferred.reject(new Error('Claim failed'));
-        await deferred.promise.catch(() => undefined);
-      });
-
-      // Assert
-      expect(result.current.isClaimPending).toBe(false);
     });
   });
 

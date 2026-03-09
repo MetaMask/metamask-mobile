@@ -2434,6 +2434,176 @@ describe('PredictController', () => {
         },
       );
     });
+
+    it("sets pendingClaims to 'pending' before batch creation", async () => {
+      // Arrange
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const mockBatchId = 'claim-batch-pending';
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+
+        let resolveBatch: ((value: { batchId: string }) => void) | undefined;
+        const pendingBatchPromise = new Promise<{ batchId: string }>(
+          (resolve) => {
+            resolveBatch = resolve;
+          },
+        );
+
+        (addTransactionBatch as jest.Mock).mockReturnValue(pendingBatchPromise);
+
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        const claimPromise = controller.claimWithConfirmation({});
+
+        // Assert
+        expect(controller.state.pendingClaims[signerAddress]).toBe('pending');
+
+        resolveBatch?.({ batchId: mockBatchId });
+        const result = await claimPromise;
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
+    it('stores batchId in pendingClaims after successful batch creation', async () => {
+      // Arrange
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const mockBatchId = 'claim-batch-store';
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(controller.state.pendingClaims[signerAddress]).toBe(mockBatchId);
+      });
+    });
+
+    it('returns pending status when claim is already pending for signer address', async () => {
+      // Arrange
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+      const existingBatchId = 'already-pending-batch';
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [signerAddress]: existingBatchId,
+          };
+        });
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(result).toEqual({
+          batchId: existingBatchId,
+          chainId: 0,
+          status: PredictClaimStatus.PENDING,
+        });
+        expect(mockPolymarketProvider.prepareClaim).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('clears pendingClaims on user cancellation', async () => {
+      // Arrange
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockRejectedValue(new Error('User denied transaction signature'));
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+        expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
+      });
+    });
+
+    it('clears pendingClaims on claim error', async () => {
+      // Arrange
+      const signerAddress = '0x1234567890123456789012345678901234567890';
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockRejectedValue(
+          new Error('batch submission failed'),
+        );
+        await controller.getPositions({ claimable: true });
+
+        // Act
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'batch submission failed',
+        );
+
+        // Assert
+        expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
+      });
+    });
+
+    it('clears pending claim for selected address', () => {
+      // Arrange
+      withController(({ controller }) => {
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [signerAddress]: 'claim-batch-1',
+          };
+        });
+
+        // Act
+        controller.clearPendingClaim();
+
+        // Assert
+        expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
+      });
+    });
   });
 
   describe('getUnrealizedPnL', () => {
@@ -3726,6 +3896,81 @@ describe('PredictController', () => {
         expect(controller.state.pendingDeposits[accountAddress]).toBe(
           undefined,
         );
+      });
+    });
+
+    it('clears pending claim when claim transaction is confirmed', () => {
+      withController(({ controller, messenger }) => {
+        // Arrange
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.confirmed,
+          batchId: 'claim-batch-1',
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [accountAddress]: 'claim-batch-1',
+          };
+        });
+
+        // Act
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        // Assert
+        expect(controller.state.pendingClaims[accountAddress]).toBeUndefined();
+      });
+    });
+
+    it('clears pending claim when claim transaction is failed', () => {
+      withController(({ controller, messenger }) => {
+        // Arrange
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.failed,
+          batchId: 'claim-batch-1',
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [accountAddress]: 'claim-batch-1',
+          };
+        });
+
+        // Act
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        // Assert
+        expect(controller.state.pendingClaims[accountAddress]).toBeUndefined();
+      });
+    });
+
+    it('clears pending claim when claim transaction is rejected', () => {
+      withController(({ controller, messenger }) => {
+        // Arrange
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictClaim,
+          status: TransactionStatus.rejected,
+          batchId: 'claim-batch-1',
+        });
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [accountAddress]: 'claim-batch-1',
+          };
+        });
+
+        // Act
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        // Assert
+        expect(controller.state.pendingClaims[accountAddress]).toBeUndefined();
       });
     });
 
