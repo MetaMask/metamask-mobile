@@ -220,11 +220,7 @@ const OtpCode = () => {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
-        setError(
-          e instanceof Error && e.message
-            ? e.message
-            : strings('deposit.otp_code.error'),
-        );
+        setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
         Logger.error(
           e as Error,
           'Error submitting OTP code, setAuthToken, or routing after authentication',
