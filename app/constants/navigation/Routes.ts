@@ -273,6 +273,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
+    QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',

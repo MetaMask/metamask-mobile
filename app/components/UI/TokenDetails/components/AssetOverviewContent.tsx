@@ -62,6 +62,7 @@ import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -113,6 +114,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
+    bannerWrapper: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    } as ViewStyle,
   });
 };
 
@@ -156,6 +161,7 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  inLockPeriodBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
@@ -193,6 +199,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  inLockPeriodBalance,
   onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -528,6 +535,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 hideTitleHeading
                 hidePercentageChange
               />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakingBanner amount={inLockPeriodBalance} />
+              </View>
             )
             ///: END:ONLY_INCLUDE_IF
           }
