@@ -135,6 +135,7 @@ describe(
         },
         async ({ mockServer }) => {
           await loginToApp();
+          await device.disableSynchronization();
           await WalletView.tapOnPredictionsTab();
           await Assertions.expectElementToBeVisible(
             WalletView.PredictionsTabContainer,

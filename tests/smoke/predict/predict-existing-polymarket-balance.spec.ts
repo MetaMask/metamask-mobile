@@ -63,6 +63,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'Wallet container should be visible',
         });
