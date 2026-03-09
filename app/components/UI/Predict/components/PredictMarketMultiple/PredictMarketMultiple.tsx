@@ -255,7 +255,9 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
                     size={ButtonSize.Sm}
                     label={
                       <Text
-                        variant={TextVariant.BodyMd}
+                        variant={
+                          isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd
+                        }
                         style={tw.style('font-medium')}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
