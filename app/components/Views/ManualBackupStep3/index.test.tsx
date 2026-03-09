@@ -187,8 +187,8 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('confetti')).toBeTruthy();
-        expect(getByTestId('onboarding-success-done')).toBeTruthy();
+        expect(getByTestId('confetti')).toBeOnTheScreen();
+        expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
       });
     });
 
@@ -196,8 +196,8 @@ describe('ManualBackupStep3', () => {
       const { getByTestId, getByText } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('onboarding-progress')).toBeTruthy();
-        expect(getByText('Step 4 of 3')).toBeTruthy();
+        expect(getByTestId('onboarding-progress')).toBeOnTheScreen();
+        expect(getByText('Step 4 of 3')).toBeOnTheScreen();
       });
     });
 
@@ -217,7 +217,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('android-back-handler')).toBeTruthy();
+        expect(getByTestId('android-back-handler')).toBeOnTheScreen();
       });
     });
 
@@ -234,7 +234,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-modal')).toBeTruthy();
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
       });
     });
 
@@ -242,7 +242,7 @@ describe('ManualBackupStep3', () => {
       const { getByText } = renderComponent();
 
       await waitFor(() => {
-        expect(getByText('backed-up')).toBeTruthy();
+        expect(getByText('backed-up')).toBeOnTheScreen();
       });
     });
   });
@@ -345,7 +345,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-modal')).toBeTruthy();
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
       });
 
       expect(getByTestId('hint-modal').props.accessibilityState.expanded).toBe(
@@ -375,7 +375,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.changeText(getByTestId('hint-input'), 'new hint text');
@@ -391,7 +391,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-confirm')).toBeTruthy();
+        expect(getByTestId('hint-confirm')).toBeOnTheScreen();
       });
 
       fireEvent.press(getByTestId('hint-confirm'));
@@ -407,7 +407,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.changeText(getByTestId('hint-input'), 'apple banana cherry');
@@ -427,7 +427,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.changeText(getByTestId('hint-input'), 'APPLE BANANA CHERRY');
@@ -449,7 +449,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent(props);
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
@@ -489,7 +489,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.press(getByTestId('hint-cancel'));
@@ -520,7 +520,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent(props);
 
       await waitFor(() => {
-        expect(getByTestId('hint-input')).toBeTruthy();
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
       });
 
       fireEvent.changeText(getByTestId('hint-input'), 'any text here');
@@ -541,7 +541,7 @@ describe('ManualBackupStep3', () => {
       const { getByTestId } = renderComponent(props);
 
       await waitFor(() => {
-        expect(getByTestId('onboarding-success-done')).toBeTruthy();
+        expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
       });
 
       fireEvent.press(getByTestId('onboarding-success-done'));
