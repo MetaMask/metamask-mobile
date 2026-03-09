@@ -5919,6 +5919,15 @@ export class HyperLiquidProvider implements PerpsProvider {
             const dexAllMids = await infoClient.allMids(
               dexParam ? { dex: dexParam } : undefined,
             );
+            // Populate meta cache so the next call doesn't re-fetch unnecessarily
+            if (meta?.universe) {
+              this.#cachedMetaByDex.set(dexParam, meta);
+              this.#subscriptionService.setDexMetaCache(dexParam, meta);
+              this.#subscriptionService.setDexAssetCtxsCache(
+                dexParam,
+                assetCtxs,
+              );
+            }
             return {
               dex,
               meta,
