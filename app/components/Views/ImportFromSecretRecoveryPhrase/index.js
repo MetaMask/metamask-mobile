@@ -643,14 +643,8 @@ const ImportFromSecretRecoveryPhrase = ({
           )}
 
           {currentStep === 1 && (
-            <Box
-              flexDirection={BoxFlexDirection.Column}
-              twClassName="gap-y-4 flex-grow"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="gap-y-1"
-              >
+            <Box twClassName="gap-y-4 flex-grow">
+              <Box twClassName="gap-y-1">
                 <Text
                   variant={TextVariant.DisplayMd}
                   color={TextColor.TextDefault}
@@ -667,10 +661,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 </Text>
               </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative gap-2"
-              >
+              <Box twClassName="relative gap-2">
                 <Label
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -722,10 +713,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 </Text>
               </Box>
 
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative gap-2"
-              >
+              <Box twClassName="relative gap-2">
                 <Label
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -811,7 +799,6 @@ const ImportFromSecretRecoveryPhrase = ({
               </Box>
 
               <Box
-                flexDirection={BoxFlexDirection.Column}
                 style={tw.style(
                   'w-full gap-y-4 mt-auto',
                   Platform.OS === 'android' ? 'mb-6' : 'mb-4',
