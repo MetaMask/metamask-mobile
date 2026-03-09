@@ -8,6 +8,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
 import {
+  selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
   selectSourceAmount,
@@ -48,6 +49,7 @@ export const SwapsConfirmButton = ({
     location,
   });
 
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -162,7 +164,10 @@ export const SwapsConfirmButton = ({
 
     if (
       Number.isFinite(priceImpact) &&
-      priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD
+      priceImpact >=
+        // @ts-expect-error TODO: remove comment after changes to core are published.
+        (bridgeFeatureFlags?.priceImpactThreshold?.danger ??
+          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,

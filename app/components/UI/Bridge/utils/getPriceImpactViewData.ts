@@ -1,8 +1,15 @@
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
-import AppConstants from '../../../../core/AppConstants';
 
-export const getPriceImpactViewData = (priceImpactValue?: string) => {
+interface Params {
+  priceImpactValue?: string;
+  threshold: { warning: number; danger: number };
+}
+
+export const getPriceImpactViewData = ({
+  priceImpactValue,
+  threshold,
+}: Params) => {
   if (!priceImpactValue) {
     return {
       textColor: TextColor.Alternative,
@@ -19,7 +26,7 @@ export const getPriceImpactViewData = (priceImpactValue?: string) => {
     };
   }
 
-  if (priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD) {
+  if (priceImpact >= threshold.danger) {
     return {
       textColor: TextColor.Error,
       icon: {
@@ -29,7 +36,7 @@ export const getPriceImpactViewData = (priceImpactValue?: string) => {
     };
   }
 
-  if (priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD) {
+  if (priceImpact >= threshold.warning) {
     return {
       textColor: TextColor.Warning,
       icon: {

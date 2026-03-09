@@ -1,9 +1,8 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PriceImpactHeader } from './PriceImpactHeader';
@@ -12,6 +11,7 @@ import { PriceImpactFooter } from './PriceImpactFooter';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
+import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 
 export const PriceImpactModal = () => {
   const [loading, setLoading] = useState(false);
@@ -29,10 +29,8 @@ export const PriceImpactModal = () => {
   });
 
   const { formattedQuoteData } = useBridgeQuoteData();
-
-  const priceImpactViewData = useMemo(
-    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
-    [formattedQuoteData?.priceImpact],
+  const priceImpactViewData = usePriceImpactViewData(
+    formattedQuoteData?.priceImpact,
   );
 
   const handleClose = useCallback(() => {

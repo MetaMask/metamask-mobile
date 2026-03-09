@@ -11,7 +11,9 @@ import {
   RequestStatus,
   type QuoteResponse,
   selectBridgeQuotes,
+  selectBridgeFeatureFlags,
 } from '@metamask/bridge-controller';
+import AppConstants from '../../../../../core/AppConstants';
 import { useBridgeQuoteData } from '.';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { waitFor } from '@testing-library/react-native';
@@ -36,6 +38,8 @@ jest.mock('@metamask/bridge-controller', () => {
       priceImpactThreshold: {
         gasless: 0.4,
         normal: 0.19,
+        warning: 5,
+        danger: 25,
       },
     })),
   };
@@ -148,9 +152,9 @@ describe('useBridgeQuoteData', () => {
   it.each([
     [true, false, false],
     [false, true, false],
-    [false, false, true],
+    [false, false, false],
   ])(
-    'returns shouldShowPriceImpactWarning based on priceImpact exceeding threshold when gasIncluded=%s and gasIncluded7702=%s',
+    'returns shouldShowPriceImpactWarning=false when priceImpact does not meet warning threshold regardless of gasIncluded=%s and gasIncluded7702=%s',
     (gasIncluded, gasIncluded7702, shouldShowPriceImpactWarning) => {
       // Set up mock for this specific test
       (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(
@@ -184,11 +188,82 @@ describe('useBridgeQuoteData', () => {
       expect(result.current.activeQuote?.quote.priceData?.priceImpact).toEqual(
         '0.20',
       );
+      // priceImpact '0.20' < warning threshold 5 → shouldShowPriceImpactWarning is false
       expect(result.current.shouldShowPriceImpactWarning).toEqual(
         shouldShowPriceImpactWarning,
       );
     },
   );
+
+  it('returns shouldShowPriceImpactWarning=true when priceImpact meets the warning threshold', () => {
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          priceData: { priceImpact: '5' },
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // priceImpact '5' >= warning threshold 5 → shouldShowPriceImpactWarning is true
+    expect(result.current.shouldShowPriceImpactWarning).toBe(true);
+  });
+
+  it('falls back to AppConstants warning threshold when feature flags warning is absent', () => {
+    (selectBridgeFeatureFlags as unknown as jest.Mock).mockImplementationOnce(
+      () => ({
+        minimumVersion: '7.58.0',
+        priceImpactThreshold: {
+          gasless: 0.4,
+          normal: 0.19,
+          // warning absent — should fall back to AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD
+          danger: 25,
+        },
+      }),
+    );
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementationOnce(() => ({
+      recommendedQuote: {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          priceData: {
+            priceImpact: String(
+              AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD,
+            ),
+          },
+        },
+      },
+      alternativeQuotes: [],
+    }));
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+      },
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // priceImpact meets AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD → true
+    expect(result.current.shouldShowPriceImpactWarning).toBe(true);
+  });
 
   it('returns empty state when no quotes exist', () => {
     // Set up mock for this specific test

@@ -73,6 +73,15 @@ jest.mock('../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+// Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
+// compareVersions (which requires a real app version string unavailable in tests).
+jest.mock(
+  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
+
 // Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -181,6 +190,15 @@ jest.mock('react-native-fade-in-image', () => {
   };
 });
 
+const defaultBridgeConfigV2 = {
+  minimumVersion: '0.0.0',
+  maxRefreshCount: 5,
+  refreshRate: 30000,
+  support: true,
+  priceImpactThreshold: { danger: 25, warning: 5 },
+  chains: {},
+};
+
 const mockState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
@@ -213,6 +231,12 @@ const mockState: DeepPartial<RootState> = {
               },
             },
           },
+        },
+      },
+      // Provides the data consumed by selectBridgeFeatureFlags via selectRemoteFeatureFlags.
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          bridgeConfigV2: defaultBridgeConfigV2,
         },
       },
     },
@@ -1319,6 +1343,97 @@ describe('SwapsConfirmButton', () => {
           }),
         }),
       );
+    });
+
+    it('reads the danger threshold from bridge feature flags state', async () => {
+      // priceImpact of 25% exactly meets the danger threshold configured in
+      // mockState (defaultBridgeConfigV2.priceImpactThreshold.danger = 25),
+      // confirming the component reads bridgeFeatureFlags from the Redux store.
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockActiveQuote,
+          formattedQuoteData: {
+            ...mockUseBridgeQuoteData.formattedQuoteData,
+            priceImpact: '25%', // 25 >= 25 → modal shown
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: mockState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
+        params: {
+          type: PriceImpactModalType.Execution,
+          token: mockState.bridge?.sourceToken,
+          location: MetaMetricsSwapsEventSource.MainView,
+        },
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('falls back to AppConstants threshold when feature flags danger is absent', async () => {
+      // Omit priceImpactThreshold.danger from feature flags → falls back to
+      // AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD = 25.
+      const stateWithoutDangerThreshold: DeepPartial<RootState> = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: {
+                  ...defaultBridgeConfigV2,
+                  priceImpactThreshold: { warning: 5 }, // danger absent
+                },
+              },
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => ({
+          ...mockUseBridgeQuoteData,
+          activeQuote: mockActiveQuote,
+          formattedQuoteData: {
+            ...mockUseBridgeQuoteData.formattedQuoteData,
+            priceImpact: '22%', // 22 < 25 fallback → no modal shown
+          },
+        }));
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: stateWithoutDangerThreshold },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          expect.anything(),
+        );
+      });
     });
   });
 });
