@@ -13,6 +13,16 @@ import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/
 import { ProgressListItem } from '../../progress-list';
 import { Severity } from '../../status-icon';
 
+interface TransactionSummaryLineProps {
+  chainId?: Hex;
+  explorerName?: string;
+  explorerUrl?: string;
+  time?: number;
+  title: string;
+  transactionMeta: TransactionMeta;
+  txHash?: Hex;
+}
+
 export function TransactionSummaryLine({
   chainId,
   explorerName: explorerNameOverride,
@@ -21,15 +31,7 @@ export function TransactionSummaryLine({
   title,
   transactionMeta,
   txHash,
-}: {
-  chainId?: Hex;
-  explorerName?: string;
-  explorerUrl?: string;
-  time?: number;
-  title: string;
-  transactionMeta: TransactionMeta;
-  txHash?: Hex;
-}) {
+}: TransactionSummaryLineProps) {
   const navigation = useNavigation();
 
   const resolvedChainId = chainId ?? transactionMeta.chainId;
@@ -40,14 +42,13 @@ export function TransactionSummaryLine({
 
   const dateString = getDateString(resolvedTime);
 
-  const blockExplorer =
-    useMultichainBlockExplorerTxUrl({
-      chainId: parseInt(resolvedChainId, 16),
-      txHash: resolvedTxHash,
-    }) ?? {};
+  const blockExplorer = useMultichainBlockExplorerTxUrl({
+    chainId: parseInt(resolvedChainId, 16),
+    txHash: resolvedTxHash,
+  });
 
-  const explorerTxUrl = explorerUrlOverride ?? blockExplorer.explorerTxUrl;
-  const explorerName = explorerNameOverride ?? blockExplorer.explorerName;
+  const explorerTxUrl = explorerUrlOverride ?? blockExplorer?.explorerTxUrl;
+  const explorerName = explorerNameOverride ?? blockExplorer?.explorerName;
   const severity = getSeverity(transactionMeta.status);
   const tooltip = getErrorMessage(transactionMeta);
 

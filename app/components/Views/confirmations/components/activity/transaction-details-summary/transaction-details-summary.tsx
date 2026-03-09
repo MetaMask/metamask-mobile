@@ -57,7 +57,7 @@ export function TransactionDetailsSummary() {
       <Text color={TextColor.Alternative}>Summary</Text>
       <ProgressList>
         {transactions.map((transaction) => (
-          <TransactionSummaryLine
+          <SummaryLine
             key={transaction.id}
             transactionMeta={transaction}
             parentTransaction={transactionMeta}
@@ -68,7 +68,7 @@ export function TransactionDetailsSummary() {
   );
 }
 
-function TransactionSummaryLine({
+function SummaryLine({
   transactionMeta,
   parentTransaction,
 }: {
