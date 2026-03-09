@@ -21,6 +21,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useNavigation } from '@react-navigation/native';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
@@ -52,12 +53,16 @@ export function usePerpsBalanceTokenFilter(): (
   ]);
 
   const { onReject: handleReject } = useApprovalRequest();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
 
   const navigation = useNavigation();
 
   const handlePerpsDepositPress = useCallback(() => {
-    handleReject();
-    depositWithConfirmation()
+    ensureArbitrumNetworkExists()
+      .then(() => {
+        handleReject();
+        return depositWithConfirmation();
+      })
       .then(() => {
         navigation.navigate(
           Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
@@ -67,9 +72,14 @@ export function usePerpsBalanceTokenFilter(): (
         );
       })
       .catch(() => {
-        // Deposit flow handles errors (e.g. user rejection).
+        // Deposit flow handles errors (e.g. user rejection or missing network).
       });
-  }, [navigation, depositWithConfirmation, handleReject]);
+  }, [
+    navigation,
+    depositWithConfirmation,
+    handleReject,
+    ensureArbitrumNetworkExists,
+  ]);
 
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
