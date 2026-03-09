@@ -37,7 +37,10 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -3657,6 +3660,7 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setCompletedOnboarding(false),
       );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

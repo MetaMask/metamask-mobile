@@ -49,15 +49,13 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  ...jest.requireActual('../../../../../util/theme'),
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      icon: { default: '#6A737D' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    ...jest.requireActual('../../../../../util/theme'),
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockGetOrder = jest.fn();
 const mockConfirmPayment = jest.fn();

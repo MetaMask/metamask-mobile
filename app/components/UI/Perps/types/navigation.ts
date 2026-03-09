@@ -77,7 +77,6 @@ export interface PerpsNavigationParamList extends ParamListBase {
     title?: string;
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
-    defaultSearchVisible?: boolean;
     showWatchlistOnly?: boolean;
     defaultMarketTypeFilter?:
       | 'all'

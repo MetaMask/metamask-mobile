@@ -17,6 +17,8 @@
 'use strict';
 
 const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -25,8 +27,6 @@ const http = require('node:http');
 /** Read a value from .js.env */
 function loadEnvValue(key) {
   try {
-    const fs = require('node:fs');
-    const path = require('node:path');
     const envPath = path.resolve(__dirname, '../../../.js.env');
     const content = fs.readFileSync(envPath, 'utf8');
     // .js.env uses `export KEY="value"` (shell-sourceable format),
@@ -528,6 +528,92 @@ const COMMANDS = {
     );
     return { currentRoute: route, deviceName, platform };
   },
+
+  async status(client, _args, { deviceName, platform } = {}) {
+    const expr = `(function() {
+      var route = globalThis.__AGENTIC__?.getRoute() || null;
+      var account = null;
+      try { account = globalThis.__AGENTIC__?.getSelectedAccount() || null; } catch(e) {}
+      return { route: route, account: account };
+    })()`;
+    const snapshot = await cdpEval(client, expr);
+    return Object.assign({}, snapshot, { deviceName: deviceName || '', platform: platform || '' });
+  },
+
+  async 'list-accounts'(client) {
+    return await cdpEval(client, 'globalThis.__AGENTIC__?.listAccounts()');
+  },
+
+  async 'get-selected-account'(client) {
+    return await cdpEval(client, 'globalThis.__AGENTIC__?.getSelectedAccount()');
+  },
+
+  async 'switch-account'(client, args) {
+    const address = args[0];
+    if (!address) {
+      throw new Error('Usage: switch-account <address>');
+    }
+    return await cdpEval(client, `globalThis.__AGENTIC__?.switchAccount(${JSON.stringify(address)})`);
+  },
+
+  async recipe(client, args) {
+    const arg = args[0];
+    if (!arg || arg === '--help') {
+      console.error('Usage: recipe <team/name> | recipe --list');
+      process.exit(1);
+    }
+
+    const recipesDir = path.resolve(__dirname, 'recipes');
+
+    if (arg === '--list') {
+      // List all available recipes from recipes/*.json
+      const files = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
+      const all = {};
+      for (const file of files) {
+        const team = path.basename(file, '.json');
+        const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
+        all[team] = Object.fromEntries(
+          Object.entries(data).map(([name, r]) => [name, r.description || ''])
+        );
+      }
+      return all;
+    }
+
+    // Parse "team/name"
+    const parts = arg.split('/');
+    if (parts.length !== 2) {
+      throw new Error('Recipe must be in "team/name" format (e.g. perps/positions)');
+    }
+    const [team, name] = parts;
+    const recipeFile = path.join(recipesDir, `${team}.json`);
+    if (!fs.existsSync(recipeFile)) {
+      throw new Error(`No recipe file found: recipes/${team}.json`);
+    }
+    const recipes = JSON.parse(fs.readFileSync(recipeFile, 'utf8'));
+    const recipe = recipes[name];
+    if (!recipe) {
+      const available = Object.keys(recipes).join(', ');
+      throw new Error(`Recipe "${name}" not found in ${team}. Available: ${available}`);
+    }
+
+    let raw;
+    if (recipe.async) {
+      raw = await cdpEvalAsync(client, recipe.expression);
+    } else {
+      raw = await cdpEval(client, recipe.expression);
+    }
+    // Recipe expressions typically JSON.stringify their result.
+    // Parse it so main()'s JSON.stringify produces clean output
+    // instead of double-encoded strings.
+    if (typeof raw === 'string') {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // Not valid JSON — return as-is
+      }
+    }
+    return raw;
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -546,11 +632,18 @@ Usage:
 
 Commands:
   navigate <RouteName> [params-json]   Navigate to a screen
+  status                               Route + selected account snapshot
   get-route                            Get current route name and params
   get-state [dot.path]                 Get Redux state (or nav state if no path)
   eval <expression>                    Evaluate arbitrary JS in app context
+  eval-async <expression>              Evaluate async/Promise expression
   can-go-back                          Check if navigation can go back
   go-back                              Navigate back
+  list-accounts                        List all accounts
+  get-selected-account                 Get the currently selected account
+  switch-account <address>             Switch to account by address
+  recipe <team/name>                   Run a recipe (e.g. perps/positions)
+  recipe --list                        List all available recipes
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)
@@ -565,6 +658,13 @@ Environment:
     console.error(`Unknown command: ${command}`);
     console.error(`Available: ${Object.keys(COMMANDS).join(', ')}`);
     process.exit(1);
+  }
+
+  // `recipe --list` only reads local JSON files — skip CDP connection entirely.
+  if (command === 'recipe' && args[1] === '--list') {
+    const result = await handler(null, args.slice(1), {});
+    console.log(JSON.stringify(result, null, 2));
+    return;
   }
 
   const port = loadPort();
