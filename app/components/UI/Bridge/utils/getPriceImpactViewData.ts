@@ -3,7 +3,7 @@ import { TextColor } from '../../../../component-library/components/Texts/Text';
 
 interface Params {
   priceImpactValue?: string;
-  threshold: { warning: number; danger: number };
+  threshold: { warning: number; error: number };
 }
 
 export const getPriceImpactViewData = ({
@@ -26,7 +26,7 @@ export const getPriceImpactViewData = ({
     };
   }
 
-  if (priceImpact >= threshold.danger) {
+  if (priceImpact >= threshold.error) {
     return {
       textColor: TextColor.Error,
       icon: {

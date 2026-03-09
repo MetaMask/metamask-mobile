@@ -2,7 +2,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { getPriceImpactViewData } from './getPriceImpactViewData';
 
-const DEFAULT_THRESHOLD = { warning: 0.05, danger: 0.25 };
+const DEFAULT_THRESHOLD = { warning: 0.05, error: 0.25 };
 
 const ALTERNATIVE = {
   textColor: TextColor.Alternative,
@@ -95,7 +95,7 @@ describe('getPriceImpactViewData', () => {
 
   describe('respects custom threshold values', () => {
     it('uses the provided warning threshold', () => {
-      const customThreshold = { warning: 0.1, danger: 0.5 };
+      const customThreshold = { warning: 0.1, error: 0.5 };
 
       // below custom warning → alternative
       expect(
@@ -115,7 +115,7 @@ describe('getPriceImpactViewData', () => {
     });
 
     it('uses the provided danger threshold', () => {
-      const customThreshold = { warning: 0.1, danger: 0.5 };
+      const customThreshold = { warning: 0.1, error: 0.5 };
 
       // below custom danger but above warning → warning
       expect(

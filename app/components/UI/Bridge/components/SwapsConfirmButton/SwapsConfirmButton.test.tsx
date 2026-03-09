@@ -195,7 +195,7 @@ const defaultBridgeConfigV2 = {
   maxRefreshCount: 5,
   refreshRate: 30000,
   support: true,
-  priceImpactThreshold: { danger: 0.25, warning: 0.05 },
+  priceImpactThreshold: { error: 0.25, warning: 0.05 },
   chains: {},
 };
 
@@ -1389,7 +1389,7 @@ describe('SwapsConfirmButton', () => {
 
     it('reads the danger threshold from bridge feature flags state', async () => {
       // priceImpact raw value 0.25 exactly meets the danger threshold configured
-      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.danger = 0.25),
+      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.error = 0.25),
       // confirming the component reads bridgeFeatureFlags from the Redux store.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
@@ -1432,7 +1432,7 @@ describe('SwapsConfirmButton', () => {
     });
 
     it('falls back to AppConstants threshold when feature flags danger is absent', async () => {
-      // Omit priceImpactThreshold.danger from feature flags → falls back to
+      // Omit priceImpactThreshold.error from feature flags → falls back to
       // AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD = 0.25.
       const stateWithoutDangerThreshold: DeepPartial<RootState> = {
         ...mockState,

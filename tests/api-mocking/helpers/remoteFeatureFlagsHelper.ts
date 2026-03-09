@@ -73,7 +73,7 @@ const DEFAULT_FEATURE_FLAGS_ARRAY: Record<string, unknown>[] = [
         normal: 0.05,
         gasless: 0.2,
         warning: 0.05,
-        danger: 0.25,
+        error: 0.25,
       },
       refreshRate: 30000,
       support: true,

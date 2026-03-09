@@ -12,9 +12,9 @@ export const usePriceImpactViewData = (priceImpact?: string) => {
       getPriceImpactViewData({
         priceImpactValue: priceImpact,
         threshold: {
-          danger:
+          error:
             // @ts-expect-error TODO: remove comment after changes to core are published.
-            bridgeFeatureFlags?.priceImpactThreshold?.danger ??
+            bridgeFeatureFlags?.priceImpactThreshold?.error ??
             AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD,
           warning:
             // @ts-expect-error TODO: remove comment after changes to core are published.
