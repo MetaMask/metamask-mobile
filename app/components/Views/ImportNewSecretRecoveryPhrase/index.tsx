@@ -290,7 +290,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style(
           'flex-grow px-4',
-          Platform.OS === 'android' ? 'pb-0' : 'pb-4',
+          Platform.OS !== 'android' && 'pb-4',
         )}
         testID={ImportSRPIDs.CONTAINER}
         keyboardShouldPersistTaps="always"

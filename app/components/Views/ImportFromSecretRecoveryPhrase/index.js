@@ -814,7 +814,7 @@ const ImportFromSecretRecoveryPhrase = ({
               <Box
                 flexDirection={BoxFlexDirection.Column}
                 style={tw.style(
-                  'w-full gap-y-[18px] mt-auto',
+                  'w-full gap-y-4 mt-auto',
                   Platform.OS === 'android' ? 'mb-6' : 'mb-4',
                 )}
               >
