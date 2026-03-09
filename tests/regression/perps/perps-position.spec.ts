@@ -11,7 +11,10 @@ import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 // E2E environment setup - mocks auto-configure via isE2E flag
 
@@ -27,10 +30,10 @@ describe(RegressionTrade('Perps Position'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
           await PERPS_ARBITRUM_MOCKS(mockServer);
         },
       },

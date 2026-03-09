@@ -7,7 +7,10 @@ import { WalletViewSelectorsText } from '../../../../app/components/Views/Wallet
 import { loginToApp } from '../../../flows/wallet.flow';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import {
   defiPositionsError,
@@ -24,10 +27,10 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
 
           const { urlEndpoint, response } = defiPositionsWithNoData;
           await setupMockRequest(mockServer, {
@@ -55,10 +58,10 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
 
           const { urlEndpoint, response } = defiPositionsError;
           await setupMockRequest(mockServer, {
@@ -99,10 +102,10 @@ describe(RegressionNetworkAbstractions('View DeFi tab'), () => {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
 
           const { urlEndpoint, response } = defiPositionsWithData;
           await setupMockRequest(mockServer, {

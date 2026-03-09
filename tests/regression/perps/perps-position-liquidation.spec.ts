@@ -16,7 +16,10 @@ import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps
 import { TestSuiteParams } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageRedesignV1Enabled,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -32,10 +35,10 @@ describe(RegressionTrade('Perps Position'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureFlagHomepageSectionsV1Enabled(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
+          });
           await PERPS_ARBITRUM_MOCKS(mockServer);
         },
         useCommandQueueServer: true,
