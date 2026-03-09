@@ -9359,19 +9359,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/preferences-controller@npm:^21.0.0":
-  version: 21.0.0
-  resolution: "@metamask/preferences-controller@npm:21.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.14.1"
-    "@metamask/messenger": "npm:^0.3.0"
-  peerDependencies:
-    "@metamask/keyring-controller": ^24.0.0
-  checksum: 10/1c67b419f732f314daf943ab4806235abe218850d11765d2463347e6a044d2e9067b4ec19c192218610ad2c81ec1912829e67de962ff5543b2abaac8e5a9b131
-  languageName: node
-  linkType: hard
-
 "@metamask/preferences-controller@npm:^22.1.0":
   version: 22.1.0
   resolution: "@metamask/preferences-controller@npm:22.1.0"
@@ -9381,6 +9368,16 @@ __metadata:
     "@metamask/keyring-controller": "npm:^25.1.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/bdb6a727cd88313b29b66dfd10308accc8c8bf52830bd7950a5afa7c832554958b94d207ed46ba4b7c8645cd05697e4601ee18194f988416d8dec0bbd2977516
+  languageName: node
+  linkType: hard
+
+"@metamask/preferences-controller@npm:^23.0.0":
+  version: 23.0.0
+  resolution: "@metamask/preferences-controller@npm:23.0.0"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/3dd5aa99cf781ffdc364d577536f009eaa0cdb57e8ae85ae6d311b51a358986194d8f745280518f86f1bc4b41094a89162ffad8b6c544178c0d892fe430ebf10
   languageName: node
   linkType: hard
 
@@ -35471,7 +35468,7 @@ __metadata:
     "@metamask/permission-controller": "npm:^12.1.0"
     "@metamask/phishing-controller": "npm:^16.3.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
-    "@metamask/preferences-controller": "npm:^21.0.0"
+    "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
     "@metamask/profile-metrics-controller": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^27.1.0"
