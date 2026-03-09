@@ -51,7 +51,7 @@ export const usePredictPriceHistory = (
         startTs,
         endTs,
       }),
-      enabled: enabled && marketIds.length > 0,
+      enabled,
     })),
   });
 
@@ -80,7 +80,10 @@ export const usePredictPriceHistory = (
   // Track which market errors have already been reported to Sentry
   const reportedErrorsRef = useRef<Set<string>>(new Set());
 
-  const queryErrorsKey = errors.join(',');
+  // Capture query params in a ref so the error-reporting effect only fires
+  // when errors actually change, not when interval/fidelity/timestamps shift.
+  const queryParamsRef = useRef({ interval, fidelity, startTs, endTs });
+  queryParamsRef.current = { interval, fidelity, startTs, endTs };
 
   useEffect(() => {
     // Clean up reported errors for market IDs that are no longer in the list
@@ -107,10 +110,7 @@ export const usePredictPriceHistory = (
               action: 'price_history_load_single',
               operation: 'data_fetching',
               marketId,
-              interval,
-              fidelity,
-              startTs,
-              endTs,
+              ...queryParamsRef.current,
             },
           },
         });
@@ -121,7 +121,7 @@ export const usePredictPriceHistory = (
     // Stable string that only changes when actual errors change, avoiding
     // re-runs caused by useQueries returning a new array reference each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryErrorsKey, marketIdsKey, interval, fidelity, startTs, endTs]);
+  }, [queryErrorKey, marketIdsKey]);
 
   // Use refs so refetch has a stable identity across renders
   const queriesRef =
