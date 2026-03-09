@@ -17,9 +17,8 @@ import { selectEvmNetworkConfigurationsByChainId } from './networkController';
 
 const DEFAULT_CONFIG_REGISTRY_STATE = getDefaultConfigRegistryControllerState();
 
-/** LaunchDarkly / remote feature flag key for config registry API. */
-export const CONFIG_REGISTRY_API_ENABLED_FLAG_KEY =
-  'config_registry_api_enabled';
+/** Feature flag key for config registry API. */
+export const CONFIG_REGISTRY_API_ENABLED_FLAG_KEY = 'configRegistryApiEnabled';
 
 /**
  * Gets the Config Registry controller state from engine.backgroundState.
@@ -78,10 +77,10 @@ export const isConfigRegistryNetworksLoading = createSelector(
 
 /**
  * Whether the config registry API is enabled via remote feature flag.
- * Uses the LaunchDarkly key config_registry_api_enabled.
+ * Uses the key configRegistryApiEnabled.
  *
  * @param state - The Redux state
- * @returns True if config_registry_api_enabled is enabled, false otherwise
+ * @returns True if configRegistryApiEnabled is enabled, false otherwise
  */
 export const getIsConfigRegistryApiEnabled = createSelector(
   [selectRemoteFeatureFlags],
