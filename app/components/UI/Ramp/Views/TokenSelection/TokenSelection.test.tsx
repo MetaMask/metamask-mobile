@@ -1,7 +1,7 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
+import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -175,6 +175,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
   });
 
@@ -278,10 +284,11 @@ describe('TokenSelection Component', () => {
       error: null,
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
-    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    expect(activityIndicator).toBeDefined();
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('displays loading indicator while fetching tokens (V2 enabled)', () => {
@@ -309,12 +316,59 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(TokenSelection);
-    const activityIndicator = UNSAFE_getByType(ActivityIndicator);
+    const { getByTestId } = renderWithProvider(TokenSelection);
 
-    expect(activityIndicator).toBeDefined();
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+  });
+
+  it('displays loading when tokens not yet loaded (V2, null tokens and no error)', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+    mockUseRampsController.mockReturnValue({
+      tokens: null,
+      selectedToken: null,
+      setSelectedToken: jest.fn(),
+      tokensLoading: false,
+      tokensError: null,
+      userRegion: null,
+      setUserRegion: jest.fn(),
+      selectedProvider: null,
+      setSelectedProvider: jest.fn(),
+      providers: [],
+      providersLoading: false,
+      providersError: null,
+      countries: [],
+      countriesLoading: false,
+      countriesError: null,
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      paymentMethodsLoading: false,
+      paymentMethodsError: null,
+      getQuotes: jest.fn(),
+      getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(TokenSelection);
+
+    expect(
+      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
   });
 
   it('displays error message when token fetch fails (legacy)', () => {
@@ -356,6 +410,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByText } = renderWithProvider(TokenSelection);
@@ -415,6 +475,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);
@@ -484,6 +550,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -557,6 +629,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
@@ -611,6 +689,12 @@ describe('TokenSelection Component', () => {
       paymentMethodsError: null,
       getQuotes: jest.fn(),
       getWidgetUrl: jest.fn(),
+      orders: [],
+      getOrderById: jest.fn(),
+      addOrder: jest.fn(),
+      removeOrder: jest.fn(),
+      refreshOrder: jest.fn(),
+      getOrderFromCallback: jest.fn(),
     });
 
     renderWithProvider(TokenSelection);

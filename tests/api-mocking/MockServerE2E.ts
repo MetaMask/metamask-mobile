@@ -98,6 +98,12 @@ const isUrlAllowed = (url: string): boolean => {
       return true;
     }
 
+    // Malformed npm: package URIs that leak through the snap proxy
+    // e.g. https://https//npm:@metamask/... or npm:@metamask/...
+    if (/^(?:https?:\/\/.*)?npm[:@]@?metamask\//.test(url)) {
+      return true;
+    }
+
     const parsedUrl = new URL(url);
     const hostname = parsedUrl.hostname;
 
@@ -362,12 +368,22 @@ export default class MockServerE2E implements Resource {
             }
           }
 
-          return handleDirectFetch(
-            updatedUrl,
-            method,
-            request.headers,
-            method === 'POST' ? requestBodyText : undefined,
-          );
+          try {
+            return await handleDirectFetch(
+              updatedUrl,
+              method,
+              request.headers,
+              method === 'POST' ? requestBodyText : undefined,
+            );
+          } catch (error) {
+            // Client dropped the connection before we could respond (e.g. bridge
+            // controller AbortController fired mid-request). Return a benign
+            // response so mockttp doesn't surface an unhandled rejection.
+            if (error instanceof Error && error.message === 'Aborted') {
+              return { statusCode: 499, body: '' };
+            }
+            throw error;
+          }
         } finally {
           this._activeRequests--;
         }
@@ -410,7 +426,17 @@ export default class MockServerE2E implements Resource {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
           this._server?._liveRequests?.push({
             url: translatedUrl,
@@ -420,16 +446,36 @@ export default class MockServerE2E implements Resource {
         } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
           logger.warn(`Allowed URL: ${translatedUrl}`);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
         }
 
-        return handleDirectFetch(
-          translatedUrl,
-          request.method,
-          request.headers,
-          await request.body.getText(),
-        );
+        try {
+          return await handleDirectFetch(
+            translatedUrl,
+            request.method,
+            request.headers,
+            await request.body.getText(),
+          );
+        } catch (error) {
+          // Client dropped the connection before we could respond (e.g. bridge
+          // controller AbortController fired mid-request). Return a benign
+          // response so mockttp doesn't surface an unhandled rejection.
+          if (error instanceof Error && error.message === 'Aborted') {
+            return { statusCode: 499, body: '' };
+          }
+          throw error;
+        }
       } finally {
         this._activeRequests--;
       }

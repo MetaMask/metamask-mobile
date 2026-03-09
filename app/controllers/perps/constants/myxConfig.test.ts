@@ -8,18 +8,13 @@ import {
   fromMYXCollateral,
   getMYXChainId,
   getMYXHttpEndpoint,
-  MYX_PRICE_DECIMALS,
   MYX_SIZE_DECIMALS,
 } from './myxConfig';
 
 describe('myxConfig', () => {
   describe('fromMYXPrice', () => {
-    it('converts a 30-decimal price string to a number', () => {
-      // 1000 * 10^30
-      const myxPrice = new BigNumber(1000)
-        .times(new BigNumber(10).pow(MYX_PRICE_DECIMALS))
-        .toFixed(0);
-      expect(fromMYXPrice(myxPrice)).toBe(1000);
+    it('parses a normal float price string', () => {
+      expect(fromMYXPrice('1000')).toBe(1000);
     });
 
     it('returns 0 for "0"', () => {
@@ -30,12 +25,14 @@ describe('myxConfig', () => {
       expect(fromMYXPrice('')).toBe(0);
     });
 
-    it('converts a realistic BTC price', () => {
-      // BTC ~65000 USD
-      const myxPrice = new BigNumber(65000)
-        .times(new BigNumber(10).pow(MYX_PRICE_DECIMALS))
-        .toFixed(0);
-      expect(fromMYXPrice(myxPrice)).toBe(65000);
+    it('parses a realistic BTC price from MYX API', () => {
+      // MYX API returns normal float strings like "64854.760266796727"
+      expect(fromMYXPrice('64854.760266796727')).toBeCloseTo(64854.76, 2);
+    });
+
+    it('parses a sub-dollar price', () => {
+      // MYX token price ≈ $0.39
+      expect(fromMYXPrice('0.390062307787905')).toBeCloseTo(0.39, 2);
     });
 
     it('returns 0 for invalid string', () => {
@@ -44,20 +41,12 @@ describe('myxConfig', () => {
   });
 
   describe('toMYXPrice', () => {
-    it('converts a number to 30-decimal price string', () => {
-      const result = toMYXPrice(1000);
-      const expected = new BigNumber(1000)
-        .times(new BigNumber(10).pow(MYX_PRICE_DECIMALS))
-        .toFixed(0);
-      expect(result).toBe(expected);
+    it('converts a number to string', () => {
+      expect(toMYXPrice(1000)).toBe('1000');
     });
 
     it('converts a string input', () => {
-      const result = toMYXPrice('2500.5');
-      const expected = new BigNumber('2500.5')
-        .times(new BigNumber(10).pow(MYX_PRICE_DECIMALS))
-        .toFixed(0);
-      expect(result).toBe(expected);
+      expect(toMYXPrice('2500.5')).toBe('2500.5');
     });
 
     it('returns "0" for invalid string', () => {
@@ -131,20 +120,18 @@ describe('myxConfig', () => {
   });
 
   describe('getMYXChainId', () => {
-    it('returns 97 for testnet', () => {
-      expect(getMYXChainId('testnet')).toBe(97);
+    it('returns 59141 (Linea Sepolia) for testnet', () => {
+      expect(getMYXChainId('testnet')).toBe(59141);
     });
 
-    it('returns 56 for mainnet', () => {
+    it('returns 56 (BNB) for mainnet', () => {
       expect(getMYXChainId('mainnet')).toBe(56);
     });
   });
 
   describe('getMYXHttpEndpoint', () => {
-    it('returns beta URL for testnet', () => {
-      expect(getMYXHttpEndpoint('testnet')).toBe(
-        'https://api-beta.myx.finance',
-      );
+    it('returns testnet URL for testnet', () => {
+      expect(getMYXHttpEndpoint('testnet')).toBe('https://api-test.myx.cash');
     });
 
     it('returns prod URL for mainnet', () => {

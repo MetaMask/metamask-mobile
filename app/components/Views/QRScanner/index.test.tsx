@@ -177,11 +177,10 @@ const initialState = {
 };
 
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 
-const mockUseAnalytics = useAnalytics as jest.MockedFunction<
-  typeof useAnalytics
->;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 
 describe('QrScanner', () => {
   let onCodeScannedCallback: ((codes: { value: string }[]) => void) | null =
@@ -237,19 +236,12 @@ describe('QrScanner', () => {
       addProperties: mockAddProperties,
       build: mockBuild,
     });
-    mockUseAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: jest.fn().mockReturnValue(true),
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getAnalyticsId: jest.fn(),
-      isDataRecorded: jest.fn().mockReturnValue(true),
-      getDeleteRegulationId: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-    } as ReturnType<typeof useAnalytics>);
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     // Setup camera mocks
     mockUseCameraDevice.mockReturnValue({
@@ -944,19 +936,12 @@ describe('QrScanner', () => {
         addProperties: mockAddProperties,
         build: mockBuild,
       });
-      mockUseAnalytics.mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-        isEnabled: jest.fn().mockReturnValue(true),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getAnalyticsId: jest.fn(),
-        isDataRecorded: jest.fn().mockReturnValue(true),
-        getDeleteRegulationId: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-      } as ReturnType<typeof useAnalytics>);
+      mockUseAnalytics.mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
 
       mockUseCameraDevice.mockReturnValue({
         id: 'back',

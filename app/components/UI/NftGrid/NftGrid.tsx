@@ -54,11 +54,13 @@ const NftGridContent = ({
   nftRowList,
   goToAddCollectible,
   isAddNFTEnabled,
+  isFullView = false,
 }: {
   allFilteredCollectibles: Nft[];
   nftRowList: React.ReactNode;
   goToAddCollectible: () => void;
   isAddNFTEnabled: boolean;
+  isFullView?: boolean;
 }) => {
   const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
 
@@ -67,7 +69,7 @@ const NftGridContent = ({
   }
 
   if (isNftFetchingProgress) {
-    return <NftGridSkeleton />;
+    return <NftGridSkeleton isFullView={isFullView} />;
   }
 
   return (
@@ -114,6 +116,19 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       useNftDetection();
 
     const isInitialMount = useRef(true);
+    const hasTrackedScreenViewRef = useRef(false);
+    const hasSeenNftFetchingRef = useRef(false);
+
+    const isNftFetchingProgress = useSelector(isNftFetchingProgressSelector);
+
+    // Mark that a fetch has been initiated (useFocusEffect/detectNfts sets isNftFetchingProgress
+    // to true). Only track "Position Screen Viewed" after at least one fetch cycle, so we don't
+    // fire with stale empty data before detection runs (isNftFetchingProgress defaults to false).
+    useEffect(() => {
+      if (isNftFetchingProgress) {
+        hasSeenNftFetchingRef.current = true;
+      }
+    }, [isNftFetchingProgress]);
 
     const allFilteredCollectibles: Nft[] = useMemo(() => {
       trace({ name: TraceName.LoadCollectibles });
@@ -139,6 +154,33 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
 
       return itemsToProcess;
     }, [allFilteredCollectibles, maxItems]);
+
+    useEffect(() => {
+      if (
+        !isFullView ||
+        isNftFetchingProgress ||
+        !hasSeenNftFetchingRef.current ||
+        hasTrackedScreenViewRef.current
+      )
+        return;
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+          .addProperties({
+            item_count: allFilteredCollectibles.length,
+            location: 'homepage',
+            is_empty: allFilteredCollectibles.length === 0,
+            screen_type: 'nfts',
+          })
+          .build(),
+      );
+    }, [
+      isFullView,
+      isNftFetchingProgress,
+      allFilteredCollectibles.length,
+      trackEvent,
+      createEventBuilder,
+    ]);
 
     // Trigger NFT detection when enabled networks change (after initial mount)
     useEffect(() => {
@@ -260,6 +302,7 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           nftRowList={nftRowList}
           goToAddCollectible={goToAddCollectible}
           isAddNFTEnabled={isAddNFTEnabled}
+          isFullView={isFullView}
         />
 
         {/* View all NFTs button - shown when there are more items than maxItems */}

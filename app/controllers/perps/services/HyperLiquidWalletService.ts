@@ -1,12 +1,13 @@
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import type { TypedMessageParams } from '@metamask/keyring-controller';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import { getChainId } from '../constants/hyperLiquidConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import type { PerpsPlatformDependencies } from '../types';
+import type {
+  PerpsPlatformDependencies,
+  PerpsTypedMessageParams,
+} from '../types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 
 /**
@@ -19,12 +20,11 @@ export class HyperLiquidWalletService {
   // Platform dependencies for observability
   readonly #deps: PerpsPlatformDependencies;
 
-  // Messenger for inter-controller communication
-  readonly #messenger: PerpsControllerMessenger;
+  readonly #messenger: PerpsControllerMessengerBase;
 
   constructor(
     deps: PerpsPlatformDependencies,
-    messenger: PerpsControllerMessenger,
+    messenger: PerpsControllerMessengerBase,
     options: { isTestnet?: boolean } = {},
   ) {
     this.#deps = deps;
@@ -42,19 +42,23 @@ export class HyperLiquidWalletService {
   }
 
   /**
-   * Sign typed data via messenger
+   * Sign typed data via DI keyring controller
    *
    * @param msgParams - The typed message parameters including data and sender address.
    * @returns The signature string.
    */
-  async #signTypedMessage(msgParams: TypedMessageParams): Promise<string> {
+  async #signTypedMessage(msgParams: PerpsTypedMessageParams): Promise<string> {
     if (!this.isKeyringUnlocked()) {
       throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
     }
+    // Cast needed: PerpsTypedMessageParams uses loose `data: unknown` type
+    // while KeyringController uses strict TypedMessageParams / SignTypedDataVersion
     return this.#messenger.call(
       'KeyringController:signTypedMessage',
-      msgParams,
-      SignTypedDataVersion.V4,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      msgParams as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'V4' as any,
     );
   }
 
@@ -81,8 +85,12 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
-    // Get current EVM account using messenger
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    // Get current EVM account via DI accountTree
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -107,7 +115,11 @@ export class HyperLiquidWalletService {
       }): Promise<Hex> => {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
-        const currentEvmAccount = getSelectedEvmAccount(this.#messenger);
+        const currentEvmAccount = getSelectedEvmAccount(
+          this.#messenger.call(
+            'AccountTreeController:getAccountsFromSelectedAccountGroup',
+          ),
+        );
 
         if (!currentEvmAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -151,7 +163,11 @@ export class HyperLiquidWalletService {
    * @returns The CAIP account ID for the current EVM account.
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = getSelectedEvmAccount(this.#messenger);
+    const evmAccount = getSelectedEvmAccount(
+      this.#messenger.call(
+        'AccountTreeController:getAccountsFromSelectedAccountGroup',
+      ),
+    );
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
