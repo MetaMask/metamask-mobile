@@ -54,16 +54,28 @@ curl_with_auth() {
   fi
 }
 
+PKG_SCOPE="@metamask/react-native-playground"
+
 if [ -z "$VERSION" ]; then
-  echo "Fetching latest release from $REPO..."
-  RELEASE_JSON=$(curl_with_auth "https://api.github.com/repos/$REPO/releases/latest")
+  echo "Fetching latest playground release from $REPO..."
+  # The APK lives on a package-scoped release (e.g. @metamask/react-native-playground@0.1.2),
+  # not the generic monorepo release. List recent releases and pick the first one whose tag
+  # matches the playground package scope.
+  RELEASE_JSON=$(curl_with_auth "https://api.github.com/repos/$REPO/releases?per_page=30" \
+    | jq --arg scope "$PKG_SCOPE@" 'map(select(.tag_name | startswith($scope))) | first // empty')
+
+  if [ -z "$RELEASE_JSON" ] || [ "$RELEASE_JSON" = "null" ]; then
+    echo "Error: No release found with tag matching ${PKG_SCOPE}@* in $REPO" >&2
+    exit 1
+  fi
 else
   VERSION_STRIPPED="${VERSION#v}"
-  echo "Fetching release v$VERSION_STRIPPED from $REPO..."
+  echo "Fetching playground release $VERSION_STRIPPED from $REPO..."
 
-  # Try tag formats: the repo may use "v17.0.0", "17.0.0", or package-scoped tags
+  # The primary tag format is the package-scoped tag. Fall back to older
+  # formats (v<version>, bare version) for backwards compatibility.
   RELEASE_JSON=""
-  for TAG_CANDIDATE in "v${VERSION_STRIPPED}" "${VERSION_STRIPPED}"; do
+  for TAG_CANDIDATE in "${PKG_SCOPE}@${VERSION_STRIPPED}" "v${VERSION_STRIPPED}" "${VERSION_STRIPPED}"; do
     RELEASE_JSON=$(curl_with_auth "https://api.github.com/repos/$REPO/releases/tags/$TAG_CANDIDATE" 2>/dev/null || true)
     if echo "$RELEASE_JSON" | jq -e '.assets' >/dev/null 2>&1; then
       break
@@ -73,6 +85,7 @@ else
 
   if [ -z "$RELEASE_JSON" ]; then
     echo "Error: Could not find release for version $VERSION in $REPO" >&2
+    echo "Tried tags: ${PKG_SCOPE}@${VERSION_STRIPPED}, v${VERSION_STRIPPED}, ${VERSION_STRIPPED}" >&2
     exit 1
   fi
 fi
