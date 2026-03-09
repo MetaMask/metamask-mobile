@@ -577,8 +577,7 @@ const COMMANDS = {
         }
         return walk(fiber.child) || walk(fiber.sibling);
       }
-      for (var id = 1; id <= 3; id++) {
-        if (!renderers.get(id)) continue;
+      for (var [id] of renderers) {
         var roots = getFiberRoots ? getFiberRoots(id) : undefined;
         if (!roots) continue;
         var found = false;
@@ -631,8 +630,7 @@ const COMMANDS = {
         if (props && props.testID === opts.testId) return fiber;
         return findTestId(fiber.child) || findTestId(fiber.sibling);
       }
-      for (var id = 1; id <= 3; id++) {
-        if (!renderers.get(id)) continue;
+      for (var [id] of renderers) {
         var roots = getFiberRoots ? getFiberRoots(id) : undefined;
         if (!roots) continue;
         var scrolled = false;
@@ -640,7 +638,7 @@ const COMMANDS = {
           if (scrolled) return;
           if (opts.testId) {
             var anchor = findTestId(r.current);
-            if (anchor) scrolled = tryScroll(anchor) || tryScroll(anchor.child) || tryScroll(anchor.sibling);
+            if (anchor) scrolled = tryScroll(anchor);
           } else {
             scrolled = tryScroll(r.current);
           }
@@ -746,8 +744,7 @@ const COMMANDS = {
     const injectExpr = `(function() {
       ${fiberWalker}
       var password = ${escapedPw};
-      for (var id = 1; id <= 3; id++) {
-        if (!renderers.get(id)) continue;
+      for (var [id] of renderers) {
         var roots = getFiberRoots ? getFiberRoots(id) : undefined;
         if (!roots) continue;
         var injected = false;
@@ -775,8 +772,7 @@ const COMMANDS = {
     // Phase 2: walk the fiber tree AGAIN to get the updated onPress callback
     const pressExpr = `(function() {
       ${fiberWalker}
-      for (var id = 1; id <= 3; id++) {
-        if (!renderers.get(id)) continue;
+      for (var [id] of renderers) {
         var roots = getFiberRoots ? getFiberRoots(id) : undefined;
         if (!roots) continue;
         var pressed = false;

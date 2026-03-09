@@ -117,9 +117,8 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
   const hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
   if (!hook?.renderers) return false;
 
-  for (let id = 1; id <= 3; id++) {
-    if (!hook.renderers.get(id)) continue;
-    const fiberRoots = hook.getFiberRoots?.(id);
+  for (const [id] of hook.renderers) {
+    const fiberRoots = hook.getFiberRoots?.(id as number);
     if (!fiberRoots) continue;
     let found = false;
     fiberRoots.forEach((root) => {
