@@ -24,7 +24,19 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
-[ -f .js.env ] && source .js.env
+# Source .js.env but only for vars not already set in the environment,
+# so that the caller's env vars (e.g. WATCHER_PORT=8083 ./interactive-start.sh)
+# take precedence over the file.
+if [ -f .js.env ]; then
+  while IFS= read -r _line || [ -n "$_line" ]; do
+    [[ "$_line" =~ ^[[:space:]]*(#|$) ]] && continue
+    _line="${_line#export }"
+    _key="${_line%%=*}"
+    _key="${_key//[[:space:]]/}"
+    [[ -n "$_key" && -z "${!_key+x}" ]] && eval "export $_line" 2>/dev/null || true
+  done < .js.env
+  unset _line _key
+fi
 
 # Parse --port flag
 PORT="${WATCHER_PORT:-8081}"
@@ -91,10 +103,10 @@ read_input() {
   fi
   echo -ne "${YELLOW}${prompt}: ${RESET}" >&2
   read -r REPLY
-  # Back to raw mode
-  if [ -t 0 ]; then
-    stty raw -echo 2>/dev/null || true
-  fi
+  # Do NOT call stty raw -echo here: stty modifies the terminal device globally,
+  # so running it inside a subshell (command substitution) would switch the
+  # parent shell's terminal to raw mode before the caller's work runs.
+  # Each caller is responsible for restoring raw mode after the substitution.
   echo "$REPLY"
 }
 

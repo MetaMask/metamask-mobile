@@ -239,11 +239,7 @@ const AgenticService = {
             if (scrollTestId) {
               const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              return (
-                tryScroll(anchor) ||
-                tryScroll(anchor.child) ||
-                tryScroll(anchor.sibling)
-              );
+              return tryScroll(anchor);
             }
             return tryScroll(rootFiber);
           });
