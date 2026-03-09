@@ -16,6 +16,9 @@ export function DefaultSummaryLine({
   let title: string;
 
   switch (type) {
+    case TransactionType.musdClaim:
+      title = strings('transaction_details.summary_title.musd_claim');
+      break;
     case TransactionType.swap:
       title = strings('transaction_details.summary_title.swap');
       break;

@@ -99,13 +99,11 @@ function SummaryLine({
     return <ApprovalSummaryLine transactionMeta={transactionMeta} />;
   }
 
-  // Receive-only types: perpsDeposit, predictDeposit, musdConversion, musdClaim
   if (
     hasTransactionType(transactionMeta, [
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
-      TransactionType.musdClaim,
     ])
   ) {
     return <ReceiveSummaryLine transactionMeta={transactionMeta} />;

@@ -144,25 +144,6 @@ describe('ReceiveSummaryLine', () => {
     ).toBeDefined();
   });
 
-  it('renders mUSD claim receive title', () => {
-    const { getByText } = render({
-      id: 'tx-id',
-      chainId: '0x1' as Hex,
-      hash: '0x123',
-      submittedTime: 1755719285723,
-      type: TransactionType.musdClaim,
-    });
-
-    expect(
-      getByText(
-        strings('transaction_details.summary_title.bridge_receive', {
-          targetSymbol: 'mUSD',
-          targetChain: 'Arbitrum',
-        }),
-      ),
-    ).toBeDefined();
-  });
-
   it('renders loading title when network name is unavailable', () => {
     useNetworkNameMock.mockReturnValue(undefined);
 

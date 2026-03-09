@@ -100,4 +100,12 @@ describe('DefaultSummaryLine', () => {
       getByText(strings('transaction_details.summary_title.swap_approval')),
     ).toBeDefined();
   });
+
+  it('renders mUSD claim title', () => {
+    const { getByText } = render(TransactionType.musdClaim);
+
+    expect(
+      getByText(strings('transaction_details.summary_title.musd_claim')),
+    ).toBeDefined();
+  });
 });
