@@ -54,7 +54,7 @@ export const createV2OtpCodeNavDetails =
   createNavigationDetails<V2OtpCodeParams>(Routes.RAMP.OTP_CODE);
 
 const CELL_COUNT = 6;
-const COOLDOWN_TIME = 30;
+const COOLDOWN_TIME = 60;
 const MAX_RESET_ATTEMPTS = 3;
 
 const ResendButton: FC<{
@@ -100,7 +100,7 @@ const V2OtpCode = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport'
-  >('resend');
+  >('cooldown');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
@@ -194,7 +194,6 @@ const V2OtpCode = () => {
       setError(
         parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
       );
-      setResendButtonState('resend');
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [
