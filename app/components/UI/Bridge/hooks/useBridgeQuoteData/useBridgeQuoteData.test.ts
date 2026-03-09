@@ -1292,6 +1292,189 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
+  // Test manually selected quote via selectedQuoteRequestId
+  describe('manually selected quote', () => {
+    it('uses manually selected quote when selectedQuoteRequestId matches a quote in sortedQuotes', () => {
+      const manuallySelectedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'selected-quote-id',
+        },
+      };
+
+      const recommendedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'best-quote-id',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote,
+        sortedQuotes: [recommendedQuote, manuallySelectedQuote],
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'selected-quote-id',
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
+      expect(result.current.bestQuote).toEqual(recommendedQuote);
+    });
+
+    it('falls back to bestQuote when selectedQuoteRequestId does not match any sortedQuote', () => {
+      const recommendedQuote = { ...mockQuoteWithMetadata };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote,
+        sortedQuotes: [recommendedQuote],
+        alternativeQuotes: [],
+      }));
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'non-existent-quote-id',
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      expect(result.current.activeQuote).toEqual(recommendedQuote);
+      expect(result.current.bestQuote).toEqual(recommendedQuote);
+    });
+
+    it('dispatches setSelectedQuoteRequestId(undefined) when manuallySelectedQuote is undefined', async () => {
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote: mockQuoteWithMetadata,
+        sortedQuotes: [],
+        alternativeQuotes: [],
+      }));
+
+      // selectedQuoteRequestId is set but sortedQuotes is empty so manuallySelectedQuote will be undefined
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'some-quote-id',
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { store } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // After the effect runs, selectedQuoteRequestId should be cleared in the store
+      await waitFor(() => {
+        expect(
+          (store.getState() as { bridge: { selectedQuoteRequestId?: string } })
+            .bridge.selectedQuoteRequestId,
+        ).toBeUndefined();
+      });
+    });
+
+    it('does not override activeQuote with manually selected when expired and not refreshing', () => {
+      const manuallySelectedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'selected-quote-id',
+        },
+      };
+
+      const recommendedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'best-quote-id',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote,
+        sortedQuotes: [recommendedQuote, manuallySelectedQuote],
+        alternativeQuotes: [],
+      }));
+
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'selected-quote-id',
+        isSubmittingTx: false,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // When expired and not refreshing and not submitting, activeQuote should be undefined
+      expect(result.current.activeQuote).toBeUndefined();
+      expect(result.current.isExpired).toBe(true);
+    });
+
+    it('keeps activeQuote as manually selected when expired but still submitting', () => {
+      const manuallySelectedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'selected-quote-id',
+        },
+      };
+
+      const recommendedQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          requestId: 'best-quote-id',
+        },
+      };
+
+      (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+        recommendedQuote,
+        sortedQuotes: [recommendedQuote, manuallySelectedQuote],
+        alternativeQuotes: [],
+      }));
+
+      (isQuoteExpired as jest.Mock).mockReturnValue(true);
+      (shouldRefreshQuote as jest.Mock).mockReturnValue(false);
+
+      const bridgeReducerOverrides = {
+        selectedQuoteRequestId: 'selected-quote-id',
+        isSubmittingTx: true,
+      };
+
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
+
+      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+        state: testState,
+      });
+
+      // When isSubmittingTx is true, activeQuote should remain (even if expired)
+      expect(result.current.activeQuote).toEqual(manuallySelectedQuote);
+    });
+  });
+
   // Test willRefresh scenarios
   describe('willRefresh behavior', () => {
     it('sets willRefresh to true when conditions are met', () => {

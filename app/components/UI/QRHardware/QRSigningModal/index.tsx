@@ -85,7 +85,6 @@ const QRSigningModal = ({
           successCallback={handleSuccess}
           cancelCallback={handleCancel}
           failureCallback={handleFailure}
-          bypassAndroidCameraAccessCheck={false}
           fromAddress={selectedAccount?.address ?? ''}
         />
       </View>

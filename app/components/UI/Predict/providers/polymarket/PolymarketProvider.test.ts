@@ -51,7 +51,6 @@ import {
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
   hasAllowances,
-  hasPermit2Allowance,
 } from './safe/utils';
 import { PERMIT2_ADDRESS } from './safe/constants';
 import {
@@ -124,7 +123,6 @@ jest.mock('./safe/utils', () => ({
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
-  hasPermit2Allowance: jest.fn(),
   getWithdrawTransactionCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
@@ -219,7 +217,6 @@ const mockCreatePermit2FeeAuthorization =
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
-const mockHasPermit2Allowance = hasPermit2Allowance as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
@@ -890,7 +887,6 @@ describe('PolymarketProvider', () => {
         sig: '0xsig',
       },
     });
-    mockHasPermit2Allowance.mockResolvedValue(false);
     mockCreatePermit2FeeAuthorization.mockResolvedValue({
       type: 'safe-permit2',
       authorization: {
@@ -1426,26 +1422,12 @@ describe('PolymarketProvider', () => {
     });
 
     it.each([
-      {
-        permit2Ready: true,
-        fakOrdersEnabled: true,
-        expectedOrderType: 'FAK',
-      },
-      {
-        permit2Ready: false,
-        fakOrdersEnabled: true,
-        expectedOrderType: 'FOK',
-      },
-      {
-        permit2Ready: true,
-        fakOrdersEnabled: false,
-        expectedOrderType: 'FOK',
-      },
+      { fakOrdersEnabled: true, expectedOrderType: 'FAK' },
+      { fakOrdersEnabled: false, expectedOrderType: 'FOK' },
     ] as const)(
-      'returns $expectedOrderType orderType when permit2Ready=$permit2Ready and fakOrdersEnabled=$fakOrdersEnabled',
-      async ({ permit2Ready, fakOrdersEnabled, expectedOrderType }) => {
+      'returns $expectedOrderType orderType when fakOrdersEnabled=$fakOrdersEnabled and permit2 config is active',
+      async ({ fakOrdersEnabled, expectedOrderType }) => {
         mockPreviewOrderWithFees();
-        mockHasPermit2Allowance.mockResolvedValue(permit2Ready);
         const provider = createPermit2PreviewProvider(fakOrdersEnabled);
 
         const result = await provider.previewOrder(createPreviewOrderParams());
@@ -1454,25 +1436,13 @@ describe('PolymarketProvider', () => {
       },
     );
 
-    it('returns FOK orderType when permit2 allowance check throws', async () => {
-      mockPreviewOrderWithFees();
-      mockHasPermit2Allowance.mockRejectedValue(new Error('RPC timeout'));
-      const provider = createPermit2PreviewProvider(true);
-
-      const result = await provider.previewOrder(createPreviewOrderParams());
-
-      expect(result.orderType).toBe('FOK');
-    });
-
     it('returns FAK orderType when fees are absent and FAK flags are enabled', async () => {
       mockPreviewOrder.mockResolvedValue({});
-      mockHasPermit2Allowance.mockResolvedValue(true);
       const provider = createPermit2PreviewProvider(true);
 
       const result = await provider.previewOrder(createPreviewOrderParams());
 
       expect(result.orderType).toBe('FAK');
-      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
     });
   });
 
@@ -1753,7 +1723,6 @@ describe('PolymarketProvider', () => {
           permit2Enabled: true,
         },
       });
-      mockHasPermit2Allowance.mockResolvedValueOnce(true);
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
@@ -1772,7 +1741,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('falls back to Safe fee authorization when Permit2 allowance is not set', async () => {
+    it('uses Permit2 fee authorization even when Permit2 allowance is not yet set on-chain', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest();
       const preview = createMockOrderPreview({
@@ -1787,12 +1756,11 @@ describe('PolymarketProvider', () => {
           permit2Enabled: true,
         },
       });
-      mockHasPermit2Allowance.mockResolvedValueOnce(false);
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
-      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
-      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalled();
+      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
     });
 
     it('falls back to Safe fee authorization when permit2Enabled is false', async () => {
@@ -1813,7 +1781,6 @@ describe('PolymarketProvider', () => {
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
-      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
       expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
     });
@@ -1836,7 +1803,6 @@ describe('PolymarketProvider', () => {
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
-      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
       expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
       expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
     });
@@ -1865,7 +1831,7 @@ describe('PolymarketProvider', () => {
         },
         fakOrdersEnabled: true,
       });
-      mockHasPermit2Allowance.mockResolvedValue(true);
+      mockHasAllowances.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
         fees: {
@@ -1898,7 +1864,6 @@ describe('PolymarketProvider', () => {
         },
         fakOrdersEnabled: false,
       });
-      mockHasPermit2Allowance.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
         fees: {
@@ -1921,7 +1886,7 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('submits FOK order type when falling back to Safe tx regardless of fakOrdersEnabled', async () => {
+    it('submits FAK order type when Permit2 fee auth and allowance are ready', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest({
         feeCollection: {
@@ -1931,7 +1896,7 @@ describe('PolymarketProvider', () => {
         },
         fakOrdersEnabled: true,
       });
-      mockHasPermit2Allowance.mockResolvedValue(false);
+      mockHasAllowances.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
         fees: {
@@ -1949,11 +1914,219 @@ describe('PolymarketProvider', () => {
 
       expect(mockSubmitClobOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          clobOrder: expect.objectContaining({ orderType: 'FOK' }),
+          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
         }),
       );
     });
   });
+
+  describe('placeOrder with allowancesTx', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    function setupAllowancesTxTest(overrides?: {
+      permit2Enabled?: boolean;
+      hasAllowances?: boolean;
+      executors?: string[];
+    }) {
+      const result = setupPlaceOrderTest({
+        feeCollection: {
+          ...DEFAULT_FEE_COLLECTION_FLAG,
+          permit2Enabled: overrides?.permit2Enabled ?? true,
+          executors: overrides?.executors ?? ['0xexecutor1'],
+        },
+      });
+      mockComputeProxyAddress.mockReturnValue('0xSafeAddress');
+      (isSmartContractAddress as jest.Mock).mockResolvedValue(true);
+      mockHasAllowances.mockResolvedValue(overrides?.hasAllowances ?? false);
+      mockFindNetworkClientIdByChainId.mockReturnValue('polygon');
+      mockGetNetworkClientById.mockReturnValue({ provider: {} });
+      return result;
+    }
+
+    it('attaches allowancesTx when proxy wallet lacks allowances with fees', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
+        }),
+      );
+    });
+
+    it('attaches allowancesTx when proxy wallet lacks allowances without fees', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0,
+          providerFee: 0,
+          totalFee: 0,
+          totalFeePercentage: 0,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
+        }),
+      );
+    });
+
+    it('attaches allowancesTx regardless of Permit2 on-chain allowance status', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
+        }),
+      );
+    });
+
+    it('does not attach allowancesTx when hasAllowances is true', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest({
+        hasAllowances: true,
+      });
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: undefined,
+        }),
+      );
+    });
+
+    it('does not attach allowancesTx when permit2 is disabled', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest({
+        permit2Enabled: false,
+        executors: [],
+      });
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+        },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: undefined,
+        }),
+      );
+      expect(getProxyWalletAllowancesTransaction).not.toHaveBeenCalled();
+    });
+
+    it('continues order placement when getProxyWalletAllowancesTransaction throws', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest();
+      const preview = createMockOrderPreview({
+        side: Side.BUY,
+        fees: {
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          totalFee: 0.04,
+          totalFeePercentage: 0.04,
+          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
+          permit2Enabled: true,
+          executors: ['0xexecutor1'],
+        },
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockRejectedValue(
+        new Error('TX generation failed'),
+      );
+
+      const result = await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(result.success).toBe(true);
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: undefined,
+        }),
+      );
+    });
+
+    it('attaches allowancesTx for SELL orders', async () => {
+      const { provider, mockSigner } = setupAllowancesTxTest();
+      const preview = createMockOrderPreview({
+        side: Side.SELL,
+        fees: undefined,
+      });
+      (getProxyWalletAllowancesTransaction as jest.Mock).mockResolvedValue({
+        params: { to: '0xSafe', data: '0xallowances' },
+      });
+
+      await provider.placeOrder({ preview, signer: mockSigner });
+
+      expect(getProxyWalletAllowancesTransaction).toHaveBeenCalled();
+      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          allowancesTx: { to: '0xSafe', data: '0xallowances' },
+        }),
+      );
+    });
+  });
+
   describe('placeOrder FAK order type for sell orders', () => {
     it('submits FAK order type for sell order without fees when FAK is enabled', async () => {
       jest.clearAllMocks();
@@ -1977,7 +2150,6 @@ describe('PolymarketProvider', () => {
           clobOrder: expect.objectContaining({ orderType: 'FAK' }),
         }),
       );
-      expect(mockHasPermit2Allowance).not.toHaveBeenCalled();
     });
 
     it('submits FOK order type for sell order without fees when FAK is disabled', async () => {
