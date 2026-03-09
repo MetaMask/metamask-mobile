@@ -89,10 +89,16 @@ export function usePredictOrderPreview(
           operation: 'order_management',
           side: debouncedParams.side,
           marketId: debouncedParams.marketId,
+          outcomeId: debouncedParams.outcomeId,
         },
       },
     });
-  }, [query.error, debouncedParams.side, debouncedParams.marketId]);
+  }, [
+    query.error,
+    debouncedParams.side,
+    debouncedParams.marketId,
+    debouncedParams.outcomeId,
+  ]);
 
   return {
     preview,
