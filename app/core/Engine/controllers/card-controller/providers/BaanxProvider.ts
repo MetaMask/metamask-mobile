@@ -1,6 +1,7 @@
 import Logger from '../../../../../util/Logger';
 import {
   CardExternalWalletDetail,
+  CardWalletExternalPriorityResponse,
   CardDetailsResponse,
   CardExchangeTokenRawResponse,
   CardLoginInitiateResponse,
@@ -16,6 +17,7 @@ import {
 import {
   ARBITRARY_ALLOWANCE,
   BAANX_MAX_LIMIT,
+  caipChainIdToNetwork,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
 import {
@@ -23,7 +25,7 @@ import {
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
 import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
-import type { BaanxService } from '../services/BaanxService';
+import { CardApiError, type BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
   CardAction,
@@ -48,17 +50,16 @@ import {
   RegistrationStatus,
   WalletOperations,
   FundingAssetStatus,
+  CardProviderError,
+  CardProviderErrorCode,
   emptyCardHomeData,
 } from '../provider-types';
 
 const TOKEN_EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
 
-const CHAIN_TO_NETWORK: Record<string, string> = {
-  'eip155:59144': 'linea',
-  'eip155:8453': 'base',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
-};
+// Required by the OAuth API but not validated server-side.
+const OAUTH_REDIRECT_URI = 'https://example.com';
 
 const ONBOARDING_ENDPOINTS: Record<string, string> = {
   email_verification: '/v1/auth/register/email/send',
@@ -74,6 +75,98 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'baanx' },
     context: { name: 'BaanxProvider', data: { method, ...extra } },
   };
+}
+
+function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
+  if (error instanceof CardApiError) {
+    const body =
+      typeof error.responseBody === 'string' ? error.responseBody : '';
+
+    if (body.includes('account has been disabled')) {
+      return new CardProviderError(
+        CardProviderErrorCode.AccountDisabled,
+        'Account has been disabled',
+        error.statusCode,
+      );
+    }
+    if (error.statusCode === 400 && hasOtpCode) {
+      return new CardProviderError(
+        CardProviderErrorCode.InvalidOtp,
+        'Invalid OTP code',
+        400,
+      );
+    }
+    if ([401, 403, 404].includes(error.statusCode)) {
+      return new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Invalid login details',
+        error.statusCode,
+      );
+    }
+    if (error.statusCode >= 500) {
+      return new CardProviderError(
+        CardProviderErrorCode.ServerError,
+        'Server error',
+        error.statusCode,
+      );
+    }
+    if (error.statusCode === 408) {
+      return new CardProviderError(
+        CardProviderErrorCode.Timeout,
+        'Login request timed out',
+        408,
+      );
+    }
+  }
+  return new CardProviderError(
+    CardProviderErrorCode.Unknown,
+    (error as Error).message ?? 'Login failed',
+  );
+}
+
+function mapApiError(error: unknown, operation: string): CardProviderError {
+  if (error instanceof CardProviderError) return error;
+  if (error instanceof CardApiError) {
+    if ([401, 403].includes(error.statusCode)) {
+      return new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        `Authentication failed on ${operation}`,
+        error.statusCode,
+      );
+    }
+    if (error.statusCode === 404) {
+      return new CardProviderError(
+        CardProviderErrorCode.NotFound,
+        `Not found: ${operation}`,
+        404,
+      );
+    }
+    if (error.statusCode === 409) {
+      return new CardProviderError(
+        CardProviderErrorCode.Conflict,
+        `Conflict on ${operation}`,
+        409,
+      );
+    }
+    if (error.statusCode >= 500) {
+      return new CardProviderError(
+        CardProviderErrorCode.ServerError,
+        `Server error on ${operation}`,
+        error.statusCode,
+      );
+    }
+    if (error.statusCode === 408) {
+      return new CardProviderError(
+        CardProviderErrorCode.Timeout,
+        `Request timeout on ${operation}`,
+        408,
+      );
+    }
+  }
+  return new CardProviderError(
+    CardProviderErrorCode.Unknown,
+    (error as Error).message ?? `Unknown error on ${operation}`,
+  );
 }
 
 function mapAllowanceToFundingStatus(
@@ -132,7 +225,7 @@ export class BaanxProvider implements ICardProvider {
       code_challenge_method: 'S256',
       mode: 'api',
       response_type: 'code',
-      redirect_uri: 'https://example.com',
+      redirect_uri: OAUTH_REDIRECT_URI,
     }).toString();
 
     const response = await this.service.get<CardLoginInitiateResponse>(
@@ -245,13 +338,22 @@ export class BaanxProvider implements ICardProvider {
             }),
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
-            .catch(() => null),
-          this.service.get<UserResponse>('/v1/user', tokens).catch(() => null),
+            .catch((err) => {
+              Logger.error(
+                err as Error,
+                getErrorContext('getCardHomeData.cardDetails'),
+              );
+              return null;
+            }),
+          this.service.get<UserResponse>('/v1/user', tokens).catch((err) => {
+            Logger.error(err as Error, getErrorContext('getCardHomeData.user'));
+            return null;
+          }),
         ],
       );
 
       const walletDetails = delegationSettings
-        ? await this.fetchWalletDetails(delegationSettings.networks, tokens)
+        ? await this.fetchWalletDetails(tokens)
         : [];
 
       const assets = this.mapWalletDetailsToAssets(walletDetails);
@@ -275,11 +377,22 @@ export class BaanxProvider implements ICardProvider {
   // -- Card Operations --
 
   async getCardDetails(tokens: CardAuthTokens): Promise<CardDetails> {
-    const response = await this.service.get<CardDetailsResponse>(
-      '/v1/card/status',
-      tokens,
-    );
-    return this.mapCardDetails(response);
+    try {
+      const response = await this.service.get<CardDetailsResponse>(
+        '/v1/card/status',
+        tokens,
+      );
+      return this.mapCardDetails(response);
+    } catch (error) {
+      if (error instanceof CardApiError && error.statusCode === 404) {
+        throw new CardProviderError(
+          CardProviderErrorCode.NoCard,
+          'User has no card',
+          404,
+        );
+      }
+      throw mapApiError(error, 'getCardDetails');
+    }
   }
 
   async freezeCard(_cardId: string, tokens: CardAuthTokens): Promise<void> {
@@ -309,12 +422,17 @@ export class BaanxProvider implements ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void> {
-    const priorities = allAssets.map((a, idx) => ({
+    let nextPriority = 2;
+    const priorities = allAssets.map((a) => ({
       address: a.address,
       currency: a.symbol,
-      network: CHAIN_TO_NETWORK[a.chainId] ?? 'unknown',
+      network: caipChainIdToNetwork[a.chainId] ?? 'unknown',
       priority:
-        a.symbol === asset.symbol && a.chainId === asset.chainId ? 1 : idx + 2,
+        a.symbol === asset.symbol &&
+        a.chainId === asset.chainId &&
+        a.address === asset.address
+          ? 1
+          : nextPriority++,
     }));
 
     await this.service.put('/v1/wallet/external/priority', priorities, tokens);
@@ -383,7 +501,7 @@ export class BaanxProvider implements ICardProvider {
   ): Promise<RegistrationStatus> {
     this.service.setLocation(mapCountryToLocation(country));
     const response = await this.service.get<UserResponse>(
-      `/v1/auth/register/status/${sessionId}`,
+      `/v1/auth/register/status/${encodeURIComponent(sessionId)}`,
     );
 
     return {
@@ -427,14 +545,19 @@ export class BaanxProvider implements ICardProvider {
     session: CardAuthSession,
     credentials: Extract<CardCredentials, { type: 'email_password' }>,
   ): Promise<CardAuthResult> {
-    const loginResponse = await this.service.post<CardLoginResponse>(
-      '/v1/auth/login',
-      {
-        email: credentials.email,
-        password: credentials.password,
-        ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
-      },
-    );
+    let loginResponse: CardLoginResponse;
+    try {
+      loginResponse = await this.service.post<CardLoginResponse>(
+        '/v1/auth/login',
+        {
+          email: credentials.email,
+          password: credentials.password,
+          ...(credentials.otpCode ? { otpCode: credentials.otpCode } : {}),
+        },
+      );
+    } catch (error) {
+      throw mapLoginError(error, !!credentials.otpCode);
+    }
 
     if (loginResponse.isOtpRequired) {
       session._metadata.otpUserId = loginResponse.userId;
@@ -464,11 +587,22 @@ export class BaanxProvider implements ICardProvider {
     session: CardAuthSession,
     loginResponse: CardLoginResponse,
   ): Promise<CardAuthResult> {
-    const metadata = session._metadata as {
-      initiateToken: string;
-      location: CardLocation;
-      state: string;
-      codeVerifier: string;
+    const { initiateToken, location, state, codeVerifier } = session._metadata;
+    if (
+      typeof initiateToken !== 'string' ||
+      typeof location !== 'string' ||
+      typeof state !== 'string' ||
+      typeof codeVerifier !== 'string'
+    ) {
+      throw new Error(
+        'Invalid auth session: missing initiateToken, location, state, or codeVerifier in _metadata',
+      );
+    }
+    const metadata = {
+      initiateToken,
+      location: location as CardLocation,
+      state,
+      codeVerifier,
     };
 
     const authorizeResponse = await this.service.request<CardAuthorizeResponse>(
@@ -493,7 +627,7 @@ export class BaanxProvider implements ICardProvider {
             grant_type: 'authorization_code',
             code: authorizeResponse.code,
             code_verifier: metadata.codeVerifier,
-            redirect_uri: 'https://example.com',
+            redirect_uri: OAUTH_REDIRECT_URI,
           },
           headers: { 'x-secret-key': this.service.apiKey },
         },
@@ -512,22 +646,44 @@ export class BaanxProvider implements ICardProvider {
   }
 
   private async fetchWalletDetails(
-    networks: DelegationSettingsNetwork[],
     tokens: CardAuthTokens,
   ): Promise<CardExternalWalletDetail[]> {
     try {
-      const results = await this.service.get<CardExternalWalletDetail[]>(
-        '/v1/wallet/external',
-        tokens,
+      const [wallets, priorities] = await Promise.all([
+        this.service.get<CardExternalWalletDetail[]>(
+          '/v1/wallet/external',
+          tokens,
+        ),
+        this.service
+          .get<
+            CardWalletExternalPriorityResponse[]
+          >('/v1/wallet/external/priority', tokens)
+          .catch(() => [] as CardWalletExternalPriorityResponse[]),
+      ]);
+
+      if (!wallets?.length) return [];
+
+      const maxPriority = priorities.reduce(
+        (max, p) => Math.max(max, p.priority),
+        0,
       );
-      return results ?? [];
+
+      const withPriority = wallets.map((wallet) => {
+        const match = priorities.find(
+          (p) =>
+            p.address?.toLowerCase() === wallet.walletAddress?.toLowerCase() &&
+            p.currency === wallet.currency &&
+            p.network?.toLowerCase() === wallet.network?.toLowerCase(),
+        );
+        return {
+          ...wallet,
+          priority: match?.priority ?? maxPriority + 1,
+        };
+      });
+
+      return withPriority.sort((a, b) => a.priority - b.priority);
     } catch (error) {
-      Logger.error(
-        error as Error,
-        getErrorContext('fetchWalletDetails', {
-          networkCount: networks.length,
-        }),
-      );
+      Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
       return [];
     }
   }
@@ -548,6 +704,8 @@ export class BaanxProvider implements ICardProvider {
           decimals: detail.tokenDetails.decimals ?? 0,
           chainId: detail.caipChainId,
           balance: availableBalance.toString(),
+          allowance: detail.allowance ?? '0',
+          priority: detail.priority ?? 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
         };
       })
@@ -560,12 +718,18 @@ export class BaanxProvider implements ICardProvider {
     if (assets.length === 0) return null;
     if (assets.length === 1) return assets[0];
 
-    const withBalance = assets.find((a) => {
+    const userPriority = assets[0];
+    const userPriorityBalance = parseFloat(userPriority.balance);
+    if (!isNaN(userPriorityBalance) && userPriorityBalance > 0) {
+      return userPriority;
+    }
+
+    const fallback = assets.find((a) => {
       const balance = parseFloat(a.balance);
       return !isNaN(balance) && balance > 0;
     });
 
-    return withBalance ?? assets[0];
+    return fallback ?? userPriority;
   }
 
   private mapCardDetails(response: CardDetailsResponse): CardDetails {
@@ -674,6 +838,8 @@ export class BaanxProvider implements ICardProvider {
           decimals: 6,
           chainId: info?.caipChainId ?? `eip155:${network.chainId}`,
           balance: '0',
+          allowance: '0',
+          priority: 0,
           status: FundingAssetStatus.Inactive,
         },
       };

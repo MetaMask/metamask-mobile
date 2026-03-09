@@ -3,6 +3,37 @@ import { CardStatus, CardType } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
 
+// -- Provider Errors --
+
+export enum CardProviderErrorCode {
+  InvalidCredentials = 'invalid_credentials',
+  AccountDisabled = 'account_disabled',
+  InvalidOtp = 'invalid_otp',
+  Conflict = 'conflict',
+  NotFound = 'not_found',
+  NoCard = 'no_card',
+  ServerError = 'server_error',
+  Timeout = 'timeout',
+  Network = 'network',
+  Unknown = 'unknown',
+}
+
+export class CardProviderError extends Error {
+  readonly code: CardProviderErrorCode;
+  readonly statusCode?: number;
+
+  constructor(
+    code: CardProviderErrorCode,
+    message: string,
+    statusCode?: number,
+  ) {
+    super(message);
+    this.name = 'CardProviderError';
+    this.code = code;
+    this.statusCode = statusCode;
+  }
+}
+
 // -- Provider Identity --
 
 export type CardProviderId = string;
@@ -87,6 +118,8 @@ export interface CardFundingAsset {
   decimals: number;
   chainId: CaipChainId;
   balance: string;
+  allowance: string;
+  priority: number;
   status: FundingAssetStatus;
 }
 
