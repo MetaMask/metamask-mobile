@@ -14,10 +14,11 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 
 const testSpecificMock = async (mockServer: Mockttp) => {
   await POLYMARKET_API_DOWN(mockServer);
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
+  });
 };
 
 describe(SmokePredictions('Prediction markets'), () => {

@@ -42,21 +42,26 @@ class StakeView {
   }
 
   async tapReviewWithRetry(timeout = 90000): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      await Gestures.waitAndTap(this.reviewButton, {
-        timeout: 5000,
-        elemDescription: 'Review Button in Stake View',
-      });
-      try {
+    await Utilities.executeWithRetry(
+      async () => {
+        // Only tap review if we haven't already navigated to the confirm screen
+        const onConfirmScreen = await Utilities.isElementVisible(
+          this.confirmButton,
+          2000,
+        );
+        if (!onConfirmScreen) {
+          await Gestures.waitAndTap(this.reviewButton, {
+            timeout: 5000,
+            elemDescription: 'Review Button in Stake View',
+          });
+        }
         await Utilities.waitForElementToBeEnabled(this.confirmButton, 5000);
-        return;
-      } catch {
-        await new Promise((r) => setTimeout(r, 2000));
-      }
-    }
-    throw new Error(
-      `Confirm screen did not appear after tapping Review within ${timeout}ms`,
+      },
+      {
+        timeout,
+        description: 'Tap Review and wait for Confirm screen',
+        elemDescription: 'Review → Confirm flow in Stake View',
+      },
     );
   }
 

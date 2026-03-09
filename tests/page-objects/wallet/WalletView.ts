@@ -23,8 +23,6 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-// eslint-disable-next-line import/no-nodejs-modules
-import { execSync } from 'child_process';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;
@@ -567,37 +565,13 @@ class WalletView {
     positionName: string,
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
-    const maxAttempts = 10;
-    for (let i = 0; i < maxAttempts; i++) {
-      try {
-        await waitFor(element(by.text(positionName)).atIndex(0))
-          .toBeVisible()
-          .withTimeout(1000);
-        await Utilities.waitForElementToStopMoving(
-          element(by.text(positionName)).atIndex(0) as unknown as DetoxElement,
-          { timeout: 3000, interval: 200, stableCount: 3 },
-        );
-        return;
-      } catch {
-        if (device.getPlatform() === 'android') {
-          // Android Detox rejects swipe/scroll on views taller than viewport
-          // (90% visibility constraint). Use raw adb input swipe instead.
-          const startY = direction === 'down' ? 600 : 300;
-          const endY = direction === 'down' ? 300 : 600;
-          execSync(`adb shell input swipe 500 ${startY} 500 ${endY} 300`);
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        } else {
-          const swipeDirection = direction === 'down' ? 'up' : 'down';
-          await Gestures.swipe(
-            this.PredictionsTabContainer as unknown as DetoxElement,
-            swipeDirection,
-            { speed: 'slow', percentage: 0.5 },
-          );
-        }
-      }
-    }
-    throw new Error(
-      `scrollToPosition: "${positionName}" not found after ${maxAttempts} attempts`,
+    const positionElement = (await Matchers.getElementByText(
+      positionName,
+    )) as unknown as DetoxElement;
+    await Gestures.scrollToElement(
+      positionElement,
+      this.predictScrollViewIdentifier,
+      { direction },
     );
   }
 
