@@ -213,6 +213,26 @@ describe('usePredictPriceHistory', () => {
   });
 
   describe('refetch functionality', () => {
+    it('does not refetch when disabled', async () => {
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () =>
+          usePredictPriceHistory({
+            marketIds: ['market-1'],
+            enabled: false,
+          }),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockGetPriceHistory).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(mockGetPriceHistory).not.toHaveBeenCalled();
+    });
+
     it('refetches data when refetch is called', async () => {
       const { Wrapper } = createWrapper();
       const { result } = renderHook(

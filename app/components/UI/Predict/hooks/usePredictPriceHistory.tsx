@@ -123,12 +123,16 @@ export const usePredictPriceHistory = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryErrorsKey, marketIdsKey, interval, fidelity, startTs, endTs]);
 
-  // Use a ref so refetch has a stable identity across renders
+  // Use refs so refetch has a stable identity across renders
   const queriesRef =
     useRef<UseQueryResult<PredictPriceHistoryPoint[]>[]>(queries);
   queriesRef.current = queries;
 
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
+
   const refetch = useCallback(async () => {
+    if (!enabledRef.current) return;
     await Promise.all(queriesRef.current.map((q) => q.refetch()));
   }, []);
 
