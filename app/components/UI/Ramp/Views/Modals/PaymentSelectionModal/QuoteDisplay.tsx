@@ -10,7 +10,7 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { strings } from '../../../../../../../locales/i18n';
 
 const SKELETON_TOKEN_WIDTH = 80;

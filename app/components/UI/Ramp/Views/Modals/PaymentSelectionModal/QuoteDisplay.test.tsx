@@ -3,14 +3,17 @@ import { render } from '@testing-library/react-native';
 import QuoteDisplay from './QuoteDisplay';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
-jest.mock('../../../../../../component-library/components/Skeleton', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    Skeleton: ({ width, height }: { width: number; height: number }) => (
-      <View testID="skeleton" style={{ width, height }} />
-    ),
-  };
-});
+jest.mock(
+  '../../../../../../component-library/components-temp/Skeleton',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      Skeleton: ({ width, height }: { width: number; height: number }) => (
+        <View testID="skeleton" style={{ width, height }} />
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
