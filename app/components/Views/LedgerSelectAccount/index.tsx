@@ -331,6 +331,7 @@ const LedgerSelectAccount = () => {
       }
 
       setBlockingModalVisible(false);
+      isUnlockingRef.current = false;
     },
     [
       updateNewLegacyAccountsLabel,
