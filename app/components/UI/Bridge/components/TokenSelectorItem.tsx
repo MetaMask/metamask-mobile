@@ -198,7 +198,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   };
 
   const cryptoBalance = token.balance
-    ? formatTokenBalance(token.balance)
+    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
