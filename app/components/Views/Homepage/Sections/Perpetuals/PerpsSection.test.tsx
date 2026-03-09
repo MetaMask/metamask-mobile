@@ -87,13 +87,15 @@ jest.mock('../../../../UI/Perps/components/PerpsCard', () => {
     default: ({
       position,
       order,
+      onPress,
       testID,
     }: {
       position?: { symbol: string; leverage?: { type: string; value: number } };
       order?: { symbol: string; side: string; orderId: string };
+      onPress?: () => void;
       testID?: string;
     }) => (
-      <TouchableOpacity testID={testID}>
+      <TouchableOpacity testID={testID} onPress={onPress}>
         {position && (
           <Text>
             {position.symbol}{' '}
