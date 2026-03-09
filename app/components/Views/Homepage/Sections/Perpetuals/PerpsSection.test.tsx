@@ -152,25 +152,6 @@ jest.mock('./components/PerpsMarketTileCard', () => {
   };
 });
 
-jest.mock('../../components/FadingScrollContainer', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      children,
-    }: {
-      children: (props: {
-        onScroll: () => void;
-        scrollEventThrottle: number;
-      }) => React.ReactNode;
-    }) => (
-      <View testID="fading-scroll-container">
-        {children({ onScroll: jest.fn(), scrollEventThrottle: 16 })}
-      </View>
-    ),
-  };
-});
-
 jest.mock('react-native-linear-gradient', () => {
   const { View } = jest.requireActual('react-native');
   return {
