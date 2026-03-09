@@ -64,7 +64,7 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
-  const preview = query.data ?? null;
+  const preview = hasValidSize ? (query.data ?? null) : null;
   const error = query.error
     ? parseErrorMessage({
         error: query.error,
