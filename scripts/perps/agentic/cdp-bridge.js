@@ -41,17 +41,17 @@ function loadEnvValue(key) {
 
 /** Read WATCHER_PORT from .js.env or env (default: 8081) */
 function loadPort() {
-  return Number.parseInt(loadEnvValue('WATCHER_PORT') || process.env.WATCHER_PORT || '8081', 10);
+  return Number.parseInt(process.env.WATCHER_PORT || loadEnvValue('WATCHER_PORT') || '8081', 10);
 }
 
 /** Read IOS_SIMULATOR name from .js.env or env (default: none — accept any device) */
 function loadSimulatorName() {
-  return loadEnvValue('IOS_SIMULATOR') || process.env.IOS_SIMULATOR || '';
+  return process.env.IOS_SIMULATOR || loadEnvValue('IOS_SIMULATOR') || '';
 }
 
 /** Read ANDROID_DEVICE serial from .js.env or env (default: none — accept any device) */
 function loadAndroidDevice() {
-  return loadEnvValue('ANDROID_DEVICE') || process.env.ANDROID_DEVICE || '';
+  return process.env.ANDROID_DEVICE || loadEnvValue('ANDROID_DEVICE') || '';
 }
 
 /** Fetch JSON from a URL (http only, no external deps) */
@@ -556,6 +556,253 @@ const COMMANDS = {
     return await cdpEval(client, `globalThis.__AGENTIC__?.switchAccount(${JSON.stringify(address)})`);
   },
 
+  async 'press-test-id'(client, args, { deviceName } = {}) {
+    const testId = args[0];
+    if (!testId) {
+      throw new Error('Usage: press-test-id <testId>');
+    }
+    // Try __AGENTIC__ bridge first, fall back to inline fiber walking
+    const expr = `(function() {
+      if (globalThis.__AGENTIC__?.pressTestId) return globalThis.__AGENTIC__.pressTestId(${JSON.stringify(testId)});
+      var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+      if (!hook) return { ok: false, error: 'No React DevTools hook' };
+      var renderers = hook.renderers;
+      if (!renderers) return { ok: false, error: 'No renderers' };
+      var getFiberRoots = hook.getFiberRoots;
+      function walk(fiber) {
+        if (!fiber) return false;
+        var props = fiber.memoizedProps;
+        if (props && props.testID === ${JSON.stringify(testId)}) {
+          if (typeof props.onPress === 'function') { props.onPress(); return true; }
+        }
+        return walk(fiber.child) || walk(fiber.sibling);
+      }
+      for (var id = 1; id <= 3; id++) {
+        if (!renderers.get(id)) continue;
+        var roots = getFiberRoots ? getFiberRoots(id) : undefined;
+        if (!roots) continue;
+        var found = false;
+        roots.forEach(function(r) { if (!found) found = walk(r.current); });
+        if (found) return { ok: true, testId: ${JSON.stringify(testId)} };
+      }
+      return { ok: false, error: 'No component with testID=' + ${JSON.stringify(testId)} + ' found or no onPress' };
+    })()`;
+    const result = await cdpEval(client, expr);
+    return { ...result, testId, deviceName };
+  },
+
+  async 'scroll-view'(client, args, { deviceName } = {}) {
+    let testId;
+    let offset = 300;
+    let animated = false;
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--test-id' && i + 1 < args.length) {
+        testId = args[++i];
+      } else if (args[i] === '--offset' && i + 1 < args.length) {
+        offset = Number(args[++i]);
+      } else if (args[i] === '--animated') {
+        animated = true;
+      } else if (args[i] === '--no-animated') {
+        animated = false;
+      }
+    }
+    const optsJson = JSON.stringify({ testId, offset, animated });
+    // Try __AGENTIC__ bridge first, fall back to inline fiber walking
+    const expr = `(function() {
+      if (globalThis.__AGENTIC__?.scrollView) return globalThis.__AGENTIC__.scrollView(${optsJson});
+      var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+      if (!hook) return { ok: false, error: 'No React DevTools hook' };
+      var renderers = hook.renderers;
+      if (!renderers) return { ok: false, error: 'No renderers' };
+      var getFiberRoots = hook.getFiberRoots;
+      var opts = ${optsJson};
+      function tryScroll(fiber) {
+        if (!fiber) return false;
+        var sn = fiber.stateNode;
+        if (sn) {
+          if (typeof sn.scrollTo === 'function') { sn.scrollTo({ y: opts.offset, animated: opts.animated }); return true; }
+          if (typeof sn.scrollToOffset === 'function') { sn.scrollToOffset({ offset: opts.offset, animated: opts.animated }); return true; }
+        }
+        return tryScroll(fiber.child) || tryScroll(fiber.sibling);
+      }
+      function findTestId(fiber) {
+        if (!fiber) return null;
+        var props = fiber.memoizedProps;
+        if (props && props.testID === opts.testId) return fiber;
+        return findTestId(fiber.child) || findTestId(fiber.sibling);
+      }
+      for (var id = 1; id <= 3; id++) {
+        if (!renderers.get(id)) continue;
+        var roots = getFiberRoots ? getFiberRoots(id) : undefined;
+        if (!roots) continue;
+        var scrolled = false;
+        roots.forEach(function(r) {
+          if (scrolled) return;
+          if (opts.testId) {
+            var anchor = findTestId(r.current);
+            if (anchor) scrolled = tryScroll(anchor) || tryScroll(anchor.child) || tryScroll(anchor.sibling);
+          } else {
+            scrolled = tryScroll(r.current);
+          }
+        });
+        if (scrolled) return { ok: true, testId: opts.testId, offset: opts.offset, animated: opts.animated };
+      }
+      return { ok: false, error: opts.testId ? 'No scrollable near testID=' + opts.testId : 'No scrollable found' };
+    })()`;
+    const result = await cdpEval(client, expr);
+    return { ...result, deviceName };
+  },
+
+  async 'sentry-debug'(client, args, { deviceName } = {}) {
+    const action = args[0] || 'enable';
+    if (action === 'enable') {
+      const expr = `(function() {
+        try {
+          var sentryHub = globalThis.__SENTRY__;
+          if (!sentryHub) return { ok: false, error: 'globalThis.__SENTRY__ not found' };
+          var ver = Object.keys(sentryHub).filter(function(k) { return /^[0-9]/.test(k); })[0];
+          if (!ver) return { ok: false, error: 'No Sentry version key found in __SENTRY__' };
+          var hub = sentryHub[ver];
+          var scope = hub.defaultCurrentScope;
+          if (!scope) return { ok: false, error: 'No defaultCurrentScope in Sentry hub' };
+          var sentryClient = scope.getClient();
+          if (!sentryClient) return { ok: false, error: 'No Sentry client found via scope.getClient()' };
+
+          if (sentryClient.__agenticPatched) return { ok: true, alreadyPatched: true, version: ver };
+
+          var origException = sentryClient.captureException.bind(sentryClient);
+          var origMessage = sentryClient.captureMessage.bind(sentryClient);
+
+          sentryClient.captureException = function(err, hint, currentScope) {
+            var msg = err && err.message ? err.message : String(err);
+            console.warn('[SENTRY-DEBUG] captureException:', msg);
+            if (err && err.stack) console.warn('[SENTRY-DEBUG] stack:', err.stack);
+            return origException(err, hint, currentScope);
+          };
+          sentryClient.captureMessage = function(msg, level, hint, currentScope) {
+            console.warn('[SENTRY-DEBUG] captureMessage:', msg);
+            return origMessage(msg, level, hint, currentScope);
+          };
+          sentryClient.__agenticPatched = true;
+          sentryClient.__agenticOrigException = origException;
+          sentryClient.__agenticOrigMessage = origMessage;
+          return { ok: true, patched: true, version: ver };
+        } catch(e) {
+          return { ok: false, error: String(e) };
+        }
+      })()`;
+      return await cdpEval(client, expr);
+    } else if (action === 'disable') {
+      const expr = `(function() {
+        try {
+          var sentryHub = globalThis.__SENTRY__;
+          if (!sentryHub) return { ok: true, wasNotPatched: true };
+          var ver = Object.keys(sentryHub).filter(function(k) { return /^[0-9]/.test(k); })[0];
+          if (!ver) return { ok: true, wasNotPatched: true };
+          var hub = sentryHub[ver];
+          var scope = hub.defaultCurrentScope;
+          if (!scope) return { ok: true, wasNotPatched: true };
+          var sentryClient = scope.getClient();
+          if (!sentryClient || !sentryClient.__agenticPatched) return { ok: true, wasNotPatched: true };
+          sentryClient.captureException = sentryClient.__agenticOrigException;
+          sentryClient.captureMessage = sentryClient.__agenticOrigMessage;
+          delete sentryClient.__agenticPatched;
+          delete sentryClient.__agenticOrigException;
+          delete sentryClient.__agenticOrigMessage;
+          return { ok: true, unpatched: true, version: ver };
+        } catch(e) {
+          return { ok: false, error: String(e) };
+        }
+      })()`;
+      return await cdpEval(client, expr);
+    }
+    throw new Error('Usage: sentry-debug [enable|disable]');
+  },
+
+  async unlock(client, args, { deviceName } = {}) {
+    const password = args[0];
+    if (!password) {
+      throw new Error('Usage: unlock <password>');
+    }
+    const escapedPw = JSON.stringify(password);
+
+    // Fiber-tree walker snippet reused in both phases
+    const fiberWalker = `
+      var hook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+      if (!hook) return { ok: false, error: 'No React DevTools hook' };
+      var renderers = hook.renderers;
+      if (!renderers) return { ok: false, error: 'No renderers' };
+      var getFiberRoots = hook.getFiberRoots;
+      function walkFiber(fiber, testId) {
+        if (!fiber) return null;
+        var props = fiber.memoizedProps;
+        if (props && props.testID === testId) return fiber;
+        var found = walkFiber(fiber.child, testId);
+        if (found) return found;
+        return walkFiber(fiber.sibling, testId);
+      }`;
+
+    // Phase 1: inject password via onChangeText
+    const injectExpr = `(function() {
+      ${fiberWalker}
+      var password = ${escapedPw};
+      for (var id = 1; id <= 3; id++) {
+        if (!renderers.get(id)) continue;
+        var roots = getFiberRoots ? getFiberRoots(id) : undefined;
+        if (!roots) continue;
+        var injected = false;
+        roots.forEach(function(root) {
+          if (injected) return;
+          var input = walkFiber(root.current, 'login-password-input');
+          if (input && input.memoizedProps && typeof input.memoizedProps.onChangeText === 'function') {
+            input.memoizedProps.onChangeText(password);
+            injected = true;
+          }
+        });
+        if (injected) return { ok: true, phase: 'inject' };
+      }
+      return { ok: false, error: 'login-password-input not found' };
+    })()`;
+
+    const injectResult = await cdpEval(client, injectExpr);
+    if (!injectResult || !injectResult.ok) {
+      return { ok: false, error: injectResult?.error || 'Password injection failed', deviceName };
+    }
+
+    // Wait for React to re-render so useCallback picks up the new password
+    await new Promise((r) => setTimeout(r, 600));
+
+    // Phase 2: walk the fiber tree AGAIN to get the updated onPress callback
+    const pressExpr = `(function() {
+      ${fiberWalker}
+      for (var id = 1; id <= 3; id++) {
+        if (!renderers.get(id)) continue;
+        var roots = getFiberRoots ? getFiberRoots(id) : undefined;
+        if (!roots) continue;
+        var pressed = false;
+        roots.forEach(function(root) {
+          if (pressed) return;
+          var btn = walkFiber(root.current, 'log-in-button');
+          if (btn && btn.memoizedProps && typeof btn.memoizedProps.onPress === 'function') {
+            btn.memoizedProps.onPress();
+            pressed = true;
+          }
+        });
+        if (pressed) return { ok: true, phase: 'press' };
+      }
+      return { ok: false, error: 'log-in-button not found' };
+    })()`;
+
+    const pressResult = await cdpEval(client, pressExpr);
+    return {
+      ok: (pressResult && pressResult.ok) || false,
+      injected: true,
+      pressed: (pressResult && pressResult.ok) || false,
+      error: pressResult?.error,
+      deviceName,
+    };
+  },
+
   async recipe(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
@@ -642,6 +889,11 @@ Commands:
   list-accounts                        List all accounts
   get-selected-account                 Get the currently selected account
   switch-account <address>             Switch to account by address
+  press-test-id <testId>               Press a component by its testID prop
+  scroll-view [--test-id <id>] [--offset <n>] [--animated]
+                                       Scroll a ScrollView/FlatList
+  sentry-debug [enable|disable]          Patch Sentry to log errors to console with [SENTRY-DEBUG] prefix
+  unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
   recipe <team/name>                   Run a recipe (e.g. perps/positions)
   recipe --list                        List all available recipes
 

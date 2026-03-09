@@ -113,9 +113,15 @@ scripts/perps/agentic/app-state.sh go-back                      # navigate back
 scripts/perps/agentic/app-state.sh accounts                     # list all accounts
 scripts/perps/agentic/app-state.sh account                      # get selected account
 scripts/perps/agentic/app-state.sh switch-account <addr>        # switch to account by address
+scripts/perps/agentic/app-state.sh press <testId>               # press a component by testID
+scripts/perps/agentic/app-state.sh scroll [--test-id <id>] [--offset <n>]  # scroll a ScrollView/FlatList
+scripts/perps/agentic/app-state.sh unlock <password>            # unlock wallet via fiber tree
+scripts/perps/agentic/app-state.sh sentry-debug [enable|disable] # patch Sentry to log to console
 scripts/perps/agentic/app-state.sh recipe <team/name>           # run a recipe (e.g. perps/positions)
 scripts/perps/agentic/app-state.sh recipe --list                # list all available recipes
 scripts/perps/agentic/screenshot.sh [label]                     # take screenshot, returns path
+scripts/perps/agentic/unlock-wallet.sh <password>               # unlock wallet (standalone script)
+scripts/perps/agentic/interactive-start.sh [--port <port>]      # interactive session with keyboard shortcuts
 scripts/perps/agentic/start-metro.sh                            # ensure Metro is running
 scripts/perps/agentic/stop-metro.sh                             # stop Metro background process
 scripts/perps/agentic/reload-metro.sh                           # trigger hot-reload on all connected apps
@@ -139,8 +145,10 @@ yarn a:navigate   # navigate to a screen (pass route + optional params)
 scripts/perps/agentic/
 ├── cdp-bridge.js          # CDP engine: WebSocket client, target discovery, eval, navigate
 ├── app-navigate.sh        # Navigate wrapper (calls cdp-bridge + auto-screenshot)
-├── app-state.sh           # State/route/eval/accounts/recipe wrapper (calls cdp-bridge)
+├── app-state.sh           # State/route/eval/accounts/recipe/press/scroll/unlock wrapper
 ├── screenshot.sh          # Cross-platform screenshot (iOS simctl / Android adb)
+├── unlock-wallet.sh       # Standalone wallet unlock script
+├── interactive-start.sh   # Interactive session with keyboard shortcuts
 ├── start-metro.sh         # Start Metro (or attach to existing)
 ├── stop-metro.sh          # Stop Metro background process
 ├── reload-metro.sh        # Trigger hot-reload on all connected apps
@@ -149,7 +157,7 @@ scripts/perps/agentic/
     └── README.md           # How to add recipes for your team
 ```
 
-The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`, `listAccounts()`, `getSelectedAccount()`, `switchAccount()`. These work identically on both platforms via Metro's Hermes CDP.
+The `__AGENTIC__` bridge on `globalThis` exposes: `navigate()`, `getRoute()`, `getState()`, `canGoBack()`, `goBack()`, `listAccounts()`, `getSelectedAccount()`, `switchAccount()`, `pressTestId()`, `scrollView()`. These work identically on both platforms via Metro's Hermes CDP.
 
 > **Platform targeting**: CDP-based commands (navigate, state, eval, go-back) are platform-agnostic — they go through Metro's WebSocket and reach whichever app is connected. Screenshots require direct device access (`xcrun simctl` or `adb`), so `screenshot.sh` auto-detects the platform. When both iOS and Android devices are connected, set `PLATFORM=android` or `PLATFORM=ios` to disambiguate. Since `app-navigate.sh` takes a verification screenshot, pass `PLATFORM` when needed:
 >
@@ -335,6 +343,115 @@ scripts/perps/agentic/app-state.sh switch-account 0x1234...abcd
 
 Useful for auth scoping validation — switch accounts and verify that controller state (e.g. perps auth) updates correctly. Combine with `recipe perps/auth` to check auth state after switching.
 
+### Wallet Unlock
+
+Agents cannot interact with the lock screen via standard navigation. The unlock flow uses the React fiber tree to programmatically inject the password and press the login button.
+
+```bash
+# Via standalone script (accepts password as arg or MM_PASSWORD env var)
+scripts/perps/agentic/unlock-wallet.sh myPassword123
+MM_PASSWORD=myPassword123 scripts/perps/agentic/unlock-wallet.sh
+
+# Via CDP bridge directly
+node scripts/perps/agentic/cdp-bridge.js unlock myPassword123
+
+# Via app-state shorthand
+scripts/perps/agentic/app-state.sh unlock myPassword123
+```
+
+How it works:
+
+1. Walks the React fiber tree via `__REACT_DEVTOOLS_GLOBAL_HOOK__` (dev mode only)
+2. Finds `login-password-input` (testID), calls its `onChangeText` with the password
+3. Finds `log-in-button` (testID), calls its `onPress` (deferred by 100ms for state update)
+4. The standalone script then waits 4s and verifies the route changed
+
+### UI Interaction (Press / Scroll by testID)
+
+Press and scroll work by walking the React fiber tree in dev mode. These are exposed both on the `__AGENTIC__` bridge in the app and as CDP bridge commands.
+
+```bash
+# Press a button by testID
+scripts/perps/agentic/app-state.sh press log-in-button
+node scripts/perps/agentic/cdp-bridge.js press-test-id log-in-button
+# -> { "ok": true, "testId": "log-in-button" }
+
+# Scroll a ScrollView by testID
+scripts/perps/agentic/app-state.sh scroll --test-id my-scroll-view --offset 500
+node scripts/perps/agentic/cdp-bridge.js scroll-view --test-id my-scroll-view --offset 500
+# -> { "ok": true, "testId": "my-scroll-view", "offset": 500, "animated": false }
+
+# Scroll the first scrollable view (no testID filter)
+scripts/perps/agentic/app-state.sh scroll --offset 300
+```
+
+Uses `__REACT_DEVTOOLS_GLOBAL_HOOK__` to walk the fiber tree. Works with ScrollView, FlatList, and any component that exposes `scrollTo` or `scrollToOffset` on its stateNode.
+
+**Known testIDs (Login screen):**
+
+| testID                 | Component | Prop           |
+| ---------------------- | --------- | -------------- |
+| `login-password-input` | TextField | `onChangeText` |
+| `log-in-button`        | Button    | `onPress`      |
+| `login`                | Container | -              |
+| `reset-wallet-button`  | Link      | `onPress`      |
+
+To discover testIDs in the codebase:
+
+```bash
+grep -r "testID=" app/components/ --include="*.tsx" | grep -oP "testID=['\"]([^'\"]+)" | sort -u
+```
+
+### Sentry Debug Mode
+
+Patches `Sentry.captureException` and `Sentry.captureMessage` to also log to console with `[SENTRY-DEBUG]` prefix. Agents can monitor which errors would hit Sentry in real-time via Metro logs.
+
+```bash
+# Enable (patches Sentry)
+scripts/perps/agentic/app-state.sh sentry-debug enable
+# -> { "ok": true, "patched": true }
+
+# Disable (restores original functions)
+scripts/perps/agentic/app-state.sh sentry-debug disable
+# -> { "ok": true, "unpatched": true }
+```
+
+After enabling, any `Sentry.captureException(err)` call will also produce:
+
+```
+WARN [SENTRY-DEBUG] captureException: Something went wrong
+WARN [SENTRY-DEBUG] stack: Error: Something went wrong at ...
+```
+
+Grep for Sentry events in Metro logs:
+
+```bash
+grep SENTRY-DEBUG .agent/metro.log | tail -20
+```
+
+### Interactive Session
+
+`interactive-start.sh` provides a keyboard-driven session that combines Metro log tailing with quick access to all agentic commands:
+
+```bash
+scripts/perps/agentic/interactive-start.sh [--port 8081]
+```
+
+| Key | Action                    |
+| --- | ------------------------- |
+| `r` | Reload JS bundle          |
+| `s` | Take screenshot           |
+| `u` | Unlock wallet             |
+| `n` | Navigate to route         |
+| `e` | Eval JS expression        |
+| `p` | Press testID              |
+| `t` | Status (route + account)  |
+| `d` | Toggle Sentry debug mode  |
+| `l` | Show last 50 lines of log |
+| `c` | Clear screen              |
+| `?` | Help                      |
+| `q` | Quit (stops Metro)        |
+
 ### Recipes
 
 Recipes are per-team JSON files in `scripts/perps/agentic/recipes/` that define reusable CDP expressions. This keeps domain-specific helpers in the scripts layer rather than the app source — any controller method accessible via `Engine.context` can be a recipe.
@@ -399,6 +516,10 @@ Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `Brows
 | Device not running (Android) | Start emulator from Android Studio or `emulator -avd <AVD_NAME>`                                      |
 | adb issues                   | Ensure `platform-tools` on PATH; try `adb kill-server && adb start-server`                            |
 | Route not found              | Check route name in Section 5; `cdp-bridge.js` handles nested routing automatically                   |
+| App stuck on lock screen     | `scripts/perps/agentic/unlock-wallet.sh <password>` or `app-state.sh unlock <password>`               |
+| `{ ok: false }` on press     | Wrong testID or component not on current screen; use `grep testID= app/components/` to find valid IDs |
+| `No React DevTools hook`     | Not in dev mode; React DevTools hook is only available in `__DEV__` builds                            |
+| Sentry errors not visible    | Enable Sentry debug: `app-state.sh sentry-debug enable`, then grep `SENTRY-DEBUG` in logs             |
 
 ---
 
@@ -423,6 +544,7 @@ Without `PLATFORM`, auto-detection priority: booted iOS simulator → connected 
 | `IOS_SIMULATOR`  | CDP target filtering by simulator name                     | `iPhone16Pro-Alpha`      |
 | `ANDROID_DEVICE` | CDP target filtering by device name                        | `Pixel 6a - 16 - API 36` |
 | `ADB_SERIAL`     | adb serial for Android screenshots                         | `emulator-5554`          |
+| `MM_PASSWORD`    | Wallet password for `unlock-wallet.sh`                     | `myPassword123`          |
 | `WATCHER_PORT`   | Metro port (default `8081`)                                | `8082`                   |
 
 Set these in `.js.env` or pass as env vars. The CDP bridge filters Metro's `/json/list` targets by `deviceName` when `IOS_SIMULATOR` or `ANDROID_DEVICE` is set, ensuring commands reach the correct app instance.
