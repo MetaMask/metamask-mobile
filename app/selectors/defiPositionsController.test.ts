@@ -3,6 +3,7 @@ import { RootState } from '../reducers';
 import {
   selectDeFiPositionsByAddress,
   selectDefiPositionsByEnabledNetworks,
+  selectDefiPositionsByChainIds,
 } from './defiPositionsController';
 
 describe('defiPositionsController selectors', () => {
@@ -236,6 +237,95 @@ describe('defiPositionsController selectors', () => {
 
       const result = selectDefiPositionsByEnabledNetworks(state);
       expect(result).toStrictEqual({});
+    });
+  });
+
+  describe('selectDefiPositionsByChainIds', () => {
+    it('returns positions only for the given chain IDs', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+        defiPositions: {
+          [mockAddress1]: mockDefiPositions,
+        },
+      });
+
+      const result = selectDefiPositionsByChainIds(state, ['0x1', '0xa86a']);
+      expect(result).toStrictEqual({
+        '0x1': mockDefiPositions['0x1'],
+        '0xa86a': mockDefiPositions['0xa86a'],
+      });
+      expect(result?.['0x89']).toBeUndefined();
+    });
+
+    it('returns empty object when there is no evm account in the selected account group', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/btc-only',
+      });
+
+      const result = selectDefiPositionsByChainIds(state, ['0x1']);
+      expect(result).toStrictEqual({});
+    });
+
+    it('returns undefined when no positions exist for the selected address', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+      });
+
+      const result = selectDefiPositionsByChainIds(state, ['0x1']);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns null when that is the value stored for that address', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+        defiPositions: {
+          [mockAddress1]: null,
+        },
+      });
+
+      const result = selectDefiPositionsByChainIds(state, ['0x1']);
+      expect(result).toBeNull();
+    });
+
+    it('returns empty object when chainIds is undefined', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+        defiPositions: {
+          [mockAddress1]: mockDefiPositions,
+        },
+      });
+
+      const result = selectDefiPositionsByChainIds(state, undefined);
+      expect(result).toStrictEqual({});
+    });
+
+    it('returns empty object when chainIds is empty array', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+        defiPositions: {
+          [mockAddress1]: mockDefiPositions,
+        },
+      });
+
+      const result = selectDefiPositionsByChainIds(state, []);
+      expect(result).toStrictEqual({});
+    });
+
+    it('returns only requested chain IDs that exist in positions', () => {
+      const state = createMockState({
+        selectedAccountGroup: 'entropy:wallet0/0',
+        defiPositions: {
+          [mockAddress1]: mockDefiPositions,
+        },
+      });
+
+      const result = selectDefiPositionsByChainIds(state, [
+        '0x1',
+        '0x999' as `0x${string}`,
+      ]);
+      expect(result).toStrictEqual({
+        '0x1': mockDefiPositions['0x1'],
+      });
     });
   });
 });
