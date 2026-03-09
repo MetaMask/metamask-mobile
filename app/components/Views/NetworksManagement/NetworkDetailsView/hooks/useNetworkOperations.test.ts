@@ -472,7 +472,7 @@ describe('useNetworkOperations', () => {
       expect(mockAddNetwork).not.toHaveBeenCalled();
     });
 
-    it('passes undefined options when indexRpc is negative', async () => {
+    it('passes options with indexRpc when form rpcUrl is not in rpcUrls list', async () => {
       setupExistingNetwork();
 
       const { result } = renderHook(() => useNetworkOperations());
@@ -494,8 +494,12 @@ describe('useNetworkOperations', () => {
 
       expect(mockUpdateNetwork).toHaveBeenCalledWith(
         existingChainId,
-        expect.any(Object),
-        undefined,
+        expect.objectContaining({
+          defaultRpcEndpointIndex: -1,
+        }),
+        expect.objectContaining({
+          replacementSelectedRpcEndpointIndex: -1,
+        }),
       );
     });
 
