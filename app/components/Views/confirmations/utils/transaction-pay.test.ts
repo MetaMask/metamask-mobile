@@ -5,9 +5,11 @@ import {
 } from '@metamask/transaction-controller';
 import {
   getAvailableTokens,
+  getBlockedTokensForTransactionType,
   getRequiredBalance,
   getTokenAddress,
   getTokenTransferData,
+  isTokenBlocked,
 } from './transaction-pay';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
@@ -20,7 +22,11 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { store } from '../../../../store';
-import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  selectGasFeeTokenFlags,
+  BlockedTokensListConfig,
+  BlockedTokensConfig,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 
 jest.mock('../../../../store', () => ({
@@ -345,6 +351,200 @@ describe('Transaction Pay Utils', () => {
           strings('pay_with_modal.no_gas'),
         );
       });
+    });
+
+    describe('blockedTokens', () => {
+      it('marks token as disabled when its chain is in blocklist chainIds', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [CHAIN_ID_MOCK],
+          tokens: [],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+        expect(result[1].disabled).toBe(true);
+        expect(result[1].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+      });
+
+      it('marks specific token as disabled when address+chainId matches blocklist', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [
+            {
+              address: ERC20_TOKEN_MOCK.address,
+              chainId: ERC20_TOKEN_MOCK.chainId as string,
+            },
+          ],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].disabled).toBe(true);
+        expect(result[1].disabledMessage).toBe(
+          strings('pay_with_modal.not_supported'),
+        );
+      });
+
+      it('sorts blocked tokens to the bottom of the list', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [
+            {
+              address: TOKEN_MOCK.address,
+              chainId: TOKEN_MOCK.chainId as string,
+            },
+          ],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].address).toBe(ERC20_TOKEN_MOCK.address);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].address).toBe(TOKEN_MOCK.address);
+        expect(result[1].disabled).toBe(true);
+      });
+
+      it('does not disable non-blocked tokens', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: ['0x999'],
+          tokens: [{ address: '0xunrelated', chainId: '0x999' }],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [TOKEN_MOCK, ERC20_TOKEN_MOCK],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(2);
+        expect(result[0].disabled).toBe(false);
+        expect(result[1].disabled).toBe(false);
+      });
+
+      it('keeps no-gas disabled message when token is disabled for no gas but not blocked', () => {
+        const blockedTokens: BlockedTokensListConfig = {
+          chainIds: [],
+          tokens: [],
+        };
+
+        const result = getAvailableTokens({
+          tokens: [
+            ERC20_TOKEN_MOCK,
+            { ...TOKEN_MOCK, balance: '0' } as AssetType,
+          ],
+          blockedTokens,
+        });
+
+        expect(result).toHaveLength(1);
+        expect(result[0].disabled).toBe(true);
+        expect(result[0].disabledMessage).toBe(
+          strings('pay_with_modal.no_gas'),
+        );
+      });
+    });
+  });
+
+  describe('getBlockedTokensForTransactionType', () => {
+    const defaultBlocked: BlockedTokensListConfig = {
+      chainIds: ['0x1'],
+      tokens: [],
+    };
+
+    const perpsBlocked: BlockedTokensListConfig = {
+      chainIds: ['0xa4b1'],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    };
+
+    const config: BlockedTokensConfig = {
+      default: defaultBlocked,
+      overrides: {
+        perpsDeposit: perpsBlocked,
+      },
+    };
+
+    it('returns override when transaction type has an override', () => {
+      expect(
+        getBlockedTokensForTransactionType(config, 'perpsDeposit'),
+      ).toEqual(perpsBlocked);
+    });
+
+    it('returns default when transaction type has no override', () => {
+      expect(
+        getBlockedTokensForTransactionType(config, 'predictDeposit'),
+      ).toEqual(defaultBlocked);
+    });
+
+    it('returns default when transaction type is undefined', () => {
+      expect(getBlockedTokensForTransactionType(config, undefined)).toEqual(
+        defaultBlocked,
+      );
+    });
+
+    it('returns safe defaults when override has missing chainIds or tokens', () => {
+      const partialConfig = {
+        default: defaultBlocked,
+        overrides: {
+          perpsDeposit: {} as BlockedTokensListConfig,
+        },
+      };
+
+      const result = getBlockedTokensForTransactionType(
+        partialConfig,
+        'perpsDeposit',
+      );
+      expect(result).toEqual({ chainIds: [], tokens: [] });
+    });
+  });
+
+  describe('isTokenBlocked', () => {
+    const blockedConfig: BlockedTokensListConfig = {
+      chainIds: ['0xa4b1'],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    };
+
+    it('returns true when token chain is in blocked chainIds', () => {
+      expect(
+        isTokenBlocked({ address: '0xany', chainId: '0xa4b1' }, blockedConfig),
+      ).toBe(true);
+    });
+
+    it('returns true when token address+chainId matches a blocked token', () => {
+      expect(
+        isTokenBlocked({ address: '0xABC', chainId: '0x1' }, blockedConfig),
+      ).toBe(true);
+    });
+
+    it('returns false when token does not match any blocked entry', () => {
+      expect(
+        isTokenBlocked({ address: '0xdef', chainId: '0x89' }, blockedConfig),
+      ).toBe(false);
+    });
+
+    it('returns false with empty blocked config', () => {
+      expect(
+        isTokenBlocked(
+          { address: '0xabc', chainId: '0x1' },
+          { chainIds: [], tokens: [] },
+        ),
+      ).toBe(false);
     });
   });
 });

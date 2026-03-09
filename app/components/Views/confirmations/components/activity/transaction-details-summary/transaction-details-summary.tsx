@@ -78,6 +78,7 @@ export function TransactionDetailsSummary() {
             transaction={item}
             isLast={index === transactions.length - 1}
             parentTransaction={transactionMeta}
+            relatedTransactions={transactions}
           />
         ))}
       </Box>
@@ -89,10 +90,12 @@ function TransactionSummary({
   isLast,
   transaction,
   parentTransaction,
+  relatedTransactions,
 }: {
   isLast: boolean;
   transaction: TransactionMeta;
   parentTransaction: TransactionMeta;
+  relatedTransactions: TransactionMeta[];
 }) {
   const {
     chainId: receiveChainId,
@@ -104,7 +107,7 @@ function TransactionSummary({
     targetNetworkName,
     targetSymbol,
     time: receiveTime,
-  } = useBridgeReceiveData(transaction, parentTransaction);
+  } = useBridgeReceiveData(transaction, parentTransaction, relatedTransactions);
 
   const allBridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
@@ -340,6 +343,7 @@ function getLineTitle({
 function useBridgeReceiveData(
   transaction: TransactionMeta,
   parentTransaction: TransactionMeta,
+  relatedTransactions: TransactionMeta[],
 ): {
   chainId?: Hex;
   hash?: Hex;
@@ -401,6 +405,18 @@ function useBridgeReceiveData(
     };
 
     if (!transaction.hash || transaction.hash === '0x0') {
+      // For same-chain aggregator routes (e.g. Linea USDT/DAI), the relay
+      // strategy skips polling and sets the musdConversion hash to '0x0'.
+      // Fall back to the relay deposit's on-chain hash, which represents
+      // the actual swap transaction where mUSD was received.
+      const relayDepositTx = relatedTransactions.find((t) =>
+        hasTransactionType(t, [TransactionType.relayDeposit]),
+      );
+
+      if (relayDepositTx?.hash && relayDepositTx.hash !== '0x0') {
+        receiveData.hash = relayDepositTx.hash as Hex;
+      }
+
       return receiveData;
     }
 
