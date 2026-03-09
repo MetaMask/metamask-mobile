@@ -29,6 +29,20 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      listPopularEvmNetworks: jest.fn(() => ['0x1']),
+      listPopularMultichainNetworks: jest.fn(() => []),
+      listPopularNetworks: jest.fn(() => []),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
+      enableAllPopularNetworks: jest.fn(),
+    },
+  },
+}));
+
 const MOCK_ADDRESS_1 = '0x0000000000000000000000000000000000000001';
 
 const MOCK_CHAIN_ID_1 = '0x1';
