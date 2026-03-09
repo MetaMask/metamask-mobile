@@ -44,6 +44,9 @@ outputs:
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+  force_run:
+    description: 'Whether to force E2E builds/tests regardless of path filter (true when skip-smart-e2e-selection label is used)'
+    value: ${{ steps.final-outputs.outputs.force_run }}
 
 runs:
   using: 'composite'
@@ -131,6 +134,7 @@ runs:
         echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
+        FORCE_RUN=false
 
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
@@ -141,11 +145,14 @@ runs:
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
+          FORCE_RUN=true
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         fi
 
-        # Export skip status and reason for the comment step
+        # Export skip status, reason, and force run flag for downstream jobs
         echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
         echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+        echo "FORCE_RUN=$FORCE_RUN" >> "$GITHUB_OUTPUT"
 
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
@@ -174,6 +181,13 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
+        # Force run flag (true when skip-smart-e2e-selection label is used)
+        FORCE_RUN='${{ steps.ai-analysis.outputs.FORCE_RUN }}'
+        if [[ "$FORCE_RUN" == "true" ]]; then
+          echo "force_run=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "force_run=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Display AI Analysis Outputs
       if: always()
@@ -184,6 +198,7 @@ runs:
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
+        echo "force_run: ${{ steps.final-outputs.outputs.force_run }}"
         echo "================================"
 
     - name: Delete previous comments

@@ -187,8 +187,13 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+<<<<<<< HEAD
         versionName "7.69.0"
         versionCode 3892
+=======
+        versionName "7.70.0"
+        versionCode 3607
+>>>>>>> 1242530285d27aa5c0f2a7b7b53cc417231b3d58
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"

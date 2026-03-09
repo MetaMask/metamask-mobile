@@ -56,6 +56,11 @@ const ButtonHeroInner = ({
  * The useTailwind hook needs to be called inside the ThemeProvider context to get the locked theme.
  * By splitting into two components, we ensure the hook gets the correct theme context for all color calculations.
  */
+/**
+ * @deprecated Please update your code to use `ButtonHero` from `@metamask/design-system-react-native`.
+ * The API may have changed - compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/ButtonHero/README.md}
+ */
 const ButtonHero = (props: ButtonBaseProps) => (
   <ThemeProvider theme={Theme.Light}>
     <ButtonHeroInner {...props} />

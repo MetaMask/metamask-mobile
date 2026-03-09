@@ -38,7 +38,7 @@ const commodityMarket: PerpsMarketData = {
 const marketDataWithCategories = [cryptoMarket, commodityMarket];
 
 describe('PerpsMarketListView', () => {
-  describe('Bug regression: #25571', () => {
+  describe('Bug regression: 25571', () => {
     it('renders market list header and list with default state (no category filtering)', async () => {
       renderPerpsMarketListView();
 
@@ -80,14 +80,8 @@ describe('PerpsMarketListView', () => {
         streamOverrides: { marketData: marketDataWithCategories },
       });
 
-      const searchToggle = await screen.findByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-toggle`,
-      );
-
-      fireEvent.press(searchToggle);
-
       const searchInput = await screen.findByTestId(
-        `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-search-bar`,
+        PerpsMarketListViewSelectorsIDs.SEARCH_BAR,
       );
       fireEvent.changeText(searchInput, 'ZZZ-NOT-FOUND');
 

@@ -25,15 +25,12 @@ jest.mock('./useRampAccountAddress', () => ({
   default: () => MOCK_WALLET_ADDRESS,
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    themeAppearance: 'light',
-    colors: {
-      primary: { default: '#0376C9' },
-      background: { default: '#FFFFFF' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
