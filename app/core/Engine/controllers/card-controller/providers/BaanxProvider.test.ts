@@ -1391,13 +1391,27 @@ describe('BaanxProvider', () => {
   });
 
   describe('getFundingConfig', () => {
-    it('returns config with max limit and supported chains', async () => {
+    it('returns all tokens from all supported networks', async () => {
       service.get.mockResolvedValue({
         networks: [
           {
             network: 'linea',
             chainId: '59144',
-            tokens: { USDC: {}, mUSD: {} },
+            environment: 'production',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xusdc-linea' },
+              mUSD: { symbol: 'mUSD', decimals: 18, address: '0xmusd-linea' },
+            },
+          },
+          {
+            network: 'base',
+            chainId: '8453',
+            environment: 'production',
+            delegationContract: '0xdel2',
+            tokens: {
+              USDT: { symbol: 'USDT', decimals: 6, address: '0xusdt-base' },
+            },
           },
         ],
       });
@@ -1405,8 +1419,156 @@ describe('BaanxProvider', () => {
       const config = await provider.getFundingConfig(AUTH_TOKENS);
 
       expect(config.maxLimit).toBe('2199023255551');
-      expect(config.supportedChains).toContain('eip155:59144');
-      expect(config.fundingOptions.length).toBeGreaterThan(0);
+      expect(config.supportedChains).toStrictEqual([
+        'eip155:59144',
+        'eip155:8453',
+      ]);
+      expect(config.fundingOptions).toHaveLength(3);
+      expect(config.fundingOptions).toStrictEqual([
+        expect.objectContaining({
+          symbol: 'USDC',
+          asset: expect.objectContaining({
+            address: '0xusdc-linea',
+            decimals: 6,
+            chainId: 'eip155:59144',
+          }),
+        }),
+        expect.objectContaining({
+          symbol: 'mUSD',
+          asset: expect.objectContaining({
+            address: '0xmusd-linea',
+            decimals: 18,
+            chainId: 'eip155:59144',
+          }),
+        }),
+        expect.objectContaining({
+          symbol: 'USDT',
+          asset: expect.objectContaining({
+            address: '0xusdt-base',
+            decimals: 6,
+            chainId: 'eip155:8453',
+          }),
+        }),
+      ]);
+    });
+
+    it('deduplicates tokens by address and chainId', async () => {
+      service.get.mockResolvedValue({
+        networks: [
+          {
+            network: 'linea',
+            chainId: '59144',
+            environment: 'production',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xusdc' },
+              USDC_v2: { symbol: 'USDC', decimals: 6, address: '0xusdc' },
+            },
+          },
+        ],
+      });
+
+      const config = await provider.getFundingConfig(AUTH_TOKENS);
+
+      expect(config.fundingOptions).toHaveLength(1);
+    });
+
+    it('skips tokens without an address', async () => {
+      service.get.mockResolvedValue({
+        networks: [
+          {
+            network: 'linea',
+            chainId: '59144',
+            environment: 'production',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xusdc' },
+              BAD: { symbol: 'BAD', decimals: 6, address: '' },
+            },
+          },
+        ],
+      });
+
+      const config = await provider.getFundingConfig(AUTH_TOKENS);
+
+      expect(config.fundingOptions).toHaveLength(1);
+      expect(config.fundingOptions[0].symbol).toBe('USDC');
+    });
+
+    it('excludes unsupported networks', async () => {
+      service.get.mockResolvedValue({
+        networks: [
+          {
+            network: 'linea',
+            chainId: '59144',
+            environment: 'production',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xusdc' },
+            },
+          },
+          {
+            network: 'polygon',
+            chainId: '137',
+            environment: 'production',
+            delegationContract: '0xdel2',
+            tokens: {
+              DAI: { symbol: 'DAI', decimals: 18, address: '0xdai' },
+            },
+          },
+        ],
+      });
+
+      const config = await provider.getFundingConfig(AUTH_TOKENS);
+
+      expect(config.supportedChains).toStrictEqual(['eip155:59144']);
+      expect(config.fundingOptions).toHaveLength(1);
+      expect(config.fundingOptions[0].symbol).toBe('USDC');
+    });
+
+    it('sets stagingTokenAddress for non-production environments', async () => {
+      service.get.mockResolvedValue({
+        networks: [
+          {
+            network: 'linea',
+            chainId: '59144',
+            environment: 'staging',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xstaging-usdc' },
+            },
+          },
+        ],
+      });
+
+      const config = await provider.getFundingConfig(AUTH_TOKENS);
+
+      expect(config.fundingOptions).toHaveLength(1);
+      expect(config.fundingOptions[0].asset?.stagingTokenAddress).toBe(
+        '0xstaging-usdc',
+      );
+    });
+
+    it('omits stagingTokenAddress for production environments', async () => {
+      service.get.mockResolvedValue({
+        networks: [
+          {
+            network: 'linea',
+            chainId: '59144',
+            environment: 'production',
+            delegationContract: '0xdel1',
+            tokens: {
+              USDC: { symbol: 'USDC', decimals: 6, address: '0xprod-usdc' },
+            },
+          },
+        ],
+      });
+
+      const config = await provider.getFundingConfig(AUTH_TOKENS);
+
+      expect(
+        config.fundingOptions[0].asset?.stagingTokenAddress,
+      ).toBeUndefined();
     });
 
     it('propagates error when delegation config fails', async () => {

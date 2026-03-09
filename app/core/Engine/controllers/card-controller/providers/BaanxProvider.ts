@@ -13,10 +13,12 @@ import {
   RegistrationSettingsResponse,
   CardLocation,
   CardStatus,
+  type CardNetwork,
 } from '../../../../../components/UI/Card/types';
 import {
   ARBITRARY_ALLOWANCE,
   BAANX_MAX_LIMIT,
+  SUPPORTED_ASSET_NETWORKS,
   caipChainIdToNetwork,
   cardNetworkInfos,
 } from '../../../../../components/UI/Card/constants';
@@ -458,13 +460,17 @@ export class BaanxProvider implements ICardProvider {
       tokens,
     );
 
-    const supportedChains = settings.networks.map(
-      (n: DelegationSettingsNetwork) => {
+    const supportedChains = settings.networks
+      .filter((n: DelegationSettingsNetwork) =>
+        SUPPORTED_ASSET_NETWORKS.includes(
+          n.network?.toLowerCase() as CardNetwork,
+        ),
+      )
+      .map((n: DelegationSettingsNetwork) => {
         const info =
           cardNetworkInfos[n.network as keyof typeof cardNetworkInfos];
         return info?.caipChainId ?? `eip155:${n.chainId}`;
-      },
-    );
+      });
 
     return {
       maxLimit: BAANX_MAX_LIMIT,
@@ -532,7 +538,8 @@ export class BaanxProvider implements ICardProvider {
 
     try {
       const endpoint =
-        ONBOARDING_ENDPOINTS[step.type] ?? `/v1/auth/register/${step.type}`;
+        ONBOARDING_ENDPOINTS[step.type] ??
+        `/v1/auth/register/${encodeURIComponent(step.type)}`;
       const response = await this.service.post<Record<string, unknown>>(
         endpoint,
         step.data,
@@ -721,6 +728,7 @@ export class BaanxProvider implements ICardProvider {
           allowance: detail.allowance ?? '0',
           priority: detail.priority ?? 0,
           status: mapAllowanceToFundingStatus(allowanceFloat),
+          stagingTokenAddress: detail.stagingTokenAddress ?? undefined,
         };
       })
       .filter((a) => a.symbol !== '');
@@ -830,33 +838,51 @@ export class BaanxProvider implements ICardProvider {
   private buildFundingOptions(
     settings: DelegationSettingsResponse,
   ): { symbol: string; asset: CardFundingAsset | null }[] {
-    const targets = ['mUSD', 'USDC'];
-    return targets.map((symbol) => {
-      const network = settings.networks.find((n: DelegationSettingsNetwork) => {
-        const tokens = n.tokens ?? {};
-        return Object.keys(tokens).some(
-          (key) => key.toUpperCase() === symbol.toUpperCase(),
-        );
-      });
+    const options: { symbol: string; asset: CardFundingAsset | null }[] = [];
+    const seen = new Set<string>();
 
-      if (!network) return { symbol, asset: null };
+    for (const network of settings.networks) {
+      const networkName = network.network?.toLowerCase();
+      if (
+        !networkName ||
+        !SUPPORTED_ASSET_NETWORKS.includes(networkName as CardNetwork)
+      ) {
+        continue;
+      }
 
       const info =
-        cardNetworkInfos[network.network as keyof typeof cardNetworkInfos];
-      return {
-        symbol,
-        asset: {
+        cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
+      const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
+      const isNonProduction = network.environment !== 'production';
+
+      for (const tokenConfig of Object.values(network.tokens ?? {})) {
+        if (!tokenConfig.address) continue;
+
+        const dedupeKey = `${tokenConfig.address.toLowerCase()}:${chainId}`;
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+
+        const symbol = tokenConfig.symbol;
+        options.push({
           symbol,
-          name: symbol,
-          address: '',
-          decimals: 6,
-          chainId: info?.caipChainId ?? `eip155:${network.chainId}`,
-          balance: '0',
-          allowance: '0',
-          priority: 0,
-          status: FundingAssetStatus.Inactive,
-        },
-      };
-    });
+          asset: {
+            symbol,
+            name: symbol,
+            address: tokenConfig.address,
+            decimals: tokenConfig.decimals,
+            chainId,
+            balance: '0',
+            allowance: '0',
+            priority: 0,
+            status: FundingAssetStatus.Inactive,
+            stagingTokenAddress: isNonProduction
+              ? tokenConfig.address
+              : undefined,
+          },
+        });
+      }
+    }
+
+    return options;
   }
 }

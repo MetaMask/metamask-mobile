@@ -121,6 +121,7 @@ export interface CardFundingAsset {
   allowance: string;
   priority: number;
   status: FundingAssetStatus;
+  stagingTokenAddress?: string;
 }
 
 // -- Card Details --
