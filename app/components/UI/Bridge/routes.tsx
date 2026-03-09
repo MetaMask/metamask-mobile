@@ -11,6 +11,7 @@ import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/Marke
 import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
 import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
+import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
 
 const clearStackNavigatorOptions = {
@@ -37,6 +38,11 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
+      options={{ title: '' }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
+      component={QuoteSelectorView}
       options={{ title: '' }}
     />
   </Stack.Navigator>

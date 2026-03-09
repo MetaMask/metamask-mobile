@@ -38,7 +38,7 @@ const commodityMarket: PerpsMarketData = {
 const marketDataWithCategories = [cryptoMarket, commodityMarket];
 
 describe('PerpsMarketListView', () => {
-  describe('Bug regression: #25571', () => {
+  describe('Bug regression: 25571', () => {
     it('renders market list header and list with default state (no category filtering)', async () => {
       renderPerpsMarketListView();
 
