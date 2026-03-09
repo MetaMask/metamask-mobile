@@ -13,6 +13,10 @@ on:
         required: false
         type: boolean
         default: false
+      testflight_group:
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       build_name:
@@ -40,6 +44,15 @@ on:
         required: false
         type: boolean
         default: false
+      testflight_group:
+        description: 'TestFlight group (only used when platform is ios or both; ignored for android)'
+        required: false
+        type: choice
+        default: 'MetaMask BETA & Release Candidates'
+        options:
+          - 'MetaMask BETA & Release Candidates'
+          - 'MM Card Team'
+          - 'Ramp Provider Testing'
 
 permissions:
   contents: read
@@ -351,8 +364,9 @@ jobs:
           if-no-files-found: error
 
   # Upload iOS device build to TestFlight (only when version bump was applied).
-  # Requires GitHub Environment secrets: APP_STORE_CONNECT_API_KEY_ISSUER_ID,
-  # APP_STORE_CONNECT_API_KEY_KEY_ID, APP_STORE_CONNECT_API_KEY_KEY_CONTENT (.p8 content).
+  # Uses GitHub Environment "apple" for App Store Connect API secrets:
+  # APP_STORE_CONNECT_API_KEY_ISSUER_ID, APP_STORE_CONNECT_API_KEY_KEY_ID,
+  # APP_STORE_CONNECT_API_KEY_KEY_CONTENT (.p8 content).
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [prepare, build]
@@ -363,7 +377,7 @@ jobs:
       (inputs.platform == 'ios' || inputs.platform == 'both') &&
       (inputs.build_name == 'main-rc' || inputs.build_name == 'main-exp' || inputs.build_name == 'main-prod')
     runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: ${{ needs.prepare.outputs.github_environment }}
+    environment: apple
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -410,7 +424,8 @@ jobs:
           ./scripts/upload-to-testflight.sh \
             "github_actions_${{ inputs.build_name }}" \
             "${{ github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}"
+            "${{ steps.ipa.outputs.path }}" \
+            "${{ inputs.testflight_group }}"
 
       - name: Cleanup API Key
         if: always()

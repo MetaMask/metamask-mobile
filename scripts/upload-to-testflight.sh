@@ -4,12 +4,13 @@
 # This script can be used in both Bitrise and GitHub Actions workflows
 #
 # Usage:
-#   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path]
+#   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path] [testflight_group]
 #
 # Arguments:
-#   pipeline_name - Pipeline or workflow name (required)
-#   branch        - Git branch name (required)
-#   ipa_path      - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
+#   pipeline_name    - Pipeline or workflow name (required)
+#   branch           - Git branch name (required)
+#   ipa_path         - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
+#   testflight_group - Optional: TestFlight external testing group name (default: MetaMask BETA & Release Candidates)
 #
 # Environment variables:
 #   IPA_PATH - IPA path (set by find-ipa-file.sh if not provided as argument)
@@ -18,13 +19,14 @@ set -e
 
 # Validate required arguments
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <pipeline_name> <branch> [ipa_path]"
+  echo "Usage: $0 <pipeline_name> <branch> [ipa_path] [testflight_group]"
   exit 1
 fi
 
 PIPELINE_NAME="$1"
 BRANCH="$2"
 LOCAL_IPA_PATH="$3"
+TESTFLIGHT_GROUP="${4:-MetaMask BETA & Release Candidates}"
 
 # Get IPA path: use argument if provided, otherwise use find-ipa-file.sh
 if [ -n "$LOCAL_IPA_PATH" ]; then
@@ -45,7 +47,7 @@ fi
 
 echo "🚀 Uploading to TestFlight..."
 echo "IPA: $IPA_PATH"
-echo "Group: MetaMask Fastlane Test"
+echo "Group: $TESTFLIGHT_GROUP"
 
 # Extract environment from pipeline name (first part before underscore)
 ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
@@ -64,6 +66,6 @@ cd ios
 
 bundle exec fastlane upload_to_testflight_only \
   ipa_path:"$IPA_PATH" \
-  groups:"MetaMask BETA & Release Candidates" \
+  groups:"$TESTFLIGHT_GROUP" \
   changelog:"$CHANGELOG"
 
