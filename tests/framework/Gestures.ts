@@ -402,11 +402,7 @@ export default class Gestures {
         [text],
       );
     } catch {
-      // Fallback: use Detox web element typeText API instead of native typeText,
-      // since passing a WebElement to waitFor() is invalid and causes runtime errors.
-      const el = await elem;
-      await el.clearText();
-      await el.typeText(text, false);
+      await this.typeText(elem, text);
     }
   }
 

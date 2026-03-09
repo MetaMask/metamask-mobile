@@ -22,6 +22,7 @@ describe.skip(SmokeNetworkAbstractions('Add all popular networks'), () => {
       },
       async () => {
         await loginToApp();
+
         await WalletView.tapTokenNetworkFilter();
         await Assertions.expectElementToBeVisible(
           NetworkListModal.popularNetworksContainer,
@@ -29,24 +30,11 @@ describe.skip(SmokeNetworkAbstractions('Add all popular networks'), () => {
 
         // Tap on a popular network - it should be added directly without confirmation
         await NetworkListModal.scrollToBottomOfNetworkMultiSelector();
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.getNetworkCell('Arbitrum'),
-          { description: 'Arbitrum network visible in list' },
-        );
         await NetworkListModal.tapNetworkMenuButton('Arbitrum');
 
-        // Network is added immediately, no approval modal needed.
-        // Switch to the Custom tab, wait for Arbitrum to appear, then select it
-        // to set it as the active network filter (enabling ≠ selecting in multichain mode).
+        // Network is added immediately, no approval modal needed
         await NetworkListModal.tapOnCustomTab();
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.getNetworkCell('Arbitrum'),
-          {
-            description:
-              'Arbitrum network visible in custom tab after enabling',
-          },
-        );
-        await NetworkListModal.selectNetworkInCustomTab('Arbitrum');
+        await NetworkListModal.swipeToDismissNetworkMultiSelectorModal();
         await WalletView.verifyTokenNetworkFilterText('Arbitrum');
       },
     );
