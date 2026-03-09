@@ -83,6 +83,13 @@ jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
   refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
 }));
 
+const mockShouldShowTokenListItemCta = jest.fn().mockReturnValue(false);
+jest.mock('../../../../UI/Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: () => ({
+    shouldShowTokenListItemCta: mockShouldShowTokenListItemCta,
+  }),
+}));
+
 // Mock ErrorState to avoid design system import chain and enable testID queries
 jest.mock('../../components/ErrorState', () => {
   const ReactActual = jest.requireActual('react');
