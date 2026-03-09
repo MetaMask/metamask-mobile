@@ -100,7 +100,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         variant={TextVariant.DisplayMd}
         fontFamily={FontFamily.Accent}
         fontWeight={FontWeight.Regular}
-        style={tw.style('mt-[25px] mb-4 mx-4 text-center', {
+        style={tw.style('mt-6 mb-4 mx-4 text-center', {
           fontWeight: '400',
         })}
       >

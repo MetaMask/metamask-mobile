@@ -87,7 +87,6 @@ import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimatio
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   BoxJustifyContent,
   Button,
   ButtonSize,
@@ -807,7 +806,6 @@ const Onboarding = () => {
   const renderContent = useCallback(
     (): React.ReactElement => (
       <Box
-        flexDirection={BoxFlexDirection.Column}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}
         twClassName={`flex-1 w-full px-5 ${Device.isMediumDevice() ? 'gap-y-4' : 'gap-y-6'}`}

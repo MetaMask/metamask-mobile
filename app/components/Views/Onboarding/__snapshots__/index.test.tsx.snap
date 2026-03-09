@@ -61,7 +61,6 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -231,6 +230,7 @@ exports[`Onboarding applies compact gap and medium button size on medium device 
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -382,7 +382,6 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -552,6 +551,7 @@ exports[`Onboarding applies iPhoneX notification padding when on iPhoneX 1`] = `
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -970,7 +970,6 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -1140,6 +1139,7 @@ exports[`Onboarding applies standard gap and large button size on non-medium dev
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -1291,7 +1291,6 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -1461,6 +1460,7 @@ exports[`Onboarding applies standard notification padding when not on iPhoneX 1`
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -1879,7 +1879,6 @@ exports[`Onboarding renders correctly 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -2049,6 +2048,7 @@ exports[`Onboarding renders correctly 1`] = `
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -2200,7 +2200,6 @@ exports[`Onboarding renders correctly with android 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -2370,6 +2369,7 @@ exports[`Onboarding renders correctly with android 1`] = `
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -2521,7 +2521,6 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -2691,6 +2690,7 @@ exports[`Onboarding renders correctly with large device and iphoneX 1`] = `
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [
@@ -2842,7 +2842,6 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                 "alignItems": "center",
                 "display": "flex",
                 "flexBasis": "0%",
-                "flexDirection": "column",
                 "flexGrow": 1,
                 "flexShrink": 1,
                 "justifyContent": "space-between",
@@ -3012,6 +3011,7 @@ exports[`Onboarding renders correctly with medium device and android 1`] = `
                   },
                   {
                     "backgroundColor": "#000000",
+                    "borderColor": "transparent",
                   },
                   {
                     "transform": [

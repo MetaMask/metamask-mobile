@@ -113,7 +113,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -368,7 +368,7 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -623,7 +623,7 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -878,7 +878,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -1133,7 +1133,7 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -1388,7 +1388,7 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -1643,7 +1643,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -1898,7 +1898,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
@@ -2153,7 +2153,7 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
-              "marginTop": 25,
+              "marginTop": 24,
               "textAlign": "center",
             },
           ]
