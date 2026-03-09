@@ -6,8 +6,14 @@
  * Provider-agnostic: works with Anthropic, OpenAI, or Google.
  */
 
-import { ToolInput, ModeAnalysisTypes, SkillMetadata } from '../types';
-import { LLM_CONFIG } from '../config';
+import {
+  ToolInput,
+  ModeAnalysisTypes,
+  SkillMetadata,
+  AnalysisContext,
+  type ModeConfig,
+} from '../types';
+import { LLM_CONFIG, MODEL_PRICING } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
 import {
@@ -25,35 +31,31 @@ import {
   createConservativeResult as createSelectTagsConservativeResult,
   createEmptyResult as createSelectTagsEmptyResult,
   outputAnalysis as outputSelectTagsAnalysis,
+  checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
 
 /**
- * Mode Registry
+ * Mode Registry — see ModeConfig in types/index.ts for the full interface.
  *
- * Each mode defines its handlers for processing and output.
- * systemPromptBuilder now takes availableSkills parameter for on-demand skill loading.
+ * To add a new mode:
+ * 1. Define its result type and add it to ModeAnalysisTypes
+ * 2. Implement all required ModeConfig<T> fields
+ * 3. Register it here
  */
-export const MODES = {
+export const MODES: {
+  [K in keyof ModeAnalysisTypes]: ModeConfig<ModeAnalysisTypes[K]>;
+} = {
   'select-tags': {
     description: 'Analyze code changes and select E2E test tags to run',
     finalizeToolName: 'finalize_tag_selection',
-    systemPromptBuilder: buildSelectTagsSystemPrompt, // Takes SkillMetadata[]
+    systemPromptBuilder: buildSelectTagsSystemPrompt,
     taskPromptBuilder: buildSelectTagsTaskPrompt,
     processAnalysis: processSelectTagsAnalysis,
     createConservativeResult: createSelectTagsConservativeResult,
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
+    checkHardRules: checkSelectTagsHardRules,
   },
-  // Future modes (add imports and register here):
-  // 'suggest-migration': {
-  //   description: 'Identify E2E tests that could be unit/integration tests',
-  //   finalizeToolName: 'finalize_migration_suggestions',
-  //   taskPromptBuilder: buildMigrationTaskPrompt,
-  //   processAnalysis: migrationHandlers.processAnalysis,
-  //   createConservativeResult: migrationHandlers.createConservativeResult,
-  //   createEmptyResult: migrationHandlers.createEmptyResult,
-  //   outputAnalysis: migrationHandlers.outputAnalysis,
-  // },
 };
 
 // Type aliases for mode keys and analysis results
@@ -72,16 +74,6 @@ export function validateMode(modeInput?: string): ModeKey {
   }
 
   return modeInput as ModeKey;
-}
-
-/**
- * Analysis context containing all parameters needed for the analysis
- */
-export interface AnalysisContext {
-  baseDir: string;
-  baseBranch: string;
-  prNumber?: number;
-  githubRepo?: string;
 }
 
 /**
@@ -105,6 +97,14 @@ export async function analyzeWithAgent<M extends ModeKey>(
   // Get mode configuration
   const modeConfig = MODES[mode];
 
+  // Check mode-specific hard rules before AI analysis
+  if (modeConfig.checkHardRules) {
+    const hardRuleResult = modeConfig.checkHardRules(allChangedFiles, context);
+    if (hardRuleResult) {
+      return hardRuleResult as ModeAnalysisResult<M>;
+    }
+  }
+
   // Build system prompt with available skills metadata
   const systemPrompt = modeConfig.systemPromptBuilder(availableSkills);
 
@@ -117,6 +117,43 @@ export async function analyzeWithAgent<M extends ModeKey>(
   const tools = getToolDefinitions();
   let currentMessage: LLMContentBlock[] | string = taskPrompt;
   const conversationHistory: LLMMessage[] = [];
+
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  const requestedModel = provider.getDefaultModel();
+  let resolvedModel: string | undefined;
+
+  function printTokenReport() {
+    if (totalInputTokens === 0 && totalOutputTokens === 0) return;
+    const pricing = MODEL_PRICING[requestedModel];
+    const inputCost = pricing
+      ? (totalInputTokens / 1_000_000) * pricing.inputPerM
+      : null;
+    const outputCost = pricing
+      ? (totalOutputTokens / 1_000_000) * pricing.outputPerM
+      : null;
+    const totalCost =
+      inputCost !== null && outputCost !== null ? inputCost + outputCost : null;
+
+    console.log('\n💰 Token Usage Report');
+    console.log('─────────────────────────────────────');
+    console.log(
+      `   Model:          ${requestedModel}${resolvedModel && resolvedModel !== requestedModel ? ` (${resolvedModel})` : ''}`,
+    );
+    console.log(
+      `   Input tokens:   ${totalInputTokens.toLocaleString()}${pricing ? `  ($${inputCost?.toFixed(4)})` : ''}`,
+    );
+    console.log(
+      `   Output tokens:  ${totalOutputTokens.toLocaleString()}${pricing ? `  ($${outputCost?.toFixed(4)})` : ''}`,
+    );
+    if (totalCost !== null) {
+      console.log(`   Total cost:     $${totalCost.toFixed(4)}`);
+    }
+    if (!pricing) {
+      console.log(`   ⚠️  No pricing data for model "${requestedModel}"`);
+    }
+    console.log('─────────────────────────────────────');
+  }
 
   console.log(`🤖 Using provider: ${provider.displayName}`);
 
@@ -134,6 +171,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
         { role: 'user', content: currentMessage },
       ],
     });
+
+    if (response.usage) {
+      totalInputTokens += response.usage.inputTokens;
+      totalOutputTokens += response.usage.outputTokens;
+      resolvedModel = response.model;
+    }
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(
@@ -182,10 +225,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
             if (analysis) {
               console.log(`✅ Analysis complete!`);
+              printTokenReport();
               return analysis as ModeAnalysisResult<M>;
             }
 
             console.log('⚠️ Failed to parse finalize_tag_selection');
+            printTokenReport();
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 
@@ -221,6 +266,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       );
       if (analysis) {
         console.log(`✅ Analysis complete!`);
+        printTokenReport();
         return analysis as ModeAnalysisResult<M>;
       }
     }
@@ -229,5 +275,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
   }
 
   console.log('⚠️ Using fallback analysis');
+  printTokenReport();
   return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
 }

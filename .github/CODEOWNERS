@@ -9,7 +9,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
-.github/builds.yml                                          @MetaMask/mobile-platform
+.github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.constants.ts                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.test.ts                      @MetaMask/mobile-platform
@@ -45,12 +45,15 @@ app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-pla
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
+builds.yml                                                  @MetaMask/mobile-platform
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
 scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-admins
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
+scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
+
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
@@ -62,10 +65,16 @@ app/core/Engine/controllers/ramps-controller           @MetaMask/ramp
 app/core/Engine/messengers/ramps-controller-messenger  @MetaMask/ramp
 app/core/Engine/messengers/ramps-service-messenger     @MetaMask/ramp
 app/selectors/rampsController                          @MetaMask/ramp
+**/Ramp/**                                              @MetaMask/ramp
+**/ramp/**                                              @MetaMask/ramp
+**/ramps/**                                             @MetaMask/ramp
 
 # Card Team
-app/components/UI/Card/              @MetaMask/card
-app/core/redux/slices/card/          @MetaMask/card
+app/components/UI/Card/                                    @MetaMask/card
+app/core/redux/slices/card/                                @MetaMask/card
+app/core/Engine/controllers/card-controller                @MetaMask/card
+app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
+app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -94,6 +103,10 @@ app/util/walletconnect.js                                   @MetaMask/wallet-int
 # Accounts Team
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
+app/core/Engine/controllers/multichain-account-service      @MetaMask/accounts-engineers
+app/core/Engine/controllers/snap-keyring                    @MetaMask/accounts-engineers
+app/core/Engine/controllers/keyring-controller              @MetaMask/accounts-engineers
+app/core/Engine/controllers/storage-service                 @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
@@ -101,7 +114,6 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers
@@ -215,6 +227,7 @@ app/components/Views/Settings                    @MetaMask/mobile-core-ux
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
+app/components/Views/AccountsMenu                @MetaMask/mobile-core-ux
 app/components/UI/MultichainTransactionListItem  @MetaMask/mobile-core-ux
 app/components/UI/TransactionActionModal         @MetaMask/mobile-core-ux
 app/components/UI/TransactionElement             @MetaMask/mobile-core-ux
@@ -243,11 +256,9 @@ app/core/Engine/messengers/gator-permissions-controller-messenger     @MetaMask/
 
 # QA Team - E2E Framework
 tests/api-mocking/                             @MetaMask/qa
-e2e/fixtures/                                @MetaMask/qa
 tests/framework/                               @MetaMask/qa
-e2e/pages/                                   @MetaMask/qa
-e2e/utils/                                   @MetaMask/qa
-e2e/viewHelper.ts                            @MetaMask/qa
+tests/page-objects/                            @MetaMask/qa
+tests/flows/                                   @MetaMask/qa
 # Note: Test builds (main-test, flask-test) in build/builds.yml are owned by QA team
 # but the file itself is protected by mobile-platform for consistency
 

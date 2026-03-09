@@ -16,23 +16,19 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ReviewOrderSelectors } from '../../../../../../e2e/selectors/Card/ReviewOrder.selectors';
+import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
 import { useCardSDK } from '../../sdk';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import type { ShippingAddress } from '../../util/buildUserAddress';
 import { useSelector } from 'react-redux';
 import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
 
-export interface ShippingAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  zip: string;
-}
+export type { ShippingAddress };
 
 export interface ReviewOrderParams {
   shippingAddress?: ShippingAddress;
@@ -47,7 +43,7 @@ interface OrderItem {
 
 const ReviewOrder = () => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
@@ -154,6 +150,7 @@ const ReviewOrder = () => {
         'ReviewOrder: Failed to create Daimo payment',
       );
       setPaymentError(strings('card.review_order.payment_creation_error'));
+    } finally {
       setIsCreatingPayment(false);
     }
   }, [

@@ -27,13 +27,15 @@ import useDepositEnabled from '../../../Ramp/Deposit/hooks/useDepositEnabled';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { strings } from '../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../../Views/CardHome/CardHome.testIds';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { safeFormatChainIdToHex } from '../../util/safeFormatChainIdToHex';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../../Ramp/hooks/useRampsButtonClickData';
+import useRampsUnifiedV2Enabled from '../../../Ramp/hooks/useRampsUnifiedV2Enabled';
 import {
   createNavigationDetails,
   useParams,
@@ -61,10 +63,11 @@ const AddFundsBottomSheet: React.FC = () => {
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToDeposit } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -93,10 +96,10 @@ const AddFundsBottomSheet: React.FC = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Deposit',
+          button_text: 'Fund with cash',
           location: 'CardHome',
           chain_id_destination: getDecimalChainId(priorityToken?.caipChainId),
-          ramp_type: 'DEPOSIT',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'DEPOSIT',
           region: rampGeodetectedRegion,
           ramp_routing: buttonClickData.ramp_routing,
           is_authenticated: buttonClickData.is_authenticated,
@@ -117,6 +120,7 @@ const AddFundsBottomSheet: React.FC = () => {
     createEventBuilder,
     priorityToken,
     buttonClickData,
+    isV2UnifiedEnabled,
   ]);
 
   const options = [

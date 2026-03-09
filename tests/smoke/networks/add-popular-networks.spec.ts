@@ -1,9 +1,9 @@
-import { SmokeNetworkAbstractions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { SmokeNetworkAbstractions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import WalletView from '../../page-objects/wallet/WalletView';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';

@@ -1,24 +1,25 @@
-import { SmokeWalletPlatform } from '../../../../e2e/tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import Assertions from '../../../framework/Assertions';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_2,
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import TestDApp from '../../../../e2e/pages/Browser/TestDApp';
-import Browser from '../../../../e2e/pages/Browser/BrowserView';
-import ConnectedAccountsModal from '../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import { loginToApp, navigateToBrowserView } from '../../../../e2e/viewHelper';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { DappVariants } from '../../../framework/Constants';
-import ToastModal from '../../../../e2e/pages/wallet/ToastModal';
-import AccountListBottomSheet from '../../../../e2e/pages/wallet/AccountListBottomSheet';
-import NetworkListModal from '../../../../e2e/pages/Network/NetworkListModal';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import ToastModal from '../../../page-objects/wallet/ToastModal';
+import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import WalletView from '../../../page-objects/wallet/WalletView';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
@@ -91,12 +92,6 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -115,13 +110,14 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           );
         }
 
-        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
-        await Assertions.expectElementToNotBeVisible(
-          ToastModal.notificationTitle,
+        await Browser.tapCloseBrowserButton();
+        await Assertions.expectElementToBeVisible(
+          TabBarComponent.tabBarWalletButton,
         );
-
-        await AccountListBottomSheet.tapAccountByName('Account 2');
+        await TabBarComponent.tapWallet();
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapAccountByNameV2('Account 2');
+        await navigateToBrowserView();
 
         const connectedAccountsAfter = await TestDApp.getConnectedAccounts();
         if (
@@ -175,12 +171,6 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
           })
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -195,17 +185,17 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
         }
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectTextDisplayed('Account 1');
         await Assertions.expectElementToNotBeVisible(
           ToastModal.notificationTitle,
         );
 
-        await ConnectedAccountsModal.tapManagePermissionsButton();
-        await ConnectedAccountsModal.tapNetworksPicker();
-        await Assertions.expectElementToBeVisible(
-          NetworkListModal.networkScroll,
+        await ConnectedAccountsModal.tapPermissionsSummaryTab();
+        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
+        await NetworkConnectMultiSelector.selectNetworkChainPermission(
+          'Ethereum Main Network',
         );
-        await NetworkListModal.changeNetworkTo('Localhost');
+        await NetworkConnectMultiSelector.tapUpdateButton();
 
         const connectedChainIdAfter = await TestDApp.getConnectedChainId();
         if (connectedChainIdAfter !== '0x539') {

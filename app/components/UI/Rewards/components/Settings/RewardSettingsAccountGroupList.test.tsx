@@ -6,7 +6,6 @@ import {
   useRewardOptinSummary,
   WalletWithAccountGroupsWithOptInStatus,
 } from '../../hooks/useRewardOptinSummary';
-import { useOptout } from '../../hooks/useOptout';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
@@ -31,10 +30,6 @@ jest.mock('../../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
 }));
 
-jest.mock('../../hooks/useOptout', () => ({
-  useOptout: jest.fn(),
-}));
-
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
 }));
@@ -57,18 +52,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: {
-        default: '#037DD6',
-      },
-      background: {
-        alternative: '#F7F9FA',
-      },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 // Mock FlashList
 jest.mock('@shopify/flash-list', () => {
@@ -371,7 +360,6 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseRewardOptinSummary = useRewardOptinSummary as jest.MockedFunction<
   typeof useRewardOptinSummary
 >;
-const mockUseOptout = useOptout as jest.MockedFunction<typeof useOptout>;
 const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
 const mockUseBulkLinkState = useBulkLinkState as jest.MockedFunction<
   typeof useBulkLinkState
@@ -452,7 +440,6 @@ describe('RewardSettingsAccountGroupList', () => {
     },
   ] as unknown as WalletWithAccountGroupsWithOptInStatus[];
 
-  const mockShowOptoutBottomSheet = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
@@ -495,13 +482,6 @@ describe('RewardSettingsAccountGroupList', () => {
       bySelectedAccountGroup: null,
       currentAccountGroupOptedInStatus: null,
       currentAccountGroupPartiallySupported: null,
-    });
-
-    // Mock useOptout hook
-    mockUseOptout.mockReturnValue({
-      optout: jest.fn().mockResolvedValue(true),
-      isLoading: false,
-      showOptoutBottomSheet: mockShowOptoutBottomSheet,
     });
 
     // Mock useMetrics hook
@@ -586,7 +566,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('rewards-settings-skeleton-2')).toBeOnTheScreen();
     });
 
-    it('renders header and footer in loading state', () => {
+    it('renders header in loading state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: true,
@@ -600,7 +580,6 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -641,7 +620,7 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(mockFetchOptInStatus).toHaveBeenCalledTimes(1);
     });
 
-    it('renders header and footer in error state', () => {
+    it('renders header in error state', () => {
       mockUseRewardOptinSummary.mockReturnValue({
         byWallet: [],
         isLoading: false,
@@ -655,7 +634,6 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
     });
   });
 
@@ -680,13 +658,7 @@ describe('RewardSettingsAccountGroupList', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
-    });
-
-    it('renders opt-out button', () => {
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
+      expect(getByTestId('list-footer')).toBeOnTheScreen();
     });
   });
 
@@ -945,8 +917,6 @@ describe('RewardSettingsAccountGroupList', () => {
       // Test that all major components have testIDs
       expect(getByTestId('rewards-settings-flash-list')).toBeOnTheScreen();
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('rewards-settings-opt-out')).toBeOnTheScreen();
-      expect(getByTestId('rewards-opt-out-button')).toBeOnTheScreen();
     });
   });
 

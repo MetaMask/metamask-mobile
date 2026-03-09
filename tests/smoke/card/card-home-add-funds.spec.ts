@@ -1,7 +1,7 @@
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import { SmokeCard } from '../../../e2e/tags';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeCard } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { loginToApp } from '../../../e2e/viewHelper';
+import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
@@ -9,7 +9,7 @@ import {
   EventPayload,
   getEventsPayloads,
 } from '../../helpers/analytics/helpers';
-import CardHomeView from '../../../e2e/pages/Card/CardHomeView';
+import CardHomeView from '../../page-objects/Card/CardHomeView';
 import SoftAssert from '../../framework/SoftAssert';
 import { CustomNetworks } from '../../resources/networks.e2e';
 
@@ -62,9 +62,17 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       await CardHomeView.tapAddFundsButton();
       await Assertions.expectElementToBeVisible(
         CardHomeView.addFundsBottomSheetDepositOption,
+        {
+          elemDescription:
+            'Add Funds Bottom Sheet Deposit Option in Card Home View',
+        },
       );
       await Assertions.expectElementToBeVisible(
         CardHomeView.addFundsBottomSheetSwapOption,
+        {
+          elemDescription:
+            'Add Funds Bottom Sheet Swap Option in Card Home View',
+        },
       );
     });
   });
@@ -74,7 +82,6 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       CARD_BUTTON_VIEWED: 'Card Button Viewed',
       CARD_HOME_CLICKED: 'Card Home Clicked',
       CARD_ADD_FUNDS_CLICKED: 'Card Add Funds Clicked',
-      CARD_ADVANCED_MANAGEMENT_CLICKED: 'Card Advanced Management Clicked',
     };
 
     const softAssert = new SoftAssert();
@@ -89,35 +96,23 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
     const cardAddFundsClicked = eventsToCheck.filter(
       (event) => event.event === expectedEvents.CARD_ADD_FUNDS_CLICKED,
     );
-    const cardAdvancedManagementClicked = eventsToCheck.filter(
-      (event) =>
-        event.event === expectedEvents.CARD_ADVANCED_MANAGEMENT_CLICKED,
-    );
 
     const checkCardButtonViewed = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardButtonViewed);
+      await Assertions.checkIfArrayHasLength(cardButtonViewed, 1);
     }, 'Check Card Button Viewed event');
 
     const checkCardHomeClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardHomeClicked);
+      await Assertions.checkIfArrayHasLength(cardHomeClicked, 1);
     }, 'Check Card Home Clicked event');
 
     const checkCardAddFundsClicked = softAssert.checkAndCollect(async () => {
-      await Assertions.checkIfValueIsDefined(cardAddFundsClicked);
+      await Assertions.checkIfArrayHasLength(cardAddFundsClicked, 1);
     }, 'Check Card Add Funds Clicked event');
-
-    const checkCardAdvancedManagementClicked = softAssert.checkAndCollect(
-      async () => {
-        await Assertions.checkIfValueIsDefined(cardAdvancedManagementClicked);
-      },
-      'Check Card Advanced Management Clicked event',
-    );
 
     await Promise.all([
       checkCardButtonViewed,
       checkCardHomeClicked,
       checkCardAddFundsClicked,
-      checkCardAdvancedManagementClicked,
     ]);
     softAssert.throwIfErrors();
   });

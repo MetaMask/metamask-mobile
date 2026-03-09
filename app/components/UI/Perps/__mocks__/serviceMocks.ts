@@ -3,13 +3,30 @@
  * Provides reusable mock implementations for ServiceContext and related types
  */
 
-import type { ServiceContext } from '../controllers/services/ServiceContext';
-import type {
-  PerpsControllerState,
-  InitializationState,
-  PerpsControllerMessenger,
-} from '../controllers/PerpsController';
-import type { PerpsPlatformDependencies } from '../controllers/types';
+import {
+  type ServiceContext,
+  type PerpsControllerState,
+  type InitializationState,
+  type PerpsControllerMessenger,
+  type PerpsPlatformDependencies,
+} from '@metamask/perps-controller';
+
+/**
+ * Create a mock EVM account (KeyringAccount)
+ */
+export const createMockEvmAccount = () => ({
+  id: '00000000-0000-0000-0000-000000000000',
+  address: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
+  type: 'eip155:eoa' as const,
+  options: {},
+  scopes: ['eip155:1'],
+  methods: ['eth_signTransaction', 'eth_sign'],
+  metadata: {
+    name: 'Test Account',
+    importTime: Date.now(),
+    keyring: { type: 'HD Key Tree' },
+  },
+});
 
 /**
  * Create a mock PerpsPlatformDependencies instance.
@@ -53,9 +70,28 @@ export const createMockInfrastructure =
         clearAllChannels: jest.fn(),
       },
 
-      // === Rewards (no standard messenger action in core) ===
+      // === Feature Flags (platform-specific version gating) ===
+      featureFlags: {
+        validateVersionGated: jest.fn().mockReturnValue(undefined),
+      },
+
+      // === Market Data Formatting ===
+      marketDataFormatters: {
+        formatVolume: jest.fn((v: number) => `$${v.toFixed(0)}`),
+        formatPerpsFiat: jest.fn((v: number) => `$${v.toFixed(2)}`),
+        formatPercentage: jest.fn((p: number) => `${p.toFixed(2)}%`),
+        priceRangesUniversal: [],
+      },
+
+      // === Cache Invalidation ===
+      cacheInvalidator: {
+        invalidate: jest.fn(),
+        invalidateAll: jest.fn(),
+      },
+
+      // === Rewards (DI — no RewardsController in Core yet) ===
       rewards: {
-        getFeeDiscount: jest.fn().mockResolvedValue(0),
+        getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
       },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
@@ -108,6 +144,9 @@ export const createMockPerpsControllerState = (
   lastError: null,
   lastUpdateTimestamp: Date.now(),
   hip3ConfigVersion: 0,
+  selectedPaymentToken: null,
+  cachedMarketDataByProvider: {},
+  cachedUserDataByProvider: {},
   ...overrides,
 });
 
@@ -135,23 +174,6 @@ export const createMockServiceContext = (
 });
 
 /**
- * Create a mock EVM account (KeyringAccount)
- */
-export const createMockEvmAccount = () => ({
-  id: '00000000-0000-0000-0000-000000000000',
-  address: '0x1234567890abcdef1234567890abcdef12345678' as `0x${string}`,
-  type: 'eip155:eoa' as const,
-  options: {},
-  scopes: ['eip155:1'],
-  methods: ['eth_signTransaction', 'eth_sign'],
-  metadata: {
-    name: 'Test Account',
-    importTime: Date.now(),
-    keyring: { type: 'HD Key Tree' },
-  },
-});
-
-/**
  * Create a mock PerpsControllerMessenger for testing inter-controller communication.
  * The messenger.call() method should be configured in each test to return appropriate values.
  *
@@ -176,6 +198,9 @@ export const createMockMessenger = (
       ) {
         return [mockEvmAccount];
       }
+      if (action === 'KeyringController:getState') {
+        return { isUnlocked: true };
+      }
       if (action === 'KeyringController:signTypedMessage') {
         return Promise.resolve('0xSignatureResult');
       }
@@ -194,6 +219,7 @@ export const createMockMessenger = (
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
     registerActionHandler: jest.fn(),
+    registerMethodActionHandlers: jest.fn(),
     unregisterActionHandler: jest.fn(),
     // Additional methods used by PerpsController
     registerEventHandler: jest.fn(),

@@ -5,8 +5,8 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import DisplayNFTMediaSettings from '.';
 import { NFT_DISPLAY_MEDIA_MODE_SECTION } from './index.constants';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 let mockSetDisplayNftMedia: jest.Mock;
 let mockSetUseNftDetection: jest.Mock;
@@ -32,28 +32,18 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-const mockTrackEvent = jest.fn();
 const mockAddTraitsToUser = jest.fn();
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: mockAddTraitsToUser,
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 describe('DisplayNFTMediaSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ addTraitsToUser: mockAddTraitsToUser }),
+      );
   });
 
   const initialState = {

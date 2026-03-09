@@ -334,7 +334,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -421,7 +421,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -436,7 +436,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -481,7 +481,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -501,8 +501,47 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -510,74 +549,24 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 2,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -610,7 +599,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderColor": "transparent",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -741,7 +730,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -752,7 +741,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     All networks
                                   </Text>
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={12}
                                     name="ArrowDown"
@@ -809,12 +798,12 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b7bbc8",
-                                  "borderRadius": 8,
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
+                                  "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 40,
+                                  "height": 48,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -824,23 +813,23 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                               <View
                                 style={
                                   {
-                                    "marginRight": 8,
+                                    "marginRight": 12,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#66676a"
                                   fill="currentColor"
-                                  height={16}
+                                  height={20}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 16,
-                                      "width": 16,
+                                      "height": 20,
+                                      "width": 20,
                                     }
                                   }
-                                  width={16}
+                                  width={20}
                                 />
                               </View>
                               <View
@@ -853,24 +842,25 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
+                                  multiline={false}
+                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 38,
+                                      "height": 46,
                                       "letterSpacing": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -880,7 +870,7 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                               <View
                                 style={
                                   {
-                                    "marginLeft": 8,
+                                    "marginLeft": 12,
                                   }
                                 }
                                 testID="textfield-endacccessory"
@@ -896,25 +886,25 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                     {
                                       "alignItems": "center",
                                       "borderRadius": 8,
-                                      "height": 24,
+                                      "height": 28,
                                       "justifyContent": "center",
                                       "opacity": 1,
-                                      "width": 24,
+                                      "width": 28,
                                     }
                                   }
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#66676a"
                                     fill="currentColor"
-                                    height={16}
-                                    name="Close"
+                                    height={20}
+                                    name="CircleX"
                                     style={
                                       {
-                                        "height": 16,
-                                        "width": 16,
+                                        "height": 20,
+                                        "width": 20,
                                       }
                                     }
-                                    width={16}
+                                    width={20}
                                   />
                                 </TouchableOpacity>
                               </View>
@@ -986,9 +976,9 @@ exports[`TokenSelectorModal Component displays empty state when no tokens match 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#131416",
                                           "fontFamily": "Geist-Medium",
-                                          "fontSize": 18,
+                                          "fontSize": 20,
                                           "letterSpacing": 0,
                                           "lineHeight": 24,
                                         }
@@ -1350,7 +1340,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1400,7 +1390,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1437,7 +1427,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1452,7 +1442,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -1497,7 +1487,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -1517,8 +1507,47 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -1526,74 +1555,24 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 2,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -1822,7 +1801,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -1989,7 +1968,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2156,7 +2135,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -2192,7 +2171,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
+                                  "backgroundColor": "#131416",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
@@ -2567,7 +2546,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2617,7 +2596,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2654,7 +2633,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2669,7 +2648,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                   "paddingLeft": 8,
                                   "paddingRight": 8,
                                 },
@@ -2714,7 +2693,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   style={
                                     [
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Bold",
                                         "fontSize": 16,
                                         "fontWeight": 400,
@@ -2734,8 +2713,47 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 onLayout={[Function]}
                               >
                                 <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
                                   style={
                                     [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "transparent",
+                                        "borderRadius": 8,
+                                        "height": 32,
+                                        "justifyContent": "center",
+                                        "opacity": 1,
+                                        "width": 32,
+                                      },
+                                      undefined,
                                       {
                                         "transform": [
                                           {
@@ -2743,74 +2761,24 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           },
                                         ],
                                       },
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                      },
                                     ]
                                   }
+                                  testID="button-icon"
                                 >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
+                                  <SvgMock
+                                    fill="currentColor"
+                                    name="Close"
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 2,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
+                                          "color": "#131416",
+                                          "height": 24,
+                                          "width": 24,
                                         },
                                         undefined,
                                       ]
                                     }
-                                    testID="button-icon"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Close"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "height": 20,
-                                            "width": 20,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
+                                  />
                                 </View>
                               </View>
                             </View>
@@ -2843,7 +2811,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#3c4d9d0f",
+                                    "backgroundColor": "#b4b4b528",
                                     "borderColor": "transparent",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
@@ -2974,7 +2942,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#121314",
+                                        "color": "#131416",
                                         "fontFamily": "Geist-Regular",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
@@ -2985,7 +2953,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     All networks
                                   </Text>
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={12}
                                     name="ArrowDown"
@@ -3042,12 +3010,12 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                               style={
                                 {
                                   "alignItems": "center",
-                                  "backgroundColor": "#ffffff",
-                                  "borderColor": "#b7bbc8",
-                                  "borderRadius": 8,
+                                  "backgroundColor": "#b4b4b528",
+                                  "borderColor": "#b4b4b566",
+                                  "borderRadius": 24,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
-                                  "height": 40,
+                                  "height": 48,
                                   "opacity": 1,
                                   "paddingHorizontal": 16,
                                 }
@@ -3057,23 +3025,23 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                               <View
                                 style={
                                   {
-                                    "marginRight": 8,
+                                    "marginRight": 12,
                                   }
                                 }
                                 testID="textfield-startacccessory"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#66676a"
                                   fill="currentColor"
-                                  height={16}
+                                  height={20}
                                   name="Search"
                                   style={
                                     {
-                                      "height": 16,
-                                      "width": 16,
+                                      "height": 20,
+                                      "width": 20,
                                     }
                                   }
-                                  width={16}
+                                  width={20}
                                 />
                               </View>
                               <View
@@ -3086,24 +3054,26 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                 <TextInput
                                   autoFocus={false}
                                   editable={true}
+                                  multiline={false}
+                                  numberOfLines={1}
                                   onBlur={[Function]}
                                   onChangeText={[Function]}
                                   onFocus={[Function]}
                                   placeholder="Search token by name or address"
+                                  placeholderTextColor="#66676a"
                                   style={
                                     {
                                       "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
-                                      "height": 38,
+                                      "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
-                                      "paddingVertical": 2,
-                                      "textAlignVertical": "center",
                                     }
                                   }
                                   testID="textfieldsearch"
@@ -3376,9 +3346,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3390,7 +3360,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3408,7 +3378,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                     accessible={true}
                                     style={
                                       {
-                                        "backgroundColor": "#3c4d9d0f",
+                                        "backgroundColor": "#b4b4b528",
                                         "bottom": 0,
                                         "flexDirection": "row",
                                         "left": 0,
@@ -3605,9 +3575,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3619,7 +3589,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -3819,9 +3789,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3833,7 +3803,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4033,9 +4003,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4047,7 +4017,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,
@@ -4247,9 +4217,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 20,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4261,7 +4231,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 16,
                                               "letterSpacing": 0,

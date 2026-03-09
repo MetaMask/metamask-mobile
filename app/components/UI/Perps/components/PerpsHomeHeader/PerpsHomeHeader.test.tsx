@@ -7,6 +7,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => false),
+}));
+
+jest.mock('../PerpsProviderSelector', () => ({
+  PerpsProviderSelectorBadge: () => null,
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => {
     const translations: Record<string, string> = {
@@ -52,16 +60,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        muted: '#999',
-        default: '#000',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');

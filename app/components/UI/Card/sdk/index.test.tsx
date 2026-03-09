@@ -6,6 +6,7 @@ import {
   act,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   CardSDKProvider,
   useCardSDK,
@@ -55,20 +56,16 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({
-  setAuthenticatedPriorityToken: jest.fn(),
-  setAuthenticatedPriorityTokenLastFetched: jest.fn(),
   setIsAuthenticatedCard: jest.fn(),
   selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
+  setContactVerificationId: jest.fn(),
   selectOnboardingId: jest.fn(),
   resetOnboardingState: jest.fn(() => ({
     type: 'card/resetOnboardingState',
   })),
   resetAuthenticatedData: jest.fn(() => ({
     type: 'card/resetAuthenticatedData',
-  })),
-  clearAllCache: jest.fn(() => ({
-    type: 'card/clearAllCache',
   })),
 }));
 
@@ -101,6 +98,7 @@ jest.mock('../util/cardTokenVault', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
 jest.mock('../util/getErrorMessage', () => ({
@@ -177,6 +175,7 @@ describe('CardSDK Context', () => {
     getSupportedTokensAllowances: jest.fn(),
     getPriorityToken: jest.fn(),
     getRegistrationStatus: jest.fn(),
+    logout: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   });
 
@@ -187,10 +186,20 @@ describe('CardSDK Context', () => {
     );
   };
 
-  // Helper: Create wrapper component
-  const createWrapper = ({ children }: { children: React.ReactNode }) => (
-    <CardSDKProvider>{children}</CardSDKProvider>
-  );
+  // Helper: Create wrapper component with QueryClientProvider
+  const createQueryClient = () =>
+    new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+
+  const createWrapper = ({ children }: { children: React.ReactNode }) => {
+    const queryClient = createQueryClient();
+    return (
+      <QueryClientProvider client={queryClient}>
+        <CardSDKProvider>{children}</CardSDKProvider>
+      </QueryClientProvider>
+    );
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -219,12 +228,15 @@ describe('CardSDK Context', () => {
     it('initializes SDK when feature flag is available', () => {
       // Given: feature flag is configured
       setupMockUseSelector(mockCardFeatureFlag);
+      const queryClient = createQueryClient();
 
       // When: provider renders
       render(
-        <CardSDKProvider>
-          <View>Test Child</View>
-        </CardSDKProvider>,
+        <QueryClientProvider client={queryClient}>
+          <CardSDKProvider>
+            <View>Test Child</View>
+          </CardSDKProvider>
+        </QueryClientProvider>,
       );
 
       // Then: SDK should be created with feature flag
@@ -237,12 +249,15 @@ describe('CardSDK Context', () => {
     it('does not initialize SDK when feature flag is missing', () => {
       // Given: no feature flag
       setupMockUseSelector(null);
+      const queryClient = createQueryClient();
 
       // When: provider renders
       render(
-        <CardSDKProvider>
-          <View>Test Child</View>
-        </CardSDKProvider>,
+        <QueryClientProvider client={queryClient}>
+          <CardSDKProvider>
+            <View>Test Child</View>
+          </CardSDKProvider>
+        </QueryClientProvider>,
       );
 
       // Then: SDK should not be created
@@ -252,6 +267,7 @@ describe('CardSDK Context', () => {
     it('uses provided value prop when given', () => {
       // Given: a custom context value
       setupMockUseSelector(mockCardFeatureFlag);
+      const queryClient = createQueryClient();
       const providedValue: ICardSDK = {
         sdk: null,
         isLoading: false,
@@ -270,9 +286,11 @@ describe('CardSDK Context', () => {
       };
 
       render(
-        <CardSDKProvider value={providedValue}>
-          <TestComponent />
-        </CardSDKProvider>,
+        <QueryClientProvider client={queryClient}>
+          <CardSDKProvider value={providedValue}>
+            <TestComponent />
+          </CardSDKProvider>
+        </QueryClientProvider>,
       );
 
       // Then: custom value is used (assertion in TestComponent)
@@ -367,6 +385,30 @@ describe('CardSDK Context', () => {
   describe('Logout Functionality', () => {
     it('logs out user successfully', async () => {
       // Given: SDK available
+      const mockLogout = jest.fn().mockResolvedValue(undefined);
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: SDK logout should be called and Redux actions dispatched
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('dispatches resetAuthenticatedData action on logout', async () => {
+      // Given: SDK available
       setupMockSDK();
       setupMockUseSelector(mockCardFeatureFlag);
 
@@ -383,9 +425,34 @@ describe('CardSDK Context', () => {
         await result.current.logoutFromProvider();
       });
 
-      // Then: token should be removed and authentication data cleared
-      expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalled();
+      // Then: should dispatch resetAuthenticatedData
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
+    });
+
+    it('dispatches resetOnboardingState action on logout', async () => {
+      // Given: SDK available
+      setupMockSDK();
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: should dispatch resetOnboardingState
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetOnboardingState' }),
+      );
     });
 
     it('throws error when SDK is unavailable for logout', async () => {
@@ -405,6 +472,85 @@ describe('CardSDK Context', () => {
       await expect(result.current.logoutFromProvider()).rejects.toThrow(
         'SDK not available for logout',
       );
+    });
+
+    it('clears Redux state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Server logout failed'));
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // When: user logs out (even though server fails)
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: Redux state should still be cleared
+      expect(mockLogout).toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'card/resetOnboardingState' }),
+      );
+    });
+
+    it('clears user state even when sdk.logout() fails', async () => {
+      // Given: SDK logout fails and user is set
+      const mockLogout = jest
+        .fn()
+        .mockRejectedValue(new Error('Network error'));
+      setupMockSDK({ logout: mockLogout });
+      setupMockUseSelector(mockCardFeatureFlag);
+
+      const mockUser: UserResponse = {
+        id: 'test-user-id',
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        phoneNumber: '+1234567890',
+        phoneCountryCode: '+1',
+        verificationState: 'VERIFIED',
+        dateOfBirth: '1990-01-01',
+        addressLine1: '123 Main St',
+        city: 'Anytown',
+        usState: 'CA',
+        zip: '12345',
+        countryOfResidence: 'US',
+      };
+
+      const { result } = renderHook(() => useCardSDK(), {
+        wrapper: createWrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      // Set user first
+      act(() => {
+        result.current.setUser(mockUser);
+      });
+
+      expect(result.current.user).toEqual(mockUser);
+
+      // When: logout fails
+      await act(async () => {
+        await result.current.logoutFromProvider();
+      });
+
+      // Then: user should still be cleared
+      expect(result.current.user).toBe(null);
     });
   });
 
@@ -650,14 +796,13 @@ describe('CardSDK Context', () => {
 
       // Then: user data should be fetched and set
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.user).toEqual(mockUserResponse);
       });
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'test-onboarding-id',
         null,
       );
-      expect(result.current.user).toEqual(mockUserResponse);
     });
 
     it('does not fetch user data when SDK is not available', async () => {
@@ -851,14 +996,13 @@ describe('CardSDK Context', () => {
       });
 
       await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+        expect(result.current.user).toEqual(mockUserResponse);
       });
 
       expect(mockGetRegistrationStatus).toHaveBeenCalledWith(
         'existing-onboarding-id',
         null,
       );
-      expect(result.current.user).toEqual(mockUserResponse);
     });
 
     it('allows manual fetchUserData call regardless of initial onboardingId state', async () => {

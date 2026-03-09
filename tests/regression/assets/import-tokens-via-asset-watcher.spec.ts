@@ -1,17 +1,18 @@
-import { RegressionNetworkAbstractions } from '../../../e2e/tags';
-import TestHelpers from '../../../e2e/helpers';
-import { loginToApp, navigateToBrowserView } from '../../../e2e/viewHelper';
+import { RegressionNetworkAbstractions } from '../../tags';
+import TestHelpers from '../../helpers';
+import { loginToApp } from '../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import TestDApp from '../../../e2e/pages/Browser/TestDApp';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import TestDApp from '../../page-objects/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
-import AssetWatchBottomSheet from '../../../e2e/pages/Transactions/AssetWatchBottomSheet';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import NetworkListModal from '../../../e2e/pages/Network/NetworkListModal';
+import AssetWatchBottomSheet from '../../page-objects/Transactions/AssetWatchBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import {
   AnvilPort,
   buildPermissions,

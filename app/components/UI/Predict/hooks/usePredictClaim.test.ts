@@ -1,4 +1,5 @@
 import { NavigationProp } from '@react-navigation/native';
+import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { renderHook } from '@testing-library/react-hooks';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -7,7 +8,6 @@ import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import Logger from '../../../../util/Logger';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
-import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -34,10 +34,10 @@ jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
     colors: {
       error: {
-        default: '#ca3542',
+        default: mockTestHexColors.ERROR_DARK,
       },
       accent04: {
-        normal: '#89b0ff',
+        normal: mockTestHexColors.ACCENT_BLUE,
       },
     },
   })),
@@ -87,9 +87,7 @@ describe('usePredictClaim', () => {
 
     mockUsePredictTrading.mockReturnValue({
       claim: mockClaimWinnings,
-      getPositions: jest.fn(),
       placeOrder: jest.fn(),
-      calculateBetAmounts: jest.fn(),
       getBalance: jest.fn(),
       previewOrder: jest.fn(),
       deposit: jest.fn(),
@@ -145,29 +143,21 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('uses custom providerId when claiming', async () => {
+    it('calls claim without provider argument', async () => {
       // Arrange
-      const customProviderId = 'custom-provider';
       mockClaimWinnings.mockResolvedValue(undefined);
 
-      const { result } = renderHook(
-        () => usePredictClaim({ providerId: customProviderId }),
-        { wrapper },
-      );
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
 
       // Act
       await result.current.claim();
 
       // Assert
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: customProviderId,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
     });
   });
 
@@ -197,7 +187,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -213,8 +202,8 @@ describe('usePredictClaim', () => {
           },
         ],
         iconName: IconName.Error,
-        iconColor: '#ca3542',
-        backgroundColor: '#89b0ff',
+        iconColor: mockTestHexColors.ERROR_DARK,
+        backgroundColor: mockTestHexColors.ACCENT_BLUE,
         hasNoTimeout: false,
         linkButtonOptions: {
           label: strings('predict.claim.toasts.error.try_again'),
@@ -250,7 +239,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -276,9 +264,7 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({
-        providerId: POLYMARKET_PROVIDER_ID,
-      });
+      expect(mockClaimWinnings).toHaveBeenCalledWith({});
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
@@ -309,7 +295,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),
@@ -341,7 +326,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         },
@@ -374,7 +358,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         },
@@ -421,7 +404,6 @@ describe('usePredictClaim', () => {
               action: 'claim_winnings',
               method: 'claim',
               operation: 'position_management',
-              providerId: POLYMARKET_PROVIDER_ID,
             },
           },
         }),

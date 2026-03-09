@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -26,10 +26,12 @@ import { DefaultSlippageModalParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
+import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 export const DefaultSlippageModal = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  useModalCloseOnQuoteExpiry();
   const sheetRef = useRef<BottomSheetRef>(null);
   const slippage = useSelector(selectSlippage);
   const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
@@ -80,7 +82,10 @@ export const DefaultSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCenter title={strings('bridge.slippage')} onClose={handleClose} />
+      <HeaderCompactStandard
+        title={strings('bridge.slippage')}
+        onClose={handleClose}
+      />
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
           {strings('bridge.default_slippage_description')}

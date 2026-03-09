@@ -1,7 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
+import {
+  isTokenEligibleForMerklRewards,
+  useMerklRewards,
+} from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
@@ -23,8 +26,6 @@ jest.mock('../../../../../../util/number', () => ({
 jest.mock('../merkl-client', () => ({
   fetchMerklRewardsForAsset: jest.fn(),
   getClaimedAmountFromContract: jest.fn(),
-  // Return the asset's chainId by default (non-mUSD behavior)
-  getClaimChainId: jest.fn((asset: { chainId: string }) => asset.chainId),
 }));
 
 // Mock Engine for refreshTokenBalances
@@ -88,9 +89,9 @@ const mockAsset: TokenI = {
   isNative: false,
 };
 
-describe('isEligibleForMerklRewards', () => {
+describe('isTokenEligibleForMerklRewards', () => {
   it('returns false for native tokens with undefined address', () => {
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       undefined as Hex | undefined,
     );
@@ -99,7 +100,7 @@ describe('isEligibleForMerklRewards', () => {
   });
 
   it('returns false for native tokens with null address', () => {
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       null as Hex | null,
     );
@@ -109,7 +110,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('returns false for unsupported chains', () => {
     const unsupportedChainId = '0x999' as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       unsupportedChainId,
       AGLAMERKL_ADDRESS_MAINNET as Hex,
     );
@@ -120,7 +121,7 @@ describe('isEligibleForMerklRewards', () => {
   it('returns false for non-eligible tokens', () => {
     const nonEligibleAddress =
       '0x1111111111111111111111111111111111111111' as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       nonEligibleAddress,
     );
@@ -130,7 +131,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('returns true for eligible tokens on mainnet', () => {
     const eligibleAddress = AGLAMERKL_ADDRESS_MAINNET as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       eligibleAddress,
     );
@@ -140,7 +141,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('performs case-insensitive address comparison', () => {
     const upperCaseAddress = AGLAMERKL_ADDRESS_MAINNET.toUpperCase() as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       upperCaseAddress,
     );
@@ -271,10 +272,11 @@ describe('useMerklRewards', () => {
     );
 
     expect(mockFetchMerklRewardsForAsset).toHaveBeenCalled();
+    // Claims always go to Linea mainnet regardless of asset chain
     expect(mockGetClaimedAmountFromContract).toHaveBeenCalledWith(
       mockSelectedAddress,
       mockAsset.address,
-      mockAsset.chainId,
+      '0xe708', // CHAIN_IDS.LINEA_MAINNET
     );
 
     expect(mockRenderFromTokenMinimalUnit).toHaveBeenCalledWith(
@@ -481,6 +483,99 @@ describe('useMerklRewards', () => {
 
     // Should remain null when amount rounds to zero
     expect(result.current.claimableReward).toBe(null);
+  });
+
+  it('formats single decimal values to 2 decimal places (0.9 -> 0.90)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '900000000000000000', // 0.9 tokens
+      pending: '0',
+      proofs: [],
+      amount: '900000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a value without trailing zero
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('0.9');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('0.90');
+    });
+  });
+
+  it('formats whole numbers to 2 decimal places (1 -> 1.00)', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '1000000000000000000', // 1 token
+      pending: '0',
+      proofs: [],
+      amount: '1000000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning a whole number
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('1');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('1.00');
+    });
+  });
+
+  it('formats values like 12.5 to 12.50', async () => {
+    const mockRewardData = {
+      token: {
+        address: AGLAMERKL_ADDRESS_MAINNET,
+        chainId: 1,
+        symbol: 'aglaMerkl',
+        decimals: 18,
+        price: null,
+      },
+      accumulated: '0',
+      unclaimed: '12500000000000000000', // 12.5 tokens
+      pending: '0',
+      proofs: [],
+      amount: '12500000000000000000',
+      claimed: '0',
+      recipient: mockSelectedAddress,
+    };
+
+    mockFetchMerklRewardsForAsset.mockResolvedValueOnce(mockRewardData);
+    mockGetClaimedAmountFromContract.mockResolvedValueOnce('0');
+    // Simulate renderFromTokenMinimalUnit returning single decimal
+    mockRenderFromTokenMinimalUnit.mockReturnValueOnce('12.5');
+
+    const { result } = renderHook(() => useMerklRewards({ asset: mockAsset }));
+
+    await waitFor(() => {
+      // Should format to 2 decimal places
+      expect(result.current.claimableReward).toBe('12.50');
+    });
   });
 
   it('converts "< 0.00001" to "< 0.01" for small amounts', async () => {

@@ -3,9 +3,9 @@ import {
   PerpsController,
   PerpsControllerMessenger,
   getDefaultPerpsControllerState,
-} from '../../../../components/UI/Perps/controllers';
+  parseCommaSeparatedString,
+} from '@metamask/perps-controller';
 import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
-import { parseCommaSeparatedString } from '../../../../components/UI/Perps/utils/stringParseUtils';
 import { createMobileInfrastructure } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
 
 /**
@@ -41,6 +41,15 @@ export const perpsControllerInit: ControllerInitFunction<
       fallbackHip3BlocklistMarkets: parseCommaSeparatedString(
         process.env.MM_PERPS_HIP3_BLOCKLIST_MARKETS ?? '',
       ),
+      myxProviderEnabled: process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true',
+      myxAppIdTestnet: process.env.MM_PERPS_MYX_APP_ID_TESTNET ?? '',
+      myxApiSecretTestnet: process.env.MM_PERPS_MYX_API_SECRET_TESTNET ?? '',
+      myxBrokerAddressTestnet:
+        process.env.MM_PERPS_MYX_BROKER_ADDRESS_TESTNET ?? '',
+      myxAppIdMainnet: process.env.MM_PERPS_MYX_APP_ID_MAINNET ?? '',
+      myxApiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
+      myxBrokerAddressMainnet:
+        process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
     },
   });
 

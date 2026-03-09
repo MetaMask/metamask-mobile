@@ -10,8 +10,8 @@ export const styleSheet = (params: {
     vars: { isSelected },
   } = params;
 
-  // Use same base styling as PerpsMarketSortDropdowns for visual consistency
-  // Selected state: inverse overlay background for high contrast distinction
+  // Selected state: uses icon.default as bg (dark in light mode, white in dark mode)
+  // with icon.inverse text for strong contrast in both themes.
   // Unselected state: muted background (same as Volume dropdown)
   return StyleSheet.create({
     badge: {
@@ -22,7 +22,7 @@ export const styleSheet = (params: {
       paddingVertical: 8,
       borderRadius: 8,
       backgroundColor: isSelected
-        ? theme.colors.overlay.inverse
+        ? theme.colors.icon.default
         : theme.colors.background.muted,
       gap: 4,
     },

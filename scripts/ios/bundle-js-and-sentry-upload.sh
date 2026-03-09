@@ -26,12 +26,16 @@ export SENTRY_DISABLE_AUTO_UPLOAD=${SENTRY_DISABLE_AUTO_UPLOAD:-"true"}
 export SENTRY_DIST=$CURRENT_PROJECT_VERSION
 export SENTRY_RELEASE="$PRODUCT_BUNDLE_IDENTIFIER@$MARKETING_VERSION+$SENTRY_DIST"
 
-# Write source map to a fixed path so Bitrise (and other CI) can deploy it.
-# react-native-xcode.sh runs with CWD = PROJECT_ROOT (repo root), so the path
-# must be relative to repo root, not ios/.
-mkdir -p ../sourcemaps/ios
-export SOURCEMAP_FILE="${SOURCEMAP_FILE:-sourcemaps/ios/index.js.map}"
-
+# Write source map to a fixed absolute path so Bitrise (and other CI) can
+# deploy it AND Sentry CLI can locate it for upload.
+# Using a relative path breaks Sentry: react-native-xcode.sh writes the file
+# with CWD=repo_root, but sentry-cli resolves SOURCEMAP_FILE relative to its
+# own CWD (ios/), causing a path mismatch. An absolute path anchored on
+# $PROJECT_DIR (set by Xcode to the ios/ directory) is unambiguous for all
+# sub-processes.
+REPO_ROOT="$(cd "${PROJECT_DIR}/.." && pwd)"
+mkdir -p "$REPO_ROOT/sourcemaps/ios"
+export SOURCEMAP_FILE="${SOURCEMAP_FILE:-$REPO_ROOT/sourcemaps/ios/index.js.map}"
 
 # Generate JS bundle and upload Sentry source maps
 REACT_NATIVE_XCODE="../node_modules/react-native/scripts/react-native-xcode.sh"

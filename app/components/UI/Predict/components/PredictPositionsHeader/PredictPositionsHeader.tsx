@@ -6,16 +6,22 @@ import {
   Text,
   TextVariant,
   ButtonSize as ButtonSizeHero,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { predictQueries } from '../../queries';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -25,13 +31,22 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectSelectedAccountGroupId } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import { useUnrealizedPnL } from '../../hooks/useUnrealizedPnL';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -57,23 +72,22 @@ const PredictPositionsHeader = forwardRef<
   PredictPositionsHeaderProps
 >((props, ref) => {
   const { onError } = props;
+  const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: POLYMARKET_PROVIDER_ID,
     navigation,
   });
+  const queryClient = useQueryClient();
   const {
-    balance,
-    loadBalance,
+    data: balance = 0,
     isLoading: isBalanceLoading,
     error: balanceError,
-  } = usePredictBalance({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
+  } = usePredictBalance();
+  // Subscribe to account group changes so the component re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
@@ -81,26 +95,42 @@ const PredictPositionsHeader = forwardRef<
     selectPredictWonPositions({ address: selectedAddress }),
   );
 
+  const { data: activePositions } = usePredictPositions({ claimable: false });
+  const hasPositions = (activePositions?.length ?? 0) > 0;
+
   const {
-    unrealizedPnL,
+    data: pnlData,
     isLoading: isUnrealizedPnLLoading,
-    loadUnrealizedPnL,
     error: pnlError,
-  } = useUnrealizedPnL({
-    providerId: POLYMARKET_PROVIDER_ID,
-  });
+  } = useUnrealizedPnL();
+
+  // Only show P&L when the user has active (non-claimable) positions
+  const unrealizedPnL = hasPositions ? (pnlData ?? null) : null;
+
+  // Invalidate unrealized P&L query when screen comes into focus
+  const pnlQueryKey = useMemo(
+    () => predictQueries.unrealizedPnL.keys.byAddress(selectedAddress),
+    [selectedAddress],
+  );
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: pnlQueryKey });
+    }, [queryClient, pnlQueryKey]),
+  );
 
   // Notify parent of errors while keeping state isolated
   useEffect(() => {
-    const combinedError = balanceError || pnlError;
+    const combinedError = balanceError?.message ?? pnlError?.message ?? null;
     onError?.(combinedError);
   }, [balanceError, pnlError, onError]);
 
   useEffect(() => {
     if (!isDepositPending) {
-      loadBalance({ isRefresh: true });
+      queryClient.invalidateQueries({
+        queryKey: predictQueries.balance.keys.all(),
+      });
     }
-  }, [isDepositPending, loadBalance]);
+  }, [isDepositPending, queryClient]);
 
   const handleBalanceTouch = () => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -114,8 +144,10 @@ const PredictPositionsHeader = forwardRef<
   useImperativeHandle(ref, () => ({
     refresh: async () => {
       await Promise.all([
-        loadUnrealizedPnL({ isRefresh: true }),
-        loadBalance({ isRefresh: true }),
+        queryClient.invalidateQueries({ queryKey: pnlQueryKey }),
+        queryClient.invalidateQueries({
+          queryKey: predictQueries.balance.keys.all(),
+        }),
       ]);
     },
   }));
@@ -176,11 +208,16 @@ const PredictPositionsHeader = forwardRef<
           onPress={handleClaim}
           style={tw.style('w-full')}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
+          <SensitiveText
+            variant={ComponentTextVariant.BodyMD}
+            color="white"
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+          >
             {strings('predict.claim_amount_text', {
               amount: totalClaimableAmount.toFixed(2),
             })}
-          </Text>
+          </SensitiveText>
         </ButtonHero>
       )}
 
@@ -234,13 +271,15 @@ const PredictPositionsHeader = forwardRef<
                     />
                   ) : (
                     <>
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        twClassName="text-primary mr-1"
+                      <SensitiveText
+                        variant={ComponentTextVariant.BodyMD}
+                        isHidden={privacyMode}
+                        length={SensitiveTextLength.Medium}
+                        style={tw.style('text-primary mr-1')}
                         testID="claimable-amount"
                       >
                         {formatPrice(balance, { maximumDecimals: 2 })}
-                      </Text>
+                      </SensitiveText>
                       <Icon
                         name={IconName.ArrowRight}
                         size={IconSize.Sm}
@@ -274,19 +313,21 @@ const PredictPositionsHeader = forwardRef<
                     style={tw.style('rounded-md')}
                   />
                 ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName={
+                  <SensitiveText
+                    variant={ComponentTextVariant.BodyMD}
+                    color={
                       unrealizedAmount >= 0
-                        ? 'text-success-default'
-                        : 'text-error-default'
+                        ? ComponentTextColor.Success
+                        : ComponentTextColor.Error
                     }
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Long}
                   >
                     {strings('predict.unrealized_pnl_value', {
                       amount: formatAmount(unrealizedAmount),
                       percent: formatPercent(unrealizedPercent),
                     })}
-                  </Text>
+                  </SensitiveText>
                 )}
               </Box>
             </>

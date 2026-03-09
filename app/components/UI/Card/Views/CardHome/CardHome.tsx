@@ -10,8 +10,10 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
+  Switch,
   TouchableOpacity,
 } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -29,6 +31,7 @@ import {
   useFocusEffect,
 } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -60,8 +63,9 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
@@ -69,17 +73,19 @@ import {
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  clearAllCache,
   resetAuthenticatedData,
   selectUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { isAuthenticationError } from '../../util/isAuthenticationError';
 import { removeCardBaanxToken } from '../../util/cardTokenVault';
 import useLoadCardData from '../../hooks/useLoadCardData';
+import useCardFreeze from '../../hooks/useCardFreeze';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
+import useCardPinToken from '../../hooks/useCardPinToken';
 import useAuthentication from '../../../../../core/Authentication/hooks/useAuthentication';
 import { ReauthenticateErrorType } from '../../../../../core/Authentication/types';
 import { CardActions } from '../../util/metrics';
@@ -92,9 +98,22 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { createAddFundsModalNavigationDetails } from '../../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import { createAssetSelectionModalNavigationDetails } from '../../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import {
+  usePushProvisioning,
+  getWalletName,
+  type ProvisioningError,
+} from '../../pushProvisioning';
+import { AddToWalletButton } from '@expensify/react-native-wallet';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import { createPasswordBottomSheetNavigationDetails } from '../../components/PasswordBottomSheet';
-import type { ShippingAddress } from '../ReviewOrder';
+import { createViewPinBottomSheetNavigationDetails } from '../../components/ViewPinBottomSheet';
+import {
+  buildProvisioningUserAddress,
+  buildShippingAddress,
+  buildCardholderName,
+  type ShippingAddress,
+} from '../../util/buildUserAddress';
+import AnimatedSpinner from '../../../AnimatedSpinner';
 
 /**
  * Route params for CardHome screen
@@ -133,11 +152,16 @@ const CardHome = () => {
     imageUrl: cardDetailsImageUrl,
     clearImageUrl: clearCardDetailsImageUrl,
   } = useCardDetailsToken();
+  const {
+    generatePinToken,
+    isLoading: isPinLoading,
+    reset: resetPinToken,
+  } = useCardPinToken();
   const { reauthenticate } = useAuthentication();
   const hasTrackedCardHomeView = useRef(false);
-  const hasLoadedCardHomeView = useRef(false);
-  const hasCompletedInitialFetchRef = useRef(false);
   const hasHandledAuthErrorRef = useRef(false);
+  const hasCompletedInitialFetchRef = useRef(false);
+  const hasLoadedCardHomeView = useRef(false);
   const isComponentUnmountedRef = useRef(false);
   const hasShownDeeplinkToast = useRef(false);
   const [
@@ -147,9 +171,10 @@ const CardHome = () => {
 
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const theme = useTheme();
   const tw = useTailwind();
 
@@ -164,6 +189,7 @@ const CardHome = () => {
     isAuthenticated,
     isBaanxLoginEnabled,
     fetchAllData,
+    fetchCardDetails,
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
@@ -186,12 +212,22 @@ const CardHome = () => {
 
   const { navigateToCardPage, navigateToTravelPage, navigateToCardTosPage } =
     useNavigateToCardPage(navigation);
+
   const { openSwaps } = useOpenSwaps({
     priorityToken,
   });
   const isSwapEnabledForPriorityToken = useIsSwapEnabledForPriorityToken(
     priorityToken?.walletAddress,
   );
+
+  const {
+    isFrozen,
+    status: freezeStatus,
+    toggleFreeze,
+  } = useCardFreeze({
+    cardStatus: cardDetails?.status,
+    fetchCardDetails,
+  });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -215,6 +251,71 @@ const CardHome = () => {
     return balanceFiat;
   }, [balanceFiat, balanceFormatted]);
 
+  // Get cardholder name from user details (firstName + lastName)
+  const cardholderName = useMemo(
+    () => buildCardholderName(kycStatus?.userDetails),
+    [kycStatus?.userDetails],
+  );
+
+  // Build user address for Google Wallet provisioning
+  const userAddressForProvisioning = useMemo(
+    () => buildProvisioningUserAddress(kycStatus?.userDetails, cardholderName),
+    [kycStatus?.userDetails, cardholderName],
+  );
+
+  // Memoize cardDetails for push provisioning to avoid infinite loops
+  const cardDetailsForProvisioning = useMemo(
+    () =>
+      cardDetails
+        ? {
+            id: cardDetails.id,
+            holderName: cardDetails.holderName,
+            panLast4: cardDetails.panLast4,
+            status: cardDetails.status,
+          }
+        : null,
+    [cardDetails],
+  );
+
+  const {
+    initiateProvisioning: initiatePushProvisioning,
+    isProvisioning: isPushProvisioning,
+    canAddToWallet,
+  } = usePushProvisioning({
+    cardDetails: cardDetailsForProvisioning,
+    userAddress: userAddressForProvisioning,
+    onSuccess: () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: getWalletName(),
+            }),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    onError: (error: ProvisioningError) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label:
+              error.message || strings('card.push_provisioning.error_unknown'),
+          },
+        ],
+        iconName: IconName.Danger,
+        iconColor: theme.colors.error.default,
+        backgroundColor: theme.colors.error.muted,
+        hasNoTimeout: false,
+      });
+    },
+  });
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -235,6 +336,7 @@ const CardHome = () => {
       return;
     }
 
+    // Check if balances have finished loading when a priority token exists
     const hasValidTokenBalance =
       balanceFormatted !== undefined &&
       balanceFormatted !== TOKEN_BALANCE_LOADING &&
@@ -246,25 +348,58 @@ const CardHome = () => {
       balanceFiat !== TOKEN_BALANCE_LOADING_UPPERCASE &&
       balanceFiat !== TOKEN_RATE_UNDEFINED;
 
-    const isLoaded =
-      !!priorityToken && (hasValidTokenBalance || hasValidFiatBalance);
+    const hasPriorityToken = !!priorityToken;
+
+    const isLoaded = hasPriorityToken
+      ? hasValidTokenBalance || hasValidFiatBalance
+      : !isLoading;
 
     if (isLoaded) {
       // Set flag immediately to prevent race conditions
       hasTrackedCardHomeView.current = true;
 
+      // Determine the user's card state for analytics
+      let cardHomeState: string;
+      if (!isAuthenticated) {
+        cardHomeState = 'UNAUTHENTICATED';
+      } else if (
+        kycStatus?.verificationState === 'PENDING' ||
+        kycStatus?.verificationState === 'UNVERIFIED'
+      ) {
+        cardHomeState = 'PENDING';
+      } else if (
+        kycStatus?.verificationState === 'VERIFIED' &&
+        (warning === CardStateWarning.NoCard ||
+          warning === CardStateWarning.NeedDelegation) &&
+        (externalWalletDetailsData?.mappedWalletDetails?.length ?? 0) > 0
+      ) {
+        cardHomeState = 'PROVISIONING_CARD';
+      } else if (
+        kycStatus?.verificationState === 'VERIFIED' &&
+        (warning === CardStateWarning.NoCard ||
+          warning === CardStateWarning.NeedDelegation)
+      ) {
+        cardHomeState = 'ENABLE_CARD';
+      } else {
+        cardHomeState = 'VERIFIED';
+      }
+
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_HOME_VIEWED)
           .addProperties({
+            state: cardHomeState,
             token_symbol_priority: priorityToken?.symbol,
-            token_raw_balance_priority:
-              rawTokenBalance !== undefined && isNaN(rawTokenBalance)
+            token_raw_balance_priority: hasPriorityToken
+              ? rawTokenBalance !== undefined && isNaN(rawTokenBalance)
                 ? 0
-                : rawTokenBalance,
-            token_fiat_balance_priority:
-              rawFiatNumber !== undefined && isNaN(rawFiatNumber)
+                : rawTokenBalance
+              : undefined,
+            token_fiat_balance_priority: hasPriorityToken
+              ? rawFiatNumber !== undefined && isNaN(rawFiatNumber)
                 ? 0
-                : rawFiatNumber,
+                : rawFiatNumber
+              : undefined,
+            token_chain_id_priority: priorityToken?.caipChainId,
           })
           .build(),
       );
@@ -278,6 +413,11 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
     isSDKLoading,
+    isLoading,
+    isAuthenticated,
+    kycStatus,
+    warning,
+    externalWalletDetailsData,
   ]);
 
   // Show toast notification when navigating from deeplink
@@ -298,6 +438,130 @@ const CardHome = () => {
       });
     }
   }, [route.params?.showDeeplinkToast, toastRef]);
+
+  useEffect(() => {
+    if (freezeStatus.type === 'error' && toastRef?.current) {
+      toastRef.current.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.manage_card_options.freeze_error'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [freezeStatus, toastRef]);
+
+  const showFreezeSuccessToast = useCallback(
+    (wasFrozen: boolean) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings(
+              wasFrozen
+                ? 'card.card_home.manage_card_options.unfreeze_success'
+                : 'card.card_home.manage_card_options.freeze_success',
+            ),
+          },
+        ],
+        iconName: IconName.Confirmation,
+        iconColor: theme.colors.success.default,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef, theme],
+  );
+
+  const handleToggleFreeze = useCallback(async () => {
+    const wasFrozen = isFrozen;
+
+    if (!isFrozen) {
+      const success = await toggleFreeze();
+      if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.FREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
+        showFreezeSuccessToast(wasFrozen);
+      }
+      return;
+    }
+
+    try {
+      await reauthenticate();
+      const success = await toggleFreeze();
+      if (success) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action: CardActions.UNFREEZE_CARD_BUTTON,
+            })
+            .build(),
+        );
+        showFreezeSuccessToast(wasFrozen);
+      }
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        navigation.navigate(
+          ...createPasswordBottomSheetNavigationDetails({
+            onSuccess: async () => {
+              const success = await toggleFreeze();
+              if (success) {
+                trackEvent(
+                  createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                    .addProperties({
+                      action: CardActions.UNFREEZE_CARD_BUTTON,
+                    })
+                    .build(),
+                );
+                showFreezeSuccessToast(wasFrozen);
+              }
+            },
+            description: strings(
+              'card.password_bottomsheet.description_unfreeze',
+            ),
+          }),
+        );
+        return;
+      }
+
+      if (errorMessage.includes(ReauthenticateErrorType.BIOMETRIC_ERROR)) {
+        return;
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.unfreeze_auth_required'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [
+    isFrozen,
+    toggleFreeze,
+    reauthenticate,
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    toastRef,
+    showFreezeSuccessToast,
+  ]);
 
   const addFundsAction = useCallback(() => {
     trackEvent(
@@ -426,42 +690,10 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
-  const userShippingAddress: ShippingAddress | undefined = useMemo(() => {
-    const userDetails = kycStatus?.userDetails;
-    if (!userDetails) {
-      return undefined;
-    }
-
-    const mailingLine1 = userDetails.mailingAddressLine1;
-    const mailingCity = userDetails.mailingCity;
-    const mailingZip = userDetails.mailingZip;
-
-    if (mailingLine1 && mailingCity && mailingZip) {
-      return {
-        line1: mailingLine1,
-        line2: userDetails.mailingAddressLine2 ?? undefined,
-        city: mailingCity,
-        state: userDetails.mailingUsState ?? '',
-        zip: mailingZip,
-      };
-    }
-
-    const physicalLine1 = userDetails.addressLine1;
-    const physicalCity = userDetails.city;
-    const physicalZip = userDetails.zip;
-
-    if (physicalLine1 && physicalCity && physicalZip) {
-      return {
-        line1: physicalLine1,
-        line2: userDetails.addressLine2 ?? undefined,
-        city: physicalCity,
-        state: userDetails.usState ?? '',
-        zip: physicalZip,
-      };
-    }
-
-    return undefined;
-  }, [kycStatus]);
+  const userShippingAddress: ShippingAddress | undefined = useMemo(
+    () => buildShippingAddress(kycStatus?.userDetails),
+    [kycStatus?.userDetails],
+  );
 
   const orderMetalCardAction = useCallback(() => {
     trackEvent(
@@ -477,24 +709,6 @@ const CardHome = () => {
       shippingAddress: userShippingAddress,
     });
   }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);
-
-  const isUserEligibleForMetalCard = useMemo(
-    () =>
-      isMetalCardCheckoutEnabled &&
-      isBaanxLoginEnabled &&
-      isAuthenticated &&
-      userLocation === 'us' &&
-      userShippingAddress &&
-      cardDetails?.type === CardType.VIRTUAL,
-    [
-      isMetalCardCheckoutEnabled,
-      isBaanxLoginEnabled,
-      isAuthenticated,
-      userLocation,
-      userShippingAddress,
-      cardDetails,
-    ],
-  );
 
   const showCardDetailsErrorToast = useCallback(() => {
     toastRef?.current?.showToast({
@@ -569,7 +783,9 @@ const CardHome = () => {
       ) {
         navigation.navigate(
           ...createPasswordBottomSheetNavigationDetails({
-            onSuccess: fetchAndShowCardDetails,
+            onSuccess: () => {
+              fetchAndShowCardDetails();
+            },
           }),
         );
         return;
@@ -604,6 +820,91 @@ const CardHome = () => {
     trackEvent,
     createEventBuilder,
   ]);
+
+  const fetchAndShowPin = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.VIEW_PIN_BUTTON,
+        })
+        .build(),
+    );
+
+    try {
+      const response = await generatePinToken();
+      navigation.navigate(
+        ...createViewPinBottomSheetNavigationDetails({
+          imageUrl: response.imageUrl,
+        }),
+      );
+    } catch {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.manage_card_options.view_pin_error'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    } finally {
+      resetPinToken();
+    }
+  }, [
+    generatePinToken,
+    navigation,
+    toastRef,
+    resetPinToken,
+    trackEvent,
+    createEventBuilder,
+  ]);
+
+  const viewPinAction = useCallback(async () => {
+    if (isPinLoading) {
+      return;
+    }
+
+    try {
+      await reauthenticate();
+      await fetchAndShowPin();
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+
+      if (
+        errorMessage.includes(
+          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
+        )
+      ) {
+        navigation.navigate(
+          ...createPasswordBottomSheetNavigationDetails({
+            onSuccess: () => {
+              fetchAndShowPin();
+            },
+            description: strings(
+              'card.password_bottomsheet.description_view_pin',
+            ),
+          }),
+        );
+        return;
+      }
+
+      if (errorMessage.includes(ReauthenticateErrorType.BIOMETRIC_ERROR)) {
+        return;
+      }
+
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('card.card_home.biometric_verification_required'),
+          },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.Warning,
+      });
+    }
+  }, [isPinLoading, reauthenticate, fetchAndShowPin, navigation, toastRef]);
 
   const cardSetupState = useMemo(() => {
     const needsSetup =
@@ -658,7 +959,7 @@ const CardHome = () => {
     if (!isBaanxLoginEnabled) {
       return (
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           label={strings('card.card_home.add_funds')}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
@@ -679,7 +980,7 @@ const CardHome = () => {
 
       return (
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           label={strings('card.card_home.enable_card_button_label')}
           size={ButtonSize.Lg}
           onPress={openOnboardingDelegationAction}
@@ -692,7 +993,7 @@ const CardHome = () => {
     return (
       <Box twClassName="w-full gap-2 flex-row justify-between items-center">
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           style={tw.style(
             'w-1/2',
             !isSwapEnabledForPriorityToken && 'opacity-50',
@@ -705,7 +1006,7 @@ const CardHome = () => {
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
         />
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariants.Primary}
           style={tw.style('w-1/2')}
           label={strings('card.card_home.change_asset')}
           size={ButtonSize.Lg}
@@ -726,6 +1027,31 @@ const CardHome = () => {
     openOnboardingDelegationAction,
     isCardProvisioning,
   ]);
+
+  const isUserEligibleForMetalCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !cardSetupState.needsSetup &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      userLocation === 'us' &&
+      userShippingAddress &&
+      cardDetails?.type === CardType.VIRTUAL,
+    [
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      userLocation,
+      userShippingAddress,
+      cardDetails,
+      isLoading,
+      cardSetupState,
+      isCardProvisioning,
+    ],
+  );
 
   useEffect(
     () => () => {
@@ -761,8 +1087,16 @@ const CardHome = () => {
         }
 
         dispatch(resetAuthenticatedData());
-        dispatch(clearAllCache());
+        queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
 
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [
+            { label: strings('card.card_home.authentication_error') },
+          ],
+          hasNoTimeout: false,
+          iconName: IconName.Warning,
+        });
         navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
       } catch (error) {
         if (!isComponentUnmountedRef.current) {
@@ -776,7 +1110,7 @@ const CardHome = () => {
     };
 
     handleAuthenticationError();
-  }, [cardError, dispatch, isAuthenticated, navigation]);
+  }, [cardError, dispatch, queryClient, isAuthenticated, navigation, toastRef]);
 
   useEffect(() => {
     if (isSDKLoading) {
@@ -784,7 +1118,7 @@ const CardHome = () => {
     }
     if (!hasLoadedCardHomeView.current && isAuthenticated) {
       hasLoadedCardHomeView.current = true;
-      fetchAllData().then(() => {
+      fetchAllData().finally(() => {
         hasCompletedInitialFetchRef.current = true;
       });
     }
@@ -800,18 +1134,16 @@ const CardHome = () => {
         return;
       }
 
-      if (!externalWalletDetailsData && !isLoading) {
+      const hasInvalidatedQueries = queryClient
+        .getQueryCache()
+        .findAll({ queryKey: cardQueries.dashboard.keys.all() })
+        .some((query) => query.state.isInvalidated);
+
+      if (hasInvalidatedQueries) {
         fetchAllData();
       }
-    }, [
-      isSDKLoading,
-      isAuthenticated,
-      externalWalletDetailsData,
-      isLoading,
-      fetchAllData,
-    ]),
+    }, [isSDKLoading, isAuthenticated, fetchAllData, queryClient]),
   );
-
   /**
    * Check if the current token supports the spending limit progress bar feature.
    * Some tokens (e.g., aUSDC) have different allowance behavior and are unsupported.
@@ -881,7 +1213,7 @@ const CardHome = () => {
         {retries < 3 && !isAuthenticationError(cardError) && (
           <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariants.Primary}
               label={strings('card.card_home.try_again')}
               size={ButtonSize.Md}
               onPress={() => {
@@ -1083,7 +1415,39 @@ const CardHome = () => {
         )}
       </Box>
 
+      {!isLoading && canAddToWallet && (
+        <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+          {isPushProvisioning ? (
+            <Box twClassName="py-3">
+              <AnimatedSpinner testID="push-provisioning-spinner" />
+            </Box>
+          ) : (
+            <AddToWalletButton
+              onPress={
+                isPushProvisioning ? undefined : initiatePushProvisioning
+              }
+              buttonStyle="blackOutline"
+              buttonType="basic"
+              borderRadius={4}
+            />
+          )}
+        </Box>
+      )}
+
       <Box style={tw.style(cardSetupState.needsSetup && 'hidden')}>
+        {isUserEligibleForMetalCard && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.order_metal_card',
+            )}
+            description={strings(
+              'card.card_home.manage_card_options.order_metal_card_description',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={orderMetalCardAction}
+            testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
+          />
+        )}
         {isAuthenticated && !isLoading && cardDetails && (
           <ManageCardListItem
             title={strings(
@@ -1098,6 +1462,51 @@ const CardHome = () => {
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
+        {isAuthenticated &&
+          !isLoading &&
+          cardDetails &&
+          (userLocation === 'us' || cardDetails.type !== CardType.VIRTUAL) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={viewPinAction}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
+        {isAuthenticated &&
+          !isLoading &&
+          cardDetails?.isFreezable &&
+          cardDetails?.status !== CardStatus.BLOCKED && (
+            <ManageCardListItem
+              title={
+                isFrozen
+                  ? strings('card.card_home.manage_card_options.unfreeze_card')
+                  : strings('card.card_home.manage_card_options.freeze_card')
+              }
+              description={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                  : 'card.card_home.manage_card_options.freeze_card_description',
+              )}
+              rightElement={
+                <Switch
+                  value={isFrozen}
+                  onValueChange={
+                    freezeStatus.type === 'toggling'
+                      ? undefined
+                      : handleToggleFreeze
+                  }
+                  disabled={freezeStatus.type === 'toggling'}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+                />
+              }
+              testID="freeze-card-list-item"
+            />
+          )}
         {isBaanxLoginEnabled &&
           !isLoading &&
           !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
@@ -1130,19 +1539,30 @@ const CardHome = () => {
               onPress={navigateToCardPage}
               testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
             />
-            {isUserEligibleForMetalCard && (
-              <ManageCardListItem
-                title={strings(
-                  'card.card_home.manage_card_options.order_metal_card',
-                )}
-                description={strings(
-                  'card.card_home.manage_card_options.order_metal_card_description',
-                )}
-                rightIcon={IconName.ArrowRight}
-                onPress={orderMetalCardAction}
-                testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
-              />
-            )}
+            {isAuthenticated &&
+              kycStatus?.verificationState === 'VERIFIED' &&
+              userLocation !== 'us' && (
+                <ManageCardListItem
+                  title={strings('card.card_home.manage_card_options.cashback')}
+                  description={strings(
+                    cardDetails?.type === CardType.METAL
+                      ? 'card.card_home.manage_card_options.cashback_description_metal'
+                      : 'card.card_home.manage_card_options.cashback_description',
+                  )}
+                  rightIcon={IconName.ArrowRight}
+                  onPress={() => {
+                    trackEvent(
+                      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+                        .addProperties({
+                          action: CardActions.CASHBACK_BUTTON,
+                        })
+                        .build(),
+                    );
+                    navigation.navigate(Routes.CARD.CASHBACK);
+                  }}
+                  testID={CardHomeSelectors.CASHBACK_ITEM}
+                />
+              )}
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.travel_title')}
               description={strings(

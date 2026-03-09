@@ -1,6 +1,6 @@
 {
   "sample_feature": {
-    "title": "Sample feature",
+    "title": "Función de muestra",
     "description": "Esta es una pantalla que muestra cómo construir una función de muestra de extremo a extremo en MetaMask.",
     "counter": {
       "title": "Contador",
@@ -9,7 +9,7 @@
     },
     "pet_name": {
       "list_count_text": "Nombres de mascotas en esta red",
-      "add_pet_name_button": "Add pet name",
+      "add_pet_name_button": "Agregar nombre de mascota",
       "address": "Dirección",
       "address_placeholder": "0x...",
       "name": "Nombre",
@@ -25,7 +25,7 @@
       "title": "Alerta",
       "checkbox_label": "Soy consciente del riesgo y aún así deseo continuar",
       "got_it_btn": "Entendido",
-      "acknowledge_btn": "Acknowledge",
+      "acknowledge_btn": "Aceptar",
       "close_btn": "Cerrar",
       "alert_details": "Detalles de la alerta"
     },
@@ -103,6 +103,10 @@
       "message": "No hay suficientes {{ticker}} para cubrir las tarifas. Usa un token en otra red o añade más {{ticker}} para continuar.",
       "title": "Fondos insuficientes"
     },
+    "insufficient_pay_token_native_post_quote": {
+      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
+      "title": "Insufficient funds for post quote"
+    },
     "no_pay_token_quotes": {
       "message": "Esta ruta de pago no está disponible en este momento. Intenta cambiar el monto, la red o el token y encontraremos la mejor opción.",
       "title": "Sin cotizaciones"
@@ -115,6 +119,10 @@
       "message": "Estás enviando tus activos a una dirección de quema. Si continúas, perderás tus activos.",
       "title": "Envío de activos a la dirección de quema"
     },
+    "gas_sponsorship_reserve_balance": {
+      "message": "El patrocinio de gas no está disponible para esta transacción. Deberás mantener al menos %{minBalance} %{nativeTokenSymbol} en tu cuenta.",
+      "title": "Patrocinio de gas no disponible"
+    },
     "token_trust_signal": {
       "malicious": {
         "message": "Este token se ha identificado como malicioso. Interactuar con él podría resultar en la pérdida de fondos.",
@@ -124,6 +132,10 @@
         "message": "Este token muestra fuertes indicios de comportamiento malicioso. Seguir usándolo podría resultar en la pérdida de fondos.",
         "title": "Token sospechoso"
       }
+    },
+    "first_time_interaction": {
+      "message": "Es la primera vez que interactúas con esta dirección. Asegúrate de que sea correcta antes de continuar.",
+      "title": "1ª interacción"
     },
     "address_trust_signal": {
       "malicious": {
@@ -199,7 +211,7 @@
     "recents": "Recientes",
     "favorites": "Favoritos",
     "sites": "Sitios",
-    "tokens": "Trending tokens",
+    "tokens": "Tokens de tendencia",
     "perps": "Perps",
     "predictions": "Predicciones"
   },
@@ -450,7 +462,11 @@
     "reset_wallet_desc_bold": "borrarán permanentemente",
     "reset_wallet_desc_2": "de MetaMask en este dispositivo. Esta acción es irreversible.",
     "reset_wallet_desc_login": "Para restaurar tu billetera, puedes usar tu frase secreta de recuperación o la contraseña de tu cuenta de Google o Apple. MetaMask no tiene esta información.",
-    "reset_wallet_desc_srp": "Para restaurar tu billetera, asegúrate de tener tu frase secreta de recuperación. MetaMask no tiene esta información."
+    "reset_wallet_desc_srp": "Para restaurar tu billetera, asegúrate de tener tu frase secreta de recuperación. MetaMask no tiene esta información.",
+    "biometric_authentication_cancelled": "Se canceló la autenticación biométrica",
+    "biometric_authentication_cancelled_title": "Configuración biométrica fallida",
+    "biometric_authentication_cancelled_description": "Vuelve a configurar la autenticación biométrica desde la configuración.",
+    "biometric_authentication_cancelled_button": "Confirmar"
   },
   "connect_hardware": {
     "title_select_hardware": "Conectar un monedero físico",
@@ -498,6 +514,19 @@
     "password_error": "Las contraseñas no coinciden.",
     "marketing_opt_in_description": "Recibe actualizaciones de productos, consejos y noticias, incluso por correo electrónico. Podemos usar tus interacciones para mejorar lo que compartimos.",
     "loose_password_description": "Si pierdo esta contraseña, MetaMask no podrá restablecerla."
+  },
+  "wallet_creation_error": {
+    "title": "Algo salió mal",
+    "social_login_description_part1": "Se produjo un error al crear tu billetera. Inténtalo de nuevo y si el problema persiste, comunícate con",
+    "srp_description_part1": "Envíanos un informe de error anónimo para ayudarnos a solucionar el problema y mejorar MetaMask. Si el problema persiste, comunícate con",
+    "metamask_support": "Soporte de MetaMask",
+    "error_report": "Informe de error",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "send_error_report": "Enviar informe de error",
+    "try_again": "Inténtalo de nuevo",
+    "error_report_sent_title": "Informe de error enviado",
+    "error_report_sent_description": "Estamos investigando este problema. Intenta crear tu billetera de nuevo."
   },
   "reset_password": {
     "title": "Cambiar contraseña",
@@ -590,7 +619,7 @@
     "trade": "Operar",
     "settings": "Configuración",
     "rewards": "Recompensas",
-    "trending": "Explore"
+    "trending": "Explorar"
   },
   "drawer": {
     "send_button": "Enviar",
@@ -622,7 +651,8 @@
     "available": "disponible",
     "invalid_value": "Valor no válido",
     "insufficient_funds": "Fondos insuficientes",
-    "insufficient_balance_to_cover_fee": "Insufficient balance to cover fees",
+    "insufficient_balance_to_cover_fee": "Saldo insuficiente para cubrir las tarifas",
+    "transaction_error": "Error de transacción",
     "continue": "Continuar",
     "unit": "unidad",
     "units": "unidades",
@@ -648,8 +678,8 @@
     "no_tokens_available": "No hay tokens disponibles",
     "sign": "Firmar",
     "network_not_found_title": "No se encontró la red",
-    "network_not_found_description": "Network with chain ID {{chain_id}} not found in your wallet. Please add the network first.",
-    "network_missing_id": "Missing chain ID.",
+    "network_not_found_description": "No se encontró la red con ID de cadena {{chain_id}} en tu billetera. Añade primero la red.",
+    "network_missing_id": "Falta el ID de cadena.",
     "search_tokens": "Buscar tokens",
     "search_tokens_and_nfts": "Buscar tokens y NFT",
     "tokens": "Tokens",
@@ -1018,7 +1048,7 @@
       "title": "Monto a depositar",
       "get_usdc_hyperliquid": "Obtén USDC • Hyperliquid",
       "insufficient_funds": "Fondos insuficientes",
-      "no_funds_available": "No hay fondos disponibles. Primero realiza un depósito.",
+      "no_funds_available": "No hay suficientes fondos disponibles. Deposita fondos o selecciona otro método de pago",
       "enter_amount": "Ingrese una cantidad",
       "fetching_quote": "Obteniendo cotización",
       "submitting": "Enviando transacción",
@@ -1087,7 +1117,11 @@
       "error_toast": "Transacción fallida",
       "error_generic": "Se te han devuelto los fondos",
       "in_progress": "Añadir fondos a contratos perpetuos",
-      "depositing_your_funds": "Depositar tus fondos",
+      "depositing_your_funds": "Configuración de tu operación",
+      "deposit_taking_longer": "El depósito está tardando más de lo habitual",
+      "cancel_trade": "Cancelar operación",
+      "trade_canceled": "Operación cancelada",
+      "funds_returned_to_account": "Fondos devueltos a tu cuenta",
       "your_funds_have_arrived": "Llegaron tus fondos",
       "estimated_processing_time": "{{time}} est.",
       "funds_available_momentarily": "Los fondos estarán disponibles momentáneamente",
@@ -1095,8 +1129,8 @@
       "track": "Hacer seguimiento"
     },
     "one_click_trade": {
-      "tx_creation_failed_title": "Could not open position",
-      "tx_creation_failed_description": "Transaction creation failed. Please try again."
+      "tx_creation_failed_title": "No se pudo abrir la posición",
+      "tx_creation_failed_description": "Error al crear la transacción. Inténtalo de nuevo."
     },
     "withdrawal": {
       "title": "Retirar",
@@ -1150,6 +1184,7 @@
       "title": "Nueva orden",
       "leverage": "Apalancamiento",
       "limit_price": "Precio límite",
+      "market_price": "Precio de mercado",
       "enter_price": "Ingresar precio",
       "trigger_price": "Precio de activación",
       "liquidation_price": "Precio de liquidación",
@@ -1174,6 +1209,7 @@
         "amount_required": "El monto de la orden debe ser mayor que 0",
         "minimum_amount": "El tamaño mínimo de la orden es de ${{amount}}",
         "insufficient_funds": "Fondos insuficientes",
+        "insufficient_funds_to_cover_trade": "Fondos insuficientes para cubrir la operación",
         "insufficient_balance": "Saldo insuficiente. Necesitas: ${{required}}, Disponible: ${{available}}",
         "invalid_leverage": "El apalancamiento debe estar entre {{min}}x y {{max}}x",
         "leverage_below_position": "El apalancamiento debe ser de al menos {{required}}x para igualar tu posición existente (actual: {{provided}}x).",
@@ -1292,6 +1328,7 @@
       "funds_are_available_to_trade": "Los fondos están disponibles para operar",
       "close_order_still_active": "Cerrar orden aún activa",
       "order_submitted": "Orden enviada",
+      "submitting_your_trade": "Enviando tu operación",
       "order_filled": "Orden ejecutada",
       "order_placed": "Orden colocada",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
@@ -1309,14 +1346,26 @@
       "title": "Detalles de la orden",
       "cancel_order": "Cancelar orden",
       "date": "Fecha",
+      "trigger_condition": "Condición de activación",
+      "price": "Precio",
       "fee": "Tarifa",
       "limit_buy": "Límite de posición larga",
       "limit_price": "Precio límite",
       "limit_sell": "Límite de posición corta",
       "market_buy": "Posición larga de mercado",
       "market_sell": "Posición corta de mercado",
+      "market": "Mercado",
       "open": "Abierto",
       "size": "Tamaño",
+      "original_size": "Tamaño original",
+      "order_value": "Valor de la orden",
+      "reduce_only": "Reducir solamente",
+      "yes": "Sí",
+      "no": "No",
+      "price_above": "Precio por encima de {{price}}",
+      "price_below": "Precio por debajo de {{price}}",
+      "take_profit": "Toma de ganancias",
+      "stop_loss": "Límite de pérdidas",
       "status": "Estado",
       "view_explorer": "Ver en Explorer"
     },
@@ -1656,6 +1705,7 @@
         "content": "Se cobran tarifas de trading cuando abres o cierras una posición.",
         "metamask_fee": "Tarifa de MetaMask",
         "provider_fee": "Tarifa del proveedor",
+        "bridge_fee": "Tarifa de puente",
         "total": "Tarifas totales",
         "discount_message": "Estás ahorrando un {{percentage}} % con las recompensas de MetaMask."
       },
@@ -1737,6 +1787,10 @@
       "spread": {
         "title": "Diferencial",
         "content": "El diferencial es la diferencia entre la mejor oferta (precio de compra más alto) y la mejor demanda (precio de venta más bajo). Un diferencial menor indica mayor liquidez."
+      },
+      "pay_with": {
+        "title": "Pagar con",
+        "content": "Elige el token o saldo que deseas usar para pagar esta operación. Puedes pagar con tu saldo de perpetuos o seleccionar otro token de tu billetera."
       }
     },
     "connection": {
@@ -1871,6 +1925,9 @@
       "time": "Hora",
       "apply": "Aplicar"
     },
+    "provider_selector": {
+      "title": "Seleccionar proveedor"
+    },
     "market_type": {
       "filter_by": "Filtrar por"
     },
@@ -1933,6 +1990,14 @@
       },
       "view_on_explorer": "Ver en el explorador de bloques",
       "trade_again": "Operar de nuevo",
+      "activity": {
+        "deposit_title": "Depósito",
+        "deposited_amount": "Se depositaron {{amount}} {{symbol}}",
+        "withdrew_amount": "Se retiraron {{amount}} {{symbol}}",
+        "status_completed": "Completado",
+        "status_failed": "Fallido",
+        "status_pending": "Pendiente"
+      },
       "empty_state": {
         "no_transactions": "Aún no hay transacciones de {{type}}. Tu historial de transacciones aparecerá aquí"
       }
@@ -2006,6 +2071,30 @@
       "share_failed": "Error al exportar la imagen",
       "export_success": "Imagen exportada",
       "referral_code_text": "Usa mi código de recomendación para ganar recompensas adicionales."
+    }
+  },
+  "market_insights": {
+    "title": "Perspectivas del mercado",
+    "a_closer_look": "Un vistazo más de cerca",
+    "whats_being_said": "Qué se dice",
+    "footer_disclaimer": "AI summary for information only",
+    "trade_button": "Operar",
+    "sources_count": "+{{count}} fuentes",
+    "sources_title": "News sources",
+    "feedback_submitted": "Comentarios enviados",
+    "helpful_prompt": "Was this helpful?",
+    "feedback": {
+      "title": "Comentarios",
+      "description": "Ayuda a mejorar nuestra información de mercado generada por IA.",
+      "not_relevant": "No es relevante",
+      "not_accurate": "No es precisa",
+      "hard_to_understand": "Difícil de entender",
+      "harmful_or_offensive": "Perjudicial u ofensiva",
+      "something_else": "Otra cosa",
+      "additional_feedback_label": "Comentarios adicionales (opcional)",
+      "additional_feedback_placeholder": "¿Cómo podemos mejorar?",
+      "characters_remaining": "{{count}} caracteres restantes",
+      "submit": "Enviar"
     }
   },
   "predict": {
@@ -2091,11 +2180,12 @@
     "resolved_outcomes": "Resultados resueltos",
     "category": {
       "trending": "Tendencias",
+      "ending_soon": "Finaliza pronto",
       "new": "Nuevo",
       "sports": "Deportes",
       "crypto": "Cripto",
       "politics": "Política",
-      "hot": "Hot"
+      "hot": "Popular"
     },
     "search_placeholder": "Buscar mercados de predicción",
     "search_cancel": "Cancelar",
@@ -2203,13 +2293,22 @@
       "no_funds_enough": "No hay fondos suficientes.",
       "prediction_minimum_bet": "El monto mínimo es {{amount}}",
       "to_win": "Para ganar",
-      "order_failed_generic": "La transacción falló. Inténtalo de nuevo."
+      "order_failed_generic": "La transacción falló. Inténtalo de nuevo.",
+      "market_busy_title": "Mercado ocupado",
+      "market_busy_body_buy": "El mercado se mueve rápido, así que no pudimos comprar a {{price}}. ¿Quieres volver a intentarlo al mejor precio disponible?",
+      "market_busy_body_sell": "El mercado se mueve rápido, así que no pudimos vender a {{price}}. ¿Quieres volver a intentarlo al mejor precio disponible?",
+      "order_failed_title": "Orden fallida",
+      "order_failed_body": "No había suficiente liquidez a este precio. ¿Quieres volver a intentarlo?",
+      "try_again": "Inténtalo de nuevo",
+      "yes_buy": "Sí, compra",
+      "yes_sell": "Sí, vende"
     },
     "withdraw": {
       "withdrawing": "Retiro en curso",
       "withdrawing_subtitle": "Disponible en aproximadamente 1 minuto",
       "withdraw_completed": "Retiro finalizado",
       "withdraw_completed_subtitle": "Se han transferido {{amount}} USDC a tu billetera",
+      "withdraw_any_token_completed_subtitle": "Se transfirieron {{amount}} {{token}} a tu billetera",
       "error_title": "Algo salió mal",
       "error_description": "No se pudo proceder con el retiro",
       "try_again": "Inténtalo de nuevo"
@@ -2226,7 +2325,15 @@
       "points_tooltip_content_2": "Ten en cuenta que este valor es una estimación y se finalizará una vez que se complete la transacción. Los puntos pueden tardar hasta 1 hora en confirmarse en tu saldo de Recompensas.",
       "points_error": "No podemos cargar puntos en este momento",
       "points_error_content": "Aún ganarás puntos por esta transacción. Te notificaremos una vez que se hayan agregado a tu cuenta. También puedes consultar la pestaña de recompensas en aproximadamente una hora.",
-      "slippage": "Deslizamiento"
+      "slippage": "Deslizamiento",
+      "price_details": "Detalles del precio",
+      "prediction_order": "Orden de predicción",
+      "prediction_order_description": "~{{count}} contratos a {{price}} cada uno. El monto final puede variar en función de la disponibilidad del libro de órdenes (hasta un {{slippage}} %).",
+      "metamask_fee_description": "Tarifa de servicio por procesar esta predicción",
+      "exchange_fee": "Tarifa de cambio",
+      "exchange_fee_description": "Tarifa pagada al cambio o al mercado",
+      "total_incl_fees": "tarifas incl.",
+      "close": "Cerrar"
     },
     "error": {
       "title": "No se puede conectar a las predicciones",
@@ -2332,19 +2439,19 @@
     "no_available_tokens": "¿No ve su token?",
     "add_tokens": "Agregar activo",
     "are_you_sure_exit": "Are you sure you want to exit?",
-    "search_information_not_saved": "Your search information will not be saved.",
     "import_token": "Would you like to import this token?",
+    "import_tokens": "¿Deseas importar estos tokens?",
     "tokens_detected_in_account": "{{tokenCount}} nuevos {{tokensLabel}} se han encontrado en esta cuenta",
     "token_toast": {
-      "tokens_imported_title": "Imported tokens",
+      "tokens_imported_title": "Tokens importados",
       "tokens_imported_desc": "{{tokenSymbols}} exitosamente agregado",
-      "token_imported_title": "Imported token",
+      "token_imported_title": "Token importado",
       "token_imported_desc": "{{tokenSymbol}} exitosamente agregados",
       "token_imported_desc_1": "You’ve imported a token.",
       "tokens_import_success_multiple": "You’ve imported {{tokensNumber}} tokens.",
-      "tokens_hidden_title": "Hiding tokens",
+      "tokens_hidden_title": "Tokens ocultos",
       "tokens_hidden_desc": "Ocultando tokens detectados de su monedero",
-      "token_hidden_title": "Hiding token",
+      "token_hidden_title": "Token oculto",
       "token_hidden_desc": "Ocultando {{tokenSymbol}}"
     },
     "hide_token": {
@@ -2371,7 +2478,7 @@
     "add_funds": "Agregar fondos",
     "next": "Siguiente",
     "buy_asset": "Comprar {{asset}}",
-    "no_tokens": "You don't have any tokens",
+    "no_tokens": "No tienes ningún token",
     "show_tokens_without_balance": "Mostrar tokens sin saldo",
     "nfts_autodetection_title": "Detección de NFT",
     "nfts_autodetection_desc": "Deje que MetaMask detecte y muestre automáticamente los NFT en su monedero.",
@@ -2384,7 +2491,7 @@
     "target_scam_network": "lo que los convierte en blanco de estafas. Los estafadores pueden engañarlo para que les envíe dinero más valioso a cambio. Verifique todo antes de continuar.",
     "use_the_currency_symbol": "utiliza el símbolo de moneda",
     "use_correct_symbol": "Asegúrese de estar utilizando el símbolo correcto antes de continuar",
-    "chain_id_currently_used": "This chain ID is currently used by the",
+    "chain_id_currently_used": "Este ID de cadena lo usa actualmente la",
     "incorrect_network_name_warning": "Según nuestros registros, es posible que el nombre de la red no coincida correctamente con este ID de cadena.",
     "suggested_name": "Nombre sugerido:",
     "network_check_validation_desc": "reduce las posibilidades de conectarse a una red maliciosa o incorrecta.",
@@ -2393,17 +2500,17 @@
     "learn_more": "Conozca más",
     "add_collectibles": "AGREGAR NFT",
     "nft_empty_description": "Hay un mundo de NFT disponible. Empieza tu colección hoy mismo.",
-    "tokens_empty_description": "Nothing to see yet. Why not browse tokens or make a trade?",
+    "tokens_empty_description": "Aún no hay nada que ver. ¿Por qué no exploras los tokens o realizas una operación?",
     "discover_nfts": "Importar NFT",
-    "no_transactions": "You have no transactions",
+    "no_transactions": "No tienes transacciones",
     "switch_network_to_view_transactions": "Cambie de red para ver las transacciones",
     "send_button": "Enviar",
     "deposit_button": "Depósito",
     "copy_address": "Copie",
-    "collectible_action_title": "Collectible options",
+    "collectible_action_title": "Opciones de coleccionables",
     "remove_token_title": "¿Ocultar token?",
     "remove_collectible_title": "¿Quiere quitar este coleccionable?",
-    "refresh_metadata": "Refresh metadata",
+    "refresh_metadata": "Actualizar metadatos",
     "token_removal_issue_title": "Problema al eliminar el token.",
     "token_removal_issue_desc": "Hubo un problema al intentar eliminar el token. Intente de nuevo.",
     "collectible_removed_title": "Se quitó el coleccionable.",
@@ -2436,16 +2543,16 @@
   },
   "asset_details": {
     "token": "Token",
-    "amount": "Token amount",
+    "amount": "Cantidad de tokens",
     "address": "Dirección de contrato del token",
     "decimal": "Token decimal",
     "network": "Red",
     "network_fee": "Tarifa de red",
-    "lists": "Token lists",
+    "lists": "Listas de tokens",
     "hide_cta": "Ocultar token",
     "perps_trading": "Trading con contratos perpetuos",
     "options": {
-      "title": "Token options",
+      "title": "Opciones de token",
       "view_on_portfolio": "Ver en Portfolio",
       "view_on_block": "Ver en el explorador de bloques",
       "token_details": "Detalles del token",
@@ -2501,7 +2608,7 @@
       "custom_warning_link": "estafas y riesgos en seguridad.",
       "custom_info_desc": "La detección de token aún no está disponible en esta red. Por favor, agregue su token manualmente y asegúrese de que confía en él. Conozca más acerca de ",
       "custom_info_link": "estafas de tokens y riesgos de seguridad.",
-      "custom_security_tips": "Security tips"
+      "custom_security_tips": "Consejos de seguridad"
     }
   },
   "defi_positions": {
@@ -2598,6 +2705,7 @@
     "decimals_cant_be_empty": "Los decimales del token no pueden estar vacíos.",
     "decimals_is_required": "Decimal is required. Find it on:",
     "no_tokens_found": "No se encontró ningún token con ese nombre.",
+    "tokens_empty_description": "Busca cualquier token e impórtalo",
     "select_token": "Selecciona un token",
     "address_must_be_smart_contract": "Se detectó una dirección personal. Escriba la dirección de contrato del token.",
     "billion_abbreviation": "B",
@@ -2608,15 +2716,15 @@
     "contract_address": "Dirección del contrato",
     "token_list": "Lista de tokens",
     "market_details": "Detalles del mercado",
-    "market_cap": "Market cap",
-    "total_volume": "Total volume (24h)",
-    "volume_to_marketcap": "Volume / Market cap",
+    "market_cap": "Capitalización bursátil",
+    "total_volume": "Volumen total (24 h)",
+    "volume_to_marketcap": "Volumen / capitalización bursátil",
     "circulating_supply": "Suministro circulante",
     "all_time_high": "Punto más alto",
     "all_time_low": "Punto más bajo",
     "fully_diluted": "Totalmente diluido",
     "unknown": "Desconocida",
-    "stock": "Stock"
+    "stock": "Acción"
   },
   "collectible": {
     "collectible_address": "Dirección",
@@ -2641,7 +2749,7 @@
     "collectible_asset_contract": "Contrato de activos",
     "share_check_out_nft": "¡Conoce mi NTF!",
     "share_via": "Compartido mediante",
-    "untitled_collection": "Untitled collection",
+    "untitled_collection": "Colección sin nombre",
     "collection": "Colección"
   },
   "transfer": {
@@ -2667,7 +2775,7 @@
     "remove_snap_account": "Eliminar cuenta Snap",
     "remove_snap_account_alert_description": "Esta cuenta se eliminará de su billetera. Antes de continuar, asegúrese de que dispone de la frase secreta de recuperación original o de la clave privada de esta cuenta importada. Puede importar o volver a crear cuentas desde el menú desplegable de cuentas.",
     "remove_account_alert_remove_btn": "Eliminar",
-    "remove_account_alert_cancel_btn": "Never mind",
+    "remove_account_alert_cancel_btn": "No importa",
     "accounts_title": "Cuentas",
     "connect_account_title": "Conectar cuenta",
     "connect_accounts_title": "Conectar cuentas",
@@ -2700,6 +2808,9 @@
     "disconnect_all_accounts": "Desconectar todas las cuentas",
     "deceptive_site_ahead": "Sitio engañoso más adelante",
     "deceptive_site_desc": "El sitio que intenta visitar no es seguro. Los atacantes pueden engañarlo para que haga algo peligroso.",
+    "malicious_site_detected": "Sitio malicioso detectado",
+    "malicious_site_warning": "Si te conectas a este sitio, podrías perder todos tus activos.",
+    "connect_anyway": "Conectarse de todos modos",
     "learn_more": "Conozca más",
     "advisory_by": "Aviso proporcionado por Ethereum Phishing Detector y PhishFort",
     "potential_threat": "Las amenazas potenciales incluyen",
@@ -2759,7 +2870,7 @@
   },
   "connect_qr_hardware": {
     "title": "Conectar un monedero físico basado en QR",
-    "description1": "Connect an airgapped hardware wallet that communicates through QR codes.",
+    "description1": "Conectar una billetera física aislada de la red que se comunique a través de códigos QR.",
     "description2": "Cómo funciona",
     "description3": "Lss monederos físicos aislados de la red con soporte oficial incluyen:",
     "keystone": "Keystone",
@@ -2771,8 +2882,8 @@
     "description5": "1. Desbloquee su monedero Keystone",
     "description6": "2. Haga clic en el menú ··· y luego vaya a Sincronizar",
     "button_continue": "Continuar",
-    "hint_text_pair": "Scan your hardware wallet",
-    "hint_text_sign": "Scan your hardware wallet to confirm the transaction",
+    "hint_text_pair": "Escanea tu billetera física",
+    "hint_text_sign": "Escanea tu billetera física para confirmar la transacción",
     "select_accounts": "Seleccionar una cuenta"
   },
   "data_collection_modal": {
@@ -2788,14 +2899,22 @@
   "address_selector": {
     "select_an_address": "Selecciona una dirección"
   },
+  "accounts_menu": {
+    "manage": "Gestionar",
+    "resources": "Recursos",
+    "permissions": "Permisos",
+    "card_title": "Tarjeta MetaMask",
+    "settings": "Configuración",
+    "networks": "Redes",
+    "log_out": "Cerrar sesión",
+    "notifications": "Notificaciones",
+    "buy": "Comprar",
+    "scan": "Escanear"
+  },
   "app_settings": {
     "enabling_notifications": "Activando notificaciones...",
     "updating_notifications": "Actualizando notificaciones...",
     "updating_account_settings": "Actualizando la configuración de la cuenta...",
-    "reset_notifications_title": "Restablecer notificaciones",
-    "reset_notifications_description": "Restablecer notificaciones significa que está eliminando sus claves de almacenamiento de notificaciones y reiniciando todo su historial de notificaciones. ¿Está seguro de que desea hacer esto?",
-    "reset_notifications": "Restablecer notificaciones",
-    "reset_notifications_success": "Se eliminó/recreó la clave de almacenamiento de notificaciones y se restableció el historial de notificaciones.",
     "notifications_dismiss_modal": "Ignorar",
     "select_rpc_url": "Seleccionar URL de RPC",
     "title": "Configuración",
@@ -2810,6 +2929,8 @@
     "state_logs": "Registros de estado",
     "add_network_title": "Agregar una red",
     "auto_lock": "Bloqueo automático",
+    "enable_device_authentication": "Habilitar la autenticación del dispositivo",
+    "enable_device_authentication_desc": "Utiliza la biometría o el código de acceso de tu dispositivo para desbloquear MetaMask.",
     "auto_lock_desc": "Elija la cantidad de tiempo antes de que la aplicación se bloquee automáticamente.",
     "state_logs_desc": "Esto ayudará a que MetaMask depure cualquier problema que se pueda encontrar. Envíelo al soporte de MetaMask a través del icono de tres barras > Enviar comentarios, o responda a la incidencia existente, si la tiene.",
     "autolock_immediately": "Inmediatamente",
@@ -2915,6 +3036,11 @@
     "add_rpc_url": "Agregar URL de RPC",
     "add_block_explorer_url": "Añadir URL del explorador de bloques",
     "networks_desc": "Agregar y editar redes RPC personalizadas",
+    "networks_enabled": "Redes habilitadas",
+    "networks_test_networks": "Redes de prueba",
+    "networks_additional": "Redes adicionales",
+    "networks_search_placeholder": "Buscar redes",
+    "networks_no_results": "No se encontraron redes",
     "network_name_label": "Nombre de la red",
     "network_name_placeholder": "Nombre de la red (opcional)",
     "network_rpc_url_label": "URL de RPC",
@@ -2931,7 +3057,16 @@
     "network_other_networks": "Otras redes",
     "network_rpc_networks": "Redes RPC",
     "network_add_network": "Añadir red",
+    "add_chain_title": "Agregar una red",
+    "add_chain_search_placeholder": "Buscar por nombre, ID de cadena o moneda",
+    "add_chain_loading": "Cargando redes…",
+    "add_chain_error": "Error al cargar las redes. Inténtalo de nuevo.",
+    "add_chain_retry": "Reintentar",
+    "add_chain_added": "Agregada",
+    "add_chain_or": "o",
+    "add_chain_custom_link": "Agregar una red personalizada",
     "network_add_custom_network": "Agregar una red personalizada",
+    "network_add_test_network": "Agregar una red de prueba",
     "network_add": "Agregar",
     "network_save": "Guardar",
     "remove_network_title": "¿Quiere quitar esta red?",
@@ -3149,9 +3284,6 @@
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al activar esta función, acepta los términos de uso del proveedor.",
     "dismiss_smart_account_update_heading": "Descartar la sugerencia \"Cambiar a cuenta inteligente\"",
     "dismiss_smart_account_update_desc": "Activa esta opción para dejar de ver la sugerencia \"Cambiar a cuenta inteligente\" en ninguna cuenta. Las cuentas inteligentes permiten transacciones más rápidas, tarifas de red más bajas y mayor flexibilidad en los pagos.",
-    "use_smart_account_heading": "Usar cuenta inteligente",
-    "use_smart_account_desc": "Mantén esta opción activada para cambiar automáticamente las cuentas creadas en MetaMask a cuentas inteligentes cuando haya funciones relevantes disponibles, como transacciones más rápidas, tarifas de red más bajas y mayor flexibilidad en los pagos.",
-    "use_smart_account_learn_more": "Conozca más",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
     "smart_transactions_opt_in_desc_supported_networks": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras en las redes compatibles.",
     "smart_transactions_learn_more": "Conozca más",
@@ -3226,7 +3358,7 @@
   "sdk_feedback_modal": {
     "ok": "OK",
     "title": "No se pudo conectar la cuenta",
-    "info": "Please scan the QR code on the site to reconnect to MetaMask"
+    "info": "Escanea el código QR del sitio para volver a conectarte a MetaMask"
   },
   "app_information": {
     "title": "Información",
@@ -3235,8 +3367,8 @@
     "terms_of_use": "Términos de uso",
     "attributions": "Atribuciones",
     "support_center": "Visita nuestro centro de soporte",
-    "web_site": "Visit our website",
-    "contact_us": "Contact us"
+    "web_site": "Visita nuestro sitio web",
+    "contact_us": "Contáctanos"
   },
   "reveal_credential": {
     "seed_phrase_title": "Revelar frase secreta de recuperación",
@@ -3258,11 +3390,9 @@
     ],
     "private_key_explanation": "Guárdela en un lugar seguro y secreto.",
     "private_key_warning": "Esta es la clave privada para la cuenta seleccionada actual: {{accountName}}. No revele esta clave. Cualquier persona que tenga su clave privada podrá controlar completamente su cuenta, incluida la transferencia de sus fondos.",
-    "seed_phrase_warning_explanation": [
-      "Asegúrese de que nadie esté viendo su pantalla.",
-      "El soporte técnico de MetaMask nunca se lo solicitará."
-    ],
+    "seed_phrase_warning_explanation": "Asegúrate de que nadie esté mirando tu pantalla. El soporte de MetaMask nunca te pedirá esto.",
     "private_key_warning_explanation": "No revele esta clave. Cualquier persona que tenga su clave privada podrá controlar completamente su cuenta, incluida la transferencia de sus fondos.",
+    "reveal_srp_description": "Tu frase secreta de recuperación da acceso completo a tu billetera. No la compartas con nadie.",
     "reveal_credential_modal": [
       "Su {{credentialName}} le proporciona ",
       "acceso completo a su monedero y fondos. \n\nNo la comparta con nadie.\n",
@@ -3294,15 +3424,16 @@
     "srp_text": "Frase secreta de recuperación",
     "private_key_text": "Clave privada",
     "got_it": "Entendido",
-    "learn_more": "Más información"
+    "learn_more": "Más información",
+    "copied_to_clipboard": "Copiado al portapapeles"
   },
   "screenshot_deterrent": {
     "title": "Alerta de seguridad",
     "description": "Las capturas de pantalla no son una forma segura de realizar un seguimiento de su {{credentialName}}. Guárdelo en algún lugar que no se respalde en línea para mantener su cuenta segura.",
-    "card_description": "Screenshots of your card details could be accessed by others. Never share your card number or CVV.",
+    "card_description": "Otras personas podrían acceder a las capturas de pantalla de los datos de tu tarjeta. Nunca compartas tu número de tarjeta ni tu CVV.",
     "srp_text": "Frase secreta de recuperación",
     "priv_key_text": "Clave privada",
-    "card_text": "card details"
+    "card_text": "datos de la tarjeta"
   },
   "password_reset": {
     "password_title": "Contraseña",
@@ -3322,8 +3453,13 @@
     "sell_description": "Vender cripto por efectivo"
   },
   "asset_overview": {
+    "market_closed": "Mercado cerrado",
     "send_button": "Enviar",
     "buy_button": "Comprar",
+    "cash_buy_button": "Compra en efectivo",
+    "long_button": "Posición larga",
+    "short_button": "Posición corta",
+    "more_button": "Más",
     "token_marketplace": "Mercado de tókenes",
     "sell_button": "Vender",
     "receive_button": "Recibir",
@@ -3338,15 +3474,6 @@
     "bridge": "Puentear",
     "earn": "Ganar",
     "convert_to_musd": "Convertir a mUSD",
-    "merkl_rewards": {
-      "annual_bonus": "Bonificación del {{apy}} %",
-      "claimable_bonus": "Bonificación reclamable",
-      "claimable_bonus_tooltip_description": "Los bonos en mUSD se reclaman en Linea.",
-      "terms_apply": "Se aplican términos y condiciones.",
-      "ok": "OK",
-      "claim": "Reclamar",
-      "processing_claim": "Procesando solicitud..."
-    },
     "tron": {
       "daily_resource_new_energy": "Nueva energía diaria",
       "sufficient_to_cover": "Suficiente para cubrir",
@@ -3372,7 +3499,7 @@
       "perps": "Esta cuenta no admite trading con contratos perpetuos"
     },
     "description": "Descripción",
-    "totalSupply": "Total supply",
+    "totalSupply": "Suministro total",
     "address": "Dirección",
     "were_unable": "No se puede cargar el",
     "balance": "saldo. Consulte el artículo de soporte",
@@ -3412,7 +3539,7 @@
     "no_chart_data": {
       "title": "Sin datos de gráfico",
       "description": "No pudimos obtener ningún dato para este token",
-      "insufficient_data": "Data is not available for this time period"
+      "insufficient_data": "Los datos no están disponibles para este período de tiempo"
     },
     "your_balance": "Su saldo",
     "perps_position": "Posición de los contratos perpetuos",
@@ -3423,10 +3550,10 @@
       "show_less": "Mostrar menos"
     },
     "activity": "Actividad de {{symbol}}",
-    "disclaimer": "Market data is provided by third-party sources like CoinGecko. Data is for informational purposes only. MetaMask is not responsible for its accuracy."
+    "disclaimer": "Los datos de mercado provienen de fuentes externas como CoinGecko. Su uso es meramente informativo. MetaMask no se responsabiliza de su exactitud."
   },
   "account_details": {
-    "title": "Account details",
+    "title": "Detalles de la cuenta",
     "share_account": "Compartir",
     "view_account": "Ver cuenta en Etherscan",
     "show_private_key": "Mostrar clave privada",
@@ -3465,7 +3592,7 @@
     "address_copied_to_clipboard": "Dirección del token copiada en el portapapeles"
   },
   "qr_scanner": {
-    "invalid_qr_code_title": "Invalid QR code",
+    "invalid_qr_code_title": "Código QR no válido",
     "invalid_qr_code_message": "El código QR que intenta escanear no es válido.",
     "allow_camera_dialog_title": "Permitir acceso a la cámara",
     "allow_camera_dialog_message": "Necesitamos su permiso para escanear códigos QR",
@@ -3478,7 +3605,7 @@
     "attempting_sync_from_wallet_error": "Parece que intenta sincronizar con la extensión. debe borrar el monedero actual. \n\nUna vez que haya borrado o vuelto a instalar una versión nueva de la aplicación, seleccione la opción \"Sincronizar con la extensión MetaMask\". Importante: Antes de borrar el monedero, asegúrese de haber hecho una copia de seguridad de la frase secreta de recuperación.",
     "not_allowed_error_title": "Activar el acceso a la cámara",
     "not_allowed_error_desc": "Para escanear un código QR, deberá otorgar acceso a la cámara a MetaMask desde el menú de configuración de su dispositivo.",
-    "unrecognized_address_qr_code_title": "Unrecognized QR code",
+    "unrecognized_address_qr_code_title": "Código QR no reconocido",
     "unrecognized_address_qr_code_desc": "Lo sentimos, este código QR no está asociado con una dirección de cuenta o una dirección de contrato.",
     "url_redirection_alert_title": "Estás a punto de visitar un enlace externo",
     "url_redirection_alert_desc": "Los enlaces se pueden usar para tratar de estafar o hacer phishing a las personas, así que asegúrese de visitar solo sitios web en los que confíe.",
@@ -3557,7 +3684,7 @@
     "invalid_collectible_ownership": "Este coleccionable no es de su propiedad",
     "known_asset_contract": "Dirección de contrato de activo conocida",
     "max": "Máx.",
-    "recipient_address": "Recipient address",
+    "recipient_address": "Dirección del destinatario",
     "required": "Requerido",
     "to": "Para",
     "total": "Total",
@@ -3573,10 +3700,14 @@
     "cancel_tx_message": "Enviar este intento no garantiza que se cancelará la transacción original. Si el intento de cancelación se completa correctamente, se le cobrará la tarifa de transacción anterior.",
     "speedup_tx_title": "¿Intentar acelerar?",
     "speedup_tx_message": "Enviar este intento no garantiza que se acelerará la transacción original. Si el intento de aceleración se completa correctamente, se le cobrará la tarifa de transacción anterior.",
-    "nevermind": "Never mind",
+    "nevermind": "No importa",
+    "cancel_speedup_speedup_title": "Speed up Transaction",
+    "cancel_speedup_cancel_title": "Cancel Transaction",
+    "cancel_speedup_speedup_message": "This network fee will replace the original.",
+    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
     "edit_network_fee": "Editar tarifa de gas",
     "edit_priority": "Editar prioridad",
-    "gas_cancel_fee": "Gas cancellation fee",
+    "gas_cancel_fee": "Tarifa de cancelación de gas",
     "gas_speedup_fee": "Cuota por aceleración de gas",
     "use_max": "Usar máx.",
     "set_gas": "Establecer",
@@ -3585,7 +3716,7 @@
     "transaction_fee": "Tarifa de gas",
     "transaction_fee_less": "Sin tarifa",
     "total_amount": "Importe total",
-    "view_data": "View data",
+    "view_data": "Ver datos",
     "adjust_transaction_fee": "Ajustar tarifa de transacción",
     "could_not_resolve_ens": "No se pudo resolver ENS",
     "asset": "Activo",
@@ -3675,7 +3806,7 @@
     "transaction_fee_explanation": "Este permiso tiene asociada una tarifa de transacción.",
     "view_details": "Ver detalles",
     "view_transaction_details": "Ver detalles de la transacción",
-    "view_data": "View data",
+    "view_data": "Ver datos",
     "transaction_details": "Detalles de la transacción",
     "site_url": "Dirección URL del sitio",
     "permission_request": "Solicitud de permiso",
@@ -3704,7 +3835,7 @@
     "reload": "Recargar",
     "share": "Compartir",
     "bookmark": "Marcador",
-    "add_to_favorites": "Add to favorites",
+    "add_to_favorites": "Agregar a favoritos",
     "error": "Error",
     "cancel": "Cancelar",
     "go_back": "Atrás",
@@ -3712,7 +3843,7 @@
     "home": "Inicio",
     "close": "Cerrar",
     "open_in_browser": "Abrir en el explorador",
-    "change_url": "Change URL",
+    "change_url": "Cambiar dirección URL",
     "switch_network": "Cambiar red",
     "dapp_browser": "EXPLORADOR DE DAPP",
     "dapp_browser_message": "MetaMask es su monedero y el explorador para la Web descentralizada. ¡Eche una vistazo!",
@@ -3724,13 +3855,13 @@
     "new_tab": "Pestaña nueva",
     "tabs_close_all": "Cerrar todo",
     "tabs_done": "Hecho",
-    "opened_tabs": "Opened tabs",
-    "add_new_tab": "Add new tab",
-    "no_tabs_title": "No open tabs",
+    "opened_tabs": "Pestañas abiertas",
+    "add_new_tab": "Agregar nueva pestaña",
+    "no_tabs_title": "Sin pestañas abiertas",
     "no_tabs_desc": "Para explorar la Web descentralizada, agregue una pestaña nueva",
     "got_it": "Entendido",
     "max_tabs_title": "Se alcanzó el número máximo de pestañas",
-    "max_tabs_desc": "Actualmente solo admitimos 5 pestañas abiertas a la vez. Cierre las pestañas existentes antes de añadir otras nuevas.",
+    "max_tabs_desc": "Actualmente solo admitimos 20 pestañas abiertas a la vez. Cierre las pestañas existentes antes de añadir otras nuevas.",
     "failed_to_resolve_ens_name": "No se pudo resolver ese nombre de ENS",
     "remove_bookmark_title": "Quitar favorito",
     "remove_bookmark_msg": "¿Está seguro de que quiere quitar este sitio de sus favoritos?",
@@ -3756,14 +3887,14 @@
     "right_button": "Proteger monedero"
   },
   "add_favorite": {
-    "title": "Add favorite",
+    "title": "Agregar a favoritos",
     "title_label": "Nombre",
     "url_label": "URL",
     "add_button": "Agregar",
     "cancel_button": "Cancelar"
   },
   "approval": {
-    "title": "Confirm transaction"
+    "title": "Confirmar la transacción"
   },
   "approve": {
     "title": "Aprobar",
@@ -3771,42 +3902,44 @@
     "qr_code": "Código QR"
   },
   "transactions": {
+    "unavailable": "No disponible",
     "tx_review_confirm": "Confirmar",
     "tx_review_transfer": "Transferir",
-    "tx_review_contract_deployment": "Contract deployment",
-    "tx_review_transfer_from": "Transfer from",
-    "tx_review_unknown": "Unknown method",
+    "tx_review_contract_deployment": "Implementación de contrato",
+    "tx_review_transfer_from": "Transferir desde",
+    "tx_review_unknown": "Método desconocido",
     "tx_review_approve": "Aprobar",
-    "tx_review_increase_allowance": "Increase allowance",
-    "tx_review_set_approval_for_all": "Set approval for all",
-    "tx_review_staking_claim": "Staking claim",
+    "tx_review_increase_allowance": "Aumentar la asignación",
+    "tx_review_set_approval_for_all": "Establecer aprobación para todos",
+    "tx_review_staking_claim": "Solicitud de staking",
     "tx_review_staking_deposit": "Depósito en staking",
     "tx_review_staking_unstake": "Dejar de hacer staking",
     "tx_review_lending_deposit": "Depósito en préstamo",
-    "tx_review_lending_withdraw": "Lending withdrawal",
+    "tx_review_lending_withdraw": "Retiro de préstamo",
     "tx_review_perps_deposit": "Contratos perpetuos financiados",
     "tx_review_predict_deposit": "Predicciones financiadas",
     "tx_review_predict_claim": "Victorias reclamadas",
     "tx_review_predict_withdraw": "Predicciones retiradas",
     "tx_review_musd_conversion": "Conversión de mUSD",
-    "sent_ether": "Sent ETH",
-    "self_sent_ether": "Sent yourself ETH",
-    "received_ether": "Received ETH",
+    "claim": "Reclamar",
+    "sent_ether": "ETH enviado",
+    "self_sent_ether": "ETH enviado a ti mismo",
+    "received_ether": "ETH recibido",
     "sent_dai": "DAI enviado",
     "self_sent_dai": "DAI enviado a usted mismo",
     "received_dai": "DAI recibido",
-    "sent_tokens": "Sent tokens",
-    "received_tokens": "Received tokens",
+    "sent_tokens": "Tokens enviados",
+    "received_tokens": "Tokens recibidos",
     "ether": "ETH",
     "sent_unit": "{{unit}} enviado",
-    "self_sent_unit": "Sent yourself {{unit}}",
+    "self_sent_unit": "Enviado a ti mismo {{unit}}",
     "received_unit": "{{unit}} recibido",
-    "sent_collectible": "Sent collectible",
-    "received_collectible": "Received collectible",
-    "send_ether": "Send ETH",
-    "send_unit": "Send {{unit}}",
-    "send_collectible": "Send collectible",
-    "receive_collectible": "Receive collectible",
+    "sent_collectible": "Coleccionable enviado",
+    "received_collectible": "Coleccionable recibido",
+    "send_ether": "Enviar ETH",
+    "send_unit": "Enviar {{unit}}",
+    "send_collectible": "Enviar coleccionable",
+    "receive_collectible": "Recibir coleccionable",
     "sent": "Enviado",
     "received": "Recibido",
     "receive": "Recibir",
@@ -3814,17 +3947,17 @@
     "send": "Enviar",
     "redeposit": "Volver a depositar",
     "interaction": "Interacción",
-    "contract_deploy": "Contract deployment",
-    "to_contract": "New contract",
-    "mint": "Mint",
+    "contract_deploy": "Implementación de contrato",
+    "to_contract": "Contrato nuevo",
+    "mint": "Acuñar",
     "tx_details_free": "Gratis",
     "tx_details_not_available": "No disponible",
     "smart_contract_interaction": "Interacción con el contrato inteligente",
     "swaps_transaction": "Transacción de intercambios",
     "bridge_transaction": "Puentear",
     "approve": "Aprobar",
-    "increase_allowance": "Increase allowance",
-    "set_approval_for_all": "Set approval for all",
+    "increase_allowance": "Aumentar la asignación",
+    "set_approval_for_all": "Establecer aprobación para todos",
     "hash": "Hash",
     "from": "De",
     "to": "Para",
@@ -3832,15 +3965,15 @@
     "amount": "Cantidad",
     "fee": {
       "transaction_fee_in_ether": "Tarifa de transacción",
-      "transaction_fee_in_usd": "Transaction fee (USD)"
+      "transaction_fee_in_usd": "Tarifa de transacción (USD)"
     },
-    "gas_used": "Gas used (units)",
-    "gas_limit": "Gas limit (units)",
-    "gas_price": "Gas price (GWEI)",
-    "base_fee": "Base fee (GWEI)",
-    "priority_fee": "Priority fee (GWEI)",
+    "gas_used": "Gas usado (unidades)",
+    "gas_limit": "Límite de gas (unidades)",
+    "gas_price": "Precio de gas (GWEI)",
+    "base_fee": "Tarifa base (GWEI)",
+    "priority_fee": "Tarifa de prioridad (GWEI)",
     "multichain_priority_fee": "Tarifa de prioridad",
-    "max_fee": "Max fee per gas",
+    "max_fee": "Tarifa máxima por gas",
     "total": "Total",
     "view_on": "Ver en",
     "view_on_etherscan": "Ver en Etherscan",
@@ -3856,13 +3989,13 @@
     "nonce": "Mientras tanto",
     "from_device_label": "de este dispositivo",
     "import_wallet_row": "Cuenta agregada a este dispositivo",
-    "import_wallet_label": "Account added",
+    "import_wallet_label": "Cuenta agregada",
     "import_wallet_tip": "Todas las transacciones futuras que se realicen desde este dispositivos tendrán la etiqueta \"de este dispositivo\" junto a la marca de tiempo. Para las transacciones con fecha anterior a la que se agregó la cuenta, el historial no indicará qué transacciones salientes se originaron de este dispositivo.",
     "sign_title_scan": "Escanear ",
     "sign_title_device": "con su monedero físico",
     "sign_description_1": "Después de haber firmado con su monedero físico,",
-    "sign_description_2": "Tap on get signature",
-    "sign_get_signature": "Get signature",
+    "sign_description_2": "Pulsa en obtener firma",
+    "sign_get_signature": "Obtener firma",
     "transaction_id": "ID de transacción",
     "network": "Red",
     "request_from": "Solicitud de",
@@ -3886,7 +4019,7 @@
       "gas_limit": "Límite de gas",
       "save": "Guardar",
       "max_base_fee": "Tarifa base máxima",
-      "priority_fee": "Priority fee",
+      "priority_fee": "Tarifa de prioridad",
       "current_priority_fee": "Actual: {{min}} - {{max}} GWEI",
       "historical_priority_fee": "12 h: {{min}} - {{max}} GWEI",
       "estimated_base_fee": "Actual: {{value}} GWEI",
@@ -3963,9 +4096,9 @@
   },
   "networks": {
     "title": "Redes",
-    "other_networks": "Other networks",
+    "other_networks": "Otras redes",
     "close": "Cerrar",
-    "status_ok": "All systems operational",
+    "status_ok": "Todos los sistemas operativos",
     "status_not_ok": "La red presenta algunos problemas",
     "want_to_add_network": "¿Desea agregar esta red?",
     "add_custom_network": "Agregar red personalizada",
@@ -3984,7 +4117,7 @@
     "review": "Revisar",
     "view_details": "Ver detalles",
     "network_details": "Detalles de la red",
-    "network_select_confirm_use_safe_check": "Selecting confirm turns on network details check. You can turn off network details check in ",
+    "network_select_confirm_use_safe_check": "Al seleccionar Confirmar, se activa la verificación de detalles de la red. Puedes desactivar el registro de detalles de la red ",
     "network_settings_security_privacy": "Configuración > Seguridad y privacidad",
     "network_currency_symbol": "Símbolo de moneda",
     "network_block_explorer_url": "Dirección URL del explorador de bloques",
@@ -3998,8 +4131,8 @@
     "edit_network_details": "Editar detalles de la red",
     "malicious_network_warning": "Un proveedor de red malintencionado puede mentir sobre el estado de la cadena de bloques y registrar su actividad de red. Agregue solo redes personalizadas de confianza.",
     "security_link": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
-    "network_warning_title": "Network information",
-    "additional_network_information_title": "Additional networks information",
+    "network_warning_title": "Información de red",
+    "additional_network_information_title": "Información adicional sobre las redes",
     "network_warning_desc": "Esta conexión de red depende de terceros. Esta conexión puede ser menos confiable o permite que terceros rastreen la actividad.",
     "additonial_network_information_desc": "Algunas de estas redes dependen de terceros. Las conexiones pueden ser menos confiables o permitir que terceros realicen un seguimiento de la actividad.",
     "connect_more_networks": "Conectar más redes",
@@ -4029,7 +4162,7 @@
     "network_deprecated_title": "Esta red está en desuso",
     "network_deprecated_description": "La red a la que está intentando conectarse ya no es compatible con MetaMask.",
     "edit_networks_title": "Editar redes",
-    "no_network_fee": "No network fee"
+    "no_network_fee": "Sin tarifa de red"
   },
   "permissions": {
     "title_this_site_wants_to": "Este sitio quiere:",
@@ -4044,11 +4177,11 @@
     "network_connected": "red conectada ",
     "see_your_accounts": "Ver sus cuentas y sugerir transacciones",
     "connected_to": "Conectado a ",
-    "manage_permissions": "Manage permissions",
+    "manage_permissions": "Administrar permisos",
     "edit": "Editar",
     "cancel": "Cancelar",
     "got_it": "Entendido",
-    "connection_details_title": "Connection details",
+    "connection_details_title": "Detalles de la conexión",
     "connection_details_description": "Se conectó a este sitio utilizando el navegador de MetaMask el {{connectionDateTime}}",
     "title_add_network_permission": "Agregar permiso de red",
     "add_this_network": "Agregar esta red",
@@ -4082,7 +4215,7 @@
     "read_more": "Leer más"
   },
   "watch_asset_request": {
-    "title": "Add suggested token",
+    "title": "Agregar token sugerido",
     "cancel": "CANCELAR",
     "add": "AGREGAR TOKEN",
     "message": "¿Le gustaría agregar este token?",
@@ -4108,34 +4241,30 @@
   "biometrics": {
     "enable_touchid": "Desbloquear con Touch ID?",
     "enable_faceid": "¿Desbloquear con Face ID?",
-    "enable_fingerprint": "Unlock with fingerprint?",
-    "enable_biometrics": "Unlock with biometrics?",
+    "enable_fingerprint": "¿Desbloquear con huella dactilar?",
+    "enable_biometrics": "¿Desbloquear con datos biométricos?",
     "enable_device_passcode_ios": "Desbloquear con el código de acceso del dispositivo?",
     "enable_device_passcode_android": "Desbloquear con el PIN del dispositivo?"
   },
   "authentication": {
-    "auth_prompt_title": "Autenticación requerida",
-    "auth_prompt_desc": "Autentíquese para usar MetaMask",
-    "fingerprint_prompt_title": "Autenticación requerida",
-    "fingerprint_prompt_desc": "Use su huella dactilar para desbloquear MetaMask",
-    "fingerprint_prompt_cancel": "Cancelar"
+    "auth_prompt_desc": "Autentíquese para usar MetaMask"
   },
   "accountApproval": {
     "title": "SOLICITUD DE CONEXIÓN",
     "walletconnect_title": "SOLICITUD DE WALLETCONNECT",
     "action": "¿Conectarse a este sitio?",
-    "action_reconnect": "To resume connection, choose the number you see on the site",
-    "action_reconnect_deeplink": "Do you want to reconnect to this site?",
+    "action_reconnect": "Para reanudar la conexión, elige el número que ves en el sitio",
+    "action_reconnect_deeplink": "¿Deseas volver a conectarte a este sitio?",
     "connect": "Conectar",
     "resume": "Reanudar",
     "cancel": "Cancelar",
-    "donot_rememberme": "Do not remember this site connection",
+    "donot_rememberme": "No recordar la conexión a este sitio",
     "disconnect": "Desconectar",
     "permission": "Ver su",
     "address": "dirección pública",
     "sign_messages": "Firmar mensajes",
     "on_your_behalf": "en su nombre",
-    "warning": "By clicking connect, you allow this site to view your public address. This is an important security step to protect your data from potential phishing risks."
+    "warning": "Al hacer clic en Conectar, permites que este sitio vea tu dirección pública. Este es un paso de seguridad importante para proteger tus datos de posibles riesgos de phishing."
   },
   "import_private_key": {
     "title": "Importar cuenta",
@@ -4151,7 +4280,7 @@
     "error_title": "Algo salió mal",
     "error_message": "No se pudo importar esa clave privada. Asegúrese de que la escribió correctamente.",
     "error_empty_message": "Debe escribir su clave privada.",
-    "or_scan_a_qr_code": "or scan a QR code"
+    "or_scan_a_qr_code": "o escanear un código QR"
   },
   "import_private_key_success": {
     "title": "La cuenta se importó correctamente.",
@@ -4162,18 +4291,18 @@
     "import_wallet_title": "Importar una billetera",
     "enter_srp_subtitle": "Ingresa tu frase secreta de recuperación",
     "textarea_placeholder": "Añade un espacio entre cada palabra y asegúrate de que nadie esté mirando",
-    "description": "Enter your wallet's Secret Recovery Phrase. You can import any Ethereum, Solana, or Bitcoin Secret Recovery Phrase.",
-    "subtitle": "Paste your Secret Recovery Phrase",
+    "description": "Ingresa la frase secreta de recuperación de tu billetera. Puedes importar cualquier frase secreta de recuperación de Ethereum, Solana o Bitcoin.",
+    "subtitle": "Pega tu frase secreta de recuperación",
     "cta_text": "Continuar",
     "paste": "Pegar",
     "clear": "Borrar todo",
     "srp_number_of_words_option_title": "Número de palabras",
-    "12_word_option": "I have a 12-word phrase",
-    "24_word_option": "I have a 24-word phrase",
+    "12_word_option": "Tengo una frase de 12 palabras",
+    "24_word_option": "Tengo una frase de 24 palabras",
     "error_title": "Algo salió mal",
-    "error_message": "We couldn't import that Secret Recovery Phrase. Please make sure you entered it correctly.",
-    "error_empty_message": "You need to enter your Secret Recovery Phrase.",
-    "error_number_of_words_error_message": "Secret Recovery Phrases contain 12 or 24 words",
+    "error_message": "No se pudo importar esa frase secreta de recuperación. Asegúrese de haberla ingresado correctamente.",
+    "error_empty_message": "Debes ingresar tu frase secreta de recuperación.",
+    "error_number_of_words_error_message": "Las frases secretas de recuperación contienen 12 o 24 palabras",
     "error_srp_is_case_sensitive": "¡Entrada no válida! La frase secreta de recuperación distingue entre mayúsculas y minúsculas.",
     "error_srp_word_error_1": "Palabra ",
     "error_srp_word_error_2": " es incorrecta o está mal escrita.",
@@ -4182,9 +4311,9 @@
     "error_multiple_srp_word_error_3": " son incorrectas o están mal escritas.",
     "error_invalid_srp": "Frase secreta de recuperación no válida",
     "error_duplicate_srp": "Esta frase secreta de recuperación ya se importó.",
-    "error_duplicate_account": "The account you are trying to import is a duplicate.",
-    "invalid_qr_code_title": "Invalid QR code",
-    "invalid_qr_code_message": "The QR code does not contain a valid Secret Recovery Phrase",
+    "error_duplicate_account": "La cuenta que estás intentando importar es un duplicado.",
+    "invalid_qr_code_title": "Código QR no válido",
+    "invalid_qr_code_message": "Este código QR no contiene ninguna frase secreta de recuperación válida",
     "success_1": "Billetera",
     "success_2": "importado"
   },
@@ -4447,7 +4576,7 @@
       "label_unstake_ready": "Retiro listo",
       "label_staked": "Con staking",
       "label_received": "Recibido",
-      "label_unstaking_confirmed": "Unstaking confirmed",
+      "label_unstaking_confirmed": "Unstaking confirmado",
       "label_swapped": "Canjeado",
       "label_to": "Para"
     },
@@ -4521,7 +4650,7 @@
       "metamask_swap_completed_title": "Intercambio finalizado",
       "metamask_swap_completed_description": "Su intercambio de MetaMask se realizó correctamente",
       "nft_sent_title": "NFT enviado",
-      "nft_sent_description": "You successfully sent an NFT",
+      "nft_sent_description": "Enviaste correctamente un NFT",
       "nft_received_title": "NFT recibido",
       "nft_received_description": "Recibió un nuevo NFT",
       "rocketpool_stake_completed_title": "Staking finalizado",
@@ -4549,7 +4678,7 @@
       "perps_limit_order_filled_description_long": "Tu posición larga de {{symbol}} ahora está abierta.",
       "perps_limit_order_filled_description_short": "Tu posición corta de {{symbol}} ahora está abierta."
     },
-    "prompt_title": "Receive push notifications",
+    "prompt_title": "Recibir notificaciones push",
     "notifications_enabled_error_title": "Algo salió mal",
     "notifications_enabled_error_desc": "No pudimos activar las notificaciones. Por favor, inténtelo de nuevo más tarde.",
     "prompt_desc": "Active las notificaciones desde Configuración para recibir alertas importantes sobre la actividad de su billetera y mucho más.",
@@ -4566,8 +4695,8 @@
     "wc_description": "Revise su aplicación",
     "wallet": "Billetera",
     "web3": "Web3",
-    "staking_provider": "Staking provider",
-    "network_fee_not_available": "Network fee not available",
+    "staking_provider": "Proveedor de staking",
+    "network_fee_not_available": "Tarifa de red no disponible",
     "empty": {
       "title": "Nada que ver aquí",
       "message": "Aquí es donde puede encontrar notificaciones una vez que haya actividad en su monedero. "
@@ -4598,7 +4727,7 @@
     "button": "Proteger monedero"
   },
   "transaction_update_retry_modal": {
-    "title": "Transaction update failed",
+    "title": "Error en la actualización de la transacción",
     "text": "¿Quiere intentarlo de nuevo?",
     "cancel_button": "Cancelar",
     "retry_button": "Intente de nuevo"
@@ -4617,18 +4746,18 @@
     "next": "Siguiente",
     "amount_placeholder": "0.00",
     "link_copied": "Vínculo copiado en el Portapapeles",
-    "send_link_title": "Send link",
+    "send_link_title": "Enviar vínculo",
     "description_1": "El vínculo de la solicitud está listo para enviarlo",
     "description_2": "Envíele este vínculo a un amigo y le pedirá que envíe",
     "copy_to_clipboard": "Copiar al Portapapeles",
     "qr_code": "Código QR",
-    "send_link": "Send link",
-    "request_qr_code": "Payment request QR code",
+    "send_link": "Enviar vínculo",
+    "request_qr_code": "Código QR de solicitud de pago",
     "balance": "Saldo"
   },
   "receive_request": {
     "title": "Recibir",
-    "share_title": "Share address",
+    "share_title": "Compartir dirección",
     "share_description": "Envíe su dirección por correo electrónico o texto",
     "qr_code_title": "Código QR",
     "qr_code_description": "Imagen escaneable que puede leer su dirección",
@@ -4636,10 +4765,10 @@
     "request_description": "Solicitar activos a amigos",
     "buy_title": "Comprar",
     "buy_description": "Comprar criptomoneda con tarjeta de débito o transferencia bancaria",
-    "public_address": "Public address",
-    "public_address_qr_code": "Public address",
+    "public_address": "Dirección pública",
+    "public_address_qr_code": "Dirección pública",
     "coming_soon": "Próximamente…",
-    "request_payment": "Request payment",
+    "request_payment": "Solicitar pago",
     "copy": "Copiar",
     "scan_address": "Escanear dirección para recibir pago",
     "copy_address": "Copiar dirección"
@@ -4653,24 +4782,24 @@
     "switch_network": "Cambie a la red principal o a Sepolia",
     "card_title": "Mostrar siempre el botón de la tarjeta MetaMask",
     "card_desc": "La tarjeta MetaMask solo está disponible para residentes de países seleccionados.",
-    "daimo_demo_title": "Use DaimoPay demo environment",
-    "daimo_demo_desc": "Toggle between DaimoPay demo and production environments for card payments."
+    "daimo_demo_title": "Usar el entorno de demostración de DaimoPay",
+    "daimo_demo_desc": "Alterna entre los entornos de demostración y producción de DaimoPay para pagos con tarjeta."
   },
   "walletconnect_sessions": {
     "no_active_sessions": "No tiene sesiones activas",
-    "end_session_title": "End session",
+    "end_session_title": "Finalizar sesión",
     "end": "Finalizar",
     "cancel": "Cancelar",
-    "session_ended_title": "Session ended",
+    "session_ended_title": "Sesión finalizada",
     "session_ended_desc": "La sesión seleccionada terminó",
     "session_already_exist": "Esta sesión ya está conectada.",
     "close_current_session": "Cierre la sesión actual antes de iniciar una nueva."
   },
   "paymentRequest": {
-    "title": "Payment request",
-    "title_complete": "Payment complete",
-    "confirm": "Pay",
-    "cancel": "Decline",
+    "title": "Solicitud de pago",
+    "title_complete": "Pago finalizado",
+    "confirm": "Pagar",
+    "cancel": "Rechazar",
     "is_requesting_you_to_pay": "le solicita que pague",
     "total": "Total:"
   },
@@ -4697,6 +4826,21 @@
     "buy": "Comprar {{ticker}}",
     "on_network": "en {{networkName}}",
     "debit_card": "Tarjeta de débito",
+    "select_payment_method": "Seleccionar método de pago",
+    "pay_with": "Pagar con",
+    "buying_via": "Comprando a través de {{providerName}}.",
+    "change_provider": "Cambiar de proveedor.",
+    "payment_error": "Se produjo un error. Inténtalo de nuevo.",
+    "no_payment_methods_available": "No hay métodos de pago disponibles.",
+    "error_fetching_quotes": "Se produjo un error. Inténtalo de nuevo.",
+    "no_quotes_available": "No hay proveedores disponibles.",
+    "quote_unavailable": "Cotización no disponible.",
+    "providers": "Proveedores",
+    "quotes_displayed_for": "Cotizaciones mostradas para {{paymentMethodName}}.",
+    "other_options": "Other options",
+    "previously_used": "Usado anteriormente",
+    "best_rate": "Mejor tarifa",
+    "most_reliable": "Más confiable",
     "continue": "Continuar",
     "powered_by_provider": "Desarrollado por {{provider}}",
     "purchased_currency": "{{currency}} comprado",
@@ -4794,7 +4938,21 @@
       "log_out": "Cerrar sesión en {{provider}}",
       "logged_out_success": "La sesión se cerró correctamente",
       "logged_out_error": "Error al cerrar sesión"
-    }
+    },
+    "token_unavailable_modal": {
+      "title": "No disponible",
+      "description": "{{token}} no está disponible con {{provider}} en tu región.",
+      "change_token": "Cambiar token",
+      "change_provider": "Cambiar de proveedor"
+    },
+    "provider_picker_modal": {
+      "title": "Elegir un proveedor"
+    },
+    "contact_provider_support": "Contact {{provider}} support",
+    "got_it": "Entendido",
+    "encountered_error": "We've encountered an error",
+    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "change_provider_button": "Cambiar de proveedor"
   },
   "fiat_on_ramp_aggregator": {
     "buy": "comprar",
@@ -4848,6 +5006,7 @@
       "lowest_sell_limit": "menor límite de venta",
       "medium_sell_limit": "límite medio de venta",
       "highest_sell_limit": "mayor límite de venta",
+      "change": "Cambiar",
       "continue_to_amount": "Continuar al monto",
       "no_payment_methods_title": "No hay métodos de pago en {{regionName}}",
       "no_cash_destinations_title": "No hay destinos de efectivo en {{regionName}}",
@@ -5022,6 +5181,39 @@
     },
     "deposit_order_title": "Depósito de {{currency}}"
   },
+  "ramps_order_details": {
+    "title": "Detalles de la orden",
+    "status": "Estado",
+    "processing": "Procesando",
+    "complete": "Completado",
+    "failed": "Fallido",
+    "cancelled": "Cancelado",
+    "view_on_provider": "Ver en {{provider}}",
+    "order_id": "Id. de orden",
+    "date_and_time": "Fecha y hora",
+    "fees": "Tarifas",
+    "total": "Total",
+    "card_processing_info": "Las compras con tarjeta suelen tardar unos minutos",
+    "processing_info_modal_description": "Las compras con tarjeta suelen tardar unos minutos. Si tienes alguna pregunta, puedes comunicarte con el equipo de soporte.",
+    "go_to_provider_support": "Ir a la página de soporte de {{provider}}",
+    "error_title": "Algo salió mal",
+    "error_message": "No se pueden cargar los detalles de la orden. Inténtalo de nuevo.",
+    "try_again": "Inténtalo de nuevo",
+    "close": "Cerrar"
+  },
+  "ramps_v2": {
+    "notifications": {
+      "purchase_pending_title": "Procesando su compra de {{cryptocurrency}}",
+      "purchase_pending_description": "Esto solo tardará unos minutos...",
+      "purchase_completed_title": "Tu compra de {{amount}} {{cryptocurrency}} se realizó correctamente!",
+      "purchase_completed_description": "Su {{cryptocurrency}} ahora está disponible",
+      "purchase_failed_title": "Compra de {{cryptocurrency}} fallida",
+      "purchase_failed_description": "Inténtalo de nuevo en unos momentos",
+      "purchase_cancelled_title": "Su compra fue cancelada",
+      "purchase_cancelled_description": "Se canceló tu compra de {{cryptocurrency}}",
+      "track": "Hacer seguimiento"
+    }
+  },
   "swaps": {
     "title": "Canjear",
     "onboarding": {
@@ -5040,7 +5232,7 @@
       "start_swapping": "Comenzar a canjear"
     },
     "feature_off_title": "Temporalmente no disponible",
-    "feature_off_body": "MetaMask Swaps are undergoing maintenance. Please check back later.",
+    "feature_off_body": "MetaMask Swaps está en mantenimiento. Vuelve a comprobarlo más tarde.",
     "wrong_network_title": "Los intercambios no están disponibles",
     "wrong_network_body": "Solo puede canjear tokens en la red principal de Ethereum.",
     "unallowed_asset_title": "No se puede canjear este token",
@@ -5082,7 +5274,7 @@
     "not_enough": "No hay {{symbol}} suficientes para completar este intercambio",
     "max_slippage": "Deslizamiento máximo",
     "max_slippage_amount": "Deslizamiento máximo {{slippage}}",
-    "slippage_info": "If the rate changes between the time your order is placed and confirmed it’s called “slippage”. Your swap will automatically cancel if slippage exceeds your “max slippage” setting.",
+    "slippage_info": "Si la tasa cambia entre el momento en que realizas la orden y cuando se confirma, se denomina “deslizamiento”. Tu canje se cancelará automáticamente si el deslizamiento supera lo establecido en la configuración “deslizamiento máximo”.",
     "slippage_warning": "Asegúrese de saber lo que está haciendo.",
     "allows_up_to_decimals": "{{symbol}} permite hasta {{decimals}} decimales",
     "get_quotes": "Obtener cotizaciones",
@@ -5121,7 +5313,7 @@
     "edit": "Editar",
     "quotes_include_fee": "Las cotizaciones incluyen un {{fee}} % de tarifa de MetaMask",
     "quotes_include_gas_and_metamask_fee": "La cotización incluye el gas y una tarifa del {{fee}} % de MetaMask",
-    "tap_to_swap": "Tap to swap",
+    "tap_to_swap": "Toca para canjear",
     "swipe_to_swap": "Deslice para canjear",
     "swipe_to": "Deslice para",
     "swap": "Canjear",
@@ -5181,7 +5373,7 @@
       "approve": "Aprobar {{sourceToken}} para intercambios: Hasta {{upTo}}"
     },
     "notification_label": {
-      "swap_pending": "Pending swap ({{sourceToken}} to {{destinationToken}})",
+      "swap_pending": "Canje pendiente ({{sourceToken}} por {{destinationToken}})",
       "swap_confirmed": "Intercambio completo ({{sourceToken}} a {{destinationToken}})",
       "approve_pending": "Aprobación de {{sourceToken}} para swaps",
       "approve_confirmed": "{{sourceToken}} aprobado para intercambios"
@@ -5256,7 +5448,7 @@
       "descriptions": {
         "description_1": "El menú desplegable de red se ha trasladado a tus activos",
         "description_2": "Canjea y puentea en un flujo simple",
-        "description_3": "Streamlined send experience",
+        "description_3": "Experiencia de envío optimizada",
         "description_4": "Una nueva vista de la cuenta"
       },
       "more_information": "Ahora puedes concentrarte en tus tokens y actividad, no en las redes que hay detrás de ellos.",
@@ -5328,21 +5520,21 @@
       "aggressive_label": "Agresivo",
       "aggressive_text": "Alta probabilidad, incluso en mercados volátiles. Use Agresivo para cubrir los aumentos repentinos en el tráfico de la red debido a cosas como drops de NFT populares.",
       "market_label": "Mercado",
-      "market_text": "Use market for fast processing at current market price.",
+      "market_text": "Utiliza mercado para un procesamiento rápido al precio actual del mercado.",
       "low_label": "Bajo",
       "low_text": "Usa mínimo para esperar un precio más bajo. Las estimaciones de tiempo son mucho menos precisas, ya que los precios son un poco imprevisibles.",
       "link": "Obtenga más información sobre cómo personalizar su cuota de gas."
     },
     "save": "Guardar",
     "submit": "Enviar",
-    "max_priority_fee_low": "Max priority fee is low for current network conditions",
-    "max_priority_fee_high": "Max priority fee is higher than necessary",
-    "max_priority_fee_speed_up_low": "Max priority fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_priority_fee_cancel_low": "Max priority fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
-    "max_fee_low": "Max fee is low for current network conditions",
-    "max_fee_high": "Max fee is higher than necessary",
-    "max_fee_speed_up_low": "Max fee must be at least {{speed_up_floor_value}} GWEI (10% higher than initial transaction)",
-    "max_fee_cancel_low": "Max fee must be at least {{cancel_value}} GWEI (50% higher than initial transaction)",
+    "max_priority_fee_low": "La tarifa de prioridad máxima es baja para las condiciones actuales de la red",
+    "max_priority_fee_high": "La tarifa de prioridad máxima es más alta de lo necesario",
+    "max_priority_fee_speed_up_low": "La tarifa de prioridad máxima debe ser de al menos {{speed_up_floor_value}} GWEI (10 % más que la transacción inicial)",
+    "max_priority_fee_cancel_low": "La tarifa de prioridad máxima debe ser de al menos {{cancel_value}} GWEI (50 % más que la transacción inicial)",
+    "max_fee_low": "La tarifa máxima es baja para las condiciones actuales de la red",
+    "max_fee_high": "La tarifa máxima es más alta de lo necesario",
+    "max_fee_speed_up_low": "La tarifa máxima debe ser de al menos {{speed_up_floor_value}} GWEI (10 % más que la transacción inicial)",
+    "max_fee_cancel_low": "La tarifa máxima debe ser de al menos {{cancel_value}} GWEI (50 % más que la transacción inicial)",
     "learn_more_gas_limit": "El límite de gas son las unidades máximas que está dispuesto a usar. Las unidades de gas son un multiplicador de la \"Tarifa de prioridad máxima\" y la \"Tarifa máxima\". ",
     "learn_more_max_priority_fee": "La tarifa de prioridad máxima (también conocida como \"propina del minero\") va directamente a los mineros y los incentiva a priorizar su transacción. La mayoría de las veces pagará su configuración máxima. ",
     "learn_more_max_fee": "La tarifa máxima es lo máximo que va a pagar (tarifa base + tarifa de prioridad). ",
@@ -5452,9 +5644,9 @@
     "enable_remember_me_description": "Cuando Recordarme está activado, cualquier persona con acceso a su teléfono puede acceder a su cuenta de MetaMask."
   },
   "turn_off_remember_me": {
-    "title": "Ingrese su contraseña para desactivar Recordarme",
-    "placeholder": "Contraseña",
-    "description": "Si desactiva esta opción, necesitará su contraseña para desbloquear MetaMask de ahora en adelante.",
+    "title": "Desactivar Recordarme",
+    "placeholder": "Confirmar contraseña",
+    "description": "Una vez desactivada, Recordarme no se puede volver a usar. Esta función ya no está disponible, así que puedes desbloquear MetaMask con tu contraseña o datos biométricos.",
     "action": "Desactivar Recordarme"
   },
   "dapp_connect": {
@@ -5504,7 +5696,7 @@
       "learn_more": "Conozca más"
     },
     "token_allowance": {
-      "verify_third_party_details": "Verify third-party details",
+      "verify_third_party_details": "Verificar detalles de terceros",
       "protect_from_scams": "Para protegerse contra estafadores, tómese un momento para verificar los datos del tercero.",
       "learn_to_verify": "Más información sobre cómo verificar los datos de terceros",
       "spending_cap": "límite de gasto",
@@ -5518,7 +5710,7 @@
   },
   "restore_wallet": {
     "restore_needed_title": "Restauración necesaria",
-    "restore_needed_description": "Something went wrong, but don’t worry! Let’s try to restore your wallet.",
+    "restore_needed_description": "¡Algo salió mal, pero no te preocupes! Intentemos restaurar tu billetera.",
     "restore_needed_action": "Restaurar monedero"
   },
   "wallet_restored": {
@@ -5538,12 +5730,15 @@
     "new_wallet_needed_description_part_three": "Para evitar que esto vuelva a ocurrir, asegúrese de mantener siempre actualizados a la última versión la aplicación de MetaMask y el sistema operativo."
   },
   "srp_security_quiz": {
+    "question_step": "Pregunta {{step}} de {{total}}",
     "title": "Cuestionario de seguridad",
     "introduction": "Para revelar tu frase secreta de recuperación, debes responder correctamente dos preguntas",
     "get_started": "Comenzar",
     "learn_more": "Conozca más",
     "try_again": "Inténtalo de nuevo",
     "continue": "Continuar",
+    "correct": "¡Correcto!",
+    "incorrect": "¡Incorrecto!",
     "of": "de",
     "question_one": {
       "question": "Si extravía su frase secreta de recuperación, MetaMask...",
@@ -5588,6 +5783,8 @@
     "running_app_close_error": "Error al cerrar la aplicación en ejecución en su dispositivo Ledger.",
     "ethereum_app_not_installed": "La aplicación Ethereum no está instalada.",
     "ethereum_app_not_installed_error": "Instale la aplicación Ethereum en su dispositivo Ledger.",
+    "eth_app_not_open": "La aplicación Ethereum no está abierta",
+    "eth_app_not_open_message": "Abre la aplicación Ethereum en tu dispositivo Ledger.",
     "ledger_is_locked": "El Ledger está bloqueado",
     "unlock_ledger_message": "Desbloquee su dispositivo Ledger",
     "cannot_get_account": "No se puede obtener la cuenta",
@@ -5717,10 +5914,11 @@
     "error_description": "Instalación fallida de {{snap}}."
   },
   "earn": {
-    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
-    "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
-    "claimable_bonus": "Claimable bonus",
-    "claim_bonus": "Claim bonus",
+    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "earn_a_percentage_bonus": "Gana un bono del {{percentage}} %",
+    "claimable_bonus": "Bonificación reclamable",
+    "claim_bonus": "Reclamar bono",
+    "claim_bonus_subtitle": "El bono se pagará en {{networkName}}.",
     "empty_state_cta": {
       "heading": "Presta {{tokenSymbol}} y gana",
       "body": "Presta tu {{tokenSymbol}} con {{protocol}} y gana",
@@ -5731,7 +5929,7 @@
     "service_interruption_banner": {
       "maintenance_message": "Estamos en mantenimiento. ¡Pronto volveremos a estar en línea!"
     },
-    "supply": "Supply",
+    "supply": "Suministro",
     "deposit": "Depósito",
     "approve": "Aprobar",
     "approval": "Aprobación",
@@ -5755,20 +5953,20 @@
       "withdrawal_time": "El tiempo que lleva retirar tu token del protocolo y recuperarlo en tu billetera",
       "receive": "Este token se utiliza para hacer un seguimiento de tus activos y recompensas. No los transfieras ni los intercambies, ya que no podrás retirarlos.",
       "health_factor": {
-        "your_health_factor_measures_liquidation_risk": "Your health factor measures liquidation risk",
+        "your_health_factor_measures_liquidation_risk": "Tu factor de salud mide el riesgo de liquidación",
         "above_two_dot_zero": "Por encima de 2,0",
         "safe_position": "Posición segura",
         "between_one_dot_five_and_2_dot_zero": "Entre 1,5 y 2,0",
-        "medium_liquidation_risk": "Medium liquidation risk",
+        "medium_liquidation_risk": "Riesgo de liquidación medio",
         "below_one_dot_five": "Por debajo de 1,5",
         "higher_liquidation_risk": "Mayor riesgo de liquidación"
       },
       "lending_risk_aware_withdrawal_tooltip": {
         "why_cant_i_withdraw_full_balance": "¿Por qué no puedo retirar mi saldo completo?",
         "your_withdrawal_amount_may_be_limited_by": "Tu monto de retiro puede estar limitado por",
-        "pool_liquidity": "Pool liquidity",
+        "pool_liquidity": "Falta de liquidez",
         "not_enough_funds_available_in_the_lending_pool_right_now": "No hay suficientes fondos disponibles en el fondo de préstamos en este momento.",
-        "existing_borrow_positions": "Existing borrow positions",
+        "existing_borrow_positions": "Posiciones de préstamo existentes",
         "withdrawing_could_put_your_existing_loans_at_risk_of_liquidation": "Retirar tu dinero podría poner en riesgo de liquidación tus posiciones de préstamos existentes."
       }
     },
@@ -5780,7 +5978,7 @@
     "network": "Red",
     "health_factor": "Factor de salud",
     "liquidation_risk": "Riesgo de liquidación",
-    "insufficient_pool_liquidity": "Insufficient pool liquidity",
+    "insufficient_pool_liquidity": "Liquidez insuficiente del fondo",
     "available_to_withdraw": "disponible para retirar",
     "unknown": "desconocida",
     "how_it_works": "Cómo funciona",
@@ -5799,7 +5997,7 @@
       "lending": "Historial de posiciones",
       "staking": "Historial de pagos"
     },
-    "allowance_reset": "Allowance reset",
+    "allowance_reset": "Restablecimiento de asignación",
     "tron": {
       "fee": "Tarifa"
     },
@@ -5807,32 +6005,60 @@
       "ok": "OK",
       "continue": "Continuar",
       "convert_and_get_percentage_bonus": "Convierte y obtén un {{percentage}} %",
+      "your_musd": "Tus mUSD",
+      "balance_breakdown_title": "Tu saldo de mUSD por red",
+      "balance_amount": "{{amount}} mUSD",
+      "balance_amount_with_symbol": "{{amount}} {{symbol}}",
+      "balance_fiat_unavailable": "—",
+      "convert_to_musd": "Convertir a mUSD",
       "get_a_percentage_musd_bonus": "Obtén un bono del {{percentage}} % en mUSD",
       "convert": "Convertir",
+      "fetching_quote": "Obteniendo cotización...",
+      "you_convert": "Conviertes",
+      "network_fee": "Tarifa de red",
+      "earning": "Ganancia",
+      "quick_convert_description": "Selecciona un token para convertir tu saldo completo o toca el ícono de edición para ingresar un monto personalizado.",
+      "no_tokens_to_convert": "No tienes ningún token que se pueda convertir a mUSD.",
       "toasts": {
         "converting": "Convirtiendo {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "¡Tus mUSD ya están aquí!",
+        "delivered": "mUSD conversion successful",
+        "delivered_description": "Bonus will be claimable within a day.",
         "failed": "Conversión de mUSD fallida"
       },
       "education": {
         "heading": "OBTÉN {{percentage}} % EN\nMONEDAS ESTABLES",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
-        "terms_apply": "Terms apply.",
+        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "terms_apply": "Se aplican términos y condiciones.",
         "primary_button": "Comenzar",
         "secondary_button": "Ahora no"
       },
       "buy_musd": "Comprar mUSD",
       "get_musd": "Obtener USDC",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
-      "powered_by_relay": "Desarrollado por Relay"
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "powered_by_relay": "Desarrollado por Relay",
+      "max": "Máx.",
+      "quick_convert_button": "Convertir",
+      "learn_more": "Conozca más",
+      "tooltip_title": "Gana rendimiento con mUSD",
+      "tooltip_content": "Convierte tus USDC, USDT o DAI en mUSD, la moneda estable de MetaMask respaldada por dólares. Gana un rendimiento del {{apy}} por cada dólar que mantengas.",
+      "quick_convert": {
+        "title": "Convert and get {{percentage}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "inline_failed_message": "Conversión fallida. Inténtalo de nuevo.",
+        "confirmation": {
+          "title": "Convertir máx."
+        }
+      },
+      "percentage_bonus": "{{percentage}}% bonus",
+      "rate": "Tasa"
     },
     "bonus_claim": {
       "toasts": {
-        "claiming": "Your mUSD bonus is processing",
-        "delivered": "Your mUSD bonus is here!",
-        "failed": "Bonus claim failed"
+        "claiming": "Tu bono en mUSD está en proceso",
+        "delivered": "¡Tu bono en mUSD ya está disponible!",
+        "failed": "Reclamación de bono fallida"
       }
     },
     "rewards": {
@@ -5843,7 +6069,8 @@
       "tooltip_opted_in_footer": "Los puntos se agregarán automáticamente a tu cuenta.",
       "tooltip_not_opted_in_footer": "Regístrate en las recompensas para recibir tus puntos.",
       "tooltip_close": "Cerrar"
-    }
+    },
+    "your_stablecoins": "Tus monedas estables"
   },
   "stake": {
     "stake": "Stake",
@@ -5917,11 +6144,11 @@
       "earn_button": "Ganar"
     },
     "trx_learn_more": {
-      "title": "Stake TRX and earn",
-      "stake_any_amount": "Stake any amount of TRX.",
+      "title": "Haz staking de TRX y gana",
+      "stake_any_amount": "Haz staking de cualquier cantidad de TRX.",
       "earn_trx_rewards": "Gana recompensas de TRX.",
       "earn_trx_rewards_description": "Empieza a ganar en cuanto realices el staking. Las recompensas se acumulan automáticamente.",
-      "flexible_unstaking_description": "Unstake anytime. Unstaking takes 14 days to process."
+      "flexible_unstaking_description": "Deja de hacer staking en cualquier momento. Normalmente tarda 14 días en procesarse."
     },
     "day": {
       "zero": "",
@@ -6070,7 +6297,7 @@
     },
     "estimated_gas_fee": {
       "title": "Tarifa estimada de gas",
-      "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
+      "gas_recipient": "Las tarifas de gas se pagan a los mineros de criptomonedas que procesan transacciones en la red Ethereum. MetaMask no obtiene ganancias de las tarifas de gas.",
       "gas_fluctuation": "Las tarifas de gas se estiman y fluctuarán según el tráfico de la red y la complejidad de las transacciones.",
       "gas_learn_more": "Más información acerca de las tarifas de gas"
     },
@@ -6105,14 +6332,18 @@
       "signing_in_with": "Iniciando sesión con",
       "spender": "Gastador",
       "now": "Ahora",
-      "switching_to": "Switching to",
+      "switching_to": "Cambiando a",
       "bridge_estimated_time": "Tiempo est.",
       "pay_with": "Pagar con",
+      "receive_as": "Recibir",
       "total": "Total",
+      "you_receive": "Recibirás",
       "transaction_fee": "Tarifa de transacción",
+      "transaction_fees": "Tarifas de transacción",
       "metamask_fee": "Tarifa de MetaMask",
       "network_fee": "Tarifa de red",
-      "bridge_fee": "Tarifa del proveedor del puente"
+      "bridge_fee": "Tarifa del proveedor del puente",
+      "provider_fee": "Tarifa del proveedor"
     },
     "title": {
       "signature": "Solicitud de firma",
@@ -6149,8 +6380,11 @@
       "predict_deposit": {
         "transaction_fee": "Canjearemos tus tokens por USDC en Polygon, la red que usa Predicciones. Los proveedores de canje pueden cobrar una comisión, pero MetaMask no."
       },
+      "predict_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+      },
       "musd_conversion": {
-        "transaction_fee": "Las tarifas de conversión de mUSD incluyen los costos de red y pueden incluir las tarifas del proveedor."
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
       "title": {
         "transaction_fee": "Tarifas"
@@ -6169,12 +6403,12 @@
     "personal_sign_tooltip": "Este sitio solicita su firma",
     "transaction_tooltip": "Este sitio está solicitando su transacción",
     "details": "Detalles",
-    "qr_get_sign": "Get signature",
+    "qr_get_sign": "Obtener firma",
     "qr_scan_text": "Escanee con su monedero físico",
     "sign_with_ledger": "Firmar con Ledger",
     "smart_account": "Cuenta inteligente",
     "smart_contract": "Contrato inteligente",
-    "standard_account": "Standard account",
+    "standard_account": "Cuenta estándar",
     "siwe_message": {
       "url": "URL",
       "network": "Red",
@@ -6208,22 +6442,10 @@
     },
     "7702_functionality": {
       "smartAccountLabel": "Cuenta inteligente",
-      "standardAccountLabel": "Standard account",
+      "standardAccountLabel": "Cuenta estándar",
       "switch": "Cambiar",
       "switchBack": "Volver a cambiar",
-      "splashpage": {
-        "accept": "Sí",
-        "betterTransaction": "Transacciones más rápidas, tarifas más bajas",
-        "betterTransactionDescription": "Ahorra tiempo y dinero procesando las transacciones conjuntamente.",
-        "featuresDescription": "Mantén la misma dirección de cuenta y podrás volver a cambiarla cuando quieras.",
-        "payToken": "Paga con cualquier token, en cualquier momento",
-        "payTokenDescription": "Usa los tokens que ya tienes para cubrir las tarifas de red.",
-        "reject": "No",
-        "sameAccount": "La misma cuenta, funciones más inteligentes.",
-        "splashTitle": "Usar cuenta inteligente?"
-      },
       "includes_transaction": "Incluye {{transactionCount}} transacciones",
-      "useSmartAccount": "Usar cuenta inteligente",
       "successful": "Éxito",
       "success_message": "Tu cuenta se actualizará a cuenta inteligente con tu próxima transacción."
     },
@@ -6232,9 +6454,9 @@
       "cancel": "Cancelar",
       "description": "Ingresa el monto que consideras cómodo para que se gaste en tu nombre.",
       "invalid_number_error": "El límite de gasto debe ser un número",
-      "no_empty_error": "Spending cap can't be empty",
-      "no_extra_decimals_error": "Spending cap can't have more decimals than the token",
-      "no_zero_error": "Spending cap can't be 0",
+      "no_empty_error": "El límite de gasto no puede estar vacío",
+      "no_extra_decimals_error": "El límite de gasto no puede tener más decimales que el token",
+      "no_zero_error": "El límite de gasto no puede ser 0",
       "no_zero_error_decrease_allowance": "Un límite de gasto de 0 no tiene ningún efecto sobre el método de 'decreaseAllowance'",
       "no_zero_error_increase_allowance": "Un límite de gasto de 0 no tiene ningún efecto sobre el método de 'increaseAllowance'",
       "save": "Guardar",
@@ -6261,7 +6483,7 @@
     "transferRequest": "Solicitud de transferencia",
     "nested_transaction_heading": "{{index}} de transacción",
     "transaction": "Transacción",
-    "available_balance": "Disponible: ",
+    "available_balance": "Saldo disponible: ",
     "edit_amount_done": "Continuar",
     "deposit_edit_amount_done": "Agregar fondos",
     "deposit_edit_amount_predict_withdraw": "Retirar",
@@ -6291,7 +6513,7 @@
     "terms_and_conditions": "Términos y condiciones",
     "select_token": "Seleccione un token",
     "no_tokens_found": "No se encontraron tokens",
-    "no_tokens_found_description": "We couldn't find any tokens with this name. Try a different search.",
+    "no_tokens_found_description": "No encontramos ningún token con este nombre. Prueba con otra búsqueda.",
     "select_network": "Seleccionar red",
     "all_networks": "Todas las redes",
     "num_networks": "{{numNetworks}} redes",
@@ -6300,6 +6522,7 @@
     "deselect_all_networks": "Deseleccionar todo",
     "see_all": "Ver todo",
     "all": "Todas",
+    "more_networks": "+{{count}} más",
     "apply": "Aplicar",
     "slippage": "Deslizamiento",
     "slippage_info": "Si el precio cambia entre el momento en que se coloca la orden y cuando se confirma, se denomina \"deslizamiento\". Su intercambio se cancelará automáticamente si el deslizamiento supera la tolerancia que establezca aquí.",
@@ -6316,7 +6539,7 @@
     "quote_info_title": "Tasa",
     "network_fee_info_title": "Tarifa de red",
     "network_fee_info_content": "Las tarifas de red dependen de qué tan ocupada esté la red y de qué tan compleja sea tu transacción.",
-    "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
+    "network_fee_info_content_sponsored": "Esta tarifa de red la paga MetaMask, por lo que puedes realizar transacciones sin {{nativeToken}} en tu cuenta.",
     "points": "Puntos estimados",
     "points_tooltip": "Puntos",
     "points_tooltip_content_1": "Los puntos son la forma de ganar recompensas de MetaMask por completar transacciones, como cuando canjeas, puenteas u operas con contratos perpetuos.",
@@ -6330,6 +6553,7 @@
     "select_recipient": "Seleccionar destinatario",
     "external_account": "Cuenta externa",
     "error_banner_description": "Esta ruta de operación no está disponible en este momento. Intente cambiar el monto, la red o el token y encontraremos la mejor opción.",
+    "stock_token_error_banner_description": "Esta ruta de intercambio no está disponible en este momento. Intenta cambiar la cantidad, la red o el token y encontraremos la mejor opción.\n\nTen en cuenta que si intentas operar con acciones tokenizadas de Ondo, podrías estar sujeto a restricciones geográficas, por ejemplo, en EE. UU., la UE, el Reino Unido y Brasil.",
     "insufficient_funds": "Fondos insuficientes",
     "insufficient_gas": "Gas insuficiente",
     "select_amount": "Seleccionar monto",
@@ -6340,14 +6564,19 @@
     "title": "Puentear",
     "submitting_transaction": "Enviando",
     "fetching_quote": "Obteniendo cotización",
-    "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee.",
+    "fee_disclaimer": "Incluye {{feePercentage}} % de la tarifa de MetaMask.",
     "no_mm_fee": "Sin tarifa de MM",
-    "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
+    "no_mm_fee_disclaimer": "Sin tarifa de MetaMask al canjear por {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Las billeteras físicas aún no son compatibles. Usa una billetera en caliente para continuar.",
     "hardware_wallet_not_supported_solana": "Las billeteras físicas aún no son compatibles con Solana. Usa una billetera en caliente para continuar.",
     "price_impact_info_title": "Impacto sobre el precio",
     "price_impact_info_description": "El impacto en el precio refleja cómo tu orden de canje afecta el precio de mercado del activo. Depende del tamaño de la operación y de la liquidez disponible en el fondo. MetaMask no influye ni controla el impacto en el precio.",
     "price_impact_info_gasless_description": "El impacto en el precio refleja cómo tu orden de canje afecta el precio de mercado del activo. Si no tienes suficientes fondos para gas, parte de tu token de origen se asigna automáticamente para cubrir las tarifas, lo que aumenta el impacto en el precio. MetaMask no influye ni controla el impacto en el precio.",
+    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
+    "price_impact_high": "High price impact",
+    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
+    "proceed": "Proceed",
+    "cancel": "Cancelar",
     "slippage_info_title": "Deslizamiento",
     "slippage_info_description": "El % de cambio en el precio que estás dispuesto a permitir antes de que se cancele tu transacción.",
     "blockaid_error_title": "Esta transacción se revertirá",
@@ -6355,18 +6584,26 @@
     "approval_needed": "Aprueba el token para el canje.",
     "approval_tooltip_title": "Conceder acceso exacto",
     "approval_tooltip_content": "Permitirás el acceso a la cantidad especificada, {{amount}} {{symbol}}. El contrato no accederá a fondos adicionales.",
-    "minimum_received": "Minimum received",
-    "minimum_received_tooltip_title": "Minimum received",
+    "minimum_received": "Mínimo recibido",
+    "minimum_received_tooltip_title": "Mínimo recibido",
     "minimum_received_tooltip_content": "La cantidad mínima que recibirás si el precio cambia mientras se procesa tu transacción, según tu tolerancia al deslizamiento. Esta es una estimación de nuestros proveedores de liquidez. Los montos finales pueden variar.",
+    "market_closed": {
+      "title": "El mercado está cerrado",
+      "description": "El mercado que respalda este token está actualmente cerrado. Los tokens se pueden transferir dentro de la cadena en cualquier momento.",
+      "learn_more": "Conozca más",
+      "learn_more_url": "https://status.ondo.finance/market",
+      "done": "Hecho"
+    },
     "submit": "Enviar",
-    "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cancel": "Cancelar",
+    "default_slippage_description": "Tu transacción no se realizará si el precio cambia más que el porcentaje de deslizamiento.",
     "confirm": "Confirmar",
-    "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
-    "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
-    "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
-    "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
-    "custom": "Personalizar"
+    "exceeding_upper_slippage_warning": "Alto deslizamiento, lo que puede resultar en un canje desfavorable",
+    "exceeding_lower_slippage_warning": "Bajo deslizamiento, lo que puede resultar en un canje desfavorable",
+    "exceeding_lower_slippage_error": "Introduce un valor mayor al {{value}} %",
+    "exceeding_upper_slippage_error": "No puedes introducir un valor mayor al {{value}} %",
+    "custom": "Personalizar",
+    "invalid_recipient_address": "Dirección no válida",
+    "got_it": "Got it"
   },
   "quote_expired_modal": {
     "title": "Hay nuevas cotizaciones disponibles",
@@ -6440,7 +6677,7 @@
     "title": "Recuperación de billetera",
     "login_with_social": "Iniciar sesión con cuentas de redes sociales",
     "setup": "Configuración",
-    "secret_recovery_phrase": "Secret Recovery Phrase {{num}}",
+    "secret_recovery_phrase": "Frase secreta de recuperación {{num}}",
     "back_up": "Respaldo",
     "reveal": "Revelar",
     "social_recovery_title": "RECUPERACIÓN DE {{authConnection}}",
@@ -6662,11 +6899,16 @@
     "password_bottomsheet": {
       "title": "Ingresar contraseña",
       "description": "Ingresa la contraseña de tu billetera para ver los detalles de la tarjeta.",
+      "description_unfreeze": "Ingresa la contraseña de tu billetera para reanudar el gasto con tu tarjeta.",
+      "description_view_pin": "Enter your wallet password to view your card PIN.",
       "placeholder": "Contraseña",
       "confirm": "Confirmar",
       "cancel": "Cancelar",
       "error_empty": "Ingresa tu contraseña",
       "error_incorrect": "Contraseña incorrecta. Inténtalo de nuevo."
+    },
+    "view_pin_bottomsheet": {
+      "title": "Your Card PIN"
     },
     "choose_your_card": {
       "title": "Elige tu tarjeta",
@@ -6725,16 +6967,16 @@
     "card_onboarding": {
       "title": "Gasta\ny gana",
       "description": "La tarjeta MetaMask es la forma rápida y\nfácil de gastar tus criptomonedas y\nganar hasta un 3 % de cashback.",
-      "apply_now_button": "Setup now",
+      "apply_now_button": "Configurar ahora",
       "login_button": "Iniciar sesión",
       "not_now_button": "Ahora no",
       "sign_up": {
         "title": "Comencemos",
-        "description": "Create an account with Crypto Life (CL) to set up your MetaMask Card. MetaMask does not see or store your personal data.",
-        "i_already_have_an_account": "I already have a MetaMask Card",
-        "email_label": "Email address",
-        "password_label": "New password for MetaMask Card",
-        "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
+        "description": "Crea una cuenta en Crypto Life (CL) para configurar tu Tarjeta MetaMask. MetaMask no ve ni almacena tus datos personales.",
+        "i_already_have_an_account": "Ya tengo una Tarjeta MetaMask",
+        "email_label": "Dirección de correo electrónico",
+        "password_label": "Nueva contraseña para la Tarjeta MetaMask",
+        "password_description": "Es diferente de la contraseña de desbloqueo de tu aplicación MetaMask. Debe tener al menos 15 caracteres.",
         "country_label": "País de residencia",
         "country_placeholder": "Selecciona tu país",
         "invalid_email": "Dirección de correo electrónico no válida",
@@ -6745,11 +6987,12 @@
         "description": "Ingresa el código que te enviamos a {{email}}. Si no lo ves, revisa tu carpeta de correo no deseado.",
         "didnt_receive_code": "¿No recibiste el código? ",
         "resend_verification": "Reenviarlo",
-        "resend_cooldown": "Reenvío disponible en {{seconds}} segundos"
+        "resend_cooldown": "Reenvío disponible en {{seconds}} segundos",
+        "legal_terms": "Al continuar, aceptas recibir correos electrónicos para verificaciones de inicio de sesión y alertas."
       },
       "set_phone_number": {
-        "title": "Confirma tu número de teléfono",
-        "description": "Ingresa tu número de teléfono. Allí te enviaremos un código de confirmación.",
+        "title": "Ingresa tu número de teléfono",
+        "description": "Te enviaremos un código de confirmación allí.",
         "phone_number_label": "Ingresar el número de teléfono",
         "country_area_code_label": "Código de área del país",
         "invalid_phone_number": "Número de teléfono inválido",
@@ -6768,6 +7011,7 @@
         "description": "Nuestro socio, Crypto Life, utiliza un servicio llamado Veriff para mantener tu cuenta segura. ",
         "terms_1": "Tu información va directamente a Veriff y Crypto Life. MetaMask nunca la ve.",
         "terms_2": "Necesitarás tu identificación y comprobante de domicilio para ser aprobado. Esto suele tardar 5 minutos.",
+        "terms_2_us": "La ley federal (Ley Patriota de EE. UU.) nos exige verificar tu identidad con un documento de identidad y un comprobante de domicilio para ayudar a prevenir el terrorismo y el blanqueo de capitales. Esto suele tardar 5 minutos.",
         "verify_button": "Siguiente",
         "start_verification_error": "Error al iniciar la verificación. Inténtalo de nuevo en breve."
       },
@@ -6829,6 +7073,7 @@
         "date_of_birth_label": "Fecha de nacimiento",
         "nationality_label": "Nacionalidad",
         "ssn_label": "Número de seguro social",
+        "ssn_description": "Requerido por el emisor de la tarjeta. No se realizará ninguna verificación de crédito.",
         "invalid_ssn": "SSN no válido",
         "invalid_date_of_birth": "Fecha de nacimiento no válida. Debes tener al menos 18 años"
       },
@@ -6841,8 +7086,21 @@
         "state_label": "Estado",
         "zip_code_label": "Código postal",
         "country_label": "País",
-        "electronic_consent_1": "Acepto el consentimiento y divulgación de la Ley de firma electrónica y recibir todas las comunicaciones de forma electrónica. ",
-        "electronic_consent_2": "Ver documento (PDF)"
+        "electronic_consent_1": "Acepto el ",
+        "electronic_consent_2": "consentimiento y divulgación de la Ley de firma electrónica",
+        "electronic_consent_3": " y recibir todas las comunicaciones electrónicamente.",
+        "coinme_terms_consent_1": "Acepto las ",
+        "coinme_terms_consent_2": "Condiciones de servicio de Coinme",
+        "coinme_terms_consent_3": ".",
+        "crb_consent_1": "Estoy de acuerdo con las divulgaciones de ",
+        "crb_consent_2": "Términos y condiciones",
+        "crb_consent_3": "",
+        "crb_consent_4": "Apertura de cuenta de Cross River Bank",
+        "crb_consent_5": ", ",
+        "crb_consent_6": "Aviso de prácticas de privacidad",
+        "crb_consent_7": " y ",
+        "crb_consent_8": "Política de privacidad de CL",
+        "crb_consent_9": "."
       },
       "mailing_address": {
         "title": "Dirección postal",
@@ -6889,6 +7147,7 @@
     },
     "card_home": {
       "title": "Tarjeta",
+      "authentication_error": "Tu sesión ha expirado. Vuelve a iniciar sesión.",
       "available_balance": "Saldo disponible",
       "error_title": "No se puede obtener la fecha",
       "error_description": "Parece que hay un problema que te impide ver el contenido de esta página. Comprueba tu conexión o intenta actualizar la página.",
@@ -6907,6 +7166,7 @@
       "enable_card_error": "No se pudo habilitar la tarjeta. Inténtelo de nuevo más tarde.",
       "view_card_details_error": "No se pueden cargar los detalles de la tarjeta. Inténtalo de nuevo.",
       "biometric_verification_required": "Se requiere autenticación para ver los detalles de la tarjeta.",
+      "unfreeze_auth_required": "Se requiere autenticación para reanudar el gasto con tu tarjeta.",
       "warnings": {
         "close_spending_limit": {
           "title": "Estás cerca de tu límite de gasto",
@@ -6924,7 +7184,7 @@
         },
         "frozen": {
           "title": "Tu tarjeta está suspendida",
-          "description": "Comunícate con soporte para descongelar tu tarjeta"
+          "description": "Tu tarjeta está suspendida temporalmente. Puedes reactivarla en cualquier momento."
         },
         "blocked": {
           "title": "Tu tarjeta está bloqueada",
@@ -6965,6 +7225,9 @@
         "view_card_details": "Ver detalles de la tarjeta",
         "hide_card_details": "Ocultar detalles de la tarjeta",
         "view_card_details_description": "Número de tarjeta, fecha de vencimiento y CVV",
+        "view_pin": "View PIN",
+        "view_pin_description": "View your card PIN securely",
+        "view_pin_error": "Failed to load PIN. Please try again.",
         "manage_spending_limit": "Administrar límite",
         "manage_spending_limit_description_restricted": "Hay un gasto limitado",
         "manage_spending_limit_description_full": "El acceso completo está activado",
@@ -6974,7 +7237,17 @@
         "travel_description": "Reserva hoteles con hasta un 70 % de descuento",
         "card_tos_title": "Términos y condiciones",
         "order_metal_card": "Tarjeta Metal",
-        "order_metal_card_description": "Solicita ya tu tarjeta Metal física"
+        "order_metal_card_description": "Solicita ya tu tarjeta Metal física",
+        "cashback": "Cashback",
+        "cashback_description": "Obtén 1 % de cashback en todas tus compras",
+        "cashback_description_metal": "Earn 3% back on all spending",
+        "freeze_card": "Tarjeta suspendida",
+        "unfreeze_card": "Reactivar la tarjeta",
+        "freeze_card_description": "Pausa todos los gastos de tu tarjeta",
+        "unfreeze_card_description": "Reanuda todos los gastos con tu tarjeta",
+        "freeze_error": "No se pudo actualizar el estado de la tarjeta. Inténtalo de nuevo.",
+        "freeze_success": "Tarjeta suspendida correctamente",
+        "unfreeze_success": "Tarjeta reactivada correctamente"
       }
     },
     "card_spending_limit": {
@@ -7004,6 +7277,19 @@
       "load_error": "No se pueden cargar los tokens. Inténtalo de nuevo.",
       "retry": "Inténtalo de nuevo",
       "on_linea": "en Linea"
+    },
+    "cashback_screen": {
+      "title": "Cashback",
+      "available_cashback": "Cashback disponible",
+      "network_fee": "Tarifa de red",
+      "expected_to_receive": "Se espera recibir",
+      "withdraw": "Retirar",
+      "withdraw_unavailable": "Retiro no disponible",
+      "withdrawal_initiated": "Se ha iniciado el retiro",
+      "withdrawal_success": "Retiro finalizado correctamente",
+      "withdrawal_failed": "Retiro fallido. Inténtalo de nuevo.",
+      "no_cashback": "No hay cashback disponible",
+      "loading_error": "Error al cargar el cashback. Inténtalo de nuevo."
     },
     "change_asset": {
       "title": "Cambiar token y red",
@@ -7064,6 +7350,35 @@
       "didnt_receive_code": "¿No recibiste el código? ",
       "resend_verification": "Reenviarlo",
       "resend_cooldown": "Reenvío disponible en {{seconds}} segundos"
+    },
+    "push_provisioning": {
+      "add_to_wallet": "Agregar a {{walletName}}",
+      "adding_to_wallet": "Agregando a {{walletName}}...",
+      "continue_setup": "Continuar con la configuración de {{walletName}}",
+      "wallet_not_available": "{{walletName}} no disponible",
+      "already_in_wallet": "Ya en {{walletName}}",
+      "success_title": "¡Tarjeta añadida!",
+      "success_message": "Tu tarjeta MetaMask se ha agregado a {{walletName}}.",
+      "error_title": "No se puede agregar la tarjeta",
+      "error_wallet_not_available": "{{walletName}} no está disponible en este dispositivo. Asegúrate de tener {{walletName}} configurada.",
+      "error_wallet_not_initialized": "{{walletName}} no se ha inicializado. Configura tu billetera y vuelve a intentarlo.",
+      "error_card_already_in_wallet": "Esta tarjeta ya está agregada a {{walletName}}.",
+      "error_card_pending": "Tu tarjeta se está configurando en {{walletName}}. Vuelve a intentarlo en unos minutos.",
+      "error_card_suspended": "Tu tarjeta en {{walletName}} ha sido suspendida. Para obtener ayuda, contacta al equipo de soporte.",
+      "error_card_not_eligible": "Esta tarjeta no es elegible para el aprovisionamiento de billetera móvil.",
+      "error_encryption_failed": "No se pudieron cifrar los datos de la tarjeta. Inténtalo de nuevo.",
+      "error_invalid_card_data": "Datos de tarjeta inválidos. Verifica los datos de tu tarjeta y vuelve a intentarlo.",
+      "error_card_not_found": "No se encontró la tarjeta. Inténtalo de nuevo.",
+      "error_card_provider_not_found": "El proveedor de la tarjeta no está disponible para tu región.",
+      "error_card_id_mismatch": "Error en la verificación de la tarjeta. Inténtalo de nuevo.",
+      "error_card_not_active": "Tu tarjeta no está activa. Actívala primero.",
+      "error_network": "Se produjo un error de red. Comprueba tu conexión e inténtalo de nuevo.",
+      "error_timeout": "Se agotó el tiempo de espera de la solicitud. Inténtalo de nuevo.",
+      "error_server": "Error del servidor. Vuelve a intentarlo más tarde.",
+      "error_unknown": "Se produjo un error inesperado. Inténtalo de nuevo o contacta con el servicio de asistencia.",
+      "error_platform_not_supported": "Esta plataforma no admite el aprovisionamiento de billeteras móviles.",
+      "try_again": "Inténtalo de nuevo",
+      "cancel": "Cancelar"
     }
   },
   "onboarding_error_fallback": {
@@ -7078,7 +7393,8 @@
   },
   "pay_with_modal": {
     "title": "Seleccionar método de pago",
-    "no_gas": "No native balance for gas"
+    "title_receive": "Seleccionar el token a recibir",
+    "no_gas": "No hay saldo nativo para gas"
   },
   "connection_removed_modal": {
     "title": "Conexiones eliminadas",
@@ -7149,7 +7465,10 @@
       "service_not_available": "El servicio no está disponible en este momento. Inténtalo de nuevo en breve.",
       "invalid_referral_code": "Código de recomendación no válido. Compruébalo e inténtalo de nuevo.",
       "already_referred": "Ya otro usuario te ha recomendado.",
-      "cannot_use_own_referral_code": "No puedes usar tu propio código de recomendación."
+      "cannot_use_own_referral_code": "No puedes usar tu propio código de recomendación.",
+      "invalid_bonus_code": "Código de bono no válido",
+      "already_redeemed": "Ya canjeaste este código de bono",
+      "reached_maximum": "Este código de bono alcanzó su número máximo de usos"
     },
     "claim_reward_error": {
       "title": "No se pudo reclamar la recompensa"
@@ -7175,7 +7494,7 @@
     "main_title": "Recompensas",
     "referral_title": "Referidos",
     "tab_overview_title": "Resumen general",
-    "tab_snapshots_title": "Snapshots",
+    "tab_snapshots_title": "Instantáneas",
     "tab_activity_title": "Actividad",
     "referral_stats_earned_from_referrals": "Ganancias por referidos",
     "referral_stats_referrals": "Recomendados",
@@ -7206,8 +7525,10 @@
         "predict": "Predicción",
         "musd_deposit": "Depósito en mUSD",
         "apply_referral_bonus": "Bono por código de recomendación",
+        "bonus_code": "Código de bono",
         "uncategorized_event": "Evento sin categoría"
       },
+      "code": "Código",
       "date": "Fecha",
       "account": "Cuenta",
       "bonus": "Bonificación",
@@ -7229,7 +7550,7 @@
       "verifying_rewards": "Nos aseguramos de que todo sea correcto antes de que reclames tus recompensas."
     },
     "season_status": {
-      "points_earned": "Points earned"
+      "points_earned": "Puntos ganados"
     },
     "onboarding": {
       "not_supported_region_title": "Región no admitida",
@@ -7270,7 +7591,7 @@
       "step4_referral_input_error": "Código de recomendación no válido",
       "step4_confirm": "Reclamar puntos",
       "step4_confirm_loading": "Reclamando puntos...",
-      "step4_bulk_link_checkbox": "Opt-in all my accounts on this device",
+      "step4_bulk_link_checkbox": "Aceptar todas mis cuentas en este dispositivo",
       "step4_linking_accounts": "Agregando cuentas... ({{current}}/{{total}})",
       "step4_linking_accounts_loading": "Agregando cuentas adicionales...",
       "step4_success_description": "¡Te registraste correctamente en el programa de Recompensas de MetaMask!",
@@ -7307,7 +7628,16 @@
       "show_less": "Mostrar menos",
       "linking_progress": "Agregando cuentas... ({{current}}/{{total}})",
       "accounts_linked_count": "{{linked}}/{{total}} inscritos",
-      "add_all_accounts": "Add all accounts"
+      "add_all_accounts": "Agregar todas las cuentas",
+      "environment_selector": "Entorno",
+      "environment_cancel": "Cancelar",
+      "environment_default": "Por defecto",
+      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
+      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
+      "off_device_accounts_banner_cta": "View",
+      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
+      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
+      "off_device_accounts_sheet_let_us_know": "Let us know"
     },
     "referred_by_code": {
       "title": "Código de recomendación",
@@ -7316,6 +7646,10 @@
       "input_placeholder": "Ingresar código de recomendación",
       "invalid_code": "Código de recomendación no válido",
       "apply_button": "Aplicar código de recomendación"
+    },
+    "bonus_code": {
+      "input_placeholder": "Ingresa el código de bono",
+      "apply_success": "¡Código de bono aplicado!"
     },
     "optout": {
       "title": "Eliminar del programa de Recompensas",
@@ -7350,87 +7684,7 @@
       }
     },
     "ways_to_earn": {
-      "title": "Formas de ganar",
-      "supported_networks": "Redes compatibles",
-      "swap": {
-        "title": "Canjear",
-        "description": "8 puntos cada $10",
-        "sheet": {
-          "title": "Canjear tokens",
-          "points": "8 puntos cada $10",
-          "description": "Canjea tokens en redes compatibles para ganar puntos por cada dólar que canjees.",
-          "cta_label": "Iniciar un canje"
-        }
-      },
-      "perps": {
-        "title": "Perps",
-        "description": "10 puntos por cada $100 del valor de la orden",
-        "sheet": {
-          "title": "Opera con perps",
-          "points": "10 puntos por cada $100 del valor de la orden",
-          "description": "Gana puntos en cada operación, incluidas aperturas y cierres, órdenes de límite de pérdidas y toma de ganancias, así como ajustes de margen. El valor de la orden se basa en el tamaño con apalancamiento. Si tienes un descuento en las tarifas, los puntos también se descontarán.",
-          "cta_label": "Comienza a operar"
-        }
-      },
-      "referrals": {
-        "title": "Recomendar amigos",
-        "description": "10 puntos por cada 50 de tus amigos",
-        "sheet": {
-          "title": "Recomendar a un amigo",
-          "points": "10 puntos cada 50",
-          "cta_label": "Recomendar a un amigo"
-        }
-      },
-      "loyalty": {
-        "title": "Bonificación de lealtad",
-        "description": "Gana puntos de operaciones anteriores",
-        "sheet": {
-          "title": "Bonificación de lealtad",
-          "points": "250 puntos cada $1250",
-          "description": "Añade cuentas con canjes o puentes anteriores en la billetera MetaMask para ganar bonificaciones de lealtad.. Cada cuenta elegible desbloquea puntos en incrementos de 250, hasta un total de 50.000. Las bonificaciones aparecen poco después de añadir una cuenta.",
-          "cta_label": "Agregar cuentas"
-        }
-      },
-      "predict": {
-        "title": "Predicciones",
-        "description": "20 puntos por cada predicción de $10",
-        "sheet": {
-          "title": "Predicciones",
-          "points": "20 puntos cada $10",
-          "description": "Gana puntos por cada $10 en operaciones.",
-          "cta_label": "Explorar mercados"
-        }
-      },
-      "card": {
-        "title": "Tarjeta MetaMask",
-        "description": "1 punto por cada $1 gastado",
-        "sheet": {
-          "title": "Tarjeta MetaMask",
-          "points": "1 punto por cada $1 gastado",
-          "description": "Gana puntos cada vez que uses tu tarjeta MetaMask para realizar compras, más un 1 % de reembolso en efectivo (3 % para titulares de la tarjeta Metal).",
-          "cta_label": "Administrar tarjeta"
-        }
-      },
-      "deposit_musd": {
-        "title": "Depósito de mUSD",
-        "description": "2 puntos por cada $100 depositados",
-        "sheet": {
-          "title": "Depósito de mUSD",
-          "points": "2 puntos cada $100",
-          "description": "Gana puntos por cada $100 mUSD que deposites.",
-          "cta_label": "Depósito de mUSD"
-        }
-      },
-      "hold_musd": {
-        "title": "Mantener mUSD",
-        "description": "2 puntos por cada $100 mantenidos",
-        "sheet": {
-          "title": "Mantener mUSD",
-          "points": "2 puntos cada $100",
-          "description": "Gana puntos por cada $100 mUSD que mantengas.",
-          "cta_label": "Comprar mUSD"
-        }
-      }
+      "title": "Formas de ganar"
     },
     "referral": {
       "referral_code": "Código de recomendación",
@@ -7470,7 +7724,7 @@
       "claim_label": "Reclamar",
       "claimed_label": "Reclamada",
       "reward_claimed": "Recompensa reclamada",
-      "time_left": "restantes",
+      "time_left": "{{time}} restante",
       "expired": "Vencida"
     },
     "end_of_season_rewards": {
@@ -7484,37 +7738,37 @@
       "redeem_failure_title": "Canje fallido",
       "redeem_failure_description": "Inténtalo de nuevo más tarde.",
       "reward_details": "Detalles de la recompensa",
-      "select_account_description": "Selecciona la cuenta a la que quieres enviar la recompensa. Los tokens se distribuirán en dos semanas."
+      "select_account_description": "Selecciona la cuenta donde deseas enviar esta recompensa."
     },
     "animation": {
       "could_not_load": "No se pudo cargar"
     },
     "snapshot": {
-      "starts_date": "Starts {{date}}",
-      "ends_date": "Ends {{date}}",
-      "results_coming_soon": "Results coming soon",
-      "tokens_on_the_way": "Tokens on the way",
-      "pill_up_next": "Up next",
-      "pill_live_now": "Live now",
+      "starts_date": "Empieza el {{date}}",
+      "ends_date": "Termina el {{date}}",
+      "results_coming_soon": "Resultados próximamente",
+      "tokens_on_the_way": "Los tokens están llegando",
+      "pill_up_next": "A continuación",
+      "pill_live_now": "En vivo ahora",
       "pill_calculating": "Calculando",
-      "pill_results_ready": "Results Ready",
-      "pill_complete": "Complete"
+      "pill_results_ready": "Resultados listos",
+      "pill_complete": "Completado"
     },
     "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "title": "Instantáneas",
+      "error_title": "No se pueden cargar las instantáneas",
+      "error_description": "No pudimos cargar las instantáneas. Inténtalo de nuevo.",
       "retry_button": "Reintentar"
     },
     "snapshots_tab": {
-      "active_title": "Active",
-      "upcoming_title": "Upcoming",
-      "previous_title": "Previous",
-      "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "active_title": "Activa",
+      "upcoming_title": "Próxima",
+      "previous_title": "Previa",
+      "empty_state": "No hay instantáneas disponibles",
+      "error_title": "No se pueden cargar las instantáneas",
+      "error_description": "No pudimos cargar las instantáneas. Inténtalo de nuevo.",
       "retry_button": "Reintentar",
-      "refreshing": "Refreshing..."
+      "refreshing": "Actualizando..."
     }
   },
   "time": {
@@ -7523,7 +7777,8 @@
   },
   "transaction_details": {
     "title": {
-      "musd_conversion": "Converted to mUSD",
+      "musd_conversion": "Convertidas a mUSD",
+      "musd_claim": "mUSD reclamados",
       "perps_deposit": "Cuenta financiada de perps",
       "predict_claim": "Ganancias reclamadas",
       "predict_deposit": "Cuenta de Predict financiada",
@@ -7532,22 +7787,25 @@
     },
     "label": {
       "bridge_fee": "Tarifa de puente",
+      "provider_fee": "Tarifa del proveedor",
       "network_fee": "Tarifa de red",
       "paid_with": "Pagado con",
+      "receive_token": "Token a recibir",
       "retry_button": "Inténtalo de nuevo",
       "total": "Total",
       "account": "Cuenta",
-      "received_total": "Received total"
+      "received_total": "Total recibido"
     },
     "summary_title": {
       "bridge_approval": "Aprobar {{approveSymbol}}",
       "bridge_approval_loading": "Aprobar",
       "bridge_send": "Puentear {{sourceSymbol}} desde {{sourceChain}}",
-      "bridge_send_loading": "Bridge send",
+      "bridge_send_loading": "Puente enviado",
       "bridge_receive": "Recibir {{targetSymbol}} en {{targetChain}}",
-      "bridge_receive_loading": "Bridge receive",
+      "bridge_receive_loading": "Puente recibido",
       "default": "Transacción",
-      "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
+      "musd_convert_send": "{{sourceSymbol}} enviado(s) desde {{sourceChain}}",
+      "musd_claim": "Reclamar mUSD",
       "perps_deposit": "Agregar fondos",
       "predict_deposit": "Agregar fondos",
       "swap": "Canjear tokens",
@@ -7561,75 +7819,192 @@
       "description": "Estableciendo conexión con {{dappName}}..."
     },
     "show_error": {
-      "title": "Connection error",
+      "title": "Error de conexión",
       "description": "No se pudo establecer la conexión. Inténtalo de nuevo."
     },
     "show_rejection": {
-      "title": "Approval rejected",
-      "description": "User rejected the request."
+      "title": "Aprobación rechazada",
+      "description": "El usuario rechazó la solicitud."
     },
     "show_return_to_app": {
       "title": "Éxito",
       "description": "Regresa a la aplicación para continuar."
     },
     "show_not_found": {
-      "title": "Connection Not Found",
-      "description": "Please establish a new connection from the app to continue."
+      "title": "Conexión no encontrada",
+      "description": "Establece una nueva conexión desde la aplicación para continuar."
+    },
+    "show_internal_error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again."
+    },
+    "show_method_error": {
+      "title": "Request failed",
+      "description": "The request could not be completed. Please try again."
     }
   },
   "network_connection_banner": {
     "still_connecting_network": "Todavía conectándose a {{networkName}}...",
     "unable_to_connect_network": "No se puede conectar a {{networkName}}.",
     "update_rpc": "Actualizar RPC",
-    "switch_to_metamask_default_rpc": "Switch to MetaMask default RPC",
+    "switch_to_metamask_default_rpc": "Cambiar al RPC por defecto de MetaMask",
     "check_network_connectivity": "Comprueba tu conectividad de red.",
     "check_network_connectivity_or": "Comprueba tu conectividad de red o",
-    "updated_to_metamask_default": "Updated to MetaMask default"
+    "updated_to_metamask_default": "Se actualizó a la configuración por defecto de MetaMask"
   },
   "trending": {
-    "title": "Explore",
-    "trending_tokens": "Trending tokens",
-    "price_change": "Price change",
+    "title": "Explorar",
+    "trending_tokens": "Tokens de tendencia",
+    "stocks": "Acciones",
+    "price_change": "Cambio de precio",
     "all_networks": "Todas las redes",
     "24h": "24h",
     "time": "Hora",
     "24_hours": "24 horas",
     "6_hours": "6 horas",
-    "1_hour": "1 hour",
-    "5_minutes": "5 minutes",
+    "1_hour": "1 hora",
+    "5_minutes": "5 minutos",
     "networks": "Redes",
     "sort_by": "Ordenar por",
     "volume": "Volumen",
-    "market_cap": "Market cap",
-    "high_to_low": "High to low",
-    "low_to_high": "Low to high",
+    "market_cap": "Capitalización bursátil",
+    "high_to_low": "De máximo a mínimo",
+    "low_to_high": "De mínimo a máximo",
     "apply": "Aplicar",
-    "search_placeholder": "Search tokens, sites, URLs",
+    "search_placeholder": "Buscar tokens, sitios, URL",
     "cancel": "Cancelar",
     "perps": "Perps",
     "predictions": "Predicciones",
-    "no_results": "No results found",
+    "no_results": "No se encontraron resultados",
     "sites": "Sitios",
-    "popular_sites": "Popular sites",
-    "search_sites": "Search sites",
-    "enable_basic_functionality": "Enable basic functionality",
-    "basic_functionality_disabled_title": "Explore is not available",
-    "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
+    "popular_sites": "Sitios populares",
+    "search_sites": "Sitios de búsqueda",
+    "enable_basic_functionality": "Activar la funcionalidad básica",
+    "basic_functionality_disabled_title": "Explorar no está disponible",
+    "basic_functionality_disabled_description": "No podemos obtener los metadatos necesarios cuando la funcionalidad básica está deshabilitada.",
     "empty_error_trending_state": {
-      "title": "Trending tokens is not available",
-      "description": "We can't fetch this page right now",
+      "title": "Los tokens de tendencia no están disponibles",
+      "description": "No podemos obtener esta página en este momento",
       "try_again": "Inténtalo de nuevo"
     },
     "empty_search_result_state": {
       "title": "No se encontraron tokens",
-      "description": "We were not able to find this token"
+      "description": "No pudimos encontrar este token"
     }
   },
   "ota_update_modal": {
-    "title": "Update available",
-    "description_ios": "A new version of the app is available. Reload to apply the update now.",
-    "description_android": "A new version of the app is available. Close and reopen MetaMask to apply the update.",
+    "title": "Actualización lista",
+    "description_ios": "Hemos realizado algunas correcciones importantes. Actualiza la versión de MetaMask.",
+    "description_android": "Hemos realizado algunas correcciones importantes. Cierra y vuelve a abrir MetaMask para aplicar la actualización.",
     "primary_action_reload": "Recargar",
     "primary_action_acknowledge": "Entendido"
+  },
+  "hardware_wallet": {
+    "device_names": {
+      "ledger": "Ledger",
+      "qr": "Billetera física con QR",
+      "hardware_wallet": "Billetera física"
+    },
+    "common": {
+      "cancel": "Cancelar",
+      "continue": "Continuar"
+    },
+    "connecting": {
+      "title": "Conecta tu {{device}}",
+      "searching": "Buscando {{device}}...",
+      "tips_header": "Para continuar, asegúrate de que:",
+      "tip_unlock": "Tu {{device}} esté desbloqueado",
+      "tip_open_app": "La aplicación de Ethereum esté abierta",
+      "tip_enable_bluetooth": "El Bluetooth esté activado",
+      "tip_dnd_off": "El modo \"No molestar\" esté desactivado",
+      "tip_bluetooth_permission": "Se hayan concedido permisos de ubicación y Bluetooth",
+      "tip_bluetooth_permission_v12": "Se haya concedido permiso para dispositivos cercanos",
+      "tip_stay_close": "Tu dispositivo se mantenga cerca de tu teléfono"
+    },
+    "awaiting_app": {
+      "title": "Abrir {{app}}",
+      "message": "Abre la aplicación {{app}} en tu {{device}}",
+      "current_app": "Abierta actualmente: {{app}}"
+    },
+    "awaiting_confirmation": {
+      "title_transaction": "Confirma en {{device}}",
+      "title_message": "Firma en {{device}}",
+      "message": "Revisa y confirma en tu {{device}}"
+    },
+    "success": {
+      "title": "{{device}} conectado"
+    },
+    "errors": {
+      "device_locked": "Desbloquéalo e inténtalo de nuevo para continuar",
+      "app_not_open": "Abre la aplicación Ethereum en tu dispositivo",
+      "device_disconnected": "Tu {{device}} se desconectó. Vuelve a conectarlo e inténtalo de nuevo",
+      "device_not_found": "No se pudo encontrar tu {{device}}. Asegúrate de que esté conectado",
+      "device_not_ready": "Tu dispositivo no está listo. Revísalo e inténtalo de nuevo",
+      "blind_signing": "La firma ciega está desactivada. Actívala en la configuración de tu dispositivo",
+      "connection_closed": "Se perdió la conexión. Inténtalo de nuevo",
+      "connection_timeout": "Se agotó el tiempo de espera de la conexión. Inténtalo de nuevo",
+      "user_cancelled": "La acción se canceló en tu dispositivo",
+      "pending_confirmation": "Hay una acción pendiente en tu dispositivo. Complétala o cancélala",
+      "bluetooth_permission_denied": "Se requiere permiso de Bluetooth para conectar tu dispositivo",
+      "location_permission_denied": "Se requiere permiso de ubicación para buscar dispositivos",
+      "nearby_permission_denied": "Se requiere permiso para dispositivos cercanos",
+      "bluetooth_off": "Activa el Bluetooth para conectar tu dispositivo",
+      "bluetooth_scan_failed": "Error al buscar dispositivos. Inténtalo de nuevo",
+      "bluetooth_connection_failed": "Activa el Bluetooth en tu dispositivo para continuar",
+      "not_supported": "No se admite esta operación",
+      "unknown_error": "Asegúrate de que tu {{device}} esté configurado con la frase secreta de recuperación o la frase de contraseña de esta cuenta"
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "default_title": "Ocurrió un error",
+      "continue": "Continuar",
+      "retry": "Reintentar",
+      "view_settings": "Ver configuración",
+      "device_locked_title": "{{device}} bloqueado",
+      "device_disconnected_title": "{{device}} desconectado",
+      "device_not_found_title": "{{device}} no encontrado",
+      "app_not_open": "La aplicación Ethereum no está abierta",
+      "blind_signing_disabled": "La firma ciega está desactivada",
+      "connection_timeout": "El dispositivo no responde",
+      "connection_closed": "Conexión perdida",
+      "user_cancelled": "Acción cancelada",
+      "pending_confirmation": "Confirmación pendiente",
+      "bluetooth_required": "Se requiere Bluetooth",
+      "bluetooth_permission_denied": "Se requiere permiso de Bluetooth",
+      "location_permission_denied": "Se requiere permiso de ubicación",
+      "nearby_devices_permission_denied": "Se requiere permiso para dispositivos cercanos",
+      "scan_failed": "Error al buscar",
+      "something_went_wrong": "Algo salió mal"
+    },
+    "device_selection": {
+      "title": "Seleccionar {{device}}",
+      "scanning": "Buscando dispositivos...",
+      "no_devices_found": "No se encontraron dispositivos",
+      "no_devices_hint": "Asegúrate de que tu {{device}} esté desbloqueado y el Bluetooth esté activado",
+      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "connect": "Conectar",
+      "rescan": "Volver a buscar",
+      "unknown_device": "Dispositivo desconocido",
+      "signal_strength": "Señal: {{rssi}} dBm"
+    }
+  },
+  "homepage": {
+    "sections": {
+      "tokens": "Tokens",
+      "perpetuals": "Contratos perpetuos",
+      "predictions": "Predicciones",
+      "defi": "DeFi",
+      "nfts": "NFT",
+      "import_nfts": "Importar NFT",
+      "import_nfts_description": "Agrega fácilmente tus coleccionables",
+      "view_more": "View more",
+      "positions": {
+        "no_tp_sl": "Sin TG/LP"
+      }
+    },
+    "error": {
+      "unable_to_load": "No se pudo cargar {{section}}",
+      "retry": "Reintentar"
+    }
   }
 }

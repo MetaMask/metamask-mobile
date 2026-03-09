@@ -36,16 +36,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        muted: '#999',
-        default: '#000',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const { View } = jest.requireActual('react-native');
@@ -94,7 +90,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return {

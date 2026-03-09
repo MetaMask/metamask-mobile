@@ -21,9 +21,9 @@ jest.mock(
   },
 );
 
-// Mock HeaderCenter
+// Mock HeaderCompactStandard
 jest.mock(
-  '../../../../../component-library/components-temp/HeaderCenter',
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
   () => {
     const ReactNative = jest.requireActual('react-native');
     const { View, Text, TouchableOpacity } = ReactNative;
@@ -140,6 +140,10 @@ jest.mock('../../hooks/useSlippageConfig', () => ({
   useSlippageConfig: jest.fn(),
 }));
 
+jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
+  useModalCloseOnQuoteExpiry: jest.fn(),
+}));
+
 jest.mock('../../hooks/useShouldDisableCustomSlippageConfirm', () => ({
   useShouldDisableCustomSlippageConfirm: jest.fn(),
 }));
@@ -180,10 +184,15 @@ import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDes
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { InputStepper } from '../InputStepper';
 import Keypad from '../../../../Base/Keypad';
+import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 
 const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
+const mockUseModalCloseOnQuoteExpiry =
+  useModalCloseOnQuoteExpiry as jest.MockedFunction<
+    typeof useModalCloseOnQuoteExpiry
+  >;
 const mockUseShouldDisableCustomSlippageConfirm =
   useShouldDisableCustomSlippageConfirm as jest.MockedFunction<
     typeof useShouldDisableCustomSlippageConfirm
@@ -943,6 +952,20 @@ describe('CustomSlippageModal', () => {
 
       const valueElement = getByTestId('input-stepper-value');
       expect(valueElement.props.children).toBe('0.7');
+    });
+  });
+
+  describe('useModalCloseOnQuoteExpiry', () => {
+    it('calls useModalCloseOnQuoteExpiry on render', () => {
+      render(<CustomSlippageModal />);
+
+      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
+    });
+
+    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
+      render(<CustomSlippageModal />);
+
+      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
     });
   });
 

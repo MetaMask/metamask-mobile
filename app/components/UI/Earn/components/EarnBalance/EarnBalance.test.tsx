@@ -5,7 +5,7 @@ import StakingBalance from '../../../Stake/components/StakingBalance/StakingBala
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import TronStakingButtons from '../Tron/TronStakingButtons';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 
@@ -27,7 +27,7 @@ jest.mock(
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
   ...jest.requireActual('../../../../../selectors/assets/assets-list'),
-  selectTronResourcesBySelectedAccountGroup: jest.fn(),
+  selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
 jest.mock('../Tron/TronStakingButtons', () => ({
@@ -137,13 +137,26 @@ jest.mock('../../hooks/useTronStakeApy', () => ({
   }),
 }));
 
+const createEmptySpecialAssetsMap = () => ({
+  energy: undefined,
+  bandwidth: undefined,
+  maxEnergy: undefined,
+  maxBandwidth: undefined,
+  stakedTrxForEnergy: undefined,
+  stakedTrxForBandwidth: undefined,
+  totalStakedTrx: 0,
+  trxReadyForWithdrawal: undefined,
+  trxStakingRewards: undefined,
+  trxInLockPeriod: undefined,
+});
+
 describe('EarnBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (jest.mocked(selectTrxStakingEnabled) as jest.Mock).mockReturnValue(false);
     (
-      jest.mocked(selectTronResourcesBySelectedAccountGroup) as jest.Mock
-    ).mockReturnValue([]);
+      jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup) as jest.Mock
+    ).mockReturnValue(createEmptySpecialAssetsMap());
   });
 
   describe('Ethereum Mainnet', () => {
@@ -241,7 +254,7 @@ describe('EarnBalance', () => {
   describe('TRON', () => {
     const mockFlag = selectTrxStakingEnabled as unknown as jest.Mock;
     const mockTronResources =
-      selectTronResourcesBySelectedAccountGroup as unknown as jest.Mock;
+      selectTronSpecialAssetsBySelectedAccountGroup as unknown as jest.Mock;
 
     it('renders TRON stake button with aprText for TRX without staked positions', () => {
       const trx: Partial<TokenI> = {
@@ -251,7 +264,7 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue([]);
+      mockTronResources.mockReturnValue(createEmptySpecialAssetsMap());
 
       renderWithProvider(<EarnBalance asset={trx as TokenI} />);
 
@@ -272,10 +285,12 @@ describe('EarnBalance', () => {
       };
 
       mockFlag.mockReturnValue(true);
-      mockTronResources.mockReturnValue([
-        { symbol: 'strx-energy', balance: '1' },
-        { symbol: 'strx-bandwidth', balance: '2' },
-      ]);
+      mockTronResources.mockReturnValue({
+        ...createEmptySpecialAssetsMap(),
+        stakedTrxForEnergy: { symbol: 'strx-energy', balance: '1' },
+        stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '2' },
+        totalStakedTrx: 3,
+      });
 
       renderWithProvider(<EarnBalance asset={strx as TokenI} />);
 
@@ -293,6 +308,7 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(true),
+        hasConvertibleTokensByChainId: jest.fn().mockReturnValue(true),
         filterAllowedTokens: jest.fn(),
         tokens: [],
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),
@@ -322,6 +338,7 @@ describe('EarnBalance', () => {
 
       mockUseMusdConversionTokens.mockReturnValue({
         isConversionToken: jest.fn().mockReturnValue(true),
+        hasConvertibleTokensByChainId: jest.fn().mockReturnValue(true),
         filterAllowedTokens: jest.fn(),
         tokens: [],
         isMusdSupportedOnChain: jest.fn().mockReturnValue(true),

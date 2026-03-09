@@ -7,6 +7,8 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
+  type TransakState,
+  type RampsOrder,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -85,4 +87,26 @@ export const selectPaymentMethods = createSelector(
   ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
     rampsControllerState?.paymentMethods ??
     createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+);
+
+/**
+ * Selects V2 orders from RampsController state.
+ */
+export const selectRampsOrders = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): RampsOrder[] => rampsControllerState?.orders ?? [],
+);
+
+/**
+ * Selects the transak native provider state (isAuthenticated, userDetails, buyQuote, kycRequirement).
+ */
+export const selectTransak = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): TransakState =>
+    rampsControllerState?.nativeProviders?.transak ?? {
+      isAuthenticated: false,
+      userDetails: createDefaultResourceState(null),
+      buyQuote: createDefaultResourceState(null),
+      kycRequirement: createDefaultResourceState(null),
+    },
 );

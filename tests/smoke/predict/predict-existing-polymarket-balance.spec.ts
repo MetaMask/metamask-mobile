@@ -1,10 +1,10 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { SmokePredictions } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
-import TabBarComponent from '../../../e2e/pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../../e2e/pages/wallet/WalletActionsBottomSheet';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
+import { SmokePredictions } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';

@@ -334,7 +334,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -384,7 +384,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -422,7 +422,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -437,7 +437,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -491,7 +491,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -513,6 +513,7 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
@@ -875,7 +876,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -925,7 +926,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -963,7 +964,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -978,7 +979,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -1032,7 +1033,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -1152,7 +1153,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -1176,7 +1177,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -1190,7 +1191,7 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -1569,7 +1570,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1619,7 +1620,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -1657,7 +1658,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -1672,7 +1673,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -1726,7 +1727,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -1846,7 +1847,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -1870,7 +1871,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -1884,7 +1885,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -1927,7 +1928,7 @@ exports[`Checkout displays sdkError when present 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -2307,7 +2308,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2357,7 +2358,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2395,7 +2396,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2410,7 +2411,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -2464,7 +2465,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -2486,6 +2487,7 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
@@ -2848,7 +2850,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2898,7 +2900,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -2936,7 +2938,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -2951,7 +2953,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -3005,7 +3007,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -3125,7 +3127,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -3149,7 +3151,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -3163,7 +3165,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -3206,7 +3208,7 @@ exports[`Checkout handles get order error gracefully 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -3586,7 +3588,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3636,7 +3638,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -3674,7 +3676,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -3689,7 +3691,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -3743,7 +3745,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -3863,7 +3865,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -3887,7 +3889,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -3901,7 +3903,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -3944,7 +3946,7 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -4324,7 +4326,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4374,7 +4376,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -4412,7 +4414,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -4427,7 +4429,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -4481,7 +4483,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -4503,6 +4505,7 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                             mediaPlaybackRequiresUserAction={false}
                             onHttpError={[Function]}
                             onNavigationStateChange={[Function]}
+                            onShouldStartLoadWithRequest={[Function]}
                             paymentRequestEnabled={true}
                             source={
                               {
@@ -4865,7 +4868,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4915,7 +4918,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -4953,7 +4956,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -4968,7 +4971,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -5022,7 +5025,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -5142,7 +5145,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -5166,7 +5169,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -5180,7 +5183,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -5223,7 +5226,7 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -5603,7 +5606,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -5653,7 +5656,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -5691,7 +5694,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -5706,7 +5709,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -5760,7 +5763,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -5880,7 +5883,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -5904,7 +5907,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -5918,7 +5921,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -5961,7 +5964,7 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,
@@ -6341,7 +6344,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#0a0d135c",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6391,7 +6394,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#b4b4b566",
                                 "borderTopLeftRadius": 24,
                                 "borderTopRightRadius": 24,
                                 "borderWidth": 1,
@@ -6429,7 +6432,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#b4b4b566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -6444,7 +6447,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "gap": 16,
-                                  "height": 56,
+                                  "minHeight": 56,
                                 },
                                 false,
                                 {
@@ -6498,7 +6501,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                   testID="checkout-close-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={24}
                                     name="Close"
@@ -6618,7 +6621,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
+                                            "color": "#131416",
                                             "fontFamily": "Geist-Bold",
                                             "fontSize": 18,
                                             "letterSpacing": 0,
@@ -6642,7 +6645,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                         style={
                                           [
                                             {
-                                              "color": "#121314",
+                                              "color": "#131416",
                                               "fontFamily": "Geist-Regular",
                                               "fontSize": 30,
                                               "marginVertical": 2,
@@ -6656,7 +6659,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                             undefined,
                                             undefined,
                                             {
-                                              "color": "#686e7d",
+                                              "color": "#66676a",
                                             },
                                             undefined,
                                             undefined,
@@ -6699,7 +6702,7 @@ exports[`Checkout sets error when handling url navigation state change and selec
                                           {
                                             "alignItems": "center",
                                             "alignSelf": "stretch",
-                                            "backgroundColor": "#121314",
+                                            "backgroundColor": "#131416",
                                             "borderRadius": 12,
                                             "flexDirection": "row",
                                             "height": 48,

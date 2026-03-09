@@ -9,10 +9,12 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
+import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
@@ -96,23 +98,32 @@ const Price = ({
     <>
       <View style={styles.wrapper}>
         {asset.name ? (
-          <View>
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name}
-            </Text>
-            <View style={styles.assetWrapper}>
+          stockTokenBadge ? (
+            <View>
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Alternative}
               >
-                {ticker}
+                {asset.name}
               </Text>
-              {stockTokenBadge}
+              <View style={styles.assetWrapper}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Alternative}
+                >
+                  {ticker}
+                </Text>
+                {stockTokenBadge}
+              </View>
             </View>
-          </View>
+          ) : (
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {asset.name} ({ticker})
+            </Text>
+          )
         ) : (
           <View style={styles.assetWrapper}>
             <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
@@ -138,7 +149,7 @@ const Price = ({
                 </SkeletonPlaceholder>
               </View>
             ) : (
-              addCurrencySymbol(price, currentCurrency, true)
+              formatPriceWithSubscriptNotation(price, currentCurrency)
             )}
           </Text>
         )}

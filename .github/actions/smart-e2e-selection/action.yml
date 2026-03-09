@@ -44,55 +44,13 @@ outputs:
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+  force_run:
+    description: 'Whether to force E2E builds/tests regardless of path filter (true when skip-smart-e2e-selection label is used)'
+    value: ${{ steps.final-outputs.outputs.force_run }}
 
 runs:
   using: 'composite'
   steps:
-    - name: Checkout for PR analysis
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 1 # Shallow clone - only need PR commit
-
-    - name: Disable sparse checkout and restore all files
-      shell: bash
-      run: |
-        git sparse-checkout disable
-        git checkout HEAD -- .
-
-    - name: Fetch main branch for comparison
-      shell: bash
-      run: |
-        # Unshallow the repository first (if it's shallow)
-        git fetch --unshallow 2>/dev/null || true
-        # Fetch main branch for diff comparison
-        git fetch origin main 2>/dev/null || true
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: '.nvmrc'
-
-    - name: Install minimal dependencies for AI analysis
-      shell: bash
-      run: |
-        echo "📦 Installing only required packages for AI analysis..."
-        # Install to a separate location that won't be overwritten
-        mkdir -p /tmp/ai-deps
-        cd /tmp/ai-deps
-        npm init -y
-        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
-        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
-
-    - name: Copy AI dependencies to workspace
-      shell: bash
-      run: |
-        echo "📋 Copying AI dependencies to workspace..."
-        # Create node_modules if it doesn't exist
-        mkdir -p node_modules
-        # Copy our pre-installed dependencies
-        cp -r /tmp/ai-deps/node_modules/* node_modules/
-        echo "✅ AI dependencies available in workspace"
-
     - name: Check skip-smart-e2e-selection label
       id: check-skip-label
       if: inputs.event-name == 'pull_request' && inputs.pr-number != ''
@@ -105,6 +63,57 @@ runs:
           echo "SKIP=true" >> "$GITHUB_OUTPUT"
           echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
         fi
+
+    - name: Checkout for PR analysis
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1 # Shallow clone - only need PR commit
+
+    - name: Disable sparse checkout and restore all files
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      shell: bash
+      run: |
+        git sparse-checkout disable
+        git checkout HEAD -- .
+
+    - name: Fetch main branch for comparison
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      shell: bash
+      run: |
+        # Unshallow the repository first (if it's shallow)
+        git fetch --unshallow 2>/dev/null || true
+        # Fetch main branch for diff comparison
+        git fetch origin main 2>/dev/null || true
+
+    - name: Setup Node.js
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Install minimal dependencies for AI analysis
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      shell: bash
+      run: |
+        echo "📦 Installing only required packages for AI analysis..."
+        # Install to a separate location that won't be overwritten
+        mkdir -p /tmp/ai-deps
+        cd /tmp/ai-deps
+        npm init -y
+        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
+        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
+
+    - name: Copy AI dependencies to workspace
+      if: steps.check-skip-label.outputs.SKIP != 'true'
+      shell: bash
+      run: |
+        echo "📋 Copying AI dependencies to workspace..."
+        # Create node_modules if it doesn't exist
+        mkdir -p node_modules
+        # Copy our pre-installed dependencies
+        cp -r /tmp/ai-deps/node_modules/* node_modules/
+        echo "✅ AI dependencies available in workspace"
 
     - name: Run E2E AI analysis
       id: ai-analysis
@@ -125,6 +134,7 @@ runs:
         echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
+        FORCE_RUN=false
 
         if [[ "$EVENT_NAME" != "pull_request" ]]; then
           SHOULD_SKIP=true
@@ -135,11 +145,14 @@ runs:
         elif [[ -n "${{ steps.check-skip-label.outputs.SKIP }}" ]] && [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
+          FORCE_RUN=true
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         fi
 
-        # Export skip status and reason for the comment step
+        # Export skip status, reason, and force run flag for downstream jobs
         echo "SKIPPED=$SHOULD_SKIP" >> "$GITHUB_OUTPUT"
         echo "SKIP_REASON=$SKIP_REASON" >> "$GITHUB_OUTPUT"
+        echo "FORCE_RUN=$FORCE_RUN" >> "$GITHUB_OUTPUT"
 
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
@@ -168,6 +181,13 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
+        # Force run flag (true when skip-smart-e2e-selection label is used)
+        FORCE_RUN='${{ steps.ai-analysis.outputs.FORCE_RUN }}'
+        if [[ "$FORCE_RUN" == "true" ]]; then
+          echo "force_run=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "force_run=false" >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Display AI Analysis Outputs
       if: always()
@@ -178,6 +198,7 @@ runs:
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
+        echo "force_run: ${{ steps.final-outputs.outputs.force_run }}"
         echo "================================"
 
     - name: Delete previous comments

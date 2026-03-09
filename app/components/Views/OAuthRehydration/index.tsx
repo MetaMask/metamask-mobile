@@ -35,7 +35,7 @@ import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 import ErrorBoundary from '../ErrorBoundary';
-import { MetaMetricsEvents } from '../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -67,36 +67,29 @@ import {
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
-import {
-  ParamListBase,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
-import { StackNavigationProp } from '@react-navigation/stack';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import {
   IMetaMetricsEvent,
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { useMetrics } from '../../hooks/useMetrics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import Label from '../../../component-library/components/Form/Label';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
-import { updateAuthTypeStorageFlags } from '../../../util/authentication';
+import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import type { AuthData } from '../../../core/Authentication/Authentication';
 
 const EmptyRecordConstant = {};
 
@@ -114,7 +107,7 @@ interface OAuthRehydrationProps {
 const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   saveOnboardingEvent,
 }) => {
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const fieldRef = useRef<TextInput>(null);
 
@@ -144,15 +137,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     [loading, isDeletingInProgress],
   );
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const {
     styles,
-    theme: { colors, themeAppearance },
+    theme: { themeAppearance },
   } = useStyles(stylesheet, EmptyRecordConstant);
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { componentAuthenticationType, unlockWallet } = useAuthentication();
+  const { unlockWallet, getAuthType, requestBiometricsAccessControlForIOS } =
+    useAuthentication();
 
   const track = useCallback(
     (
@@ -160,7 +154,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       properties: Record<string, string | boolean | number>,
     ) => {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(event)
+        AnalyticsEventBuilder.createEventBuilder(event)
           .addProperties(properties)
           .build(),
         saveOnboardingEvent,
@@ -170,18 +164,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   );
 
   const [biometryChoice, setBiometryChoice] = useState(true);
-  const updateBiometryChoice = useCallback(
-    async (newBiometryChoice: boolean) => {
-      await updateAuthTypeStorageFlags(newBiometryChoice);
-      setBiometryChoice(newBiometryChoice);
-    },
-    [],
-  );
+
+  const promptBiometricFailedAlert = useCallback(async () => {
+    const authData = await getAuthType();
+    if (
+      authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
+      authData.availableBiometryType
+    ) {
+      Alert.alert(
+        strings('login.biometric_authentication_cancelled_title'),
+        strings('login.biometric_authentication_cancelled_description'),
+        [
+          {
+            text: strings('login.biometric_authentication_cancelled_button'),
+          },
+        ],
+      );
+    }
+  }, [getAuthType]);
 
   // default biometric choice to true
   useEffect(() => {
-    updateBiometryChoice(true);
-  }, [updateBiometryChoice]);
+    setBiometryChoice(true);
+  }, [setBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -414,7 +419,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         );
 
       if (isBiometricCancellation) {
-        updateBiometryChoice(false);
+        setBiometryChoice(false);
         setLoading(false);
         return;
       }
@@ -446,7 +451,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       track,
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
-      updateBiometryChoice,
+      setBiometryChoice,
       route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
     ],
@@ -464,11 +469,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      // Ask user to allow biometrics access control
+      const authType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
-      authType.oauth2Login = true;
+      const authData: AuthData = {
+        currentAuthType: authType,
+        oauth2Login: true,
+      };
 
       await trace(
         {
@@ -476,7 +486,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authType });
+          await unlockWallet({ password, authPreference: authData });
+
+          // TODO: This should probably derive auth capabilities from getAuthCapabilities
+          // prompt biometric failed alert if biometric failed
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -506,8 +520,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     passwordLoginAttemptTraceCtxRef,
     track,
-    componentAuthenticationType,
+    promptBiometricFailedAlert,
     unlockWallet,
+    requestBiometricsAccessControlForIOS,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
@@ -516,11 +531,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // try default with biometric if available and no remember me flag
-      const authType = await componentAuthenticationType(biometryChoice, false);
+      // Ask user to allow biometrics access control
+      const authType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
 
       // Only set oauth2Login for normal rehydration, not when password is outdated
-      authType.oauth2Login = false;
+      const authData: AuthData = {
+        currentAuthType: authType,
+        oauth2Login: false,
+      };
 
       await trace(
         {
@@ -528,7 +548,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authType });
+          await unlockWallet({ password, authPreference: authData });
+
+          // TODO: This should probably derive auth capabilities from getAuthCapabilities
+          // prompt biometric failed alert if biometric failed
+          await promptBiometricFailedAlert();
         },
       );
 
@@ -539,11 +563,11 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [
     password,
-    biometryChoice,
     finalLoading,
     handleLoginError,
-    componentAuthenticationType,
+    promptBiometricFailedAlert,
     unlockWallet,
+    requestBiometricsAccessControlForIOS,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -686,9 +710,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                   {strings('login.password')}
                 </Label>
                 <TextField
-                  size={TextFieldSize.Lg}
                   placeholder={strings('login.password_placeholder')}
-                  placeholderTextColor={colors.text.alternative}
                   testID={LoginViewSelectors.PASSWORD_INPUT}
                   returnKeyType={'done'}
                   autoCapitalize="none"

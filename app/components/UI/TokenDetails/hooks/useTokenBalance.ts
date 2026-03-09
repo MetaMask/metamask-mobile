@@ -5,7 +5,7 @@ import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
@@ -33,19 +33,19 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const tronResources = useSelector(selectTronResourcesBySelectedAccountGroup);
-  const strxEnergy = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-energy',
-  );
-  const strxBandwidth = tronResources.find(
-    (a) => a.symbol.toLowerCase() === 'strx-bandwidth',
+  const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
+    selectTronSpecialAssetsBySelectedAccountGroup,
   );
 
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
 
   const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(token, strxEnergy?.balance, strxBandwidth?.balance)
+    ? createStakedTrxAsset(
+        token,
+        stakedTrxForEnergy?.balance,
+        stakedTrxForBandwidth?.balance,
+      )
     : undefined;
   ///: END:ONLY_INCLUDE_IF
 

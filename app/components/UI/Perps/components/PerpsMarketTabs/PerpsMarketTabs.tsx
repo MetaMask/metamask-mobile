@@ -5,7 +5,7 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
@@ -26,11 +26,11 @@ import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
 import { PerpsMarketTabsProps, PerpsTabId } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
-import type {
-  Position,
-  Order,
-  PerpsNavigationParamList,
-} from '../../controllers/types';
+import {
+  OrderDirection,
+  type Position,
+  type Order,
+} from '@metamask/perps-controller';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
   usePerpsLivePositions,
@@ -48,7 +48,6 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { getOrderDirection } from '../../utils/orderUtils';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
-import { OrderDirection } from '../../types/perps-types';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Tab content component for Position tab
@@ -220,7 +219,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   activeSLOrderId,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const hasUserInteracted = useRef(false);
   const hasSetInitialTab = useRef(false);
   const tabsListRef = useRef<TabsListRef>(null);

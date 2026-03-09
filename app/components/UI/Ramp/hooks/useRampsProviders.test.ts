@@ -16,14 +16,26 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupWithInternalAccountsAddresses: () => [],
+  }),
+);
+
 jest.mock('../utils/determinePreferredProvider', () => ({
   determinePreferredProvider: jest.fn(),
+  completedOrdersFromFiatOrders: jest.fn(() => []),
+  completedOrdersFromRampsOrders: jest.fn(() => []),
 }));
 
 const emptyOrders: FiatOrder[] = [];
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
-  getOrders: jest.fn((_state: unknown) => emptyOrders),
+  getOrders: jest.fn((_state: unknown) => []),
 }));
 
 const mockProviders: RampProvider[] = [
@@ -70,8 +82,12 @@ const createMockStore = (providersState = {}) =>
               error: null,
               ...providersState,
             },
+            orders: [],
           },
         },
+      }),
+      fiatOrders: () => ({
+        orders: [],
       }),
     },
   });
@@ -201,7 +217,7 @@ describe('useRampsProviders', () => {
         typeof determinePreferredProvider
       >;
 
-    it('calls determinePreferredProvider with orders and providers when providers exist and selectedProvider is null', () => {
+    it('calls determinePreferredProvider with completed orders and providers when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
       mockDeterminePreferredProvider.mockReturnValue(mockProviders[0]);
@@ -211,7 +227,7 @@ describe('useRampsProviders', () => {
       });
 
       expect(mockDeterminePreferredProvider).toHaveBeenCalledWith(
-        emptyOrders,
+        expect.any(Array),
         mockProviders,
       );
     });

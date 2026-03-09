@@ -6,13 +6,11 @@ import {
   formatAccountToCaipAccountId,
   isCaipAccountId,
   handleRewardsError,
-} from './rewardsUtils';
+} from '@metamask/perps-controller';
 import { toCaipAccountId, parseCaipChainId } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 jest.mock('@metamask/utils');
-jest.mock('@metamask/bridge-controller');
 jest.mock('@metamask/controller-utils');
 
 const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
@@ -20,9 +18,6 @@ const mockToCaipAccountId = toCaipAccountId as jest.MockedFunction<
 >;
 const mockParseCaipChainId = parseCaipChainId as jest.MockedFunction<
   typeof parseCaipChainId
->;
-const mockFormatChainIdToCaip = formatChainIdToCaip as jest.MockedFunction<
-  typeof formatChainIdToCaip
 >;
 const mockToChecksumHexAddress = toChecksumHexAddress as jest.MockedFunction<
   typeof toChecksumHexAddress
@@ -41,7 +36,6 @@ describe('rewardsUtils', () => {
       'eip155:42161:0x1234567890123456789012345678901234567890';
 
     beforeEach(() => {
-      mockFormatChainIdToCaip.mockReturnValue(mockCaipChainId);
       mockParseCaipChainId.mockReturnValue({
         namespace: 'eip155',
         reference: '42161',
@@ -57,7 +51,6 @@ describe('rewardsUtils', () => {
 
       // Assert
       expect(result).toBe(mockCaipAccountId);
-      expect(mockFormatChainIdToCaip).toHaveBeenCalledWith(mockChainId);
       expect(mockParseCaipChainId).toHaveBeenCalledWith(mockCaipChainId);
       expect(mockToCaipAccountId).toHaveBeenCalledWith(
         'eip155',
@@ -66,13 +59,7 @@ describe('rewardsUtils', () => {
       );
     });
 
-    it('returns null when formatChainIdToCaip throws', () => {
-      // Arrange
-      const error = new Error('Invalid chain ID format');
-      mockFormatChainIdToCaip.mockImplementation(() => {
-        throw error;
-      });
-
+    it('returns null when chain ID is invalid (NaN)', () => {
       // Act
       const result = formatAccountToCaipAccountId(mockAddress, 'invalid');
 
@@ -127,10 +114,8 @@ describe('rewardsUtils', () => {
       const checksummedAddress = '0x316BDE155acd07609872a56Bc32CcfB0B13201fA';
       const mixedCaseAddress = '0x316BdE155AcD07609872a56bC32CcFb0b13201Fa';
       const chainId = '1';
-      const caipChainId = 'eip155:1';
 
       beforeEach(() => {
-        mockFormatChainIdToCaip.mockReturnValue(caipChainId);
         mockParseCaipChainId.mockReturnValue({
           namespace: 'eip155',
           reference: '1',
@@ -238,9 +223,8 @@ describe('rewardsUtils', () => {
       const chainId = '1';
 
       beforeEach(() => {
-        mockFormatChainIdToCaip.mockReturnValue(
-          'bip122:000000000019d6689c085ae165831e93',
-        );
+        // parseCaipChainId receives 'eip155:1' from inlined formatChainIdToCaip,
+        // but we mock it to return a non-eip155 namespace to test the branch
         mockParseCaipChainId.mockReturnValue({
           namespace: 'bip122',
           reference: '000000000019d6689c085ae165831e93',
@@ -317,7 +301,7 @@ describe('rewardsUtils', () => {
       const context = { userId: '123', operation: 'getDiscount' };
 
       // Act
-      const result = handleRewardsError(error, context);
+      const result = handleRewardsError(error, undefined, context);
 
       // Assert
       expect(result).toBe('Rewards operation failed');
@@ -329,7 +313,7 @@ describe('rewardsUtils', () => {
       const context = { operation: 'testOperation' };
 
       // Act
-      const result = handleRewardsError(error, context);
+      const result = handleRewardsError(error, undefined, context);
 
       // Assert
       expect(result).toBe('Rewards operation failed');

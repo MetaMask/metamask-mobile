@@ -14,10 +14,11 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { useTheme } from '../../../util/theme';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { strings } from '../../../../locales/i18n';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader/BottomSheetHeader';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonsAlignment } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
@@ -82,7 +83,7 @@ const NetworkManager = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { styles } = useStyles(createStyles, { colors });
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const { disableNetwork, enabledNetworksByNamespace } = useNetworkEnablement();
 
   const enabledNetworks = useMemo(() => {
@@ -350,7 +351,7 @@ const NetworkManager = () => {
         shouldNavigateBack
       >
         <View style={containerStyle}>
-          <HeaderCenter
+          <HeaderCompactStandard
             title={strings('wallet.networks')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
           />

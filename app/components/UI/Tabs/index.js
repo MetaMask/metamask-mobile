@@ -17,7 +17,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import withMetricsAwareness from '../../hooks/useMetrics/withMetricsAwareness';
+import { analytics } from '../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import TabThumbnail from './TabThumbnail';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -126,10 +127,6 @@ class Tabs extends PureComponent {
      * Sets the current tab used for the animation
      */
     animateCurrentTab: PropTypes.func, // eslint-disable-line react/no-unused-prop-types
-    /**
-     * Metrics injected by withMetricsAwareness HOC
-     */
-    metrics: PropTypes.object,
   };
 
   thumbnails = {};
@@ -230,20 +227,21 @@ class Tabs extends PureComponent {
   }
 
   onNewTabPress = () => {
-    const { tabs, newTab, closeTabsView } = this.props;
-    const tabCreated = newTab(); // No URL = opens empty DiscoveryTab, returns false if max tabs modal shown
+    const { tabs, newTab } = this.props;
+    newTab(); // No URL = opens empty DiscoveryTab, returns false if max tabs modal shown
     this.trackNewTabEvent(tabs.length);
-    // Only dismiss tabs view if a tab was actually created
-    // If max tabs modal is shown, keep tabs view open so user can close tabs
-    if (tabCreated) {
-      closeTabsView();
-    }
+    // Don't call closeTabsView() here. When a tab is created, the "new tab
+    // added" useEffect in Browser calls switchToTab which closes the tabs view
+    // via hideTabsAndUpdateUrl. Calling closeTabsView eagerly would set
+    // shouldShowTabs=false before switchToTab runs, causing it to capture a
+    // screenshot of the still-visible Tabs grid instead of the tab content.
   };
 
   trackNewTabEvent = (tabsNumber) => {
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.BROWSER_NEW_TAB)
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.BROWSER_NEW_TAB,
+      )
         .addProperties({
           option_chosen: 'Tabs View Top Bar',
           number_of_tabs: tabsNumber,
@@ -260,12 +258,16 @@ class Tabs extends PureComponent {
       <View style={styles.topBar}>
         <ButtonIcon
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSizes.Lg}
+          size={ButtonIconSizes.Md}
           onPress={closeTabsView}
           testID={BrowserViewSelectorsIDs.TABS_BACK_BUTTON}
           accessibilityLabel={strings('browser.go_back')}
         />
-        <Text variant={TextVariant.HeadingMD} style={styles.topBarTitle}>
+        <Text
+          variant={TextVariant.HeadingMD}
+          style={styles.topBarTitle}
+          testID={BrowserViewSelectorsIDs.TABS_OPENED_TITLE}
+        >
           {strings('browser.opened_tabs')}
         </Text>
         <ButtonIcon
@@ -300,4 +302,4 @@ class Tabs extends PureComponent {
 
 Tabs.contextType = ThemeContext;
 
-export default withMetricsAwareness(Tabs);
+export default Tabs;

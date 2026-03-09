@@ -24,12 +24,17 @@ import type {
   SeasonStateDto,
   LineaTokenRewardDto,
   ApplyReferralDto,
+  ApplyBonusCodeDto,
   SnapshotDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
 import { successfulFetch } from '@metamask/controller-utils';
-import { getDefaultRewardsApiBaseUrlForMetaMaskEnv } from '../utils/rewards-api-url';
+import {
+  canChangeRewardsEnvUrl,
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
+} from '../utils/rewards-api-url';
 
 /**
  * Custom error for invalid timestamps
@@ -191,15 +196,56 @@ export interface RewardsDataServiceApplyReferralCodeAction {
   handler: RewardsDataService['applyReferralCode'];
 }
 
+export interface RewardsDataServiceValidateBonusCodeAction {
+  type: `${typeof SERVICE_NAME}:validateBonusCode`;
+  handler: RewardsDataService['validateBonusCode'];
+}
+
+export interface RewardsDataServiceApplyBonusCodeAction {
+  type: `${typeof SERVICE_NAME}:applyBonusCode`;
+  handler: RewardsDataService['applyBonusCode'];
+}
+
 export interface RewardsDataServiceGetSnapshotsAction {
   type: `${typeof SERVICE_NAME}:getSnapshots`;
   handler: RewardsDataService['getSnapshots'];
+}
+
+export interface RewardsDataServiceGetSubscriptionAccountsAction {
+  type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
+  handler: RewardsDataService['getSubscriptionAccounts'];
+}
+
+export interface RewardsDataServiceGetCampaignsAction {
+  type: `${typeof SERVICE_NAME}:getCampaigns`;
+  handler: RewardsDataService['getCampaigns'];
+}
+
+export interface RewardsDataServiceGetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
+  handler: RewardsDataService['getRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceCanChangeRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:canChangeRewardsEnvUrl`;
+  handler: RewardsDataService['canChangeRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceSetRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:setRewardsEnvUrl`;
+  handler: RewardsDataService['setRewardsEnvUrl'];
+}
+
+export interface RewardsDataServiceGetDefaultRewardsEnvUrlAction {
+  type: `${typeof SERVICE_NAME}:getDefaultRewardsEnvUrl`;
+  handler: RewardsDataService['getDefaultRewardsEnvUrl'];
 }
 
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
@@ -218,7 +264,15 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction;
+  | RewardsDataServiceGetSnapshotsAction
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction
+  | RewardsDataServiceValidateBonusCodeAction
+  | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
+  | RewardsDataServiceGetCampaignsAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -242,7 +296,8 @@ export class RewardsDataService {
 
   readonly #locale: string;
 
-  readonly #rewardsApiUrl: string;
+  /** Explicit API URL override; null means use the build-default mapping */
+  #rewardsApiUrl: string | null = null;
 
   constructor({
     messenger,
@@ -259,7 +314,6 @@ export class RewardsDataService {
     this.#fetch = fetchFunction;
     this.#appType = appType;
     this.#locale = locale;
-    this.#rewardsApiUrl = this.getRewardsApiBaseUrl();
     // Register all action handlers
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:login`,
@@ -346,18 +400,85 @@ export class RewardsDataService {
       this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:validateBonusCode`,
+      this.validateBonusCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:applyBonusCode`,
+      this.applyBonusCode.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSnapshots`,
       this.getSnapshots.bind(this),
     );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getSubscriptionAccounts`,
+      this.getSubscriptionAccounts.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaigns`,
+      this.getCampaigns.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getRewardsEnvUrl`,
+      this.getRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:canChangeRewardsEnvUrl`,
+      this.canChangeRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:setRewardsEnvUrl`,
+      this.setRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
+      this.getDefaultRewardsEnvUrl.bind(this),
+    );
   }
 
-  private getRewardsApiBaseUrl() {
-    // always using url from env var if set
-    if (process.env.REWARDS_API_URL) return process.env.REWARDS_API_URL;
-    // otherwise using default per-env url
-    return getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+  /**
+   * Returns the rewards API base URL the data service is currently targeting.
+   */
+  getRewardsEnvUrl(): string {
+    const [defaultUrl, canChange] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
       process.env.METAMASK_ENVIRONMENT,
     );
+    // PRD builds are locked — never allow an override to take effect.
+    if (!canChange) return defaultUrl;
+    return this.#rewardsApiUrl ?? defaultUrl;
+  }
+
+  /**
+   * Returns whether the current MetaMask build allows manually switching the
+   * rewards API environment (true for non-RC / non-production builds).
+   */
+  canChangeRewardsEnvUrl(): boolean {
+    return canChangeRewardsEnvUrl(process.env.METAMASK_ENVIRONMENT);
+  }
+
+  /**
+   * Overrides the active rewards API base URL.
+   * Callers should reset all cached controller state after calling this.
+   */
+  setRewardsEnvUrl(url: string): void {
+    if (this.canChangeRewardsEnvUrl()) {
+      this.#rewardsApiUrl = url;
+      Logger.log(`RewardsDataService: env switched to ${url}`);
+    } else {
+      this.#rewardsApiUrl = null;
+    }
+  }
+
+  /**
+   * Returns the default rewards API base URL for the current MetaMask
+   * environment, ignoring any manual override.
+   */
+  getDefaultRewardsEnvUrl(): string {
+    const [defaultUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv(
+      process.env.METAMASK_ENVIRONMENT,
+    );
+    return defaultUrl;
   }
 
   /**
@@ -405,7 +526,8 @@ export class RewardsDataService {
       headers['Accept-Language'] = this.#locale;
     }
 
-    const url = `${this.#rewardsApiUrl}${endpoint}`;
+    const envBaseUrl = this.getRewardsEnvUrl();
+    const url = `${envBaseUrl}${endpoint}`;
 
     // Create AbortController for timeout handling
     const controller = new AbortController();
@@ -425,6 +547,13 @@ export class RewardsDataService {
       });
 
       clearTimeout(timeoutId);
+
+      if (response.status === 403 && subscriptionId) {
+        throw new AuthorizationFailedError(
+          `Authorization failed: ${response.status}`,
+        );
+      }
+
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
@@ -686,11 +815,6 @@ export class RewardsDataService {
 
     if (!response.ok) {
       const errorData = await response.json();
-      if (errorData?.message?.includes('Rewards authorization failed')) {
-        throw new AuthorizationFailedError(
-          'Rewards authorization failed. Please login and try again.',
-        );
-      }
 
       if (errorData?.message?.includes('Season not found')) {
         throw new SeasonNotFoundError(
@@ -774,6 +898,33 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(
         `Failed to validate referral code. Please try again shortly.`,
+      );
+    }
+
+    return (await response.json()) as { valid: boolean };
+  }
+
+  /**
+   * Validate a bonus code.
+   * @param code - The bonus code to validate.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
+   */
+  async validateBonusCode(
+    code: string,
+    subscriptionId: string,
+  ): Promise<{ valid: boolean }> {
+    const response = await this.makeRequest(
+      `/subscriptions/bonus-code?code=${encodeURIComponent(code)}`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to validate bonus code. Please try again shortly.`,
       );
     }
 
@@ -1107,6 +1258,39 @@ export class RewardsDataService {
   }
 
   /**
+   * Apply a bonus code to a subscription.
+   * @param dto - The DTO containing the bonus code to apply.
+   * @param subscriptionId - The subscription ID to apply the bonus code to.
+   * @returns Promise that resolves when the bonus code is applied successfully.
+   * @throws Error with the error message from the API response.
+   */
+  async applyBonusCode(
+    dto: ApplyBonusCodeDto,
+    subscriptionId: string,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      '/wr/subscriptions/apply-bonus-code',
+      {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      if (response.status === 204) {
+        return;
+      }
+
+      const errorData = await response.json();
+      const errorMessage =
+        errorData?.message || `Apply bonus code failed: ${response.status}`;
+
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
    * Get snapshots for a specific season.
    * @param seasonId - The ID of the season to get snapshots for.
    * @param subscriptionId - The subscription ID for authentication.
@@ -1129,5 +1313,52 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SnapshotDto[];
+  }
+
+  /**
+   * Get CAIP-10 encoded account addresses linked to the current subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns Array of CAIP-10 account strings (up to 1000).
+   */
+  async getSubscriptionAccounts(subscriptionId: string): Promise<string[]> {
+    const response = await this.makeRequest(
+      `/subscriptions/accounts`,
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+      throw new Error(`Get subscription accounts failed: ${response.status}`);
+    }
+
+    return (await response.json()) as string[];
+  }
+
+  /**
+   * Get all available campaigns.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The list of available campaigns.
+   */
+  async getCampaigns(subscriptionId: string): Promise<CampaignDto[]> {
+    const response = await this.makeRequest(
+      '/campaigns',
+      {
+        method: 'GET',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaigns failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignDto[];
   }
 }

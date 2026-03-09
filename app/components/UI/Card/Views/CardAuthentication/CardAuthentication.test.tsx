@@ -3,7 +3,6 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import CardAuthentication from './CardAuthentication';
 import Routes from '../../../../../constants/navigation/Routes';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
-import { CardLocation } from '../../types';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 // Mock whenEngineReady to prevent async polling after test teardown
@@ -54,17 +53,22 @@ jest.mock('../../hooks/useCardProviderAuthentication', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { primary: '#000000', alternative: '#666666' },
-      primary: { default: '#037DD6' },
-      error: { default: '#D73A49', muted: '#FEF2F2' },
-      border: { default: '#E1E4E8' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => ({
+      ...actual.mockTheme,
+      colors: {
+        ...actual.mockTheme.colors,
+        text: {
+          ...actual.mockTheme.colors.text,
+          primary: actual.mockTheme.colors.text.default,
+        },
+      },
+    }),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -282,7 +286,7 @@ describe('CardAuthentication Component', () => {
   });
 
   describe('Login Step - Login Functionality', () => {
-    it('calls login with correct parameters for international location', async () => {
+    it('calls login with correct parameters', async () => {
       render();
       const emailInput = screen.getByTestId('email-field');
       const passwordInput = screen.getByTestId('password-field');
@@ -296,14 +300,13 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });
       });
     });
 
-    it('calls login with US location when selected', async () => {
+    it('calls login after selecting US location', async () => {
       render();
       const usBox = screen.getByTestId('us-location-box');
       const emailInput = screen.getByTestId('email-field');
@@ -319,7 +322,6 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'us' as CardLocation,
           email: 'test@example.com',
           password: 'password123',
         });
@@ -383,7 +385,6 @@ describe('CardAuthentication Component', () => {
 
       await waitFor(() => {
         expect(mockLogin).toHaveBeenCalledWith({
-          location: 'international',
           email: 'test@example.com',
           password: 'password123',
         });

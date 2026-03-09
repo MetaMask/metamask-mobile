@@ -11,9 +11,9 @@ export const ALLOWLISTED_HOSTS = [
   'virtual.mainnet.rpc.tenderly.co',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
-  'portfolio.dev-api.cx.metamask.io',
-  'portfolio.uat-api.cx.metamask.io',
-  'portfolio.api.cx.metamask.io',
+  'nft.dev-api.cx.metamask.io',
+  'nft.uat-api.cx.metamask.io',
+  'nft.api.cx.metamask.io',
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
@@ -21,6 +21,7 @@ export const ALLOWLISTED_HOSTS = [
   'mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
+  'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
 export const ALLOWLISTED_URLS = [

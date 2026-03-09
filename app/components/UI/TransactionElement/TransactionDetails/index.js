@@ -43,7 +43,6 @@ import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensCon
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { regex } from '../../../../../app/util/regex';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   selectPrimaryCurrency,
   selectAvatarAccountType,
@@ -52,7 +51,6 @@ import {
   selectSwapsTransactions,
   selectTransactions,
 } from '../../../../selectors/transactionController';
-import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import Avatar, {
@@ -67,8 +65,9 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
+import { PopularList } from '../../../../util/networks/customNetworks';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -162,13 +161,8 @@ class TransactionDetails extends PureComponent {
     conversionRate: PropTypes.number,
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
-    swapsTokens: PropTypes.array,
     primaryCurrency: PropTypes.string,
 
-    /**
-     * Boolean that indicates if smart transaction should be used
-     */
-    shouldUseSmartTransaction: PropTypes.bool,
     /**
      * Avatar style to render for account icons
      */
@@ -177,7 +171,6 @@ class TransactionDetails extends PureComponent {
 
   state = {
     rpcBlockExplorer: undefined,
-    renderTxActions: true,
     updatedTransactionDetails: undefined,
   };
 
@@ -211,6 +204,16 @@ class TransactionDetails extends PureComponent {
       blockExplorer = SEPOLIA_BLOCK_EXPLORER;
     }
 
+    // Check PopularList for additional networks (e.g. Arbitrum, Polygon, BNB)
+    if (blockExplorer === NO_RPC_BLOCK_EXPLORER) {
+      const popularNetwork = PopularList.find(
+        (network) => network.chainId === txChainId,
+      );
+      if (popularNetwork?.rpcPrefs?.blockExplorerUrl) {
+        blockExplorer = popularNetwork.rpcPrefs.blockExplorerUrl;
+      }
+    }
+
     // Check for non-EVM chain block explorer
     if (isNonEvmChainId(chainId)) {
       blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
@@ -234,7 +237,6 @@ class TransactionDetails extends PureComponent {
       tokens,
       primaryCurrency,
       swapsTransactions,
-      swapsTokens,
       transactions,
     } = this.props;
 
@@ -268,7 +270,6 @@ class TransactionDetails extends PureComponent {
         tokens,
         primaryCurrency,
         swapsTransactions,
-        swapsTokens,
         txChainId: transactionObject.chainId,
       });
       this.setState({ updatedTransactionDetails: decodedTx[1] });
@@ -324,19 +325,11 @@ class TransactionDetails extends PureComponent {
   };
 
   showSpeedUpModal = () => {
-    const { showSpeedUpModal, close } = this.props;
-    if (close) {
-      close();
-      showSpeedUpModal();
-    }
+    this.props.showSpeedUpModal?.();
   };
 
   showCancelModal = () => {
-    const { showCancelModal, close } = this.props;
-    if (close) {
-      close();
-      showCancelModal();
-    }
+    this.props.showCancelModal?.();
   };
 
   renderSpeedUpButton = () => {
@@ -375,8 +368,13 @@ class TransactionDetails extends PureComponent {
   render = () => {
     const {
       transactionObject,
-      transactionObject: { status, time, txParams, chainId: txChainId },
-      shouldUseSmartTransaction,
+      transactionObject: {
+        status,
+        time,
+        txParams,
+        chainId: txChainId,
+        isSmartTransaction,
+      },
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -384,10 +382,12 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
-
+    const isBridgeTransaction =
+      transactionObject?.type === TransactionType.bridge;
     const renderTxActions =
       (status === 'submitted' || status === 'approved') &&
-      !shouldUseSmartTransaction;
+      !isSmartTransaction &&
+      !isBridgeTransaction;
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -566,11 +566,6 @@ const mapStateToProps = (state, ownProps) => ({
   currentCurrency: selectCurrentCurrency(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
-  swapsTokens: swapsControllerTokens(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
-    state,
-    ownProps.transactionObject.chainId,
-  ),
   avatarAccountType: selectAvatarAccountType(state),
 });
 

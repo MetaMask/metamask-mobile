@@ -7,8 +7,8 @@ import {
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
 import { createDepositNavigationDetails } from '../Deposit/routes/utils';
-import { createTokenSelectionNavDetails } from '../components/TokenSelection/TokenSelection';
-import { createBuildQuoteNavDetails } from '../components/BuildQuote';
+import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
@@ -38,7 +38,31 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
-  const { setSelectedToken } = useRampsTokens();
+  const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
+
+  /**
+   * Resolves an assetId to the controller's canonical format.
+   * Handles casing (API lowercase vs checksummed) and native token
+   * placeholder ('slip44:.' vs 'slip44:{coinType}').
+   */
+  const resolveControllerAssetId = useCallback(
+    (assetId: string): string => {
+      const allTokens = rampsTokens?.allTokens ?? [];
+      const isNative = assetId.includes('/slip44:');
+      const [chainId] = assetId.split('/');
+
+      const match = allTokens.find((tok) => {
+        if (!tok.assetId) return false;
+        if (isNative) {
+          return tok.chainId === chainId && tok.assetId.includes('/slip44:');
+        }
+        return tok.assetId.toLowerCase() === assetId.toLowerCase();
+      });
+
+      return match?.assetId ?? assetId;
+    },
+    [rampsTokens],
+  );
 
   const goToBuy = useCallback(
     (
@@ -71,15 +95,22 @@ export const useRampNavigation = () => {
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
+      // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
         !overrideUnifiedRouting
       ) {
-        // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
-        setSelectedToken(intent.assetId);
+        // Resolve to the controller's canonical assetId format (lowercase)
+        const controllerAssetId = resolveControllerAssetId(intent.assetId);
+        try {
+          setSelectedToken(controllerAssetId);
+        } catch {
+          // Token may not be in controller's list yet (still loading).
+          // Navigate anyway — BuildQuote will handle the missing token.
+        }
         navigation.navigate(
-          ...createBuildQuoteNavDetails({ assetId: intent.assetId }),
+          ...createBuildQuoteNavDetails({ assetId: controllerAssetId }),
         );
         return;
       }
@@ -120,6 +151,7 @@ export const useRampNavigation = () => {
     },
     [
       setSelectedToken,
+      resolveControllerAssetId,
       navigation,
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,

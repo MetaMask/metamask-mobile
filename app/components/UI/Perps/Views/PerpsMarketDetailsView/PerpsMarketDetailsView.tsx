@@ -2,7 +2,6 @@ import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -13,12 +12,16 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
-import type {
-  Position,
-  PerpsMarketData,
-  PerpsNavigationParamList,
-  TPSLTrackingData,
-} from '../../controllers/types';
+import {
+  CandlePeriod,
+  TimeDuration,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  PERPS_CONSTANTS,
+  type Position,
+  type PerpsMarketData,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,8 +45,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { TraceName } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
@@ -75,23 +77,16 @@ import TradingViewChart, {
   type OhlcData,
   type TradingViewChartRef,
 } from '../../components/TradingViewChart';
-import {
-  CandlePeriod,
-  PERPS_CHART_CONFIG,
-  TimeDuration,
-} from '../../constants/chartConfig';
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
+import { PERPS_MIN_BALANCE_THRESHOLD } from '../../constants/perpsConfig';
 import {
   usePerpsConnection,
   usePerpsNavigation,
-  usePerpsNetworkManagement,
-  usePerpsTrading,
   usePositionManagement,
+  usePerpsTrading,
 } from '../../hooks';
+import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   usePerpsLiveAccount,
   usePerpsLiveOrders,
@@ -123,6 +118,7 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
+import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -167,7 +163,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { handleUpdateTPSL } = usePerpsTPSLUpdate();
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market: routeMarket, monitoringIntent, source } = route.params || {};
@@ -274,8 +270,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
-  const { account } = usePerpsLiveAccount();
-
   // Get real-time open orders via WebSocket
   const { orders: ordersData } = usePerpsLiveOrders({});
 
@@ -294,12 +288,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         return timeB - timeA;
       }),
     [openOrders],
-  );
-
-  // Filter out TP/SL (reduceOnly) orders
-  const nonTPSLOrders = useMemo(
-    () => sortedOrders.filter((order) => !order.reduceOnly),
-    [sortedOrders],
   );
 
   // Subscribe to live prices for current position price
@@ -333,8 +321,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   });
 
   usePerpsConnection();
-  const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
 
   // Check if market is at open interest cap
   const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
@@ -359,11 +345,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     onDataDetected: handleDataDetected,
     enabled: !!(monitoringIntent && market && monitoringIntent.asset),
   });
-
-  const hasZeroBalance = useMemo(
-    () => parseFloat(account?.availableBalance || '0') === 0,
-    [account?.availableBalance],
-  );
 
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
@@ -416,11 +397,60 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     loadOnMount: true,
   });
 
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const defaultPayTokenWhenNoPerpsBalance =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
+  const { depositWithConfirmation } = usePerpsTrading();
+  const { navigateToConfirmation } = useConfirmNavigation();
+  const availableBalance = Number.parseFloat(
+    account?.availableBalance?.toString() ?? '0',
+  );
+  const showAddFundsCTA =
+    isEligible &&
+    !isLoadingPosition &&
+    !existingPosition &&
+    !isAtOICap &&
+    !isLoadingAccount &&
+    availableBalance < PERPS_MIN_BALANCE_THRESHOLD &&
+    defaultPayTokenWhenNoPerpsBalance === null;
+
+  const handleAddFunds = useCallback(async () => {
+    if (!isEligible) {
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.ADD_FUNDS_ACTION,
+      });
+      setIsEligibilityModalVisible(true);
+      return;
+    }
+    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+    try {
+      await depositWithConfirmation();
+    } catch (err) {
+      Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+      });
+    }
+  }, [isEligible, track, navigateToConfirmation, depositWithConfirmation]);
+
   // Keep current position ref in sync for callbacks stored in route params
   // This must be after useHasExistingPosition since it depends on existingPosition
   useEffect(() => {
     currentPositionRef.current = existingPosition;
   }, [existingPosition]);
+
+  // Show non-reduce-only orders and standalone TP/SL orders in Orders section.
+  // Full-position TP/SL remains in the Auto-close section.
+  const displayOrders = useMemo(
+    () =>
+      normalizeMarketDetailsOrders({
+        orders: sortedOrders,
+        existingPosition: existingPosition ?? undefined,
+      }),
+    [sortedOrders, existingPosition],
+  );
 
   // Compute TP/SL lines for the chart based on existing position
   // Use chartCurrentPrice (from candle close) to ensure price line syncs with live candle
@@ -555,9 +585,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // WebSocket streaming provides real-time data - no manual refresh needed
       // Just reset the UI state and the chart will update automatically
     } catch (error) {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to refresh chart state',
+      Logger.error(ensureError(error, 'PerpsMarketDetailsView.handleRefresh'), {
+        tags: { feature: PERPS_CONSTANTS.FeatureName },
+        context: { name: 'PerpsMarketDetailsView.handleRefresh', data: {} },
       });
     } finally {
       setRefreshing(false);
@@ -674,59 +704,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     handleTradeAction('short');
   };
 
-  const { navigateToConfirmation } = useConfirmNavigation();
-
-  const handleAddFundsPress = async () => {
-    // Track deposit button click from asset screen
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.DEPOSIT,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_ASSET_SCREEN,
-    });
-
-    try {
-      if (!isEligible) {
-        // Track geo-block screen viewed
-        track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-          [PERPS_EVENT_PROPERTY.SOURCE]:
-            PERPS_EVENT_VALUE.SOURCE.ADD_FUNDS_ACTION,
-        });
-        setIsEligibilityModalVisible(true);
-        return;
-      }
-
-      // Ensure the network exists before proceeding
-      await ensureArbitrumNetworkExists();
-
-      // Navigate immediately to confirmations screen for instant UI response
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-
-      // Initialize deposit in the background without blocking
-      depositWithConfirmation().catch((error) => {
-        Logger.error(ensureError(error), {
-          feature: PERPS_CONSTANTS.FeatureName,
-          message: 'Failed to initialize deposit',
-        });
-      });
-    } catch (error) {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to navigate to deposit',
-      });
-    }
-  };
-
   const handleTradingViewPress = useCallback(() => {
     Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to open Trading View URL',
-      });
+      Logger.error(
+        ensureError(error, 'PerpsMarketDetailsView.handleTradingViewPress'),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsMarketDetailsView.handleTradingViewPress',
+            data: {},
+          },
+        },
+      );
     });
   }, []);
 
@@ -974,10 +963,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PERPS_EVENT_PROPERTY.STOP_LOSS_PRICE]: suggestedStopLossPrice,
       });
     } catch (error) {
-      Logger.error(ensureError(error), {
-        feature: PERPS_CONSTANTS.FeatureName,
-        message: 'Failed to set stop loss from prompt banner',
-      });
+      Logger.error(
+        ensureError(
+          error,
+          'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+        ),
+        {
+          tags: { feature: PERPS_CONSTANTS.FeatureName },
+          context: {
+            name: 'PerpsMarketDetailsView.handleSetStopLossFromBanner',
+            data: {},
+          },
+        },
+      );
     } finally {
       setIsSettingStopLoss(false);
     }
@@ -999,7 +997,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
-    (order: (typeof nonTPSLOrders)[number]) => {
+    (order: (typeof displayOrders)[number]) => {
       navigation.navigate(Routes.PERPS.ORDER_DETAILS, {
         order,
       });
@@ -1025,7 +1023,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleChartError = useCallback(() => {
     // Log the error but don't block the UI
     Logger.error(new Error('Chart rendering error in market details view'), {
-      feature: PERPS_CONSTANTS.FeatureName,
+      tags: { feature: PERPS_CONSTANTS.FeatureName },
     });
   }, []);
 
@@ -1045,13 +1043,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
-    () => !isLoadingPosition && !hasZeroBalance,
-    [isLoadingPosition, hasZeroBalance],
-  );
-
-  const hasAddFundsButton = useMemo(
-    () => hasZeroBalance && !isLoadingPosition,
-    [hasZeroBalance, isLoadingPosition],
+    () => !isLoadingPosition,
+    [isLoadingPosition],
   );
 
   // Define navigation items for the card
@@ -1083,6 +1076,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </SafeAreaView>
     );
   }
+
+  const shouldShowNewPositionActions =
+    hasLongShortButtons && !existingPosition && !isAtOICap;
+  const shouldShowAddFundsCTASection =
+    shouldShowNewPositionActions && showAddFundsCTA;
+  const shouldShowLongShortButtonsOnly =
+    shouldShowNewPositionActions && !showAddFundsCTA;
 
   return (
     <SafeAreaView
@@ -1216,13 +1216,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Orders Section - Compact view (TP/SL orders excluded) */}
-          {nonTPSLOrders.length > 0 && (
+          {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
+          {displayOrders.length > 0 && (
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
-              {nonTPSLOrders.map((order) => (
+              {displayOrders.map((order) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
                   order={order}
@@ -1281,24 +1281,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       </View>
 
       {/* Fixed Actions Footer */}
-      {(hasAddFundsButton || hasLongShortButtons) && !isTradingHalted && (
+      {hasLongShortButtons && !isTradingHalted && (
         <View style={styles.actionsFooter}>
-          {hasAddFundsButton && (
-            <View style={styles.singleActionContainer}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {strings('perps.market.add_funds_to_start_trading_perps')}
-              </Text>
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.market.add_funds')}
-                onPress={handleAddFundsPress}
-                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-              />
-            </View>
-          )}
-
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (
             <View style={styles.actionsContainer}>
@@ -1330,8 +1314,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Show Long/Short buttons when no position exists */}
-          {hasLongShortButtons && !existingPosition && !isAtOICap && (
+          {/* Show Add funds CTA when no perps balance and no allowlist token to preselect */}
+          {shouldShowAddFundsCTASection && (
+            <View style={styles.actionsContainer}>
+              <View style={styles.actionButtonWrapper}>
+                <Button
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  width={ButtonWidthTypes.Full}
+                  label={strings('perps.add_funds')}
+                  onPress={handleAddFunds}
+                  testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+                />
+              </View>
+            </View>
+          )}
+          {/* Show Long/Short buttons when no position exists and user can trade */}
+          {shouldShowLongShortButtonsOnly && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (

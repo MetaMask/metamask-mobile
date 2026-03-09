@@ -21,7 +21,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
-import getHeaderCenterNavbarOptions from '../../../../component-library/components-temp/HeaderCenter/getHeaderCenterNavbarOptions';
+import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
@@ -104,7 +104,7 @@ export const AddressList = () => {
   useLayoutEffect(() => {
     if (title) {
       navigation.setOptions({
-        ...getHeaderCenterNavbarOptions({
+        ...getHeaderCompactStandardNavbarOptions({
           title,
           onBack: () => navigation.goBack(),
           backButtonProps: { testID: AddressListIds.GO_BACK },

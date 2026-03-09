@@ -1,16 +1,11 @@
 import React from 'react';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { ModalAction, ModalType } from '../../../RewardsBottomSheetModal';
 import { strings } from '../../../../../../../../locales/i18n';
 import { getEventDetails } from '../../../../utils/eventDetailsUtils';
-import { DetailsRow, GenericEventDetails } from './GenericEventDetails';
+import { GenericEventDetails } from './GenericEventDetails';
 import { SwapEventDetails } from './SwapEventDetails';
 import { CardEventDetails } from './CardEventDetails';
 import { MusdDepositEventDetails } from './MusdDepositEventDetails';
@@ -18,7 +13,7 @@ import {
   PointsEventDto,
   SeasonActivityTypeDto,
 } from '../../../../../../../core/Engine/controllers/rewards-controller/types';
-import { resolveTemplate } from '../../../../utils/formatUtils';
+import { BonusCodeEventDetails } from './BonusCodeEventDetails';
 
 interface ActivityDetailsSheetProps {
   event: PointsEventDto;
@@ -31,24 +26,7 @@ interface ActivityDetailsSheetProps {
 export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
   event,
   accountName,
-  activityTypes,
 }) => {
-  const matchingActivityType = activityTypes.find(
-    (activity) => activity.type === event.type,
-  );
-
-  const extraDetails =
-    matchingActivityType && event.payload ? (
-      <DetailsRow label={strings('rewards.events.description')}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {resolveTemplate(
-            matchingActivityType.description,
-            (event.payload ?? {}) as Record<string, string>,
-          )}
-        </Text>
-      </DetailsRow>
-    ) : null;
-
   switch (event.type) {
     case 'SWAP':
       return (
@@ -71,14 +49,15 @@ export const ActivityDetailsSheet: React.FC<ActivityDetailsSheetProps> = ({
           accountName={accountName}
         />
       );
-    default:
+    case 'BONUS_CODE':
       return (
-        <GenericEventDetails
-          event={event}
+        <BonusCodeEventDetails
+          event={event as Extract<PointsEventDto, { type: 'BONUS_CODE' }>}
           accountName={accountName}
-          extraDetails={extraDetails}
         />
       );
+    default:
+      return <GenericEventDetails event={event} accountName={accountName} />;
   }
 };
 

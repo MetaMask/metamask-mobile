@@ -4,7 +4,22 @@ import {
   usePerpsLivePositions,
   enrichPositionsWithLivePnL,
 } from './usePerpsLivePositions';
-import type { Position, PriceUpdate } from '../../controllers/types';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
+
+// Mock Engine for lazy isInitialLoading check
+let mockCachedUserData: {
+  positions: Position[];
+  orders: unknown[];
+  accountState: unknown;
+} | null = null;
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    PerpsController: {
+      getCachedUserDataForActiveProvider: () => mockCachedUserData,
+    },
+  },
+}));
 
 // Mock the stream provider
 const mockPositionsSubscribe = jest.fn();
@@ -50,6 +65,7 @@ describe('usePerpsLivePositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockCachedUserData = null;
   });
 
   afterEach(() => {
@@ -617,6 +633,65 @@ describe('usePerpsLivePositions', () => {
         expect(updatedPosition.unrealizedPnl).toBe('1000');
         expect(updatedPosition.returnOnEquity).toBe('0.2');
       });
+    });
+  });
+
+  describe('initial state from cache', () => {
+    it('seeds positions from cache when fresh cached data exists', () => {
+      const cachedPositions: Position[] = [
+        { ...mockPosition, symbol: 'BTC-PERP', size: '2.0' },
+        { ...mockPosition, symbol: 'ETH-PERP', size: '10.0' },
+      ];
+
+      mockCachedUserData = {
+        positions: cachedPositions,
+        orders: [],
+        accountState: null,
+      };
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual(cachedPositions);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('returns empty positions for stale cache (helper returns null)', () => {
+      mockCachedUserData = null;
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('returns empty positions when no cache exists', () => {
+      mockCachedUserData = null;
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('handles empty cached positions array (valid cache, no positions)', () => {
+      mockCachedUserData = { positions: [], orders: [], accountState: null };
+
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+      mockPricesSubscribe.mockReturnValue(jest.fn());
+
+      const { result } = renderHook(() => usePerpsLivePositions());
+
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(false);
     });
   });
 

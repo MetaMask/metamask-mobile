@@ -7,7 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -44,13 +43,14 @@ import {
   formatPositionSize,
   formatPrice,
 } from '../../utils/format';
+import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import styleSheet from './PredictSellPreview.styles';
 
 const PredictSellPreview = () => {
   const tw = useTailwind();
   const { styles } = useStyles(styleSheet, {});
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictSellPreview'>>();
   const { market, position, outcome, entryPoint } = route.params;
@@ -97,6 +97,8 @@ const PredictSellPreview = () => {
     isLoading,
     result,
     error: placeOrderError,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   } = usePredictPlaceOrder();
 
   const {
@@ -104,7 +106,6 @@ const PredictSellPreview = () => {
     error: previewError,
     isLoading: isPreviewLoading,
   } = usePredictOrderPreview({
-    providerId: position.providerId,
     marketId: position.marketId,
     outcomeId: position.outcomeId,
     outcomeTokenId: position.outcomeTokenId,
@@ -112,6 +113,19 @@ const PredictSellPreview = () => {
     size: position.amount,
     positionId: position.id,
     autoRefreshTimeout: 1000,
+  });
+
+  const {
+    retrySheetRef,
+    retrySheetVariant,
+    isRetrying,
+    handleRetryWithBestPrice,
+  } = usePredictOrderRetry({
+    preview,
+    placeOrder,
+    analyticsProperties,
+    isOrderNotFilled,
+    resetOrderNotFilled,
   });
 
   // Track screen load performance (position data + preview)
@@ -125,6 +139,10 @@ const PredictSellPreview = () => {
     },
   });
 
+  const errorMessage = isOrderNotFilled
+    ? undefined
+    : (previewError ?? placeOrderError);
+
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -132,7 +150,6 @@ const PredictSellPreview = () => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      providerId: position.providerId,
       sharePrice: position?.price,
       amountUsd: position?.amount,
       pnl: position?.percentPnl, // PnL as percentage for sell orders
@@ -176,11 +193,10 @@ const PredictSellPreview = () => {
     if (!preview) return;
 
     await placeOrder({
-      providerId: position.providerId,
       analyticsProperties,
       preview,
     });
-  }, [preview, placeOrder, analyticsProperties, position.providerId]);
+  }, [preview, placeOrder, analyticsProperties]);
 
   const renderCashOutButton = () => {
     if (isLoading) {
@@ -302,22 +318,13 @@ const PredictSellPreview = () => {
           )}
         </View>
         <View style={styles.bottomContainer}>
-          {placeOrderError && (
+          {errorMessage && (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
               style={tw.style('text-center')}
             >
-              {placeOrderError}
-            </Text>
-          )}
-          {previewError && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
-              style={tw.style('text-center')}
-            >
-              {previewError}
+              {errorMessage}
             </Text>
           )}
           <Box twClassName="flex-row items-center gap-4">
@@ -356,6 +363,15 @@ const PredictSellPreview = () => {
           </View>
         </View>
       </View>
+      <PredictOrderRetrySheet
+        ref={retrySheetRef}
+        variant={retrySheetVariant}
+        sharePrice={preview?.sharePrice ?? position?.price ?? 0}
+        side={Side.SELL}
+        onRetry={handleRetryWithBestPrice}
+        onDismiss={resetOrderNotFilled}
+        isRetrying={isRetrying}
+      />
     </SafeAreaView>
   );
 };

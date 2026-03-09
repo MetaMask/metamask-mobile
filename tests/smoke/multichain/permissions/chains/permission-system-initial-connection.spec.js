@@ -1,20 +1,16 @@
-import { SmokeNetworkExpansion } from '../../../../../e2e/tags';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
+import { SmokeNetworkExpansion } from '../../../../tags';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import TestDApp from '../../../../page-objects/Browser/TestDApp';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import Assertions from '../../../../framework/Assertions';
-import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
-import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
-import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
+import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
+import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
+import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -31,12 +27,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         ],
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();
@@ -48,7 +38,9 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         await ConnectBottomSheet.tapConnectButton();
 
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToBeVisible(
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+        );
       },
     );
   });
@@ -63,12 +55,6 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
         ],
         fixture: new FixtureBuilder().withPermissionController().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         // Initial setup: Login and navigate to test dapp
@@ -99,16 +85,18 @@ describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
 
         // Open network permissions menu
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
-        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await Assertions.expectElementToBeVisible(
+          ConnectedAccountsModal.disconnectAllAccountsAndNetworksButton,
+        );
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
         await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
 
         // Verify final permissions state
         // - Should have only Ethereum Mainnet and Sepolia selected
         // - Deselecting both should show the disconnect all button
-        await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
-        await NetworkNonPemittedBottomSheet.tapSepoliaNetworkName();
+        await ConnectedAccountsModal.tapSelectAllNetworksButton();
+        await ConnectedAccountsModal.tapDeselectAllNetworksButton();
+
         await Assertions.expectElementToBeVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );

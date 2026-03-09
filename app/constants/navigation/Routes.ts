@@ -2,6 +2,7 @@ const Routes = {
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
   BROWSER_VIEW: 'BrowserView',
+  ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -15,10 +16,21 @@ const Routes = {
     QUOTES: 'Quotes',
     CHECKOUT: 'Checkout',
     ORDER_DETAILS: 'OrderDetails',
+    RAMPS_ORDER_DETAILS: 'RampsOrderDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',
     AMOUNT_INPUT: 'RampAmountInput',
+    ENTER_EMAIL: 'RampEnterEmail',
+    OTP_CODE: 'RampOtpCode',
+    ORDER_PROCESSING: 'RampOrderProcessing',
+    KYC_PROCESSING: 'RampKycProcessing',
+    BASIC_INFO: 'RampBasicInfo',
+    VERIFY_IDENTITY: 'RampVerifyIdentity',
+    BANK_DETAILS: 'RampBankDetails',
+    BANK_DETAILS_STANDALONE: 'RampBankDetailsStandalone',
+    ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
+    ENTER_ADDRESS: 'RampEnterAddress',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -28,8 +40,14 @@ const Routes = {
       UNSUPPORTED_REGION: 'RampUnsupportedRegionModal',
       UNSUPPORTED_TOKEN: 'RampUnsupportedTokenModal',
       PAYMENT_METHOD_SELECTOR: 'RampPaymentMethodSelectorModal',
+      PAYMENT_SELECTION: 'RampPaymentSelectionModal',
       SETTINGS: 'RampSettingsModal',
       BUILD_QUOTE_SETTINGS: 'RampBuildQuoteSettingsModal',
+      TOKEN_NOT_AVAILABLE: 'RampTokenNotAvailableModal',
+      PROVIDER_SELECTION: 'RampProviderSelectionModal',
+      ERROR_DETAILS: 'RampErrorDetailsModal',
+      PROCESSING_INFO: 'RampProcessingInfoModal',
+      SSN_INFO: 'RampSsnInfoModal',
     },
   },
   DEPOSIT: {
@@ -104,6 +122,7 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
     FUND_ACTION_MENU: 'FundActionMenu',
+    MORE_TOKEN_ACTIONS_MENU: 'MoreTokenActionsMenu',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -113,9 +132,9 @@ const Routes = {
     MULTICHAIN_ACCOUNTS_LEARN_MORE: 'MultichainAccountsLearnMoreBottomSheet',
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
+    REWARDS_BONUS_CODE_BOTTOM_SHEET: 'BonusCodeBottomSheet',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
-    REWARDS_REFERRAL_BOTTOM_SHEET_MODAL: 'RewardsReferralBottomSheetModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
   },
@@ -142,6 +161,7 @@ const Routes = {
     OPTIN_METRICS: 'OptinMetrics',
     SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     REHYDRATE: 'Rehydrate',
+    WALLET_CREATION_ERROR: 'WalletCreationError',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',
@@ -152,6 +172,9 @@ const Routes = {
     STEP_1_B: 'AccountBackupStep1B',
   },
   SETTINGS: {
+    ROOT: 'Settings',
+    CONTACTS: 'ContactsSettings',
+    COMPANY: 'CompanySettings',
     SECURITY_SETTINGS: 'SecuritySettings',
     ADVANCED_SETTINGS: 'AdvancedSettings',
     CHANGE_PASSWORD: 'ResetPassword',
@@ -161,6 +184,8 @@ const Routes = {
     NOTIFICATIONS: 'NotificationsSettings',
     REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredentialView',
     SDK_SESSIONS_MANAGER: 'SDKSessionsManager',
+    NETWORKS_MANAGEMENT: 'NetworksManagement',
+    NETWORK_DETAILS: 'NetworkDetails',
     BACKUP_AND_SYNC: 'BackupAndSyncSettings',
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
@@ -171,7 +196,6 @@ const Routes = {
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
-    RESET_NOTIFICATIONS: 'ResetNotifications',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     DATA_COLLECTION: 'DataCollection',
@@ -203,6 +227,7 @@ const Routes = {
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
+    IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
     MULTICHAIN_ACCOUNT_DETAILS: {
       ACCOUNT_ACTIONS: 'MultichainAccountActions',
       EDIT_ACCOUNT_NAME: 'EditMultichainAccountName',
@@ -234,6 +259,8 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
+    DEFI_FULL_VIEW: 'DeFiFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -246,6 +273,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
+    QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
@@ -254,12 +282,16 @@ const Routes = {
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
+      MARKET_CLOSED_MODAL: 'MarketClosedModal',
+      NETWORK_LIST_MODAL: 'NetworkListModal',
+      PRICE_IMPACT_MODAL: 'PriceImpactModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
   PERPS: {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
+    ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -286,10 +318,15 @@ const Routes = {
       CANCEL_ALL_ORDERS: 'PerpsCancelAllOrders',
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
+      SELECT_PROVIDER: 'PerpsSelectProvider',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
+  },
+  MARKET_INSIGHTS: {
+    ROOT: 'MarketInsights',
+    VIEW: 'MarketInsightsView',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -310,7 +347,6 @@ const Routes = {
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
-  SMART_ACCOUNT_OPT_IN: 'SmartAccountOptIn',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -338,6 +374,7 @@ const Routes = {
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
       CONVERSION_EDUCATION: 'EarnMusdConversionEducation',
+      QUICK_CONVERT: 'EarnMusdQuickConvert',
     },
     MODALS: {
       ROOT: 'EarnModals',
@@ -400,6 +437,7 @@ const Routes = {
     CHOOSE_YOUR_CARD: 'ChooseYourCard',
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
+    CASHBACK: 'CardCashback',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -414,7 +452,6 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
-      WEBVIEW: 'CardOnboardingWebview',
     },
     MODALS: {
       ID: 'CardModals',
@@ -425,6 +462,7 @@ const Routes = {
       PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
+      VIEW_PIN: 'CardViewPinModal',
     },
   },
   SEND: {

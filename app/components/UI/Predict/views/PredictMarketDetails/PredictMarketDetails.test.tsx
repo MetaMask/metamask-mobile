@@ -9,6 +9,10 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import PredictMarketDetails from './PredictMarketDetails';
+import {
+  PredictMarketDetailsSelectorsIDs,
+  getPredictMarketDetailsSelector,
+} from '../../Predict.testIds';
 import { PredictPriceHistoryInterval } from '../../types';
 import type { UsePredictPriceHistoryOptions } from '../../hooks/usePredictPriceHistory';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,6 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const runAfterInteractionsCallbacks: (() => void)[] = [];
 const mockRunAfterInteractions = jest.spyOn(
   InteractionManager,
@@ -78,6 +83,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
   const ActualIcon = jest.requireActual(
     '../../../../../component-library/components/Icons/Icon',
   );
+  // Jest mock factory runs before module imports; require() needed for testIds
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const PredictTestIds = require('../../Predict.testIds');
   return {
     ...ActualIcon,
     __esModule: true,
@@ -91,7 +99,15 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       [key: string]: unknown;
     }) => {
       const Icon = ActualIcon.default;
-      return <Icon {...props} name={name} testID={testID || `icon-${name}`} />;
+      return (
+        <Icon
+          {...props}
+          name={name}
+          testID={
+            testID || PredictTestIds.getPredictMarketDetailsSelector.icon(name)
+          }
+        />
+      );
     },
   };
 });
@@ -184,22 +200,19 @@ jest.mock('../../hooks/usePredictPriceHistory', () => ({
 
 jest.mock('../../hooks/usePredictPositions', () => ({
   usePredictPositions: jest.fn(() => ({
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   })),
 }));
 
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: jest.fn(() => ({
-    balance: 100,
-    hasNoBalance: false,
+    data: 100,
     isLoading: false,
-    isRefreshing: false,
     error: null,
-    loadBalance: jest.fn(),
   })),
 }));
 
@@ -236,9 +249,13 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
 
 jest.mock('../../components/PredictDetailsChart/PredictDetailsChart', () => {
   const { View, Text } = jest.requireActual('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const PredictTestIds = require('../../Predict.testIds');
   return function MockPredictDetailsChart() {
     return (
-      <View testID="predict-details-chart">
+      <View
+        testID={PredictTestIds.PredictMarketDetailsSelectorsIDs.DETAILS_CHART}
+      >
         <Text>Chart Component</Text>
       </View>
     );
@@ -262,10 +279,12 @@ jest.mock('../../components/PredictMarketOutcome', () => {
 
 jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
   const { View } = jest.requireActual('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const PredictTestIds = require('../../Predict.testIds');
   return function MockPredictShareButton({ marketId }: { marketId?: string }) {
     return (
       <View
-        testID="predict-share-button"
+        testID={PredictTestIds.PredictMarketDetailsSelectorsIDs.SHARE_BUTTON}
         accessibilityHint={`marketId:${marketId ?? 'undefined'}`}
       />
     );
@@ -274,13 +293,19 @@ jest.mock('../../components/PredictShareButton/PredictShareButton', () => {
 
 jest.mock('../../components/PredictGameDetailsContent', () => {
   const { View, Text } = jest.requireActual('react-native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const PredictTestIds = require('../../Predict.testIds');
   return function MockPredictGameDetailsContent({
     market,
   }: {
     market: { title?: string };
   }) {
     return (
-      <View testID="predict-game-details-content">
+      <View
+        testID={
+          PredictTestIds.PredictMarketDetailsSelectorsIDs.GAME_DETAILS_CONTENT
+        }
+      >
         <Text>{market?.title || 'Game Details'}</Text>
       </View>
     );
@@ -322,7 +347,7 @@ function createMockMarket(overrides = {}) {
     title: 'Will Bitcoin reach $100k by end of 2024?',
     image: 'https://example.com/bitcoin.png',
     endDate: '2024-12-31T23:59:59Z',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: 'open',
     tags: [],
     outcomes: [
@@ -411,11 +436,11 @@ function createMockMarket(overrides = {}) {
 type HookOverrideShape = Record<string, unknown>;
 
 interface PredictPositionsHookResultMock {
-  positions: Record<string, unknown>[];
+  data: Record<string, unknown>[];
   isLoading: boolean;
-  isRefreshing: boolean;
+  isRefetching: boolean;
   error: unknown;
-  loadPositions: jest.Mock;
+  refetch: jest.Mock;
 }
 
 interface SplitPositionsOverrides {
@@ -532,20 +557,20 @@ function setupPredictMarketDetailsTest(
   }
 
   const activePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...activeOverride,
   };
 
   const claimablePositionsHook: PredictPositionsHookResultMock = {
-    positions: [],
+    data: [],
     isLoading: false,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
     ...claimableOverride,
   };
 
@@ -558,7 +583,7 @@ function setupPredictMarketDetailsTest(
   mockUsePredictOrderPreview.mockImplementation(
     (params: { outcomeId: string }) => {
       // Find the position matching this outcomeId from active positions
-      const position = activePositionsHook.positions.find(
+      const position = activePositionsHook.data.find(
         (p: Record<string, unknown>) => p.outcomeId === params.outcomeId,
       ) as { currentValue?: number } | undefined;
 
@@ -587,7 +612,31 @@ function setupPredictMarketDetailsTest(
     },
   );
 
-  const result = renderWithProvider(<PredictMarketDetails />);
+  const result = renderWithProvider(<PredictMarketDetails />, {
+    state: {
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictFeeCollection: {
+                enabled: true,
+                collector: '0xe6a2026d58eaff3c7ad7ba9386fb143388002382',
+                metamaskFee: 0.02,
+                providerFee: 0.02,
+                waiveList: ['middle-east'],
+                executors: [],
+                permit2Enabled: false,
+              },
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    },
+  });
 
   return {
     ...result,
@@ -647,7 +696,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
 
@@ -666,13 +715,19 @@ describe('PredictMarketDetails', () => {
 
       // Check that skeleton loaders appear
       expect(
-        screen.getByTestId('predict-details-header-skeleton-back-button'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.DETAILS_HEADER_SKELETON_BACK_BUTTON,
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-content-skeleton-line-1'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+        ),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-buttons-skeleton-button-1'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.DETAILS_BUTTONS_SKELETON_BUTTON_1,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -681,26 +736,32 @@ describe('PredictMarketDetails', () => {
 
       // Screen renders without a title; other sections may still show loading keys
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
 
     it('renders back button with correct accessibility', () => {
       setupPredictMarketDetailsTest();
 
-      expect(screen.getByTestId('icon-ArrowLeft')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+      ).toBeOnTheScreen();
     });
 
     it('renders share button in header when market data is loaded', () => {
       setupPredictMarketDetailsTest();
 
-      expect(screen.getByTestId('predict-share-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('passes market.id to share button', () => {
       setupPredictMarketDetailsTest({ id: 'test-market-id' });
 
-      const shareButton = screen.getByTestId('predict-share-button');
+      const shareButton = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.SHARE_BUTTON,
+      );
 
       expect(shareButton.props.accessibilityHint).toBe(
         'marketId:test-market-id',
@@ -715,10 +776,12 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(
-        screen.queryByTestId('predict-share-button'),
+        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-details-header-skeleton-back-button'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.DETAILS_HEADER_SKELETON_BACK_BUTTON,
+        ),
       ).toBeOnTheScreen();
     });
   });
@@ -728,7 +791,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -741,7 +804,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -755,7 +818,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -769,7 +832,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -817,13 +880,17 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('renders multiple outcome chart for binary markets with two outcomes', () => {
       setupPredictMarketDetailsTest();
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('renders multiple outcome chart for multi-outcome markets', () => {
@@ -855,7 +922,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('does not render chart when all outcomes are closed', () => {
@@ -888,7 +957,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedOutcomesMarket);
 
       expect(
-        screen.queryByTestId('predict-details-chart'),
+        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
       ).not.toBeOnTheScreen();
     });
 
@@ -908,7 +977,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(noOpenOutcomesMarket);
 
       expect(
-        screen.queryByTestId('predict-details-chart'),
+        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
       ).not.toBeOnTheScreen();
     });
 
@@ -934,7 +1003,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(mixedStatusMarket);
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('limits chart data to first 3 open outcomes when more are available', () => {
@@ -1022,7 +1093,9 @@ describe('PredictMarketDetails', () => {
           marketIds: ['token-2', 'token-3'],
         }),
       );
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('removes chart when closed market lacks open outcomes', () => {
@@ -1045,7 +1118,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(emptyOutcomesMarket);
 
       expect(
-        screen.queryByTestId('predict-details-chart'),
+        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
       ).not.toBeOnTheScreen();
     });
 
@@ -1064,7 +1137,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(noTokensMarket);
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -1073,10 +1148,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId('predict-market-details-tab-bar'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.TAB_BAR),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-market-details-scrollable-tab-view'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1084,7 +1161,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -1163,7 +1240,9 @@ describe('PredictMarketDetails', () => {
     it('handles back button press correctly', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
-      const backButton = screen.getByTestId('icon-ArrowLeft');
+      const backButton = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+      );
       fireEvent.press(backButton);
 
       expect(mockCanGoBack).toHaveBeenCalled();
@@ -1174,7 +1253,9 @@ describe('PredictMarketDetails', () => {
       const { mockCanGoBack, mockNavigate } = setupPredictMarketDetailsTest();
       mockCanGoBack.mockReturnValue(false);
 
-      const backButton = screen.getByTestId('icon-ArrowLeft');
+      const backButton = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+      );
       fireEvent.press(backButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT);
@@ -1248,7 +1329,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutEndDate);
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -1289,7 +1370,9 @@ describe('PredictMarketDetails', () => {
       const { mockMarket } = setupPredictMarketDetailsTest();
 
       // Find the chart component and trigger timeframe change
-      const chartComponent = screen.getByTestId('predict-details-chart');
+      const chartComponent = screen.getByTestId(
+        PredictMarketDetailsSelectorsIDs.DETAILS_CHART,
+      );
       expect(chartComponent).toBeOnTheScreen();
 
       // The timeframe change is handled internally by the component
@@ -1313,12 +1396,12 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1425,7 +1508,7 @@ describe('PredictMarketDetails', () => {
     it('triggers market, price history, and active positions refresh', async () => {
       const mockRefetchMarket = jest.fn(() => Promise.resolve());
       const mockRefetchPriceHistory = jest.fn(() => Promise.resolve());
-      const mockLoadActivePositions = jest.fn(() => Promise.resolve());
+      const mockRefetchActivePositions = jest.fn(() => Promise.resolve());
 
       setupPredictMarketDetailsTest(
         {},
@@ -1433,7 +1516,7 @@ describe('PredictMarketDetails', () => {
         {
           market: { refetch: mockRefetchMarket },
           priceHistory: { refetch: mockRefetchPriceHistory },
-          positions: { loadPositions: mockLoadActivePositions },
+          positions: { refetch: mockRefetchActivePositions },
         },
       );
 
@@ -1448,10 +1531,7 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(mockRefetchMarket).toHaveBeenCalledTimes(1);
         expect(mockRefetchPriceHistory).toHaveBeenCalledTimes(1);
-        expect(mockLoadActivePositions).toHaveBeenCalled();
-        expect(mockLoadActivePositions).toHaveBeenCalledWith({
-          isRefresh: true,
-        });
+        expect(mockRefetchActivePositions).toHaveBeenCalled();
       });
     });
   });
@@ -1474,12 +1554,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1509,12 +1589,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1553,7 +1633,7 @@ describe('PredictMarketDetails', () => {
 
       // Outcomes is the default tab when there are no positions
       expect(
-        screen.getByTestId('predict-market-details-outcomes-tab'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
       ).toBeOnTheScreen();
     });
 
@@ -1654,12 +1734,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         mockMarket,
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1687,12 +1767,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1720,12 +1800,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -1739,7 +1819,7 @@ describe('PredictMarketDetails', () => {
 
       // Component should render without errors even with invalid data
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
 
@@ -1747,7 +1827,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest({}, { params: undefined });
 
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
 
@@ -1851,7 +1931,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -1900,7 +1980,7 @@ describe('PredictMarketDetails', () => {
         {
           positions: {
             claimable: {
-              positions: [
+              data: [
                 {
                   id: 'position-1',
                   outcomeId: 'outcome-1',
@@ -1963,7 +2043,7 @@ describe('PredictMarketDetails', () => {
 
       // Verify the component renders without errors
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
 
@@ -2087,12 +2167,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         { status: 'open' },
         {},
-        { positions: { positions: [mockPosition] } },
+        { positions: { data: [mockPosition] } },
       );
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-0',
+        getPredictMarketDetailsSelector.tabBarTab(0),
       );
       fireEvent.press(positionsTab);
 
@@ -2120,7 +2200,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(singleOutcomeMarket);
 
       // Verify chart renders for single outcome
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('handles chart color selection for multiple outcomes', () => {
@@ -2147,7 +2229,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(multiOutcomeMarket);
 
       // Verify chart renders for multiple outcomes
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('handles outcome without tokens correctly', () => {
@@ -2173,7 +2257,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       // Component should handle different fidelity settings based on timeframe
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('handles empty price histories array', () => {
@@ -2183,7 +2269,9 @@ describe('PredictMarketDetails', () => {
         { priceHistory: { priceHistories: [] } },
       );
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('handles errors in price history', () => {
@@ -2193,7 +2281,9 @@ describe('PredictMarketDetails', () => {
         { priceHistory: { errors: ['Network error'] } },
       );
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     describe('Price history fidelity adjustments', () => {
@@ -2389,7 +2479,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2433,7 +2524,8 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictBalance',
       );
       usePredictBalance.mockReturnValue({
-        hasNoBalance: true,
+        data: undefined,
+        isLoading: false,
       });
 
       const singleOutcomeMarket = createMockMarket({
@@ -2506,7 +2598,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       expect(
-        screen.getByTestId('predict-market-details-outcomes-tab'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
       ).toBeOnTheScreen();
       expect(screen.getByText('Yes Outcome')).toBeOnTheScreen();
       expect(screen.getByText('No Outcome')).toBeOnTheScreen();
@@ -2520,7 +2612,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       const aboutTab = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-1',
+        getPredictMarketDetailsSelector.tabBarTab(1),
       );
       fireEvent.press(aboutTab);
 
@@ -2539,7 +2631,7 @@ describe('PredictMarketDetails', () => {
         {},
         {
           positions: {
-            positions: [
+            data: [
               {
                 id: 'position-1',
                 outcomeId: 'outcome-1',
@@ -2556,7 +2648,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const aboutTabWithPositions = screen.getByTestId(
-        'predict-market-details-tab-bar-tab-2',
+        getPredictMarketDetailsSelector.tabBarTab(2),
       );
       fireEvent.press(aboutTabWithPositions);
 
@@ -2564,11 +2656,11 @@ describe('PredictMarketDetails', () => {
         '../../hooks/usePredictPositions',
       );
       usePredictPositions.mockReturnValue({
-        positions: [],
+        data: [],
         isLoading: false,
-        isRefreshing: false,
+        isRefetching: false,
         error: null,
-        loadPositions: jest.fn(),
+        refetch: jest.fn(),
       });
 
       rerender(<PredictMarketDetails />);
@@ -2578,7 +2670,7 @@ describe('PredictMarketDetails', () => {
           screen.queryByText('predict.market_details.volume'),
         ).not.toBeOnTheScreen();
         expect(
-          screen.getByTestId('predict-market-details-outcomes-tab'),
+          screen.getByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
         ).toBeOnTheScreen();
       });
     });
@@ -2646,7 +2738,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
 
     it('displays resolved outcomes count badge', () => {
@@ -2710,7 +2804,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -2752,7 +2848,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -2796,7 +2894,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -2838,7 +2938,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -2877,7 +2979,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -2916,7 +3020,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      expect(screen.getByTestId('icon-ArrowDown')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowDown')),
+      ).toBeOnTheScreen();
     });
 
     it('displays ArrowUp icon when expanded', () => {
@@ -2948,13 +3054,17 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
         fireEvent.press(pressable);
 
-        expect(screen.getByTestId('icon-ArrowUp')).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowUp')),
+        ).toBeOnTheScreen();
       }
     });
 
@@ -2987,19 +3097,27 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
         fireEvent.press(pressable);
         expect(screen.getByText('Option A')).toBeOnTheScreen();
 
-        const arrowUpIcon = screen.getByTestId('icon-ArrowUp');
+        const arrowUpIcon = screen.getByTestId(
+          getPredictMarketDetailsSelector.icon('ArrowUp'),
+        );
         const pressableAgain = arrowUpIcon.parent?.parent;
         if (pressableAgain) {
           fireEvent.press(pressableAgain);
           expect(screen.queryByText('Option A')).not.toBeOnTheScreen();
-          expect(screen.getByTestId('icon-ArrowDown')).toBeOnTheScreen();
+          expect(
+            screen.getByTestId(
+              getPredictMarketDetailsSelector.icon('ArrowDown'),
+            ),
+          ).toBeOnTheScreen();
         }
       }
     });
@@ -3079,7 +3197,9 @@ describe('PredictMarketDetails', () => {
 
       expect(screen.getByText('2')).toBeOnTheScreen();
 
-      const arrowDownIcon = screen.getByTestId('icon-ArrowDown');
+      const arrowDownIcon = screen.getByTestId(
+        getPredictMarketDetailsSelector.icon('ArrowDown'),
+      );
       const pressable = arrowDownIcon.parent?.parent;
 
       if (pressable) {
@@ -3118,7 +3238,9 @@ describe('PredictMarketDetails', () => {
       expect(
         screen.queryByText('predict.resolved_outcomes'),
       ).not.toBeOnTheScreen();
-      expect(screen.getByTestId('predict-details-chart')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.DETAILS_CHART),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -3155,7 +3277,7 @@ describe('PredictMarketDetails', () => {
       expect(usePredictPrices).toHaveBeenCalled();
     });
 
-    it('uses usePredictPrices hook with providerId', () => {
+    it('uses usePredictPrices hook for live pricing', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
       );
@@ -3164,7 +3286,7 @@ describe('PredictMarketDetails', () => {
 
       expect(usePredictPrices).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'polymarket',
+          queries: expect.any(Array),
         }),
       );
     });
@@ -3184,16 +3306,16 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
   });
 
   describe('Fee Exemption Display', () => {
-    it('displays fee exemption message when market has Middle East tag', () => {
-      const marketWithMiddleEastTag = createMockMarket({
+    it('displays fee exemption message when market tag matches waiveList', () => {
+      const marketWithWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Middle East'],
+        tags: ['middle-east'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3207,17 +3329,17 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(marketWithMiddleEastTag);
+      setupPredictMarketDetailsTest(marketWithWaivedTag);
 
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
     });
 
-    it('hides fee exemption message when market does not have Middle East tag', () => {
-      const marketWithoutMiddleEastTag = createMockMarket({
+    it('hides fee exemption message when market tags do not match waiveList', () => {
+      const marketWithNonWaivedTags = createMockMarket({
         status: 'open',
-        tags: ['Sports', 'Politics'],
+        tags: ['sports', 'politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3231,7 +3353,7 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(marketWithoutMiddleEastTag);
+      setupPredictMarketDetailsTest(marketWithNonWaivedTags);
 
       expect(
         screen.queryByText('predict.market_details.fee_exemption'),
@@ -3286,10 +3408,10 @@ describe('PredictMarketDetails', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('displays fee exemption message when Middle East tag exists among multiple tags', () => {
+    it('displays fee exemption message when waiveList tag exists among multiple tags', () => {
       const marketWithMultipleTags = createMockMarket({
         status: 'open',
-        tags: ['Politics', 'Middle East', 'International'],
+        tags: ['politics', 'middle-east', 'international'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3310,10 +3432,10 @@ describe('PredictMarketDetails', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays fee exemption message when market is closed with Middle East tag', () => {
-      const closedMarketWithMiddleEastTag = createMockMarket({
+    it('displays fee exemption message when market is closed with waiveList tag', () => {
+      const closedMarketWithWaivedTag = createMockMarket({
         status: 'closed',
-        tags: ['Middle East'],
+        tags: ['middle-east'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3324,23 +3446,23 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      setupPredictMarketDetailsTest(closedMarketWithMiddleEastTag);
+      setupPredictMarketDetailsTest(closedMarketWithWaivedTag);
 
-      // Note: The component currently shows the fee exemption message for closed markets
-      // if they have the Middle East tag. This behavior matches the current implementation.
+      // Note: The component shows the fee exemption message for closed markets
+      // if they have a tag matching the waiveList. This matches the current implementation.
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
     });
 
-    it('removes fee exemption message when market updates without Middle East tag', async () => {
+    it('removes fee exemption message when market updates without waiveList tag', async () => {
       const { usePredictMarket } = jest.requireMock(
         '../../hooks/usePredictMarket',
       );
 
-      const marketWithMiddleEastTag = createMockMarket({
+      const marketWithWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Middle East', 'Politics'],
+        tags: ['middle-east', 'politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3354,17 +3476,15 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { rerender } = setupPredictMarketDetailsTest(
-        marketWithMiddleEastTag,
-      );
+      const { rerender } = setupPredictMarketDetailsTest(marketWithWaivedTag);
 
       expect(
         screen.getByText('predict.market_details.fee_exemption'),
       ).toBeOnTheScreen();
 
-      const marketWithoutMiddleEastTag = createMockMarket({
+      const marketWithoutWaivedTag = createMockMarket({
         status: 'open',
-        tags: ['Politics'],
+        tags: ['politics'],
         outcomes: [
           {
             id: 'outcome-1',
@@ -3379,7 +3499,7 @@ describe('PredictMarketDetails', () => {
       });
 
       usePredictMarket.mockReturnValue({
-        market: marketWithoutMiddleEastTag,
+        market: marketWithoutWaivedTag,
         isFetching: false,
         refetch: jest.fn(),
       });
@@ -3409,7 +3529,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(gameMarket);
 
       expect(
-        screen.getByTestId('predict-game-details-content'),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.GAME_DETAILS_CONTENT,
+        ),
       ).toBeOnTheScreen();
       expect(screen.getByText('NFL: Team A vs Team B')).toBeOnTheScreen();
     });
@@ -3423,10 +3545,12 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(regularMarket);
 
       expect(
-        screen.queryByTestId('predict-game-details-content'),
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.GAME_DETAILS_CONTENT,
+        ),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId('predict-market-details-screen'),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),
       ).toBeOnTheScreen();
     });
   });

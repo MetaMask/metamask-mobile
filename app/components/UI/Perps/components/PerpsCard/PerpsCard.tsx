@@ -1,32 +1,91 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
+  type Order,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   formatPerpsFiat,
+  formatPositionSize,
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
+import {
+  formatOrderLabel,
+  resolveOrderDisplayPriceAndLabel,
+} from '../../utils/orderUtils';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import styleSheet from './PerpsCard.styles';
 import type { PerpsCardProps } from './PerpsCard.types';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
-import {
-  PERPS_EVENT_VALUE,
-  PERPS_EVENT_PROPERTY,
-} from '../../constants/eventNames';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+
+interface CardDisplayData {
+  primaryText: string;
+  secondaryText: string;
+  valueText: string;
+  labelText: string;
+  valueColor: TextColor;
+}
+
+const getPositionDisplayData = (position: Position): CardDisplayData => {
+  const leverage = position.leverage.value;
+  const isLong = parseFloat(position.size) > 0;
+  const displaySymbol = getPerpsDisplaySymbol(position.symbol);
+  const primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
+  const secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
+
+  const pnlValue = parseFloat(position.unrealizedPnl);
+  const valueText = formatPerpsFiat(position.positionValue, {
+    ranges: PRICE_RANGES_MINIMAL_VIEW,
+  });
+  const roeValue = parseFloat(position.returnOnEquity) * 100;
+  const labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
+  const valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
+
+  return { primaryText, secondaryText, valueText, labelText, valueColor };
+};
+
+const getOrderDisplayData = (order: Order): CardDisplayData => {
+  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
+  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+  const primaryText = formatOrderLabel(order);
+  const secondaryText = `${formatPositionSize(order.originalSize)} ${displaySymbol}`;
+  const valueText =
+    priceValue !== null
+      ? formatPerpsFiat(priceValue, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        })
+      : strings('perps.order.market');
+  const labelText = strings(labelKey);
+
+  return {
+    primaryText,
+    secondaryText,
+    valueText,
+    labelText,
+    valueColor: TextColor.Alternative,
+  };
+};
 
 /**
  * PerpsCard Component
@@ -43,8 +102,9 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const { track } = usePerpsEventTracking();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine which type of data we have
   const symbol = position?.symbol || order?.symbol || '';
@@ -52,38 +112,11 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   // Get all markets data to find the specific market when navigating
   const { markets } = usePerpsMarkets();
 
-  // Calculate display values
-  let primaryText = '';
-  let secondaryText = '';
-  let valueText = '';
-  let labelText = '';
-  let valueColor = TextColor.Default;
-
-  if (position) {
-    const leverage = position.leverage.value;
-    const isLong = parseFloat(position.size) > 0;
-    const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-    primaryText = `${displaySymbol} ${leverage}x ${isLong ? 'long' : 'short'}`;
-    secondaryText = `${Math.abs(parseFloat(position.size))} ${displaySymbol}`;
-
-    // Calculate PnL display
-    const pnlValue = parseFloat(position.unrealizedPnl);
-    valueColor = pnlValue >= 0 ? TextColor.Success : TextColor.Error;
-    valueText = formatPerpsFiat(position.positionValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
-    const roeValue = parseFloat(position.returnOnEquity) * 100;
-    labelText = `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`;
-  } else if (order) {
-    const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-    primaryText = `${displaySymbol} ${order.side === 'buy' ? 'long' : 'short'}`;
-    secondaryText = `${order.originalSize} ${displaySymbol}`;
-    const orderValue = parseFloat(order.originalSize) * parseFloat(order.price);
-    valueText = formatPerpsFiat(orderValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    });
-    labelText = strings('perps.order.limit');
-  }
+  const displayData = position
+    ? getPositionDisplayData(position)
+    : order
+      ? getOrderDisplayData(order)
+      : null;
 
   // Memoize market lookup to avoid array search on every press
   const market = useMemo(
@@ -154,26 +187,40 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           )}
           <View style={styles.cardInfo}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {primaryText}
+              {displayData?.primaryText ?? ''}
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-              {secondaryText}
+              {displayData?.secondaryText ?? ''}
             </Text>
           </View>
         </View>
 
         {/* Right side: Value and label */}
         <View style={styles.cardRight}>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-            {valueText}
-          </Text>
-          <Text variant={TextVariant.BodySM} color={valueColor}>
-            {labelText}
-          </Text>
+          <SensitiveText
+            variant={TextVariant.BodyMDMedium}
+            color={TextColor.Default}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+          >
+            {displayData?.valueText ?? ''}
+          </SensitiveText>
+          <SensitiveText
+            variant={TextVariant.BodySM}
+            color={
+              privacyMode && !!position
+                ? TextColor.Default
+                : (displayData?.valueColor ?? TextColor.Default)
+            }
+            isHidden={privacyMode && !!position}
+            length={SensitiveTextLength.Short}
+          >
+            {displayData?.labelText ?? ''}
+          </SensitiveText>
         </View>
       </View>
     </TouchableOpacity>
   );
 };
 
-export default PerpsCard;
+export default React.memo(PerpsCard);

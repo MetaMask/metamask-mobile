@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView';
-import type { Position } from '../../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -103,13 +103,12 @@ jest.mock('./PerpsAdjustMarginView.styles', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      icon: { alternative: '#888' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),

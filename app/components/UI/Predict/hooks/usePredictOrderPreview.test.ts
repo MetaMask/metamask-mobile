@@ -1,8 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderPreview } from './usePredictOrderPreview';
 import { usePredictTrading } from './usePredictTrading';
-import { OrderPreview, PreviewOrderParams } from '../providers/types';
-import { Side } from '../types';
+import { OrderPreview, PreviewOrderParams, Side } from '../types';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../constants/flags';
 
 jest.mock('./usePredictTrading');
@@ -44,7 +43,6 @@ describe('usePredictOrderPreview', () => {
   });
 
   const defaultParams: PreviewOrderParams = {
-    providerId: 'polymarket',
     marketId: 'market-1',
     outcomeId: 'outcome-1',
     outcomeTokenId: 'token-1',
@@ -78,7 +76,6 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(mockPreviewOrder).toHaveBeenCalledWith({
-        providerId: 'polymarket',
         marketId: 'market-1',
         outcomeId: 'outcome-1',
         outcomeTokenId: 'token-1',
@@ -507,13 +504,13 @@ describe('usePredictOrderPreview', () => {
       );
     });
 
-    it('reacts to providerId changes', async () => {
+    it('reacts to marketId changes', async () => {
       mockPreviewOrder.mockResolvedValue(mockPreview);
 
       const { waitForNextUpdate } = renderHook(() =>
         usePredictOrderPreview({
           ...defaultParams,
-          providerId: 'another-provider',
+          marketId: 'market-2',
         }),
       );
 
@@ -524,7 +521,7 @@ describe('usePredictOrderPreview', () => {
       await waitForNextUpdate();
 
       expect(mockPreviewOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ providerId: 'another-provider' }),
+        expect.objectContaining({ marketId: 'market-2' }),
       );
     });
   });

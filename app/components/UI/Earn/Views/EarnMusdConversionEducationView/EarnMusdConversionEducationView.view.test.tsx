@@ -1,6 +1,6 @@
-import '../../../../../util/test/component-view/mocks';
-import { renderScreenWithRoutes } from '../../../../../util/test/component-view/render';
-import { initialStateWallet } from '../../../../../util/test/component-view/presets/wallet';
+import '../../../../../../tests/component-view/mocks';
+import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
+import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
 import { describeForPlatforms } from '../../../../../util/test/platform';
 import React from 'react';
 import EarnMusdConversionEducationView from './index';
@@ -57,7 +57,9 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      getByText(/Convert your stablecoins to mUSD.*receive up to a \d+% bonus/),
+      getByText(
+        /Convert your stablecoins to mUSD.*earn up to a \d+% annualized bonus/,
+      ),
     ).toBeOnTheScreen();
     expect(
       getByText(strings('earn.musd_conversion.education.primary_button')),
@@ -389,7 +391,7 @@ describeForPlatforms('EarnMusdConversionEducationView', () => {
 
     // Assert
     const description = getByText(
-      /Convert your stablecoins to mUSD.*receive up to a \d+% bonus/,
+      /Convert your stablecoins to mUSD.*earn up to a \d+% annualized bonus/,
     );
     expect(description).toBeOnTheScreen();
     expect(description.props.children[0]).toContain(`${MUSD_CONVERSION_APY}%`);

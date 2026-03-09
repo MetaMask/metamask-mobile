@@ -22,18 +22,13 @@ export const createStyles = (params: { theme: Theme }) => {
       justifyContent: 'center',
       backgroundColor: theme.colors.background.default,
     },
-    button: {
-      width: '100%',
-    },
     quoteContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
+      justifyContent: 'flex-start',
     },
     destinationAccountSelectorContainer: {
       paddingBottom: 12,
     },
     dynamicContent: {
-      flex: 1,
       justifyContent: 'flex-start',
     },
     keypadContainerWithDestinationPicker: {
@@ -45,12 +40,22 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     scrollViewContent: {
       flexGrow: 1,
+      paddingBottom: 16,
+    },
+    loadingContainer: {
+      paddingTop: 8,
     },
     disclaimerText: {
       textAlign: 'center',
     },
     destTokenArea: {
       // marginTop: 16,
+    },
+    keypadBottomSheet: {
+      marginBottom: -1,
+      marginHorizontal: -1,
+      borderColor: theme.colors.border.muted,
+      borderBottomColor: theme.colors.background.default,
     },
   });
 };

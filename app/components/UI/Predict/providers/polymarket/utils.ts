@@ -43,8 +43,9 @@ import {
   ROUNDING_CONFIG,
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -237,6 +238,68 @@ export const getOrderBook = async ({ tokenId }: { tokenId: string }) => {
   return responseData;
 };
 
+interface FeeRateResponse {
+  base_fee?: number;
+}
+
+const DEFAULT_FEE_RATE_BPS = '0';
+
+export const getFeeRateBps = async ({
+  tokenId,
+}: {
+  tokenId: string;
+}): Promise<string> => {
+  const { CLOB_ENDPOINT } = getPolymarketEndpoints();
+
+  try {
+    const response = await fetch(
+      `${CLOB_ENDPOINT}/fee-rate?token_id=${tokenId}`,
+      {
+        method: 'GET',
+      },
+    );
+
+    if (!response.ok) {
+      let errorMessage = `Request failed with status ${response.status}`;
+      const responseData = (await response.json().catch(() => undefined)) as
+        | { error?: string }
+        | undefined;
+      if (responseData?.error) {
+        errorMessage = responseData.error;
+      }
+
+      DevLogger.log('Polymarket fee-rate request failed, using zero fee', {
+        tokenId,
+        status: response.status,
+        errorMessage,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    const responseData = (await response.json()) as FeeRateResponse;
+    const baseFee = responseData.base_fee;
+    if (
+      typeof baseFee !== 'number' ||
+      !Number.isFinite(baseFee) ||
+      baseFee < 0
+    ) {
+      DevLogger.log('Polymarket fee-rate response invalid, using zero fee', {
+        tokenId,
+        baseFee,
+      });
+      return DEFAULT_FEE_RATE_BPS;
+    }
+
+    return Math.round(baseFee).toString();
+  } catch (error) {
+    DevLogger.log('Polymarket fee-rate request threw, using zero fee', {
+      tokenId,
+      error,
+    });
+    return DEFAULT_FEE_RATE_BPS;
+  }
+};
+
 export const generateSalt = (): Hex =>
   `0x${BigInt(Math.floor(Math.random() * 1000000)).toString(16)}`;
 
@@ -331,16 +394,26 @@ export const submitClobOrder = async ({
   headers,
   clobOrder,
   feeAuthorization,
+  executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+  const body: ClobOrderObject & {
+    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    executor?: string;
+    allowancesTx?: { to: string; data: string };
+  } = {
     ...clobOrder,
     feeAuthorization,
+    ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -595,7 +668,7 @@ export const parsePolymarketMarket = (
   event: PolymarketApiEvent,
 ): PredictOutcome => ({
   id: market.conditionId,
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: event.id,
   title: market.question,
   description: market.description,
@@ -658,10 +731,12 @@ export const parsePolymarketEvents = (
       return {
         id: event.id,
         slug: event.slug,
-        providerId: 'polymarket',
-        // TODO: remove this temporary fix for Super Bowl LX
-        title: event.id === '188978' ? 'Super Bowl LX' : event.title,
-        description: event.description,
+        providerId: POLYMARKET_PROVIDER_ID,
+        title: event.title,
+        // As per Polymarket's team, we should use the first market's description
+        // rather than the event's description. The event's description is not
+        // guaranteed to be accurate. They also do this on their webbsite.
+        description: event.markets?.[0]?.description ?? event.description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -669,7 +744,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -721,7 +796,7 @@ export const parsePolymarketActivity = (
 
     const parsedActivity: PredictActivity = {
       id,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       entry:
         entryType === 'claimWinnings'
           ? { type: 'claimWinnings', timestamp, amount }
@@ -790,12 +865,14 @@ export const getParsedMarketsFromPolymarketApi = async (
     const active = `active=true`;
     const archived = `archived=false`;
     const closed = `closed=false`;
-    const ascending = `ascending=false`;
+    const ascendingCategories: Set<PredictCategory> = new Set(['ending-soon']);
+    const ascending = `ascending=${ascendingCategories.has(category)}`;
     const volume = `volume_min=${10000.0}`;
     const liquidity = `liquidity_min=${10000.0}`;
 
     const categoryTagMap: Record<PredictCategory, string> = {
       trending: '&order=volume24hr',
+      'ending-soon': '&order=endDate',
       new: '&order=startDate&exclude_tag_id=102169',
       sports: '&tag_slug=sports&order=volume24hr',
       crypto: '&tag_slug=crypto&order=volume24hr',
@@ -903,7 +980,7 @@ export const parsePolymarketPositions = async ({
   const parsedPositions: PredictPosition[] = positions.map(
     (position: PolymarketPosition) => ({
       id: position.asset,
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: position.eventId,
       outcomeId: position.conditionId,
       outcome: position.outcome,
@@ -1002,7 +1079,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -1024,6 +1101,8 @@ export async function calculateFees({
       totalFee: 0,
       totalFeePercentage: 0,
       collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
     };
   }
 
@@ -1046,6 +1125,8 @@ export async function calculateFees({
     totalFee,
     totalFeePercentage,
     collector: feeCollection.collector,
+    executors: feeCollection.executors ?? [],
+    permit2Enabled: feeCollection.permit2Enabled ?? false,
   };
 }
 
@@ -1399,7 +1480,10 @@ export const previewOrder = async (
 ): Promise<OrderPreview> => {
   const { marketId, outcomeId, outcomeTokenId, side, size, feeCollection } =
     params;
-  const book = await getOrderBook({ tokenId: outcomeTokenId });
+  const [book, feeRateBps] = await Promise.all([
+    getOrderBook({ tokenId: outcomeTokenId }),
+    getFeeRateBps({ tokenId: outcomeTokenId }),
+  ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
@@ -1432,6 +1516,7 @@ export const previewOrder = async (
       tickSize: parseFloat(book.tick_size),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
+      feeRateBps,
       fees: await calculateFees({
         feeCollection,
         marketId,
@@ -1466,6 +1551,7 @@ export const previewOrder = async (
     tickSize: parseFloat(book.tick_size),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
+    feeRateBps,
     // no fees for sell orders
   };
 };

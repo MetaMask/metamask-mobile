@@ -34,6 +34,8 @@ import Toast, {
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
+import { ControllerEventToastBridge } from './ControllerEventToastBridge';
+import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
@@ -54,7 +56,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
@@ -68,6 +70,7 @@ import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
+import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -84,13 +87,13 @@ import SDKSessionModal from '../../Views/SDK/SDKSessionModal/SDKSessionModal';
 import ExperienceEnhancerModal from '../../../../app/components/Views/ExperienceEnhancerModal';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
 import OnboardingAssetsSettings from '../../Views/OnboardingSuccess/OnboardingAssetsSettings';
 import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/OnboardingSecuritySettings';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
-import ResetNotificationsModal from '../../UI/Notification/ResetNotificationsModal';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
@@ -123,6 +126,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -131,6 +135,7 @@ import { ShareAddressQR } from '../../Views/MultichainAccounts/sheets/ShareAddre
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
 import RevealSRP from '../../Views/MultichainAccounts/sheets/RevealSRP';
+import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import MultichainAccountsIntroModal from '../../Views/MultichainAccounts/IntroModal';
 import LearnMoreBottomSheet from '../../Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
@@ -142,12 +147,11 @@ import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/Mult
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
+import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
-import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
+import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
@@ -155,6 +159,7 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import { AddMpcWalletPage } from '../../Views/Mpc/AddMpcWallet';
 import { JoinMpcWalletPage } from '../../Views/Mpc/JoinMpcWallet';
 import { MpcWalletManagementPage } from '../../Views/Mpc/MpcWalletManagement';
+import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -170,10 +175,6 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
-
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
 
@@ -266,17 +267,24 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
+      component={AccountStatus}
+      initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountNotFound}
+      component={AccountStatus}
+      initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="Rehydrate"
       component={OAuthRehydration}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
+      component={WalletCreationError}
       options={{ headerShown: false }}
     />
   </Stack.Navigator>
@@ -328,10 +336,10 @@ const AddNetworkFlow = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="AddNetwork"
-        component={NetworkSettings}
+        component={NetworkDetailsView}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -370,6 +378,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.FUND_ACTION_MENU}
       component={FundActionMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
+      component={MoreTokenActionsMenu}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
@@ -451,11 +463,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={State2AccountConnectWrapper}
+      component={MultichainAccountConnect}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={BIP44AccountPermissionWrapper}
+      component={MultichainAccountPermissions}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
@@ -489,10 +501,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
       component={ConfirmTurnOnBackupAndSyncModal}
-    />
-    <Stack.Screen
-      name={Routes.SHEET.RESET_NOTIFICATIONS}
-      component={ResetNotificationsModal}
     />
     <Stack.Screen
       name={Routes.SHEET.AMBIGUOUS_ADDRESS}
@@ -599,6 +607,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TRANSACTION_DETAILS}
       component={TransactionDetailsSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.IMPORT_WALLET_TIP}
+      component={ImportWalletTipBottomSheet}
     />
   </Stack.Navigator>
 );
@@ -869,21 +881,6 @@ const ModalSwitchAccountType = () => (
   </Stack.Navigator>
 );
 
-const ModalSmartAccountOptIn = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-      cardStyle: { backgroundColor: importedColors.transparent },
-    }}
-    mode={'modal'}
-  >
-    <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={SmartAccountUpdateModal}
-    />
-  </Stack.Navigator>
-);
-
 const AppFlow = () => (
   <Stack.Navigator
     initialRouteName={Routes.FOX_LOADER}
@@ -999,6 +996,26 @@ const AppFlow = () => (
       }}
     />
     <Stack.Screen
+      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+      component={RevealPrivateCredential}
+      options={{
+        headerShown: false,
+        animationEnabled: true,
+        cardStyleInterpolator: ({ current, layouts }) => ({
+          cardStyle: {
+            transform: [
+              {
+                translateX: current.progress.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [layouts.screen.width, 0],
+                }),
+              },
+            ],
+          },
+        }),
+      }}
+    />
+    <Stack.Screen
       name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
       component={MultichainAccountActions}
     />
@@ -1063,13 +1080,21 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.ADD_NETWORK}
       component={AddNetworkFlow}
-      options={{ animationEnabled: true }}
+      options={{
+        animationEnabled: true,
+        cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+        gestureEnabled: true,
+      }}
     />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.EDIT_NETWORK}
         component={AddNetworkFlow}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+          gestureEnabled: true,
+        }}
       />
     ) : null}
     <Stack.Screen
@@ -1087,10 +1112,6 @@ const AppFlow = () => (
       component={ModalSwitchAccountType}
     />
     <Stack.Screen
-      name={Routes.SMART_ACCOUNT_OPT_IN}
-      component={ModalSmartAccountOptIn}
-    />
-    <Stack.Screen
       name={Routes.CONFIRMATION_PAY_WITH_MODAL}
       component={PayWithModal}
     />
@@ -1105,6 +1126,7 @@ const App: React.FC = () => {
   );
 
   useOTAUpdates();
+  const predictRegistrations = usePredictToastRegistrations();
 
   if (isFirstRender.current) {
     trace({
@@ -1176,9 +1198,12 @@ const App: React.FC = () => {
 
   return (
     <WebSocketHealthToastProvider>
+      {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
+      <RampsBootstrap />
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
+      <ControllerEventToastBridge registrations={predictRegistrations} />
       <ProfilerManager />
     </WebSocketHealthToastProvider>
   );

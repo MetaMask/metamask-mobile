@@ -1,7 +1,7 @@
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
+  CommonActions,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -40,25 +40,32 @@ import ListItem from '../../../../../component-library/components/List/ListItem'
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   ARBITRUM_USDC,
   PERPS_CURRENCY,
 } from '../../../../Views/confirmations/constants/perps';
-import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
-import { useAutomaticTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken';
+import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayTotals,
+} from '../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayMetrics } from '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics';
+import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { useAddToken } from '../../../../Views/confirmations/hooks/tokens/useAddToken';
+import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
+import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
@@ -77,23 +84,21 @@ import PerpsSlider from '../../components/PerpsSlider';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
-import {
   DECIMAL_PRECISION_CONFIG,
   ORDER_SLIPPAGE_CONFIG,
   PERPS_CONSTANTS,
-} from '../../constants/perpsConfig';
+  getPerpsDisplaySymbol,
+  calculateMarginRequired,
+  calculatePositionSize,
+  type InputMethod,
+  type OrderParams,
+  type OrderType,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
-import type {
-  InputMethod,
-  OrderParams,
-  OrderType,
-  PerpsNavigationParamList,
-  Position,
-} from '../../controllers/types';
 import {
   useHasExistingPosition,
   useMinimumOrderAmount,
@@ -113,16 +118,16 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsConnection } from '../../hooks/usePerpsConnection';
+import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
-import { usePerpsPaymentTokens } from '../../hooks/usePerpsPaymentTokens';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsTradeWithAnyTokenEnabledFlag,
 } from '../../selectors/featureFlags';
-import type { PerpsToken } from '../../types/perps-types';
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
@@ -130,23 +135,15 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import {
-  calculateMarginRequired,
-  calculatePositionSize,
-} from '../../utils/orderCalculations';
 import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
 } from '../../utils/tpslValidation';
-import { PerpsDepositFees } from '../../../../Views/confirmations/components/info/external/perps';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
-import { useTransactionConfirm } from '../../../../Views/confirmations/hooks/transactions/useTransactionConfirm';
-import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -166,10 +163,16 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
   // Hide TP/SL when modifying existing position
   hideTPSL?: boolean;
+  /** When true, the order was initiated from the token details screen */
+  fromTokenDetails?: boolean;
+  /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
+  assetsASSETS2493AbtestTokenDetailsLayout?: string;
 }
 
 interface PerpsOrderViewContentProps {
   hideTPSL?: boolean;
+  /** A/B test variant for token details layout */
+  routeAbTestTokenDetailsLayout?: string;
 }
 
 /**
@@ -185,12 +188,15 @@ interface PerpsOrderViewContentProps {
  */
 const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
+  routeAbTestTokenDetailsLayout,
 }) => {
   // Auto-detect source based on trending session state
   const source = TrendingFeedSessionManager.getInstance().isFromTrending
     ? 'trending'
     : undefined;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -202,14 +208,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     tokenAddress: ARBITRUM_USDC.address,
   });
 
-  useClearConfirmationOnBackSwipe();
+  // Clear confirmation when leaving the order view
+  const { onReject } = useConfirmActions();
+  useEffect(
+    () => () => {
+      onReject(undefined, true);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
-  // Disable automatic token selection - we want to show "Perps balance" by default
-  // User can explicitly select a token from the modal
-  useAutomaticTransactionPayToken({
-    disable: true, // Always disable auto-selection to show "Perps balance" by default
-    preferredToken: undefined,
-  });
   useTransactionPayMetrics();
 
   const styles = createStyles(colors);
@@ -235,12 +243,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
-  // Track if user selected a custom token (not Perps balance)
-  const [hasCustomTokenSelected, setHasCustomTokenSelected] = useState(false);
-
-  const handleCustomTokenSelected = useCallback(() => {
-    setHasCustomTokenSelected(true);
-  }, []);
+  const { payToken } = useTransactionPayToken();
+  const isPayTokenPerpsBalance = useIsPerpsBalanceSelected();
+  const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
   const { openTooltipModal } = useTooltipModal();
@@ -257,18 +262,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const orderTypeRef = useRef<OrderType>('market');
 
   const isSubmittingRef = useRef(false);
-  const hasShownSubmittedToastRef = useRef(false);
   const orderStartTimeRef = useRef<number>(0);
   const inputMethodRef = useRef<InputMethod>('default');
 
+  const { isInitialized } = usePerpsConnection();
+  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
-  // Get real HyperLiquid USDC balance
-  const availableBalance = parseFloat(
-    account?.availableBalance?.toString() || '0',
-  );
-
-  // Get order form state from context instead of hook
+  // Get order form state from context; balanceForValidation respects custom token amount when set
   const {
     orderForm,
     setAmount,
@@ -280,6 +281,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
+    balanceForValidation: availableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
@@ -352,18 +354,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [shouldOpenLimitPrice, setShouldOpenLimitPrice] = useState(false);
-  const [selectedToken, setSelectedToken] = useState<PerpsToken | undefined>(
-    undefined,
-  );
-  const [depositAmount, setDepositAmount] = useState<string>('');
 
-  // Get available payment tokens and set default if none selected
-  const paymentTokens = usePerpsPaymentTokens();
-  useEffect(() => {
-    if (!selectedToken && paymentTokens.length > 0) {
-      setSelectedToken(paymentTokens[0]);
-    }
-  }, [paymentTokens, selectedToken]);
+  const isPayRowVisible = Boolean(
+    isTradeWithAnyTokenEnabled && activeTransactionMeta,
+  );
 
   // Handle opening limit price modal after order type modal closes
   useEffect(() => {
@@ -374,20 +368,54 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [isOrderTypeVisible, shouldOpenLimitPrice]);
 
   // Track trading screen viewed event using unified declarative API (main's event name)
+  const perpsScreenViewedProps = {
+    [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
+    [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    [PERPS_EVENT_PROPERTY.DIRECTION]:
+      orderForm.direction === 'long'
+        ? PERPS_EVENT_VALUE.DIRECTION.LONG
+        : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    ...(routeAbTestTokenDetailsLayout && {
+      ab_tests: {
+        assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
+      },
+    }),
+    ...(isButtonColorTestEnabled && {
+      [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+    }),
+  };
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PERPS_EVENT_VALUE.DIRECTION.LONG
-          : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-      ...(isButtonColorTestEnabled && {
-        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
-      }),
-    },
+    properties: perpsScreenViewedProps,
   });
+
+  // Ensure oracle price (markPrice) is available for margin calculation.
+  // The PriceStreamChannel subscribes without includeMarketData, so the
+  // HyperLiquid marketDataCache has no oraclePrice and markPrice is always
+  // undefined when entering from Token Details (no prior market data sub).
+  // This subscription populates the cache for the traded asset so that
+  // subsequent allMids price updates include markPrice.
+  //
+  // We gate on isInitialized (from usePerpsConnection) so the subscription
+  // is deferred until the controller is ready. This mirrors the pattern in
+  // usePerpsPrices and avoids a silent failure that would leave markPrice
+  // undefined with no retry (the old deps would never change).
+  useEffect(() => {
+    if (!isDataReady || !isInitialized || !orderForm.asset) return;
+
+    const unsubscribe = subscribeToPrices({
+      symbols: [orderForm.asset],
+      includeMarketData: true,
+      callback: () => {
+        // No-op callback — the side effect of populating the
+        // marketDataCache with oraclePrice is all we need.
+      },
+    });
+
+    return unsubscribe;
+  }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
   // Get real-time price data using new stream architecture (deferred)
   // Uses single WebSocket subscription with component-level debouncing
@@ -439,6 +467,30 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const estimatedFees = feeResults.totalFee;
+
+  // Deposit/bridge fees from transaction pay (when paying with custom token)
+  const payTotals = useTransactionPayTotals();
+  const isPayTotalsLoading = useIsTransactionPayQuoteLoading();
+  const depositFeeUsd = useMemo(() => {
+    if (!hasCustomTokenSelected || !payTotals?.fees) return 0;
+    const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
+    return new BigNumber(provider?.usd ?? 0)
+      .plus(sourceNetwork?.estimate?.usd ?? 0)
+      .plus(targetNetwork?.usd ?? 0)
+      .toNumber();
+  }, [hasCustomTokenSelected, payTotals]);
+
+  const combinedFees = useMemo(
+    () => estimatedFees + depositFeeUsd,
+    [estimatedFees, depositFeeUsd],
+  );
+
+  const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
+  const isFeesLoading =
+    feeResults.isLoadingMetamaskFee ||
+    (hasCustomTokenSelected && isPayTotalsLoading);
+  const shouldBlockBecauseOfFeesLoading =
+    hasCustomTokenSelected && isPayTotalsLoading;
 
   // Simple boolean calculation - no need for expensive memoization
   const hasValidAmount = parseFloat(orderForm.amount) > 0;
@@ -508,9 +560,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     positionSize,
   ]);
 
-  const { updatePositionTPSL } = usePerpsTrading();
+  const hasInsufficientPayTokenBalance = useMemo(() => {
+    if (marginRequired == null || !payToken || !hasCustomTokenSelected) {
+      return false;
+    }
+    const requiredUsd = Number(marginRequired);
+    const balanceUsd = Number(payToken.balanceUsd);
+    return requiredUsd > balanceUsd;
+  }, [hasCustomTokenSelected, marginRequired, payToken]);
 
-  // Order execution using new hook
+  // Order execution using new hook. "Submitting your trade" toast is shown before execution; no separate "Order submitted" toast.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (_position) => {
@@ -532,30 +591,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         );
       },
     });
-
-  useEffect(() => {
-    if (isPlacingOrder && !hasShownSubmittedToastRef.current) {
-      showToast(
-        PerpsToastOptions.orderManagement[orderForm.type].submitted(
-          orderForm.direction,
-          positionSize,
-          orderForm.asset,
-        ),
-      );
-      hasShownSubmittedToastRef.current = true;
-    } else if (!isPlacingOrder && hasShownSubmittedToastRef.current) {
-      // Reset the flag when order placement is complete
-      hasShownSubmittedToastRef.current = false;
-    }
-  }, [
-    PerpsToastOptions.orderManagement,
-    isPlacingOrder,
-    orderForm.asset,
-    orderForm.direction,
-    orderForm.type,
-    positionSize,
-    showToast,
-  ]);
 
   // Memoize liquidation price params to prevent infinite recalculation
   const liquidationPriceParams = useMemo(() => {
@@ -580,19 +615,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     orderForm.limitPrice,
   ]);
 
-  // Prefill deposit amount with margin value when available
-  useEffect(() => {
+  const depositAmount = useMemo(() => {
     if (marginRequired !== undefined && marginRequired !== null) {
-      // Format margin to 2 decimal places for the input field
-      const formattedMargin = new BigNumber(marginRequired)
+      return new BigNumber(marginRequired)
         .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
         .toString(10);
-      setDepositAmount(formattedMargin);
     }
-    // Only depend on marginRequired and orderForm.amount
-    // depositAmount is intentionally excluded to avoid infinite loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marginRequired, orderForm.amount]);
+    return '';
+  }, [marginRequired]);
 
   // Real-time liquidation price calculation
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
@@ -774,7 +804,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   };
 
   // Clamp amount to the maximum allowed once the keypad/input is dismissed
-  // Mirrors the PerpsClosePositionView behavior where values are normalized to valid limits
+  // maxPossibleAmount from context respects selected token amount in USD when paying with custom token
   useEffect(() => {
     if (!isInputFocused) {
       // Only clamp if input was from keypad (not from percentage/slider/max)
@@ -827,9 +857,29 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         handleDepositConfirm(activeTransactionMeta, () => {
           handlePlaceOrder(true);
         });
-
         await onDepositConfirm();
-        navigation.goBack();
+        if (fromTokenDetails) {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.PERPS.MARKET_DETAILS,
+                  params: {
+                    market: navigationMarketData,
+                    monitoringIntent: {
+                      asset: orderForm.asset,
+                      monitorOrders: true,
+                      monitorPositions: true,
+                    },
+                  },
+                },
+              ],
+            }),
+          );
+        } else {
+          navigation.goBack();
+        }
         return;
       }
 
@@ -971,8 +1021,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
+            // Pay with any token: track when user paid with a custom token (not Perps balance)
+            tradeWithToken: hasCustomTokenSelected,
+            ...(hasCustomTokenSelected &&
+              payToken && {
+                mmPayTokenSelected: payToken.symbol ?? '',
+                mmPayNetworkSelected: String(payToken.chainId ?? ''),
+              }),
+            ...(routeAbTestTokenDetailsLayout && {
+              abTests: {
+                assetsASSETS2493AbtestTokenDetailsLayout:
+                  routeAbTestTokenDetailsLayout,
+              },
+            }),
           },
         };
+
+        // Persistent "Submitting your trade" toast until order completes (user can dismiss via close button or swipe)
+        showToast(PerpsToastOptions.orderManagement.shared.submitting());
 
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
@@ -1032,6 +1098,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
+      PerpsToastOptions.orderManagement.shared,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
@@ -1047,8 +1114,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       depositAmount,
       activeTransactionMeta,
       hasCustomTokenSelected,
+      payToken,
       onDepositConfirm,
       handleDepositConfirm,
+      routeAbTestTokenDetailsLayout,
+      fromTokenDetails,
     ],
   );
 
@@ -1189,9 +1259,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             <View
               style={[
                 styles.detailItem,
-                // If there are items below (limit price or TP/SL), only round top corners
+                // If there are items below (limit price, TP/SL, or Pay with), only round top corners
                 // Otherwise, round all corners
-                orderForm.type === 'limit' || !hideTPSL
+                orderForm.type === 'limit' || !hideTPSL || isPayRowVisible
                   ? styles.detailItemFirst
                   : styles.detailItemOnly,
               ]}
@@ -1236,8 +1306,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View
                 style={[
                   styles.detailItem,
-                  // If TP/SL is hidden, this is the last item so round bottom corners
-                  hideTPSL && styles.detailItemLast,
+                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
+                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
                 <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
@@ -1270,7 +1340,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             {/* Combined TP/SL row - Hidden when modifying existing position */}
             {!hideTPSL && (
-              <View style={[styles.detailItem, styles.detailItemLast]}>
+              <View
+                style={[
+                  styles.detailItem,
+                  !isPayRowVisible && styles.detailItemLast,
+                ]}
+              >
                 <TouchableOpacity
                   onPress={handleTPSLPress}
                   testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
@@ -1307,6 +1382,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     </ListItemColumn>
                   </ListItem>
                 </TouchableOpacity>
+              </View>
+            )}
+            {/* Pay with row - directly below TP/SL, same stacked box styling */}
+            {isPayRowVisible && (
+              <View style={[styles.detailItem, styles.detailItemLast]}>
+                <PerpsPayRow
+                  embeddedInStack
+                  initialAsset={orderForm.asset}
+                  onPayWithInfoPress={() => handleTooltipPress('pay_with')}
+                />
+              </View>
+            )}
+            {hasInsufficientPayTokenBalance && (
+              <View style={styles.insufficientPayTokenWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                  {strings(
+                    'perps.order.validation.insufficient_funds_to_cover_trade',
+                  )}
+                </Text>
               </View>
             )}
             {!hideTPSL && doesStopLossRiskLiquidation && (
@@ -1405,30 +1499,22 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               </TouchableOpacity>
             </View>
-            <PerpsFeesDisplay
-              feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-              formatFeeText={
-                !hasValidAmount || feeResults.isLoadingMetamaskFee
-                  ? PERPS_CONSTANTS.FallbackDataDisplay
-                  : formatPerpsFiat(estimatedFees, {
-                      ranges: PRICE_RANGES_MINIMAL_VIEW,
-                    })
-              }
-              variant={TextVariant.BodySM}
-            />
-          </View>
-
-          {isTradeWithAnyTokenEnabled &&
-            depositAmount &&
-            depositAmount.trim() !== '' &&
-            activeTransactionMeta && (
-              <View>
-                <PerpsPayRow
-                  onCustomTokenSelected={handleCustomTokenSelected}
-                />
-                {hasCustomTokenSelected ? <PerpsDepositFees /> : null}
-              </View>
+            {isFeesLoading ? (
+              <Skeleton height={16} width={60} />
+            ) : (
+              <PerpsFeesDisplay
+                feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                formatFeeText={
+                  !hasValidAmount
+                    ? PERPS_CONSTANTS.FallbackDataDisplay
+                    : formatPerpsFiat(feesToDisplay, {
+                        ranges: PRICE_RANGES_MINIMAL_VIEW,
+                      })
+                }
+                variant={TextVariant.BodyMD}
+              />
             )}
+          </View>
 
           {/* Rewards Points Estimation */}
           {rewardsState.shouldShowRewardsRow &&
@@ -1560,7 +1646,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
-                isAtOICap
+                isAtOICap ||
+                shouldBlockBecauseOfFeesLoading
               }
               loading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1579,7 +1666,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
-                isAtOICap
+                isAtOICap ||
+                shouldBlockBecauseOfFeesLoading
               }
               isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
@@ -1702,6 +1790,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   protocolFeeRate: feeResults.protocolFeeRate,
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                  ...(hasCustomTokenSelected &&
+                    depositFeeUsd > 0 && {
+                      bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {
+                        ranges: PRICE_RANGES_MINIMAL_VIEW,
+                      }),
+                    }),
                 }
               : undefined
           }
@@ -1728,6 +1822,8 @@ PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  const { payToken } = useTransactionPayToken();
+  const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
   // Get navigation params to pass to context provider
   const {
@@ -1737,7 +1833,14 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
     existingPosition,
     hideTPSL = false,
+    assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
   } = route.params || {};
+
+  const effectiveAvailableBalance = useMemo(() => {
+    if (!hasCustomTokenSelected) return undefined;
+    const amount = payToken?.balanceUsd;
+    return amount !== undefined ? Number(amount) : undefined;
+  }, [hasCustomTokenSelected, payToken?.balanceUsd]);
 
   return (
     <PerpsOrderProvider
@@ -1746,8 +1849,12 @@ const PerpsOrderView: React.FC = () => {
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
       existingPosition={existingPosition}
+      effectiveAvailableBalance={effectiveAvailableBalance}
     >
-      <PerpsOrderViewContent hideTPSL={hideTPSL} />
+      <PerpsOrderViewContent
+        hideTPSL={hideTPSL}
+        routeAbTestTokenDetailsLayout={routeAbTestTokenDetailsLayout}
+      />
     </PerpsOrderProvider>
   );
 };

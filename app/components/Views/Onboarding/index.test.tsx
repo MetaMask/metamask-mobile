@@ -22,6 +22,12 @@ jest.mock('../../../core/BackupVault', () => ({
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 
+jest.mock('react-native-elevated-view', () => ({
+  __esModule: true,
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  default: jest.requireActual('react-native').View,
+}));
+
 import React from 'react';
 import {
   InteractionManager,
@@ -61,6 +67,9 @@ jest.mock('../../../util/test/utils', () => ({
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+
+// Helper to flush all pending promises
+const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
 
 const mockInitialState = {
   engine: {
@@ -154,8 +163,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
-    optIn: jest.fn(),
-    optOut: jest.fn(),
+    optIn: jest.fn().mockResolvedValue(undefined),
+    optOut: jest.fn().mockResolvedValue(undefined),
     getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
     identify: jest.fn(),
     trackView: jest.fn(),
@@ -163,16 +172,8 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock MetaMetrics for data deletion methods still used by useMetrics
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  }),
+  getInstance: () => ({}),
   MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
     .MetaMetricsEvents,
 }));
@@ -195,6 +196,29 @@ interface MetricsProps {
 import { analytics } from '../../../util/analytics/analytics';
 
 const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
+
+// Mock useAnalytics hook to use our mocked analytics
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockAnalytics.trackEvent,
+    enable: async (enable?: boolean) => {
+      if (enable === false) {
+        await mockAnalytics.optOut();
+      } else {
+        await mockAnalytics.optIn();
+      }
+    },
+    addTraitsToUser: mockAnalytics.identify,
+    createDataDeletionTask: jest.fn(),
+    checkDataDeleteStatus: jest.fn(),
+    getDeleteRegulationCreationDate: jest.fn(),
+    getDeleteRegulationId: jest.fn(),
+    isDataRecorded: jest.fn(),
+    isEnabled: mockAnalytics.isEnabled,
+    getAnalyticsId: mockAnalytics.getAnalyticsId,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock(
   '../../hooks/useMetrics/withMetricsAwareness',
@@ -234,6 +258,11 @@ const mockNav = {
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  dispatch: jest.fn((action) => {
+    if (action.type === 'REPLACE') {
+      mockReplace(action.payload.name, action.payload.params);
+    }
+  }),
 };
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
@@ -595,21 +624,23 @@ describe('Onboarding', () => {
 
       await act(async () => {
         fireEvent.press(importSeedButton);
+        await flushPromises();
+        await flushPromises();
       });
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.objectContaining({
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            onboardingTraceCtx: expect.any(Object),
+          }),
+        );
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-        expect.objectContaining({
-          [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: expect.any(Object),
-        }),
-      );
-
-      expect(mockAnalytics.optOut).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockAnalytics.optOut).toHaveBeenCalled();
+      });
     });
   });
 
@@ -636,7 +667,10 @@ describe('Onboarding', () => {
       });
 
       expect(Authentication.resetVault).toHaveBeenCalled();
-      expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.ONBOARDING.HOME_NAV,
+        undefined,
+      );
     });
 
     it('navigates to LOGIN when unlock is pressed and password is set', async () => {
@@ -1450,6 +1484,62 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
     });
 
+    it('attempts browser fallback when no provider dependencies found in Android', async () => {
+      Platform.OS = 'android';
+      const noProviderDepsError = new OAuthError(
+        '',
+        OAuthErrorType.GoogleLoginNoProviderDependencies,
+      );
+      const fallbackError = new OAuthError('', OAuthErrorType.GoogleLoginError);
+
+      mockCreateLoginHandler
+        .mockReturnValueOnce('mockGoogleHandler')
+        .mockReturnValueOnce('mockGoogleFallbackHandler');
+      mockOAuthService.handleOAuthLogin
+        .mockRejectedValueOnce(noProviderDepsError)
+        .mockRejectedValueOnce(fallbackError);
+
+      mockNavigate.mockClear();
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      // Verify fallback was attempted
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        true,
+      );
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
+
+      Platform.OS = 'ios';
+    });
+
     it('wraps non-OAuthError from browser fallback as OAuthError with UnknownError type', async () => {
       Platform.OS = 'android';
       // Analytics disabled triggers ErrorBoundary flow with trackEvent
@@ -1500,17 +1590,21 @@ describe('Onboarding', () => {
       mockNavigate.mockClear();
       await act(async () => {
         await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
       });
 
       // Verify fallback was attempted
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
       // Verify error is handled via ErrorBoundary flow (triggers trackEvent with Error Screen Viewed)
-      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
 
       Platform.OS = 'ios';
     });
@@ -1548,9 +1642,13 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
       });
 
-      expect(mockAnalytics.optIn).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockAnalytics.optIn).toHaveBeenCalled();
+      });
     });
   });
 
@@ -2007,13 +2105,17 @@ describe('Onboarding', () => {
 
       await act(async () => {
         await appleOAuthFunction(false);
+        await flushPromises();
+        await flushPromises();
       });
 
-      expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
-      );
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
     });
 
     it('does not trigger ErrorBoundary for OAuth login failures when analytics enabled', async () => {
@@ -2049,11 +2151,62 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockAnalytics.trackEvent).not.toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          name: 'Error Screen Viewed',
-        }),
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).not.toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            name: 'Error Screen Viewed',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('Error Report Sent Notification', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockRoute.params = { showErrorReportSentToast: true };
+    });
+
+    afterEach(() => {
+      jest.runOnlyPendingTimers();
+      jest.useRealTimers();
+      mockRoute.params = {};
+    });
+
+    it('displays notification when showErrorReportSentToast param is true', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
       );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByText('Error report sent')).toBeTruthy();
+    });
+
+    it('displays notification description when showErrorReportSentToast param is true', async () => {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(
+        getByText(
+          "We're investigating this problem. Try creating your wallet again.",
+        ),
+      ).toBeTruthy();
     });
   });
 });

@@ -27,7 +27,9 @@ import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
+import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
+import Cashback from '../Views/Cashback/Cashback';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -95,7 +97,12 @@ export const cardSpendingLimitNavigationOptions = ({
           style={headerStyle.icon}
           size={ButtonIconSize.Md}
           iconName={IconName.Close}
-          onPress={() => navigation.navigate(Routes.CARD.HOME)}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.HOME }],
+            })
+          }
         />
       ) : (
         <View />
@@ -169,6 +176,11 @@ const MainRoutes = () => {
         options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
+        name={Routes.CARD.CASHBACK}
+        component={Cashback}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
         options={cardDefaultNavigationOptions}
@@ -219,6 +231,10 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.DAIMO_PAY}
       component={DaimoPayModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.VIEW_PIN}
+      component={ViewPinBottomSheet}
     />
   </ModalsStack.Navigator>
 );

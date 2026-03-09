@@ -59,6 +59,7 @@ import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
 } from './controllers/core-backend';
+import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
 import { backupVault } from '../BackupVault';
 import {
@@ -89,7 +90,7 @@ import { multichainAssetsControllerInit } from './controllers/multichain-assets-
 import { multichainAssetsRatesControllerInit } from './controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring-builder-init';
+import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -143,7 +144,7 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { keyringControllerInit } from './controllers/keyring-controller-init';
+import { keyringControllerInit } from './controllers/keyring-controller/keyring-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -164,7 +165,7 @@ import { rewardsDataServiceInit } from './controllers/rewards-data-service-init'
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { errorReportingServiceInit } from './controllers/error-reporting-service-init';
-import { storageServiceInit } from './controllers/storage-service-init';
+import { storageServiceInit } from './controllers/storage-service/storage-service-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
@@ -175,6 +176,9 @@ import { profileMetricsControllerInit } from './controllers/profile-metrics-cont
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
+import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
+import { cardControllerInit } from './controllers/card-controller';
+import { transakServiceInit } from './controllers/ramps-controller/transak-service-init';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -328,9 +332,9 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
+        SnapsRegistry: snapsRegistryInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
-        SnapsRegistry: snapsRegistryInit,
         NotificationServicesController: notificationServicesControllerInit,
         NotificationServicesPushController:
           notificationServicesPushControllerInit,
@@ -353,6 +357,7 @@ export class Engine {
         SamplePetnamesController: samplePetnamesControllerInit,
         ///: END:ONLY_INCLUDE_IF
         PerpsController: perpsControllerInit,
+        AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -364,7 +369,10 @@ export class Engine {
         ProfileMetricsService: profileMetricsServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
+        TransakService: transakServiceInit,
         RampsController: rampsControllerInit,
+        AiDigestController: aiDigestControllerInit,
+        CardController: cardControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -402,7 +410,10 @@ export class Engine {
     const profileMetricsController = controllersByName.ProfileMetricsController;
     const profileMetricsService = controllersByName.ProfileMetricsService;
     const rampsService = controllersByName.RampsService;
+    const transakService = controllersByName.TransakService;
     const rampsController = controllersByName.RampsController;
+    const aiDigestController = controllersByName.AiDigestController;
+    const cardController = controllersByName.CardController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -493,6 +504,7 @@ export class Engine {
       AppMetadataController: controllersByName.AppMetadataController,
       ConnectivityController: connectivityController,
       AssetsContractController: assetsContractController,
+      AssetsController: controllersByName.AssetsController,
       NftController: nftController,
       TokensController: tokensController,
       TokenListController: tokenListController,
@@ -557,7 +569,10 @@ export class Engine {
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
       RampsService: rampsService,
+      TransakService: transakService,
       RampsController: rampsController,
+      AiDigestController: aiDigestController,
+      CardController: cardController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1280,6 +1295,7 @@ export default {
       ApprovalController,
       BridgeController,
       BridgeStatusController,
+      CardController,
       ConnectivityController,
       CurrencyRateController,
       DeFiPositionsController,
@@ -1313,6 +1329,7 @@ export default {
       TransactionController,
       TransactionPayController,
       RampsController,
+      AiDigestController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController,
       CronjobController,
@@ -1344,6 +1361,7 @@ export default {
       AppMetadataController: AppMetadataController.state,
       AnalyticsController: AnalyticsController.state,
       ApprovalController: ApprovalController.state,
+      AssetsController: instance.context.AssetsController.state,
       BridgeController: BridgeController.state,
       BridgeStatusController: BridgeStatusController.state,
       ConnectivityController: ConnectivityController.state,
@@ -1380,6 +1398,8 @@ export default {
       TransactionController: TransactionController.state,
       TransactionPayController: TransactionPayController.state,
       RampsController: RampsController.state,
+      AiDigestController: AiDigestController.state,
+      CardController: CardController.state,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       AuthenticationController: AuthenticationController.state,
       CronjobController: CronjobController.state,

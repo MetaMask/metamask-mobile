@@ -2,16 +2,20 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { LocalNodeType, TestSuiteParams } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
-import { SmokePerps } from '../../../e2e/tags';
-import { loginToApp } from '../../../e2e/viewHelper';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { SmokePerps } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
-import PerpsTabView from '../../../e2e/pages/Perps/PerpsTabView';
+import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
-import WalletView from '../../../e2e/pages/wallet/WalletView';
-import PerpsDepositView from '../../../e2e/pages/Perps/PerpsDepositView';
+import WalletView from '../../page-objects/wallet/WalletView';
+import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
-import ToastModal from '../../../e2e/pages/wallet/ToastModal';
+import ToastModal from '../../page-objects/wallet/ToastModal';
 import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
 
@@ -65,7 +69,13 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer) => {
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
+        },
         useCommandQueueServer: true,
         localNodeOptions: [
           {

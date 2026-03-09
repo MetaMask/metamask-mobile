@@ -14,7 +14,7 @@ import dismissKeyboard from 'react-native/Libraries/Utilities/dismissKeyboard';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import HeaderCenter from '../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
 const ROW_HEIGHT = 35;
 const createStyles = (colors) =>
@@ -182,7 +182,10 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <HeaderCenter title={this.props.label} onClose={this.hidePicker} />
+            <HeaderCompactStandard
+              title={this.props.label}
+              onClose={this.hidePicker}
+            />
             <ScrollView style={styles.list} ref={this.scrollView}>
               <View style={styles.listWrapper}>
                 {this.props.options.map((option) => (

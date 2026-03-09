@@ -72,6 +72,11 @@ jest.mock('../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+const mockCaptureException = jest.fn();
+jest.mock('@sentry/react-native', () => ({
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
+}));
+
 jest.mock('../../../util/termsOfUse/termsOfUse', () => ({
   __esModule: true,
   default: jest.fn().mockResolvedValue(undefined),
@@ -1614,26 +1619,21 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(confirmButton);
     });
 
-    it('handles rejected OS biometric prompt successfully', async () => {
+    it('reports to Sentry when wallet import fails with metrics enabled', async () => {
       mockIsEnabled.mockReturnValue(true);
-      const mockComponentAuthenticationType = jest
+      mockCaptureException.mockClear();
+
+      jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        })
-        .mockResolvedValueOnce({
-          // Mock second call in handleRejectedOsBiometricPrompt
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      const mockNewWalletAndRestore = jest
+
+      const importError = new Error('Wallet import failed');
+      jest
         .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(
-          new Error('The user name or passphrase you entered is not correct.'),
-        )
-        // Mock second call in handleRejectedOsBiometricPrompt
-        .mockResolvedValueOnce();
+        .mockRejectedValueOnce(importError);
 
       const { getByTestId } = await renderCreatePasswordUI();
 
@@ -1649,47 +1649,37 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmButton = getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
+
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       fireEvent.press(learnMoreCheckbox);
       fireEvent.press(confirmButton);
 
-      await act(async () => Promise.resolve());
-
-      expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        1,
-        true,
-        false,
-      );
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        2,
-        false,
-        false,
-      );
-      expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockCaptureException).toHaveBeenCalledWith(importError, {
+          tags: {
+            view: 'ImportFromSecretRecoveryPhrase',
+            context: 'Wallet import failed - auto reported',
+          },
+        });
+      });
     });
 
-    it('handles rejected OS biometric prompt with error', async () => {
-      mockIsEnabled.mockReturnValue(true);
-      const mockComponentAuthenticationType = jest
+    it('does not report to Sentry when wallet import fails with metrics disabled', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      mockCaptureException.mockClear();
+
+      jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        })
-        .mockResolvedValueOnce({
-          // Mock second call in handleRejectedOsBiometricPrompt
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      const mockNewWalletAndRestore = jest
+
+      const importError = new Error('Wallet import failed');
+      jest
         .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(
-          new Error('The user name or passphrase you entered is not correct.'),
-        )
-        // Mock second call in handleRejectedOsBiometricPrompt: this should also fail
-        .mockRejectedValueOnce(new Error('Wallet creation failed'));
+        .mockRejectedValueOnce(importError);
 
       const { getByTestId } = await renderCreatePasswordUI();
 
@@ -1705,25 +1695,15 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       const confirmButton = getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
+
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
       fireEvent.press(learnMoreCheckbox);
       fireEvent.press(confirmButton);
 
-      await act(async () => Promise.resolve());
-
-      expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        1,
-        true,
-        false,
-      );
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        2,
-        false,
-        false,
-      );
-      expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
+      await waitFor(() => {
+        expect(mockCaptureException).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -1837,7 +1817,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
-    it('traces error when wallet import fails with onboardingTraceCtx', async () => {
+    it('traces error and reports to Sentry when wallet import fails with onboardingTraceCtx', async () => {
+      mockIsEnabled.mockReturnValue(true);
+      mockCaptureException.mockClear();
       const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
       const testError = new Error('Authentication failed');
 
@@ -1881,6 +1863,13 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           });
           expect(mockEndTrace).toHaveBeenCalledWith({
             name: TraceName.OnboardingPasswordSetupError,
+          });
+
+          expect(mockCaptureException).toHaveBeenCalledWith(testError, {
+            tags: {
+              view: 'ImportFromSecretRecoveryPhrase',
+              context: 'Wallet import failed - auto reported',
+            },
           });
         },
         { timeout: 3000 },
@@ -1929,6 +1918,45 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           name: TraceName.OnboardingPasswordSetupError,
         });
       });
+    });
+
+    it('does not report to Sentry when wallet import fails with metrics disabled', async () => {
+      mockIsEnabled.mockReturnValue(false);
+      mockCaptureException.mockClear();
+      const testError = new Error('Authentication failed');
+
+      const mockComponentAuthenticationType = jest.spyOn(
+        Authentication,
+        'componentAuthenticationType',
+      );
+      mockComponentAuthenticationType.mockRejectedValueOnce(testError);
+
+      const { getByTestId } = await renderCreatePasswordUI();
+
+      const passwordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, 'StrongPass123!');
+      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
+      fireEvent.press(learnMoreCheckbox);
+
+      const importButton = getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      fireEvent.press(importButton);
+
+      await waitFor(() => {
+        expect(mockCaptureException).not.toHaveBeenCalled();
+      });
+
+      mockIsEnabled.mockReturnValue(true);
     });
   });
 

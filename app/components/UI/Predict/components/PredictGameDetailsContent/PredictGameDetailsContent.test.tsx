@@ -1,8 +1,10 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -163,7 +165,7 @@ const mockBaseGame = {
     id: 'team-home',
     name: 'Team A',
     abbreviation: 'TA',
-    color: '#FF0000',
+    color: TEST_HEX_COLORS.PURE_RED,
     alias: 'Team A',
     logo: 'https://example.com/logo-a.png',
   },
@@ -171,7 +173,7 @@ const mockBaseGame = {
     id: 'team-away',
     name: 'Team B',
     abbreviation: 'TB',
-    color: '#0000FF',
+    color: TEST_HEX_COLORS.PURE_BLUE,
     alias: 'Team B',
     logo: 'https://example.com/logo-b.png',
   },
@@ -191,7 +193,7 @@ const createMockMarket = (
     title: 'Test Game Market',
     description: 'Test description',
     image: 'https://example.com/image.png',
-    providerId: 'polymarket',
+    providerId: POLYMARKET_PROVIDER_ID,
     status: PredictMarketStatus.OPEN,
     category: 'sports',
     tags: ['NFL'],

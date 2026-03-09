@@ -13,7 +13,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import { strings } from '../../../../../../locales/i18n';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -24,7 +28,10 @@ import {
 } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
-import { INITIAL_AMOUNT_UI_PROGRESS } from '../../constants/hyperLiquidConfig';
+import {
+  INITIAL_AMOUNT_UI_PROGRESS,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
@@ -33,7 +40,6 @@ import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
 }
@@ -63,6 +69,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Get withdrawal requests filtered by current account using memoized selector
   const withdrawalRequests = useSelector(
@@ -210,16 +217,18 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               </Text>
               {/* Only show dollar value when there's a single transaction in progress */}
               {shouldShowDollarAmount && (
-                <Text
+                <SensitiveText
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Default}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
                 >
                   {isOnlyDepositInProgress && transactionAmountWei
                     ? convertPerpsAmountToUSD(transactionAmountWei)
                     : isOnlyWithdrawalInProgress && withdrawalAmount
                       ? convertPerpsAmountToUSD(withdrawalAmount)
                       : null}
-                </Text>
+                </SensitiveText>
               )}
             </Box>
           </Box>
@@ -233,28 +242,39 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         ) : (
           <Box twClassName="px-4 pt-4 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
-              <Text
+              <SensitiveText
                 variant={TextVariant.DisplayMD}
                 color={TextColor.Default}
                 testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
               >
                 {formatPerpsFiat(totalBalance)}
-              </Text>
+              </SensitiveText>
             </Animated.View>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
               style={tw.style('mt-1')}
               testID={
                 PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
               }
             >
-              {formatPerpsFiat(availableBalance, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-                stripTrailingZeros: false,
-              })}{' '}
-              {strings('perps.available')}
-            </Text>
+              <SensitiveText
+                variant={TextVariant.BodyMD}
+                color={TextColor.Alternative}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+              >
+                {formatPerpsFiat(availableBalance, {
+                  ranges: PRICE_RANGES_MINIMAL_VIEW,
+                  stripTrailingZeros: false,
+                })}
+              </SensitiveText>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {' '}
+                {strings('perps.available')}
+              </Text>
+            </Box>
             {/* Action Buttons */}
             {showActionButtons && (
               <Box

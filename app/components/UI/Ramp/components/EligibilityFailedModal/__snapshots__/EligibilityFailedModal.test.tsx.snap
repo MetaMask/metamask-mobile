@@ -319,7 +319,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             "alignItems": "center",
                             "flexDirection": "row",
                             "gap": 16,
-                            "height": 56,
+                            "minHeight": 56,
                           },
                           false,
                           {
@@ -352,9 +352,9 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Bold",
-                              "fontSize": 18,
+                              "fontSize": 20,
                               "letterSpacing": 0,
                               "lineHeight": 24,
                             }
@@ -387,7 +387,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                             testID="bottomsheetheader-close-button"
                           >
                             <SvgMock
-                              color="#121314"
+                              color="#131416"
                               fill="currentColor"
                               height={24}
                               name="Close"
@@ -415,7 +415,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#686e7d",
+                            "color": "#66676a",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -446,7 +446,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           {
                             "alignItems": "center",
                             "alignSelf": "stretch",
-                            "backgroundColor": "#3c4d9d0f",
+                            "backgroundColor": "#b4b4b528",
                             "borderColor": "transparent",
                             "borderRadius": 12,
                             "borderWidth": 1,
@@ -462,7 +462,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Medium",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -484,7 +484,7 @@ exports[`EligibilityFailedModal renders modal with title and description 1`] = `
                           {
                             "alignItems": "center",
                             "alignSelf": "stretch",
-                            "backgroundColor": "#121314",
+                            "backgroundColor": "#131416",
                             "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,

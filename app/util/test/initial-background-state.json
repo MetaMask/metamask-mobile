@@ -461,6 +461,13 @@
     "pendingApprovalCount": 0,
     "approvalFlows": []
   },
+  "AssetsController": {
+    "assetPreferences": {},
+    "assetsBalance": {},
+    "assetsInfo": {},
+    "assetsPrice": {},
+    "customAssets": {}
+  },
   "PermissionController": {
     "subjects": {}
   },
@@ -507,7 +514,10 @@
       "direction": "desc"
     },
     "hip3ConfigVersion": 0,
-    "perpsBalances": {}
+    "perpsBalances": {},
+    "selectedPaymentToken": null,
+    "cachedMarketDataByProvider": {},
+    "cachedUserDataByProvider": {}
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -664,6 +674,13 @@
   "BridgeStatusController": {
     "txHistory": {}
   },
+  "CardController": {
+    "selectedCountry": null,
+    "activeProviderId": null,
+    "isAuthenticated": false,
+    "cardholderAccounts": [],
+    "providerData": {}
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -733,17 +750,20 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
+    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
+    "campaigns": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
     "subscriptionReferralDetails": {},
-    "subscriptions": {}
+    "subscriptions": {},
+    "rewardsEnvUrl": null
   },
   "PredictController": {
-    "eligibility": {},
+    "eligibility": { "eligible": false },
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "balances": {},
@@ -751,6 +771,10 @@
     "pendingDeposits": {},
     "withdrawTransaction": null,
     "accountMeta": {}
+  },
+  "AiDigestController": {
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,
@@ -778,12 +802,30 @@
       "isLoading": false,
       "error": null
     },
-    "quotes": {
-      "data": null,
-      "selected": null,
-      "isLoading": false,
-      "error": null
+    "nativeProviders": {
+      "transak": {
+        "buyQuote": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "isAuthenticated": false,
+        "kycRequirement": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        },
+        "userDetails": {
+          "data": null,
+          "selected": null,
+          "isLoading": false,
+          "error": null
+        }
+      }
     },
-    "requests": {}
+    "requests": {},
+    "orders": []
   }
 }

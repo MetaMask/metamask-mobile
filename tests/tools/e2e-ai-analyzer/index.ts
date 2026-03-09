@@ -5,19 +5,14 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs } from './types';
+import { ParsedArgs, AnalysisContext } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
   getPRFiles,
   validatePRNumber,
 } from './utils/git-utils';
-import {
-  MODES,
-  validateMode,
-  analyzeWithAgent,
-  AnalysisContext,
-} from './analysis/analyzer';
+import { MODES, validateMode, analyzeWithAgent } from './analysis/analyzer';
 import { identifyCriticalFiles } from './utils/file-utils';
 import {
   createProvider,
@@ -309,7 +304,12 @@ async function main() {
       console.log(`   ✅ ${provider.displayName} is available`);
       availableProviders.push({ type: providerType, provider });
     } else {
-      console.log(`   ❌ ${provider.displayName} is not available`);
+      const envKey = LLM_CONFIG.providers[providerType].envKey;
+      const hasKey = !!process.env[envKey];
+      const reason = hasKey
+        ? 'API call failed (see warning above)'
+        : `missing ${envKey}`;
+      console.log(`   ❌ ${provider.displayName} is not available — ${reason}`);
     }
   }
 

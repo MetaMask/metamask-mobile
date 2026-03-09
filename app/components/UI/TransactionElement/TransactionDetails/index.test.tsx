@@ -1,6 +1,6 @@
 import React from 'react';
 import { query } from '@metamask/controller-utils';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import TransactionDetails from './';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -348,7 +348,58 @@ describe('TransactionDetails', () => {
     });
   });
 
-  it('should render speed up and cancel buttons', async () => {
+  it('should display explorer link for arbitrum (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0xa4b1';
+      },
+      buttonText: 'View on Arbiscan',
+      expectedUrl: 'https://arbiscan.io/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for polygon (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x89';
+      },
+      buttonText: 'View on Polygonscan',
+      expectedUrl: 'https://polygonscan.com/tx/0x3',
+    });
+  });
+
+  it('should display explorer link for bnb chain (popular network not in networkConfigurations)', () => {
+    arrangeActAssertBlockExplorerTest({
+      overrideMocks: (mocks) => {
+        mocks.mockState.engine.backgroundState.NetworkController =
+          mockNetworkState({
+            chainId: '0x1',
+            id: 'mainnet',
+            nickname: 'Ethereum Mainnet',
+            ticker: 'ETH',
+          });
+        mocks.mockProps.networkId = '0x38';
+      },
+      buttonText: 'View on Bscscan',
+      expectedUrl: 'https://bscscan.com/tx/0x3',
+    });
+  });
+
+  it('renders speed up and cancel buttons', async () => {
     const { getByText } = renderComponent({
       state: {
         ...initialState,
@@ -369,14 +420,8 @@ describe('TransactionDetails', () => {
       status: 'submitted',
     });
 
-    await waitFor(() => {
-      const speedUpButton = getByText('Speed up');
-      expect(speedUpButton).toBeDefined();
-      const cancelButton = getByText('Cancel');
-      expect(cancelButton).toBeDefined();
-      fireEvent.press(speedUpButton);
-      fireEvent.press(cancelButton);
-    });
+    expect(getByText('Speed up')).toBeOnTheScreen();
+    expect(getByText('Cancel')).toBeOnTheScreen();
   });
 
   it('should render `Batched transactions` tag if there are nested transactions', async () => {

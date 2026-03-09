@@ -45,6 +45,7 @@ import {
   DeFiPositionsControllerState,
   DeFiPositionsControllerEvents,
   DeFiPositionsControllerActions,
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesControllerState,
   MultichainBalancesController,
@@ -67,6 +68,12 @@ import {
   TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+import {
+  AssetsController,
+  AssetsControllerActions,
+  AssetsControllerEvents,
+  AssetsControllerState,
+} from '@metamask/assets-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   MultichainTransactionsController,
@@ -127,6 +134,9 @@ import {
   RampsService,
   RampsServiceActions,
   RampsServiceEvents,
+  TransakService,
+  TransakServiceActions,
+  TransakServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -297,7 +307,7 @@ import {
   PerpsControllerState,
   PerpsControllerActions,
   PerpsControllerEvents,
-} from '../../components/UI/Perps/controllers/PerpsController';
+} from '@metamask/perps-controller';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
 import {
   RewardsDataService,
@@ -314,6 +324,12 @@ import {
   PredictControllerActions,
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
+import { CardController } from './controllers/card-controller/CardController';
+import type {
+  CardControllerState,
+  CardControllerActions,
+  CardControllerEvents,
+} from './controllers/card-controller/types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -398,6 +414,12 @@ import {
   TransactionPayControllerActions,
   TransactionPayControllerEvents,
 } from '@metamask/transaction-pay-controller/dist/types.cjs';
+import {
+  AiDigestController,
+  AiDigestControllerActions,
+  AiDigestControllerEvents,
+  AiDigestControllerState,
+} from '@metamask/ai-controllers';
 
 /**
  * Controllers that area always instantiated
@@ -445,6 +467,7 @@ type GlobalActions =
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerActions
+  | AssetsControllerActions
   | NftControllerActions
   | SwapsControllerActions
   | AddressBookControllerActions
@@ -501,6 +524,7 @@ type GlobalActions =
   | EarnControllerActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CardControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -514,13 +538,16 @@ type GlobalActions =
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
   | RampsControllerActions
-  | RampsServiceActions;
+  | RampsServiceActions
+  | AiDigestControllerActions
+  | TransakServiceActions;
 
 type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | AccountTrackerControllerEvents
+  | AssetsControllerEvents
   | NftControllerEvents
   | SwapsControllerEvents
   | AddressBookControllerEvents
@@ -578,6 +605,7 @@ type GlobalEvents =
   | EarnControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CardControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -588,7 +616,9 @@ type GlobalEvents =
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
   | RampsControllerEvents
-  | RampsServiceEvents;
+  | RampsServiceEvents
+  | AiDigestControllerEvents
+  | TransakServiceEvents;
 
 /**
  * Type definition for the messenger used in the Engine.
@@ -634,6 +664,7 @@ export type Controllers = {
   ConnectivityController: ConnectivityController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
+  AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
@@ -696,6 +727,7 @@ export type Controllers = {
   EarnController: EarnController;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CardController: CardController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -704,6 +736,8 @@ export type Controllers = {
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
   RampsService: RampsService;
+  AiDigestController: AiDigestController;
+  TransakService: TransakService;
 };
 
 /**
@@ -720,6 +754,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
   NftController: NftControllerState;
@@ -773,6 +808,7 @@ export type EngineState = {
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
+  CardController: CardControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -781,6 +817,7 @@ export type EngineState = {
   GatorPermissionsController: GatorPermissionsControllerState;
   DelegationController: DelegationControllerState;
   ProfileMetricsController: ProfileMetricsControllerState;
+  AiDigestController: AiDigestControllerState;
 };
 
 /** Controller names */
@@ -815,6 +852,7 @@ export type ControllersToInitialize =
   | 'AccountTrackerController'
   | 'AddressBookController'
   | 'AssetsContractController'
+  | 'AssetsController'
   | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'AuthenticationController'
@@ -873,6 +911,7 @@ export type ControllersToInitialize =
   | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CardController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -881,12 +920,14 @@ export type ControllersToInitialize =
   | 'RewardsDataService'
   | 'RampsController'
   | 'RampsService'
+  | 'TransakService'
   | 'GatorPermissionsController'
   | 'DelegationController'
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
-  | 'AnalyticsController';
+  | 'AnalyticsController'
+  | 'AiDigestController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

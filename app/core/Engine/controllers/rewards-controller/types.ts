@@ -2,8 +2,13 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+
+/**
+ * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
+ */
+export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
 
 export interface LoginResponseDto {
   sessionId: string;
@@ -73,6 +78,88 @@ export interface ApplyReferralDto {
    */
   referralCode: string;
 }
+
+export interface ApplyBonusCodeDto {
+  /**
+   * The bonus code to apply
+   * @example 'BNS123'
+   */
+  bonusCode: string;
+}
+
+/**
+ * Campaign type enum matching the backend CampaignType
+ */
+export enum CampaignType {
+  ONDO_HOLDING = 'ONDO_HOLDING',
+}
+
+/**
+ * DTO for campaign data from the backend
+ */
+export interface CampaignDto {
+  /**
+   * The unique identifier of the campaign
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The type of campaign
+   * @example CampaignType.ONDO_HOLDING
+   */
+  type: CampaignType;
+
+  /**
+   * The name of the campaign
+   * @example 'ONDO Holding Campaign'
+   */
+  name: string;
+
+  /**
+   * The start date of the campaign
+   * @example '2024-01-01T00:00:00.000Z'
+   */
+  startDate: string;
+
+  /**
+   * The end date of the campaign
+   * @example '2024-12-31T23:59:59.999Z'
+   */
+  endDate: string;
+
+  /**
+   * Terms and conditions content from Contentful (may be null)
+   */
+  termsAndConditions: Json | null;
+
+  /**
+   * Regions excluded from this campaign
+   * @example ['US', 'GB']
+   */
+  excludedRegions: string[];
+
+  /**
+   * Status label for the campaign
+   * @example 'Active'
+   */
+  statusLabel: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignsState = {
+  campaigns: {
+    id: string;
+    type: CampaignType;
+    name: string;
+    startDate: string;
+    endDate: string;
+    termsAndConditions: Json | null;
+    excludedRegions: string[];
+    statusLabel: string;
+  }[];
+  lastFetched: number;
+};
 
 /**
  * DTO for snapshot data from the backend
@@ -443,6 +530,17 @@ export interface MusdDepositEventPayload {
 }
 
 /**
+ * Bonus code event payload
+ */
+export interface BonusCodeEventPayload {
+  /**
+   * Bonus code
+   * @example 'BNS123'
+   */
+  code: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -516,6 +614,7 @@ export type PointsEventDto = BasePointsEventDto &
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
         payload: null;
       }
+    | { type: 'BONUS_CODE'; payload: BonusCodeEventPayload | null }
     | { type: string; payload: Record<string, string> | null }
   );
 
@@ -613,6 +712,7 @@ export interface SeasonDto {
   endDate: Date;
   tiers: SeasonTierDto[];
   activityTypes: SeasonActivityTypeDto[];
+  waysToEarn: SeasonWayToEarnDto[];
   shouldInstallNewVersion?: string | undefined;
 }
 
@@ -750,6 +850,7 @@ export type SeasonDtoState = {
   endDate: number; // timestamp
   tiers: SeasonTierDtoState[];
   activityTypes: SeasonActivityTypeDto[];
+  waysToEarn: SeasonWayToEarnDto[];
   lastFetched?: number;
   shouldInstallNewVersion?: string | undefined;
 };
@@ -762,7 +863,7 @@ export type SeasonStatusBalanceDtoState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SeasonTierState = {
-  currentTier: SeasonTierDtoState;
+  currentTier: SeasonTierDtoState | null;
   nextTier: SeasonTierDtoState | null;
   nextTierPointsNeeded: number | null;
 };
@@ -806,6 +907,12 @@ export type UnlockedRewardsState = {
       data: RewardClaimData;
     };
   }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OffDeviceSubscriptionAccountsState = {
+  accounts: string[];
   lastFetched: number;
 };
 
@@ -1166,6 +1273,10 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
+  offDeviceSubscriptionAccounts: {
+    [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
+  };
+  campaigns: { [subscriptionId: string]: CampaignsState };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1173,6 +1284,8 @@ export type RewardsControllerState = {
    * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
    */
   pointsEstimateHistory: PointsEstimateHistoryEntryState[];
+  /** Manually selected rewards API URL override; null means use the build default */
+  rewardsEnvUrl: string | null;
 };
 
 /**
@@ -1408,6 +1521,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for validating bonus codes
+ */
+export interface RewardsControllerValidateBonusCodeAction {
+  type: 'RewardsController:validateBonusCode';
+  handler: (code: string, subscriptionId: string) => Promise<boolean>;
+}
+
+/**
  * Action for checking if an account supports opt-in
  */
 export interface RewardsControllerIsOptInSupportedAction {
@@ -1488,11 +1609,27 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
+ * Action for getting campaigns
+ */
+export interface RewardsControllerGetCampaignsAction {
+  type: 'RewardsController:getCampaigns';
+  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
+}
+
+/**
  * Action for getting snapshots for a season
  */
 export interface RewardsControllerGetSnapshotsAction {
   type: 'RewardsController:getSnapshots';
   handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+}
+
+/**
+ * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
+ */
+export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
+  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
+  handler: (subscriptionId: string) => Promise<string[]>;
 }
 
 /**
@@ -1523,12 +1660,40 @@ export interface RewardsControllerResetAllAction {
   handler: () => Promise<void>;
 }
 
+export interface RewardsControllerGetRewardsEnvUrlAction {
+  type: 'RewardsController:getRewardsEnvUrl';
+  handler: () => string;
+}
+
+export interface RewardsControllerCanChangeRewardsEnvUrlAction {
+  type: 'RewardsController:canChangeRewardsEnvUrl';
+  handler: () => boolean;
+}
+
+export interface RewardsControllerSetRewardsEnvUrlAction {
+  type: 'RewardsController:setRewardsEnvUrl';
+  handler: (url: string) => Promise<void>;
+}
+
+export interface RewardsControllerGetDefaultRewardsEnvUrlAction {
+  type: 'RewardsController:getDefaultRewardsEnvUrl';
+  handler: () => string;
+}
+
 /**
  * Action for applying a referral code to an existing subscription
  */
 export interface RewardsControllerApplyReferralCodeAction {
   type: 'RewardsController:applyReferralCode';
   handler: (referralCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
+ * Action for applying a bonus code to an existing subscription
+ */
+export interface RewardsControllerApplyBonusCodeAction {
+  type: 'RewardsController:applyBonusCode';
+  handler: (bonusCode: string, subscriptionId: string) => Promise<void>;
 }
 
 /**
@@ -1550,6 +1715,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerIsOptInSupportedAction
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
@@ -1559,11 +1725,18 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetCampaignsAction
   | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetRewardsEnvUrlAction
+  | RewardsControllerCanChangeRewardsEnvUrlAction
+  | RewardsControllerSetRewardsEnvUrlAction
+  | RewardsControllerGetDefaultRewardsEnvUrlAction
+  | RewardsControllerApplyBonusCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses
@@ -1690,6 +1863,11 @@ export interface SeasonMetadataDto {
   activityTypes: SeasonActivityTypeDto[];
 
   /**
+   * Ways to earn for the season
+   */
+  waysToEarn: SeasonWayToEarnDto[];
+
+  /**
    * Optional version requirements for mobile and extension
    */
   shouldInstallNewVersion?: {
@@ -1722,7 +1900,67 @@ export interface SeasonStateDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SeasonActivityTypeDto = {
+export type SeasonWayToEarnButtonActionDto = {
+  /**
+   * Route for in-app navigation
+   * @example { root: 'RewardsView', screen: 'RewardsReferralView' }
+   */
+  route?: {
+    root: string;
+    screen: string;
+  };
+
+  /**
+   * Deep link URL
+   * @example 'metamask://swap'
+   */
+  deeplink?: string;
+
+  /**
+   * External URL
+   * @example 'https://metamask.io'
+   */
+  url?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnSpecificSwapDto = {
+  /**
+   * Title for the supported networks section
+   * @example 'Supported Networks'
+   */
+  supportedNetworksTitle: string;
+
+  /**
+   * List of supported networks
+   * @example [{ chainId: '1', name: 'Ethereum', boost: '2x' }]
+   */
+  supportedNetworks: { chainId: string; name: string; boost?: string }[];
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnSpecificReferralDto = {
+  /**
+   * Title for the referral points section
+   * @example 'Referral Points'
+   */
+  referralPointsTitle: string;
+
+  /**
+   * Title for the total referrals section
+   * @example 'Total Referrals'
+   */
+  totalReferralsTitle: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonWayToEarnDto = {
+  /**
+   * The unique identifier of the way to earn
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
   /**
    * The activity type
    * @example 'SWAP'
@@ -1736,10 +1974,73 @@ export type SeasonActivityTypeDto = {
   title: string;
 
   /**
-   * The description of the activity type
-   * @example 'Stake your M$D to earn points'
+   * The icon for the activity type
+   * @example 'Rocket'
+   */
+  icon: string;
+
+  /**
+   * Short description of the way to earn
+   * @example 'Earn points by swapping tokens'
+   */
+  shortDescription: string;
+
+  /**
+   * Title for the bottom sheet
+   * @example 'How to earn points'
+   */
+  bottomSheetTitle: string;
+
+  /**
+   * Rule for earning points
+   * @example '1 point per $1 swapped'
+   */
+  pointsEarningRule: string;
+
+  /**
+   * Detailed description
+   * @example 'Swap tokens on any supported network to earn points'
    */
   description: string;
+
+  /**
+   * Label for the action button
+   * @example 'Start Swapping'
+   */
+  buttonLabel: string;
+
+  /**
+   * Button action configuration
+   */
+  buttonAction?: SeasonWayToEarnButtonActionDto;
+
+  /**
+   * Specific content for swap or referral ways to earn
+   */
+  specificContent?:
+    | SeasonWayToEarnSpecificSwapDto
+    | SeasonWayToEarnSpecificReferralDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type SeasonActivityTypeDto = {
+  /**
+   * The unique identifier of the activity type
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The activity type
+   * @example 'SWAP'
+   */
+  type: string;
+
+  /**
+   * The name of the activity type
+   * @example 'Swap'
+   */
+  title: string;
 
   /**
    * The icon for the activity type

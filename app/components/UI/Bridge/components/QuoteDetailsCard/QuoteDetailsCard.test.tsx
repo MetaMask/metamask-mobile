@@ -9,6 +9,8 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import mockQuotesGasIncluded from '../../_mocks_/mock-quotes-gas-included.json';
 import { createBridgeTestState } from '../../testUtils';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import { PriceImpactModalType } from '../PriceImpactModal/constants';
 
 jest.mock(
   '../../../../../animations/rewards_icon_animations.riv',
@@ -28,7 +30,7 @@ jest.mock('rive-react-native', () => {
 });
 
 jest.mock('react-native-fade-in-image', () => {
-  const React = jest.requireActual('react');
+  const ReactMock = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -38,7 +40,7 @@ jest.mock('react-native-fade-in-image', () => {
     }: {
       children: React.ReactNode;
       placeholderStyle?: unknown;
-    }) => React.createElement(View, { style: placeholderStyle }, children),
+    }) => ReactMock.createElement(View, { style: placeholderStyle }, children),
   };
 });
 
@@ -117,15 +119,15 @@ jest.mock('../../../../UI/Rewards/hooks/useLinkAccountAddress', () => ({
 jest.mock(
   '../../../../UI/Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
-    const React = jest.requireActual('react');
+    const ReactMock = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return {
       __esModule: true,
       default: ({ testID }: { testID?: string }) =>
-        React.createElement(
+        ReactMock.createElement(
           View,
           { testID },
-          React.createElement(Text, null, 'Add Rewards Account'),
+          ReactMock.createElement(Text, null, 'Add Rewards Account'),
         ),
     };
   },
@@ -237,13 +239,6 @@ jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: () => false,
-  }),
-);
-
 jest.mock('../../../../../selectors/accountsController', () => ({
   ...jest.requireActual('../../../../../selectors/accountsController'),
   selectInternalAccounts: () => [],
@@ -269,6 +264,13 @@ const testState = createBridgeTestState({
   },
 });
 
+const QuoteDetailsCardTestScreen = () => (
+  <QuoteDetailsCard
+    location={MetaMetricsSwapsEventSource.MainView}
+    hasInsufficientBalance={false}
+  />
+);
+
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -276,7 +278,7 @@ describe('QuoteDetailsCard', () => {
 
   it('renders initial state', () => {
     const { toJSON } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -286,8 +288,8 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('displays fee amount', () => {
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -295,11 +297,13 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('0.01')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays quote rate', () => {
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -307,11 +311,13 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('navigates to slippage modal on edit press', () => {
-    const { getByTestId } = renderScreen(
-      QuoteDetailsCard,
+    const { getByTestId, getByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -330,11 +336,13 @@ describe('QuoteDetailsCard', () => {
         destChainId: 'evm:1',
       },
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays slippage value', () => {
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -343,6 +351,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify slippage value
     expect(getByText('0.5%')).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
   it('displays "Included" fee when gasIncluded7702 is true', () => {
@@ -371,8 +381,8 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -381,6 +391,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -405,8 +417,8 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
@@ -415,6 +427,8 @@ describe('QuoteDetailsCard', () => {
 
     // Verify "Included" text is displayed
     expect(getByText(strings('bridge.included'))).toBeDefined();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     // Restore original implementation
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
@@ -445,8 +459,8 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, queryByText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId, queryByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -454,6 +468,8 @@ describe('QuoteDetailsCard', () => {
     expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.gas_fees_sponsored'))).toBeOnTheScreen();
     expect(queryByText('0.01')).toBeNull();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -483,8 +499,8 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByLabelText, getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -496,7 +512,6 @@ describe('QuoteDetailsCard', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
-        bottomPadding: 64,
         title: strings('bridge.network_fee_info_title'),
         tooltip: strings('bridge.network_fee_info_content_sponsored', {
           nativeToken: 'ETH',
@@ -506,6 +521,8 @@ describe('QuoteDetailsCard', () => {
       },
       screen: 'tooltipModal',
     });
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
 
     mockModule.useBridgeQuoteData.mockImplementation(originalImpl);
   });
@@ -522,7 +539,7 @@ describe('QuoteDetailsCard', () => {
     }));
 
     const { queryByTestId } = renderScreen(
-      QuoteDetailsCard,
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
@@ -530,7 +547,7 @@ describe('QuoteDetailsCard', () => {
     expect(queryByTestId('quote-details-card')).toBeNull();
   });
 
-  it('handles price impact warning navigation', () => {
+  it('handles price impact info button navigation', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -554,49 +571,60 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    try {
-      const priceImpactTooltip = getByLabelText(
-        /Price Impact Warning tooltip/i,
-      );
-      fireEvent.press(priceImpactTooltip);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        params: { isGasIncluded: false },
-      });
-    } catch {
-      // Component rendered with high price impact logic
-    }
-  });
+    const priceImpactInfoButton = getByTestId('price-impact-info-button');
+    fireEvent.press(priceImpactInfoButton);
 
-  it('handles quote info navigation', () => {
-    const { getByLabelText } = renderScreen(
-      QuoteDetailsCard,
-      { name: Routes.BRIDGE.ROOT },
-      { state: testState },
-    );
-
-    const quoteTooltip = getByLabelText('Rate tooltip');
-    fireEvent.press(quoteTooltip);
-
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
-        bottomPadding: 64,
-        title: strings('bridge.quote_info_title'),
-        tooltip: strings('bridge.quote_info_content'),
-        footerText: undefined,
-        buttonText: undefined,
+        type: PriceImpactModalType.Info,
+        token: {
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          address: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          symbol: 'SOL',
+          decimals: 9,
+          name: 'Solana',
+        },
+        location: MetaMetricsSwapsEventSource.MainView,
       },
-      screen: 'tooltipModal',
     });
   });
 
-  it('handles shouldShowPriceImpactWarning false branch', () => {
-    // Test with low price impact to ensure shouldShowPriceImpactWarning is false
+  it('navigates to quote selector when rate info button is pressed', () => {
+    const { getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    fireEvent.press(getByTestId('rate-info-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+    );
+  });
+
+  it('navigates to quote selector when rate arrow button is pressed', () => {
+    const { getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    fireEvent.press(getByTestId('rate-arrow-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+    );
+  });
+
+  it('renders price impact info button for low price impact values', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -620,18 +648,17 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { queryByLabelText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByTestId, getByText } = renderScreen(
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    // With low price impact, the warning tooltip should not exist
-    expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
+    expect(getByText('Price impact')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
   });
 
-  it('handles shouldShowPriceImpactWarning true branch with color', () => {
-    // Test with very high price impact to ensure shouldShowPriceImpactWarning is true
+  it('renders price impact row with info button for high price impact values', () => {
     const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
     mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
       quoteFetchError: null,
@@ -655,28 +682,81 @@ describe('QuoteDetailsCard', () => {
       },
     }));
 
-    const { getByText, queryByLabelText } = renderScreen(
-      QuoteDetailsCard,
+    const { getByText, getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    // The key is testing the shouldShowPriceImpactWarning conditional branches
-    // Verify the Price Impact section is visible (this exercises the component logic)
     expect(getByText('Price impact')).toBeTruthy();
+    expect(getByText('25%')).toBeTruthy();
+    expect(getByTestId('price-impact-info-button')).toBeTruthy();
+  });
 
-    // Test the shouldShowPriceImpactWarning branches by checking for tooltip presence
-    const hasWarningTooltip =
-      queryByLabelText(/Price Impact Warning tooltip/i) !== null;
+  describe('minimum received row', () => {
+    it('displays minimum received row when minToTokenAmount is present', () => {
+      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: {
+          ...mockQuotes[0],
+          minToTokenAmount: {
+            amount: '23.50',
+            usd: null,
+            valueInCurrency: null,
+          },
+        },
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '-0.06%',
+          slippage: '0.5%',
+        },
+        shouldShowPriceImpactWarning: false,
+      }));
 
-    // Either way, we're testing both branches of the conditional
-    if (hasWarningTooltip) {
-      // True branch - warning tooltip exists
-      expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeTruthy();
-    } else {
-      // False branch - no warning tooltip
-      expect(queryByLabelText(/Price Impact Warning tooltip/i)).toBeNull();
-    }
+      const { getByText } = renderScreen(
+        QuoteDetailsCardTestScreen,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(getByText(strings('bridge.minimum_received'))).toBeOnTheScreen();
+      // formatMinimumReceived formats "23.50" followed by the dest token symbol "ETH"
+      expect(getByText(/23\.5 ETH/)).toBeOnTheScreen();
+    });
+
+    it('does not display minimum received row when minToTokenAmount is absent', () => {
+      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: {
+          ...mockQuotes[0],
+          minToTokenAmount: undefined,
+        },
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '-0.06%',
+          slippage: '0.5%',
+        },
+        shouldShowPriceImpactWarning: false,
+      }));
+
+      const { queryByText } = renderScreen(
+        QuoteDetailsCardTestScreen,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(queryByText(strings('bridge.minimum_received'))).toBeNull();
+    });
   });
 
   describe('rewards functionality', () => {
@@ -708,7 +788,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -733,7 +813,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -761,7 +841,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { queryByText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -796,7 +876,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId, queryByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -826,7 +906,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -850,7 +930,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -877,7 +957,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -902,7 +982,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByLabelText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -927,7 +1007,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -952,7 +1032,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -995,7 +1075,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByText, getByTestId } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
@@ -1023,7 +1103,7 @@ describe('QuoteDetailsCard', () => {
 
       // When rendering the component
       const { getByLabelText } = renderScreen(
-        QuoteDetailsCard,
+        QuoteDetailsCardTestScreen,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );

@@ -31,10 +31,10 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Medium",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -66,7 +66,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#b7bbc866",
+                    "backgroundColor": "#b4b4b566",
                     "borderRadius": 16,
                   },
                 ],
@@ -74,7 +74,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
             }
             testID="display-use-safe-list-validation"
             thumbTintColor="#ffffff"
-            tintColor="#b7bbc866"
+            tintColor="#b4b4b566"
             value={false}
           />
         </View>
@@ -83,7 +83,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -97,7 +97,7 @@ exports[`OnboardingSecuritySettings Basic rendering should render correctly with
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
               "fontSize": 16,
               "letterSpacing": 0,

@@ -6,6 +6,29 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 
+const mockInjectJavaScript = jest.fn();
+
+jest.mock('@metamask/react-native-webview', () => {
+  const { View } = jest.requireActual('react-native');
+  const ActualReact = jest.requireActual('react');
+
+  const MockWebView = ActualReact.forwardRef(
+    (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
+      ActualReact.useImperativeHandle(ref, () => ({
+        injectJavaScript: mockInjectJavaScript,
+      }));
+      return <View {...props} />;
+    },
+  );
+  MockWebView.displayName = 'WebView';
+
+  return {
+    __esModule: true,
+    WebView: MockWebView,
+    default: MockWebView,
+  };
+});
+
 const mockNavigation = {
   goBack: jest.fn(),
   goForward: jest.fn(),
@@ -49,6 +72,9 @@ const mockInitialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
+  settings: {
+    searchEngine: 'Google',
+  },
 };
 
 jest.mock('../../../core/Engine', () => ({
@@ -73,6 +99,25 @@ jest.mock('../../../util/phishingDetection', () => ({
   ),
 }));
 
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
+}));
+
 const mockProps = {
   id: 1,
   activeTab: 1,
@@ -90,6 +135,7 @@ const mockProps = {
 describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInjectJavaScript.mockClear();
   });
 
   it('render Browser', async () => {
@@ -213,6 +259,85 @@ describe('BrowserTab', () => {
           url: 'javascript://example.com',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('WebView onOpenWindow', () => {
+    it('passes onOpenWindow handler to WebView', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+
+      expect(typeof webView.props.onOpenWindow).toBe('function');
+    });
+
+    it('calls injectJavaScript with sanitized target URL when onOpenWindow fires', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onOpenWindow } = webView.props;
+
+      onOpenWindow({
+        nativeEvent: { targetUrl: 'https://stake.lido.fi' },
+      });
+
+      expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        "window.location.href = 'https://stake.lido.fi'; true;",
+      );
+    });
+
+    it('sanitizes single quotes in the target URL before injecting', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onOpenWindow } = webView.props;
+
+      onOpenWindow({
+        nativeEvent: { targetUrl: "https://example.com/path?q='test'" },
+      });
+
+      expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+      expect(mockInjectJavaScript).toHaveBeenCalledWith(
+        "window.location.href = 'https://example.com/path?q=%27test%27'; true;",
+      );
+    });
+
+    it('does not call injectJavaScript when targetUrl is empty', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onOpenWindow } = webView.props;
+
+      onOpenWindow({
+        nativeEvent: { targetUrl: '' },
+      });
+
+      expect(mockInjectJavaScript).not.toHaveBeenCalled();
     });
   });
 });

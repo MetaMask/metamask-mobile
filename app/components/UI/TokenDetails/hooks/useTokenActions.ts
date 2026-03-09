@@ -10,7 +10,7 @@ import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   trackActionButtonClick,
   ActionButtonType,
@@ -35,6 +35,7 @@ import {
 } from '../../Bridge/utils/tokenUtils';
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
 import {
+  formatAddressToAssetId,
   formatChainIdToCaip,
   isNativeAddress,
 } from '@metamask/bridge-controller';
@@ -45,6 +46,8 @@ import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../Ramp/hooks/useRampsButtonClickData';
 import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
+import { useTokenDetailsABTest } from './useTokenDetailsABTest';
+import { TokenDetailsSource } from '../constants/constants';
 
 /**
  * Determines the source and destination tokens for swap/bridge navigation.
@@ -129,7 +132,7 @@ export const useTokenActions = ({
   const userAssetsMap = useSelector(selectAssetsBySelectedAccountGroup);
 
   // Metrics
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Navigation hooks
   const { navigateToSendPage } = useSendNavigation();
@@ -137,13 +140,27 @@ export const useTokenActions = ({
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
 
+  // A/B test context
+  const { isTestActive, variantName } = useTokenDetailsABTest();
+
   // Swap/Bridge navigation
   const { sourceToken, destToken } = getSwapTokens(token);
+  // When Token Details was opened from the bridge asset picker, skip updating
+  // the location on the bridge controller to preserve the original entry-point
+  // location from the session that opened the bridge (e.g. "Main View")
+  const isFromBridgeAssetPicker =
+    'source' in token && token.source === TokenDetailsSource.Swap;
   const { goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenView,
     sourcePage: 'MainView',
     sourceToken,
     destToken,
+    abTestContext: {
+      ...(isTestActive && {
+        assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+      }),
+    },
+    skipLocationUpdate: isFromBridgeAssetPicker,
   });
 
   // Non-EVM send hook
@@ -159,10 +176,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
@@ -204,12 +222,20 @@ export const useTokenActions = ({
   ]);
 
   const onSend = useCallback(async () => {
-    trackActionButtonClick(trackEvent, createEventBuilder, {
+    const sendEventProps = {
       action_name: ActionButtonType.SEND,
       action_position: ActionPosition.THIRD_POSITION,
       button_label: strings('asset_overview.send_button'),
       location: ActionLocation.ASSET_DETAILS,
-    });
+      ...(isTestActive && {
+        ab_tests: { assetsASSETS2493AbtestTokenDetailsLayout: variantName },
+      }),
+    };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ACTION_BUTTON_CLICKED)
+        .addProperties(sendEventProps)
+        .build(),
+    );
 
     const wasHandledAsNonEvm = await sendNonEvmAsset(
       InitSendLocation.AssetOverview,
@@ -254,6 +280,8 @@ export const useTokenActions = ({
     token,
     selectedChainId,
     navigateToSendPage,
+    isTestActive,
+    variantName,
   ]);
 
   const onBuy = useCallback(() => {
@@ -282,7 +310,7 @@ export const useTokenActions = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
@@ -391,18 +419,46 @@ export const useTokenActions = ({
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
     if (!buySourceToken) {
-      goToBuy();
+      let assetId: string | undefined;
+
+      try {
+        if (isCaipAssetType(token.address)) {
+          assetId = token.address;
+        } else if (token.chainId) {
+          assetId =
+            formatAddressToAssetId(token.address, token.chainId) ?? undefined;
+        }
+      } catch {
+        assetId = undefined;
+      }
+
+      goToBuy({ assetId });
       return;
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
-  }, [goToSwaps, goToBuy, buySourceToken, currentTokenAsBridgeToken]);
+    goToSwaps(
+      buySourceToken,
+      currentTokenAsBridgeToken,
+      strings('asset_overview.buy_button'),
+    );
+  }, [
+    goToSwaps,
+    goToBuy,
+    buySourceToken,
+    currentTokenAsBridgeToken,
+    token.address,
+    token.chainId,
+  ]);
 
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, undefined);
+    goToSwaps(
+      currentTokenAsBridgeToken,
+      undefined,
+      strings('asset_overview.sell_button'),
+    );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {

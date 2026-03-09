@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
-import type { SortOptionId } from '../../constants/perpsConfig';
+import { type SortOptionId } from '@metamask/perps-controller';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({

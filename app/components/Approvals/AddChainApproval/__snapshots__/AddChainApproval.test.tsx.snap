@@ -5,18 +5,9 @@ exports[`AddChainApproval renders 1`] = `
   onClose={[Function]}
   shouldNavigateBack={false}
 >
-  <View
-    style={
-      {
-        "alignItems": "flex-start",
-        "justifyContent": "center",
-      }
-    }
-  >
-    <NetworkVerificationInfo
-      customNetworkInformation={{}}
-    />
-  </View>
+  <NetworkVerificationInfo
+    customNetworkInformation={{}}
+  />
 </ForwardRef>
 `;
 

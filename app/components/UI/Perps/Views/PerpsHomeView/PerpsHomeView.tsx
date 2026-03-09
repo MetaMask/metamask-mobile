@@ -15,14 +15,12 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
@@ -46,6 +44,7 @@ import {
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -53,15 +52,16 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import HeaderCenter from '../../../../../component-library/components-temp/HeaderCenter';
+import PerpsHomeHeader from '../../components/PerpsHomeHeader';
 import type { PerpsNavigationParamList } from '../../types/navigation';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-} from '../../constants/eventNames';
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
@@ -74,13 +74,14 @@ import PerpsNavigationCard, {
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -232,10 +233,7 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled and 'all' category
-    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
       source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
@@ -330,20 +328,16 @@ const PerpsHomeView = () => {
       });
     }
 
-    // Avoid duplicate "Learn more" button (shown in empty state card)
-    if (!isBalanceEmpty) {
-      items.push({
-        label: strings(LEARN_MORE_CONFIG.TitleKey),
-        onPress: () => navigtateToTutorial(),
-        testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
-      });
-    }
+    items.push({
+      label: strings(LEARN_MORE_CONFIG.TitleKey),
+      onPress: () => navigtateToTutorial(),
+      testID: PerpsHomeViewSelectorsIDs.LEARN_MORE_BUTTON,
+    });
 
     return items;
   }, [
     navigateToContactSupport,
     navigtateToTutorial,
-    isBalanceEmpty,
     isFeedbackEnabled,
     handleGiveFeedback,
   ]);
@@ -414,17 +408,9 @@ const PerpsHomeView = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <HeaderCenter
-        title={strings('perps.title')}
+      <PerpsHomeHeader
         onBack={handleBackPress}
-        backButtonProps={{ testID: 'back-button' }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Search,
-            onPress: handleSearchToggle,
-            testID: 'perps-home-search-toggle',
-          },
-        ]}
+        onSearchToggle={handleSearchToggle}
         testID="perps-home"
       />
 
@@ -444,9 +430,9 @@ const PerpsHomeView = () => {
         {/* Positions Section */}
         <PerpsHomeSection
           title={strings('perps.home.positions')}
-          subtitle={positionsSubtitle}
+          subtitle={privacyMode ? undefined : positionsSubtitle}
           subtitleColor={positionsSubtitleColor}
-          subtitleSuffix={positionsSubtitleSuffix}
+          subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
           subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}

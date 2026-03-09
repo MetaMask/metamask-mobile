@@ -1,23 +1,19 @@
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import Browser from '../../../../../e2e/pages/Browser/BrowserView';
-import ConnectBottomSheet from '../../../../../e2e/pages/Browser/ConnectBottomSheet';
-import TestDApp from '../../../../../e2e/pages/Browser/TestDApp';
+import Browser from '../../../../page-objects/Browser/BrowserView';
+import ConnectBottomSheet from '../../../../page-objects/Browser/ConnectBottomSheet';
+import TestDApp from '../../../../page-objects/Browser/TestDApp';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
-import { SmokeNetworkAbstractions } from '../../../../../e2e/tags';
+import { SmokeNetworkAbstractions } from '../../../../tags';
 import Assertions from '../../../../framework/Assertions';
-import {
-  loginToApp,
-  navigateToBrowserView,
-} from '../../../../../e2e/viewHelper';
-import ConnectedAccountsModal from '../../../../../e2e/pages/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../../../e2e/pages/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../../../../e2e/pages/Network/NetworkNonPemittedBottomSheet';
+import { loginToApp } from '../../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../../flows/browser.flow';
+import ConnectedAccountsModal from '../../../../page-objects/Browser/ConnectedAccountsModal';
+import NetworkConnectMultiSelector from '../../../../page-objects/Browser/NetworkConnectMultiSelector';
+import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
-import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
+describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
@@ -37,12 +33,6 @@ describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
             .withPermissionController()
             .build(),
           restartDevice: true,
-          testSpecificMock: async (mockServer) => {
-            await setupRemoteFeatureFlagsMock(
-              mockServer,
-              remoteFeatureMultichainAccountsAccountDetailsV2(false),
-            );
-          },
         },
         async () => {
           // Setup: Login and navigate to browser
@@ -71,11 +61,10 @@ describe.skip(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
 
           // Navigate back to second Dapp and verify chain permissions
-          await ConnectedAccountsModal.tapManagePermissionsButton();
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
           const networkPicker = ConnectedAccountsModal.networkPicker;
-          await Assertions.expectElementToHaveLabel(networkPicker, 'E');
+          await Assertions.expectElementToHaveLabel(networkPicker, 'l E');
         },
       );
     });

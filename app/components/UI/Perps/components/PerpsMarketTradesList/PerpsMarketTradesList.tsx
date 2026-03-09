@@ -1,24 +1,32 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import {
+  getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import type { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsMarketTradesList.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { transformFillsToTransactions } from '../../utils/transactionTransforms';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
-import { PERPS_EVENT_VALUE } from '../../constants/eventNames';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../../../core/Analytics/events/transactions';
+import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -30,7 +38,8 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   iconSize = 36,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
   // WebSocket provides instant updates, REST provides complete historical data
@@ -57,12 +66,25 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 
   const handleTradePress = useCallback(
     (transaction: PerpsTransaction) => {
+      trackEvent(
+        createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          .addProperties({
+            transaction_type: `perps_${transaction.type}`,
+            transaction_status: 'confirmed',
+            location: TransactionDetailLocation.Home,
+            chain_id_source: PERPS_BALANCE_CHAIN_ID,
+            chain_id_destination: PERPS_BALANCE_CHAIN_ID,
+            monetized_primitive: MonetizedPrimitive.Perps,
+          })
+          .build(),
+      );
+
       // Navigate to the position transaction detail screen
       navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
         transaction,
       });
     },
-    [navigation],
+    [navigation, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades
