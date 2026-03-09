@@ -36,7 +36,7 @@ import {
   getPermittedAccounts,
 } from '../../Permissions';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import { rpcErrors } from '@metamask/rpc-errors';
+import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { areAddressesEqual, toFormattedAddress } from '../../../util/address';
 
 /**
@@ -549,12 +549,10 @@ export default class DeeplinkProtocolService {
     // This is an external connection (SDK deeplink protocol), so block any internal origin.
     // NOTE: params.url is self-reported by the dapp via the deeplink URL and is unverified.
     const selfReportedRequestUrl = params.url;
-    if (requestObject.method === 'eth_sendTransaction') {
-      if (INTERNAL_ORIGINS.includes(selfReportedRequestUrl)) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
+    if (INTERNAL_ORIGINS.includes(selfReportedRequestUrl)) {
+      throw providerErrors.unauthorized({
+        message: 'Invalid origin',
+      });
     }
 
     // Handle custom rpc method
