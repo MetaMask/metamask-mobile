@@ -27,6 +27,7 @@ import type {
   ApplyBonusCodeDto,
   SnapshotDto,
   CampaignDto,
+  CampaignParticipantStatusDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -221,6 +222,16 @@ export interface RewardsDataServiceGetCampaignsAction {
   handler: RewardsDataService['getCampaigns'];
 }
 
+export interface RewardsDataServiceOptInToCampaignAction {
+  type: `${typeof SERVICE_NAME}:optInToCampaign`;
+  handler: RewardsDataService['optInToCampaign'];
+}
+
+export interface RewardsDataServiceGetCampaignParticipantStatusAction {
+  type: `${typeof SERVICE_NAME}:getCampaignParticipantStatus`;
+  handler: RewardsDataService['getCampaignParticipantStatus'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -272,7 +283,9 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceApplyBonusCodeAction
   | RewardsDataServiceGetSubscriptionAccountsAction
-  | RewardsDataServiceGetCampaignsAction;
+  | RewardsDataServiceGetCampaignsAction
+  | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetCampaignParticipantStatusAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -418,6 +431,14 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getCampaigns`,
       this.getCampaigns.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optInToCampaign`,
+      this.optInToCampaign.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getCampaignParticipantStatus`,
+      this.getCampaignParticipantStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1360,5 +1381,53 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignDto[];
+  }
+
+  /**
+   * Opt a subscription into a campaign.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to opt into.
+   * @returns The participant status after opting in.
+   */
+  async optInToCampaign(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/wr/campaigns/${campaignId}/opt-in`,
+      { method: 'POST' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Opt-in to campaign failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign participant status for a subscription.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to check status for.
+   * @returns The participant status.
+   */
+  async getCampaignParticipantStatus(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignParticipantStatusDto> {
+    const response = await this.makeRequest(
+      `/campaigns/${campaignId}/status`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign participant status failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignParticipantStatusDto;
   }
 }
