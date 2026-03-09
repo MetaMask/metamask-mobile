@@ -176,8 +176,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const hasItems = displayPositions.length > 0 || displayOrders.length > 0;
 
-    // When user has no positions/orders, keep skeleton visible until markets
-    // load so the section doesn't flash empty while trending tiles are fetched.
+    // When user has no positions/orders, keep skeleton visible until markets load.
     const pendingTrending = !showSkeleton && !hasItems && marketsLoading;
     const showTrending = !showSkeleton && !hasItems && !marketsLoading;
 

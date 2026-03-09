@@ -1583,7 +1583,7 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
-    it('clears cache when clearCache() is called', async () => {
+    it('clears cache without notifying subscribers (market data is global)', async () => {
       const callback = jest.fn();
 
       // First subscription to populate cache
@@ -1596,11 +1596,13 @@ describe('PerpsStreamManager', () => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
       });
 
+      const callCountBeforeClear = callback.mock.calls.length;
+
       // Clear cache
       testStreamManager.marketData.clearCache();
 
-      // Should notify with empty array
-      expect(callback).toHaveBeenLastCalledWith([]);
+      // Should NOT notify subscribers — market data stays in UI until refetch
+      expect(callback).toHaveBeenCalledTimes(callCountBeforeClear);
 
       unsubscribe();
     });
