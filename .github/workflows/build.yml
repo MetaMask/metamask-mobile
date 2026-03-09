@@ -363,13 +363,42 @@ jobs:
             ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error
 
+  # Summary for approvers: build name, version, TestFlight group (runs before upload, no approval).
+  testflight-upload-summary:
+    name: TestFlight upload summary
+    needs: [prepare, build]
+    if: |
+      always() && !cancelled() &&
+      !inputs.skip_version_bump &&
+      needs.build.result == 'success' &&
+      (inputs.platform == 'ios' || inputs.platform == 'both') &&
+      (inputs.build_name == 'main-rc' || inputs.build_name == 'main-exp' || inputs.build_name == 'main-prod')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Display TestFlight upload summary
+        run: |
+          BUILD_VERSION=$(node -p "require('./package.json').version")
+          {
+            echo "### 📲 TestFlight Upload (pending approval)"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Build name** | ${{ inputs.build_name }} |"
+            echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
+            echo "| **Branch** | ${{ github.ref_name }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   # Upload iOS device build to TestFlight (only when version bump was applied).
   # Uses GitHub Environment "apple" for App Store Connect API secrets:
   # APP_STORE_CONNECT_API_KEY_ISSUER_ID, APP_STORE_CONNECT_API_KEY_KEY_ID,
   # APP_STORE_CONNECT_API_KEY_KEY_CONTENT (.p8 content).
   upload-ios-testflight:
     name: Upload iOS to TestFlight
-    needs: [prepare, build]
+    needs: [prepare, build, testflight-upload-summary]
     if: |
       always() && !cancelled() &&
       !inputs.skip_version_bump &&
@@ -383,20 +412,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: TestFlight upload summary
-        run: |
-          BUILD_VERSION=$(node -p "require('./package.json').version")
-          {
-            echo "### 📲 TestFlight Upload"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Build name** | ${{ inputs.build_name }} |"
-            echo "| **Build version** | ${BUILD_VERSION} |"
-            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
-            echo "| **Branch** | ${{ github.ref_name }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Ruby (iOS)
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
