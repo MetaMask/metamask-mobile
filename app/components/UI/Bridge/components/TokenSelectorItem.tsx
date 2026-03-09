@@ -34,7 +34,6 @@ import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
 import { RootState } from '../../../../reducers';
-import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
@@ -105,12 +104,6 @@ const createStyles = ({
       padding: 8,
       borderRadius: 30,
       backgroundColor: theme.colors.background.alternative,
-    },
-    secondaryBalance: {
-      color: theme.colors.text.alternative,
-      paddingHorizontal: 0,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
     },
     badgeWrapper: {
       // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
@@ -286,22 +279,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   </TagBase>
                 )}
               </Box>
-
-              {secondaryBalance ? (
-                secondaryBalance === TOKEN_BALANCE_LOADING ||
-                secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                  <View style={styles.skeleton} />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
-                    numberOfLines={1}
-                    style={styles.rightValue}
-                  >
-                    {secondaryBalance}
-                  </Text>
-                )
-              ) : null}
+              <FiatBalanceView balance={balance} isSelected={isSelected} />
             </Box>
 
             <Box
@@ -318,8 +296,21 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               >
                 {token.name}
               </Text>
-
-              <FiatBalanceView balance={balance} isSelected={isSelected} />
+              {secondaryBalance ? (
+                secondaryBalance === TOKEN_BALANCE_LOADING ||
+                secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                  <View style={styles.skeleton} />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                    numberOfLines={1}
+                    style={styles.rightValue}
+                  >
+                    {secondaryBalance}
+                  </Text>
+                )
+              ) : null}
             </Box>
             {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>

@@ -89,6 +89,31 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
   };
 });
 
+const collectRenderedText = (node: unknown): string[] => {
+  if (typeof node === 'string') {
+    return [node];
+  }
+
+  if (!node) {
+    return [];
+  }
+
+  if (Array.isArray(node)) {
+    return node.flatMap(collectRenderedText);
+  }
+
+  if (
+    typeof node === 'object' &&
+    node !== null &&
+    'children' in node &&
+    Array.isArray(node.children)
+  ) {
+    return node.children.flatMap(collectRenderedText);
+  }
+
+  return [];
+};
+
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
 
@@ -380,6 +405,24 @@ describe('TokenSelectorItem', () => {
       const fiatBalanceElement = getByText('$1,234.56');
 
       expect(fiatBalanceElement.props.numberOfLines).toBe(1);
+    });
+
+    it('renders fiat balance before crypto balance to match extension layout', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'TOKEN',
+      });
+
+      const { toJSON } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      const renderedText = collectRenderedText(toJSON());
+
+      expect(renderedText.indexOf('$500')).toBeLessThan(
+        renderedText.indexOf('50 TOKEN'),
+      );
     });
   });
 });
