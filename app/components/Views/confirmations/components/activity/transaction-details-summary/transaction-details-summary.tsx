@@ -48,8 +48,14 @@ export function TransactionDetailsSummary() {
     [requiredTransactionIds, batchTransactionIds, transactionId],
   );
 
-  const transactions = useSelector((state: RootState) =>
+  const allTransactions = useSelector((state: RootState) =>
     selectTransactionsByIds(state, transactionIds),
+  );
+
+  const transactions = allTransactions.filter(
+    (transaction) =>
+      !isSkippedTransaction(transaction, transactionMeta) ||
+      transaction.id === transactionId,
   );
 
   return (
@@ -101,13 +107,15 @@ function SummaryLine({
     return <ReceiveSummaryLine transactionMeta={transactionMeta} />;
   }
 
-  // mUSD conversion child transactions that aren't relay deposits are skipped
-  if (
-    hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
-    !hasTransactionType(transactionMeta, [TransactionType.relayDeposit])
-  ) {
-    return null;
-  }
-
   return <DefaultSummaryLine transactionMeta={transactionMeta} />;
+}
+
+function isSkippedTransaction(
+  transaction: TransactionMeta,
+  parentTransaction: TransactionMeta,
+): boolean {
+  return (
+    hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
+    !hasTransactionType(transaction, [TransactionType.relayDeposit])
+  );
 }

@@ -17,7 +17,8 @@ import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { ARBITRUM_USDC } from '../../../constants/perps';
-import { Severity, StatusIcon } from '../../status-icon';
+import { StatusIcon } from '../../status-icon';
+import { getErrorMessage, getSeverity } from '../../../utils/transaction';
 
 export function TransactionDetailsStatus({
   gap,
@@ -70,18 +71,6 @@ export function TransactionDetailsStatus({
   );
 }
 
-function getSeverity(status: TransactionStatus): Severity {
-  switch (status) {
-    case TransactionStatus.confirmed:
-      return 'success';
-    case TransactionStatus.failed:
-    case TransactionStatus.dropped:
-      return 'error';
-    default:
-      return 'warning';
-  }
-}
-
 function getStatusText(status: TransactionStatus): string {
   switch (status) {
     case TransactionStatus.confirmed:
@@ -104,29 +93,6 @@ function getTextColour(status: TransactionStatus): TextColor {
     default:
       return TextColor.Warning;
   }
-}
-
-function getErrorMessage(transactionMeta: TransactionMeta): string | undefined {
-  const { error } = transactionMeta;
-
-  if (!error) return undefined;
-
-  if (error.stack) {
-    try {
-      const start = error.stack.indexOf('{');
-      const end = error.stack.lastIndexOf('}');
-      const stackObject = JSON.parse(error.stack.substring(start, end + 1));
-      const stackMessage = stackObject?.data?.message;
-
-      if (stackMessage) {
-        return stackMessage;
-      }
-    } catch {
-      // Intentionally empty
-    }
-  }
-
-  return error.message;
 }
 
 function useHasSuccessfulPerpsBridge() {
