@@ -38,6 +38,7 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictPayWithAnyTokenInfo from '../../components/PredictPayWithAnyTokenInfo';
 import { usePredictBuyAvailableBalance } from '../../hooks/usePredictBuyAvailableBalance';
 import { usePredictBuyConditions } from '../../hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from '../../hooks/usePredictBuyInfo';
@@ -56,8 +57,6 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import PredictPayWithAnyTokenInfo from '../../components/PredictPayWithAnyTokenInfo';
-import { usePredictInitActiveOrder } from '../../hooks/usePredictInitActiveOrder';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -74,8 +73,6 @@ const PredictBuyPreview = () => {
     transactionId,
     isConfirmation,
   } = route.params;
-
-  usePredictInitActiveOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 

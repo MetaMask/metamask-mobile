@@ -56,6 +56,14 @@ jest.mock('@react-navigation/native', () => ({
     children,
 }));
 
+jest.mock('../../hooks/usePredictInitActiveOrder', () => ({
+  usePredictInitActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+  }),
+}));
+
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,

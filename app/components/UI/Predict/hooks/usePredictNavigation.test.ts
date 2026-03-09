@@ -7,12 +7,21 @@ import { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../types';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockInitializeActiveOrder = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
+  }),
+}));
+
+jest.mock('./usePredictInitActiveOrder', () => ({
+  usePredictInitActiveOrder: () => ({
+    initializeActiveOrder: mockInitializeActiveOrder,
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
   }),
 }));
 
@@ -164,6 +173,47 @@ describe('usePredictNavigation', () => {
         StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('calls initializeActiveOrder on direct navigation', () => {
+      const { result } = renderHook(() => usePredictNavigation());
+      const params = createMockParams();
+
+      act(() => {
+        result.current.navigateToBuyPreview(params);
+      });
+
+      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
+        market: params.market,
+        outcomeToken: params.outcomeToken,
+        entryPoint: params.entryPoint,
+      });
+    });
+
+    it('calls initializeActiveOrder on throughRoot navigation', () => {
+      const { result } = renderHook(() => usePredictNavigation());
+      const params = createMockParams();
+
+      act(() => {
+        result.current.navigateToBuyPreview(params, { throughRoot: true });
+      });
+
+      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
+        market: params.market,
+        outcomeToken: params.outcomeToken,
+        entryPoint: params.entryPoint,
+      });
+    });
+
+    it('does not call initializeActiveOrder on replace navigation', () => {
+      const { result } = renderHook(() => usePredictNavigation());
+      const params = createMockParams();
+
+      act(() => {
+        result.current.navigateToBuyPreview(params, { replace: true });
+      });
+
+      expect(mockInitializeActiveOrder).not.toHaveBeenCalled();
     });
   });
 });

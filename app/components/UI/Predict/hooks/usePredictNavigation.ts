@@ -2,6 +2,7 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictBuyPreviewParams } from '../types/navigation';
+import { usePredictInitActiveOrder } from './usePredictInitActiveOrder';
 
 interface NavigateToBuyPreviewOptions {
   throughRoot?: boolean;
@@ -10,6 +11,7 @@ interface NavigateToBuyPreviewOptions {
 
 export const usePredictNavigation = () => {
   const navigation = useNavigation();
+  const { initializeActiveOrder } = usePredictInitActiveOrder();
 
   const navigateToBuyPreview = useCallback(
     (
@@ -20,16 +22,24 @@ export const usePredictNavigation = () => {
         navigation.dispatch(
           StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
         );
-      } else if (options?.throughRoot) {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params,
-        });
       } else {
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
+        initializeActiveOrder({
+          market: params.market,
+          outcomeToken: params.outcomeToken,
+          entryPoint: params.entryPoint,
+        });
+
+        if (options?.throughRoot) {
+          navigation.navigate(Routes.PREDICT.ROOT, {
+            screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+            params,
+          });
+        } else {
+          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
+        }
       }
     },
-    [navigation],
+    [navigation, initializeActiveOrder],
   );
 
   return { navigateToBuyPreview };
