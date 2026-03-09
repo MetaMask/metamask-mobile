@@ -212,16 +212,16 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               ))}
             </SectionRow>
           )}
-          <ScamWarningModal
-            showScamWarningModal={showScamWarningModal}
-            setShowScamWarningModal={setShowScamWarningModal}
-          />
-          <RemoveTokenBottomSheet
-            isVisible={removeTokenState.isVisible}
-            onClose={handleCloseRemoveTokenBottomSheet}
-            onRemove={removeToken}
-          />
         </Box>
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+        <RemoveTokenBottomSheet
+          isVisible={removeTokenState.isVisible}
+          onClose={handleCloseRemoveTokenBottomSheet}
+          onRemove={removeToken}
+        />
       </View>
     );
   },
