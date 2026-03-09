@@ -19,6 +19,7 @@ jest.mock('../../../../core/Engine', () => ({
     },
     NetworkEnablementController: {
       enableNetwork: jest.fn(),
+      enableNetworkInNamespace: jest.fn(),
     },
   },
 }));
@@ -26,6 +27,17 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock('../../../../core/redux', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/multichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: jest.fn(() => true),
+  }),
+);
 
 jest.mock('../utils/predictErrorHandler', () => {
   const actual = jest.requireActual('../utils/predictErrorHandler');
