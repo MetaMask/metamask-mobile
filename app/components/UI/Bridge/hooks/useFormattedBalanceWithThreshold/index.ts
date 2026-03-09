@@ -4,7 +4,7 @@ import { MINIMUM_DISPLAY_THRESHOLD } from '../../../../../util/number';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import parseAmount from '../../../../../util/parseAmount';
 
-export const useTokenInputAreaFormattedBalance = (
+export const useFormattedBalanceWithThreshold = (
   tokenBalance?: string,
   token?: BridgeToken,
 ) =>
