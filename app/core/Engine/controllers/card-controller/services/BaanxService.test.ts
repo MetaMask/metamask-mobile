@@ -144,6 +144,7 @@ describe('BaanxService', () => {
 
       await expect(service.get('/v1/slow')).rejects.toMatchObject({
         statusCode: 408,
+        responseBody: '',
       });
     });
 

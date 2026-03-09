@@ -95,10 +95,13 @@ export class BaanxService {
       if (isAxiosError(error)) {
         const status =
           error.response?.status ?? (error.code === 'ECONNABORTED' ? 408 : 0);
+        const rawData = error.response?.data;
         const body =
-          typeof error.response?.data === 'string'
-            ? error.response.data
-            : JSON.stringify(error.response?.data ?? '');
+          typeof rawData === 'string'
+            ? rawData
+            : rawData != null
+              ? JSON.stringify(rawData)
+              : '';
         throw new CardApiError(status, path, body);
       }
       throw error;
