@@ -312,6 +312,16 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
     'fiatOrders.detectedGeolocation',
+    'fiatOrders.rampRoutingDecision',
+
+    // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0xa4b1', // Arbitrum
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0xa', // Optimism
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x89', // Polygon
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x38', // BNB Chain
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x279f', // Monad Testnet
+    'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x18c7', // MegaETH Testnet
 
     // ── Dynamic network client IDs, port-dependent URLs, and display names ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.*.name',

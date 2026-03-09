@@ -1,15 +1,28 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
 
-const mockSelectDeFiPositionsByAddress = jest.fn();
-const mockSelectDefiPositionsByEnabledNetworks = jest.fn();
+const mockSelectDefiPositionsByChainIds = jest.fn();
 const mockSelectTokenSortConfig = jest.fn();
 
 jest.mock('../../../../../../selectors/defiPositionsController', () => ({
-  selectDeFiPositionsByAddress: () => mockSelectDeFiPositionsByAddress(),
-  selectDefiPositionsByEnabledNetworks: () =>
-    mockSelectDefiPositionsByEnabledNetworks(),
+  selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
+    mockSelectDefiPositionsByChainIds(),
 }));
+
+jest.mock('../../../../../../selectors/networkEnablementController', () => ({
+  selectEVMEnabledNetworks: () => [],
+}));
+
+jest.mock('../../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: () => false,
+}));
+
+jest.mock(
+  '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({ popularEvmNetworks: [] }),
+  }),
+);
 
 jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectTokenSortConfig: () => mockSelectTokenSortConfig(),
@@ -41,9 +54,8 @@ describe('useDeFiPositionsForHomepage', () => {
     });
   });
 
-  it('returns loading state when defiPositions is undefined', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue(undefined);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(undefined);
+  it('returns loading state when defiPositionsByChainIds is undefined', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(undefined);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -53,9 +65,8 @@ describe('useDeFiPositionsForHomepage', () => {
     expect(result.current.positions).toEqual([]);
   });
 
-  it('returns error state when defiPositions is null', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue(null);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(null);
+  it('returns error state when defiPositionsByChainIds is null', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue(null);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -65,9 +76,8 @@ describe('useDeFiPositionsForHomepage', () => {
     expect(result.current.positions).toEqual([]);
   });
 
-  it('returns empty state when defiPositions is empty object', () => {
-    mockSelectDeFiPositionsByAddress.mockReturnValue({});
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue({});
+  it('returns empty state when defiPositionsByChainIds is empty object', () => {
+    mockSelectDefiPositionsByChainIds.mockReturnValue({});
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -92,8 +102,7 @@ describe('useDeFiPositionsForHomepage', () => {
       },
     };
 
-    mockSelectDeFiPositionsByAddress.mockReturnValue(mockPositions);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(mockPositions);
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage());
 
@@ -115,8 +124,7 @@ describe('useDeFiPositionsForHomepage', () => {
       },
     };
 
-    mockSelectDeFiPositionsByAddress.mockReturnValue(mockPositions);
-    mockSelectDefiPositionsByEnabledNetworks.mockReturnValue(mockPositions);
+    mockSelectDefiPositionsByChainIds.mockReturnValue(mockPositions);
 
     const { result } = renderHook(() => useDeFiPositionsForHomepage(2));
 

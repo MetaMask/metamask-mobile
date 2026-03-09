@@ -181,11 +181,13 @@ describe('Order Lifecycle & Funds Flow', () => {
       screen.getByText(strings('perps.provider_selector.title')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId('perps-select-provider-sheet-option-hyperliquid'),
+      screen.getByTestId(
+        'perps-select-provider-sheet-option-hyperliquid-mainnet',
+      ),
     ).toBeOnTheScreen();
     // MYX option hidden when feature flag is disabled
     expect(
-      screen.queryByTestId('perps-select-provider-sheet-option-myx'),
+      screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
     ).not.toBeOnTheScreen();
 
     // With MYX enabled + aggregated provider → HyperLiquid shows selected
@@ -203,11 +205,11 @@ describe('Order Lifecycle & Funds Flow', () => {
     });
     expect(
       await screen.findByTestId(
-        'perps-select-provider-sheet-check-hyperliquid',
+        'perps-select-provider-sheet-check-aggregated-mainnet',
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('perps-select-provider-sheet-check-myx'),
+      screen.queryByTestId('perps-select-provider-sheet-check-myx-mainnet'),
     ).not.toBeOnTheScreen();
 
     // Trader selects MYX provider — switchProvider is called
@@ -216,7 +218,7 @@ describe('Order Lifecycle & Funds Flow', () => {
       .switchProvider as jest.Mock;
     renderPerpsSelectProviderView({ overrides: myxEnabledOverrides });
     const myxOption = await screen.findByTestId(
-      'perps-select-provider-sheet-option-myx',
+      'perps-select-provider-sheet-option-myx-mainnet',
     );
     fireEvent.press(myxOption);
     await waitFor(() => {
