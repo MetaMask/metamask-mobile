@@ -1,7 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import {
-  Button,
   ButtonSize,
   Text,
   TextVariant,
@@ -26,6 +25,33 @@ const LoadingContent = () => (
   </Box>
 );
 
+const AmountLabel = ({
+  label,
+  isHidden,
+}: {
+  label: string;
+  isHidden: boolean;
+}) => {
+  if (isHidden) {
+    return (
+      <SensitiveText
+        variant={ComponentTextVariant.BodyMD}
+        color="white"
+        isHidden={isHidden}
+        length={SensitiveTextLength.Medium}
+      >
+        {label}
+      </SensitiveText>
+    );
+  }
+
+  return (
+    <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
+      {label}
+    </Text>
+  );
+};
+
 const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
   amount,
   onPress,
@@ -38,7 +64,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
 
   if (amount === undefined) {
     return (
-      <Button
+      <ButtonHero
         size={ButtonSize.Lg}
         onPress={onPress}
         isDisabled={disabled || isLoading}
@@ -50,7 +76,7 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
         ) : (
           strings('predict.claim_winnings_text')
         )}
-      </Button>
+      </ButtonHero>
     );
   }
 
@@ -68,19 +94,8 @@ const PredictClaimButton: React.FC<PredictClaimButtonProps> = ({
     >
       {isLoading ? (
         <LoadingContent />
-      ) : isHidden ? (
-        <SensitiveText
-          variant={ComponentTextVariant.BodyMD}
-          color="white"
-          isHidden={isHidden}
-          length={SensitiveTextLength.Medium}
-        >
-          {amountLabel}
-        </SensitiveText>
       ) : (
-        <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryInverse}>
-          {amountLabel}
-        </Text>
+        <AmountLabel label={amountLabel} isHidden={isHidden} />
       )}
     </ButtonHero>
   );
