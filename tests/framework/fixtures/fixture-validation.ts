@@ -314,6 +314,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Runtime-detected values (non-deterministic between environments) ──
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
+    'fiatOrders.rampRoutingDecision',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base
