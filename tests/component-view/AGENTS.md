@@ -65,12 +65,7 @@ tests/component-view/
 
 ## Canonical skill (Mandatory)
 
-**Skill** — Dónde está definido y cuándo se aplica:
-
-- **Claude Code:** comando `/component-view-test` (si tu entorno lo tiene).
-- **Cursor:** el skill se carga directamente por el IDE (no hay regla en `.cursor/rules/`).
-
-Links al contenido del skill:
+Links to the skill content:
 
 - [.agents/skills/component-view-test/SKILL.md](../../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules
 - [.agents/skills/component-view-test/references/writing-tests.md](../../.agents/skills/component-view-test/references/writing-tests.md) — Test structure, renderers, presets
