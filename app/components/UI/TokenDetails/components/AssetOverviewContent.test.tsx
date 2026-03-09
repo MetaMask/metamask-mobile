@@ -430,8 +430,8 @@ describe('AssetOverviewContent', () => {
 
       expect(
         getByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
-      ).toBeTruthy();
-      expect(getByTestId('market-insights-entry-card')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER),
       ).toBeNull();
@@ -443,10 +443,10 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(getByTestId('market-insights-entry-card')).toBeTruthy();
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
       expect(
         getByTestId(TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
       ).toBeNull();
