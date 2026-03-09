@@ -2,6 +2,9 @@ import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import type { AccountState } from '../types';
 import {
   POLYGON_MAINNET_CHAIN_ID,
@@ -43,8 +46,25 @@ async function ensurePolygonNetwork(): Promise<void> {
     Engine.context.NetworkEnablementController.enableNetwork(
       POLYGON_MAINNET_CAIP_CHAIN_ID,
     );
-  } catch (_error) {
-    // Network may already exist — swallow so the query can still proceed.
+  } catch (error) {
+    Logger.error(ensureError(error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'ensurePolygonNetwork',
+      },
+      context: {
+        name: 'ensurePolygonNetwork',
+        data: {
+          method: 'ensurePolygonNetwork',
+          action: 'add_polygon_network',
+          operation: 'network_management',
+          chainId,
+          caipChainId: POLYGON_MAINNET_CAIP_CHAIN_ID,
+        },
+      },
+    });
+
+    // Still try to enable — network may already exist.
     Engine.context.NetworkEnablementController.enableNetwork(
       POLYGON_MAINNET_CAIP_CHAIN_ID,
     );

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -27,8 +27,16 @@ export function usePredictAccountState(
     enabled,
   });
 
+  const reportedErrorRef = useRef<Error | null>(null);
+
   useEffect(() => {
-    if (!queryResult.error) return;
+    if (!queryResult.error) {
+      reportedErrorRef.current = null;
+      return;
+    }
+
+    if (reportedErrorRef.current === queryResult.error) return;
+    reportedErrorRef.current = queryResult.error;
 
     Logger.error(ensureError(queryResult.error), {
       tags: {
