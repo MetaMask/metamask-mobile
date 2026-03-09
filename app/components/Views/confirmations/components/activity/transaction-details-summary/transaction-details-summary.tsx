@@ -35,9 +35,13 @@ export function TransactionDetailsSummary() {
     selectTransactionsByBatchId(state, batchId ?? ''),
   );
 
-  const batchTransactionIds = batchTransactions
-    .filter((transaction) => transaction.id !== transactionId)
-    .map((transaction) => transaction.id);
+  const batchTransactionIds = useMemo(
+    () =>
+      batchTransactions
+        .filter((transaction) => transaction.id !== transactionId)
+        .map((transaction) => transaction.id),
+    [batchTransactions, transactionId],
+  );
 
   const transactionIds = useMemo(
     () => [
