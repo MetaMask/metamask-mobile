@@ -6,7 +6,7 @@ import {
 } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../types/navigation';
 import { useCallback, useState } from 'react';
-import Routes from '../../../../constants/navigation/Routes';
+import { usePredictNavigation } from './usePredictNavigation';
 import { useConfirmActions } from '../../../Views/confirmations/hooks/useConfirmActions';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
 import { PlaceOrderOutcome } from './usePredictPlaceOrder';
@@ -36,6 +36,7 @@ export const usePredictBuyActions = ({
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
   const { updateActiveOrder } = usePredictActiveOrder();
+  const { navigateToBuyPreview } = usePredictNavigation();
   const [
     isPreviewFromPayWithAnyTokenUsed,
     setIsPreviewFromPayWithAnyTokenUsed,
@@ -54,8 +55,8 @@ export const usePredictBuyActions = ({
 
   const redirectToBuyPreview = useCallback(
     (params?: { includeTransaction: boolean }) => {
-      navigation.dispatch(
-        StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+      navigateToBuyPreview(
+        {
           market,
           outcome,
           outcomeToken,
@@ -68,14 +69,15 @@ export const usePredictBuyActions = ({
             : {}),
           animationEnabled: false,
           entryPoint,
-        }),
+        },
+        { replace: true },
       );
     },
     [
       currentValue,
       entryPoint,
       market,
-      navigation,
+      navigateToBuyPreview,
       outcome,
       outcomeToken,
       preview,

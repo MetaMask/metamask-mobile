@@ -37,6 +37,7 @@ import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
@@ -57,6 +58,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigateToBuyPreview } = usePredictNavigation();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -185,13 +187,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   };
 
   const handleBuyPress = (token: PredictOutcomeToken) => {
+    if (!market) {
+      return;
+    }
     executeGuardedAction(
       () => {
         // Use open outcomes with updated prices if available
         const firstOpenOutcome = openOutcomes[0];
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
+        navigateToBuyPreview({
           market,
-          outcome: firstOpenOutcome ?? market?.outcomes?.[0],
+          outcome: firstOpenOutcome ?? market.outcomes?.[0],
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
