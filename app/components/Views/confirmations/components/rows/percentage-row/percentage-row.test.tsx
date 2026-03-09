@@ -1,4 +1,6 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { PercentageRow } from './percentage-row';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
@@ -6,6 +8,21 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import { TransactionType } from '@metamask/transaction-controller';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
+import AppConstants from '../../../../../../core/AppConstants';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
@@ -24,6 +41,12 @@ describe('PercentageRow', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionMetadataRequestMock.mockReturnValue({
@@ -45,6 +68,34 @@ describe('PercentageRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('percentage-row-skeleton')).toBeOnTheScreen();
+  });
+
+  it('tracks event and opens URL when terms apply tooltip link is pressed', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValueOnce(undefined);
+
+    const { getByTestId, getByText } = render();
+
+    fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+
+    fireEvent.press(
+      getByText(strings('earn.musd_conversion.education.terms_apply')),
+    );
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.PERCENTAGE_ROW,
+      url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+
+    expect(openUrlSpy).toHaveBeenCalledTimes(1);
+    expect(openUrlSpy).toHaveBeenCalledWith(
+      AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+    );
   });
 
   it('renders nothing for non-musdConversion transactions', () => {

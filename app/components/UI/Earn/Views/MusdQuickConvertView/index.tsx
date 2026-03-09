@@ -31,6 +31,11 @@ import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
+
+const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 export const MusdQuickConvertViewTestIds = {
   CONTAINER: 'musd-quick-convert-view-container',
@@ -75,6 +80,8 @@ const MusdQuickConvertView = () => {
   const navigation = useNavigation();
   const { initiateCustomConversion, initiateMaxConversion } =
     useMusdConversion();
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Feature flags
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
@@ -246,8 +253,16 @@ const MusdQuickConvertView = () => {
   );
 
   const handleTermsOfUsePressed = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED)
+        .addProperties({
+          location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+          url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+        })
+        .build(),
+    );
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
-  }, []);
+  }, [createEventBuilder, trackEvent]);
 
   // If feature flags are not enabled, don't render
   if (!isQuickConvertEnabled) {

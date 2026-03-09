@@ -19,10 +19,24 @@ import { MUSD_CONVERSION_APY } from '../../constants/musd';
 import AppConstants from '../../../../../core/AppConstants';
 import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
+
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -133,6 +147,13 @@ describe('MusdQuickConvertView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockBuild.mockReturnValue({ name: 'mock-built-event' });
+    mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
+    mockCreateEventBuilder.mockImplementation(() => ({
+      addProperties: mockAddProperties,
+    }));
+
     mockUseNavigation.mockReturnValue({
       navigate: jest.fn(),
       goBack: jest.fn(),
@@ -516,6 +537,35 @@ describe('MusdQuickConvertView', () => {
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
       );
+    });
+
+    it('tracks MUSD_BONUS_TERMS_OF_USE_PRESSED event when terms apply text is pressed', () => {
+      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const termsApplyText = getByText(
+        strings('earn.musd_conversion.education.terms_apply'),
+      );
+
+      act(() => {
+        fireEvent.press(termsApplyText);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
   });
 });
