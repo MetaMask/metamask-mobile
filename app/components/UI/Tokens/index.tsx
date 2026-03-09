@@ -18,15 +18,8 @@ import {
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
-import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { strings } from '../../../../locales/i18n';
-import {
-  refreshTokens,
-  removeEvmToken,
-  removeNonEvmToken,
-  goToAddEvmToken,
-} from './util';
+import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -37,8 +30,8 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
@@ -65,14 +58,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
-    const [removeTokenState, setRemoveTokenState] = useState<
-      { isVisible: true; token: TokenI } | { isVisible: false }
-    >({ isVisible: false });
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-
-    const selectInternalAccountByScope = useSelector(
-      selectSelectedInternalAccountByScope,
-    );
 
     const selectedSolanaAccount =
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
@@ -88,7 +74,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
-    const [showScamWarningModal, setShowScamWarningModal] = useState(false);
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
 
@@ -139,9 +124,14 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       createEventBuilder,
     ]);
 
-    const showRemoveMenu = useCallback((token: TokenI) => {
-      setRemoveTokenState({ isVisible: true, token });
-    }, []);
+    const {
+      removeTokenState,
+      showRemoveMenu,
+      removeToken,
+      handleClose: handleCloseRemoveTokenBottomSheet,
+      showScamWarningModal,
+      setShowScamWarningModal,
+    } = useRemoveToken();
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
@@ -173,40 +163,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       refresh: onRefresh,
     }));
 
-    const removeToken = useCallback(async () => {
-      if (!removeTokenState.isVisible) return;
-
-      const tokenToRemove = removeTokenState.token;
-
-      // Reset state immediately to prevent issues if onClose fires first
-      setRemoveTokenState({ isVisible: false });
-
-      if (tokenToRemove?.chainId !== undefined) {
-        if (isNonEvmChainId(tokenToRemove.chainId)) {
-          await removeNonEvmToken({
-            tokenAddress: tokenToRemove.address,
-            tokenChainId: tokenToRemove.chainId,
-            selectInternalAccountByScope,
-          });
-        } else {
-          await removeEvmToken({
-            tokenToRemove,
-            currentChainId,
-            trackEvent,
-            strings,
-            getDecimalChainId,
-            createEventBuilder,
-          });
-        }
-      }
-    }, [
-      removeTokenState,
-      currentChainId,
-      trackEvent,
-      createEventBuilder,
-      selectInternalAccountByScope,
-    ]);
-
     const goToAddToken = useCallback(() => {
       goToAddEvmToken({
         navigation,
@@ -217,13 +173,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       });
     }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-    const handleCloseRemoveTokenBottomSheet = useCallback(() => {
-      setRemoveTokenState({ isVisible: false });
-    }, []);
-
     const handleScamWarningModal = useCallback(() => {
       setShowScamWarningModal((prev) => !prev);
-    }, []);
+    }, [setShowScamWarningModal]);
 
     const maxItems = useMemo(() => {
       if (isFullView) {
