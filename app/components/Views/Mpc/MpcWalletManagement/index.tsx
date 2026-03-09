@@ -169,9 +169,13 @@ export const MpcWalletManagementPage = () => {
     }
   }, [navigation]);
 
-  const getCustodianIcon = (type: 'cloud' | 'user') => type === 'cloud' ? IconName.Cloud : IconName.User;
+  const getCustodianIcon = (type: 'cloud' | 'user') =>
+    type === 'cloud' ? IconName.Cloud : IconName.User;
 
-  const getCustodianLabel = (type: 'cloud' | 'user') => type === 'cloud' ? strings('cloud') : strings('user');
+  const getCustodianLabel = (type: 'cloud' | 'user') =>
+    type === 'cloud'
+      ? strings('multichain_accounts.mpc_wallet.cloud')
+      : strings('multichain_accounts.mpc_wallet.user');
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
@@ -219,7 +223,7 @@ export const MpcWalletManagementPage = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              {strings('loading')}
+              {strings('multichain_accounts.mpc_wallet.loading')}
             </Text>
           )}
 

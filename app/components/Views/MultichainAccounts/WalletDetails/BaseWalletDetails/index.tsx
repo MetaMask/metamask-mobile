@@ -40,6 +40,8 @@ import AddAccountItem from './components/AddAccountItem';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -50,6 +52,7 @@ export const BaseWalletDetails = ({
   wallet,
   children,
 }: BaseWalletDetailsProps) => {
+  const tw = useTailwind();
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
@@ -255,6 +258,18 @@ export const BaseWalletDetails = ({
             </Box>
           </TouchableOpacity>
         )}
+
+        <Button
+          variant={ButtonVariant.Primary}
+          onPress={() =>
+            navigation.navigate(Routes.MPC_WALLET.MANAGE, { id: wallet.id })
+          }
+          style={tw.style('w-full')}
+          testID="generate-join-data-button"
+        >
+          {strings('multichain_accounts.mpc_wallet.manage_mpc_wallet')}
+        </Button>
+
         <View
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}

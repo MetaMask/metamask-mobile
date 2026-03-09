@@ -6884,6 +6884,7 @@
       "cloud": "Cloud",
       "user": "User",
       "close": "Close",
+      "loading": "Loading...",
 
       "passkeys": "Passkeys",
       "passkeys_enabled_description": "Signing operations require passkey verification.",
