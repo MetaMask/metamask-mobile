@@ -5,10 +5,7 @@ import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_1,
-} from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -79,9 +76,6 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },

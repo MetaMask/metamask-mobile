@@ -1219,13 +1219,12 @@ export class Engine {
    * in sync until the migration is complete.
    */
   setAccountLabel(address: string, label: string) {
-    const { AccountsController, PreferencesController } = this.context;
+    const { AccountsController } = this.context;
     const accountToBeNamed = AccountsController.getAccountByAddress(address);
     if (accountToBeNamed === undefined) {
       throw new Error(`No account found for address: ${address}`);
     }
     AccountsController.setAccountName(accountToBeNamed.id, label);
-    PreferencesController.setAccountLabel(address, label);
   }
 
   /**

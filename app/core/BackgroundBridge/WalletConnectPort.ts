@@ -21,10 +21,12 @@ class WalletConnectPort extends EventEmitter {
   postMessage = (msg: any) => {
     try {
       if (msg?.data?.method === NOTIFICATION_NAMES.chainChanged) {
-        const { selectedAddress } = Engine.context.PreferencesController.state;
         this._wcRequestActions?.updateSession?.({
           chainId: parseInt(msg.data.params.chainId, 16),
-          accounts: [selectedAddress],
+          accounts: [
+            Engine.context.AccountsController.state.internalAccounts
+              .selectedAccount,
+          ],
         });
       } else if (msg?.data?.method === NOTIFICATION_NAMES.accountsChanged) {
         const chainId = selectEvmChainId(store.getState());
