@@ -286,7 +286,7 @@ describe('PerpsSection', () => {
     expect(screen.getByText('Perpetuals')).toBeOnTheScreen();
   });
 
-  it('renders live positions', () => {
+  it('renders live positions with leverage info', () => {
     usePerpsLivePositions.mockReturnValue({
       positions: [
         makePosition({ symbol: 'BTC', size: '-0.0015' }),
@@ -294,27 +294,6 @@ describe('PerpsSection', () => {
           symbol: 'ETH',
           size: '0.03',
           entryPrice: '3200',
-          leverage: { type: 'isolated', value: 40 },
-        }),
-      ],
-      isInitialLoading: false,
-    });
-
-    renderWithProvider(
-      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(screen.getByText('BTC 10X position')).toBeOnTheScreen();
-    expect(screen.getByText('ETH 40X position')).toBeOnTheScreen();
-  });
-
-  it('renders position rows with leverage info', () => {
-    usePerpsLivePositions.mockReturnValue({
-      positions: [
-        makePosition({ symbol: 'BTC', size: '-1' }),
-        makePosition({
-          symbol: 'ETH',
-          size: '1',
           leverage: { type: 'isolated', value: 40 },
         }),
       ],
