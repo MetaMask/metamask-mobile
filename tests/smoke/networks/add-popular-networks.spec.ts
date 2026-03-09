@@ -6,7 +6,10 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
 
-describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
+// TODO: Update tests to be compatible with BIP-44 UI/UX
+// https://github.com/MetaMask/metamask-mobile/issues/27224
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeNetworkAbstractions('Add all popular networks'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
