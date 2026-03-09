@@ -35,6 +35,7 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { rampsDebugLog } from '../../debug/rampsDebugLogger';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -72,6 +73,21 @@ const OrderDetails = () => {
   const { getOrderById, refreshOrder } = useRampsOrders();
   const order = getOrderById(params.orderId);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
+
+  // #region agent log
+  useEffect(() => {
+    rampsDebugLog({
+      location: 'OrderDetails.tsx:mount',
+      message: 'OrderDetails mounted',
+      data: {
+        orderId: params.orderId,
+        hasOrder: Boolean(order),
+        status: order?.status,
+        isPending,
+      },
+    });
+  }, [params.orderId, order, isPending]);
+  // #endregion
 
   const [isLoading, setIsLoading] = useState(isPending);
   const [error, setError] = useState<string | null>(null);
@@ -123,11 +139,32 @@ const OrderDetails = () => {
       setError(null);
       setIsRefreshing(true);
       const providerCode = normalizeProviderCode(order.provider?.id ?? '');
-      await refreshOrder(
+      // #region agent log
+      rampsDebugLog({
+        location: 'OrderDetails.tsx:handleOnRefresh',
+        message: 'refreshing order',
+        data: {
+          providerOrderId: order.providerOrderId,
+          providerCode,
+          currentStatus: order.status,
+        },
+      });
+      // #endregion
+      const updatedOrder = await refreshOrder(
         providerCode,
         order.providerOrderId,
         order.walletAddress,
       );
+      // #region agent log
+      rampsDebugLog({
+        location: 'OrderDetails.tsx:handleOnRefresh',
+        message: 'refresh complete',
+        data: {
+          providerOrderId: order.providerOrderId,
+          newStatus: updatedOrder?.status,
+        },
+      });
+      // #endregion
     } catch (fetchError) {
       Logger.error(fetchError as Error, {
         message: 'FiatOrders::RampsOrderDetails error while refreshing order',

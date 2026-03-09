@@ -67,6 +67,7 @@ import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Device from '../../../../../util/device';
+import { rampsDebugLog } from '../../debug/rampsDebugLogger';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -526,6 +527,18 @@ function BuildQuote() {
       );
       const providerCode = normalizeProviderCode(selectedQuote.provider);
 
+      // #region agent log
+      rampsDebugLog({
+        location: 'BuildQuote.tsx:handleContinuePress',
+        message: 'handleContinuePress START',
+        data: {
+          providerCode,
+          isCustomAction,
+          hasBuyURL: Boolean(selectedQuote.quote?.buyURL),
+        },
+      });
+      // #endregion
+
       // TODO: remove all [Ramp][Debug] logging after PayPal redirect is verified
       Logger.log('[Ramp][Debug] === handleContinuePress START ===');
       Logger.log('[Ramp][Debug] provider:', selectedQuote.provider);
@@ -574,6 +587,18 @@ function BuildQuote() {
 
       Logger.log('[Ramp][Debug] calling getBuyWidgetData...');
       const buyWidget = await getBuyWidgetData(quoteForWidget);
+      // #region agent log
+      rampsDebugLog({
+        location: 'BuildQuote.tsx:getBuyWidgetData',
+        message: 'getBuyWidgetData result',
+        data: {
+          hasUrl: Boolean(buyWidget?.url),
+          url: buyWidget?.url?.slice(0, 80),
+          browser: buyWidget?.browser,
+          orderId: buyWidget?.orderId,
+        },
+      });
+      // #endregion
       Logger.log(
         '[Ramp][Debug] getBuyWidgetData result:',
         JSON.stringify(buyWidget),
@@ -600,6 +625,18 @@ function BuildQuote() {
           Logger.log('[Ramp][Debug] effectiveWallet:', effectiveWallet);
 
           if (effectiveOrderId && effectiveWallet) {
+            // #region agent log
+            rampsDebugLog({
+              location: 'BuildQuote.tsx:addPrecreatedOrder',
+              message: 'addPrecreatedOrder before external browser',
+              data: {
+                orderId: effectiveOrderId,
+                providerCode,
+                walletAddress: effectiveWallet,
+                chainId: network,
+              },
+            });
+            // #endregion
             Logger.log('[Ramp][Debug] calling addPrecreatedOrder...');
             addPrecreatedOrder({
               orderId: effectiveOrderId,
@@ -607,35 +644,6 @@ function BuildQuote() {
               walletAddress: effectiveWallet,
               chainId: network || undefined,
             });
-          }
-
-          // DEV-ONLY: skip external browser and go straight to order details.
-          // The order is already pre-created on the API via getBuyWidgetData,
-          // so we can test the full order-details + polling flow without PayPal.
-          // Remove this block once end-to-end PayPal redirect is verified.
-          if (__DEV__) {
-            Logger.log(
-              '[Ramp][Debug][MockBypass] skipping browser, navigating directly to order details',
-            );
-            if (effectiveOrderId) {
-              const orderCode = effectiveOrderId.includes('/orders/')
-                ? effectiveOrderId.split('/orders/')[1]
-                : effectiveOrderId;
-              Logger.log('[Ramp][Debug][MockBypass] orderCode:', orderCode);
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-                    params: {
-                      orderId: orderCode,
-                      showCloseButton: true,
-                    },
-                  },
-                ],
-              });
-            }
-            return;
           }
 
           const isAndroid = Device.isAndroid();
@@ -662,6 +670,17 @@ function BuildQuote() {
                 buyWidget.url,
                 deeplinkRedirectUrl,
               );
+              // #region agent log
+              rampsDebugLog({
+                location: 'BuildQuote.tsx:InAppBrowser.openAuth',
+                message: 'InAppBrowser returned',
+                data: {
+                  resultType: result.type,
+                  hasUrl: Boolean(result.url),
+                  url: result.url?.slice(0, 100),
+                },
+              });
+              // #endregion
               Logger.log(
                 '[Ramp][Debug] InAppBrowser result:',
                 JSON.stringify(result),
@@ -684,6 +703,13 @@ function BuildQuote() {
             const orderCode = effectiveOrderId.includes('/orders/')
               ? effectiveOrderId.split('/orders/')[1]
               : effectiveOrderId;
+            // #region agent log
+            rampsDebugLog({
+              location: 'BuildQuote.tsx:navigateToOrderDetails',
+              message: 'navigating to RAMPS_ORDER_DETAILS after PayPal return',
+              data: { orderCode, effectiveOrderId },
+            });
+            // #endregion
             Logger.log(
               '[Ramp][Debug] navigating to RAMPS_ORDER_DETAILS with orderCode:',
               orderCode,
