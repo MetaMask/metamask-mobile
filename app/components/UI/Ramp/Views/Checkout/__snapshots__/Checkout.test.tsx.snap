@@ -466,29 +466,7 @@ exports[`Checkout renders error view when no URL is provided 1`] = `
                                   undefined,
                                 ]
                               }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    {
-                                      "textAlign": "center",
-                                    },
-                                  ]
-                                }
-                                testID="header-title"
-                              >
-                                Test Provider
-                              </Text>
-                            </View>
+                            />
                             <View>
                               <View
                                 onLayout={[Function]}
@@ -1182,29 +1160,7 @@ exports[`Checkout sets and displays error on http error for callback URL 1`] = `
                                   undefined,
                                 ]
                               }
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                style={
-                                  [
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Bold",
-                                      "fontSize": 16,
-                                      "fontWeight": 700,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    },
-                                    {
-                                      "textAlign": "center",
-                                    },
-                                  ]
-                                }
-                                testID="header-title"
-                              >
-                                Test Provider
-                              </Text>
-                            </View>
+                            />
                             <View>
                               <View
                                 onLayout={[Function]}

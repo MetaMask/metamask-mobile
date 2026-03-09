@@ -52,19 +52,12 @@ const mockUseUnlockedRewards = useUnlockedRewards as jest.MockedFunction<
 >;
 
 // Mock useTheme
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    themeAppearance: 'light',
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-      text: {
-        muted: '#999999',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({

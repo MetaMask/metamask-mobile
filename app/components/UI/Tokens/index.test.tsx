@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-// eslint-disable-next-line import/no-namespace
-import * as UseAnalyticsModule from '../../hooks/useAnalytics/useAnalytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
@@ -30,8 +30,6 @@ import * as RefreshTokensModule from './util/refreshTokens';
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
-
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => ({
     isEligible: true,
@@ -288,40 +286,19 @@ describe('Tokens', () => {
     beforeEach(() => {
       mockTrackEvent = jest.fn();
       mockAddProperties = jest.fn().mockReturnThis();
-      jest.spyOn(UseAnalyticsModule, 'useAnalytics').mockReturnValue({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: jest.fn(() => {
-          const mockEvent: AnalyticsTrackingEvent = {
-            name: '',
-            properties: {},
-            sensitiveProperties: {},
-            saveDataRecording: false,
-            get isAnonymous(): boolean {
-              return false;
-            },
-            get hasProperties(): boolean {
-              return false;
-            },
-          };
-          return {
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
             addProperties: mockAddProperties,
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
             setSaveDataRecording: jest.fn().mockReturnThis(),
-            build: jest.fn(() => mockEvent),
-          };
+            build: jest.fn(),
+          }),
         }),
-        isEnabled: jest.fn(),
-        enable: jest.fn(),
-        addTraitsToUser: jest.fn(),
-        createDataDeletionTask: jest.fn(),
-        checkDataDeleteStatus: jest.fn(),
-        getDeleteRegulationCreationDate: jest.fn(),
-        getDeleteRegulationId: jest.fn(),
-        isDataRecorded: jest.fn(),
-        getAnalyticsId: jest.fn(),
-      });
+      );
     });
 
     it('tracks Position Screen Viewed when isFullView is true and tokens are loaded', async () => {

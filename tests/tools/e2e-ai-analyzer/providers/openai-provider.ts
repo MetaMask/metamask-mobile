@@ -141,12 +141,14 @@ function fromOpenAIResponse(
   // Add tool calls if present
   if (message.tool_calls) {
     for (const toolCall of message.tool_calls) {
-      content.push({
-        type: 'tool_use',
-        id: toolCall.id,
-        name: toolCall.function.name,
-        input: JSON.parse(toolCall.function.arguments || '{}'),
-      });
+      if (toolCall.type === 'function') {
+        content.push({
+          type: 'tool_use',
+          id: toolCall.id,
+          name: toolCall.function.name,
+          input: JSON.parse(toolCall.function.arguments || '{}'),
+        });
+      }
     }
   }
 
@@ -231,6 +233,12 @@ export class OpenAIProvider implements ILLMProvider {
       content: fromOpenAIResponse(choice),
       model: response.model,
       stopReason: mapFinishReason(choice.finish_reason),
+      usage: response.usage
+        ? {
+            inputTokens: response.usage.prompt_tokens,
+            outputTokens: response.usage.completion_tokens,
+          }
+        : undefined,
     };
   }
 
@@ -248,7 +256,9 @@ export class OpenAIProvider implements ILLMProvider {
         messages: [{ role: 'user', content: 'hi' }],
       });
       return true;
-    } catch {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`   ⚠️  OpenAI API error: ${message}`);
       return false;
     }
   }
