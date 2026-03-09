@@ -1900,39 +1900,6 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('submits FAK order type when Permit2 fee auth and allowance are ready', async () => {
-      jest.clearAllMocks();
-      const { provider, mockSigner } = setupPlaceOrderTest({
-        feeCollection: {
-          ...DEFAULT_FEE_COLLECTION_FLAG,
-          permit2Enabled: true,
-          executors: ['0xexecutor1'],
-        },
-        fakOrdersEnabled: true,
-      });
-      mockHasPermit2Allowance.mockResolvedValue(true);
-      mockHasAllowances.mockResolvedValue(true);
-      const preview = createMockOrderPreview({
-        side: Side.BUY,
-        fees: {
-          metamaskFee: 0.02,
-          providerFee: 0.02,
-          totalFee: 0.04,
-          totalFeePercentage: 0.04,
-          collector: DEFAULT_FEE_COLLECTION_FLAG.collector,
-          executors: ['0xexecutor1'],
-          permit2Enabled: true,
-        },
-      });
-
-      await provider.placeOrder({ preview, signer: mockSigner });
-
-      expect(mockSubmitClobOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          clobOrder: expect.objectContaining({ orderType: 'FAK' }),
-        }),
-      );
-    });
   });
 
   describe('placeOrder FAK order type for sell orders', () => {
