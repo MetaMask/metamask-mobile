@@ -84,8 +84,12 @@ function TokenNotAvailableModal() {
   ]);
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      });
+    });
+  }, [navigation]);
 
   return (
     <BottomSheet

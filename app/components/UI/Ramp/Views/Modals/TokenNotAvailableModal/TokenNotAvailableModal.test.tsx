@@ -138,13 +138,16 @@ describe('TokenNotAvailableModal', () => {
     );
   });
 
-  it('closes the modal when the close button is pressed', () => {
+  it('navigates to token selection when the close button is pressed', () => {
     const { getByTestId } = render(TokenNotAvailableModal);
     const closeButton = getByTestId('bottomsheetheader-close-button');
 
     fireEvent.press(closeButton);
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
   });
 
   it('matches snapshot with missing provider and token names', () => {
