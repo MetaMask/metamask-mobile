@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ReferralDetails from '../components/ReferralDetails/ReferralDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -31,7 +32,6 @@ const ReferralRewardsView: React.FC = () => {
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
-        testID={REWARDS_REFERRAL_SAFE_AREA_TEST_ID}
       >
         <HeaderCompactStandard
           title={strings('rewards.referral_title')}
@@ -40,7 +40,6 @@ const ReferralRewardsView: React.FC = () => {
           includesTopInset
         />
         <ScrollView
-          style={tw.style('flex-1')}
           contentContainerStyle={tw.style('px-4 py-4')}
           showsVerticalScrollIndicator={false}
         >

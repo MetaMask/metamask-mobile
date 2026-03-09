@@ -7575,7 +7575,6 @@
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
-    "tab_snapshots_title": "Snapshots",
     "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
@@ -7836,30 +7835,39 @@
     "animation": {
       "could_not_load": "Couldn't load"
     },
-    "snapshot": {
+    "campaign": {
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
-      "results_coming_soon": "Results coming soon",
-      "tokens_on_the_way": "Tokens on the way",
       "pill_up_next": "Up next",
-      "pill_live_now": "Live now",
-      "pill_calculating": "Calculating",
-      "pill_results_ready": "Results Ready",
-      "pill_complete": "Complete"
+      "pill_active": "Live",
+      "pill_complete": "Complete",
+      "enter_now": "Enter now",
+      "participant_count": "#{{count}}"
     },
-    "snapshots_section": {
-      "title": "Snapshots",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
-      "retry_button": "Retry"
+    "campaign_details": {
+      "start_date": "Starts: {{date}}",
+      "end_date": "Ends: {{date}}",
+      "opt_in": "Opt in",
+      "opting_in": "Opting in...",
+      "opted_in": "You're opted in to this campaign",
+      "opt_in_error": "Failed to opt in. Please try again.",
+      "join_campaign": "Join the campaign",
+      "swap": "Swap",
+      "how_it_works": "How it works"
     },
-    "snapshots_tab": {
+    "campaigns_preview": {
+      "title": "Campaigns",
+      "coming_soon": "Coming soon",
+      "notify_me": "Notify me"
+    },
+    "campaigns_view": {
+      "title": "Campaigns",
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",
-      "empty_state": "No snapshots available",
-      "error_title": "Unable to load snapshots",
-      "error_description": "We couldn't load the snapshots. Please try again.",
+      "empty_state": "No campaigns available",
+      "error_title": "Unable to load campaigns",
+      "error_description": "We couldn't load the campaigns. Please try again.",
       "retry_button": "Retry",
       "refreshing": "Refreshing..."
     }

@@ -1,93 +1,25 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import RewardsReferralView, {
-  REWARDS_REFERRAL_SAFE_AREA_TEST_ID,
-} from './RewardsReferralView';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import RewardsReferralView from './RewardsReferralView';
 
 const mockGoBack = jest.fn();
-
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    goBack: mockGoBack,
-  }),
+  useNavigation: () => ({ goBack: mockGoBack }),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((styles: string) => (typeof styles === 'string' ? {} : {})),
-  }),
+  useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'rewards.referral_title': 'Referrals',
-    };
-    return translations[key] || key;
-  }),
-}));
-
-jest.mock('../../../Views/ErrorBoundary', () => ({
-  __esModule: true,
-  default: function MockErrorBoundary({
-    children,
-    view,
-  }: {
-    children: React.ReactNode;
-    navigation: unknown;
-    view: string;
-  }) {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ReactActual.createElement(
-      View,
-      { testID: `error-boundary-${view.toLowerCase()}` },
-      children,
-    );
-  },
-}));
-
-jest.mock('../components/ReferralDetails/ReferralDetails', () => ({
-  __esModule: true,
-  default: function MockReferralDetails() {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return ReactActual.createElement(
-      View,
-      { testID: 'referral-details' },
-      ReactActual.createElement(Text, null, 'Referral Details Component'),
-    );
-  },
-}));
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const actual = jest.requireActual('react-native-safe-area-context');
-  return {
-    ...actual,
-    useSafeAreaInsets: jest.fn(() => ({
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-    })),
-    SafeAreaView: ({
-      children,
-      testID,
-      ...props
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { ...props, testID }, children),
-  };
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return { ...actual };
 });
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(() => ({
-  build: jest.fn(() => ({})),
-}));
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  build: jest.fn().mockReturnValue({ event: 'REWARDS_REFERRALS_VIEWED' }),
+});
 
 jest.mock('../../../hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -99,6 +31,83 @@ jest.mock('../../../hooks/useMetrics', () => ({
   },
 }));
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const translations: Record<string, string> = {
+      'rewards.referral_title': 'Referrals',
+    };
+    return translations[key] || key;
+  },
+}));
+
+jest.mock(
+  '../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ title, onBack }: { title: string; onBack: () => void }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header' },
+          ReactActual.createElement(Text, null, title),
+          ReactActual.createElement(Pressable, {
+            onPress: onBack,
+            testID: 'header-back-button',
+          }),
+        ),
+    };
+  },
+);
+
+jest.mock('../../../Views/ErrorBoundary', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    view,
+  }: {
+    children: React.ReactNode;
+    navigation: unknown;
+    view: string;
+  }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      View,
+      { testID: `error-boundary-${view.toLowerCase()}` },
+      children,
+    );
+  },
+}));
+
+jest.mock('../components/ReferralDetails/ReferralDetails', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(
+        View,
+        { testID: 'referral-details' },
+        ReactActual.createElement(Text, null, 'Referral Details Component'),
+      ),
+  };
+});
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(
+        View,
+        { ...props, testID: 'safe-area-view' },
+        children,
+      ),
+  };
+});
+
 describe('RewardsReferralView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -109,53 +118,64 @@ describe('RewardsReferralView', () => {
       expect(() => render(<RewardsReferralView />)).not.toThrow();
     });
 
-    it('renders ReferralDetails component', () => {
-      const { getByTestId, getByText } = render(<RewardsReferralView />);
+    it('renders the header with the referral title', () => {
+      const { getByText } = render(<RewardsReferralView />);
 
-      expect(getByTestId('referral-details')).toBeTruthy();
-      expect(getByText('Referral Details Component')).toBeTruthy();
+      expect(getByText('Referral Program')).toBeOnTheScreen();
     });
 
-    it('wraps content in ErrorBoundary', () => {
+    it('renders the ReferralDetails component', () => {
+      const { getByTestId, getByText } = render(<RewardsReferralView />);
+
+      expect(getByTestId('referral-details')).toBeOnTheScreen();
+      expect(getByText('Referral Details Component')).toBeOnTheScreen();
+    });
+
+    it('wraps content in ErrorBoundary with correct view name', () => {
       const { getByTestId } = render(<RewardsReferralView />);
 
-      expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
+      expect(
+        getByTestId('error-boundary-referralrewardsview'),
+      ).toBeOnTheScreen();
     });
   });
 
-  describe('header and SafeAreaView', () => {
-    it('renders SafeAreaView wrapper with correct testID', () => {
+  describe('navigation', () => {
+    it('navigates back when the back button is pressed', () => {
       const { getByTestId } = render(<RewardsReferralView />);
 
-      expect(getByTestId(REWARDS_REFERRAL_SAFE_AREA_TEST_ID)).toBeOnTheScreen();
-    });
-
-    it('renders HeaderCompactStandard with referral title', () => {
-      const { getByText } = render(<RewardsReferralView />);
-
-      expect(getByText('Referrals')).toBeOnTheScreen();
-    });
-
-    it('calls navigation.goBack when back button is pressed', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-      const backButton = getByTestId('header-back-button');
-
-      fireEvent.press(backButton);
+      fireEvent.press(getByTestId('header-back-button'));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('error boundary integration', () => {
-    it('passes correct view prop to ErrorBoundary', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
+  describe('analytics', () => {
+    it('tracks REWARDS_REFERRALS_VIEWED event on mount', async () => {
+      render(<RewardsReferralView />);
 
-      expect(getByTestId('error-boundary-referralrewardsview')).toBeTruthy();
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          'REWARDS_REFERRALS_VIEWED',
+        );
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('tracks the event only once across re-renders', async () => {
+      const { rerender } = render(<RewardsReferralView />);
+
+      rerender(<RewardsReferralView />);
+      rerender(<RewardsReferralView />);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
   describe('component lifecycle', () => {
-    it('cleanups properly when unmounted', () => {
+    it('cleans up properly when unmounted', () => {
       const { unmount } = render(<RewardsReferralView />);
 
       expect(() => unmount()).not.toThrow();
@@ -168,14 +188,6 @@ describe('RewardsReferralView', () => {
         rerender(<RewardsReferralView />);
         rerender(<RewardsReferralView />);
       }).not.toThrow();
-    });
-  });
-
-  describe('integration with child components', () => {
-    it('renders ReferralDetails without any props', () => {
-      const { getByTestId } = render(<RewardsReferralView />);
-
-      expect(getByTestId('referral-details')).toBeTruthy();
     });
   });
 });
