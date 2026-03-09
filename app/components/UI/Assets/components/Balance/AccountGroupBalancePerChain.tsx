@@ -8,6 +8,7 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { useFormatters } from '../../../../hooks/useFormatters';
+import { selectHomepageSectionsV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
 
 export interface AccountGroupBalancePerChainProps {
   caipChainId: CaipChainId;
@@ -22,6 +23,9 @@ const AccountGroupBalancePerChain = ({
 }: AccountGroupBalancePerChainProps) => {
   const { formatCurrency } = useFormatters();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
 
   const balanceSelector = useMemo(
     () => selectBalanceBySelectedAccountGroup([caipChainId]),
@@ -37,7 +41,7 @@ const AccountGroupBalancePerChain = ({
   const userCurrency = groupBalance?.userCurrency ?? 'USD';
   const displayBalance = formatCurrency(totalBalance, userCurrency);
 
-  return (
+  return isHomepageSectionsV1Enabled ? (
     <SensitiveText
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
@@ -45,7 +49,7 @@ const AccountGroupBalancePerChain = ({
     >
       {displayBalance}
     </SensitiveText>
-  );
+  ) : null;
 };
 
 export default AccountGroupBalancePerChain;

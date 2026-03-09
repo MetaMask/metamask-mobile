@@ -10,6 +10,10 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
 }));
 
+jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: jest.fn(() => true),
+}));
+
 const mockFormatCurrency = jest.fn((value: number, currency: string) =>
   currency.toUpperCase() === 'USD'
     ? `$${value.toFixed(2)}`
@@ -33,10 +37,14 @@ describe('AccountGroupBalancePerChain', () => {
     const { selectPrivacyMode } = jest.requireMock(
       '../../../../../selectors/preferencesController',
     );
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
     (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
       () => () => null,
     );
     (selectPrivacyMode as jest.Mock).mockReturnValue(false);
+    (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(true);
   });
 
   it('calls selectBalanceBySelectedAccountGroup with single-element array containing caipChainId', () => {
@@ -125,5 +133,29 @@ describe('AccountGroupBalancePerChain', () => {
     });
 
     expect(selectPrivacyMode).toHaveBeenCalled();
+  });
+
+  it('renders null when homepage sections v1 is disabled', () => {
+    const balanceValue = {
+      totalBalanceInUserCurrency: 100,
+      userCurrency: 'USD',
+    };
+    const { selectBalanceBySelectedAccountGroup } = jest.requireMock(
+      '../../../../../selectors/assets/balances',
+    );
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../../../selectors/featureFlagController/homepage',
+    );
+    (selectBalanceBySelectedAccountGroup as jest.Mock).mockImplementation(
+      () => () => balanceValue,
+    );
+    (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(false);
+
+    const { queryByText } = renderWithProvider(
+      <AccountGroupBalancePerChain caipChainId="eip155:1" />,
+      { state: testState },
+    );
+
+    expect(queryByText('$100.00')).not.toBeOnTheScreen();
   });
 });
