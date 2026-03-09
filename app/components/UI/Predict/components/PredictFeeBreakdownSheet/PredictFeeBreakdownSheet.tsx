@@ -20,6 +20,7 @@ interface PredictFeeBreakdownSheetProps {
   betAmount: number;
   total: number;
   onClose?: () => void;
+  fakOrdersEnabled?: boolean;
 }
 
 const PredictFeeBreakdownSheet = forwardRef<
@@ -35,6 +36,7 @@ const PredictFeeBreakdownSheet = forwardRef<
       betAmount,
       total,
       onClose,
+      fakOrdersEnabled = false,
     },
     ref,
   ) => (
@@ -101,6 +103,16 @@ const PredictFeeBreakdownSheet = forwardRef<
             {formatPrice(total, { maximumDecimals: 2 })}
           </Text>
         </Box>
+
+        {fakOrdersEnabled && (
+          <Text
+            color={TextColor.Alternative}
+            variant={TextVariant.BodyXS}
+            twClassName="mt-3"
+          >
+            {strings('predict.fee_summary.fak_partial_fill_note')}
+          </Text>
+        )}
       </Box>
     </BottomSheet>
   ),

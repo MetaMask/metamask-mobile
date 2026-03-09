@@ -87,6 +87,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.fee_summary.close') {
       return 'Close';
     }
+    if (key === 'predict.fee_summary.fak_partial_fill_note') {
+      return 'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.';
+    }
     return key;
   }),
 }));
@@ -323,6 +326,65 @@ describe('PredictFeeBreakdownSheet', () => {
       };
 
       render(<TestComponent />);
+    });
+  });
+
+  describe('FAK partial fill note', () => {
+    it('displays partial fill note when fakOrdersEnabled is true', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled
+          />
+        );
+      };
+
+      const { getByText } = render(<TestComponent />);
+
+      expect(
+        getByText(
+          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not display partial fill note when fakOrdersEnabled is false', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return (
+          <PredictFeeBreakdownSheet
+            ref={ref}
+            {...defaultProps}
+            fakOrdersEnabled={false}
+          />
+        );
+      };
+
+      const { queryByText } = render(<TestComponent />);
+
+      expect(
+        queryByText(
+          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
+        ),
+      ).toBeNull();
+    });
+
+    it('does not display partial fill note by default', () => {
+      const TestComponent = () => {
+        const ref = useRef<BottomSheetRef>(null);
+        return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
+      };
+
+      const { queryByText } = render(<TestComponent />);
+
+      expect(
+        queryByText(
+          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
+        ),
+      ).toBeNull();
     });
   });
 });
