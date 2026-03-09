@@ -775,7 +775,8 @@
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {}
+    "marketInsights": {},
+    "marketOverview": null
   },
   "RampsController": {
     "userRegion": null,
