@@ -52,7 +52,11 @@ const CashTokensFullView = () => {
           </SectionRow>
         </Box>
       ) : (
-        <Tokens isFullView showOnlyMusd />
+        <Tokens
+          isFullView
+          showOnlyMusd
+          hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+        />
       )}
     </SafeAreaView>
   );

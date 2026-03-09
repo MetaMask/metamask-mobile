@@ -50,10 +50,23 @@ interface TokensProps {
    * Hides add-token bar and uses cash-specific empty state when empty.
    */
   showOnlyMusd?: boolean;
+  /**
+   * When true (and showOnlyMusd), user has mUSD on at least one chain.
+   * Used to show a network-aware empty state when the filtered list is empty
+   * (e.g. network filter set to a chain without mUSD).
+   */
+  hasMusdBalanceOnAnyChain?: boolean;
 }
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
-  ({ isFullView = false, showOnlyMusd = false }, ref) => {
+  (
+    {
+      isFullView = false,
+      showOnlyMusd = false,
+      hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
+    },
+    ref,
+  ) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
@@ -238,12 +251,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         );
       }
 
+      const cashEmptyDescription =
+        showOnlyMusd && hasMusdBalanceOnAnyChainProp
+          ? strings('homepage.sections.cash_empty_description_network_filter')
+          : showOnlyMusd
+            ? strings('homepage.sections.cash_empty_description')
+            : undefined;
+
       return (
         <Box twClassName={isFullView ? 'px-4 items-center' : 'items-center'}>
-          {showOnlyMusd ? (
-            <TokensEmptyState
-              description={strings('homepage.sections.cash_empty_description')}
-            />
+          {cashEmptyDescription !== undefined ? (
+            <TokensEmptyState description={cashEmptyDescription} />
           ) : (
             <TokensEmptyState />
           )}
@@ -254,6 +272,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       isFullView,
       tokenKeysForList,
       showOnlyMusd,
+      hasMusdBalanceOnAnyChainProp,
       isMusdConversionFlowEnabled,
       tw,
       refreshing,

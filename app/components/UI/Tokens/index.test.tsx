@@ -181,11 +181,18 @@ const renderComponent = (
   state = initialState,
   isFullView: boolean = false,
   showOnlyMusd: boolean = false,
+  hasMusdBalanceOnAnyChain?: boolean,
 ) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Tokens" options={{}}>
-        {() => <Tokens isFullView={isFullView} showOnlyMusd={showOnlyMusd} />}
+        {() => (
+          <Tokens
+            isFullView={isFullView}
+            showOnlyMusd={showOnlyMusd}
+            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+          />
+        )}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -430,6 +437,27 @@ describe('Tokens', () => {
 
       await waitFor(() => {
         expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows network-aware empty state when showOnlyMusd, empty list, and hasMusdBalanceOnAnyChain', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByText } = renderComponent(
+        initialState,
+        true,
+        true,
+        true, // hasMusdBalanceOnAnyChain
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'No mUSD on this network. Switch network to see your mUSD.',
+          ),
+        ).toBeOnTheScreen();
       });
     });
 
