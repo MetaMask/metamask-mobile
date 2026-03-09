@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, SectionList, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -110,6 +110,16 @@ const MusdQuickConvertView = () => {
       );
     }, [navigation, colors]),
   );
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED)
+        .addProperties({
+          location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        })
+        .build(),
+    );
+  }, [createEventBuilder, trackEvent]);
 
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(

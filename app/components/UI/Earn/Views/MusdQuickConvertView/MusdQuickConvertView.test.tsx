@@ -538,7 +538,9 @@ describe('MusdQuickConvertView', () => {
         AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
       );
     });
+  });
 
+  describe('MetaMetrics', () => {
     it('tracks MUSD_BONUS_TERMS_OF_USE_PRESSED event when terms apply text is pressed', () => {
       const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
         state: initialRootState,
@@ -564,6 +566,21 @@ describe('MusdQuickConvertView', () => {
         location:
           MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
         url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_SCREEN_VIEWED event on mount', () => {
+      renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
