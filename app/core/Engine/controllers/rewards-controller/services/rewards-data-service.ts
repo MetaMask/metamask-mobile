@@ -1394,7 +1394,7 @@ export class RewardsDataService {
     campaignId: string,
   ): Promise<CampaignParticipantStatusDto> {
     const response = await this.makeRequest(
-      `/campaigns/${campaignId}/opt-in`,
+      `/wr/campaigns/${campaignId}/opt-in`,
       { method: 'POST' },
       subscriptionId,
     );

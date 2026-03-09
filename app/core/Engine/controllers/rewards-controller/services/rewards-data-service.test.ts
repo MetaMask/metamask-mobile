@@ -4704,7 +4704,7 @@ describe('RewardsDataService', () => {
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/campaigns/${mockCampaignId}/opt-in`,
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
