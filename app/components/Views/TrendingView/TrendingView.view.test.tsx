@@ -35,6 +35,15 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+const TRENDING_ETHEREUM_ID =
+  'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000';
+const TRENDING_BITCOIN_ID =
+  'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890';
+const TRENDING_UNISWAP_ID =
+  'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
+const TRENDING_BNB_ID =
+  'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000';
+
 const assertTrendingTokenRowsVisibility = async (opts: {
   visible: { id: string; name?: string; pricePercentageChange?: string }[];
   missing?: { id: string }[];
@@ -128,17 +137,17 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
         queryByTestId,
         visible: [
           {
-            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+            id: TRENDING_ETHEREUM_ID,
             name: 'Ethereum',
             pricePercentageChange: '+5.20%',
           },
           {
-            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+            id: TRENDING_BITCOIN_ID,
             name: 'Bitcoin',
             pricePercentageChange: '-2.50%',
           },
           {
-            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+            id: TRENDING_UNISWAP_ID,
             name: 'Uniswap',
             pricePercentageChange: '+12.80%',
           },
@@ -168,17 +177,17 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       queryByTestId,
       visible: [
         {
-          id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+          id: TRENDING_ETHEREUM_ID,
           name: 'Ethereum',
           pricePercentageChange: '+5.20%',
         },
         {
-          id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
+          id: TRENDING_BITCOIN_ID,
           name: 'Bitcoin',
           pricePercentageChange: '-2.50%',
         },
         {
-          id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
+          id: TRENDING_UNISWAP_ID,
           name: 'Uniswap',
           pricePercentageChange: '+12.80%',
         },
@@ -213,7 +222,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
         queryByTestId: within(searchResultsList).queryByTestId,
         visible: [
           {
-            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+            id: TRENDING_ETHEREUM_ID,
             name: 'Ethereum',
             pricePercentageChange: '+5.20%',
           },
@@ -268,21 +277,11 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       await assertTrendingTokenRowsVisibility({
         queryByTestId,
         visible: [
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-          },
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          },
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          },
+          { id: TRENDING_ETHEREUM_ID },
+          { id: TRENDING_BITCOIN_ID },
+          { id: TRENDING_UNISWAP_ID },
         ],
-        missing: [
-          {
-            id: 'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
-          },
-        ],
+        missing: [{ id: TRENDING_BNB_ID }],
       });
 
       const networkButton = getByTestId('all-networks-button');
@@ -299,21 +298,11 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
 
       await assertTrendingTokenRowsVisibility({
         queryByTestId,
-        visible: [
-          {
-            id: 'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
-          },
-        ],
+        visible: [{ id: TRENDING_BNB_ID }],
         missing: [
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-          },
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-          },
-          {
-            id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-          },
+          { id: TRENDING_ETHEREUM_ID },
+          { id: TRENDING_BITCOIN_ID },
+          { id: TRENDING_UNISWAP_ID },
         ],
       });
     },
@@ -346,19 +335,8 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
 
     await assertTrendingTokenRowsVisibility({
       queryByTestId,
-      visible: [
-        {
-          id: 'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
-        },
-      ],
-      missing: [
-        {
-          id: 'trending-token-row-item-eip155:1/erc20:0x1234567890123456789012345678901234567890',
-        },
-        {
-          id: 'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-        },
-      ],
+      visible: [{ id: TRENDING_ETHEREUM_ID }],
+      missing: [{ id: TRENDING_BITCOIN_ID }, { id: TRENDING_UNISWAP_ID }],
     });
   });
 });
