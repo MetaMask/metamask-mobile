@@ -1722,6 +1722,7 @@ describe('PolymarketProvider', () => {
     it('uses Permit2 fee authorization when permit2Enabled and allowance is set', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest();
+      mockHasPermit2Allowance.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
         fees: {
@@ -1752,9 +1753,10 @@ describe('PolymarketProvider', () => {
       );
     });
 
-    it('uses Permit2 fee authorization even when Permit2 allowance is not yet set on-chain', async () => {
+    it('falls back to Safe fee authorization when Permit2 allowance is not yet set on-chain', async () => {
       jest.clearAllMocks();
       const { provider, mockSigner } = setupPlaceOrderTest();
+      mockHasPermit2Allowance.mockResolvedValue(false);
       const preview = createMockOrderPreview({
         side: Side.BUY,
         fees: {
@@ -1770,8 +1772,8 @@ describe('PolymarketProvider', () => {
 
       await provider.placeOrder({ preview, signer: mockSigner });
 
-      expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalled();
-      expect(mockCreateSafeFeeAuthorization).not.toHaveBeenCalled();
+      expect(mockCreatePermit2FeeAuthorization).not.toHaveBeenCalled();
+      expect(mockCreateSafeFeeAuthorization).toHaveBeenCalled();
     });
 
     it('falls back to Safe fee authorization when permit2Enabled is false', async () => {
@@ -1842,6 +1844,7 @@ describe('PolymarketProvider', () => {
         },
         fakOrdersEnabled: true,
       });
+      mockHasPermit2Allowance.mockResolvedValue(true);
       mockHasAllowances.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
@@ -1907,6 +1910,7 @@ describe('PolymarketProvider', () => {
         },
         fakOrdersEnabled: true,
       });
+      mockHasPermit2Allowance.mockResolvedValue(true);
       mockHasAllowances.mockResolvedValue(true);
       const preview = createMockOrderPreview({
         side: Side.BUY,
@@ -2842,7 +2846,7 @@ describe('PolymarketProvider', () => {
 
     it('get market details successfully', async () => {
       const provider = createProvider({ liveSportsLeagues: ['nfl'] });
-      mockIsLiveSportsEvent.mockReturnValue(true);
+      mockIsLiveSportsEvent.mockReturnValueOnce(true);
       mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
       mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
 
@@ -7171,6 +7175,7 @@ describe('PolymarketProvider', () => {
 
       it('throws error when parsing fails without calling GameCache overlay', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValueOnce(true);
         mockGetMarketDetailsFromGammaApi.mockResolvedValue({});
         mockParsePolymarketEvents.mockReturnValue([]);
 

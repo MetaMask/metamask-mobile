@@ -240,20 +240,17 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
-      const isSportsEvent = isLiveSportsEvent(
-        event,
-        liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-      );
+      const { liveSportsLeagues } = this.#getFeatureFlags();
+      const supportedLeagues =
+        liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES;
+      const isSportsEvent = isLiveSportsEvent(event, supportedLeagues);
 
       if (isSportsEvent) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-        );
+        await TeamsCache.getInstance().ensureLeaguesLoaded(supportedLeagues);
       }
 
       const teamLookup = isSportsEvent
