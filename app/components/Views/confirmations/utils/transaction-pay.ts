@@ -197,7 +197,9 @@ export function isTokenBlocked(
 
   if (
     token.chainId &&
-    blockedConfig.chainIds.includes(token.chainId.toString().toLowerCase())
+    blockedConfig.chainIds.some(
+      (id) => id.toLowerCase() === token.chainId?.toLowerCase(),
+    )
   ) {
     return true;
   }
