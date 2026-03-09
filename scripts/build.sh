@@ -712,6 +712,7 @@ createEnvFile() {
 		"QUICKNODE_OPTIMISM_URL"
 		"QUICKNODE_POLYGON_URL"
 		"QUICKNODE_HYPEREVM_URL"
+		"MM_CHARTING_LIBRARY_URL"
 	)
 
 	# Create .env file and export to GITHUB_ENV

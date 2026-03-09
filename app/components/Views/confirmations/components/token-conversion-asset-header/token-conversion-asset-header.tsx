@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import Badge, {
   BadgeVariant,
@@ -33,50 +33,93 @@ import { useNetworkName } from '../../hooks/useNetworkName';
 
 export const TokenConversionAssetHeaderTestIds = {
   ASSET_HEADER_SKELETON: 'token-conversion-asset-header-skeleton',
+  CONTENT_CONTAINER: 'token-conversion-asset-header-content',
   ASSET_HEADER_INPUT: 'token-conversion-asset-header-input',
   ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
   INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
   OUTPUT_TOKEN_AVATAR: 'token-conversion-asset-header-output-token-avatar',
 } as const;
 
-export const TokenConversionAssetHeaderSkeleton = () => {
+export const TokenConversionAssetHeaderSkeleton = ({
+  isStackedLayout = false,
+}: {
+  isStackedLayout?: boolean;
+}) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
     <View
-      style={styles.assetHeaderContainer}
+      style={[
+        styles.assetHeaderContainer,
+        isStackedLayout
+          ? styles.assetHeaderContainerStacked
+          : styles.assetHeaderContainerHorizontal,
+      ]}
       testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_SKELETON}
     >
-      <View style={styles.assetContainer}>
+      <View
+        style={[
+          styles.assetContainer,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalInput,
+        ]}
+      >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+        <View
+          style={[
+            styles.assetInfo,
+            styles.assetInfoSkeleton,
+            isStackedLayout
+              ? styles.assetInfoStacked
+              : styles.assetInfoHorizontal,
+          ]}
+        >
           <Skeleton
             width={56}
             height={14}
             style={styles.skeletonBorderRadius}
           />
           <Skeleton
-            width={140}
+            width={65}
             height={20}
             style={styles.skeletonBorderRadius}
           />
         </View>
       </View>
       <Icon
-        name={IconName.Arrow2Down}
+        name={isStackedLayout ? IconName.Arrow2Down : IconName.Arrow2Right}
         color={IconColor.IconAlternative}
         size={IconSize.Lg}
+        style={styles.assetDirectionIcon}
       />
-      <View style={styles.assetContainer}>
+      <View
+        style={[
+          styles.assetContainer,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalOutput,
+        ]}
+      >
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
-        <View style={[styles.assetInfo, styles.assetInfoSkeleton]}>
+        <View
+          style={[
+            styles.assetInfo,
+            styles.assetInfoSkeleton,
+            isStackedLayout
+              ? styles.assetInfoStacked
+              : styles.assetInfoHorizontal,
+          ]}
+        >
           <Skeleton
             width={56}
             height={14}
             style={styles.skeletonBorderRadius}
           />
           <Skeleton
-            width={140}
+            width={65}
             height={20}
             style={styles.skeletonBorderRadius}
           />
@@ -86,6 +129,11 @@ export const TokenConversionAssetHeaderSkeleton = () => {
   );
 };
 
+/**
+ * Renders input/output token assets horizontally by default. If either fiat
+ * amount text overflows (wraps to 2+ lines), switches to a stacked vertical
+ * layout.
+ */
 export const TokenConversionAssetHeader = ({
   inputToken,
   outputToken,
@@ -99,6 +147,9 @@ export const TokenConversionAssetHeader = ({
 
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const [isStackedLayout, setIsStackedLayout] = useState(false);
+  const [isLayoutResolved, setIsLayoutResolved] = useState(false);
+  const measuredTextKeysRef = useRef<Record<string, true>>({});
 
   const inputTokenAmount = totals?.sourceAmount?.usd;
   const outputTokenAmount = totals?.targetAmount?.usd;
@@ -114,14 +165,48 @@ export const TokenConversionAssetHeader = ({
     return formatFiat(new BigNumber(amount));
   };
 
-  if (isLoading) {
-    return <TokenConversionAssetHeaderSkeleton />;
-  }
+  const handleTextLayout = useCallback(
+    (
+      textKey: 'inputAmount' | 'outputAmount',
+      event: NativeSyntheticEvent<TextLayoutEventData>,
+    ) => {
+      // If text is rendered on more than one line, switch to stacked layout
+      if (!isStackedLayout && event.nativeEvent.lines.length > 1) {
+        setIsStackedLayout(true);
+      }
 
-  return (
-    <View style={styles.assetHeaderContainer}>
+      if (!measuredTextKeysRef.current[textKey]) {
+        measuredTextKeysRef.current[textKey] = true;
+        if (Object.keys(measuredTextKeysRef.current).length === 2) {
+          setIsLayoutResolved(true);
+        }
+      }
+    },
+    [isStackedLayout],
+  );
+
+  const shouldShowSkeleton = isLoading || !isLayoutResolved;
+
+  const assetHeaderContent = (
+    <View
+      testID={TokenConversionAssetHeaderTestIds.CONTENT_CONTAINER}
+      style={[
+        styles.assetHeaderContainer,
+        isStackedLayout
+          ? styles.assetHeaderContainerStacked
+          : styles.assetHeaderContainerHorizontal,
+        shouldShowSkeleton && styles.hiddenMeasurementContent,
+      ]}
+      pointerEvents={shouldShowSkeleton ? 'none' : 'auto'}
+    >
       <View
-        style={styles.assetContainer}
+        style={[
+          styles.assetContainer,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalInput,
+        ]}
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
       >
         <BadgeWrapper
@@ -143,25 +228,46 @@ export const TokenConversionAssetHeader = ({
             testID={TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
-        <View style={styles.assetInfo}>
+        <View
+          style={[
+            styles.assetInfo,
+            isStackedLayout
+              ? styles.assetInfoStacked
+              : styles.assetInfoHorizontal,
+          ]}
+        >
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
+            numberOfLines={isStackedLayout ? undefined : 2}
+            ellipsizeMode="tail"
           >
             {inputToken?.symbol}
           </Text>
-          <Text style={styles.assetAmount}>
+          <Text
+            style={styles.assetAmount}
+            numberOfLines={isStackedLayout ? undefined : 2}
+            ellipsizeMode="tail"
+            onTextLayout={(e) => handleTextLayout('inputAmount', e)}
+          >
             {formatAmount(inputTokenAmount)}
           </Text>
         </View>
       </View>
       <Icon
-        name={IconName.Arrow2Down}
+        name={isStackedLayout ? IconName.Arrow2Down : IconName.Arrow2Right}
         color={IconColor.IconAlternative}
         size={IconSize.Lg}
+        style={styles.assetDirectionIcon}
       />
       <View
-        style={styles.assetContainer}
+        style={[
+          styles.assetContainer,
+          isStackedLayout
+            ? styles.assetContainerStacked
+            : styles.assetContainerHorizontal,
+          !isStackedLayout && styles.assetContainerHorizontalOutput,
+        ]}
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
       >
         <BadgeWrapper
@@ -183,18 +289,43 @@ export const TokenConversionAssetHeader = ({
             testID={TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR}
           />
         </BadgeWrapper>
-        <View style={styles.assetInfo}>
+        <View
+          style={[
+            styles.assetInfo,
+            isStackedLayout
+              ? styles.assetInfoStacked
+              : styles.assetInfoHorizontal,
+          ]}
+        >
           <Text
             variant={TextVariant.BodySMMedium}
             color={TextColor.Alternative}
+            numberOfLines={isStackedLayout ? undefined : 2}
+            ellipsizeMode="tail"
           >
             {outputToken.symbol}
           </Text>
-          <Text style={styles.assetAmount}>
+          <Text
+            style={styles.assetAmount}
+            numberOfLines={isStackedLayout ? undefined : 2}
+            ellipsizeMode="tail"
+            onTextLayout={(e) => handleTextLayout('outputAmount', e)}
+          >
             {formatAmount(outputTokenAmount)}
           </Text>
         </View>
       </View>
     </View>
   );
+
+  if (shouldShowSkeleton) {
+    return (
+      <View style={styles.measurementContainer}>
+        <TokenConversionAssetHeaderSkeleton isStackedLayout={isStackedLayout} />
+        {assetHeaderContent}
+      </View>
+    );
+  }
+
+  return assetHeaderContent;
 };
