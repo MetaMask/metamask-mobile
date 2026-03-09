@@ -6,7 +6,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, type RouteProp } from '@react-navigation/native';
@@ -25,7 +31,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
@@ -76,7 +82,7 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ExtendedNetwork } from '../Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipChainId, Hex, parseCaipChainId } from '@metamask/utils';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
@@ -106,6 +112,8 @@ import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { analytics } from '../../../util/analytics/analytics';
 import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
+import { getPermittedCaipChainIdsByHostname } from '../../../core/Permissions';
+import { RootState } from '../../../reducers';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored';
 import TagColored, {
   TagColor,
@@ -170,6 +178,36 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
   const isSendFlow =
     route?.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
+  const isMultiChainPermissionsSummary =
+    route?.params?.source ===
+    NETWORK_SELECTOR_SOURCES.MULTI_CHAIN_PERMISSIONS_SUMMARY;
+
+  // When opened from the dapp permissions summary, restrict the network list to
+  // only the chains the dapp has been granted permission to use.
+  // Query directly in useSelector (with shallowEqual) so the result always
+  // reflects the latest PermissionController state, even if the state object
+  // reference hasn't changed.
+  const permittedCaipChainIds = useSelector((state: RootState) => {
+    if (!isMultiChainPermissionsSummary || !origin) return null;
+    return getPermittedCaipChainIdsByHostname(
+      state.engine.backgroundState.PermissionController,
+      origin,
+    );
+  }, shallowEqual);
+
+  const permittedHexChainIds = useMemo(() => {
+    if (!permittedCaipChainIds) return null;
+    const hexIds = new Set<Hex>();
+    for (const caipChainId of permittedCaipChainIds) {
+      try {
+        const { reference } = parseCaipChainId(caipChainId);
+        hexIds.add(`0x${parseInt(reference, 10).toString(16)}` as Hex);
+      } catch {
+        // skip invalid CAIP chain IDs
+      }
+    }
+    return hexIds;
+  }, [permittedCaipChainIds]);
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -393,6 +431,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       ].url;
     const name = networkConfigurations?.[chainId]?.name ?? mainnetName;
 
+    if (permittedHexChainIds && !permittedHexChainIds.has(chainId)) return null;
     if (isNetworkUiRedesignEnabled() && isNoSearchResults(MAINNET)) return null;
 
     if (isNetworkUiRedesignEnabled()) {
@@ -459,6 +498,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
       ].url;
 
+    if (permittedHexChainIds && !permittedHexChainIds.has(chainId)) return null;
     if (isNetworkUiRedesignEnabled() && isNoSearchResults('linea-mainnet'))
       return null;
 
@@ -541,6 +581,8 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
 
       const name = nickname || rpcName;
 
+      if (permittedHexChainIds && !permittedHexChainIds.has(chainId))
+        return null;
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
       const image = getNetworkImageSource({ chainId: chainId?.toString() });
@@ -663,6 +705,8 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       const rpcUrl =
         rpcEndpoints?.[networkConfiguration?.defaultRpcEndpointIndex].url;
 
+      if (permittedHexChainIds && !permittedHexChainIds.has(chainId))
+        return null;
       if (isNetworkUiRedesignEnabled() && isNoSearchResults(name)) return null;
 
       if (isNetworkUiRedesignEnabled()) {
@@ -926,17 +970,32 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        !isSendFlow && renderNonEvmNetworks(false)
+        !isSendFlow &&
+          !isMultiChainPermissionsSummary &&
+          renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {!isSendFlow &&
+        !isMultiChainPermissionsSummary &&
         isNetworkUiRedesignEnabled() &&
         searchString.length === 0 &&
         renderPopularNetworksTitle()}
-      {!isSendFlow && isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
-      {!isSendFlow && searchString.length === 0 && renderTestNetworksSwitch()}
-      {!isSendFlow && showTestNetworks && renderOtherNetworks()}
-      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
+      {!isSendFlow &&
+        !isMultiChainPermissionsSummary &&
+        isNetworkUiRedesignEnabled() &&
+        renderAdditonalNetworks()}
+      {!isSendFlow &&
+        !isMultiChainPermissionsSummary &&
+        searchString.length === 0 &&
+        renderTestNetworksSwitch()}
+      {!isSendFlow &&
+        !isMultiChainPermissionsSummary &&
+        showTestNetworks &&
+        renderOtherNetworks()}
+      {!isSendFlow &&
+        !isMultiChainPermissionsSummary &&
+        showTestNetworks &&
+        renderNonEvmNetworks(true)}
     </>
   );
 
@@ -970,7 +1029,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
           >
             {renderBottomSheetContent()}
           </ScrollView>
-          {!isSendFlow ? (
+          {!isSendFlow && !isMultiChainPermissionsSummary ? (
             <Button
               variant={ButtonVariants.Secondary}
               label={strings(buttonLabelAddNetwork)}

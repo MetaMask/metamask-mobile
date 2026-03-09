@@ -4,6 +4,7 @@
  */
 export const NETWORK_SELECTOR_SOURCES = {
   SEND_FLOW: 'SendFlow',
+  MULTI_CHAIN_PERMISSIONS_SUMMARY: 'MultiChainPermissionsSummary',
 } as const;
 
 /**
