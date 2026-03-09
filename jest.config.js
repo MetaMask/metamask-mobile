@@ -60,6 +60,7 @@ const config = {
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
   moduleNameMapper: {
+    '^~/app/(.*)$': '<rootDir>/app/$1',
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
