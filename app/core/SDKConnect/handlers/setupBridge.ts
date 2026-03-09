@@ -35,13 +35,6 @@ export const setupBridge = ({
     return connection.backgroundBridge;
   }
 
-  if (
-    (originatorInfo.url && originatorInfo.url === ORIGIN_METAMASK) ||
-    (originatorInfo.title && originatorInfo.title === ORIGIN_METAMASK)
-  ) {
-    throw new Error('Connections from metamask origin are not allowed');
-  }
-
   // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
   // It is shown in the confirmation/approval UI to indicate the claimed source
   // of the request. It should NOT be treated as equivalent to a verified
@@ -49,6 +42,16 @@ export const setupBridge = ({
   const selfReportedUrl = originatorInfo.url;
   const selfReportedTitle = originatorInfo.title;
   const selfReportedIcon = originatorInfo.icon;
+
+  // Prevent external connections from using internal origins
+  // This is an external connection (SDK), so block any internal origin
+  if (
+    INTERNAL_ORIGINS.includes(selfReportedUrl) ||
+    INTERNAL_ORIGINS.includes(selfReportedTitle)
+  ) {
+    throw new Error('Connections from internal origins are not allowed');
+  }
+
 
   const backgroundBridge = new BackgroundBridge({
     webview: null,
@@ -75,16 +78,6 @@ export const setupBridge = ({
       DevLogger.log(
         `getRpcMethodMiddleware origin=${connection.origin} selfReportedUrl=${selfReportedUrl} `,
       );
-      // Prevent external connections from using internal origins
-      // This is an external connection (SDK), so block any internal origin
-      if (
-        INTERNAL_ORIGINS.includes(selfReportedUrl) ||
-        INTERNAL_ORIGINS.includes(selfReportedTitle)
-      ) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
       return getRpcMethodMiddleware({
         hostname: connection.origin,
         channelId: connection.channelId,
