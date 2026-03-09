@@ -7,10 +7,9 @@ import {
   formatCampaignStatusLabel,
   getCampaignPillLabel,
   getCampaignStatusInfo,
-  type CampaignStatusInfo,
 } from './CampaignTile.utils';
-import type {
-  CampaignDto,
+import {
+  type CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -232,7 +231,7 @@ describe('CampaignTile.utils', () => {
 
       const result = getCampaignStatusInfo(campaign);
 
-      expect(result).toEqual<CampaignStatusInfo>({
+      expect(result).toEqual({
         status: 'upcoming',
         statusLabel: 'rewards.campaign.pill_up_next',
         statusDescription: expect.stringContaining(
@@ -254,7 +253,7 @@ describe('CampaignTile.utils', () => {
 
       const result = getCampaignStatusInfo(campaign);
 
-      expect(result).toEqual<CampaignStatusInfo>({
+      expect(result).toEqual({
         status: 'active',
         statusLabel: 'rewards.campaign.pill_active',
         statusDescription: expect.stringContaining(
@@ -276,7 +275,7 @@ describe('CampaignTile.utils', () => {
 
       const result = getCampaignStatusInfo(campaign);
 
-      expect(result).toEqual<CampaignStatusInfo>({
+      expect(result).toEqual({
         status: 'complete',
         statusLabel: 'rewards.campaign.pill_complete',
         statusDescription: expect.stringMatching(/Dec 31, \d{1,2}:\d{2} [AP]M/),
