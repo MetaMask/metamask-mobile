@@ -35,7 +35,7 @@ export const usePredictBuyActions = ({
   const { onReject } = useConfirmActions();
   const { onConfirm: onApprovalConfirm } = useApprovalRequest();
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
-  const { updateActiveOrder } = usePredictActiveOrder();
+  const { updateActiveOrder, clearActiveOrder } = usePredictActiveOrder();
   const { navigateToBuyPreview } = usePredictNavigation();
   const [
     isPreviewFromPayWithAnyTokenUsed,
@@ -222,8 +222,9 @@ export const usePredictBuyActions = ({
   ]);
 
   const handlePlaceOrderSuccess = useCallback(() => {
+    clearActiveOrder();
     navigation.dispatch(StackActions.pop());
-  }, [navigation]);
+  }, [clearActiveOrder, navigation]);
 
   return {
     handleTokenSelected,

@@ -68,8 +68,14 @@ export const usePredictActiveOrder = () => {
     [PredictController, activeOrder],
   );
 
+  const clearActiveOrder = useCallback(() => {
+    PredictController.clearActiveOrder();
+    PredictController.setSelectedPaymentToken(null);
+  }, [PredictController]);
+
   return {
     activeOrder,
     updateActiveOrder,
+    clearActiveOrder,
   };
 };

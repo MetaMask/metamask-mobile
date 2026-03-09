@@ -40,6 +40,14 @@ export const usePredictBuyConditions = ({
     [activeOrder],
   );
 
+  const isPlacingOrder = useMemo(
+    () =>
+      activeOrder?.state === ActiveOrderState.PLACING_ORDER ||
+      isPlaceOrderLoading ||
+      isDepositing,
+    [activeOrder?.state, isPlaceOrderLoading, isDepositing],
+  );
+
   const isRedirecting = useMemo(
     () => activeOrder?.state === ActiveOrderState.REDIRECTING,
     [activeOrder],
@@ -68,11 +76,6 @@ export const usePredictBuyConditions = ({
       isRedirecting,
       isPayFeesLoading,
     ],
-  );
-
-  const isPlacingOrder = useMemo(
-    () => isPlaceOrderLoading || isDepositing,
-    [isPlaceOrderLoading, isDepositing],
   );
 
   const isUserChangeTriggeringCalculation = useMemo(
