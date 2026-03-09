@@ -229,7 +229,7 @@ class AppInformation extends PureComponent {
             <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
             {!isProduction() ? (
               <Text style={styles.branchInfo}>
-                {`Branch: ${process.env['GIT_BRANCH']}`}
+                {`${(process.env.METAMASK_ENVIRONMENT || '').toUpperCase()} | Branch: ${process.env['GIT_BRANCH']}`}
               </Text>
             ) : null}
 

@@ -424,7 +424,7 @@ exports[`AppInformation renders correctly with snapshot 1`] = `
                                 }
                               }
                             >
-                              Branch: undefined
+                               | Branch: undefined
                             </Text>
                           </View>
                           <Text

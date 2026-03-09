@@ -324,9 +324,9 @@ describe('AppInformation', () => {
       });
     });
 
-    it('displays branch information for non-production builds', async () => {
+    it('displays build type and branch for non-production builds', async () => {
       // Given isProduction returns false
-      process.env.GIT_BRANCH = 'feature/test-branch';
+      process.env.GIT_BRANCH = 'release/7.69.0';
       mockIsProduction.mockReturnValue(false);
 
       const { getByText } = renderScreen(
@@ -336,15 +336,18 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should display the branch information
+      // Then it should display build type and branch
+      // Note: env values are inlined by babel's transform-inline-environment-variables,
+      // so we assert on the structural pattern rather than exact env values
       await waitFor(() => {
-        expect(getByText(/Branch:/)).toBeTruthy();
+        expect(getByText(/\| Branch:/)).toBeTruthy();
       });
     });
 
-    it('does not display branch information for production builds', async () => {
+    it('does not display build type or branch for production builds', async () => {
       // Given isProduction returns true
       process.env.GIT_BRANCH = 'release/7.69.0';
+      process.env.METAMASK_ENVIRONMENT = 'production';
       mockIsProduction.mockReturnValue(true);
 
       const { queryByText } = renderScreen(
@@ -354,7 +357,7 @@ describe('AppInformation', () => {
       );
 
       // When the component renders
-      // Then it should not display the branch information
+      // Then it should not display the build type or branch information
       await waitFor(() => {
         expect(queryByText(/Branch:/)).toBeNull();
       });
