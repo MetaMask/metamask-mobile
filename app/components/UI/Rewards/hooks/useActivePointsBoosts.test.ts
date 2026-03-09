@@ -51,6 +51,13 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+/* eslint-disable @metamask/design-tokens/color-no-hex -- domain-specific mock API colors */
+const MOCK_ACTIVE_BOOST_COLORS = {
+  primary: '#FF0000',
+  secondary: '#00FF00',
+} as const;
+/* eslint-enable @metamask/design-tokens/color-no-hex */
+
 describe('useActivePointsBoosts', () => {
   const mockDispatch = jest.fn();
   const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
@@ -77,7 +84,7 @@ describe('useActivePointsBoosts', () => {
       },
       boostBips: 1000,
       seasonLong: true,
-      backgroundColor: '#FF0000',
+      backgroundColor: MOCK_ACTIVE_BOOST_COLORS.primary,
     },
     {
       id: 'boost-2',
@@ -90,7 +97,7 @@ describe('useActivePointsBoosts', () => {
       seasonLong: false,
       startDate: '2024-01-01',
       endDate: '2024-01-31',
-      backgroundColor: '#00FF00',
+      backgroundColor: MOCK_ACTIVE_BOOST_COLORS.secondary,
     },
   ];
 

@@ -138,7 +138,7 @@ describe('Transfer', () => {
     expect(getByText('Network')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
-      title: 'Review',
+      title: '',
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),

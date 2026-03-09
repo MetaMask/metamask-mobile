@@ -101,11 +101,11 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  refreshBalanceAllowance,
   roundOrderAmount,
   submitClobOrder,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
+import { isLiveSportsEvent } from '../../utils/gameParser';
 import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
@@ -223,20 +223,20 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
-      const { liveSportsLeagues } = this.#getFeatureFlags();
       const event = await getMarketDetailsFromGammaApi({
         marketId,
       });
 
-      const liveSportsEnabled = liveSportsLeagues.length > 0;
+      const { liveSportsLeagues } = this.#getFeatureFlags();
+      const supportedLeagues =
+        liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES;
+      const isSportsEvent = isLiveSportsEvent(event, supportedLeagues);
 
-      if (liveSportsEnabled) {
-        await TeamsCache.getInstance().ensureLeaguesLoaded(
-          liveSportsLeagues as typeof SUPPORTED_SPORTS_LEAGUES,
-        );
+      if (isSportsEvent) {
+        await TeamsCache.getInstance().ensureLeaguesLoaded(supportedLeagues);
       }
 
-      const teamLookup = liveSportsEnabled
+      const teamLookup = isSportsEvent
         ? (
             league: (typeof SUPPORTED_SPORTS_LEAGUES)[number],
             abbreviation: string,
@@ -252,7 +252,7 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to parse market details');
       }
 
-      return liveSportsEnabled
+      return isSportsEvent
         ? GameCache.getInstance().overlayOnMarket(parsedMarket)
         : parsedMarket;
     } catch (error) {
@@ -1316,23 +1316,6 @@ export class PolymarketProvider implements PredictProvider {
         address: clobOrder.order.signer ?? '',
         apiKey: signerApiKey,
       });
-
-      // TEMPORARY WORKAROUND: Refresh balance/allowance on Polymarket's CLOB
-      // before submitting the order. See refreshBalanceAllowance docs for details.
-      try {
-        await refreshBalanceAllowance({
-          address: signer.address,
-          apiKey: signerApiKey,
-          side,
-          outcomeTokenId,
-        });
-      } catch (refreshError) {
-        // Best-effort — don't block order submission if the refresh fails
-        DevLogger.log(
-          'PolymarketProvider: Pre-order balance/allowance refresh failed',
-          refreshError,
-        );
-      }
 
       const { success, response, error } = await submitClobOrder({
         headers,

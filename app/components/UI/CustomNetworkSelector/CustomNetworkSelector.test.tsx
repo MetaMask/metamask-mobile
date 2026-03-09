@@ -96,6 +96,19 @@ jest.mock('../../../constants/navigation/Routes', () => ({
   ADD_NETWORK: 'AddNetwork',
 }));
 
+jest.mock('../../../selectors/assets/balances', () => ({
+  selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
+}));
+
+jest.mock('../../hooks/useFormatters', () => ({
+  useFormatters: jest.fn(() => ({
+    formatCurrency: jest.fn(
+      (amount: number, currency: string) => `${amount} ${currency}`,
+    ),
+  })),
+}));
+
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: jest.fn(),
   useNetworksByCustomNamespace: jest.fn(),
