@@ -6,6 +6,7 @@ import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AccountType } from '../../../constants/onboarding';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -201,7 +202,7 @@ describe('OptinMetrics', () => {
         OptinMetrics,
         { name: 'OptinMetrics' },
         { state: {} },
-        { accountType: 'imported' },
+        { accountType: AccountType.Imported },
       );
 
       fireEvent.press(
@@ -230,7 +231,7 @@ describe('OptinMetrics', () => {
         OptinMetrics,
         { name: 'OptinMetrics' },
         { state: {} },
-        { accountType: 'metamask' },
+        { accountType: AccountType.Metamask },
       );
 
       const basicUsageCheckbox = screen.getByText(

@@ -125,8 +125,7 @@ const OptinMetrics = () => {
   /**
    * Action to be triggered when pressing any button
    */
-  const accountType =
-    (route?.params?.accountType as string | undefined) ?? reduxAccountType;
+  const accountType = route?.params?.accountType ?? reduxAccountType;
 
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();

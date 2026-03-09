@@ -16,6 +16,11 @@ export const WRONG_PASSWORD_ERROR = 'Error: Decrypt failed';
 export const SEED_PHRASE = 'seed_phrase';
 export const CONFIRM_PASSWORD = 'confirm_password';
 
+export enum AccountType {
+  Metamask = 'metamask',
+  Imported = 'imported',
+}
+
 export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',

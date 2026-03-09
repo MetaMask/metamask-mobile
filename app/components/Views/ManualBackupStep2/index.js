@@ -34,7 +34,10 @@ import Text, {
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 
 const ManualBackupStep2 = ({
@@ -147,7 +150,7 @@ const ManualBackupStep2 = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
-            accountType: 'metamask',
+            accountType: AccountType.Metamask,
           });
         }
       }
