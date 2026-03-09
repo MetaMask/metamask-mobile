@@ -70,7 +70,7 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         await Assertions.expectTextDisplayed('Aave V2');
         await Assertions.expectTextDisplayed('$0.33');
         await Assertions.expectTextDisplayed('USDC +1 other');
-        await WalletView.tapOnDeFiPosition('Aave V3');
+        await DefiView.tapPosition('Aave V3');
         await DefiPositionView.checkContainersIsDisplayed();
         await Assertions.expectTextDisplayed('Supplied');
         await Assertions.expectTextDisplayed('USDT');
