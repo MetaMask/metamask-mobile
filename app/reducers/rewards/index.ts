@@ -7,7 +7,6 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
-  SnapshotDto,
   SeasonWayToEarnDto,
   CampaignDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
@@ -52,7 +51,7 @@ export interface BulkLinkState {
 }
 
 export interface RewardsState {
-  activeTab: 'overview' | 'snapshots' | 'activity';
+  activeTab: 'overview' | 'campaigns' | 'activity';
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -115,11 +114,6 @@ export interface RewardsState {
 
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
-
-  // Snapshots state
-  snapshots: SnapshotDto[] | null;
-  snapshotsLoading: boolean;
-  snapshotsError: boolean;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -187,11 +181,6 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
-  // Snapshots initial state
-  snapshots: null,
-  snapshotsLoading: false,
-  snapshotsError: false,
-
   // Campaigns initial state
   campaigns: [],
   campaignsLoading: false,
@@ -210,7 +199,7 @@ const rewardsSlice = createSlice({
   reducers: {
     setActiveTab: (
       state,
-      action: PayloadAction<'overview' | 'snapshots' | 'activity'>,
+      action: PayloadAction<'overview' | 'campaigns' | 'activity'>,
     ) => {
       state.activeTab = action.payload;
     },
@@ -359,7 +348,6 @@ const rewardsSlice = createSlice({
         state.activeBoosts = initialState.activeBoosts;
         state.pointsEvents = initialState.pointsEvents;
         state.unlockedRewards = initialState.unlockedRewards;
-        state.snapshots = initialState.snapshots;
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -447,21 +435,6 @@ const rewardsSlice = createSlice({
       action: PayloadAction<PointsEventDto[] | null>,
     ) => {
       state.pointsEvents = action.payload;
-    },
-
-    // Snapshots reducers
-    setSnapshots: (state, action: PayloadAction<SnapshotDto[] | null>) => {
-      state.snapshots = action.payload;
-      state.snapshotsError = false;
-    },
-    setSnapshotsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.snapshots?.length) {
-        return;
-      }
-      state.snapshotsLoading = action.payload;
-    },
-    setSnapshotsError: (state, action: PayloadAction<boolean>) => {
-      state.snapshotsError = action.payload;
     },
 
     // Campaigns reducers
@@ -578,7 +551,6 @@ const rewardsSlice = createSlice({
             activeBoosts: action.payload.rewards.activeBoosts,
             pointsEvents: action.payload.rewards.pointsEvents,
             unlockedRewards: action.payload.rewards.unlockedRewards,
-            snapshots: action.payload.rewards.snapshots,
             hideUnlinkedAccountsBanner:
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:
@@ -632,10 +604,6 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  // Snapshots actions
-  setSnapshots,
-  setSnapshotsLoading,
-  setSnapshotsError,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

@@ -62,10 +62,9 @@ export const REWARDS_VIEW_SELECTORS = {
   ACTIVITY_EVENT_ROW_DETAILS: 'activity-event-row-details',
   ACTIVITY_EVENT_ROW_DATE: 'activity-event-row-date',
   ACTIVITY_EVENT_ROW_BONUS: 'activity-event-row-bonus',
-  // Snapshots
-  TAB_CONTENT_SNAPSHOTS: 'rewards-view-tab-content-snapshots',
-  SNAPSHOTS_SECTION: 'rewards-view-snapshots-section',
-  SNAPSHOTS_ACTIVE_SECTION: 'rewards-view-snapshots-active-section',
-  SNAPSHOTS_UPCOMING_SECTION: 'rewards-view-snapshots-upcoming-section',
-  SNAPSHOTS_PREVIOUS_SECTION: 'rewards-view-snapshots-previous-section',
+  // Campaigns
+  TAB_CONTENT_CAMPAIGNS: 'rewards-view-tab-content-campaigns',
+  CAMPAIGNS_ACTIVE_SECTION: 'rewards-view-campaigns-active-section',
+  CAMPAIGNS_UPCOMING_SECTION: 'rewards-view-campaigns-upcoming-section',
+  CAMPAIGNS_PREVIOUS_SECTION: 'rewards-view-campaigns-previous-section',
 } as const;

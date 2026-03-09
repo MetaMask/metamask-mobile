@@ -16,10 +16,19 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { getCampaignStatus } from '../components/CampaignTile/CampaignTile.utils';
+
+interface CategorizedCampaigns {
+  active: CampaignDto[];
+  upcoming: CampaignDto[];
+  previous: CampaignDto[];
+}
 
 interface UseRewardCampaignsReturn {
   /** Campaigns fetched from the API, or empty array when flag is disabled */
   campaigns: CampaignDto[];
+  /** Campaigns categorized by status */
+  categorizedCampaigns: CategorizedCampaigns;
   /** Whether campaigns are loading */
   isLoading: boolean;
   /** Whether there was an error fetching campaigns */
@@ -30,6 +39,7 @@ interface UseRewardCampaignsReturn {
 
 /**
  * Custom hook to fetch and manage campaigns data from the rewards API.
+ * Categorizes campaigns into active, upcoming, and previous (complete).
  * Returns an empty list when the rewards-campaigns-enabled feature flag is off.
  */
 export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
@@ -72,6 +82,39 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     }
   }, [dispatch, subscriptionId, isCampaignsEnabled]);
 
+  const categorizedCampaigns = useMemo((): CategorizedCampaigns => {
+    const campaignsList = campaigns ?? [];
+    const active: CampaignDto[] = [];
+    const upcoming: CampaignDto[] = [];
+    const previous: CampaignDto[] = [];
+
+    campaignsList.forEach((campaign) => {
+      const status = getCampaignStatus(campaign);
+      switch (status) {
+        case 'active':
+          active.push(campaign);
+          break;
+        case 'upcoming':
+          upcoming.push(campaign);
+          break;
+        case 'complete':
+          previous.push(campaign);
+          break;
+      }
+    });
+
+    upcoming.sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
+    previous.sort(
+      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+    );
+
+    return { active, upcoming, previous };
+  }, [campaigns]);
+
   useFocusEffect(
     useCallback(() => {
       fetchCampaigns();
@@ -91,6 +134,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
   return {
     campaigns: campaigns ?? [],
+    categorizedCampaigns,
     isLoading,
     hasError,
     fetchCampaigns,
