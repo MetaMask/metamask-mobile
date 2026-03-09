@@ -1,5 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -28,6 +30,13 @@ import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/consta
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../../core/NavigationService';
+import { RootState } from '../../../../../reducers';
+import {
+  selectConversionRateByChainId,
+  selectCurrentCurrency,
+  selectUSDConversionRateByChainId,
+} from '../../../../../selectors/currencyRateController';
+import formatFiat from '../../../../../util/formatFiat';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
 import CashAnnualizedCopy from './CashAnnualizedCopy';
@@ -46,6 +55,25 @@ const CashGetMusdEmptyState = () => {
     getPaymentTokenForSelectedNetwork,
   } = useMusdConversionFlowData();
   const { initiateCustomConversion } = useMusdConversion();
+
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const mainnetConversionRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
+  );
+  const mainnetUsdConversionRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, MUSD_CONVERSION_DEFAULT_CHAIN_ID),
+  );
+
+  const musdPriceFormatted = useMemo(() => {
+    const currency = currentCurrency ?? 'usd';
+    const oneUsdInUserCurrency =
+      mainnetConversionRate != null &&
+      mainnetUsdConversionRate != null &&
+      mainnetUsdConversionRate > 0
+        ? mainnetConversionRate / mainnetUsdConversionRate
+        : 1;
+    return formatFiat(new BigNumber(oneUsdInUserCurrency), currency);
+  }, [currentCurrency, mainnetConversionRate, mainnetUsdConversionRate]);
 
   const handleTokenRowPress = useCallback(() => {
     NavigationService.navigation.navigate(
@@ -132,7 +160,7 @@ const CashGetMusdEmptyState = () => {
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                $1.00
+                {musdPriceFormatted}
               </Text>
               <Text
                 variant={TextVariant.BodySm}
