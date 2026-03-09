@@ -160,9 +160,7 @@ const selectNetworksMapForBalances = (
       }
       const map: Record<string, Record<string, boolean>> = {};
       for (const caipChainId of popularChainIds) {
-        const { namespace, reference } = parseCaipChainId(
-          caipChainId as CaipChainId,
-        );
+        const { namespace, reference } = parseCaipChainId(caipChainId);
         if (namespace === KnownCaipNamespace.Eip155) {
           if (!map.eip155) map.eip155 = {};
           map.eip155[toHex(reference)] = true;

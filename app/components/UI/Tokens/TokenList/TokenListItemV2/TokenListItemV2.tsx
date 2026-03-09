@@ -10,10 +10,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
@@ -35,12 +31,15 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextColor as CLTextColor,
+  TextVariant as CLTextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
@@ -91,6 +90,10 @@ import {
   Box,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
@@ -98,11 +101,6 @@ export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    balanceFiat: {
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-      textTransform: 'uppercase',
-    },
     badge: {
       marginTop: 8,
     },
@@ -418,7 +416,7 @@ export const TokenListItemV2 = React.memo(
       if (hasClaimableBonus) {
         return {
           text: strings('earn.claim_bonus'),
-          color: TextColor.Primary,
+          color: CLTextColor.Primary,
           onPress: handleClaimBonus,
         };
       }
@@ -428,7 +426,7 @@ export const TokenListItemV2 = React.memo(
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: TextColor.Primary,
+          color: CLTextColor.Primary,
           onPress: handleConvertToMUSD,
         };
       }
@@ -439,7 +437,7 @@ export const TokenListItemV2 = React.memo(
       ) {
         return {
           text: `${strings('stake.earn')}`,
-          color: TextColor.Primary,
+          color: CLTextColor.Primary,
           onPress: handleLendingRedirect,
         };
       }
@@ -447,7 +445,7 @@ export const TokenListItemV2 = React.memo(
       if (!hasPercentageChange) {
         return {
           text: undefined,
-          color: TextColor.Alternative,
+          color: CLTextColor.Alternative,
           onPress: undefined,
         };
       }
@@ -456,11 +454,11 @@ export const TokenListItemV2 = React.memo(
         2,
       )}%`;
 
-      let color = TextColor.Alternative;
+      let color = CLTextColor.Alternative;
       if (pricePercentChange1d > 0) {
-        color = TextColor.Success;
+        color = CLTextColor.Success;
       } else if (pricePercentChange1d < 0) {
-        color = TextColor.Error;
+        color = CLTextColor.Error;
       }
 
       return { text, color, onPress: undefined };
@@ -513,6 +511,18 @@ export const TokenListItemV2 = React.memo(
     const fiatBalance = asset.balanceFiat || '—';
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
+    const isFiatBalanceLoading =
+      fiatBalance === TOKEN_BALANCE_LOADING ||
+      fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE;
+    let fiatBalanceDisplay: string | React.ReactNode;
+    if (hideFiatForTestnet) {
+      fiatBalanceDisplay = '—';
+    } else if (isFiatBalanceLoading) {
+      fiatBalanceDisplay = <SkeletonText thin style={styles.skeleton} />;
+    } else {
+      fiatBalanceDisplay = fiatBalance;
+    }
+
     return (
       <TouchableOpacity
         onPress={() => {
@@ -561,7 +571,8 @@ export const TokenListItemV2 = React.memo(
             <View style={styles.assetNameContainer}>
               <View style={styles.assetName}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
                   numberOfLines={1}
                   style={styles.assetNameText}
                 >
@@ -594,21 +605,14 @@ export const TokenListItemV2 = React.memo(
                   asset?.hasBalanceError ||
                   asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
                   hideFiatForTestnet
-                    ? TextVariant.BodySM
-                    : TextVariant.BodyMDBold
+                    ? CLTextVariant.BodySM
+                    : CLTextVariant.BodyMDBold
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Medium}
                 testID={BALANCE_TEST_ID}
               >
-                {hideFiatForTestnet ? (
-                  '—'
-                ) : fiatBalance === TOKEN_BALANCE_LOADING ||
-                  fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                  <SkeletonText thin style={styles.skeleton} />
-                ) : (
-                  fiatBalance
-                )}
+                {fiatBalanceDisplay}
               </SensitiveText>
             )}
           </Box>
@@ -627,8 +631,10 @@ export const TokenListItemV2 = React.memo(
                 <>
                   {!hasClaimableBonus && (
                     <Text
-                      variant={TextVariant.BodySMMedium}
-                      style={styles.balanceFiat}
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
                     >
                       {tokenPriceInFiat && !hideFiatForScamWarning
                         ? addCurrencySymbol(
@@ -644,8 +650,10 @@ export const TokenListItemV2 = React.memo(
 
                   {hideFiatForScamWarning ? (
                     <Text
-                      variant={TextVariant.BodySMMedium}
-                      style={styles.balanceFiat}
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextAlternative}
+                      twClassName="uppercase"
                     >
                       {'-'}
                     </Text>
@@ -656,7 +664,7 @@ export const TokenListItemV2 = React.memo(
                       testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
                     >
                       <SensitiveText
-                        variant={TextVariant.BodySMMedium}
+                        variant={CLTextVariant.BodySMMedium}
                         color={secondaryBalanceDisplay.color}
                         isHidden={false}
                         length={SensitiveTextLength.Short}
@@ -673,7 +681,7 @@ export const TokenListItemV2 = React.memo(
             {/* Token balance */}
             <Box twClassName="shrink">
               <SensitiveText
-                variant={TextVariant.BodySMMedium}
+                variant={CLTextVariant.BodySMMedium}
                 style={styles.secondaryBalance}
                 length={SensitiveTextLength.Short}
                 isHidden={privacyMode}

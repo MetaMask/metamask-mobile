@@ -134,7 +134,7 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
         await NetworkController.updateNetwork(
           existingNetwork.chainId,
           networkConfig as unknown as UpdateNetworkFields,
-          existingNetwork.chainId === hexChainId && indexRpc >= 0
+          existingNetwork.chainId === hexChainId
             ? { replacementSelectedRpcEndpointIndex: indexRpc }
             : undefined,
         );
