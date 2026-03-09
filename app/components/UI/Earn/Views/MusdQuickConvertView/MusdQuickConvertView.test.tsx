@@ -12,9 +12,12 @@ import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags'
 import {
   createTokenChainKey,
   selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
   selectMusdConversionStatuses,
 } from '../../selectors/musdConversionStatus';
 import { MUSD_CONVERSION_APY } from '../../constants/musd';
+import AppConstants from '../../../../../core/AppConstants';
+import { Linking } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
@@ -40,6 +43,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 jest.mock('../../selectors/musdConversionStatus', () => ({
   ...jest.requireActual('../../selectors/musdConversionStatus'),
   selectHasInFlightMusdConversion: jest.fn(),
+  selectHasUnapprovedMusdConversion: jest.fn(),
   selectMusdConversionStatuses: jest.fn(),
 }));
 const mockGetStakingNavbar = jest.fn<object, unknown[]>(() => ({}));
@@ -60,10 +64,18 @@ jest.mock('../../../../hooks/useStyles', () => ({
       listContainer: {},
       emptyContainer: {},
       listHeaderContainer: {},
+      termsApply: {},
       balanceCardHeader: {},
     },
     theme: { colors: {} },
   })),
+}));
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
 }));
 
 const mockSelectMusdQuickConvertEnabledFlag =
@@ -80,6 +92,10 @@ const mockUseMusdConversion = useMusdConversion as jest.MockedFunction<
 const mockUseMusdBalance = useMusdBalance as jest.MockedFunction<
   typeof useMusdBalance
 >;
+const mockSelectHasUnapprovedMusdConversion =
+  selectHasUnapprovedMusdConversion as jest.MockedFunction<
+    typeof selectHasUnapprovedMusdConversion
+  >;
 const mockSelectHasInFlightMusdConversion =
   selectHasInFlightMusdConversion as jest.MockedFunction<
     typeof selectHasInFlightMusdConversion
@@ -161,6 +177,7 @@ describe('MusdQuickConvertView', () => {
       fiatBalanceAggregatedFormatted: '$0.00',
     });
     mockSelectHasInFlightMusdConversion.mockReturnValue(false);
+    mockSelectHasUnapprovedMusdConversion.mockReturnValue(false);
     mockSelectMusdConversionStatuses.mockReturnValue({});
   });
 
@@ -451,8 +468,8 @@ describe('MusdQuickConvertView', () => {
     });
   });
 
-  describe('in-flight conversion', () => {
-    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasInFlightMusdConversion is true', async () => {
+  describe('unapproved conversion', () => {
+    it('does not call initiateMaxConversion or initiateCustomConversion when Max or Edit is pressed and hasUnapprovedMusdConversion is true', async () => {
       const token = createMockToken();
       mockUseMusdConversionTokens.mockReturnValue({
         tokens: [token],
@@ -461,7 +478,7 @@ describe('MusdQuickConvertView', () => {
         isMusdSupportedOnChain: jest.fn(),
         hasConvertibleTokensByChainId: jest.fn(),
       });
-      mockSelectHasInFlightMusdConversion.mockReturnValue(true);
+      mockSelectHasUnapprovedMusdConversion.mockReturnValue(true);
 
       const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
         state: initialRootState,
@@ -479,6 +496,26 @@ describe('MusdQuickConvertView', () => {
         fireEvent.press(editButton);
       });
       expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('terms of use', () => {
+    it('opens terms URL when terms apply text is pressed', () => {
+      const { getByText } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      const termsApplyText = getByText(
+        strings('earn.musd_conversion.education.terms_apply'),
+      );
+
+      act(() => {
+        fireEvent.press(termsApplyText);
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
+      );
     });
   });
 });

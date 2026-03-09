@@ -20,7 +20,7 @@ export interface HardwareWalletContextValue {
    * @param deviceId - Optional. If not provided, shows device selection for hardware wallets.
    * @returns true if device is ready, false if user cancelled
    */
-  ensureDeviceReady: (deviceId?: string) => Promise<boolean>;
+  ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
   setTargetWalletType: (walletType: HardwareWalletType) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */

@@ -322,6 +322,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -443,6 +444,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -595,6 +597,7 @@ exports[`V2BasicInfo handles region with no phone prefix 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -1227,6 +1230,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -1348,6 +1352,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -1514,6 +1519,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -1800,6 +1806,7 @@ exports[`V2BasicInfo matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -2297,6 +2304,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -2418,6 +2426,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                           "fontWeight": "400",
                           "height": 46,
                           "letterSpacing": 0,
+                          "lineHeight": 0,
                           "opacity": 1,
                         }
                       }
@@ -2584,6 +2593,7 @@ exports[`V2BasicInfo matches snapshot for non-US region 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
