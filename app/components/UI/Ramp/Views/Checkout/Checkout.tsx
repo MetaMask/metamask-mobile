@@ -43,8 +43,6 @@ import {
   getCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
-import { rampsDebugLog } from '../../debug/rampsDebugLogger';
-
 interface CheckoutParams {
   url: string;
   providerName: string;
@@ -176,18 +174,6 @@ const Checkout = () => {
     const canRegister =
       effectiveOrderId && providerCode && walletAddress && network;
     if (!canRegister) return;
-    // #region agent log
-    rampsDebugLog({
-      location: 'Checkout.tsx:addPrecreatedOrder',
-      message: 'addPrecreatedOrder (WebView flow)',
-      data: {
-        orderId: effectiveOrderId,
-        providerCode,
-        walletAddress,
-        network,
-      },
-    });
-    // #endregion
     addPrecreatedOrder({
       orderId: effectiveOrderId,
       providerCode: normalizeProviderCode(providerCode),
@@ -214,18 +200,6 @@ const Checkout = () => {
       }
       isRedirectionHandledRef.current = true;
 
-      // #region agent log
-      rampsDebugLog({
-        location: 'Checkout.tsx:handleNavigationStateChange',
-        message: 'callback URL detected',
-        data: {
-          url: navState.url?.slice(0, 120),
-          providerCode,
-          walletAddress,
-        },
-      });
-      // #endregion
-
       try {
         const parsedUrl = parseUrl(navState.url);
         if (Object.keys(parsedUrl.query).length === 0) {
@@ -243,18 +217,6 @@ const Checkout = () => {
           navState.url,
           walletAddress,
         );
-
-        // #region agent log
-        rampsDebugLog({
-          location: 'Checkout.tsx:getOrderFromCallback',
-          message: 'getOrderFromCallback result',
-          data: {
-            hasOrder: Boolean(rampsOrder),
-            providerOrderId: rampsOrder?.providerOrderId,
-            status: rampsOrder?.status,
-          },
-        });
-        // #endregion
 
         if (!rampsOrder) {
           throw new Error('Order could not be retrieved from callback');
