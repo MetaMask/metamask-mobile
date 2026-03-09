@@ -15830,7 +15830,6 @@ describe('RewardsController', () => {
           "activeBoosts": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
-          "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
