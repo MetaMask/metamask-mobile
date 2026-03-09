@@ -176,4 +176,23 @@ describe('OrderContent', () => {
       screen.queryByText('Card purchases typically take a few minutes'),
     ).toBeNull();
   });
+
+  it('displays currency symbol for supported currencies', () => {
+    // USD is in currency-symbols.json (lowercase key); symbol must be lowercased
+    // before lookup or renderFiat returns "100 USD" instead of "$100"
+    renderOrder(mockOrder);
+    expect(screen.getByText('$100')).toBeOnTheScreen();
+    expect(screen.getByText('$2.5')).toBeOnTheScreen();
+  });
+
+  it('falls back to code suffix for unsupported currencies', () => {
+    // GBP is not in currency-symbols.json; renderFiat returns "100 GBP"
+    const gbpOrder: RampsOrder = {
+      ...mockOrder,
+      fiatCurrency: { symbol: 'GBP', decimals: 2, denomSymbol: '£' },
+    };
+    renderOrder(gbpOrder);
+    expect(screen.getByText('100 GBP')).toBeOnTheScreen();
+    expect(screen.getByText('2.5 GBP')).toBeOnTheScreen();
+  });
 });

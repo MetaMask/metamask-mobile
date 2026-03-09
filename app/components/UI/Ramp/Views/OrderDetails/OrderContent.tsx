@@ -202,8 +202,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
     trackEvent,
   ]);
 
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const fiatCurrencyCode = order.fiatCurrency?.symbol?.toLowerCase() ?? '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
@@ -444,7 +443,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-20" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
             {renderFiat(
               Number(order.totalFeesFiat ?? 0),
               fiatCurrencyCode,
@@ -470,7 +468,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-24" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
             {renderFiat(
               Number(order.fiatAmount ?? 0),
               fiatCurrencyCode,
