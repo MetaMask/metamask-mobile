@@ -218,7 +218,7 @@ remapEnvVariable() {
 	if [ -z "${!old_var_name}" ]; then
 		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
 			echo "❌ Required Bitrise secret is missing: $old_var_name"
-			exit 1
+			return 1
 		fi
 		return 0
 	fi
