@@ -61,4 +61,18 @@ describe('AvatarNetwork', () => {
     );
     expect(imageComponent.exists()).toBe(false);
   });
+
+  it('should render SvgUri when imageSource uri is SVG', () => {
+    const svgSource = { uri: 'https://example.com/network.svg' };
+    const wrapper = shallow(
+      <AvatarNetwork
+        name="ZKsync"
+        imageSource={svgSource as never}
+        size={SAMPLE_AVATARNETWORK_PROPS.size}
+      />,
+    );
+    const svgComponent = wrapper.find('SvgUri');
+    expect(svgComponent.exists()).toBe(true);
+    expect(svgComponent.prop('uri')).toBe('https://example.com/network.svg');
+  });
 });

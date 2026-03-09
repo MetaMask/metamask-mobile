@@ -68,6 +68,38 @@ describe('config-registry util', () => {
       );
       expect((result as PopularListNetworkShape).ticker).toBe('SEI');
     });
+
+    it('uses default blockExplorerUrl and ticker when missing', () => {
+      const config = {
+        chainId: 'eip155:999',
+        name: 'Custom',
+        rpcProviders: {
+          default: { url: 'https://rpc.example.com', fallbacks: [] },
+        },
+      } as never;
+      const result = registryConfigToPopularListShape(config);
+      expect(result).not.toBeNull();
+      expect(
+        (result as PopularListNetworkShape).rpcPrefs.blockExplorerUrl,
+      ).toBe('');
+      expect((result as PopularListNetworkShape).ticker).toBe('ETH');
+    });
+
+    it('includes imageUrl when provided', () => {
+      const config = {
+        chainId: 'eip155:1',
+        name: 'Ethereum',
+        rpcProviders: {
+          default: { url: 'https://eth.llamarpc.com', fallbacks: [] },
+        },
+        imageUrl: 'https://example.com/eth.svg',
+      } as never;
+      const result = registryConfigToPopularListShape(config);
+      expect(result).not.toBeNull();
+      expect((result as PopularListNetworkShape).rpcPrefs.imageUrl).toBe(
+        'https://example.com/eth.svg',
+      );
+    });
   });
 
   describe('getNetworksToAddFromFeatured', () => {

@@ -1,5 +1,7 @@
 import {
   getConfigRegistryState,
+  getConfigRegistryNetworks,
+  isConfigRegistryNetworksLoading,
   getIsConfigRegistryApiEnabled,
   getAdditionalNetworksList,
   CONFIG_REGISTRY_API_ENABLED_FLAG_KEY,
@@ -32,6 +34,102 @@ describe('configRegistry selectors', () => {
       expect(result.version).toBeNull();
       expect(result.lastFetched).toBeNull();
       expect(result.etag).toBeNull();
+    });
+  });
+
+  describe('getConfigRegistryNetworks', () => {
+    it('returns empty array when configs.networks is empty', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: {} },
+              version: null,
+              lastFetched: null,
+              etag: null,
+            },
+          },
+        },
+      };
+      expect(getConfigRegistryNetworks(state as never)).toEqual([]);
+    });
+
+    it('returns networks when configs.networks has entries', () => {
+      const networks = {
+        'eip155:1': {
+          chainId: 'eip155:1',
+          name: 'Ethereum',
+          rpcProviders: {
+            default: { url: 'https://eth.llamarpc.com' },
+            fallbacks: [],
+          },
+        },
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks },
+              version: '1',
+              lastFetched: 1,
+              etag: null,
+            },
+          },
+        },
+      };
+      expect(getConfigRegistryNetworks(state as never)).toEqual([
+        networks['eip155:1'],
+      ]);
+    });
+  });
+
+  describe('isConfigRegistryNetworksLoading', () => {
+    it('returns false when lastFetched is set and no networks', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: {} },
+              version: null,
+              lastFetched: Date.now(),
+              etag: null,
+            },
+          },
+        },
+      };
+      expect(isConfigRegistryNetworksLoading(state as never)).toBe(false);
+    });
+
+    it('returns true when not yet fetched and no networks', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: {} },
+              version: null,
+              lastFetched: null,
+              etag: null,
+            },
+          },
+        },
+      };
+      expect(isConfigRegistryNetworksLoading(state as never)).toBe(true);
+    });
+
+    it('returns false when configs exist', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ConfigRegistryController: {
+              configs: { networks: { 'eip155:1': {} } },
+              version: '1',
+              lastFetched: null,
+              etag: null,
+            },
+          },
+        },
+      };
+      expect(isConfigRegistryNetworksLoading(state as never)).toBe(false);
     });
   });
 
@@ -205,6 +303,57 @@ describe('configRegistry selectors', () => {
       expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toHaveProperty('chainId');
       expect(result[0]).toHaveProperty('nickname');
+    });
+
+    it('returns dynamic list (empty) when flag is on and all featured networks already added', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+              },
+            },
+            ConfigRegistryController: {
+              configs: {
+                networks: {
+                  'eip155:1329': {
+                    chainId: 'eip155:1329',
+                    name: 'Sei Network',
+                    rpcProviders: {
+                      default: {
+                        url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                        type: 'infura',
+                        networkClientId: 'sei-mainnet',
+                      },
+                      fallbacks: [],
+                    },
+                    blockExplorerUrls: {
+                      default: 'https://seiscan.io',
+                      fallbacks: [],
+                    },
+                    assets: { native: { symbol: 'SEI', decimals: 6 } },
+                    config: {
+                      isActive: true,
+                      isTestnet: false,
+                      isFeatured: true,
+                    },
+                  },
+                },
+              },
+              version: '1',
+              lastFetched: Date.now(),
+              etag: null,
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: { '0x531': { chainId: '0x531' } },
+            },
+          },
+        },
+      };
+      const result = getAdditionalNetworksList(state as never);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(0);
     });
   });
 });

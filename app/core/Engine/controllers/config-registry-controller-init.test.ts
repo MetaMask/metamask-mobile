@@ -19,7 +19,10 @@ const defaultState = {
   etag: null,
 };
 
-function buildInitRequest(remoteFeatureFlags?: Record<string, unknown>) {
+function buildInitRequest(
+  remoteFeatureFlags?: Record<string, unknown>,
+  localOverrides?: Record<string, unknown>,
+) {
   const rootMessenger = getRootExtendedMessenger();
   const controllerMessenger = getConfigRegistryControllerMessenger(
     rootMessenger as never,
@@ -32,7 +35,7 @@ function buildInitRequest(remoteFeatureFlags?: Record<string, unknown>) {
     if (action === 'RemoteFeatureFlagController:getState') {
       return {
         remoteFeatureFlags: remoteFeatureFlags ?? {},
-        localOverrides: {},
+        localOverrides: localOverrides ?? {},
       } as never;
     }
     return undefined as never;
@@ -66,6 +69,7 @@ describe('configRegistryControllerInit', () => {
       state: { ...defaultState },
       startPolling: mockStartPolling,
       stopAllPolling: jest.fn(),
+      update: jest.fn(),
     };
     (ConfigRegistryController as jest.Mock).mockImplementation(() => ({
       ...mockControllerInstance,
@@ -136,5 +140,130 @@ describe('configRegistryControllerInit', () => {
       'RemoteFeatureFlagController:stateChange',
       expect.any(Function),
     );
+  });
+
+  it('runs initial fetch when flag is enabled and no persisted configs', async () => {
+    const request = buildInitRequest({
+      [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+    });
+    const fetchResult = {
+      modified: true,
+      etag: 'etag1',
+      data: {
+        data: {
+          chains: [
+            {
+              chainId: 'eip155:1',
+              name: 'Ethereum',
+              rpcProviders: {
+                default: { url: 'https://eth.llamarpc.com' },
+                fallbacks: [],
+              },
+            },
+          ],
+          version: '1',
+        },
+      },
+    };
+    jest
+      .spyOn(request.controllerMessenger, 'call')
+      .mockImplementation((action: string) => {
+        if (action === 'ConfigRegistryApiService:fetchConfig') {
+          return Promise.resolve(fetchResult) as never;
+        }
+        return undefined as never;
+      });
+
+    configRegistryControllerInit(request);
+
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockControllerInstance.update).toHaveBeenCalledWith(
+      expect.any(Function),
+    );
+    const producer = (mockControllerInstance.update as jest.Mock).mock
+      .calls[0][0];
+    const state = {
+      configs: { networks: {} },
+      version: null,
+      lastFetched: null,
+      etag: null,
+    };
+    producer(state);
+    expect(state.configs.networks).toEqual({
+      'eip155:1': fetchResult.data.data.chains[0],
+    });
+    expect(state.version).toBe('1');
+    expect(state.etag).toBe('etag1');
+  });
+
+  it('subscribe callback runs initial fetch when flag turns true and no configs', async () => {
+    const request = buildInitRequest({
+      [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: false,
+    });
+    jest
+      .spyOn(request.controllerMessenger, 'call')
+      .mockImplementation((action: string) => {
+        if (action === 'ConfigRegistryApiService:fetchConfig') {
+          return Promise.resolve({
+            modified: true,
+            etag: null,
+            data: {
+              data: { chains: [], version: '1' },
+            },
+          }) as never;
+        }
+        return undefined as never;
+      });
+
+    configRegistryControllerInit(request);
+
+    const subscribeCb = (request.initMessenger.subscribe as jest.Mock).mock
+      .calls[0][1];
+    (request.initMessenger.call as jest.Mock).mockImplementation(
+      (action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+            },
+            localOverrides: {},
+          } as never;
+        }
+        return undefined as never;
+      },
+    );
+
+    subscribeCb();
+
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockControllerInstance.update).toHaveBeenCalled();
+    expect(mockStartPolling).toHaveBeenCalledWith(null);
+  });
+
+  it('returns stub controller when init throws', () => {
+    (ConfigRegistryController as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('init failed');
+    });
+    const request = buildInitRequest();
+
+    const result = configRegistryControllerInit(request);
+
+    expect(result.controller).toBeDefined();
+    expect(result.controller.state).toEqual(defaultState);
+    expect(typeof result.controller.startPolling).toBe('function');
+    expect(typeof result.controller.stopAllPolling).toBe('function');
+  });
+
+  it('treats flag as enabled when localOverrides overrides remote', () => {
+    const request = buildInitRequest(
+      { [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: false },
+      { [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true },
+    );
+    configRegistryControllerInit(request);
+    expect(mockStartPolling).toHaveBeenCalledWith(null);
   });
 });
