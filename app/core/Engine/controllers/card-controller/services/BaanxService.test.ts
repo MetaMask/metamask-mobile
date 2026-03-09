@@ -1,5 +1,5 @@
 import axios, { isAxiosError } from 'axios';
-import { BaanxService, CardApiError } from './BaanxService';
+import { BaanxService } from './BaanxService';
 
 jest.mock('axios');
 jest.mock('../../../../../util/Logger');
@@ -109,7 +109,7 @@ describe('BaanxService', () => {
       );
     });
 
-    it('throws CardApiError on HTTP error response', async () => {
+    it('throws CardApiError with status, path, and body on HTTP error', async () => {
       const axiosError = new Error('Request failed') as Error & {
         isAxiosError: boolean;
         response: { status: number; data: string };
@@ -121,15 +121,11 @@ describe('BaanxService', () => {
       (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
       const service = createService();
 
-      await expect(service.get('/v1/test')).rejects.toThrow(CardApiError);
-
-      try {
-        await service.get('/v1/test');
-      } catch (error) {
-        expect((error as CardApiError).statusCode).toBe(401);
-        expect((error as CardApiError).path).toBe('/v1/test');
-        expect((error as CardApiError).responseBody).toBe('Unauthorized');
-      }
+      await expect(service.get('/v1/test')).rejects.toMatchObject({
+        statusCode: 401,
+        path: '/v1/test',
+        responseBody: 'Unauthorized',
+      });
     });
 
     it('throws CardApiError with 408 on timeout', async () => {
@@ -146,12 +142,9 @@ describe('BaanxService', () => {
       (isAxiosError as unknown as jest.Mock).mockReturnValue(true);
       const service = createService();
 
-      try {
-        await service.get('/v1/slow');
-      } catch (error) {
-        expect(error).toBeInstanceOf(CardApiError);
-        expect((error as CardApiError).statusCode).toBe(408);
-      }
+      await expect(service.get('/v1/slow')).rejects.toMatchObject({
+        statusCode: 408,
+      });
     });
 
     it('re-throws non-axios errors', async () => {

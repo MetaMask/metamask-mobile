@@ -601,7 +601,11 @@ export class BaanxProvider implements ICardProvider {
       };
     }
 
-    return this.completeAuth(session, loginResponse);
+    try {
+      return await this.completeAuth(session, loginResponse);
+    } catch (error) {
+      throw mapApiError(error, 'completeAuth');
+    }
   }
 
   private async completeAuth(

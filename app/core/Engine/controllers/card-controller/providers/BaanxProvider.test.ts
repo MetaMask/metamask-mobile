@@ -606,6 +606,34 @@ describe('BaanxProvider', () => {
       ).rejects.toThrow('OAuth state mismatch');
     });
 
+    it('maps OAuth completion errors to CardProviderError', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockResolvedValue({
+        userId: 'user-1',
+        phase: null,
+        isOtpRequired: false,
+        phoneNumber: null,
+        accessToken: 'login-token',
+        verificationState: 'VERIFIED',
+        isLinked: true,
+      });
+      service.request.mockRejectedValue(
+        new CardApiError(500, '/v1/auth/oauth/authorize', 'Server error'),
+      );
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'email_password',
+          email: 'test@example.com',
+          password: 'pass',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.ServerError,
+      });
+    });
+
     it('throws for unsupported credential type', async () => {
       service.get.mockResolvedValue({ token: 'init-token', url: '' });
       const session = await provider.initiateAuth('US');
