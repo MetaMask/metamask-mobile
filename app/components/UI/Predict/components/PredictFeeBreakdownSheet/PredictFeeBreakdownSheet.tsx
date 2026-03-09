@@ -125,6 +125,7 @@ const PredictFeeBreakdownSheet = forwardRef<
 
         {fakOrdersEnabled && (
           <Text
+            testID="predict-fak-partial-fill-note"
             color={TextColor.TextAlternative}
             variant={TextVariant.BodyXs}
             twClassName="mt-3"

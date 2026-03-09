@@ -342,13 +342,9 @@ describe('PredictFeeBreakdownSheet', () => {
         );
       };
 
-      const { getByText } = render(<TestComponent />);
+      const { getByTestId } = render(<TestComponent />);
 
-      expect(
-        getByText(
-          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
-        ),
-      ).toBeOnTheScreen();
+      expect(getByTestId('predict-fak-partial-fill-note')).toBeOnTheScreen();
     });
 
     it('does not display partial fill note when fakOrdersEnabled is false', () => {
@@ -363,13 +359,11 @@ describe('PredictFeeBreakdownSheet', () => {
         );
       };
 
-      const { queryByText } = render(<TestComponent />);
+      const { queryByTestId } = render(<TestComponent />);
 
       expect(
-        queryByText(
-          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
-        ),
-      ).toBeNull();
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not display partial fill note by default', () => {
@@ -378,13 +372,11 @@ describe('PredictFeeBreakdownSheet', () => {
         return <PredictFeeBreakdownSheet ref={ref} {...defaultProps} />;
       };
 
-      const { queryByText } = render(<TestComponent />);
+      const { queryByTestId } = render(<TestComponent />);
 
       expect(
-        queryByText(
-          'Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled.',
-        ),
-      ).toBeNull();
+        queryByTestId('predict-fak-partial-fill-note'),
+      ).not.toBeOnTheScreen();
     });
   });
 });
