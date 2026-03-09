@@ -50,6 +50,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Label,
   Text,
   TextColor,
   TextVariant,
@@ -76,11 +78,6 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
-import {
-  TextVariant as LegacyTextVariant,
-  TextColor as LegacyTextColor,
-} from '../../../component-library/components/Texts/Text/Text.types';
 import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -675,8 +672,9 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="relative gap-2"
               >
                 <Label
-                  variant={LegacyTextVariant.BodyMDMedium}
-                  color={LegacyTextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.create_new_password')}
@@ -729,8 +727,9 @@ const ImportFromSecretRecoveryPhrase = ({
                 twClassName="relative gap-2"
               >
                 <Label
-                  variant={LegacyTextVariant.BodyMDMedium}
-                  color={LegacyTextColor.Default}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                   style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.confirm_password')}
