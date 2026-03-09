@@ -29,6 +29,60 @@ const mapTrendsToItems = (
     relatedAssets: trend.relatedAssets,
   }));
 
+// TODO: Remove once the AiDigestController API returns real data
+const MOCK_ITEMS: WhatsHappeningItem[] = [
+  {
+    id: 'mock-1',
+    title: 'Bitcoin ETF inflows hit record high',
+    description:
+      'Spot Bitcoin ETFs recorded over $1.2B in net inflows this week, signalling strong institutional demand as macro conditions stabilise.',
+    date: new Date().toISOString(),
+    category: 'macro',
+    impact: 'positive',
+    relatedAssets: ['BTC'],
+  },
+  {
+    id: 'mock-2',
+    title: 'Ethereum Pectra upgrade scheduled',
+    description:
+      'The Pectra hard fork is set to go live next month, introducing EIP-7251 to raise the validator balance cap and improving wallet UX via account abstraction.',
+    date: new Date().toISOString(),
+    category: 'technical',
+    impact: 'positive',
+    relatedAssets: ['ETH'],
+  },
+  {
+    id: 'mock-3',
+    title: 'SEC signals softer crypto stance',
+    description:
+      'New SEC leadership indicated a shift toward clearer crypto regulation, reducing enforcement actions against DeFi protocols and exchanges.',
+    date: new Date().toISOString(),
+    category: 'regulatory',
+    impact: 'positive',
+    relatedAssets: ['ETH', 'BTC'],
+  },
+  {
+    id: 'mock-4',
+    title: 'Stablecoin legislation advances in Congress',
+    description:
+      'The STABLE Act passed committee review, bringing the US closer to a federal framework for dollar-pegged stablecoins.',
+    date: new Date().toISOString(),
+    category: 'regulatory',
+    impact: 'neutral',
+    relatedAssets: ['USDC', 'USDT'],
+  },
+  {
+    id: 'mock-5',
+    title: 'Layer-2 TVL surpasses $50B milestone',
+    description:
+      'Combined total value locked across Ethereum Layer-2 networks crossed $50B for the first time, driven by Base and Arbitrum growth.',
+    date: new Date().toISOString(),
+    category: 'technical',
+    impact: 'positive',
+    relatedAssets: ['ETH', 'ARB', 'OP'],
+  },
+];
+
 /**
  * Hook to fetch trending "What's Happening" items for the homepage carousel.
  *
@@ -61,8 +115,9 @@ export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
       const data =
         await Engine.context.AiDigestController.fetchMarketOverview();
 
-      if (data === null) {
-        setItems([]);
+      if (data === null || data.trends.length === 0) {
+        // TODO: Remove mock fallback once API returns real data: setItems([])
+        setItems(MOCK_ITEMS.slice(0, limit));
       } else {
         setItems(mapTrendsToItems(data, limit));
       }
