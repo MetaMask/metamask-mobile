@@ -11,6 +11,8 @@ import {
   selectGasFeeTokenFlags,
   GasFeeTokenFlags,
   selectPayQuoteConfig,
+  selectMetaMaskPayFiatFlags,
+  PAY_FIAT_ENABLED_DEFAULT,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '.';
@@ -477,5 +479,23 @@ describe('getPreferredTokensForTransactionType', () => {
     expect(getPreferredTokensForTransactionType(config, undefined)).toEqual(
       defaultTokens,
     );
+  });
+});
+
+describe('selectMetaMaskPayFiatFlags', () => {
+  it('returns default when flag is absent', () => {
+    expect(selectMetaMaskPayFiatFlags(mockedEmptyFlagsState)).toEqual({
+      enabled: PAY_FIAT_ENABLED_DEFAULT,
+    });
+  });
+
+  it('returns enabled from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: { enabled: true },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({ enabled: true });
   });
 });

@@ -10,10 +10,15 @@ import { selectBasicFunctionalityEnabled } from '../../settings';
 export const BITCOIN_REWARDS_FLAG_NAME = 'rewardsBitcoinEnabled';
 export const TRON_REWARDS_FLAG_NAME = 'rewardsTronEnabled';
 export const SNAPSHOTS_REWARDS_FLAG_NAME = 'rewardsSnapshotsEnabled';
+export const MISSING_ENROLLED_ACCOUNTS_FLAG_NAME =
+  'rewards-missing-enrolled-accounts';
+export const CAMPAIGNS_REWARDS_FLAG_NAME = 'rewardsCampaignsEnabled';
 
 const DEFAULT_BITCOIN_REWARDS_ENABLED = false;
 const DEFAULT_TRON_REWARDS_ENABLED = false;
 const DEFAULT_SNAPSHOTS_REWARDS_ENABLED = false;
+const DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED = false;
+const DEFAULT_CAMPAIGNS_REWARDS_ENABLED = false;
 
 /**
  * Selector for the raw Bitcoin rewards enabled remote flag value.
@@ -120,5 +125,75 @@ export const selectSnapshotsRewardsEnabledFlag = createSelector(
       return false;
     }
     return snapshotsRewardsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw missing enrolled accounts remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectMissingEnrolledAccountsRewardsEnabledRawFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, MISSING_ENROLLED_ACCOUNTS_FLAG_NAME)) {
+      return DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      MISSING_ENROLLED_ACCOUNTS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED
+    );
+  });
+
+/**
+ * Selector for the missing enrolled accounts flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectMissingEnrolledAccountsRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectMissingEnrolledAccountsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, missingEnrolledAccountsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return missingEnrolledAccountsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw campaigns rewards enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectCampaignsRewardsEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, CAMPAIGNS_REWARDS_FLAG_NAME)) {
+      return DEFAULT_CAMPAIGNS_REWARDS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      CAMPAIGNS_REWARDS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_CAMPAIGNS_REWARDS_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the campaigns rewards enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectCampaignsRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectCampaignsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, campaignsRewardsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return campaignsRewardsEnabledRawFlag;
   },
 );

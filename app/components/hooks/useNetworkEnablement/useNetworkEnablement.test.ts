@@ -62,12 +62,17 @@ jest.mock('../../../selectors/multichainNetworkController', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
+  selectNetworkConfigurations: jest.fn(),
 }));
 
 import { useNetworkEnablement } from './useNetworkEnablement';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
@@ -76,6 +81,9 @@ const mockNetworkEnablementController = {
   hasOneEnabledNetwork: jest.fn(),
   enableAllPopularNetworks: jest.fn(),
   enableNetworkInNamespace: jest.fn(),
+  listPopularEvmNetworks: jest.fn(() => []),
+  listPopularMultichainNetworks: jest.fn(() => []),
+  listPopularNetworks: jest.fn(() => []),
 };
 
 describe('useNetworkEnablement', () => {
@@ -104,6 +112,12 @@ describe('useNetworkEnablement', () => {
       }
       if (selector === selectIsEvmNetworkSelected) {
         return true;
+      }
+      if (selector === selectNetworkConfigurations) {
+        return {};
+      }
+      if (selector === selectMultichainAccountsState2Enabled) {
+        return false;
       }
       return undefined;
     });
@@ -147,14 +161,22 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
       expect(result.current).toHaveProperty('tryEnableEvmNetwork');
       expect(result.current).toHaveProperty('enableAllPopularNetworks');
+      expect(result.current).toHaveProperty('popularEvmNetworks');
+      expect(result.current).toHaveProperty('popularMultichainNetworks');
+      expect(result.current).toHaveProperty('popularNetworks');
     });
 
-    it('returns functions for network operations', () => {
+    it('returns arrays for popular networks and functions for network operations', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
       expect(typeof result.current.enableAllPopularNetworks).toBe('function');
+      expect(Array.isArray(result.current.popularEvmNetworks)).toBe(true);
+      expect(Array.isArray(result.current.popularMultichainNetworks)).toBe(
+        true,
+      );
+      expect(Array.isArray(result.current.popularNetworks)).toBe(true);
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
       expect(typeof result.current.tryEnableEvmNetwork).toBe('function');
@@ -185,7 +207,9 @@ describe('useNetworkEnablement', () => {
 
     it('returns false when no networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectMultichainAccountsState2Enabled) return false;
+        const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
             eip155: {
@@ -210,7 +234,9 @@ describe('useNetworkEnablement', () => {
 
     it('returns false when multiple networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectMultichainAccountsState2Enabled) return false;
+        const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
             eip155: {
@@ -236,7 +262,9 @@ describe('useNetworkEnablement', () => {
 
     it('returns false when enabled networks object is empty', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
+        if (selector === selectNetworkConfigurations) return {};
+        if (selector === selectMultichainAccountsState2Enabled) return false;
+        const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
             eip155: {},
@@ -470,6 +498,9 @@ describe('useNetworkEnablement', () => {
         enableNetwork: expect.any(Function),
         disableNetwork: expect.any(Function),
         enableAllPopularNetworks: expect.any(Function),
+        popularEvmNetworks: expect.any(Array),
+        popularMultichainNetworks: expect.any(Array),
+        popularNetworks: expect.any(Array),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
         tryEnableEvmNetwork: expect.any(Function),
