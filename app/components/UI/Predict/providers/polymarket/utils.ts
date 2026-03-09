@@ -744,7 +744,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -1079,7 +1079,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
