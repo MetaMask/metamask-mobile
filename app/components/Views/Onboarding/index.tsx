@@ -32,6 +32,10 @@ import {
   setAccountType,
 } from '../../../actions/onboarding';
 import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
+import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
@@ -353,9 +357,9 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
-      dispatch(setAccountType('metamask'));
+      dispatch(setAccountType(AccountType.Metamask));
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-        account_type: 'metamask',
+        account_type: AccountType.Metamask,
       });
     };
 
@@ -388,9 +392,9 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
-      dispatch(setAccountType('imported'));
+      dispatch(setAccountType(AccountType.Imported));
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-        account_type: 'imported',
+        account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
@@ -409,9 +413,21 @@ const Onboarding = () => {
       }
 
       if (result.type === 'success') {
-        // Track social login completed
+        const accountType = getSocialAccountType(provider, result.existingUser);
+        dispatch(setAccountType(accountType));
+
+        if (result.existingUser) {
+          track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+            account_type: accountType,
+          });
+        } else {
+          track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+            account_type: accountType,
+          });
+        }
+
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: provider,
+          account_type: accountType,
         });
         if (createWallet) {
           if (result.existingUser) {
@@ -485,7 +501,7 @@ const Onboarding = () => {
         // handle error: show error message in the UI
       }
     },
-    [navigation, track],
+    [navigation, track, dispatch],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -684,18 +700,6 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
-      if (createWallet) {
-        dispatch(setAccountType(`metamask_${provider}`));
-        track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: `metamask_${provider}`,
-        });
-      } else {
-        dispatch(setAccountType(`imported_${provider}`));
-        track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: `imported_${provider}`,
-        });
-      }
-
       socialLoginTraceCtx.current = trace({
         name: TraceName.OnboardingSocialLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
@@ -735,13 +739,11 @@ const Onboarding = () => {
     [
       navigation,
       metrics,
-      track,
       setLoading,
       unsetLoading,
       handleLoginError,
       handlePostSocialLogin,
       handleExistingUser,
-      dispatch,
     ],
   );
 

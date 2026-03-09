@@ -9,11 +9,12 @@ import {
   CLEAR_ACCOUNT_TYPE,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { AccountType } from '../../constants/onboarding';
 
 export interface OnboardingState {
   events: [ITrackingEvent][];
   completedOnboarding: boolean;
-  accountType?: string;
+  accountType?: AccountType;
 }
 
 export const initialOnboardingState: OnboardingState = {

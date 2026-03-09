@@ -1,4 +1,5 @@
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { AccountType } from '../../constants/onboarding';
 
 export const SAVE_EVENT = 'SAVE_EVENT';
 export const CLEAR_EVENTS = 'CLEAR_EVENTS';
@@ -22,7 +23,7 @@ export interface SetCompletedOnboardingAction {
 
 interface SetAccountTypeAction {
   type: typeof SET_ACCOUNT_TYPE;
-  accountType: string;
+  accountType: AccountType;
 }
 
 interface ClearAccountTypeAction {
@@ -60,7 +61,7 @@ export function setCompletedOnboarding(
   };
 }
 
-export function setAccountType(accountType: string): SetAccountTypeAction {
+export function setAccountType(accountType: AccountType): SetAccountTypeAction {
   return {
     type: SET_ACCOUNT_TYPE,
     accountType,

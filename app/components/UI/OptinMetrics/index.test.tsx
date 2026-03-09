@@ -219,7 +219,7 @@ describe('OptinMetrics', () => {
               is_metrics_opted_in: true,
               location: 'onboarding_metametrics',
               updated_after_onboarding: false,
-              account_type: 'imported',
+              account_type: AccountType.Imported,
             }),
           }),
         );
@@ -252,7 +252,7 @@ describe('OptinMetrics', () => {
             properties: expect.objectContaining({
               updated_after_onboarding: false,
               location: 'onboarding_metametrics',
-              account_type: 'metamask',
+              account_type: AccountType.Metamask,
             }),
           }),
         );

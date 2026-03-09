@@ -1,11 +1,12 @@
 import { selectCompletedOnboarding, selectOnboardingAccountType } from '.';
 import { RootState } from '../../reducers';
+import { AccountType } from '../../constants/onboarding';
 
 describe('Onboarding selectors', () => {
   const mockState = {
     onboarding: {
       completedOnboarding: true,
-      accountType: 'metamask_google',
+      accountType: AccountType.MetamaskGoogle,
     },
   } as RootState;
 
@@ -16,7 +17,9 @@ describe('Onboarding selectors', () => {
   });
 
   it('returns the correct value for selectOnboardingAccountType', () => {
-    expect(selectOnboardingAccountType(mockState)).toEqual('metamask_google');
+    expect(selectOnboardingAccountType(mockState)).toEqual(
+      AccountType.MetamaskGoogle,
+    );
   });
 
   it('returns undefined for selectOnboardingAccountType when not set', () => {

@@ -113,6 +113,7 @@ jest.mock('../../../../../../selectors/onboarding', () => ({
 }));
 
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
+import { AccountType } from '../../../../../../constants/onboarding';
 
 const mockSelectOnboardingAccountType =
   selectOnboardingAccountType as jest.MockedFunction<
@@ -449,7 +450,9 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('includes account_type in ANALYTICS_PREFERENCE_SELECTED when accountType is in Redux state', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
-        mockSelectOnboardingAccountType.mockReturnValue('metamask_google');
+        mockSelectOnboardingAccountType.mockReturnValue(
+          AccountType.MetamaskGoogle,
+        );
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -471,7 +474,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
                 location: 'settings',
-                account_type: 'metamask_google',
+                account_type: AccountType.MetamaskGoogle,
               }),
             }),
           );
@@ -480,7 +483,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
       it('includes account_type in METRICS_OPT_OUT when accountType is in Redux state', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
-        mockSelectOnboardingAccountType.mockReturnValue('imported');
+        mockSelectOnboardingAccountType.mockReturnValue(AccountType.Imported);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -501,7 +504,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               properties: expect.objectContaining({
                 updated_after_onboarding: true,
                 location: 'settings',
-                account_type: 'imported',
+                account_type: AccountType.Imported,
               }),
             }),
           );

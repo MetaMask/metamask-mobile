@@ -11,6 +11,7 @@ import {
   CLEAR_ACCOUNT_TYPE,
 } from '.';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
+import { AccountType } from '../../constants/onboarding';
 
 describe('Onboarding actions', () => {
   describe('saveOnboardingEvent', () => {
@@ -45,16 +46,16 @@ describe('Onboarding actions', () => {
 
   describe('setAccountType', () => {
     it('creates an action to set accountType', () => {
-      expect(setAccountType('metamask')).toEqual({
+      expect(setAccountType(AccountType.Metamask)).toEqual({
         type: SET_ACCOUNT_TYPE,
-        accountType: 'metamask',
+        accountType: AccountType.Metamask,
       });
     });
 
     it('creates an action with social login account type', () => {
-      expect(setAccountType('metamask_google')).toEqual({
+      expect(setAccountType(AccountType.MetamaskGoogle)).toEqual({
         type: SET_ACCOUNT_TYPE,
-        accountType: 'metamask_google',
+        accountType: AccountType.MetamaskGoogle,
       });
     });
   });
