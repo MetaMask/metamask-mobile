@@ -33,7 +33,7 @@ Ask: "What can a user **do** on this screen?" — type/paste input, press a butt
 | Redux action dispatched → Engine called               | `store.dispatch` + `act` → Engine spy                 |
 | Async data arrives → list renders                     | `findBy` / `waitFor`                                  |
 | User triggers action → API called with correct params | interaction → spy assertion                           |
-| Multi-step user journey → end state visible           | Multiple `fireEvent` → final `findBy`                 |
+| Chained user journey → end state visible              | Multiple `fireEvent` → final `findBy`                 |
 
 Drop anything that only produces a render scenario: "The screen shows X when state is Y", "Button is disabled without input", "Token name appears in header".
 

@@ -68,7 +68,7 @@ tests/component-view/
 - **Fix failing test**: Run with `jest.config.view.js` → identify error type from the table in `references/reference.md` (Diagnosing Failures) → apply the fix (remove disallowed mock, add state override, add preset, wrap in `waitFor`, add `deterministicFiat`, etc.) → re-run.
 - **Update after change**: Same as write — review existing tests, extend preset/renderer if needed, update tests, run and self-review.
 
-For full step-by-step detail (use cases, coverage, presets, route probes, self-review checklist, failure table), use the reference files when the decision tree sends you there.
+For full detail (use cases, coverage, presets, route probes, self-review checklist, failure table), use the reference files when the decision tree sends you there.
 
 ---
 

@@ -24,8 +24,8 @@ Use the rules in the [e2e-testing-guidelines](rules/e2e-testing-guidelines.mdc) 
 
 ### 3. Initial Setup - Component View Tests
 
-- **ALWAYS** load and reference [component-view-test](rules/component-view-test.mdc)
+- **ALWAYS** load and reference the component-view-test skill: [.agents/skills/component-view-test/SKILL.md](../.agents/skills/component-view-test/SKILL.md)
 - Verify test file naming pattern: `**/*.view.test.{ts,tsx,js,jsx}`
 - Check for proper use of presets and renderers from `tests/component-view/`
 
-Use the rules in the [component-view-test](rules/component-view-test.mdc) to enforce the test quality and bug detection.
+Use the [component-view-test skill](../.agents/skills/component-view-test/SKILL.md) to enforce the test quality and bug detection.

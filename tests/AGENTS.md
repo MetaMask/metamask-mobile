@@ -12,12 +12,10 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### Component-View Tests (Mandatory)
 
-**Canonical skill** (Claude Code: `/component-view-test`, Cursor: auto-attaches on `*.view.test.tsx`):
-
-- [.agents/skills/component-view-test/SKILL.md](../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules, step-by-step guide
-- [.agents/skills/component-view-test/references/writing-tests.md](../.agents/skills/component-view-test/references/writing-tests.md) — Steps 1–2: test structure, renderers, presets
-- [.agents/skills/component-view-test/references/navigation-mocking.md](../.agents/skills/component-view-test/references/navigation-mocking.md) — Steps 3–4: navigation testing, API mocking
-- [.agents/skills/component-view-test/references/reference.md](../.agents/skills/component-view-test/references/reference.md) — Steps 5–7: fiat, run commands, self-review checklist, failure diagnosis
+- [.agents/skills/component-view-test/SKILL.md](../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules
+- [.agents/skills/component-view-test/references/writing-tests.md](../.agents/skills/component-view-test/references/writing-tests.md) — Test structure, renderers, presets
+- [.agents/skills/component-view-test/references/navigation-mocking.md](../.agents/skills/component-view-test/references/navigation-mocking.md) — Navigation testing, API mocking
+- [.agents/skills/component-view-test/references/reference.md](../.agents/skills/component-view-test/references/reference.md) — Fiat, run commands, self-review checklist, failure diagnosis
 
 Other harnesses: start prompts with `Follow .agents/skills/component-view-test/SKILL.md`
 
