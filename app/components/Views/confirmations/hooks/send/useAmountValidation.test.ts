@@ -103,6 +103,16 @@ describe('validatePositiveNumericString', () => {
     expect(validatePositiveNumericString('')).toEqual('Invalid value');
     expect(validatePositiveNumericString('  ')).toEqual('Invalid value');
   });
+
+  it('returns undefined for a standalone decimal point', () => {
+    expect(validatePositiveNumericString('.')).toEqual(undefined);
+  });
+
+  it('returns undefined for trailing decimal point inputs', () => {
+    expect(validatePositiveNumericString('0.')).toEqual(undefined);
+    expect(validatePositiveNumericString('1.')).toEqual(undefined);
+    expect(validatePositiveNumericString('123.')).toEqual(undefined);
+  });
 });
 
 describe('validateTokenBalance', () => {

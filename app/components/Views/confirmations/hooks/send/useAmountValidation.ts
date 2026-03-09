@@ -131,7 +131,10 @@ export function validateTokenBalance(
 export function validatePositiveNumericString(
   value: string,
 ): string | undefined {
-  if (!isValidPositiveNumericString(value)) {
+  // Treat "." or trailing dot (e.g., "0.", "1.") as valid intermediate input
+  const normalized =
+    value === '.' ? '0' : value.endsWith('.') ? value.slice(0, -1) : value;
+  if (!isValidPositiveNumericString(normalized)) {
     return strings('send.invalid_value');
   }
   return undefined;
