@@ -172,8 +172,8 @@ describe('Confirm Title', () => {
     ).toBeTruthy();
   });
 
-  it('renders correct title for transfer', () => {
-    const { getByText } = renderWithProvider(<Title />, {
+  it('renders no title for transfer', () => {
+    const { queryByText } = renderWithProvider(<Title />, {
       state: merge(transferConfirmationState, {
         engine: {
           backgroundState: {
@@ -188,7 +188,7 @@ describe('Confirm Title', () => {
         },
       }),
     });
-    expect(getByText('Transfer request')).toBeTruthy();
+    expect(queryByText('Transfer request')).toBeNull();
   });
 
   it('renders correct title and subtitle for upgrade smart account', () => {
