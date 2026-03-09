@@ -97,13 +97,23 @@ describe('BaanxProvider', () => {
       expect(provider.validateTokens(accessOnly)).toBe('expired');
     });
 
-    it('returns expired when refresh token is near expiry', () => {
+    it('returns valid when access token is valid even if refresh is near expiry', () => {
       const refreshNearExpiry = {
         ...AUTH_TOKENS,
         refreshTokenExpiresAt: Date.now() + 30 * 60_000,
       };
 
-      expect(provider.validateTokens(refreshNearExpiry)).toBe('expired');
+      expect(provider.validateTokens(refreshNearExpiry)).toBe('valid');
+    });
+
+    it('returns expired when access token needs refresh but refresh token is near expiry', () => {
+      const bothNearExpiry = {
+        ...AUTH_TOKENS,
+        accessTokenExpiresAt: Date.now() + 60_000,
+        refreshTokenExpiresAt: Date.now() + 30 * 60_000,
+      };
+
+      expect(provider.validateTokens(bothNearExpiry)).toBe('expired');
     });
   });
 
@@ -356,14 +366,6 @@ describe('BaanxProvider', () => {
       expect(calledPath).toContain('client_id=test-api-key');
       expect(calledPath).toContain('client_secret=test-api-key');
     });
-
-    it('maps non-US country to international location', async () => {
-      service.get.mockResolvedValue({ token: 'init-token', url: '' });
-
-      await provider.initiateAuth('GB');
-
-      expect(service.setLocation).toHaveBeenCalledWith('international');
-    });
   });
 
   describe('submitCredentials', () => {
@@ -541,6 +543,18 @@ describe('BaanxProvider', () => {
         }),
       ).rejects.toThrow('OAuth state mismatch');
     });
+
+    it('throws for unsupported credential type', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'siwe',
+          signature: '0x...',
+        }),
+      ).rejects.toThrow('Unsupported credential type');
+    });
   });
 
   describe('sendOtp', () => {
@@ -579,6 +593,443 @@ describe('BaanxProvider', () => {
         {},
         AUTH_TOKENS,
       );
+    });
+  });
+
+  describe('refreshTokens', () => {
+    it('returns new token set from refresh endpoint', async () => {
+      service.request.mockResolvedValue({
+        access_token: 'new-access',
+        refresh_token: 'new-refresh',
+        expires_in: 7200,
+        refresh_token_expires_in: 172800,
+      });
+
+      const result = await provider.refreshTokens(AUTH_TOKENS);
+
+      expect(result.accessToken).toBe('new-access');
+      expect(result.refreshToken).toBe('new-refresh');
+      expect(result.location).toBe('us');
+      expect(service.request).toHaveBeenCalledWith(
+        '/v1/auth/oauth/token',
+        expect.objectContaining({
+          method: 'POST',
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: 'test-refresh',
+          },
+          headers: { 'x-secret-key': 'test-api-key' },
+        }),
+      );
+    });
+
+    it('throws when no refresh token is available', async () => {
+      const accessOnly = { ...AUTH_TOKENS, refreshToken: undefined };
+
+      await expect(provider.refreshTokens(accessOnly)).rejects.toThrow(
+        'No refresh token available',
+      );
+    });
+  });
+
+  describe('getCardSecureView', () => {
+    it('returns url and token from the details endpoint', async () => {
+      service.post.mockResolvedValue({
+        url: 'https://secure.view/card',
+        token: 'view-token-123',
+      });
+
+      const result = await provider.getCardSecureView(AUTH_TOKENS, {
+        customCss: '.card { color: red }',
+      });
+
+      expect(result.url).toBe('https://secure.view/card');
+      expect(result.token).toBe('view-token-123');
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/card/details/token',
+        { customCss: '.card { color: red }' },
+        AUTH_TOKENS,
+      );
+    });
+  });
+
+  describe('updateAssetPriority', () => {
+    it('sends priority mapping with selected asset as priority 1', async () => {
+      service.put.mockResolvedValue({});
+
+      const assets = [
+        {
+          symbol: 'USDC',
+          name: 'USDC',
+          address: '0x1',
+          decimals: 6,
+          chainId: 'eip155:59144' as const,
+          balance: '100',
+          status: FundingAssetStatus.Active,
+        },
+        {
+          symbol: 'mUSD',
+          name: 'mUSD',
+          address: '0x2',
+          decimals: 6,
+          chainId: 'eip155:8453' as const,
+          balance: '50',
+          status: FundingAssetStatus.Active,
+        },
+      ];
+
+      await provider.updateAssetPriority(assets[1], assets, AUTH_TOKENS);
+
+      expect(service.put).toHaveBeenCalledWith(
+        '/v1/wallet/external/priority',
+        [
+          { address: '0x1', currency: 'USDC', network: 'linea', priority: 2 },
+          { address: '0x2', currency: 'mUSD', network: 'base', priority: 1 },
+        ],
+        AUTH_TOKENS,
+      );
+    });
+  });
+
+  describe('approveFunding', () => {
+    it('posts funding approval to the delegation endpoint', async () => {
+      service.post.mockResolvedValue({});
+
+      await provider.approveFunding(
+        {
+          address: '0xwallet',
+          amount: '1000',
+          currency: 'USDC',
+          network: 'linea',
+          faucet: true,
+        },
+        AUTH_TOKENS,
+        {} as never,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/evm/post-approval',
+        {
+          walletAddress: '0xwallet',
+          amount: '1000',
+          currency: 'USDC',
+          network: 'linea',
+          faucet: true,
+        },
+        AUTH_TOKENS,
+      );
+    });
+
+    it('defaults faucet to false when not provided', async () => {
+      service.post.mockResolvedValue({});
+
+      await provider.approveFunding(
+        {
+          address: '0xwallet',
+          amount: '500',
+          currency: 'mUSD',
+          network: 'base',
+        },
+        AUTH_TOKENS,
+        {} as never,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/delegation/evm/post-approval',
+        expect.objectContaining({ faucet: false }),
+        AUTH_TOKENS,
+      );
+    });
+  });
+
+  describe('getRegistrationSettings', () => {
+    it('sets location and returns mapped country list', async () => {
+      service.get.mockResolvedValue({
+        countries: [
+          { iso3166alpha2: 'US', name: 'United States' },
+          { iso3166alpha2: 'GB', name: 'United Kingdom' },
+        ],
+      });
+
+      const result = await provider.getRegistrationSettings('US');
+
+      expect(service.setLocation).toHaveBeenCalledWith('us');
+      expect(result.countries).toStrictEqual(['US', 'GB']);
+      expect(result.data).toBeDefined();
+    });
+
+    it('sets international location for non-US country', async () => {
+      service.get.mockResolvedValue({ countries: [] });
+
+      await provider.getRegistrationSettings('DE');
+
+      expect(service.setLocation).toHaveBeenCalledWith('international');
+    });
+  });
+
+  describe('getRegistrationStatus', () => {
+    it('returns status from registration endpoint', async () => {
+      service.get.mockResolvedValue({
+        verificationState: 'VERIFIED',
+        firstName: 'Test',
+      });
+
+      const result = await provider.getRegistrationStatus('session-1', 'GB');
+
+      expect(service.setLocation).toHaveBeenCalledWith('international');
+      expect(service.get).toHaveBeenCalledWith(
+        '/v1/auth/register/status/session-1',
+      );
+      expect(result.status).toBe('VERIFIED');
+      expect(result.verificationState).toBe('VERIFIED');
+    });
+
+    it('returns UNKNOWN when verificationState is absent', async () => {
+      service.get.mockResolvedValue({});
+
+      const result = await provider.getRegistrationStatus('session-2', 'US');
+
+      expect(result.status).toBe('UNKNOWN');
+      expect(result.verificationState).toBeUndefined();
+    });
+  });
+
+  describe('submitOnboardingStep', () => {
+    it('posts to the mapped endpoint for a known step type', async () => {
+      service.post.mockResolvedValue({ id: 'result-1' });
+
+      const result = await provider.submitOnboardingStep({
+        type: 'email_verification',
+        data: { email: 'test@example.com' },
+        country: 'US',
+      });
+
+      expect(service.setLocation).toHaveBeenCalledWith('us');
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/auth/register/email/send',
+        { email: 'test@example.com' },
+      );
+      expect(result.success).toBe(true);
+      expect(result.data).toStrictEqual({ id: 'result-1' });
+    });
+
+    it('falls back to generic endpoint for unknown step type', async () => {
+      service.post.mockResolvedValue({});
+
+      await provider.submitOnboardingStep({
+        type: 'custom_step',
+        data: {},
+        country: 'GB',
+      });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/v1/auth/register/custom_step',
+        {},
+      );
+    });
+
+    it('returns error result when the request fails', async () => {
+      service.post.mockRejectedValue(new Error('Network failure'));
+
+      const result = await provider.submitOnboardingStep({
+        type: 'phone_verification',
+        data: { phone: '+1234' },
+        country: 'US',
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Network failure');
+    });
+  });
+
+  describe('getCardHomeData edge cases', () => {
+    it('builds close_to_spending_limit alert for Limited asset', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.ACTIVE,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '50',
+              allowance: '100',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).toContainEqual(
+        expect.objectContaining({ type: 'close_to_spending_limit' }),
+      );
+    });
+
+    it('suppresses non-kyc alerts when card is frozen', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.resolve({
+            id: 'card-1',
+            status: CardStatus.FROZEN,
+            type: CardType.VIRTUAL,
+            panLast4: '1234',
+            holderName: 'Test',
+            isFreezable: true,
+          });
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '50',
+              allowance: '100',
+              priority: 1,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.alerts).not.toContainEqual(
+        expect.objectContaining({ type: 'close_to_spending_limit' }),
+      );
+    });
+
+    it('returns no actions when card is null', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({ networks: [] });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.resolve({
+            id: 'user-1',
+            verificationState: 'VERIFIED',
+          });
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.card).toBeNull();
+      expect(result.actions).toHaveLength(0);
+    });
+
+    it('picks asset with balance as primary over zero-balance asset', async () => {
+      service.get.mockImplementation((path: string) => {
+        if (path === '/v1/delegation/chain/config') {
+          return Promise.resolve({
+            networks: [
+              {
+                network: 'linea',
+                chainId: '59144',
+                tokens: { USDC: {} },
+              },
+            ],
+          });
+        }
+        if (path === '/v1/card/status') {
+          return Promise.reject(new Error('no card'));
+        }
+        if (path === '/v1/user') {
+          return Promise.reject(new Error('no user'));
+        }
+        if (path === '/v1/wallet/external') {
+          return Promise.resolve([
+            {
+              id: 1,
+              walletAddress: '0xwallet',
+              currency: 'mUSD',
+              balance: '0',
+              allowance: '999999999999',
+              priority: 1,
+              tokenDetails: {
+                address: '0x2',
+                decimals: 6,
+                symbol: 'mUSD',
+                name: 'mUSD',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+            {
+              id: 2,
+              walletAddress: '0xwallet',
+              currency: 'USDC',
+              balance: '50',
+              allowance: '999999999999',
+              priority: 2,
+              tokenDetails: {
+                address: '0x1',
+                decimals: 6,
+                symbol: 'USDC',
+                name: 'USDC',
+              },
+              caipChainId: 'eip155:59144',
+              network: 'linea',
+            },
+          ]);
+        }
+        return Promise.resolve({});
+      });
+
+      const result = await provider.getCardHomeData('0xaddr', AUTH_TOKENS);
+
+      expect(result.primaryAsset?.symbol).toBe('USDC');
+      expect(result.assets).toHaveLength(2);
     });
   });
 

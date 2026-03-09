@@ -22,6 +22,7 @@ import {
   generatePKCEPair,
   generateState,
 } from '../../../../../components/UI/Card/util/pkceHelpers';
+import { mapCountryToLocation } from '../../../../../components/UI/Card/util/mapCountryToLocation';
 import type { BaanxService } from '../services/BaanxService';
 import {
   CardAccountStatus,
@@ -83,10 +84,6 @@ function mapAllowanceToFundingStatus(
   return FundingAssetStatus.Active;
 }
 
-function countryToLocation(country: string): CardLocation {
-  return country === 'US' ? 'us' : 'international';
-}
-
 export class BaanxProvider implements ICardProvider {
   readonly id = 'baanx' as const;
 
@@ -121,7 +118,7 @@ export class BaanxProvider implements ICardProvider {
   // -- Auth --
 
   async initiateAuth(country: string): Promise<CardAuthSession> {
-    const location = countryToLocation(country);
+    const location = mapCountryToLocation(country);
     this.service.setLocation(location);
 
     const state = generateState();
@@ -203,18 +200,22 @@ export class BaanxProvider implements ICardProvider {
 
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity {
     const now = Date.now();
+    const accessValid =
+      tokens.accessTokenExpiresAt > now + TOKEN_EXPIRY_BUFFER_MS;
 
-    if (tokens.refreshTokenExpiresAt) {
-      if (tokens.refreshTokenExpiresAt < now + REFRESH_EXPIRY_BUFFER_MS) {
-        return 'expired';
-      }
+    if (accessValid) {
+      return 'valid';
     }
 
-    if (tokens.accessTokenExpiresAt < now + TOKEN_EXPIRY_BUFFER_MS) {
-      return tokens.refreshToken ? 'needs_refresh' : 'expired';
+    if (!tokens.refreshToken) {
+      return 'expired';
     }
 
-    return 'valid';
+    const refreshUsable =
+      !tokens.refreshTokenExpiresAt ||
+      tokens.refreshTokenExpiresAt > now + REFRESH_EXPIRY_BUFFER_MS;
+
+    return refreshUsable ? 'needs_refresh' : 'expired';
   }
 
   async logout(tokens: CardAuthTokens): Promise<void> {
@@ -365,7 +366,7 @@ export class BaanxProvider implements ICardProvider {
   async getRegistrationSettings(
     country: string,
   ): Promise<RegistrationSettings> {
-    this.service.setLocation(countryToLocation(country));
+    this.service.setLocation(mapCountryToLocation(country));
     const response = await this.service.get<RegistrationSettingsResponse>(
       '/v1/auth/register/settings',
     );
@@ -380,7 +381,7 @@ export class BaanxProvider implements ICardProvider {
     sessionId: string,
     country: string,
   ): Promise<RegistrationStatus> {
-    this.service.setLocation(countryToLocation(country));
+    this.service.setLocation(mapCountryToLocation(country));
     const response = await this.service.get<UserResponse>(
       `/v1/auth/register/status/${sessionId}`,
     );
@@ -395,7 +396,7 @@ export class BaanxProvider implements ICardProvider {
   async submitOnboardingStep(
     step: OnboardingStep,
   ): Promise<OnboardingStepResult> {
-    this.service.setLocation(countryToLocation(step.country));
+    this.service.setLocation(mapCountryToLocation(step.country));
 
     try {
       const endpoint =
