@@ -11,6 +11,7 @@ import {
 } from '@metamask/eth-ledger-bridge-keyring';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { hmacSha512 } from '@metamask/native-utils';
+import { mpcKeyringInit } from '../mpc-controller/keyring';
 import {
   Encryptor,
   LEGACY_DERIVATION_OPTIONS,
@@ -74,6 +75,11 @@ export const keyringControllerInit: ControllerInitFunction<
   const snapKeyringBuilder = getController('SnapKeyringBuilder');
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
+
+  if (process.env.MPC_ENABLED) {
+    const mpcKeyring = mpcKeyringInit();
+    additionalKeyrings.push(mpcKeyring);
+  }
 
   const preferencesController = getController('PreferencesController');
 

@@ -80,6 +80,18 @@ const MultichainAddWalletActions = ({
           onBack();
         },
       },
+      {
+        type: 'mpc_wallet',
+        label: strings('multichain_accounts.mpc_wallet.add_mpc_wallet'),
+        iconName: IconName.Cloud,
+        testID: AddAccountBottomSheetSelectorsIDs.ADD_MPC_WALLET_BUTTON,
+        isVisible: true,
+        analyticsEvent: MetaMetricsEvents.ADD_MPC_WALLET,
+        navigationAction: () => {
+          navigate(Routes.MPC_WALLET.ADD);
+          onBack();
+        },
+      },
     ],
     [navigate, onBack],
   );

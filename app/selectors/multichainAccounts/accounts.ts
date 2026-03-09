@@ -43,7 +43,17 @@ import { toFormattedAddress } from '../../util/address';
 export const getWalletIdFromAccountGroup = (
   accountGroupId: AccountGroupId,
 ): AccountWalletId => {
-  const walletId = accountGroupId.split('/')[0];
+  // Use lastIndexOf to handle wallet IDs that contain '/' (e.g. keyring:MPC Keyring/{keyringId}/{address})
+  // This is consistent with ACCOUNT_GROUP_ID_REGEX in @metamask/account-api which treats
+  // the groupSubId as the part after the last '/' ([^/]+).
+  const lastSlashIndex = accountGroupId.lastIndexOf('/');
+  if (lastSlashIndex === -1) {
+    return accountGroupId as AccountWalletId;
+  }
+  const walletId = accountGroupId.substring(
+    0,
+    lastSlashIndex,
+  ) as AccountWalletId;
 
   if (!walletId) {
     throw new Error('Invalid account group ID');
@@ -240,7 +250,9 @@ export const selectInternalAccountsByGroupId = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectInternalAccountsById],
   (accountTree, internalAccounts) =>
     (groupId: AccountGroupId): InternalAccount[] => {
-      const [walletId] = groupId.split('/') as [AccountWalletId];
+      // const [walletId] = groupId.split('/') as [AccountWalletId];groupId.split('/') as [AccountWalletId];
+      const walletId = getWalletIdFromAccountGroup(groupId);
+
       const wallet = accountTree?.accountTree?.wallets[walletId];
       if (!wallet) {
         return [];
