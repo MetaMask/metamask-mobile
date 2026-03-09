@@ -1,8 +1,5 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import {
-  toChecksumHexAddress,
-  ORIGIN_METAMASK,
-} from '@metamask/controller-utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -10,7 +7,6 @@ import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { rpcErrors } from '@metamask/rpc-errors';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
 import {
@@ -59,6 +55,7 @@ export const ERROR_MESSAGES = {
   USER_REJECT: 'User reject',
   AUTO_REMOVE: 'Automatic removal',
   INVALID_ID: 'Invalid Id',
+  INVALID_ORIGIN: 'Invalid origin',
 };
 
 // Safety timeout for the proposal serialization lock.
