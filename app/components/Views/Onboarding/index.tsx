@@ -700,6 +700,16 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
+      if (createWallet) {
+        track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
+          account_type: `${AccountType.Metamask}_${provider}`,
+        });
+      } else {
+        track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
+          account_type: `${AccountType.Imported}_${provider}`,
+        });
+      }
+
       socialLoginTraceCtx.current = trace({
         name: TraceName.OnboardingSocialLoginAttempt,
         op: TraceOperation.OnboardingUserJourney,
@@ -739,6 +749,7 @@ const Onboarding = () => {
     [
       navigation,
       metrics,
+      track,
       setLoading,
       unsetLoading,
       handleLoginError,
