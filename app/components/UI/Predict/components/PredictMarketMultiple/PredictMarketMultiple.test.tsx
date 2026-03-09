@@ -26,11 +26,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../hooks/usePredictInitActiveOrder', () => ({
-  usePredictInitActiveOrder: () => ({
-    initializeActiveOrder: jest.fn(),
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
     activeOrder: null,
     updateActiveOrder: jest.fn(),
+    initializeActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
   }),
 }));
 

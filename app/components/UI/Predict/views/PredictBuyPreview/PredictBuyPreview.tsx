@@ -57,6 +57,7 @@ import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
+import usePredictBuyBackSwipe from '../../hooks/usePredictBuyBackSwipe';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -201,6 +202,7 @@ const PredictBuyPreview = () => {
   });
 
   const {
+    handleBack,
     handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
@@ -212,6 +214,8 @@ const PredictBuyPreview = () => {
     placeOrder,
     depositAmount: total - depositFee,
   });
+
+  usePredictBuyBackSwipe({ onBack: handleBack });
 
   usePredictPayWithAnyTokenTracking({
     transactionId,
@@ -292,6 +296,7 @@ const PredictBuyPreview = () => {
         market={market}
         outcome={outcome}
         preview={preview}
+        onBack={handleBack}
       />
       <PredictBuyAmountSection
         currentValueUSDString={currentValueUSDString}

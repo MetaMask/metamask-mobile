@@ -3,6 +3,10 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PredictControllerState } from '../controllers/PredictController';
 import { selectPredictActiveOrder } from '../selectors/predictController';
+import { parseAnalyticsProperties } from '../utils/analytics';
+import { PredictTradeStatus } from '../constants/eventNames';
+import { ActiveOrderState, PredictMarket, PredictOutcomeToken } from '../types';
+import { PredictEntryPoint } from '../types/navigation';
 
 type PredictActiveOrder = PredictControllerState['activeOrder'];
 type PredictActiveOrderValue = NonNullable<PredictActiveOrder>;
@@ -11,6 +15,12 @@ type PredictActiveOrderPatch =
       [K in keyof PredictActiveOrderValue]?: PredictActiveOrderValue[K] | null;
     }
   | null;
+
+export interface InitializeActiveOrderParams {
+  market: PredictMarket;
+  outcomeToken: PredictOutcomeToken;
+  entryPoint?: PredictEntryPoint;
+}
 
 export const usePredictActiveOrder = () => {
   const { PredictController } = Engine.context;
@@ -68,14 +78,33 @@ export const usePredictActiveOrder = () => {
     [PredictController, activeOrder],
   );
 
+  const initializeActiveOrder = useCallback(
+    (params: InitializeActiveOrderParams) => {
+      updateActiveOrder({
+        state: ActiveOrderState.PREVIEW,
+        isInputFocused: true,
+      });
+      PredictController.setSelectedPaymentToken(null);
+      PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.INITIATED,
+        analyticsProperties: parseAnalyticsProperties(
+          params.market,
+          params.outcomeToken,
+          params.entryPoint,
+        ),
+      });
+    },
+    [updateActiveOrder, PredictController],
+  );
+
   const clearActiveOrder = useCallback(() => {
     PredictController.clearActiveOrder();
-    PredictController.setSelectedPaymentToken(null);
   }, [PredictController]);
 
   return {
     activeOrder,
     updateActiveOrder,
     clearActiveOrder,
+    initializeActiveOrder,
   };
 };

@@ -21,6 +21,7 @@ export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;
   outcome: PredictOutcome;
   preview?: OrderPreview | null;
+  onBack?: () => void;
 }
 
 export interface PredictBuyPreviewHeaderTitleProps {
@@ -119,11 +120,15 @@ export function PredictBuyPreviewHeaderTitle({
   );
 }
 
-export function PredictBuyPreviewHeaderBack() {
+export function PredictBuyPreviewHeaderBack({
+  onBack,
+}: {
+  onBack?: () => void;
+}) {
   const { goBack } = useNavigation();
 
   return (
-    <TouchableOpacity testID="back-button" onPress={goBack}>
+    <TouchableOpacity testID="back-button" onPress={onBack ?? goBack}>
       <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
     </TouchableOpacity>
   );
@@ -133,13 +138,14 @@ const PredictBuyPreviewHeader = ({
   market,
   outcome,
   preview,
+  onBack,
 }: PredictBuyPreviewHeaderProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     twClassName="w-full gap-4 p-4"
   >
-    <PredictBuyPreviewHeaderBack />
+    <PredictBuyPreviewHeaderBack onBack={onBack} />
     <PredictBuyPreviewHeaderTitle
       market={market}
       outcome={outcome}

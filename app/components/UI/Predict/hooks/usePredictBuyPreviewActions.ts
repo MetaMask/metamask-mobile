@@ -221,12 +221,20 @@ export const usePredictBuyActions = ({
     updateActiveOrder,
   ]);
 
+  const handleBack = useCallback(() => {
+    clearActiveOrder();
+    if (!isConfirmation) {
+      navigation.dispatch(StackActions.pop());
+    }
+  }, [clearActiveOrder, navigation, isConfirmation]);
+
   const handlePlaceOrderSuccess = useCallback(() => {
     clearActiveOrder();
     navigation.dispatch(StackActions.pop());
   }, [clearActiveOrder, navigation]);
 
   return {
+    handleBack,
     handleTokenSelected,
     handleConfirm,
     handleDepositFailed,

@@ -5,6 +5,7 @@ import { useTransactionCustomAmount } from '../../../../Views/confirmations/hook
 import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
+import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 
 interface PredictPayWithAnyTokenInfoProps {
   depositAmount: number;
@@ -14,6 +15,8 @@ const PredictPayWithAnyTokenInfo = ({
   depositAmount,
 }: PredictPayWithAnyTokenInfoProps) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
+
+  useClearConfirmationOnBackSwipe();
 
   const { updateTokenAmount: updateTokenAmountCallback } =
     useUpdateTokenAmount();
