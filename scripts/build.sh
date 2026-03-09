@@ -209,12 +209,18 @@ loadBuildConfig() {
 # Legacy env remapping (Bitrise). Used only when GITHUB_ACTIONS is not set.
 # GitHub Actions uses loadBuildConfig + builds.yml; secrets are set with canonical names.
 # ─────────────────────────────────────────────────────────────────────────────
+# Remap Bitrise-style vars (*_DEV, *_QA, *_PROD) to canonical names. Skip when source is unset
+# (local / builds.yml use canonical names in .js.env; no _DEV/_QA needed).
+# Legacy path (not GHA, not builds.yml): missing source var fails fast. Local: set BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY in .js.env to use builds.yml and skip.
 remapEnvVariable() {
 	local old_var_name="$1"
 	local new_var_name="$2"
 	if [ -z "${!old_var_name}" ]; then
-		echo "Error: $old_var_name does not exist in the environment."
-		return 1
+		if [ -z "${GITHUB_ACTIONS:-}" ] && [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" != "true" ]; then
+			echo "❌ Required Bitrise secret is missing: $old_var_name"
+			return 1
+		fi
+		return 0
 	fi
 	export $new_var_name="${!old_var_name}"
 	unset $old_var_name
@@ -985,8 +991,10 @@ checkParameters "$@"
 printTitle
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Load build configuration: GitHub Actions uses builds.yml; Bitrise uses legacy remap.
-# Both paths supported until Bitrise is deprecated.
+# Load build configuration. Gated by BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:
+#   true  = GHA (set by workflow) and local (set in .js.env) → use builds.yml
+#   false = Bitrise (unset) → skip builds.yml, use legacy remap only
+# Local: .js.env is applied after loadBuildConfig so it overrides (see below).
 # ─────────────────────────────────────────────────────────────────────────────
 if [ "$PLATFORM" != "expo-update" ]; then
 	# Set flags for main builds
@@ -995,14 +1003,30 @@ if [ "$PLATFORM" != "expo-update" ]; then
 		export PRE_RELEASE=true # Used mostly for iOS, for Android only deletes old APK and installs new one
 	fi
 
-	if [ -n "${GITHUB_ACTIONS:-}" ]; then
-		# GitHub Actions: config from builds.yml (Apply build config step sets env; loadBuildConfig fills any gaps)
-		if ! loadBuildConfig "$METAMASK_BUILD_TYPE" "$METAMASK_ENVIRONMENT"; then
+	# Non-GHA: source .js.env early so BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is set for the gate (local can opt in)
+	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+		source "$JS_ENV_FILE"
+	fi
+
+	BUILD_TYPE_FOR_CONFIG=$(echo "$METAMASK_BUILD_TYPE" | tr '[:upper:]' '[:lower:]')
+	if [ "${BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY:-false}" = "true" ]; then
+		# builds.yml path: GHA or local with flag.
+		if ! loadBuildConfig "$BUILD_TYPE_FOR_CONFIG" "$METAMASK_ENVIRONMENT"; then
 			echo "❌ Build configuration failed. Exiting."
 			exit 1
 		fi
 	else
-		# Bitrise (or local): legacy env remapping (Bitrise secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+		echo "⚠️  BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true; skipping builds.yml, using legacy remap / .js.env"
+		echo ""
+	fi
+
+	# Local builds: .js.env overrides builds.yml (takes precedence)
+	if [ -z "${GITHUB_ACTIONS:-}" ] && [ -e "$JS_ENV_FILE" ]; then
+		source "$JS_ENV_FILE"
+	fi
+
+	# Bitrise (or other non-GHA CI): legacy env remapping (secrets use per-env names, e.g. SEGMENT_WRITE_KEY_PROD)
+	if [ -z "${GITHUB_ACTIONS:-}" ]; then
 		if [ "$METAMASK_BUILD_TYPE" == "main" ]; then
 			if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
 				remapMainProdEnvVariables
