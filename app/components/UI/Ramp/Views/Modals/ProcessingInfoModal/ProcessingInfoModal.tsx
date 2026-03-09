@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
@@ -106,7 +107,7 @@ function ProcessingInfoModal() {
           <Text
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
-            style={{ textAlign: 'center' }}
+            style={styles.centeredText}
           >
             {statusDescription}
           </Text>
@@ -127,5 +128,11 @@ function ProcessingInfoModal() {
     </BottomSheet>
   );
 }
+
+const styles = StyleSheet.create({
+  centeredText: {
+    textAlign: 'center',
+  },
+});
 
 export default ProcessingInfoModal;

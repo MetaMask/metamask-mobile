@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -199,7 +199,7 @@ const OrderDetails = () => {
   return (
     <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollContentContainer}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -210,7 +210,7 @@ const OrderDetails = () => {
         }
       >
         <ScreenLayout.Body>
-          <ScreenLayout.Content style={{ flex: 1 }}>
+          <ScreenLayout.Content style={styles.contentContainer}>
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}
@@ -221,5 +221,14 @@ const OrderDetails = () => {
     </ScreenLayout>
   );
 };
+
+const styles = StyleSheet.create({
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});
 
 export default OrderDetails;
