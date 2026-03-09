@@ -18,6 +18,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Hex } from '@metamask/utils';
+import { useNetworkName } from '../../../Views/confirmations/hooks/useNetworkName';
 import type { TokenDetailsRouteParams } from '../../TokenDetails/constants/constants';
 import { RiskLevel } from '../types';
 import {
@@ -34,12 +36,11 @@ import {
 
 // ─── Shared primitives ────────────────────────────────────────────────────────
 
-const BORDER_MUTED = 'rgba(133, 139, 154, 0.20)';
-
 /** Full-width horizontal divider between major sections */
 const Divider: React.FC = () => (
-  // eslint-disable-next-line react-native/no-inline-styles
-  <View style={{ height: 1, backgroundColor: BORDER_MUTED }} />
+  <Box twClassName="py-5 self-stretch">
+    <Box twClassName="h-px bg-border-muted" />
+  </Box>
 );
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
@@ -217,6 +218,7 @@ const SecurityTrustScreen: React.FC = () => {
   }, [securityData?.created]);
 
   const tokenType = params?.isNative ? 'Native' : 'ERC-20';
+  const networkName = useNetworkName(params?.chainId as Hex);
 
   const openLink = useCallback((url: string) => {
     Linking.openURL(url).catch(() => null);
@@ -244,6 +246,12 @@ const SecurityTrustScreen: React.FC = () => {
     },
     Warning: {
       heading: 'Warning',
+      headingColor: TextColor.WarningDefault,
+      subtitle:
+        'Some risk factors were detected. Review details before trading.',
+    },
+    Spam: {
+      heading: 'Spam',
       headingColor: TextColor.WarningDefault,
       subtitle:
         'Some risk factors were detected. Review details before trading.',
@@ -295,6 +303,7 @@ const SecurityTrustScreen: React.FC = () => {
           color={TextColor.TextDefault}
           twClassName="flex-1 text-center"
         >
+          {/* TODO: Localize this string and all other strings in this file*/}
           Security and trust
         </Text>
 
@@ -307,25 +316,36 @@ const SecurityTrustScreen: React.FC = () => {
         contentContainerStyle={scrollContentStyle}
       >
         {/* ══ Section 1: Security Score header ════════════════════════════════ */}
-        <Box twClassName="px-4 py-4" gap={6}>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            fontWeight={FontWeight.Medium}
-          >
+        <Box twClassName="px-4 py-4" gap={3}>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {params?.name
               ? `${params.name} security analysis`
               : 'Security analysis'}
           </Text>
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={resultConfig.headingColor}
-          >
-            {resultConfig.heading}
-          </Text>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {resultConfig.subtitle}
           </Text>
+          <Box
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName={`rounded self-start px-2 py-0.5 ${
+              riskLevel === RiskLevel.Low
+                ? 'bg-success-muted'
+                : riskLevel === RiskLevel.Medium
+                  ? 'bg-warning-muted'
+                  : riskLevel === RiskLevel.High
+                    ? 'bg-error-muted'
+                    : 'bg-muted'
+            }`}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={resultConfig.headingColor}
+              fontWeight={FontWeight.Medium}
+            >
+              {resultConfig.heading}
+            </Text>
+          </Box>
         </Box>
 
         <Divider />
@@ -336,6 +356,11 @@ const SecurityTrustScreen: React.FC = () => {
           title="Whale concentration"
           description={whaleDescription}
           level={whaleConcentrationLevel}
+        />
+        <RiskFactorRow
+          title="Staking Centralization"
+          description="N/A"
+          level={RiskLevel.Unknown}
         />
         <RiskFactorRow
           title="Smart Contract Risk"
@@ -365,7 +390,7 @@ const SecurityTrustScreen: React.FC = () => {
               fontWeight={FontWeight.Medium}
               twClassName="mt-0.5"
             >
-              {formatCompactSupply(financialStats?.supply)}{' '}
+              {formatCompactSupply(financialStats?.supply, params?.decimals)}{' '}
               {params?.symbol ?? ''}
             </Text>
           </Box>
@@ -521,9 +546,10 @@ const SecurityTrustScreen: React.FC = () => {
         <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
           <CheckRow
             label="Buy/sell enabled"
-            description="Trading is open in both directions"
+            description="Trading is open in both directions" // todo: do we want another description for when all features are present?
             isPositive={
-              securityData?.resultType !== 'Malicious' &&
+              !hasFeature(features, 'HONEYPOT') &&
+              !hasFeature(features, 'RUGPULL') &&
               !hasFeature(features, 'TRANSFER_PAUSEABLE')
             }
           />
@@ -537,7 +563,11 @@ const SecurityTrustScreen: React.FC = () => {
               (fees.sell === 0 || fees.sell === null)
             }
           />
-          {/* Slippage Normal — not available in API */}
+          <CheckRow
+            label="Slippage normal"
+            description="N/A"
+            isPositive={false}
+          />
         </Box>
 
         {/* ══ Section 6: Liquidity ═════════════════════════════════════════════ */}
@@ -584,7 +614,7 @@ const SecurityTrustScreen: React.FC = () => {
             <CheckRow
               key={auditor}
               label={auditor}
-              description="Audit data not available"
+              description="N/A"
               isPositive={false}
             />
           ))}
@@ -704,7 +734,7 @@ const SecurityTrustScreen: React.FC = () => {
                 Network
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {params?.chainId ?? 'N/A'}
+                {networkName ?? 'N/A'}
               </Text>
             </Box>
             <Box twClassName="flex-1 py-1">
@@ -828,7 +858,9 @@ const SecurityTrustScreen: React.FC = () => {
               {metadata.externalLinks.twitterPage && (
                 <ButtonBase
                   onPress={() =>
-                    openLink(metadata.externalLinks.twitterPage || '')
+                    openLink(
+                      `https://x.com/${metadata.externalLinks.twitterPage}`,
+                    )
                   }
                   twClassName={(pressed) =>
                     `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
@@ -902,15 +934,6 @@ const SecurityTrustScreen: React.FC = () => {
             </Box>
           </>
         )}
-
-        <Text
-          variant={TextVariant.BodyXs}
-          color={TextColor.TextMuted}
-          twClassName="mx-4 mt-6 text-center"
-        >
-          Security analysis powered by Blockaid. Data refreshed every 60
-          seconds.
-        </Text>
       </ScrollView>
     </View>
   );

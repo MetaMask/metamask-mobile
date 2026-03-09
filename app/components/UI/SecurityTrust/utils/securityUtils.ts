@@ -12,20 +12,6 @@ const POSITIVE_FEATURE_LABELS: Record<string, string> = {
   VERIFIED_CONTRACT: 'Verified Contract',
   HIGH_REPUTATION_TOKEN: 'High Reputation',
   LISTED_ON_CENTRALIZED_EXCHANGE: 'Listed on CEX',
-  OWNERSHIP_RENOUNCED: 'Ownership Renounced',
-};
-
-/** Map featureId to a human-readable negative label */
-const NEGATIVE_FEATURE_LABELS: Record<string, string> = {
-  IS_MINTABLE: 'Mint Function',
-  CAN_BLACKLIST: 'Blacklist Function',
-  CAN_WHITELIST: 'Whitelist Function',
-  HIDDEN_OWNER: 'Hidden Owner',
-  OWNER_CAN_CHANGE_BALANCE: 'Owner Can Change Balance',
-  MODIFIABLE_TAXES: 'Modifiable Taxes',
-  PROXY_CONTRACT: 'Proxy Contract',
-  TRANSFER_PAUSEABLE: 'Transfers Pausable',
-  EXTERNAL_FUNCTIONS: 'External Functions',
 };
 
 /**
@@ -39,6 +25,7 @@ export const getRiskLevel = (
     case 'Benign':
       return RiskLevel.Low;
     case 'Warning':
+    case 'Spam':
       return RiskLevel.Medium;
     case 'Malicious':
       return RiskLevel.High;
@@ -134,18 +121,24 @@ export const formatCompactUSD = (value: number): string => {
  */
 export const formatCompactSupply = (
   supply: number | null | undefined,
+  decimals?: number,
 ): string => {
   if (supply === null || supply === undefined) return 'N/A';
-  if (supply >= 1_000_000_000) {
-    return `${(supply / 1_000_000_000).toFixed(2)}B`;
+  const adjusted =
+    decimals != null && decimals > 0 ? supply / 10 ** decimals : supply;
+  const units: [number, string][] = [
+    [1e15, 'Q'],
+    [1e12, 'T'],
+    [1e9, 'B'],
+    [1e6, 'M'],
+    [1e3, 'K'],
+  ];
+  for (const [threshold, suffix] of units) {
+    if (adjusted >= threshold) {
+      return `${(adjusted / threshold).toFixed(2)}${suffix}`;
+    }
   }
-  if (supply >= 1_000_000) {
-    return `${(supply / 1_000_000).toFixed(2)}M`;
-  }
-  if (supply >= 1_000) {
-    return `${(supply / 1_000).toFixed(1)}K`;
-  }
-  return supply.toFixed(0);
+  return adjusted.toFixed(0);
 };
 
 /**
@@ -187,4 +180,4 @@ export const getSmartContractRisk = (
   }
 };
 
-export { POSITIVE_FEATURE_LABELS, NEGATIVE_FEATURE_LABELS };
+export { POSITIVE_FEATURE_LABELS };

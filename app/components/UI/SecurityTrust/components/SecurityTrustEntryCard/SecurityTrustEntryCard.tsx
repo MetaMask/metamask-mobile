@@ -31,14 +31,17 @@ interface SecurityTrustEntryCardProps {
 const RISK_CONFIG: Record<RiskLevel, { label: string; textColor: TextColor }> =
   {
     [RiskLevel.Low]: {
+      // Verified and Benign
       label: 'No risks detected',
       textColor: TextColor.SuccessDefault,
     },
     [RiskLevel.Medium]: {
-      label: 'Some risks detected',
+      // Warning and Spam
+      label: 'Medium risk',
       textColor: TextColor.WarningDefault,
     },
     [RiskLevel.High]: {
+      // Malicious
       label: 'High risk',
       textColor: TextColor.ErrorDefault,
     },
