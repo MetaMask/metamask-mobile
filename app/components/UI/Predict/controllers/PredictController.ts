@@ -79,6 +79,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -115,6 +116,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 
 /**
  * State shape for PredictController
@@ -437,12 +439,27 @@ export class PredictController extends BaseController<
         ? rawMarketHighlightsFlag
         : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
-    const feeCollection =
+    const feeCollection = parse(
       unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
         flags.predictFeeCollection,
-      ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+      ),
+      PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
+    );
 
-    return { feeCollection, liveSportsLeagues, marketHighlightsFlag };
+    const fakOrdersEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictFakOrders,
+        ),
+      ) ?? false;
+
+    return {
+      feeCollection,
+      liveSportsLeagues,
+      marketHighlightsFlag,
+      fakOrdersEnabled,
+    };
   }
 
   private getEvmAccountAddress(): string {
@@ -1034,6 +1051,7 @@ export class PredictController extends BaseController<
     failureReason,
     sharePrice,
     pnl,
+    orderType,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1042,6 +1060,7 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
+    orderType?: PredictOrderType;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1094,6 +1113,9 @@ export class PredictController extends BaseController<
       }),
       ...(analyticsProperties.gameClock && {
         [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
+      }),
+      ...(orderType && {
+        [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
     };
 
@@ -1424,6 +1446,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
+        orderType: preview.orderType,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1484,6 +1507,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
+        orderType: preview.orderType,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1503,6 +1527,7 @@ export class PredictController extends BaseController<
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
+        orderType: preview.orderType,
       });
 
       // Update error state for Sentry integration

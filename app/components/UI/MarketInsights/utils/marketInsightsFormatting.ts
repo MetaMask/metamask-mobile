@@ -1,3 +1,5 @@
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
+
 export interface RelativeTimeOptions {
   nowLabel?: string;
 }
@@ -37,4 +39,59 @@ export const formatRelativeTime = (
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   return `${diffDays}d ago`;
+};
+
+export const getNormalizedHandle = (author: string): string =>
+  `@${author.replace(/^@+/, '')}`;
+
+export const isXSourceUrl = (source: string): boolean => {
+  const trimmedSource = source.trim();
+  const normalized = trimmedSource.toLowerCase();
+
+  if (normalized === 'x' || normalized === 'twitter') {
+    return true;
+  }
+
+  try {
+    const normalizedSource = trimmedSource.includes('://')
+      ? trimmedSource
+      : `https://${trimmedSource}`;
+    const hostname = new URL(normalizedSource).hostname
+      .replace(/^www\./, '')
+      .toLowerCase();
+    return (
+      hostname === 'x.com' ||
+      hostname.endsWith('.x.com') ||
+      hostname === 'twitter.com' ||
+      hostname.endsWith('.twitter.com')
+    );
+  } catch {
+    return false;
+  }
+};
+
+const SAFE_URL_SCHEMES = ['http:', 'https:'];
+
+export const isSafeUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return SAFE_URL_SCHEMES.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
+
+export const getUniqueSourcesByFavicon = (
+  sources: MarketInsightsSource[],
+): MarketInsightsSource[] => {
+  const seenFaviconUrls = new Set<string>();
+
+  return sources.filter((source) => {
+    const faviconUrl = getFaviconUrl(source.url);
+    if (seenFaviconUrls.has(faviconUrl)) {
+      return false;
+    }
+    seenFaviconUrls.add(faviconUrl);
+    return true;
+  });
 };

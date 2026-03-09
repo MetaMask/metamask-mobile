@@ -22,6 +22,18 @@ jest.mock('../utils/accounts', () => ({
     mockGetEvmAccountFromSelectedAccountGroup(),
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
 const mockGetPositions = jest.fn<
   Promise<PredictPosition[]>,
   [{ address: string }]

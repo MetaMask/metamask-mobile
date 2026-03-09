@@ -30,6 +30,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "AiDigestController": {
         "marketInsights": {},
+        "marketOverview": null,
       },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
@@ -65,6 +66,13 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "CardController": {
+        "activeProviderId": null,
+        "cardholderAccounts": [],
+        "isAuthenticated": false,
+        "providerData": {},
+        "selectedCountry": null,
       },
       "ConnectivityController": {
         "connectivityStatus": "online",
@@ -498,13 +506,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
+        "cachedMarketDataByProvider": {},
+        "cachedUserDataByProvider": {},
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -634,6 +637,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
             },
           },
         },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -665,6 +669,8 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "campaigns": {},
+        "offDeviceSubscriptionAccounts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
         "rewardsEnvUrl": null,
@@ -884,6 +890,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "AiDigestController": {
         "marketInsights": {},
+        "marketOverview": null,
       },
       "AnalyticsController": {
         "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
@@ -919,6 +926,13 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "BridgeStatusController": {
         "txHistory": {},
+      },
+      "CardController": {
+        "activeProviderId": null,
+        "cardholderAccounts": [],
+        "isAuthenticated": false,
+        "providerData": {},
+        "selectedCountry": null,
       },
       "ConnectivityController": {
         "connectivityStatus": "online",
@@ -1352,13 +1366,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "PerpsController": {
         "accountState": null,
         "activeProvider": "hyperliquid",
-        "cachedAccountState": null,
-        "cachedMarketData": null,
-        "cachedMarketDataTimestamp": 0,
-        "cachedOrders": null,
-        "cachedPositions": null,
-        "cachedUserDataAddress": null,
-        "cachedUserDataTimestamp": 0,
+        "cachedMarketDataByProvider": {},
+        "cachedUserDataByProvider": {},
         "depositInProgress": false,
         "depositRequests": [],
         "hasPlacedFirstOrder": {
@@ -1488,6 +1497,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             },
           },
         },
+        "orders": [],
         "paymentMethods": {
           "data": [],
           "error": null,
@@ -1519,6 +1529,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "accounts": {},
         "activeAccount": null,
         "activeBoosts": {},
+        "campaigns": {},
+        "offDeviceSubscriptionAccounts": {},
         "pointsEstimateHistory": [],
         "pointsEvents": {},
         "rewardsEnvUrl": null,

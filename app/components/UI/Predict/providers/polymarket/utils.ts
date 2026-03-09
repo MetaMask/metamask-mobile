@@ -45,7 +45,7 @@ import {
   SLIPPAGE_SELL,
   POLYMARKET_PROVIDER_ID,
 } from './constants';
-import { SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   ClobHeaders,
@@ -394,16 +394,26 @@ export const submitClobOrder = async ({
   headers,
   clobOrder,
   feeAuthorization,
+  executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
-  feeAuthorization?: SafeFeeAuthorization;
+  feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+  executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
-  const body: ClobOrderObject & { feeAuthorization?: SafeFeeAuthorization } = {
+  const body: ClobOrderObject & {
+    feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
+    executor?: string;
+    allowancesTx?: { to: string; data: string };
+  } = {
     ...clobOrder,
     feeAuthorization,
+    ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -734,7 +744,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -1069,7 +1079,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -1091,6 +1101,8 @@ export async function calculateFees({
       totalFee: 0,
       totalFeePercentage: 0,
       collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
     };
   }
 
@@ -1113,6 +1125,8 @@ export async function calculateFees({
     totalFee,
     totalFeePercentage,
     collector: feeCollection.collector,
+    executors: feeCollection.executors ?? [],
+    permit2Enabled: feeCollection.permit2Enabled ?? false,
   };
 }
 

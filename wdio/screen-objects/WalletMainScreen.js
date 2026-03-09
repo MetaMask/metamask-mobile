@@ -337,6 +337,7 @@ class WalletMainScreen {
     }
   }
 
+  // Migrated to WalletView.ts (tests/page-objects/wallet/WalletView.ts)
   async waitForBalanceToStabilize(options = {}) {
     const {
       maxWaitTime = 60000,
