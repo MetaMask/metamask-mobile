@@ -4679,4 +4679,95 @@ describe('RewardsDataService', () => {
       );
     });
   });
+
+  describe('optInToCampaign', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: true };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with POST and returns status', async () => {
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+
+      await expect(
+        service.optInToCampaign(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow('Opt-in to campaign failed: 409');
+    });
+  });
+
+  describe('getCampaignParticipantStatus', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: false };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with GET and returns status', async () => {
+      const result = await service.getCampaignParticipantStatus(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/campaigns/${mockCampaignId}/status`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getCampaignParticipantStatus(
+          mockSubscriptionId,
+          mockCampaignId,
+        ),
+      ).rejects.toThrow('Get campaign participant status failed: 404');
+    });
+  });
 });
