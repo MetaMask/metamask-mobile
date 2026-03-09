@@ -5861,6 +5861,9 @@ export class HyperLiquidProvider implements PerpsProvider {
     const combinedUniverse: MetaResponse['universe'] = [];
     const combinedAssetCtxs: PerpsAssetCtx[] = [];
     const combinedAllMids: Record<string, string> = {};
+    // Tracks which result set was authoritative — updated to retryResults if retry runs.
+    // Used by the aggregation log below to avoid referencing stale first-attempt data.
+    let latestDexResults = dexDataResults;
 
     dexDataResults.forEach((result) => {
       if (result.success && result.meta?.universe) {
@@ -5887,16 +5890,93 @@ export class HyperLiquidProvider implements PerpsProvider {
     });
 
     if (combinedUniverse.length === 0) {
-      const failedDexs = dexDataResults
-        .filter((result) => !result.success)
-        .map((result) => result.dex ?? 'main');
-      const succeededDexs = dexDataResults
-        .filter((result) => result.success)
-        .map((result) => result.dex ?? 'main');
-      const wsState = this.#clientService.getConnectionState();
-      throw new Error(
-        `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState})`,
+      // All DEXs returned empty — retry once after a short delay.
+      // Transient failures (app resuming from background, network transition)
+      // often resolve within seconds, so a single retry eliminates most noise.
+      // Clear stale partial data before retry to prevent index misalignment
+      // (assetCtxs/allMids may have been populated even when universe is empty
+      // due to market filtering removing all entries for a "successful" DEX).
+      combinedUniverse.length = 0;
+      combinedAssetCtxs.length = 0;
+      for (const key of Object.keys(combinedAllMids)) {
+        delete combinedAllMids[key];
+      }
+      const retryDelayMs = 2000;
+      this.#deps.debugLogger.log(
+        `[getMarketDataWithPrices] All DEXs returned empty, retrying in ${retryDelayMs}ms`,
       );
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+
+      const retryResults = await Promise.all(
+        enabledDexs.map(async (dex) => {
+          const dexParam = dex ?? '';
+          try {
+            const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+              dexParam ? { dex: dexParam } : undefined,
+            );
+            const meta = metaAndCtxs?.[0] || null;
+            const assetCtxs = metaAndCtxs?.[1] || [];
+            const dexAllMids = await infoClient.allMids(
+              dexParam ? { dex: dexParam } : undefined,
+            );
+            return {
+              dex,
+              meta,
+              assetCtxs,
+              allMids: dexAllMids || {},
+              success: true,
+            };
+          } catch {
+            return {
+              dex,
+              meta: null,
+              assetCtxs: [],
+              allMids: {},
+              success: false,
+            };
+          }
+        }),
+      );
+
+      // Merge retry results into combined arrays
+      retryResults.forEach((result) => {
+        if (result.success && result.meta?.universe) {
+          const filteredMarkets =
+            result.dex === null
+              ? result.meta.universe
+              : result.meta.universe.filter((asset) =>
+                  shouldIncludeMarket(
+                    asset.name,
+                    result.dex,
+                    this.#hip3Enabled,
+                    this.#compiledAllowlistPatterns,
+                    this.#compiledBlocklistPatterns,
+                  ),
+                );
+          combinedUniverse.push(...filteredMarkets);
+          combinedAssetCtxs.push(...result.assetCtxs);
+          Object.assign(combinedAllMids, result.allMids);
+        }
+      });
+
+      // If still empty after retry, throw with diagnostic info
+      if (combinedUniverse.length === 0) {
+        const failedDexs = retryResults
+          .filter((result) => !result.success)
+          .map((result) => result.dex ?? 'main');
+        const succeededDexs = retryResults
+          .filter((result) => result.success)
+          .map((result) => result.dex ?? 'main');
+        const wsState = this.#clientService.getConnectionState();
+        throw new Error(
+          `Failed to fetch market data - no markets available (enabledDexs=${enabledDexs.length}, failed=[${failedDexs.join(',')}], succeeded=[${succeededDexs.join(',')}], wsState=${wsState})`,
+        );
+      }
+
+      latestDexResults = retryResults;
+      this.#deps.debugLogger.log('[getMarketDataWithPrices] Retry succeeded', {
+        marketCount: combinedUniverse.length,
+      });
     }
 
     this.#deps.debugLogger.log(
@@ -5904,10 +5984,10 @@ export class HyperLiquidProvider implements PerpsProvider {
       {
         dexCount: enabledDexs.length,
         totalMarkets: combinedUniverse.length,
-        mainDexMarkets: dexDataResults[0]?.meta?.universe?.length ?? 0,
+        mainDexMarkets: latestDexResults[0]?.meta?.universe?.length ?? 0,
         hip3Markets:
           combinedUniverse.length -
-          (dexDataResults[0]?.meta?.universe?.length ?? 0),
+          (latestDexResults[0]?.meta?.universe?.length ?? 0),
       },
     );
 

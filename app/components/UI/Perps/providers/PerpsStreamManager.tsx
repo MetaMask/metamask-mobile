@@ -1449,30 +1449,36 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const cacheStalenessMs = this.lastFetchTime
           ? Date.now() - this.lastFetchTime
           : null;
-        Logger.error(ensureError(error, 'PerpsStreamManager.fetchMarketData'), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-          },
-          context: {
-            name: 'PerpsStreamManager',
-            data: {
-              method: 'fetchMarketData',
-              fetchTimeMs: fetchTime,
-              hadCachedData: !!existing,
-              cachedMarketCount: existing?.length ?? 0,
-              cacheStalenessMs,
-            },
-          },
-        });
-        // Keep existing cache if fetch fails
+        const diagnosticData = {
+          method: 'fetchMarketData',
+          fetchTimeMs: fetchTime,
+          hadCachedData: !!existing,
+          cachedMarketCount: existing?.length ?? 0,
+          cacheStalenessMs,
+        };
+
         if (existing) {
+          // Transient failure with cached fallback — debug-log only, not Sentry.
+          // These are expected during network transitions and app backgrounding.
           DevLogger.log(
             'PerpsStreamManager: Using stale cache after fetch failure',
-            {
-              marketCount: existing.length,
-            },
+            diagnosticData,
           );
           this.notifySubscribers(existing);
+        } else {
+          // No cached data — genuine first-load failure, report to Sentry
+          Logger.error(
+            ensureError(error, 'PerpsStreamManager.fetchMarketData'),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+              },
+              context: {
+                name: 'PerpsStreamManager',
+                data: diagnosticData,
+              },
+            },
+          );
         }
       } finally {
         this.fetchPromise = null;

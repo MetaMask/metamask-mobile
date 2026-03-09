@@ -1627,6 +1627,46 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('serves stale cached market data to subscribers when a re-fetch fails', async () => {
+      // Arrange — first subscription populates cache
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      callback.mockClear();
+
+      // Make cache stale by advancing past CACHE_DURATION (5 minutes)
+      jest.advanceTimersByTime(5 * 60 * 1000 + 1);
+
+      // Next fetch will fail
+      mockGetMarketDataWithPrices.mockRejectedValue(new Error('Network error'));
+
+      // Act — second subscription triggers a background re-fetch with stale cache
+      const callback2 = jest.fn();
+      const unsubscribe2 = testStreamManager.marketData.subscribe({
+        callback: callback2,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(2);
+      });
+
+      // Assert — stale cached data is served to subscribers (line 1467: notifySubscribers(existing))
+      await waitFor(() => {
+        expect(callback2).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+      unsubscribe2();
+    });
+
     it('prewarms market data cache', async () => {
       // Call prewarm
       const cleanup = testStreamManager.marketData.prewarm();

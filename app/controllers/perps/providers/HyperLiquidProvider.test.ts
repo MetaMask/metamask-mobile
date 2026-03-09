@@ -3626,6 +3626,51 @@ describe('HyperLiquidProvider', () => {
         expect(result[0]).toHaveProperty('price');
         expect(result[0]).toHaveProperty('fundingRate');
       });
+
+      it('retries and returns market data when first attempt yields empty universe', async () => {
+        // Arrange — first metaAndAssetCtxs returns null meta (empty), retry returns valid data
+        jest.useFakeTimers();
+
+        const assetCtx = {
+          funding: '0.0001',
+          openInterest: '1000',
+          prevDayPx: '49000',
+          dayNtlVlm: '1000000',
+          markPx: '50000',
+          midPx: '50000',
+          oraclePx: '50000',
+        };
+
+        const mockMetaAndCtxs = jest
+          .fn()
+          .mockResolvedValueOnce([null, []])
+          .mockResolvedValue([
+            { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+            [assetCtx],
+          ]);
+
+        mockClientService.getInfoClient = jest.fn().mockReturnValue(
+          createMockInfoClient({
+            metaAndAssetCtxs: mockMetaAndCtxs,
+            allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          }),
+        );
+
+        const freshProvider = createTestProvider();
+
+        // Act — start fetch, then advance past the 2s retry delay
+        const fetchPromise = freshProvider.getMarketDataWithPrices();
+        await jest.runAllTimersAsync();
+        const result = await fetchPromise;
+
+        // Assert — retry succeeded, market data is returned
+        expect(Array.isArray(result)).toBe(true);
+        expect(result.length).toBeGreaterThan(0);
+        expect(result[0].symbol).toBe('BTC');
+        expect(mockMetaAndCtxs).toHaveBeenCalledTimes(2);
+
+        jest.useRealTimers();
+      });
     });
 
     describe('withdrawal edge cases', () => {
