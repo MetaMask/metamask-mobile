@@ -80,8 +80,9 @@ export const createRemoteFeatureFlagsMock = (
     JSON.stringify(getDefaultFeatureFlagsArray()),
   ) as Record<string, unknown>[];
 
-  // Apply E2E-safe defaults first, then user overrides (user overrides take precedence)
-  const effectiveOverrides = { ...E2E_SAFE_DEFAULTS, ...flagOverrides };
+  // Deep merge E2E-safe defaults with user overrides so nested safe values
+  // (e.g. appMinimumBuild: 1) survive when a test overrides a sibling property.
+  const effectiveOverrides = deepMerge(E2E_SAFE_DEFAULTS, flagOverrides);
 
   // Apply overrides by finding and merging with existing objects or adding new ones
   Object.entries(effectiveOverrides).forEach(([flagName, flagValue]) => {
