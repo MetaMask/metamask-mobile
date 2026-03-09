@@ -28,9 +28,9 @@ export const PriceImpactModal = () => {
     location,
   });
 
-  const { formattedQuoteData } = useBridgeQuoteData();
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData();
   const priceImpactViewData = usePriceImpactViewData(
-    formattedQuoteData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact,
   );
 
   const handleClose = useCallback(() => {
@@ -56,7 +56,9 @@ export const PriceImpactModal = () => {
       />
       <PriceImpactDescription
         type={type}
-        priceImpact={warningIcon ? formattedQuoteData?.priceImpact : undefined}
+        formattedPriceImpact={
+          warningIcon ? formattedQuoteData?.priceImpact : undefined
+        }
       />
       <PriceImpactFooter
         type={type}

@@ -162,8 +162,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     priceImpactThreshold: {
       normal: 3.0,
       gasless: 1.5,
-      warning: 5,
-      danger: 25,
+      warning: 0.05,
+      danger: 0.25,
     },
     chains: {
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {

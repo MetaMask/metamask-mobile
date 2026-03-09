@@ -2,7 +2,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { getPriceImpactViewData } from './getPriceImpactViewData';
 
-const DEFAULT_THRESHOLD = { warning: 5, danger: 25 };
+const DEFAULT_THRESHOLD = { warning: 0.05, danger: 0.25 };
 
 const ALTERNATIVE = {
   textColor: TextColor.Alternative,
@@ -41,9 +41,9 @@ describe('getPriceImpactViewData', () => {
 
   describe('returns alternative when priceImpact is below the warning threshold', () => {
     it.each([
-      { priceImpactValue: '-0.06%' },
-      { priceImpactValue: '0%' },
-      { priceImpactValue: '4.99%' },
+      { priceImpactValue: '-0.0006' },
+      { priceImpactValue: '0' },
+      { priceImpactValue: '0.0499' },
     ])(
       'returns alternative for priceImpactValue=$priceImpactValue',
       ({ priceImpactValue }) => {
@@ -59,9 +59,9 @@ describe('getPriceImpactViewData', () => {
 
   describe('returns warning when priceImpact is at or above the warning threshold but below danger', () => {
     it.each([
-      { priceImpactValue: '5.00%' },
-      { priceImpactValue: '5.01%' },
-      { priceImpactValue: '24.99%' },
+      { priceImpactValue: '0.05' },
+      { priceImpactValue: '0.0501' },
+      { priceImpactValue: '0.2499' },
     ])(
       'returns warning for priceImpactValue=$priceImpactValue',
       ({ priceImpactValue }) => {
@@ -77,9 +77,9 @@ describe('getPriceImpactViewData', () => {
 
   describe('returns danger when priceImpact is at or above the danger threshold', () => {
     it.each([
-      { priceImpactValue: '25.00%' },
-      { priceImpactValue: '25.01%' },
-      { priceImpactValue: '100%' },
+      { priceImpactValue: '0.25' },
+      { priceImpactValue: '0.2501' },
+      { priceImpactValue: '1' },
     ])(
       'returns danger for priceImpactValue=$priceImpactValue',
       ({ priceImpactValue }) => {
@@ -95,12 +95,12 @@ describe('getPriceImpactViewData', () => {
 
   describe('respects custom threshold values', () => {
     it('uses the provided warning threshold', () => {
-      const customThreshold = { warning: 10, danger: 50 };
+      const customThreshold = { warning: 0.1, danger: 0.5 };
 
       // below custom warning → alternative
       expect(
         getPriceImpactViewData({
-          priceImpactValue: '9.99%',
+          priceImpactValue: '0.0999',
           threshold: customThreshold,
         }),
       ).toEqual(ALTERNATIVE);
@@ -108,19 +108,19 @@ describe('getPriceImpactViewData', () => {
       // at custom warning → warning
       expect(
         getPriceImpactViewData({
-          priceImpactValue: '10.00%',
+          priceImpactValue: '0.1',
           threshold: customThreshold,
         }),
       ).toEqual(WARNING);
     });
 
     it('uses the provided danger threshold', () => {
-      const customThreshold = { warning: 10, danger: 50 };
+      const customThreshold = { warning: 0.1, danger: 0.5 };
 
       // below custom danger but above warning → warning
       expect(
         getPriceImpactViewData({
-          priceImpactValue: '49.99%',
+          priceImpactValue: '0.4999',
           threshold: customThreshold,
         }),
       ).toEqual(WARNING);
@@ -128,7 +128,7 @@ describe('getPriceImpactViewData', () => {
       // at custom danger → danger
       expect(
         getPriceImpactViewData({
-          priceImpactValue: '50.00%',
+          priceImpactValue: '0.5',
           threshold: customThreshold,
         }),
       ).toEqual(DANGER);
@@ -139,14 +139,14 @@ describe('getPriceImpactViewData', () => {
     // '5%' and '5.00%' should both hit the warning threshold
     expect(
       getPriceImpactViewData({
-        priceImpactValue: '5%',
+        priceImpactValue: '0.05',
         threshold: DEFAULT_THRESHOLD,
       }),
     ).toEqual(WARNING);
 
     expect(
       getPriceImpactViewData({
-        priceImpactValue: '5',
+        priceImpactValue: '0.05',
         threshold: DEFAULT_THRESHOLD,
       }),
     ).toEqual(WARNING);

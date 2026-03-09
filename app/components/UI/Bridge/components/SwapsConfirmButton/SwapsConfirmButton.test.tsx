@@ -195,7 +195,7 @@ const defaultBridgeConfigV2 = {
   maxRefreshCount: 5,
   refreshRate: 30000,
   support: true,
-  priceImpactThreshold: { danger: 25, warning: 5 },
+  priceImpactThreshold: { danger: 0.25, warning: 0.05 },
   chains: {},
 };
 
@@ -1385,7 +1385,7 @@ describe('SwapsConfirmButton', () => {
 
     it('falls back to AppConstants threshold when feature flags danger is absent', async () => {
       // Omit priceImpactThreshold.danger from feature flags → falls back to
-      // AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD = 25.
+      // AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD = 0.25.
       const stateWithoutDangerThreshold: DeepPartial<RootState> = {
         ...mockState,
         engine: {
@@ -1396,7 +1396,7 @@ describe('SwapsConfirmButton', () => {
               remoteFeatureFlags: {
                 bridgeConfigV2: {
                   ...defaultBridgeConfigV2,
-                  priceImpactThreshold: { warning: 5 }, // danger absent
+                  priceImpactThreshold: { warning: 0.05 }, // danger absent
                 },
               },
             },

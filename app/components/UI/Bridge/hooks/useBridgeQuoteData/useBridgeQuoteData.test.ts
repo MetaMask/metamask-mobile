@@ -38,8 +38,8 @@ jest.mock('@metamask/bridge-controller', () => {
       priceImpactThreshold: {
         gasless: 0.4,
         normal: 0.19,
-        warning: 5,
-        danger: 25,
+        warning: 0.05,
+        danger: 0.25,
       },
     })),
   };
@@ -201,7 +201,7 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: {
           ...mockQuoteWithMetadata.quote,
-          priceData: { priceImpact: '5' },
+          priceData: { priceImpact: '0.05' },
         },
       },
       alternativeQuotes: [],
@@ -230,7 +230,7 @@ describe('useBridgeQuoteData', () => {
           gasless: 0.4,
           normal: 0.19,
           // warning absent — should fall back to AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD
-          danger: 25,
+          danger: 0.25,
         },
       }),
     );

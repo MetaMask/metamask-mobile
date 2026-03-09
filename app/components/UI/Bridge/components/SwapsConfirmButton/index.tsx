@@ -76,7 +76,6 @@ export const SwapsConfirmButton = ({
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
-    formattedQuoteData,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -154,13 +153,13 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
-    const priceImpact = !formattedQuoteData?.priceImpact
+    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
       ? // Default to zero to bypass swap friction.
         // This callback is always called when active quote exists,
         // thus this check is not expected to be used, but we introduce
         // it regardless as a defensive mechanism.
         0
-      : Number.parseFloat(formattedQuoteData.priceImpact.replace('%', ''));
+      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
 
     if (
       Number.isFinite(priceImpact) &&
