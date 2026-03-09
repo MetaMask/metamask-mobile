@@ -23,7 +23,7 @@ export const ScamWarningIcon = ({
   const { type } = useSelector(selectProviderConfig);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     asset.chainId,
-    asset.ticker,
+    asset.ticker ?? asset.symbol,
     type,
   );
   if (
