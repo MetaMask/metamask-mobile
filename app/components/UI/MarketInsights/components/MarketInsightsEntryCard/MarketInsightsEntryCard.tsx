@@ -85,7 +85,9 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => tw.style('px-4 mt-2', pressed && 'opacity-80')}
+      style={({ pressed }) =>
+        tw.style('px-4 mt-2 mb-4', pressed && 'opacity-80')
+      }
       testID={testID}
     >
       <Box gap={2}>

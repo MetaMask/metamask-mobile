@@ -48,9 +48,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@anthropic-ai/sdk@npm:^0.71.0":
-  version: 0.71.2
-  resolution: "@anthropic-ai/sdk@npm:0.71.2"
+"@anthropic-ai/sdk@npm:^0.78.0":
+  version: 0.78.0
+  resolution: "@anthropic-ai/sdk@npm:0.78.0"
   dependencies:
     json-schema-to-ts: "npm:^3.1.1"
   peerDependencies:
@@ -60,7 +60,7 @@ __metadata:
       optional: true
   bin:
     anthropic-ai-sdk: bin/cli
-  checksum: 10/a8190f9e860079dd97a544a95f36bd4b0b3a9a941610d7e067c431dc47febe03e3e761fc371166b261af9629d832533eeb3d8e72298e9f73dd52994a61881a2c
+  checksum: 10/7cb34e36d4fc766f0765b2581596825996073b03eec97a1193f07c6ca4ab48a021310dae9df630d61550ae2aa7fb3a6cf54236f7418932b25ea1a0e32624fdf1
   languageName: node
   linkType: hard
 
@@ -10202,9 +10202,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^16.3.0":
-  version: 16.3.0
-  resolution: "@metamask/transaction-pay-controller@npm:16.3.0"
+"@metamask/transaction-pay-controller@npm:^16.4.0":
+  version: 16.4.0
+  resolution: "@metamask/transaction-pay-controller@npm:16.4.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10225,7 +10225,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/fd432b50040e93616f77f8ee24836cb979c4626853ece95dfa9e27d3b26b231407ce0ded6f8f929e81c482f872dbec6c5bce7bbf2f52580218a0e48f7d4b6562
+  checksum: 10/01124071370b3f6268472a44ab8f179d8040f800882653171f95ffd24bc1ab72cea2e0bcac1e3a736e466f83661ee34ffdfbe1816941ecd5f7d970b835be1fb4
   languageName: node
   linkType: hard
 
@@ -21802,9 +21802,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=9b6269":
+"appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch":
   version: 0.1.45
-  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=9b6269"
+  resolution: "appwright@patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch::version=0.1.45&hash=ebe2b3"
   dependencies:
     "@empiricalrun/llm": "npm:^0.9.25"
     "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
@@ -21820,29 +21820,7 @@ __metadata:
     webdriver: "npm:^8.36.1"
   bin:
     appwright: dist/bin/index.js
-  checksum: 10/da34a39901c340ca3adc39fc7299457dd30decce2b17586e4a3de71d8c8afa257183c66d09ab673e5c0d66b1ef9866630f0c6759c2e945179b33a2b35f1a35a8
-  languageName: node
-  linkType: hard
-
-"appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch":
-  version: 0.1.45
-  resolution: "appwright@patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch::version=0.1.45&hash=0ae41e"
-  dependencies:
-    "@empiricalrun/llm": "npm:^0.9.25"
-    "@ffmpeg-installer/ffmpeg": "npm:^1.1.0"
-    "@playwright/test": "npm:^1.47.1"
-    appium: "npm:^2.6.0"
-    appium-uiautomator2-driver: "npm:^3.8.0"
-    appium-xcuitest-driver: "npm:^7.27.0"
-    async-retry: "npm:^1.3.3"
-    fluent-ffmpeg: "npm:^2.1.3"
-    form-data: "npm:4.0.0"
-    node-fetch: "npm:^3.3.2"
-    picocolors: "npm:^1.1.0"
-    webdriver: "npm:^8.36.1"
-  bin:
-    appwright: dist/bin/index.js
-  checksum: 10/6f6e0a22262d1206992b29acefdc03804fd56410f67b4ce1739d6614d872f1634ee75153f4567766187f95ec67928ab61504c307ce13e6521f5b77e8b822451e
+  checksum: 10/bc7600e67239652a3adc9bbc29227d3e99cbf2c639865630b6a6a7bc73849402c60b33808ab0590a196e40fb86ea83294d7f9cec0eae46f17ef3739a8a08bda9
   languageName: node
   linkType: hard
 
@@ -35396,7 +35374,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "metamask@workspace:."
   dependencies:
-    "@anthropic-ai/sdk": "npm:^0.71.0"
+    "@anthropic-ai/sdk": "npm:^0.78.0"
     "@babel/core": "npm:^7.25.2"
     "@babel/eslint-parser": "npm:^7.25.1"
     "@babel/preset-env": "npm:^7.25.3"
@@ -35542,7 +35520,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^62.19.0"
-    "@metamask/transaction-pay-controller": "npm:^16.3.0"
+    "@metamask/transaction-pay-controller": "npm:^16.4.0"
     "@metamask/tron-wallet-snap": "npm:1.22.1"
     "@metamask/utils": "npm:^11.8.1"
     "@myx-trade/sdk": "npm:^0.1.265"
@@ -35641,7 +35619,7 @@ __metadata:
     appium-chromium-driver: "npm:^2.0.2"
     appium-uiautomator2-driver: "npm:4.2.7"
     appium-xcuitest-driver: "npm:5.16.1"
-    appwright: "patch:appwright@patch%3Aappwright@npm%253A0.1.45%23~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch%3A%3Aversion=0.1.45&hash=9b6269#~/.yarn/patches/appwright-patch-9fcd858d19.patch"
+    appwright: "patch:appwright@npm%3A0.1.45#~/.yarn/patches/appwright-npm-0.1.45-f282bc1c1b.patch"
     assert: "npm:^1.5.0"
     asyncstorage-down: "npm:4.2.0"
     axios: "npm:^1.13.5"
@@ -35739,7 +35717,7 @@ __metadata:
     multihashes: "npm:0.4.14"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
-    openai: "npm:^4.77.0"
+    openai: "npm:^6.25.0"
     pako: "npm:^2.1.0"
     patch-package: "npm:^6.2.2"
     path: "npm:0.12.7"
@@ -37939,7 +37917,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openai@npm:4.104.0, openai@npm:^4.77.0":
+"openai@npm:4.104.0":
   version: 4.104.0
   resolution: "openai@npm:4.104.0"
   dependencies:
@@ -37986,6 +37964,23 @@ __metadata:
   bin:
     openai: bin/cli
   checksum: 10/bffe52dc4cc49a4537fb88e7101ea6d043294819f1e2d540bcad1dadbff1a44d963912541fe8b212fd93b12f1fe6a082265bb5043fa9ab25896268449d4edcb6
+  languageName: node
+  linkType: hard
+
+"openai@npm:^6.25.0":
+  version: 6.25.0
+  resolution: "openai@npm:6.25.0"
+  peerDependencies:
+    ws: ^8.18.0
+    zod: ^3.25 || ^4.0
+  peerDependenciesMeta:
+    ws:
+      optional: true
+    zod:
+      optional: true
+  bin:
+    openai: bin/cli
+  checksum: 10/c9243b5bb769463c794d7f76e4cd0deee1d3d16e752d0119aad677144f414c5d3f2aaed3f50ab8e8260f7f114140b751563aa48c6d61847c90752f7f39a0cfa2
   languageName: node
   linkType: hard
 
