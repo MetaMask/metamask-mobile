@@ -132,8 +132,12 @@ export function validatePositiveNumericString(
   value: string,
 ): string | undefined {
   // Treat "." or trailing dot (e.g., "0.", "1.") as valid intermediate input
-  const normalized =
-    value === '.' ? '0' : value.endsWith('.') ? value.slice(0, -1) : value;
+  let normalized = value;
+  if (value === '.') {
+    normalized = '0';
+  } else if (value.endsWith('.')) {
+    normalized = value.slice(0, -1);
+  }
   if (!isValidPositiveNumericString(normalized)) {
     return strings('send.invalid_value');
   }
