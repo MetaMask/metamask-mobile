@@ -117,6 +117,37 @@ module.exports = {
       },
     },
     {
+      files: ['**/*.test.{js,jsx,ts,tsx}'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: "CallExpression[callee.property.name='toMatchSnapshot']",
+            message:
+              'Snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toMatchInlineSnapshot']",
+            message:
+              'Inline snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingSnapshot']",
+            message:
+              'Snapshot-based error assertions are banned. Assert on the error explicitly instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingInlineSnapshot']",
+            message:
+              'Inline snapshot-based error assertions are banned. Assert on the error explicitly instead.',
+          },
+        ],
+      },
+    },
+    {
       files: ['app/components/UI/Card/**/*.{js,jsx,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
