@@ -24,6 +24,7 @@ const SPARKLINE_HEIGHT = 80;
 const SPARKLINE_STROKE_WIDTH = 2;
 const TOKEN_LOGO_SIZE = 40;
 const SHIMMER_PULSE_DURATION = 900;
+const SPARKLINE_MARGIN = 16;
 
 /**
  * PerpsMarketTileCard — compact card for horizontal carousels.
@@ -52,7 +53,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
     ? theme.colors.success.default
     : theme.colors.error.default;
 
-  const sparklineWidth = cardWidth;
+  const sparklineWidth = cardWidth - SPARKLINE_MARGIN * 2;
   const hasSparkline = sparklineData && sparklineData.length >= 2;
   const isSparklineLoading = sparklineData !== undefined && !hasSparkline;
 

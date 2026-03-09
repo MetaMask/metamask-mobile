@@ -19,6 +19,7 @@ import {
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -48,6 +49,7 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
+  const blockedTokens = useTransactionPayBlockedTokens();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.
@@ -153,6 +155,7 @@ export function PayWithModal() {
         payToken,
         requiredTokens,
         tokens,
+        blockedTokens,
       });
 
       let filteredTokens: TokenListItem[] = availableTokens;
@@ -172,6 +175,7 @@ export function PayWithModal() {
       return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
+      blockedTokens,
       withdrawTokenFilter,
       musdTokenFilter,
       payToken,

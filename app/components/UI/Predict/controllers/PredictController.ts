@@ -116,6 +116,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 
 /**
  * State shape for PredictController
@@ -448,10 +449,13 @@ export class PredictController extends BaseController<
         ? rawMarketHighlightsFlag
         : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
-    const feeCollection =
+    const feeCollection = parse(
       unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
         flags.predictFeeCollection,
-      ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+      ),
+      PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
+    );
 
     const fakOrdersEnabled =
       validatedVersionGatedFeatureFlag(

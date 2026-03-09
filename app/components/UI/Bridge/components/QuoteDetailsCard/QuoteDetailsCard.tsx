@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Platform, UIManager } from 'react-native';
+import { TouchableOpacity, Platform, UIManager, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
@@ -43,6 +43,7 @@ import TagColored, {
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 import {
   TextVariant as TextVariantLegacy,
@@ -63,6 +64,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
 }) => {
+  const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -109,6 +111,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     });
   };
 
+  const handleRatePress = () => {
+    navigation.navigate(Routes.BRIDGE.QUOTE_SELECTOR_VIEW);
+  };
+
   const handlePriceImpactPress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
@@ -131,6 +137,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     [formattedQuoteData?.priceImpact],
   );
 
+  // Early return for invalid states
   if (
     !sourceToken?.chainId ||
     !destToken?.chainId ||
@@ -143,44 +150,45 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   return (
     <Box>
       <Box style={styles.container}>
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('bridge.rate')}
-                </Text>
-                <QuoteCountdownTimer />
-              </Box>
-            ),
-            tooltip: {
-              title: strings('bridge.quote_info_title'),
-              content: strings('bridge.quote_info_content'),
-              size: TooltipSizes.Sm,
-              iconName: IconNameLegacy.Info,
-            },
-          }}
-          value={{
-            label: (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                {formattedQuoteData.rate}
-              </Text>
-            ),
-          }}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('bridge.rate')}
+          </Text>
+          <QuoteCountdownTimer />
+          <TouchableOpacity onPress={handleRatePress} testID="rate-info-button">
+            <Icon
+              name={IconName.Info}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </TouchableOpacity>
+          <Box twClassName="flex-1 min-w-0">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              style={tw`text-right`}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {formattedQuoteData?.rate}
+            </Text>
+          </Box>
+          <Pressable
+            style={tw`shrink-0`}
+            onPress={handleRatePress}
+            testID="rate-arrow-button"
+          >
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
         {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{

@@ -6094,7 +6094,8 @@
       "fee": "Fee",
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
-      }
+      },
+      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking."
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -6345,7 +6346,8 @@
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
-      "provider_fee": "Provider fee"
+      "provider_fee": "Provider fee",
+      "sending": "Sending"
     },
     "title": {
       "signature": "Signature request",
@@ -6605,6 +6607,10 @@
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
     "custom": "Custom",
     "invalid_recipient_address": "Invalid address",
+    "select_quote": "Select Quote",
+    "select_quote_info": "Quotes are sorted by the estimated total cost, which includes the exchange rate and network fee.",
+    "lowest_cost": "Lowest cost",
+    "total_cost": "Total Cost",
      "got_it": "Got it"
   },
   "quote_expired_modal": {
@@ -7396,7 +7402,8 @@
   "pay_with_modal": {
     "title": "Select payment method",
     "title_receive": "Select receive token",
-    "no_gas": "No native balance for gas"
+    "no_gas": "No native balance for gas",
+    "not_supported": "Not supported"
   },
   "connection_removed_modal": {
     "title": "Connections removed",

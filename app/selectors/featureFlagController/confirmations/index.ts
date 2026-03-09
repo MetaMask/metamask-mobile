@@ -21,6 +21,21 @@ export interface PreferredTokensConfig {
   overrides: Record<string, PreferredToken[]>;
 }
 
+export interface BlockedTokenEntry {
+  address: string;
+  chainId: string;
+}
+
+export interface BlockedTokensListConfig {
+  chainIds: string[];
+  tokens: BlockedTokenEntry[];
+}
+
+export interface BlockedTokensConfig {
+  default: BlockedTokensListConfig;
+  overrides: Record<string, BlockedTokensListConfig>;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
@@ -31,6 +46,7 @@ export interface MetaMaskPayFlags {
 
 export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
+  blockedTokens: BlockedTokensConfig;
   minimumRequiredTokenBalance: number;
 }
 
@@ -100,6 +116,10 @@ export const selectMetaMaskPayTokensFlags = createSelector(
       | Record<string, Json | PreferredTokensConfig>
       | undefined;
 
+    const rawBlockedTokens = payTokenFlags?.blockedTokens as
+      | BlockedTokensConfig
+      | undefined;
+
     return {
       preferredTokens: {
         default:
@@ -108,6 +128,13 @@ export const selectMetaMaskPayTokensFlags = createSelector(
         overrides:
           ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
             ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
+      blockedTokens: {
+        default: {
+          chainIds: rawBlockedTokens?.default?.chainIds ?? [],
+          tokens: rawBlockedTokens?.default?.tokens ?? [],
+        },
+        overrides: rawBlockedTokens?.overrides ?? {},
       },
       minimumRequiredTokenBalance:
         (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
