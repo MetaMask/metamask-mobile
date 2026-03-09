@@ -106,6 +106,27 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({
+  usePredictPositions: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock(
   '../../../selectors/featureFlagController/assetsDefiPositions',
   () => ({
@@ -126,6 +147,25 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     PREDICT: 'predict',
     NFTS: 'nfts',
   },
+}));
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
 }));
 
 // State with preferences needed for NFT section rendering
