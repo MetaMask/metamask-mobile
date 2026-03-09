@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   parseCaipChainId,
@@ -20,12 +20,16 @@ import { selectChainId } from '../../../selectors/networkController';
  * Provides methods to enable, disable, toggle, and conditionally enable networks.
  *
  * @returns Network enablement methods and state
+ * Exposes popularEvmNetworks, popularMultichainNetworks, and popularNetworks (arrays)
+ * from the controller for use in polling, token lists, etc.
+ *
  * @example
  * ```tsx
  * const {
  *   enableNetwork,
  *   tryEnableEvmNetwork,
- *   isNetworkEnabled
+ *   isNetworkEnabled,
+ *   popularEvmNetworks,
  * } = useNetworkEnablement();
  *
  * // Direct network operations
@@ -36,6 +40,9 @@ import { selectChainId } from '../../../selectors/networkController';
  *
  * // Check network status
  * const isEnabled = isNetworkEnabled('eip155:1');
+ *
+ * // Popular networks (restricted to configured networks)
+ * const evmChainIds = popularEvmNetworks;
  * ```
  */
 export const useNetworkEnablement = () => {
@@ -53,6 +60,13 @@ export const useNetworkEnablement = () => {
     () => Engine.context.NetworkEnablementController,
     [],
   );
+
+  const popularEvmNetworksList =
+    networkEnablementController?.listPopularEvmNetworks?.() ?? [];
+  const popularMultichainNetworksList =
+    networkEnablementController?.listPopularMultichainNetworks?.() ?? [];
+  const popularNetworksList =
+    networkEnablementController?.listPopularNetworks?.() ?? [];
 
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
@@ -136,6 +150,9 @@ export const useNetworkEnablement = () => {
     enableNetwork,
     disableNetwork,
     enableAllPopularNetworks,
+    popularEvmNetworks: popularEvmNetworksList,
+    popularMultichainNetworks: popularMultichainNetworksList,
+    popularNetworks: popularNetworksList,
     isNetworkEnabled,
     hasOneEnabledNetwork,
     tryEnableEvmNetwork,

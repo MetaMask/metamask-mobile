@@ -453,5 +453,31 @@ describe('fixture-validation', () => {
       const diff = computeSchemaDiff(state, state);
       expect(hasSchemaDifferences(diff)).toBe(false);
     });
+
+    it('fails validation when candidate has new unexpected keys', () => {
+      const fixture = readFixtureFile('default-fixture.json');
+      const state = fixture.state as Record<string, unknown>;
+      const engine = state.engine as Record<string, unknown>;
+      const backgroundState = engine.backgroundState as Record<string, unknown>;
+
+      const candidateWithNewKey = {
+        ...state,
+        engine: {
+          ...engine,
+          backgroundState: {
+            ...backgroundState,
+            SomeNewController: { foo: 'bar' },
+          },
+        },
+      };
+
+      const diff = computeSchemaDiff(state, candidateWithNewKey);
+      expect(hasSchemaDifferences(diff)).toBe(true);
+      expect(
+        diff.newKeys.some((k) =>
+          k.startsWith('engine.backgroundState.SomeNewController'),
+        ),
+      ).toBe(true);
+    });
   });
 });
