@@ -1,6 +1,6 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import {
@@ -54,56 +54,55 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   const tw = useTailwind();
 
-  // Default horizontal padding via Tailwind so callers can override with twClassName (e.g. px-0)
+  // Default horizontal padding; apply style to this same container so callers can override padding (e.g. paddingHorizontal: 0)
   const containerTwClassName = twClassName ? `px-4 ${twClassName}` : 'px-4';
+  const containerStyle = StyleSheet.flatten([
+    tw.style(containerTwClassName),
+    style,
+  ]);
 
   return (
-    <View style={style} testID={onPress ? undefined : testID}>
-      <Box twClassName={containerTwClassName}>
+    <View testID={onPress ? undefined : testID} style={containerStyle}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+      >
+        {/* Left side: Title + optional endAccessory */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
+          gap={1}
         >
-          {/* Left side: Title + optional endAccessory */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            {typeof title === 'string' ? (
-              <Text
-                variant={TextVariant.HeadingMd}
-                color={TextColor.TextDefault}
-              >
-                {title}
-              </Text>
-            ) : (
-              title
-            )}
-            {endAccessory}
-          </Box>
-
-          {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
-          {onPress && (
-            <TouchableOpacity
-              testID={testID}
-              onPress={onPress}
-              accessibilityRole="button"
-              accessibilityLabel={typeof title === 'string' ? title : undefined}
-            >
-              <View
-                pointerEvents="none"
-                style={tw.style(
-                  'w-8 h-8 rounded-full items-center justify-center',
-                  showEndIconBackground && 'bg-background-muted',
-                )}
-              >
-                <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
-              </View>
-            </TouchableOpacity>
+          {typeof title === 'string' ? (
+            <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+              {title}
+            </Text>
+          ) : (
+            title
           )}
+          {endAccessory}
         </Box>
+
+        {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
+        {onPress && (
+          <TouchableOpacity
+            testID={testID}
+            onPress={onPress}
+            accessibilityRole="button"
+            accessibilityLabel={typeof title === 'string' ? title : undefined}
+          >
+            <View
+              pointerEvents="none"
+              style={tw.style(
+                'w-8 h-8 rounded-full items-center justify-center',
+                showEndIconBackground && 'bg-background-muted',
+              )}
+            >
+              <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
+            </View>
+          </TouchableOpacity>
+        )}
       </Box>
     </View>
   );
