@@ -34,6 +34,8 @@ import { useMusdBalance } from '../../hooks/useMusdBalance';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../constants/events';
+import { getNetworkName } from '../../utils/network';
+import { IconName } from '@metamask/design-system-react-native';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -124,10 +126,27 @@ const MusdQuickConvertView = () => {
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
-      if (!token.rawBalance) {
-        // TODO: Handle error instead of returning silently.
-        return;
-      }
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+        )
+          .addProperties({
+            location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+            button_type: 'text_button',
+            button_action: 'max',
+            button_text: strings('earn.musd_conversion.max'),
+            redirects_to:
+              EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+            asset_symbol: token.symbol,
+            network_chain_id: token.chainId,
+            network_name: token.chainId
+              ? getNetworkName(token.chainId as Hex)
+              : 'unknown',
+            balance_decimal: token.balance,
+            balance_hex: token.rawBalance,
+          })
+          .build(),
+      );
 
       try {
         await initiateMaxConversion(token);
@@ -146,12 +165,33 @@ const MusdQuickConvertView = () => {
         });
       }
     },
-    [initiateMaxConversion],
+    [createEventBuilder, initiateMaxConversion, trackEvent],
   );
 
   // navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
+      trackEvent(
+        createEventBuilder(
+          MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+        )
+          .addProperties({
+            location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+            button_type: 'icon_button',
+            icon: IconName.Edit,
+            button_action: 'custom',
+            redirects_to: EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+            asset_symbol: token.symbol,
+            network_chain_id: token.chainId,
+            network_name: token.chainId
+              ? getNetworkName(token.chainId as Hex)
+              : 'unknown',
+            balance_decimal: token.balance,
+            balance_hex: token.rawBalance,
+          })
+          .build(),
+      );
+
       try {
         await initiateCustomConversion({
           preferredPaymentToken: {
@@ -175,7 +215,7 @@ const MusdQuickConvertView = () => {
         });
       }
     },
-    [initiateCustomConversion],
+    [createEventBuilder, initiateCustomConversion, trackEvent],
   );
 
   const tokensWithBalance = useMemo(

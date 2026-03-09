@@ -25,6 +25,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { ConvertTokenRowTestIds } from '../../components/Musd/ConvertTokenRow';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
+import { IconName } from '@metamask/design-system-react-native';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -83,6 +84,9 @@ jest.mock('../../../../hooks/useStyles', () => ({
     },
     theme: { colors: {} },
   })),
+}));
+jest.mock('../../utils/network', () => ({
+  getNetworkName: jest.fn(() => 'Ethereum'),
 }));
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -581,6 +585,101 @@ describe('MusdQuickConvertView', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location:
           MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED event when Max button is pressed', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockInitiateMaxConversion.mockResolvedValue({
+        transactionId: 'tx-max-123',
+      });
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(maxButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        button_type: 'text_button',
+        button_action: 'max',
+        button_text: strings('earn.musd_conversion.max'),
+        redirects_to:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS
+            .QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+        asset_symbol: token.symbol,
+        network_chain_id: token.chainId,
+        network_name: 'Ethereum',
+        balance_decimal: token.balance,
+        balance_hex: token.rawBalance,
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED event when Edit button is pressed', async () => {
+      const token = createMockToken();
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [token],
+        filterAllowedTokens: jest.fn(),
+        isConversionToken: jest.fn(),
+        isMusdSupportedOnChain: jest.fn(),
+        hasConvertibleTokensByChainId: jest.fn(),
+      });
+      mockInitiateCustomConversion.mockResolvedValue('tx-edit-789');
+
+      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      const editButton = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON)[0];
+
+      await act(async () => {
+        fireEvent.press(editButton);
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+        button_type: 'icon_button',
+        icon: IconName.Edit,
+        button_action: 'custom',
+        redirects_to:
+          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        asset_symbol: token.symbol,
+        network_chain_id: token.chainId,
+        network_name: 'Ethereum',
+        balance_decimal: token.balance,
+        balance_hex: token.rawBalance,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });

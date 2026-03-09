@@ -643,6 +643,7 @@ enum EVENT_NAME {
   MUSD_CLAIM_BONUS_STATUS_UPDATED = 'mUSD Claim Bonus Status Updated',
   MUSD_QUICK_CONVERT_SCREEN_VIEWED = 'mUSD Quick Convert Screen Viewed',
   MUSD_BONUS_TERMS_OF_USE_PRESSED = 'mUSD Bonus Terms of Use Pressed',
+  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED = 'mUSD Quick Convert Token Row Button Clicked',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -1673,6 +1674,9 @@ const events = {
   ),
   MUSD_BONUS_TERMS_OF_USE_PRESSED: generateOpt(
     EVENT_NAME.MUSD_BONUS_TERMS_OF_USE_PRESSED,
+  ),
+  MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
   ),
 };
 
