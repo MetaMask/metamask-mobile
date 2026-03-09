@@ -3,16 +3,18 @@ import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementCo
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { useMemo } from 'react';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 
 export function usePollingNetworks() {
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const networkConfigs: NetworkConfiguration[] = useMemo(() => {
     // Non EVM networks selected
-    if (enabledEvmNetworks.length === 0) {
+    if (!isEvmSelected) {
       return [];
     }
 
@@ -23,7 +25,7 @@ export function usePollingNetworks() {
         return networkConfig;
       })
       .filter((c) => Boolean(c));
-  }, [enabledEvmNetworks, networkConfigurations]);
+  }, [enabledEvmNetworks, isEvmSelected, networkConfigurations]);
 
   return networkConfigs;
 }

@@ -14,9 +14,10 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
 
-// Mock homepage redesign feature flag for BalanceEmptyState
+// Mock homepage feature flags (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
+  selectHomepageSectionsV1Enabled: jest.fn(() => true),
 }));
 
 // This selector is used to determine if the current network is a testnet for BalanceEmptyState display logic
