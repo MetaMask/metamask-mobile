@@ -5,7 +5,7 @@ import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  selectTronResourcesBySelectedAccountGroup,
+  selectTronSpecialAssetsBySelectedAccountGroup,
   ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
@@ -34,7 +34,7 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const { stakedTrxForEnergy, stakedTrxForBandwidth } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
+    selectTronSpecialAssetsBySelectedAccountGroup,
   );
 
   const isTronNative =

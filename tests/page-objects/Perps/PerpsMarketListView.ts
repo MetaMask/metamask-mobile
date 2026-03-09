@@ -22,11 +22,8 @@ class PerpsMarketListView {
     );
   }
 
-  // Search functionality
-  get searchToggleButton() {
-    return Matchers.getElementByID(
-      PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON,
-    );
+  get searchBar() {
+    return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.SEARCH_BAR);
   }
 
   get searchClearButton() {
@@ -98,10 +95,6 @@ class PerpsMarketListView {
       elemDescription: 'Perps First Market Row',
       checkStability: true,
     });
-  }
-
-  async tapSearchToggleButton() {
-    await Gestures.waitAndTap(this.searchToggleButton);
   }
 
   async tapSearchClearButton() {
