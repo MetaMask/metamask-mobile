@@ -40,12 +40,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -92,12 +101,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -119,12 +137,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -176,12 +203,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -210,12 +246,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -278,12 +323,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -330,12 +384,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -357,12 +420,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -414,12 +486,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -448,12 +529,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -516,12 +606,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -568,12 +667,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -595,12 +703,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -652,12 +769,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -686,12 +812,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -754,12 +889,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -806,12 +950,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -833,12 +986,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -890,12 +1052,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -924,12 +1095,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -992,12 +1172,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -1044,12 +1233,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1071,12 +1269,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1128,12 +1335,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1162,12 +1378,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1230,12 +1455,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -1282,12 +1516,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1309,12 +1552,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1366,12 +1618,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1400,12 +1661,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1468,12 +1738,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -1520,12 +1799,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1547,12 +1835,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1604,12 +1901,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1638,12 +1944,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1706,12 +2021,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
         >
           <View
             style={
-              {
-                "borderRadius": 22,
-                "height": 44,
-                "overflow": "hidden",
-                "width": 44,
-              }
+              [
+                {
+                  "borderRadius": 4,
+                  "overflow": "hidden",
+                },
+                {
+                  "height": 44,
+                },
+                {
+                  "width": 44,
+                },
+                {
+                  "borderRadius": 22,
+                },
+              ]
             }
           >
             <View
@@ -1758,12 +2082,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 18,
-                  "overflow": "hidden",
-                  "width": 120,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 18,
+                  },
+                  {
+                    "width": 120,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1785,12 +2118,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             </View>
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 14,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 14,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1842,12 +2184,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
           >
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 80,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 80,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
@@ -1876,12 +2227,21 @@ exports[`PaymentMethodListSkeleton matches snapshot 1`] = `
             />
             <View
               style={
-                {
-                  "borderRadius": 4,
-                  "height": 16,
-                  "overflow": "hidden",
-                  "width": 60,
-                }
+                [
+                  {
+                    "borderRadius": 4,
+                    "overflow": "hidden",
+                  },
+                  {
+                    "height": 16,
+                  },
+                  {
+                    "width": 60,
+                  },
+                  {
+                    "borderRadius": 4,
+                  },
+                ]
               }
             >
               <View
