@@ -74,7 +74,8 @@ interface SectionConfig {
   useSectionData: (searchQuery?: string) => {
     data: unknown[];
     isLoading: boolean;
-    refetch: () => Promise<void> | void;
+    isFetching?: boolean;
+    refetch: () => unknown;
   };
   SectionWrapper?: React.ComponentType<PropsWithChildren>;
 }
@@ -309,18 +310,24 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     OverrideSkeletonSearch: SiteSkeleton,
     Section: SectionCard,
     useSectionData: (searchQuery) => {
-      const { marketData, isFetching, refetch } = usePredictMarketData({
-        category: 'trending',
-        pageSize: searchQuery ? 20 : 6,
-        q: searchQuery || undefined,
-      });
+      const { marketData, isLoading, isFetching, refetch } =
+        usePredictMarketData({
+          category: 'trending',
+          pageSize: searchQuery ? 20 : 6,
+          q: searchQuery || undefined,
+        });
 
       const filteredData = useMemo(
         () => fuseSearch(marketData, searchQuery, PREDICTIONS_FUSE_OPTIONS),
         [marketData, searchQuery],
       );
 
-      return { data: filteredData, isLoading: isFetching, refetch };
+      return {
+        data: filteredData,
+        isLoading,
+        isFetching,
+        refetch,
+      };
     },
   },
   sites: {

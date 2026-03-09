@@ -333,7 +333,7 @@ describe('PredictionsSection', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
-        error: 'Network error',
+        error: new Error('Network error'),
         refetch: jest.fn(),
       });
 

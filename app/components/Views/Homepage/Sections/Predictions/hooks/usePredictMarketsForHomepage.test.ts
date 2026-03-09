@@ -5,14 +5,16 @@ import type { PredictMarket } from '../../../../../UI/Predict/types';
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 let mockUsePredictMarketDataReturn: {
   marketData: PredictMarket[];
+  isLoading: boolean;
   isFetching: boolean;
   isFetchingMore: boolean;
-  error: string | null;
+  error: Error | null;
   hasMore: boolean;
   refetch: jest.Mock;
   fetchMore: jest.Mock;
 } = {
   marketData: [],
+  isLoading: false,
   isFetching: false,
   isFetchingMore: false,
   error: null,
@@ -48,6 +50,7 @@ describe('usePredictMarketsForHomepage', () => {
         createMockMarket('2'),
         createMockMarket('3'),
       ],
+      isLoading: false,
       isFetching: false,
       isFetchingMore: false,
       error: null,
@@ -65,8 +68,8 @@ describe('usePredictMarketsForHomepage', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('forwards isFetching as isLoading', () => {
-    mockUsePredictMarketDataReturn.isFetching = true;
+  it('forwards isLoading from usePredictMarketData', () => {
+    mockUsePredictMarketDataReturn.isLoading = true;
 
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
@@ -74,11 +77,12 @@ describe('usePredictMarketsForHomepage', () => {
   });
 
   it('forwards error from usePredictMarketData', () => {
-    mockUsePredictMarketDataReturn.error = 'Network error';
+    const err = new Error('Network error');
+    mockUsePredictMarketDataReturn.error = err;
 
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    expect(result.current.error).toBe('Network error');
+    expect(result.current.error).toBe(err);
   });
 
   it('returns null error when no error', () => {

@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import { renderScreenWithRoutes } from '../render';
@@ -10,6 +11,18 @@ import AssetDetails from '../../../app/components/Views/AssetDetails';
 import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { initialStateTrending } from '../presets/trending';
+
+function createWrappedExploreFeed(): React.ComponentType {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return (props: Record<string, unknown>) => (
+    <QueryClientProvider client={queryClient}>
+      <ExploreFeed {...(props as object)} />
+    </QueryClientProvider>
+  );
+}
 
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
@@ -28,7 +41,7 @@ export function renderTrendingViewWithRoutes(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    ExploreFeed as unknown as React.ComponentType,
+    createWrappedExploreFeed(),
     { name: Routes.TRENDING_FEED },
     [
       {
