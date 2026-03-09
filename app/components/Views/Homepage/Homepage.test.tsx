@@ -138,6 +138,11 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectPooledStakingEnabledFlag: jest.fn(() => false),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
+  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
+  selectMusdConversionCTATokens: jest.fn(() => ({})),
+  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
+  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
