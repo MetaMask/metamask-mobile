@@ -35,6 +35,18 @@ export const usePredictClaim = () => {
 
   const claim = useCallback(async () => {
     if (isClaimPending) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          {
+            label: strings('predict.claim.toasts.in_progress.title'),
+            isBold: true,
+          },
+        ],
+        iconName: IconName.Info,
+        iconColor: theme.colors.primary.default,
+        hasNoTimeout: false,
+      });
       return;
     }
 
@@ -88,12 +100,13 @@ export const usePredictClaim = () => {
     }
   }, [
     isClaimPending,
-    claimWinnings,
-    navigateToConfirmation,
-    navigation,
-    theme.colors.accent04.normal,
-    theme.colors.error.default,
     toastRef,
+    theme.colors.primary.default,
+    theme.colors.error.default,
+    theme.colors.accent04.normal,
+    navigateToConfirmation,
+    claimWinnings,
+    navigation,
   ]);
 
   return {

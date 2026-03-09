@@ -1604,10 +1604,10 @@ export class PredictController extends BaseController<
       },
     });
 
+    const signer = this.getSigner();
+
     try {
       const provider = this.provider;
-
-      const signer = this.getSigner();
 
       // Skip if there's already a pending claim for this account
       if (this.state.pendingClaims[signer.address]) {
@@ -1702,12 +1702,11 @@ export class PredictController extends BaseController<
       traceData = { success: true, positionCount: claimablePositions.length };
       return predictClaim;
     } catch (error) {
+      this.clearPendingClaimForAddress({ address: signer.address });
+
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
-
-        // Clear pending claim state on user cancellation
-        this.clearPendingClaim();
 
         // ignore error, as the user cancelled the tx
         return {
@@ -1723,9 +1722,6 @@ export class PredictController extends BaseController<
           : PREDICT_ERROR_CODES.CLAIM_FAILED;
 
       traceData = { success: false, error: errorMessage };
-
-      // Clear pending claim state on error
-      this.clearPendingClaim();
 
       // Log to Sentry with claim context (no user address or amounts)
       Logger.error(
@@ -2039,11 +2035,6 @@ export class PredictController extends BaseController<
         delete state.pendingDeposits[matchedAddress];
       }
     });
-  }
-
-  public clearPendingClaim(): void {
-    const selectedAddress = this.getSigner().address;
-    this.clearPendingClaimForAddress({ address: selectedAddress });
   }
 
   private clearPendingClaimForAddress({ address }: { address: string }): void {

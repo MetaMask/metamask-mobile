@@ -2646,25 +2646,6 @@ describe('PredictController', () => {
         expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
       });
     });
-
-    it('clears pending claim for selected address', () => {
-      // Arrange
-      withController(({ controller }) => {
-        const signerAddress = '0x1234567890123456789012345678901234567890';
-
-        controller.updateStateForTesting((state) => {
-          state.pendingClaims = {
-            [signerAddress]: 'claim-batch-1',
-          };
-        });
-
-        // Act
-        controller.clearPendingClaim();
-
-        // Assert
-        expect(controller.state.pendingClaims[signerAddress]).toBeUndefined();
-      });
-    });
   });
 
   describe('getUnrealizedPnL', () => {

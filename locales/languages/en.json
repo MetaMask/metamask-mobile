@@ -2276,6 +2276,9 @@
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
           "try_again": "Try again"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
