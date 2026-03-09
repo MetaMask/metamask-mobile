@@ -190,6 +190,29 @@ module.exports = {
               .join('|')}/]`,
             message: 'Avoid using global network selectors in confirmations',
           },
+          {
+            selector: "CallExpression[callee.property.name='toMatchSnapshot']",
+            message:
+              'Snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toMatchInlineSnapshot']",
+            message:
+              'Inline snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingSnapshot']",
+            message:
+              'Snapshot-based error assertions are banned. Assert on the error explicitly instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingInlineSnapshot']",
+            message:
+              'Inline snapshot-based error assertions are banned. Assert on the error explicitly instead.',
+          },
         ],
       },
     },
@@ -226,6 +249,29 @@ module.exports = {
               "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",
             message:
               'Only Engine and react-native-device-info can be mocked in component-view tests.',
+          },
+          {
+            selector: "CallExpression[callee.property.name='toMatchSnapshot']",
+            message:
+              'Snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toMatchInlineSnapshot']",
+            message:
+              'Inline snapshot tests are banned. Use explicit behavioral assertions instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingSnapshot']",
+            message:
+              'Snapshot-based error assertions are banned. Assert on the error explicitly instead.',
+          },
+          {
+            selector:
+              "CallExpression[callee.property.name='toThrowErrorMatchingInlineSnapshot']",
+            message:
+              'Inline snapshot-based error assertions are banned. Assert on the error explicitly instead.',
           },
         ],
       },
