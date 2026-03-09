@@ -17,7 +17,7 @@ import { store } from '../../../../store';
 import {
   selectGasFeeTokenFlags,
   BlockedTokensListConfig,
-  isTokenBlocked,
+  BlockedTokensConfig,
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -148,8 +148,7 @@ export function getAvailableTokens({
 
       const noGasDisabled = noNativeBalance && !isGasStationSupported;
 
-      const blocked =
-        blockedTokens != null && isTokenBlocked(token, blockedTokens);
+      const blocked = isTokenBlocked(token, blockedTokens);
 
       const disabled = noGasDisabled || blocked;
 
@@ -171,6 +170,43 @@ export function getAvailableTokens({
       };
     })
     .sort((a, b) => Number(a.disabled) - Number(b.disabled));
+}
+
+export function getBlockedTokensForTransactionType(
+  blockedTokens: BlockedTokensConfig,
+  transactionType?: string,
+): BlockedTokensListConfig {
+  const config =
+    transactionType && blockedTokens.overrides[transactionType]
+      ? blockedTokens.overrides[transactionType]
+      : blockedTokens.default;
+
+  return {
+    chainIds: config.chainIds ?? [],
+    tokens: config.tokens ?? [],
+  };
+}
+
+export function isTokenBlocked(
+  token: { address: string; chainId?: string },
+  blockedConfig?: BlockedTokensListConfig,
+): boolean {
+  if (blockedConfig === undefined || blockedConfig === null) {
+    return false;
+  }
+
+  if (
+    token.chainId &&
+    blockedConfig.chainIds.includes(token.chainId.toString().toLowerCase())
+  ) {
+    return true;
+  }
+
+  return blockedConfig.tokens.some(
+    (blocked) =>
+      blocked.address.toLowerCase() === token.address.toLowerCase() &&
+      blocked.chainId.toLowerCase() === token.chainId?.toLowerCase(),
+  );
 }
 
 function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {

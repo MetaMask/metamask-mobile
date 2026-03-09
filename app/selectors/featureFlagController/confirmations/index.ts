@@ -186,39 +186,6 @@ export const selectPayQuoteConfig = createSelector(
   },
 );
 
-export function getBlockedTokensForTransactionType(
-  blockedTokens: BlockedTokensConfig,
-  transactionType?: string,
-): BlockedTokensListConfig {
-  const config =
-    transactionType && blockedTokens.overrides[transactionType]
-      ? blockedTokens.overrides[transactionType]
-      : blockedTokens.default;
-
-  return {
-    chainIds: config.chainIds ?? [],
-    tokens: config.tokens ?? [],
-  };
-}
-
-export function isTokenBlocked(
-  token: { address: string; chainId?: string },
-  blockedConfig: BlockedTokensListConfig,
-): boolean {
-  if (
-    token.chainId &&
-    blockedConfig.chainIds.includes(token.chainId.toString().toLowerCase())
-  ) {
-    return true;
-  }
-
-  return blockedConfig.tokens.some(
-    (blocked) =>
-      blocked.address.toLowerCase() === token.address.toLowerCase() &&
-      blocked.chainId.toLowerCase() === token.chainId?.toLowerCase(),
-  );
-}
-
 export function getPreferredTokensForTransactionType(
   preferredTokens: PreferredTokensConfig,
   transactionType?: string,

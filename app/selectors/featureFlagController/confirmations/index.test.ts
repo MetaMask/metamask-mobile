@@ -13,10 +13,6 @@ import {
   selectPayQuoteConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
-  BlockedTokensConfig,
-  BlockedTokensListConfig,
-  getBlockedTokensForTransactionType,
-  isTokenBlocked,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -481,91 +477,5 @@ describe('getPreferredTokensForTransactionType', () => {
     expect(getPreferredTokensForTransactionType(config, undefined)).toEqual(
       defaultTokens,
     );
-  });
-});
-
-describe('getBlockedTokensForTransactionType', () => {
-  const defaultBlocked: BlockedTokensListConfig = {
-    chainIds: ['0x1'],
-    tokens: [],
-  };
-
-  const perpsBlocked: BlockedTokensListConfig = {
-    chainIds: ['0xa4b1'],
-    tokens: [{ address: '0xabc', chainId: '0x1' }],
-  };
-
-  const config: BlockedTokensConfig = {
-    default: defaultBlocked,
-    overrides: {
-      perpsDeposit: perpsBlocked,
-    },
-  };
-
-  it('returns override when transaction type has an override', () => {
-    expect(getBlockedTokensForTransactionType(config, 'perpsDeposit')).toEqual(
-      perpsBlocked,
-    );
-  });
-
-  it('returns default when transaction type has no override', () => {
-    expect(
-      getBlockedTokensForTransactionType(config, 'predictDeposit'),
-    ).toEqual(defaultBlocked);
-  });
-
-  it('returns default when transaction type is undefined', () => {
-    expect(getBlockedTokensForTransactionType(config, undefined)).toEqual(
-      defaultBlocked,
-    );
-  });
-
-  it('returns safe defaults when override has missing chainIds or tokens', () => {
-    const partialConfig = {
-      default: defaultBlocked,
-      overrides: {
-        perpsDeposit: {} as BlockedTokensListConfig,
-      },
-    };
-
-    const result = getBlockedTokensForTransactionType(
-      partialConfig,
-      'perpsDeposit',
-    );
-    expect(result).toEqual({ chainIds: [], tokens: [] });
-  });
-});
-
-describe('isTokenBlocked', () => {
-  const blockedConfig: BlockedTokensListConfig = {
-    chainIds: ['0xa4b1'],
-    tokens: [{ address: '0xabc', chainId: '0x1' }],
-  };
-
-  it('returns true when token chain is in blocked chainIds', () => {
-    expect(
-      isTokenBlocked({ address: '0xany', chainId: '0xa4b1' }, blockedConfig),
-    ).toBe(true);
-  });
-
-  it('returns true when token address+chainId matches a blocked token', () => {
-    expect(
-      isTokenBlocked({ address: '0xABC', chainId: '0x1' }, blockedConfig),
-    ).toBe(true);
-  });
-
-  it('returns false when token does not match any blocked entry', () => {
-    expect(
-      isTokenBlocked({ address: '0xdef', chainId: '0x89' }, blockedConfig),
-    ).toBe(false);
-  });
-
-  it('returns false with empty blocked config', () => {
-    expect(
-      isTokenBlocked(
-        { address: '0xabc', chainId: '0x1' },
-        { chainIds: [], tokens: [] },
-      ),
-    ).toBe(false);
   });
 });

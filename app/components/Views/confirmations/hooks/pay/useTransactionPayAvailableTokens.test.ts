@@ -13,15 +13,15 @@ import {
 } from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('../send/useAccountTokens');
-jest.mock('../../utils/transaction-pay');
+jest.mock('../../utils/transaction-pay', () => ({
+  ...jest.requireActual('../../utils/transaction-pay'),
+  getAvailableTokens: jest.fn(),
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
   () => ({
     selectMetaMaskPayTokensFlags: jest.fn(),
-    getBlockedTokensForTransactionType: jest.requireActual(
-      '../../../../../selectors/featureFlagController/confirmations',
-    ).getBlockedTokensForTransactionType,
   }),
 );
 

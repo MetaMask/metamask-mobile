@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
@@ -12,10 +12,6 @@ import BottomSheet, {
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
-  selectMetaMaskPayTokensFlags,
-  getBlockedTokensForTransactionType,
-} from '../../../../../../selectors/featureFlagController/confirmations';
-import {
   AssetType,
   isHighlightedItemInAssetList,
   isHighlightedItemOutsideAssetList,
@@ -23,6 +19,7 @@ import {
 } from '../../../types/token';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
@@ -34,7 +31,6 @@ import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
 import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
-import { useSelector } from 'react-redux';
 
 export function PayWithModal() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -53,15 +49,7 @@ export function PayWithModal() {
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
   const withdrawTokenFilter = useWithdrawTokenFilter();
-  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
-  const blockedTokens = useMemo(
-    () =>
-      getBlockedTokensForTransactionType(
-        payTokensFlags.blockedTokens,
-        transactionMeta?.type,
-      ),
-    [payTokensFlags.blockedTokens, transactionMeta?.type],
-  );
+  const blockedTokens = useTransactionPayBlockedTokens();
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.

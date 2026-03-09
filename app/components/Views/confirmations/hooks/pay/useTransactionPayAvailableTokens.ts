@@ -1,29 +1,16 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
 
-import {
-  selectMetaMaskPayTokensFlags,
-  getBlockedTokensForTransactionType,
-} from '../../../../../selectors/featureFlagController/confirmations';
 import { useAccountTokens } from '../send/useAccountTokens';
 import { getAvailableTokens } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
+import { useTransactionPayBlockedTokens } from './useTransactionPayBlockedTokens';
 
 export function useTransactionPayAvailableTokens() {
   const tokens = useAccountTokens({ includeNoBalance: true });
   const transactionMeta = useTransactionMetadataRequest();
   const isPostQuote = isTransactionPayWithdraw(transactionMeta);
-  const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
-
-  const blockedTokens = useMemo(
-    () =>
-      getBlockedTokensForTransactionType(
-        payTokensFlags.blockedTokens,
-        transactionMeta?.type,
-      ),
-    [payTokensFlags.blockedTokens, transactionMeta?.type],
-  );
+  const blockedTokens = useTransactionPayBlockedTokens();
 
   const availableTokens = useMemo(
     () =>
