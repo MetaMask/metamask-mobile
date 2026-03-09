@@ -3,12 +3,33 @@ import type {
   GasPriceValue,
   TransactionMeta,
 } from '@metamask/transaction-controller';
-import { useCancelSpeedupGas } from './useCancelSpeedupGas';
+import {
+  getBumpParamsForCancelSpeedup,
+  useCancelSpeedupGas,
+} from './useCancelSpeedupGas';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useFeeCalculations } from '../useFeeCalculations';
 
 const providerState = { state: { engine: { backgroundState } } } as const;
+
+function buildStateWithTransaction(tx: TransactionMeta) {
+  const bg = backgroundState as Record<string, unknown>;
+  const tc = (bg.TransactionController ?? {}) as Record<string, unknown>;
+  return {
+    state: {
+      engine: {
+        backgroundState: {
+          ...bg,
+          TransactionController: {
+            ...tc,
+            transactions: [tx],
+          },
+        },
+      },
+    },
+  };
+}
 
 const mockNetworkConfig = { nativeCurrency: 'ETH' };
 
@@ -91,9 +112,9 @@ describe('useCancelSpeedupGas', () => {
     jest.clearAllMocks();
   });
 
-  it('returns empty result when tx is null', () => {
+  it('returns empty result when txId is null', () => {
     const { result } = renderHookWithProvider(
-      () => useCancelSpeedupGas({ tx: null, isCancel: false }),
+      () => useCancelSpeedupGas({ txId: null }),
       providerState,
     );
 
@@ -110,8 +131,8 @@ describe('useCancelSpeedupGas', () => {
       chainId: '0x1',
     } as unknown as TransactionMeta;
     const { result } = renderHookWithProvider(
-      () => useCancelSpeedupGas({ tx: txNoParams, isCancel: false }),
-      providerState,
+      () => useCancelSpeedupGas({ txId: 'tx-1' }),
+      buildStateWithTransaction(txNoParams),
     );
 
     expect(result.current.paramsForController).toBeUndefined();
@@ -124,10 +145,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxEip1559),
     );
 
     expect(result.current.paramsForController).toBeDefined();
@@ -142,22 +162,21 @@ describe('useCancelSpeedupGas', () => {
   });
 
   it('returns EIP-1559 params with higher values for cancel', () => {
+    const stateWithTx = buildStateWithTransaction(mockTxEip1559);
     const { result: speedUpResult } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      stateWithTx,
     );
 
     const { result: cancelResult } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: true,
+          txId: 'tx-1',
         }),
-      providerState,
+      stateWithTx,
     );
 
     expect(cancelResult.current.paramsForController).toBeDefined();
@@ -168,10 +187,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxLegacy,
-          isCancel: false,
+          txId: 'tx-2',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxLegacy),
     );
 
     expect(result.current.paramsForController).toBeDefined();
@@ -192,10 +210,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: txWithGasPrice,
-          isCancel: false,
+          txId: 'tx-2',
         }),
-      providerState,
+      buildStateWithTransaction(txWithGasPrice),
     );
 
     expect(result.current.paramsForController).toBeDefined();
@@ -210,10 +227,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxEip1559),
     );
 
     expect(parseFloat(result.current.networkFeeNative)).toBeGreaterThan(0);
@@ -230,10 +246,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: txWithoutNetworkClientId,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(txWithoutNetworkClientId),
     );
 
     expect(result.current.nativeTokenSymbol).toBe('ETH');
@@ -244,16 +259,15 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxEip1559),
     );
 
     expect(result.current.nativeTokenSymbol).toBe('ETH');
   });
 
-  it('uses bump-only for EIP-1559 (no market)', () => {
+  it('uses params from store for EIP-1559', () => {
     const tx10Gwei = {
       ...mockTxEip1559,
       txParams: {
@@ -266,10 +280,9 @@ describe('useCancelSpeedupGas', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: tx10Gwei,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(tx10Gwei),
     );
 
     const paramsForController = result.current.paramsForController as
@@ -280,16 +293,15 @@ describe('useCancelSpeedupGas', () => {
     expect(paramsForController?.maxPriorityFeePerGas).toBeDefined();
   });
 
-  it('calls useFeeCalculations with synthetic tx (bumped params) when tx is provided', () => {
+  it('calls useFeeCalculations with tx from store', () => {
     const mockUseFeeCalculations = jest.mocked(useFeeCalculations);
 
     renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxEip1559),
     );
 
     expect(mockUseFeeCalculations).toHaveBeenCalled();
@@ -308,14 +320,13 @@ describe('useCancelSpeedupGas', () => {
     });
   });
 
-  it('uses fee display from useFeeCalculations when tx is provided', () => {
+  it('uses fee display from useFeeCalculations when tx is in store', () => {
     const { result } = renderHookWithProvider(
       () =>
         useCancelSpeedupGas({
-          tx: mockTxEip1559,
-          isCancel: false,
+          txId: 'tx-1',
         }),
-      providerState,
+      buildStateWithTransaction(mockTxEip1559),
     );
 
     expect(result.current.networkFeeNative).toBe(
@@ -328,5 +339,42 @@ describe('useCancelSpeedupGas', () => {
       mockFeeCalculations.estimatedFeeNative,
     );
     expect(result.current.networkFeeDisplay).toContain('ETH');
+  });
+});
+
+describe('getBumpParamsForCancelSpeedup', () => {
+  it('returns EIP-1559 params for speed up', () => {
+    const tx = {
+      id: 'tx-1',
+      chainId: '0x1',
+      txParams: {
+        gas: '0x5208',
+        maxFeePerGas: '0x174876e800',
+        maxPriorityFeePerGas: '0x59682f00',
+      },
+    } as unknown as TransactionMeta;
+    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    expect(params).toBeDefined();
+    expect((params as FeeMarketEIP1559Values).maxFeePerGas).toBeDefined();
+    expect(
+      (params as FeeMarketEIP1559Values).maxPriorityFeePerGas,
+    ).toBeDefined();
+  });
+
+  it('returns legacy gasPrice when tx is legacy', () => {
+    const tx = {
+      id: 'tx-2',
+      chainId: '0x1',
+      txParams: { gas: '0x5208', gasPrice: '0x2540be400' },
+    } as unknown as TransactionMeta;
+    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    expect(params).toBeDefined();
+    expect((params as GasPriceValue).gasPrice).toBeDefined();
+  });
+
+  it('returns undefined when tx has no txParams', () => {
+    const tx = { id: 'tx-1', chainId: '0x1' } as unknown as TransactionMeta;
+    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    expect(params).toBeUndefined();
   });
 });

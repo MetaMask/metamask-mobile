@@ -69,6 +69,24 @@ const defaultGasValues = {
 
 jest.mock('../../../hooks/gas/useCancelSpeedupGas', () => ({
   useCancelSpeedupGas: jest.fn(),
+  getBumpParamsForCancelSpeedup: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../../../../../util/transaction-controller'),
+  updateTransactionGasFees: jest.fn(),
+}));
+
+jest.mock('../../../context/gas-fee-modal-transaction', () => ({
+  GasFeeModalTransactionProvider: ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) => children,
+}));
+
+jest.mock('../gas-fee-modal', () => ({
+  GasFeeModal: () => null,
 }));
 
 jest.mock('../../gas/gas-speed', () => {
@@ -196,8 +214,7 @@ describe('CancelSpeedupModal', () => {
     });
 
     expect(mockedUseCancelSpeedupGas).toHaveBeenCalledWith({
-      tx: defaultProps.tx,
-      isCancel: false,
+      txId: defaultProps.tx?.id,
     });
   });
 
