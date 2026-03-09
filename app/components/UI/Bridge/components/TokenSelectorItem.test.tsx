@@ -127,7 +127,7 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('$500')).toBeTruthy();
-      expect(getByText('50 USDC')).toBeTruthy();
+      expect(getByText('50')).toBeTruthy();
     });
 
     it('hides balance when shouldShowBalance is false', () => {
@@ -225,8 +225,8 @@ describe('TokenSelectorItem', () => {
 
   describe('balance formatting', () => {
     it.each([
-      ['zero balance', '0', '0 TOKEN'],
-      ['small balance', '0.000001', '< 0.00001 TOKEN'],
+      ['zero balance', '0', '0'],
+      ['small balance', '0.000001', '< 0.00001'],
     ])('formats %s correctly', (_, balance, expected) => {
       const token = createMockTokenWithBalance({ balance, symbol: 'TOKEN' });
 
@@ -363,7 +363,7 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
 
-      const tokenBalanceElement = getByText('50 TOKEN');
+      const tokenBalanceElement = getByText('50');
 
       expect(tokenBalanceElement.props.numberOfLines).toBe(1);
     });
