@@ -3572,7 +3572,7 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
-        const result = await controller.payWithAnyTokenConfirmation({});
+        const result = await controller.payWithAnyTokenConfirmation();
 
         expect(result).toEqual({
           success: true,
@@ -3609,9 +3609,7 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
-        await expect(
-          controller.payWithAnyTokenConfirmation({}),
-        ).rejects.toThrow(
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
           'No predict deposit transaction returned from deposit preparation',
         );
 

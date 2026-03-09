@@ -203,6 +203,7 @@ const PredictBuyPreview = () => {
 
   const {
     handleBack,
+    handleBackSwipe,
     handleTokenSelected,
     handleConfirm,
     handleDepositFailed,
@@ -215,7 +216,7 @@ const PredictBuyPreview = () => {
     depositAmount: total - depositFee,
   });
 
-  usePredictBuyBackSwipe({ onBack: handleBack });
+  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
 
   usePredictPayWithAnyTokenTracking({
     transactionId,

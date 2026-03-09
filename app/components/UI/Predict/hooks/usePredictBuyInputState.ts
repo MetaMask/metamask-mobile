@@ -1,25 +1,17 @@
-import { SetStateAction, useCallback, useMemo, useState } from 'react';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../types/navigation';
+import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 
 import { usePredictActiveOrder } from './usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
-  const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
 
-  const { amount } = route.params;
+  const currentValue = activeOrder?.amount ?? 0;
 
-  const autoPlaceAmount =
-    activeOrder?.amount ??
-    (typeof amount === 'number' && amount > 0 ? amount : undefined);
+  const currentValueRef = useRef(currentValue);
+  currentValueRef.current = currentValue;
 
-  const [currentValue, setCurrentValueState] = useState(
-    () => autoPlaceAmount ?? 0,
-  );
   const [currentValueUSDString, setCurrentValueUSDString] = useState(() =>
-    autoPlaceAmount ? autoPlaceAmount.toString() : '',
+    currentValue ? currentValue.toString() : '',
   );
 
   const isInputFocused = useMemo(
@@ -38,8 +30,9 @@ export const usePredictBuyInputState = () => {
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
 
-  const setCurrentValue = useCallback((value: SetStateAction<number>) => {
-    setCurrentValueState((previousValue) => {
+  const setCurrentValue = useCallback(
+    (value: SetStateAction<number>) => {
+      const previousValue = currentValueRef.current;
       const nextValue =
         typeof value === 'function'
           ? (value as (prevState: number) => number)(previousValue)
@@ -49,9 +42,10 @@ export const usePredictBuyInputState = () => {
         setIsUserInputChange(nextValue > 0);
       }
 
-      return nextValue;
-    });
-  }, []);
+      updateActiveOrder({ amount: nextValue });
+    },
+    [updateActiveOrder],
+  );
 
   return {
     currentValue,
