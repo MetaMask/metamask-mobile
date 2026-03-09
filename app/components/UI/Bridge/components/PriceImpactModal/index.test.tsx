@@ -276,7 +276,7 @@ describe('PriceImpactModal', () => {
       render(<PriceImpactModal />);
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
-        expect.objectContaining({ priceImpact: '5%' }),
+        expect.objectContaining({ formattedPriceImpact: '5%' }),
         expect.anything(),
       );
     });
@@ -293,7 +293,7 @@ describe('PriceImpactModal', () => {
       render(<PriceImpactModal />);
 
       expect(mockPriceImpactDescription).toHaveBeenCalledWith(
-        expect.objectContaining({ priceImpact: undefined }),
+        expect.objectContaining({ formattedPriceImpact: undefined }),
         expect.anything(),
       );
     });
@@ -393,18 +393,22 @@ describe('PriceImpactModal', () => {
       );
     });
 
-    it('calls usePriceImpactViewData with the priceImpact from formattedQuoteData', () => {
+    it('calls usePriceImpactViewData with the raw priceImpact from activeQuote', () => {
       mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: {
+          quote: { priceData: { priceImpact: '0.12' } },
+        },
         formattedQuoteData: { priceImpact: '12%' },
       } as ReturnType<typeof useBridgeQuoteData>);
 
       render(<PriceImpactModal />);
 
-      expect(mockUsePriceImpactViewData).toHaveBeenCalledWith('12%');
+      expect(mockUsePriceImpactViewData).toHaveBeenCalledWith('0.12');
     });
 
-    it('calls usePriceImpactViewData with undefined when formattedQuoteData is absent', () => {
+    it('calls usePriceImpactViewData with undefined when activeQuote is absent', () => {
       mockUseBridgeQuoteData.mockReturnValue({
+        activeQuote: undefined,
         formattedQuoteData: undefined,
       } as ReturnType<typeof useBridgeQuoteData>);
 

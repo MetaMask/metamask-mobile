@@ -133,7 +133,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   );
 
   const priceImactViewData = usePriceImpactViewData(
-    formattedQuoteData?.priceImpact,
+    activeQuote?.quote.priceData?.priceImpact,
   );
 
   // Early return for invalid states
