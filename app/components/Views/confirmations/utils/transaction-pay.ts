@@ -14,7 +14,11 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
 import { store } from '../../../../store';
-import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  selectGasFeeTokenFlags,
+  BlockedTokensListConfig,
+  BlockedTokensConfig,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
@@ -87,10 +91,12 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  blockedTokens,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
+  blockedTokens?: BlockedTokensListConfig;
 }): AssetType[] {
   const supportedGasFeeTokens = getSupportedGasFeeTokens();
 
@@ -140,11 +146,17 @@ export function getAvailableTokens({
         token.address?.toLowerCase() as Hex,
       );
 
-      const disabled = noNativeBalance && !isGasStationSupported;
+      const noGasDisabled = noNativeBalance && !isGasStationSupported;
 
-      const disabledMessage = disabled
-        ? strings('pay_with_modal.no_gas')
-        : undefined;
+      const blocked = isTokenBlocked(token, blockedTokens);
+
+      const disabled = noGasDisabled || blocked;
+
+      const disabledMessage = blocked
+        ? strings('pay_with_modal.not_supported')
+        : noGasDisabled
+          ? strings('pay_with_modal.no_gas')
+          : undefined;
 
       const isSelected =
         payToken?.address.toLowerCase() === token.address.toLowerCase() &&
@@ -156,7 +168,47 @@ export function getAvailableTokens({
         disabledMessage,
         isSelected,
       };
-    });
+    })
+    .sort((a, b) => Number(a.disabled) - Number(b.disabled));
+}
+
+export function getBlockedTokensForTransactionType(
+  blockedTokens: BlockedTokensConfig,
+  transactionType?: string,
+): BlockedTokensListConfig {
+  const config =
+    transactionType && blockedTokens.overrides[transactionType]
+      ? blockedTokens.overrides[transactionType]
+      : blockedTokens.default;
+
+  return {
+    chainIds: config.chainIds ?? [],
+    tokens: config.tokens ?? [],
+  };
+}
+
+export function isTokenBlocked(
+  token: { address: string; chainId?: string },
+  blockedConfig?: BlockedTokensListConfig,
+): boolean {
+  if (blockedConfig === undefined || blockedConfig === null) {
+    return false;
+  }
+
+  if (
+    token.chainId &&
+    blockedConfig.chainIds.some(
+      (id) => id.toLowerCase() === token.chainId?.toLowerCase(),
+    )
+  ) {
+    return true;
+  }
+
+  return blockedConfig.tokens.some(
+    (blocked) =>
+      blocked.address.toLowerCase() === token.address.toLowerCase() &&
+      blocked.chainId.toLowerCase() === token.chainId?.toLowerCase(),
+  );
 }
 
 function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {

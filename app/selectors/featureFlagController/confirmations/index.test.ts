@@ -354,6 +354,40 @@ describe('selectMetaMaskPayTokensFlags (confirmations_pay_tokens)', () => {
     expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
   });
 
+  it('returns default empty blockedTokens when confirmations_pay_tokens is missing', () => {
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
+
+    expect(result.blockedTokens).toEqual({
+      default: { chainIds: [], tokens: [] },
+      overrides: {},
+    });
+  });
+
+  it('returns blockedTokens with overrides from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_tokens: {
+          blockedTokens: {
+            default: { chainIds: ['0xa4b1'], tokens: [] },
+            overrides: {
+              perpsDeposit: {
+                chainIds: [],
+                tokens: [{ address: '0xabc', chainId: '0x1' }],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectMetaMaskPayTokensFlags(state);
+    expect(result.blockedTokens.default.chainIds).toEqual(['0xa4b1']);
+    expect(result.blockedTokens.overrides.perpsDeposit).toEqual({
+      chainIds: [],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    });
+  });
+
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
     const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
