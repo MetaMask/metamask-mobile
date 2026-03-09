@@ -54,9 +54,12 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   const tw = useTailwind();
 
+  // Default horizontal padding via Tailwind so callers can override with twClassName (e.g. px-0)
+  const containerTwClassName = twClassName ? `px-4 ${twClassName}` : 'px-4';
+
   return (
     <View style={style} testID={onPress ? undefined : testID}>
-      <Box paddingHorizontal={4} twClassName={twClassName}>
+      <Box twClassName={containerTwClassName}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -86,7 +89,6 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
             <TouchableOpacity
               testID={testID}
               onPress={onPress}
-              disabled={!onPress}
               accessibilityRole="button"
               accessibilityLabel={typeof title === 'string' ? title : undefined}
             >
