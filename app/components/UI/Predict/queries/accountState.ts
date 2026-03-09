@@ -87,7 +87,11 @@ async function ensurePolygonNetwork(): Promise<void> {
     });
 
     // Still try to enable — network may already exist.
-    enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
+    try {
+      enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
+    } catch (_enableError) {
+      // Swallow so getAccountState can still proceed.
+    }
   }
 }
 
