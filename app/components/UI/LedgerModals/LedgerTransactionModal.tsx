@@ -49,9 +49,10 @@ const LedgerTransactionModal = () => {
   const hasNavigatedRef = useRef(false);
   const goBack = useCallback(() => {
     if (hasNavigatedRef.current) return;
-    if (!navigation.canGoBack()) return;
     hasNavigatedRef.current = true;
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   }, [navigation]);
 
   const executeOnLedger = useCallback(async () => {
