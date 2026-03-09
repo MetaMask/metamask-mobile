@@ -74,6 +74,14 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "providerData": {},
         "selectedCountry": null,
       },
+      "ConfigRegistryController": {
+        "configs": {
+          "networks": {},
+        },
+        "etag": null,
+        "lastFetched": null,
+        "version": null,
+      },
       "ConnectivityController": {
         "connectivityStatus": "online",
       },
@@ -933,6 +941,14 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "isAuthenticated": false,
         "providerData": {},
         "selectedCountry": null,
+      },
+      "ConfigRegistryController": {
+        "configs": {
+          "networks": {},
+        },
+        "etag": null,
+        "lastFetched": null,
+        "version": null,
       },
       "ConnectivityController": {
         "connectivityStatus": "online",
