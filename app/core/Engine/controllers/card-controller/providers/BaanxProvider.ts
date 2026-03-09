@@ -117,6 +117,13 @@ function mapLoginError(error: unknown, hasOtpCode: boolean): CardProviderError {
         408,
       );
     }
+    if (error.statusCode === 0) {
+      return new CardProviderError(
+        CardProviderErrorCode.Network,
+        'Network error during login',
+        0,
+      );
+    }
   }
   return new CardProviderError(
     CardProviderErrorCode.Unknown,
@@ -160,6 +167,13 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
         CardProviderErrorCode.Timeout,
         `Request timeout on ${operation}`,
         408,
+      );
+    }
+    if (error.statusCode === 0) {
+      return new CardProviderError(
+        CardProviderErrorCode.Network,
+        `Network error on ${operation}`,
+        0,
       );
     }
   }

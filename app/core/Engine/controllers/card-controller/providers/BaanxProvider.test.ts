@@ -329,6 +329,14 @@ describe('BaanxProvider', () => {
         code: CardProviderErrorCode.NoCard,
       });
     });
+
+    it('throws Network error on statusCode 0', async () => {
+      service.get.mockRejectedValue(new CardApiError(0, '/v1/card/status', ''));
+
+      await expect(provider.getCardDetails(AUTH_TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Network,
+      });
+    });
   });
 
   describe('freezeCard / unfreezeCard', () => {
@@ -1463,6 +1471,23 @@ describe('BaanxProvider', () => {
         }),
       ).rejects.toMatchObject({
         code: CardProviderErrorCode.Timeout,
+      });
+    });
+
+    it('returns Network on statusCode 0 (no HTTP response)', async () => {
+      service.get.mockResolvedValue({ token: 'init-token', url: '' });
+      const session = await provider.initiateAuth('US');
+
+      service.post.mockRejectedValue(new CardApiError(0, '/v1/auth/login', ''));
+
+      await expect(
+        provider.submitCredentials(session, {
+          type: 'email_password',
+          email: 'test@example.com',
+          password: 'pass',
+        }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.Network,
       });
     });
   });
