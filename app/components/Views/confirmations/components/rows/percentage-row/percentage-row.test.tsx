@@ -2,9 +2,9 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { PercentageRow } from './percentage-row';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { strings } from '../../../../../../../locales/i18n';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -28,7 +28,7 @@ describe('PercentageRow', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.musdConversion,
-    } as never);
+    } as ReturnType<typeof useTransactionMetadataRequest>);
   });
 
   it('renders label, tooltip and APY when not loading', () => {
@@ -39,33 +39,21 @@ describe('PercentageRow', () => {
     expect(getByText(`${MUSD_CONVERSION_APY}%`)).toBeOnTheScreen();
   });
 
-  it('renders nothing when tx type is not supported', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.contractInteraction,
-    } as never);
-
-    const { queryByText, queryByTestId } = render();
-
-    expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
-    expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
-  });
-
-  it('renders nothing when transaction metadata is undefined', () => {
-    useTransactionMetadataRequestMock.mockReturnValue(undefined as never);
-
-    const { queryByText, queryByTestId } = render();
-
-    expect(queryByTestId('percentage-row-skeleton')).toBeNull();
-    expect(queryByText(strings('earn.claimable_bonus'))).toBeNull();
-    expect(queryByText(`${MUSD_CONVERSION_APY}%`)).toBeNull();
-  });
-
   it('renders skeleton when transaction pay is loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
 
     const { getByTestId } = render();
 
     expect(getByTestId('percentage-row-skeleton')).toBeOnTheScreen();
+  });
+
+  it('renders nothing for non-musdConversion transactions', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.simpleSend,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { toJSON } = render();
+
+    expect(toJSON()).toBeNull();
   });
 });

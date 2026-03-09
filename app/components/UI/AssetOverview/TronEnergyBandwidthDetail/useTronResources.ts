@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
 
 export interface TronResource {
@@ -49,7 +49,7 @@ export const useTronResources = (): {
   bandwidth: TronResource;
 } => {
   const { energy, bandwidth, maxEnergy, maxBandwidth } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
+    selectTronSpecialAssetsBySelectedAccountGroup,
   );
 
   return useMemo(() => {

@@ -538,7 +538,9 @@ export function transformFundingToTransactions(
         isPositive,
         fee: amountUSDC,
         feeNumber: parseFloat(amountUsd),
-        rate: `${BigNumber(rate).multipliedBy(100).toString()}%`,
+        rate: `${BigNumber(rate ?? '0')
+          .multipliedBy(100)
+          .toString()}%`,
       },
     };
   });

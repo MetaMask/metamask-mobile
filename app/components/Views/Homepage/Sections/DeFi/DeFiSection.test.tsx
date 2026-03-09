@@ -34,6 +34,18 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(() => false),
 }));
 
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 const mockUseDeFiPositionsForHomepage = jest.fn();
 
 jest.mock('./hooks', () => ({
@@ -99,7 +111,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('DeFi')).toBeOnTheScreen();
   });
@@ -111,7 +125,9 @@ describe('DeFiSection', () => {
       )
       .selectAssetsDefiPositionsEnabled.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<DeFiSection />);
+    const { toJSON } = renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });
@@ -124,7 +140,9 @@ describe('DeFiSection', () => {
       isEmpty: true,
     });
 
-    const { toJSON } = renderWithProvider(<DeFiSection />);
+    const { toJSON } = renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });
@@ -137,7 +155,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('DeFi')).toBeOnTheScreen();
     expect(screen.getByText(/unable to load/i)).toBeOnTheScreen();
@@ -152,7 +172,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     await act(async () => {
       fireEvent.press(screen.getByText(/retry/i));
@@ -169,7 +191,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('DeFi')).toBeOnTheScreen();
     // Skeleton renders 3 placeholder items
@@ -183,7 +207,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Aave')).toBeOnTheScreen();
     expect(screen.getByText('Uniswap')).toBeOnTheScreen();
@@ -197,7 +223,9 @@ describe('DeFiSection', () => {
       isEmpty: false,
     });
 
-    renderWithProvider(<DeFiSection />);
+    renderWithProvider(
+      <DeFiSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('DeFi'));
 
@@ -214,7 +242,9 @@ describe('DeFiSection', () => {
 
     const ref = createRef<SectionRefreshHandle>();
 
-    renderWithProvider(<DeFiSection ref={ref} />);
+    renderWithProvider(
+      <DeFiSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(ref.current).not.toBeNull();
     expect(typeof ref.current?.refresh).toBe('function');

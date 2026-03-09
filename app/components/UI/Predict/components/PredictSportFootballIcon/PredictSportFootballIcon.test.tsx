@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { render } from '@testing-library/react-native';
 import Svg from 'react-native-svg';
 import PredictSportFootballIcon from './PredictSportFootballIcon';
@@ -31,7 +32,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('renders football icon with custom color prop', () => {
-      const customColor = '#FF0000';
+      const customColor = TEST_HEX_COLORS.PURE_RED;
 
       const { getByTestId } = render(
         <PredictSportFootballIcon color={customColor} testID="football" />,
@@ -83,7 +84,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('applies custom hex color when color prop is provided', () => {
-      const customColor = '#FF5733';
+      const customColor = TEST_HEX_COLORS.CUSTOM_ORANGE;
 
       const { getByTestId } = render(
         <PredictSportFootballIcon color={customColor} testID="football" />,
@@ -105,7 +106,7 @@ describe('PredictSportFootballIcon', () => {
 
   describe('edge cases', () => {
     it('applies hex color with alpha channel', () => {
-      const colorWithAlpha = '#FF0000FF';
+      const colorWithAlpha = TEST_HEX_COLORS.PURE_RED_ALPHA;
 
       const { getByTestId } = render(
         <PredictSportFootballIcon color={colorWithAlpha} testID="football" />,
@@ -115,7 +116,7 @@ describe('PredictSportFootballIcon', () => {
     });
 
     it('applies short hex color format', () => {
-      const shortHexColor = '#F00';
+      const shortHexColor = TEST_HEX_COLORS.PURE_RED_SHORT;
 
       const { getByTestId } = render(
         <PredictSportFootballIcon color={shortHexColor} testID="football" />,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import { fireEvent } from '@testing-library/react-native';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -104,7 +105,7 @@ const mockMarket: PredictMarketType = {
       name: 'Team A',
       logo: '',
       abbreviation: 'TA',
-      color: '#FF0000',
+      color: TEST_HEX_COLORS.PURE_RED,
       alias: 'Team A',
     },
     homeTeam: {
@@ -112,7 +113,7 @@ const mockMarket: PredictMarketType = {
       name: 'Team B',
       logo: '',
       abbreviation: 'TB',
-      color: '#0000FF',
+      color: TEST_HEX_COLORS.PURE_BLUE,
       alias: 'Team B',
     },
   },
