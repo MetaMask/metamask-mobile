@@ -89,6 +89,7 @@ const LedgerConfirmationModal = ({
         try {
           await onConfirmation();
 
+          if (hasRejectedRef.current) return;
           hideAwaitingConfirmation();
         } catch (signingError) {
           hideAwaitingConfirmation();
