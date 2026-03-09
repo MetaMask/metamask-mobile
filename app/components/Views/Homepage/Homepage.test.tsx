@@ -106,6 +106,27 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({
+  usePredictPositions: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock(
   '../../../selectors/featureFlagController/assetsDefiPositions',
   () => ({
