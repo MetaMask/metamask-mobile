@@ -181,6 +181,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextMuted}
+            style={tw.style({ fontSize: 20 })}
           >
             {strings('onboarding.or')}
           </Text>
@@ -206,7 +207,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
         <Box alignItems={BoxAlignItems.Center} twClassName="mt-6">
           <Text
             variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Regular}
+            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             style={tw.style('text-center')}
           >

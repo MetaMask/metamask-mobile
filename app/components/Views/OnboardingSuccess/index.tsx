@@ -99,7 +99,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       <Text
         variant={TextVariant.DisplayMd}
         fontFamily={FontFamily.Accent}
-        style={tw.style('mt-[25px] mb-4 mx-4 text-center font-thin')}
+        fontWeight={FontWeight.Regular}
+        style={tw.style('mt-[25px] mb-4 mx-4 text-center', {
+          fontWeight: '400',
+        })}
       >
         {getTitleString()}
       </Text>

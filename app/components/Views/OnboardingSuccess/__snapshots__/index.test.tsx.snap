@@ -102,14 +102,14 @@ exports[`OnboardingSuccess route params handling uses default successFlow when r
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -357,14 +357,14 @@ exports[`OnboardingSuccess route params handling uses default successFlow when s
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -612,14 +612,14 @@ exports[`OnboardingSuccess route params successFlow is BACKED_UP_SRP renders mat
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -867,14 +867,14 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE f
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -1122,14 +1122,14 @@ exports[`OnboardingSuccess route params successFlow is IMPORT_FROM_SEED_PHRASE r
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -1377,14 +1377,14 @@ exports[`OnboardingSuccess route params successFlow is NO_BACKED_UP_SRP renders 
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -1632,14 +1632,14 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -1887,14 +1887,14 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,
@@ -2142,14 +2142,14 @@ exports[`OnboardingSuccessComponent renders matching snapshot when successFlow i
           [
             {
               "color": "#131416",
-              "fontFamily": "MMSans-Bold",
+              "fontFamily": "MMSans-Regular",
               "fontSize": 32,
               "fontWeight": 700,
               "letterSpacing": 0,
               "lineHeight": 40,
             },
             {
-              "fontWeight": "100",
+              "fontWeight": "400",
               "marginBottom": 16,
               "marginLeft": 16,
               "marginRight": 16,

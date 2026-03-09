@@ -401,7 +401,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
-                undefined,
+                {
+                  "fontSize": 20,
+                },
               ]
             }
           >
@@ -543,7 +545,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=false (im
               [
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "fontWeight": 400,
                   "letterSpacing": 0.25,
@@ -1009,7 +1011,9 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 },
-                undefined,
+                {
+                  "fontSize": 20,
+                },
               ]
             }
           >
@@ -1151,7 +1155,7 @@ exports[`OnboardingSheet Snapshots renders correctly with createWallet=true (cre
               [
                 {
                   "color": "#131416",
-                  "fontFamily": "Geist-Regular",
+                  "fontFamily": "Geist-Medium",
                   "fontSize": 12,
                   "fontWeight": 400,
                   "letterSpacing": 0.25,
