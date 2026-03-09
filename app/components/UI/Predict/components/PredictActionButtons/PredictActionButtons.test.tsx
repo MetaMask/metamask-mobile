@@ -312,6 +312,17 @@ describe('PredictActionButtons', () => {
   });
 
   describe('edge cases', () => {
+    it('uses default testID when testID is not provided', () => {
+      const props = createDefaultProps();
+      delete (props as Partial<typeof props>).testID;
+
+      renderWithProvider(<PredictActionButtons {...props} />);
+
+      expect(
+        screen.getByTestId('predict-action-buttons-bet-yes'),
+      ).toBeOnTheScreen();
+    });
+
     it('renders nothing when outcome has less than 2 tokens', () => {
       const outcomeWithOneToken = createMockOutcome({
         tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],

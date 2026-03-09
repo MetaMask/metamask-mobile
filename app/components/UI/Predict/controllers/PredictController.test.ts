@@ -4351,6 +4351,18 @@ describe('PredictController', () => {
         });
       });
     });
+
+    it('throws provider errors when account state lookup fails', async () => {
+      mockPolymarketProvider.getAccountState.mockRejectedValue(
+        new Error('account state unavailable'),
+      );
+
+      await withController(async ({ controller }) => {
+        await expect(controller.getAccountState({})).rejects.toThrow(
+          'account state unavailable',
+        );
+      });
+    });
   });
 
   describe('getBalance', () => {
