@@ -52,6 +52,7 @@ import {
   getDeployProxyWalletTransaction,
   getProxyWalletAllowancesTransaction,
   hasAllowances,
+  hasPermit2Allowance,
 } from './safe/utils';
 import { PERMIT2_ADDRESS } from './safe/constants';
 import {
@@ -124,6 +125,7 @@ jest.mock('./safe/utils', () => ({
   getDeployProxyWalletTransaction: jest.fn(),
   getProxyWalletAllowancesTransaction: jest.fn(),
   hasAllowances: jest.fn(),
+  hasPermit2Allowance: jest.fn(),
   getWithdrawTransactionCallData: jest
     .fn()
     .mockResolvedValue('0xsignedcalldata'),
@@ -223,6 +225,7 @@ const mockCreatePermit2FeeAuthorization =
 const mockCreateSafeFeeAuthorization = createSafeFeeAuthorization as jest.Mock;
 const mockGetClaimTransaction = getClaimTransaction as jest.Mock;
 const mockHasAllowances = hasAllowances as jest.Mock;
+const mockHasPermit2Allowance = hasPermit2Allowance as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
@@ -894,6 +897,7 @@ describe('PolymarketProvider', () => {
         sig: '0xsig',
       },
     });
+    mockHasPermit2Allowance.mockResolvedValue(false);
     mockCreatePermit2FeeAuthorization.mockResolvedValue({
       type: 'safe-permit2',
       authorization: {
