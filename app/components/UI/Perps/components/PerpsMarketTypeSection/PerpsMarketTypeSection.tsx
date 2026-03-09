@@ -98,7 +98,6 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         <SectionHeader
           title={title}
           onPress={handleViewAll}
-          showEndIconBackground={false}
           twClassName="mb-2"
           style={headerStyle}
         />
@@ -120,7 +119,6 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
       <SectionHeader
         title={title}
         onPress={handleViewAll}
-        showEndIconBackground={false}
         twClassName="mb-2"
         style={headerStyle}
       />
