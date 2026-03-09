@@ -250,5 +250,28 @@ describe('displayOrder', () => {
       expect(result[0].source).toBe('v2');
       expect(result[1].source).toBe('legacy');
     });
+
+    it('filters out precreated and expired V2 orders', () => {
+      const precreatedOrder = createMockRampsOrder({
+        providerOrderId: 'precreated-1',
+        status: RampsOrderStatus.Precreated,
+      });
+      const expiredOrder = createMockRampsOrder({
+        providerOrderId: 'expired-1',
+        status: RampsOrderStatus.IdExpired,
+      });
+      const visibleOrder = createMockRampsOrder({
+        providerOrderId: 'visible-1',
+        status: RampsOrderStatus.Completed,
+      });
+
+      const result = mergeDisplayOrders(
+        [],
+        [precreatedOrder, expiredOrder, visibleOrder],
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('visible-1');
+    });
   });
 });

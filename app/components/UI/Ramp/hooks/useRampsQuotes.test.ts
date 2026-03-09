@@ -118,9 +118,9 @@ describe('useRampsQuotes', () => {
         await result.current.getBuyWidgetData(testQuote);
       });
 
-      expect(Engine.context.RampsController.getBuyWidgetData).toHaveBeenCalledWith(
-        testQuote,
-      );
+      expect(
+        Engine.context.RampsController.getBuyWidgetData,
+      ).toHaveBeenCalledWith(testQuote);
     });
   });
 

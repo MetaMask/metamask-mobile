@@ -159,7 +159,9 @@ function PaymentSelectionModal() {
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: PaymentMethod }) => {
-      const isCustomActionQuote = (quote: { quote?: { isCustomAction?: boolean } }) =>
+      const isCustomActionQuote = (quote: {
+        quote?: { isCustomAction?: boolean };
+      }) =>
         Boolean((quote.quote as { isCustomAction?: boolean })?.isCustomAction);
       const matchedQuote =
         quotes?.success?.find(
