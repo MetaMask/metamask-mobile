@@ -12,8 +12,35 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+const mockUseMusdBalance = jest.fn(() => ({ hasMusdBalanceOnAnyChain: false }));
+jest.mock('../../UI/Earn/hooks/useMusdBalance', () => ({
+  useMusdBalance: () => mockUseMusdBalance(),
+}));
+
+// Let real CashGetMusdEmptyState render; mock its dependencies
+jest.mock('../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: { navigation: { navigate: jest.fn() } },
+}));
+jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: () => ({ goToBuy: jest.fn() }),
+}));
+jest.mock('../../UI/Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({ initiateCustomConversion: jest.fn() }),
+}));
+jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
+  useMusdConversionFlowData: () => ({
+    hasConvertibleTokens: true,
+    isMusdBuyableOnAnyChain: true,
+    getPaymentTokenForSelectedNetwork: () => ({
+      address: '0xabc',
+      chainId: '0x1',
+    }),
+  }),
+}));
+
 jest.mock('../../UI/Tokens', () => {
-  const React = jest.requireActual('react');
+  const { createElement } = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   const MockTokens = ({
     isFullView,
@@ -22,10 +49,10 @@ jest.mock('../../UI/Tokens', () => {
     isFullView?: boolean;
     showOnlyMusd?: boolean;
   }) =>
-    React.createElement(
+    createElement(
       View,
       { testID: 'tokens-cash-view' },
-      React.createElement(
+      createElement(
         Text,
         { testID: 'tokens-props' },
         `isFullView=${isFullView} showOnlyMusd=${showOnlyMusd}`,
@@ -37,14 +64,23 @@ jest.mock('../../UI/Tokens', () => {
 describe('CashTokensFullView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
   });
 
-  it('renders Cash title', () => {
+  it('renders mUSD title', () => {
     renderWithProvider(<CashTokensFullView />);
-    expect(screen.getByText('Cash')).toBeOnTheScreen();
+    expect(screen.getByText('mUSD')).toBeOnTheScreen();
   });
 
-  it('renders Tokens with isFullView and showOnlyMusd', () => {
+  it('renders Get mUSD empty state when user has no mUSD', () => {
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: false });
+    renderWithProvider(<CashTokensFullView />);
+    expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
+    expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
+  });
+
+  it('renders Tokens with isFullView and showOnlyMusd when user has mUSD', () => {
+    mockUseMusdBalance.mockReturnValue({ hasMusdBalanceOnAnyChain: true });
     renderWithProvider(<CashTokensFullView />);
     expect(screen.getByTestId('tokens-cash-view')).toBeOnTheScreen();
     expect(

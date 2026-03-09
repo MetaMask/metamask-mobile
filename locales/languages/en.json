@@ -5922,6 +5922,7 @@
   "earn": {
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
+    "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
@@ -8007,7 +8008,7 @@
   },
   "homepage": {
     "sections": {
-      "cash": "Cash",
+      "cash": "mUSD",
       "cash_annualized_copy": "Get {{percentage}}% annualized bonus on your stablecoins when you convert to mUSD.",
       "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
       "tokens": "Tokens",

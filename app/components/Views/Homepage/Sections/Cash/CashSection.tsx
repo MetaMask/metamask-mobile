@@ -7,6 +7,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
@@ -18,9 +19,10 @@ import useHomeViewedEvent, {
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
-import { useMusdConversionTokens } from '../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { MUSD_CONVERSION_APY } from '../../../../UI/Earn/constants/musd';
 import MusdAggregatedRow from './MusdAggregatedRow';
+import CashGetMusdEmptyState from './CashGetMusdEmptyState';
+import Logger from '../../../../../util/Logger';
 
 interface CashSectionProps {
   sectionIndex: number;
@@ -42,11 +44,9 @@ const CashSection = ({
     selectIsMusdConversionFlowEnabledFlag,
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  const { tokens: conversionTokens } = useMusdConversionTokens();
   const { hasMusdBalanceOnAnyChain } = useMusdBalance();
 
   const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
-  const hasConvertibleStablecoins = conversionTokens.length > 0;
 
   const handleViewCashTokens = useCallback(() => {
     navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
@@ -63,31 +63,54 @@ const CashSection = ({
   });
 
   if (!isCashSectionEnabled) {
+    Logger.log(
+      `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} reason=${!isMusdConversionEnabled ? 'flag_off' : 'geo_ineligible'}`,
+    );
     return null;
   }
 
   const title = strings('homepage.sections.cash');
+  const copyStr = strings('homepage.sections.cash_annualized_copy', {
+    percentage: MUSD_CONVERSION_APY,
+  });
+  const percentagePart = `${MUSD_CONVERSION_APY}%`;
+  const copyParts = copyStr.split(percentagePart);
 
   return (
     <View ref={sectionViewRef}>
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewCashTokens} />
-        {hasConvertibleStablecoins && (
+        {!hasMusdBalanceOnAnyChain ? (
           <SectionRow>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('homepage.sections.cash_annualized_copy', {
-                percentage: MUSD_CONVERSION_APY,
-              })}
-            </Text>
+            <CashGetMusdEmptyState />
           </SectionRow>
-        )}
-        {hasMusdBalanceOnAnyChain && (
-          <SectionRow>
-            <MusdAggregatedRow />
-          </SectionRow>
+        ) : (
+          <>
+            <SectionRow>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {copyParts.length >= 2 ? (
+                  <>
+                    {copyParts[0]}
+                    <Text
+                      color={TextColor.SuccessDefault}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {percentagePart}
+                    </Text>
+                    {copyParts[1]}
+                  </>
+                ) : (
+                  copyStr
+                )}
+              </Text>
+            </SectionRow>
+            <SectionRow>
+              <MusdAggregatedRow />
+            </SectionRow>
+          </>
         )}
       </Box>
     </View>

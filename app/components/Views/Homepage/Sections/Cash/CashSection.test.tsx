@@ -22,13 +22,6 @@ jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
-const mockUseMusdConversionTokens = jest.fn(() => ({
-  tokens: [] as { symbol: string; address: string; chainId: string }[],
-}));
-jest.mock('../../../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
-}));
-
 const mockUseMusdBalance = jest.fn(() => ({
   hasMusdBalanceOnAnyChain: false,
   tokenBalanceAggregated: '0',
@@ -60,6 +53,25 @@ jest.mock('./MusdAggregatedRow', () => {
   };
 });
 
+jest.mock('./CashGetMusdEmptyState', () => {
+  const { Text, View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(
+        View,
+        { testID: 'cash-get-musd-empty-state' },
+        ReactActual.createElement(
+          Text,
+          null,
+          'Get 3% annualized bonus on your stablecoins when you convert to mUSD.',
+        ),
+        ReactActual.createElement(Text, null, 'Get mUSD'),
+      ),
+  };
+});
+
 describe('CashSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -67,7 +79,6 @@ describe('CashSection', () => {
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-    mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: false,
       tokenBalanceAggregated: '0',
@@ -84,7 +95,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('mUSD')).toBeNull();
   });
 
   it('returns null when geo is ineligible', () => {
@@ -94,15 +105,15 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('Cash')).toBeNull();
+    expect(queryByText('mUSD')).toBeNull();
   });
 
-  it('renders Cash title when enabled', () => {
+  it('renders mUSD title when enabled', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByText('Cash')).toBeOnTheScreen();
+    expect(screen.getByText('mUSD')).toBeOnTheScreen();
   });
 
   it('navigates to CASH_TOKENS_FULL_VIEW when section header is pressed', () => {
@@ -110,18 +121,14 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('Cash'));
+    fireEvent.press(screen.getByText('mUSD'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
     );
   });
 
-  it('shows annualized copy when user has convertible stablecoins', () => {
-    mockUseMusdConversionTokens.mockReturnValue({
-      tokens: [{ symbol: 'USDC', address: '0xabc', chainId: '0x1' }],
-    });
-
+  it('shows annualized copy', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -131,6 +138,15 @@ describe('CashSection', () => {
         'Get 3% annualized bonus on your stablecoins when you convert to mUSD.',
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('shows Get mUSD empty state when user has no mUSD balance', () => {
+    renderWithProvider(
+      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('cash-get-musd-empty-state')).toBeOnTheScreen();
+    expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
   });
 
   it('renders MusdAggregatedRow when user has mUSD balance', () => {
