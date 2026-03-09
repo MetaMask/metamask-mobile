@@ -144,10 +144,10 @@ const LedgerSelectAccount = () => {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const accounts = await getLedgerAccountsByOperation(
+      const _accounts = await getLedgerAccountsByOperation(
         PAGINATION_OPERATIONS.GET_FIRST_PAGE,
       );
-      setAccounts(accounts);
+      setAccounts(_accounts);
     } catch (e) {
       setErrorMsg((e as Error).message);
     }
