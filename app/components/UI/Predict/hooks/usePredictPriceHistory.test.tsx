@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   PredictPriceHistoryInterval,
@@ -229,7 +229,9 @@ describe('usePredictPriceHistory', () => {
 
       expect(mockGetPriceHistory).toHaveBeenCalledTimes(1);
 
-      await result.current.refetch();
+      await act(async () => {
+        await result.current.refetch();
+      });
 
       expect(mockGetPriceHistory).toHaveBeenCalledTimes(2);
       expect(result.current.priceHistories).toEqual([mockPriceHistory]);

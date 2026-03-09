@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQueries, UseQueryResult } from '@tanstack/react-query';
 import { predictQueries } from '../queries';
 import Logger from '../../../../util/Logger';
@@ -55,14 +55,23 @@ export const usePredictPriceHistory = (
     })),
   });
 
-  const priceHistories = queries.map((q) => q.data ?? []);
+  const priceHistories = useMemo(
+    () => queries.map((q) => q.data ?? []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queries.map((q) => q.dataUpdatedAt).join(',')],
+  );
   const isFetching = queries.some((q) => q.isFetching);
-  const errors = queries.map((q) => {
-    if (!q.error) return null;
-    return q.error instanceof Error
-      ? q.error.message
-      : 'Failed to fetch price history';
-  });
+  const errors = useMemo(
+    () =>
+      queries.map((q) => {
+        if (!q.error) return null;
+        return q.error instanceof Error
+          ? q.error.message
+          : 'Failed to fetch price history';
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queries.map((q) => q.error).join(',')],
+  );
 
   // Track which market errors have already been reported to Sentry
   const reportedErrorsRef = useRef<Set<string>>(new Set());
@@ -97,6 +106,8 @@ export const usePredictPriceHistory = (
               marketId,
               interval,
               fidelity,
+              startTs,
+              endTs,
             },
           },
         });
@@ -107,7 +118,7 @@ export const usePredictPriceHistory = (
     // Stable string that only changes when actual errors change, avoiding
     // re-runs caused by useQueries returning a new array reference each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryErrorsKey, marketIdsKey, interval, fidelity]);
+  }, [queryErrorsKey, marketIdsKey, interval, fidelity, startTs, endTs]);
 
   // Use a ref so refetch has a stable identity across renders
   const queriesRef =
