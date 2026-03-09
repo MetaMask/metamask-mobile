@@ -144,7 +144,7 @@ export class WC2Manager {
 
     if (activeSessions) {
       activeSessions.forEach(async (session) => {
-        if (session.peer.metadata.url === ORIGIN_METAMASK) {
+        if (INTERNAL_ORIGINS.includes(session.peer.metadata.url)) {
           console.warn(
             `WC2::init skipping session with invalid url: ${session.topic}`,
           );
@@ -538,7 +538,9 @@ export class WC2Manager {
       return;
     }
 
-    if (url === ORIGIN_METAMASK) {
+    // Prevent external connections from using internal origins
+    // This is an external connection (WalletConnect), so block any internal origin
+    if (INTERNAL_ORIGINS.includes(url)) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,
@@ -566,18 +568,6 @@ export class WC2Manager {
     const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
 
     try {
-      // Prevent external connections from using internal origins
-      // This is an external connection (WalletConnect), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(origin)) {
-        await this.web3Wallet.rejectSession({
-          id: proposal.id,
-          reason: getSdkError('USER_REJECTED_METHODS'),
-        });
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
-
       // Create a modified CAIP-25 caveat value that includes the current chain
       const caveatValue = getDefaultCaip25CaveatValue();
 
