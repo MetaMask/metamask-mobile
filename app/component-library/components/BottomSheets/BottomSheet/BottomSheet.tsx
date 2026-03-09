@@ -98,6 +98,9 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
+        if (!navigation.isFocused()) {
+          return false;
+        }
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
@@ -105,7 +108,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
       };
-    }, [onCloseCB, isInteractable]);
+    }, [onCloseCB, isInteractable, navigation]);
 
     useImperativeHandle(ref, () => ({
       onCloseBottomSheet: (callback) => {
