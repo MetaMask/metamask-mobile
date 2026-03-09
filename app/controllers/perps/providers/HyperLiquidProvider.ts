@@ -168,6 +168,15 @@ type GetAssetInfoParams = {
   dexName: string | null;
 };
 
+/** Per-DEX fetch result used internally by getMarketDataWithPrices */
+type DexFetchResult = {
+  dex: string | null;
+  meta: MetaResponse | null;
+  assetCtxs: PerpsAssetCtx[];
+  allMids: Record<string, string>;
+  success: boolean;
+};
+
 type GetAssetInfoResult = {
   assetInfo: {
     name: string;
@@ -5739,13 +5748,87 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   /**
+   * Fetch fresh meta, assetCtxs, and allMids for a single DEX — no cache check.
+   * Populates meta/assetCtxs caches after a successful fetch so subsequent calls
+   * can benefit from the cache without re-fetching.
+   *
+   * @param infoClient - The HyperLiquid info client to use for API calls.
+   * @param dex - The DEX identifier (null for the main DEX).
+   * @returns A promise that resolves to the fetch result for the DEX.
+   */
+  async #fetchSingleDexFresh(
+    infoClient: ReturnType<
+      typeof HyperLiquidClientService.prototype.getInfoClient
+    >,
+    dex: string | null,
+  ): Promise<DexFetchResult> {
+    const dexParam = dex ?? '';
+    try {
+      const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+        dexParam ? { dex: dexParam } : undefined,
+      );
+      const meta = metaAndCtxs?.[0] ?? null;
+      const assetCtxs = metaAndCtxs?.[1] ?? [];
+      const dexAllMids = await infoClient.allMids(
+        dexParam ? { dex: dexParam } : undefined,
+      );
+      if (meta?.universe) {
+        this.#cachedMetaByDex.set(dexParam, meta);
+        this.#subscriptionService.setDexMetaCache(dexParam, meta);
+        this.#subscriptionService.setDexAssetCtxsCache(dexParam, assetCtxs);
+      }
+      return { dex, meta, assetCtxs, allMids: dexAllMids ?? {}, success: true };
+    } catch {
+      return { dex, meta: null, assetCtxs: [], allMids: {}, success: false };
+    }
+  }
+
+  /**
+   * Filter and merge an array of per-DEX fetch results into the provided combined arrays.
+   * Applies shouldIncludeMarket filtering for HIP-3 DEXs; the main DEX passes through
+   * all markets unfiltered.
+   *
+   * @param results - The per-DEX fetch results to merge.
+   * @param combinedUniverse - Target array to push filtered market entries into.
+   * @param combinedAssetCtxs - Target array to push asset context entries into.
+   * @param combinedAllMids - Target object to merge mid prices into.
+   */
+  #mergeDexResultsInto(
+    results: DexFetchResult[],
+    combinedUniverse: MetaResponse['universe'],
+    combinedAssetCtxs: PerpsAssetCtx[],
+    combinedAllMids: Record<string, string>,
+  ): void {
+    results.forEach((result) => {
+      if (result.success && result.meta?.universe) {
+        const marketsFromDex = result.meta.universe;
+        const filteredMarkets =
+          result.dex === null
+            ? marketsFromDex
+            : marketsFromDex.filter((asset) =>
+                shouldIncludeMarket(
+                  asset.name,
+                  result.dex,
+                  this.#hip3Enabled,
+                  this.#compiledAllowlistPatterns,
+                  this.#compiledBlocklistPatterns,
+                ),
+              );
+        combinedUniverse.push(...filteredMarkets);
+        combinedAssetCtxs.push(...result.assetCtxs);
+        Object.assign(combinedAllMids, result.allMids);
+      }
+    });
+  }
+
+  /**
    * Get market data with prices, volumes, and 24h changes
    * Aggregates data from all enabled DEXs (main + HIP-3) when equity is enabled
    *
    * Note: This is called once during initialization and cached by PerpsStreamManager.
    * Real-time price updates come from WebSocket subscriptions, not this method.
    *
-   * @returns A promise that resolves to the result.
+   * @returns A promise that resolves to the combined market data from all enabled DEXs.
    */
   async getMarketDataWithPrices(): Promise<PerpsMarketData[]> {
     this.#deps.debugLogger.log(
@@ -5765,95 +5848,69 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Get enabled DEXs respecting feature flags (uses cached perpDexs)
     const enabledDexs = await this.#getValidatedDexs();
 
-    // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel
-    // Optimization: Check cache first to avoid redundant API calls when buildAssetMapping
-    // has already fetched, or populate cache for buildAssetMapping to reuse
+    // Fetch meta, assetCtxs, and allMids for each enabled DEX in parallel.
+    // Check the meta cache first to avoid redundant API calls when buildAssetMapping
+    // has already populated it; on cache miss delegate to #fetchSingleDexFresh which
+    // also populates the cache for future callers.
     const dexDataResults = await Promise.all(
       enabledDexs.map(async (dex) => {
         const dexKey = dex ?? '';
         const dexParam = dex ?? '';
-        try {
-          let meta: MetaResponse | null = null;
-          let assetCtxs: PerpsAssetCtx[] = [];
-
-          // Check if meta is already cached (e.g., from previous fetch or buildAssetMapping)
-          const cachedMeta = this.#cachedMetaByDex.get(dexKey);
-          if (cachedMeta) {
-            this.#deps.debugLogger.log(
-              `[getMarketDataWithPrices] Using cached meta for ${dex ?? 'main'}`,
-              { universeSize: cachedMeta.universe.length },
-            );
-            meta = cachedMeta;
-            // Try to get cached assetCtxs from subscription service
+        const cachedMeta = this.#cachedMetaByDex.get(dexKey);
+        if (cachedMeta) {
+          this.#deps.debugLogger.log(
+            `[getMarketDataWithPrices] Using cached meta for ${dex ?? 'main'}`,
+            { universeSize: cachedMeta.universe.length },
+          );
+          try {
+            // Try to get cached assetCtxs; fetch fresh if not cached
             const cachedCtxs =
               this.#subscriptionService.getDexAssetCtxsCache(dexKey);
+            let assetCtxs: PerpsAssetCtx[];
             if (cachedCtxs) {
               assetCtxs = cachedCtxs;
             } else {
-              // Need fresh assetCtxs, fetch via metaAndAssetCtxs (meta will be same)
-              const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+              const freshResult = await infoClient.metaAndAssetCtxs(
                 dexParam ? { dex: dexParam } : undefined,
               );
-              assetCtxs = metaAndCtxs?.[1] || [];
-              // Cache assetCtxs for future calls
+              assetCtxs = freshResult?.[1] ?? [];
               this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
             }
-          } else {
-            // Cache miss - fetch and populate cache for buildAssetMapping to reuse
-            this.#deps.debugLogger.log(
-              `[getMarketDataWithPrices] Cache miss for ${dex ?? 'main'}, fetching`,
-            );
-            const metaAndCtxs = await infoClient.metaAndAssetCtxs(
+            // Always fetch fresh allMids for current prices
+            const dexAllMids = await infoClient.allMids(
               dexParam ? { dex: dexParam } : undefined,
             );
-            meta = metaAndCtxs?.[0] || null;
-            assetCtxs = metaAndCtxs?.[1] || [];
-
-            // IMPORTANT: Populate cache for buildAssetMapping and other methods to reuse
-            if (meta?.universe) {
-              this.#cachedMetaByDex.set(dexKey, meta);
-              this.#subscriptionService.setDexMetaCache(dexKey, meta);
-              // Also cache assetCtxs for consistency with buildAssetMapping
-              this.#subscriptionService.setDexAssetCtxsCache(dexKey, assetCtxs);
-              this.#deps.debugLogger.log(
-                `[getMarketDataWithPrices] Cached meta for ${dex ?? 'main'}`,
-                { universeSize: meta.universe.length },
-              );
-            }
+            return {
+              dex,
+              meta: cachedMeta,
+              assetCtxs,
+              allMids: dexAllMids ?? {},
+              success: true,
+            };
+          } catch (error) {
+            this.#deps.debugLogger.log(
+              `[getMarketDataWithPrices] DEX fetch failed for ${dex ?? 'main'}`,
+              {
+                error: ensureError(
+                  error,
+                  'HyperLiquidProvider.getMarketDataWithPrices',
+                ).message,
+              },
+            );
+            return {
+              dex,
+              meta: null,
+              assetCtxs: [],
+              allMids: {},
+              success: false,
+            };
           }
-
-          // Always fetch fresh allMids for current prices
-          const dexAllMids = await infoClient.allMids(
-            dexParam ? { dex: dexParam } : undefined,
-          );
-
-          return {
-            dex,
-            meta,
-            assetCtxs,
-            allMids: dexAllMids || {},
-            success: true,
-          };
-        } catch (error) {
-          // Log per-DEX failures locally only — the aggregate error at the end
-          // of this method reports to Sentry, avoiding duplicate events.
-          this.#deps.debugLogger.log(
-            `[getMarketDataWithPrices] DEX fetch failed for ${dex ?? 'main'}`,
-            {
-              error: ensureError(
-                error,
-                'HyperLiquidProvider.getMarketDataWithPrices',
-              ).message,
-            },
-          );
-          return {
-            dex,
-            meta: null,
-            assetCtxs: [],
-            allMids: {},
-            success: false,
-          };
         }
+        // Cache miss — fetch fresh and populate caches
+        this.#deps.debugLogger.log(
+          `[getMarketDataWithPrices] Cache miss for ${dex ?? 'main'}, fetching`,
+        );
+        return this.#fetchSingleDexFresh(infoClient, dex);
       }),
     );
 
@@ -5865,29 +5922,12 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Used by the aggregation log below to avoid referencing stale first-attempt data.
     let latestDexResults = dexDataResults;
 
-    dexDataResults.forEach((result) => {
-      if (result.success && result.meta?.universe) {
-        // Apply market filtering for HIP-3 DEXs only (main DEX returns all markets)
-        const marketsFromDex = result.meta.universe;
-        const filteredMarkets =
-          result.dex === null
-            ? marketsFromDex // Main DEX: no filtering
-            : marketsFromDex.filter((asset) =>
-                shouldIncludeMarket(
-                  asset.name,
-                  result.dex,
-                  this.#hip3Enabled,
-                  this.#compiledAllowlistPatterns,
-                  this.#compiledBlocklistPatterns,
-                ),
-              );
-
-        combinedUniverse.push(...filteredMarkets);
-        combinedAssetCtxs.push(...result.assetCtxs);
-        // Merge price data from this DEX into combined prices
-        Object.assign(combinedAllMids, result.allMids);
-      }
-    });
+    this.#mergeDexResultsInto(
+      dexDataResults,
+      combinedUniverse,
+      combinedAssetCtxs,
+      combinedAllMids,
+    );
 
     if (combinedUniverse.length === 0) {
       // All DEXs returned empty — retry once after a short delay.
@@ -5908,65 +5948,16 @@ export class HyperLiquidProvider implements PerpsProvider {
       await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
 
       const retryResults = await Promise.all(
-        enabledDexs.map(async (dex) => {
-          const dexParam = dex ?? '';
-          try {
-            const metaAndCtxs = await infoClient.metaAndAssetCtxs(
-              dexParam ? { dex: dexParam } : undefined,
-            );
-            const meta = metaAndCtxs?.[0] || null;
-            const assetCtxs = metaAndCtxs?.[1] || [];
-            const dexAllMids = await infoClient.allMids(
-              dexParam ? { dex: dexParam } : undefined,
-            );
-            // Populate meta cache so the next call doesn't re-fetch unnecessarily
-            if (meta?.universe) {
-              this.#cachedMetaByDex.set(dexParam, meta);
-              this.#subscriptionService.setDexMetaCache(dexParam, meta);
-              this.#subscriptionService.setDexAssetCtxsCache(
-                dexParam,
-                assetCtxs,
-              );
-            }
-            return {
-              dex,
-              meta,
-              assetCtxs,
-              allMids: dexAllMids || {},
-              success: true,
-            };
-          } catch {
-            return {
-              dex,
-              meta: null,
-              assetCtxs: [],
-              allMids: {},
-              success: false,
-            };
-          }
-        }),
+        enabledDexs.map((dex) => this.#fetchSingleDexFresh(infoClient, dex)),
       );
 
       // Merge retry results into combined arrays
-      retryResults.forEach((result) => {
-        if (result.success && result.meta?.universe) {
-          const filteredMarkets =
-            result.dex === null
-              ? result.meta.universe
-              : result.meta.universe.filter((asset) =>
-                  shouldIncludeMarket(
-                    asset.name,
-                    result.dex,
-                    this.#hip3Enabled,
-                    this.#compiledAllowlistPatterns,
-                    this.#compiledBlocklistPatterns,
-                  ),
-                );
-          combinedUniverse.push(...filteredMarkets);
-          combinedAssetCtxs.push(...result.assetCtxs);
-          Object.assign(combinedAllMids, result.allMids);
-        }
-      });
+      this.#mergeDexResultsInto(
+        retryResults,
+        combinedUniverse,
+        combinedAssetCtxs,
+        combinedAllMids,
+      );
 
       // If still empty after retry, throw with diagnostic info
       if (combinedUniverse.length === 0) {
