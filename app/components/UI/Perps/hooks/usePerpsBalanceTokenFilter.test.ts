@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { usePerpsBalanceTokenFilter } from './usePerpsBalanceTokenFilter';
@@ -14,6 +14,8 @@ import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+import { selectPerpsAccountState } from '../selectors/perpsController';
+import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -87,10 +89,10 @@ describe('usePerpsBalanceTokenFilter', () => {
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
-        if (selector.name === 'selectPerpsAccountState') {
+        if (selector === selectPerpsAccountState) {
           return { availableBalance: '1500.00' };
         }
-        if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets') {
+        if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) {
           return [];
         }
         return undefined;
@@ -213,9 +215,8 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('uses zero balance when perps account is null', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState') return null;
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsAccountState) return null;
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -235,10 +236,9 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('clears isSelected on other tokens when perps balance is selected', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState')
+          if (selector === selectPerpsAccountState)
             return { availableBalance: '1500.00' };
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -268,10 +268,9 @@ describe('usePerpsBalanceTokenFilter', () => {
     it('keeps token isSelected when perps balance is not selected', () => {
       mockUseSelector.mockImplementation(
         (selector: (state: unknown) => unknown) => {
-          if (selector.name === 'selectPerpsAccountState')
+          if (selector === selectPerpsAccountState)
             return { availableBalance: '1500.00' };
-          if (selector.name === 'selectPerpsPayWithAnyTokenAllowlistAssets')
-            return [];
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets) return [];
           return undefined;
         },
       );
@@ -293,14 +292,15 @@ describe('usePerpsBalanceTokenFilter', () => {
 
     it('filters to only allowlisted tokens when allowlist is set', () => {
       const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
-      let callIndex = 0;
-      mockUseSelector.mockImplementation(() => {
-        callIndex += 1;
-        // Hook calls selectPerpsAccountState first, then selectPerpsPayWithAnyTokenAllowlistAssets
-        if (callIndex === 1) return { availableBalance: '100.00' };
-        if (callIndex === 2) return [allowlistKey];
-        return [];
-      });
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectPerpsAccountState)
+            return { availableBalance: '100.00' };
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
+            return [allowlistKey];
+          return [];
+        },
+      );
       const inputTokens: AssetType[] = [
         {
           address: '0xusdc',
@@ -349,12 +349,16 @@ describe('usePerpsBalanceTokenFilter', () => {
       expect(isHighlightedItemOutsideAssetList(highlightedAction)).toBe(true);
       if (isHighlightedItemOutsideAssetList(highlightedAction)) {
         highlightedAction.actions?.[0]?.onPress();
-        expect(mockOnReject).toHaveBeenCalledTimes(1);
-        expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
-        await Promise.resolve();
-        expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          { showPerpsHeader: true },
+        await waitFor(
+          () => {
+            expect(mockOnReject).toHaveBeenCalledTimes(1);
+            expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).toHaveBeenCalledWith(
+              Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+              { showPerpsHeader: true },
+            );
+          },
+          { timeout: 2000 },
         );
       }
     });
