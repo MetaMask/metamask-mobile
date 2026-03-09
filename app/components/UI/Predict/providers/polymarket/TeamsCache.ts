@@ -56,6 +56,34 @@ export class TeamsCache {
     await Promise.all(leagues.map((league) => this.ensureLeagueLoaded(league)));
   }
 
+  async ensureTeamsLoaded(
+    requests: { league: PredictSportsLeague; abbreviation: string }[],
+  ): Promise<void> {
+    const missing = requests.filter(
+      ({ league, abbreviation }) => !this.getTeam(league, abbreviation),
+    );
+
+    if (missing.length === 0) {
+      return;
+    }
+
+    const grouped = new Map<PredictSportsLeague, Set<string>>();
+    for (const { league, abbreviation } of missing) {
+      let set = grouped.get(league);
+      if (!set) {
+        set = new Set();
+        grouped.set(league, set);
+      }
+      set.add(abbreviation.toLowerCase());
+    }
+
+    await Promise.all(
+      Array.from(grouped.entries()).map(([league, abbreviations]) =>
+        this.fetchTeamsByAbbreviation(league, Array.from(abbreviations)),
+      ),
+    );
+  }
+
   getTeam(
     league: PredictSportsLeague,
     abbreviation: string,
@@ -78,6 +106,80 @@ export class TeamsCache {
 
   getTeamCount(league: PredictSportsLeague): number {
     return this.cache.get(league)?.size ?? 0;
+  }
+
+  private async fetchTeamsByAbbreviation(
+    league: PredictSportsLeague,
+    abbreviations: string[],
+  ): Promise<void> {
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const abbrParams = abbreviations
+      .map((a) => `abbreviation=${encodeURIComponent(a)}`)
+      .join('&');
+    const url = `${GAMMA_API_ENDPOINT}/teams?league=${league}&${abbrParams}`;
+
+    DevLogger.log(
+      `[TeamsCache] Fetching ${abbreviations.length} teams for league: ${league}`,
+    );
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        const errorMessage = `Failed to fetch teams for ${league}: ${response.status}`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: POLYMARKET_PROVIDER_ID,
+          method: 'TeamsCache.fetchTeamsByAbbreviation',
+          league,
+          statusCode: response.status,
+        });
+        return;
+      }
+
+      const teams: PolymarketApiTeam[] = await response.json();
+
+      if (!Array.isArray(teams)) {
+        const errorMessage = `Invalid response format for ${league} teams`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: POLYMARKET_PROVIDER_ID,
+          method: 'TeamsCache.fetchTeamsByAbbreviation',
+          league,
+        });
+        return;
+      }
+
+      let leagueCache = this.cache.get(league);
+      if (!leagueCache) {
+        leagueCache = new Map<string, PolymarketApiTeam>();
+        this.cache.set(league, leagueCache);
+      }
+
+      for (const team of teams) {
+        if (team.abbreviation) {
+          team.color = TEAM_COLOR_OVERRIDES[team.abbreviation] ?? team.color;
+          leagueCache.set(team.abbreviation.toLowerCase(), team);
+        }
+      }
+
+      DevLogger.log(
+        `[TeamsCache] Cached ${teams.length} targeted teams for league: ${league}`,
+      );
+    } catch (error) {
+      DevLogger.log(
+        `[TeamsCache] Error fetching teams for ${league}:`,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        feature: 'predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        method: 'TeamsCache.fetchTeamsByAbbreviation',
+        league,
+      });
+    }
   }
 
   private async fetchAndCacheTeams(league: PredictSportsLeague): Promise<void> {

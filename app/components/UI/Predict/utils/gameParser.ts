@@ -153,6 +153,31 @@ export function parseScore(scoreString?: string): PredictGameScore | null {
   return { away, home, raw: scoreString };
 }
 
+export function extractTeamsFromEvents(
+  events: PolymarketApiEvent[],
+  enabledLeagues: PredictSportsLeague[],
+): { league: PredictSportsLeague; abbreviation: string }[] {
+  const result: { league: PredictSportsLeague; abbreviation: string }[] =
+    [];
+
+  for (const event of events) {
+    const league = getEventLeague(event);
+    if (!league || !enabledLeagues.includes(league)) {
+      continue;
+    }
+
+    const parsed = parseGameSlugTeams(event.slug, league);
+    if (parsed) {
+      result.push(
+        { league, abbreviation: parsed.awayAbbreviation },
+        { league, abbreviation: parsed.homeAbbreviation },
+      );
+    }
+  }
+
+  return result;
+}
+
 export function buildGameData(
   event: PolymarketApiEvent,
   league: PredictSportsLeague,
