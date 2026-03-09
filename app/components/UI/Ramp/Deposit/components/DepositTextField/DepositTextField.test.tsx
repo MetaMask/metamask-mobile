@@ -2,10 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { shallow } from 'enzyme';
 import DepositTextField from './DepositTextField';
-import Label from '../../../../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Label } from '@metamask/design-system-react-native';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import { mockTheme } from '../../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../../util/theme/models';
@@ -44,7 +42,6 @@ describe('DepositTextField', () => {
     const wrapper = shallow(<DepositTextField {...defaultProps} />);
     const labelComponent = wrapper.find(Label);
     expect(labelComponent.exists()).toBe(true);
-    expect(labelComponent.prop('variant')).toBe(TextVariant.BodyMD);
     expect(labelComponent.prop('children')).toBe('Test Label');
   });
 
