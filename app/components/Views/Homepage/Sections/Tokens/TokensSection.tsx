@@ -40,6 +40,7 @@ import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -71,6 +72,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const privacyMode = useSelector(selectPrivacyMode);
     const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
     const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -205,6 +207,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                   setShowScamWarningModal={setShowScamWarningModal}
                   privacyMode={privacyMode}
                   showPercentageChange
+                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
                 />
               ))}
             </SectionRow>
