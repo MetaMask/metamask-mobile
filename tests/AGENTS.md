@@ -12,30 +12,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### Component-View Tests (Mandatory)
 
-- [.agents/skills/component-view-test/SKILL.md](../.agents/skills/component-view-test/SKILL.md) — Full workflow, golden rules
-- [.agents/skills/component-view-test/references/writing-tests.md](../.agents/skills/component-view-test/references/writing-tests.md) — Test structure, renderers, presets
-- [.agents/skills/component-view-test/references/navigation-mocking.md](../.agents/skills/component-view-test/references/navigation-mocking.md) — Navigation testing, API mocking
-- [.agents/skills/component-view-test/references/reference.md](../.agents/skills/component-view-test/references/reference.md) — Fiat, run commands, self-review checklist, failure diagnosis
-
-Other harnesses: start prompts with `Follow .agents/skills/component-view-test/SKILL.md`
-
-Run with:
-
-```bash
-yarn jest -c jest.config.view.js <path> --runInBand --silent --coverage=false
-```
-
-Enforcement:
-
-- ESLint override in `.eslintrc.js` blocks forbidden `jest.mock` in `*.view.test.*`
-- Runtime guard: `app/util/test/testSetupView.js`
-
-### Implementation Reference (Component-View)
-
-- Mocks: [tests/component-view/mocks.ts](component-view/mocks.ts)
-- Presets: [tests/component-view/presets/](component-view/presets/)
-- Renderers: [tests/component-view/renderers/](component-view/renderers/)
-- State fixture: [tests/component-view/stateFixture.ts](component-view/stateFixture.ts)
+- [tests/component-view/AGENTS.md](component-view/AGENTS.md) — Agent index for component view tests: framework, canonical skill, run commands, enforcement.
 
 ## Canonical Sources (read these, do not duplicate)
 
