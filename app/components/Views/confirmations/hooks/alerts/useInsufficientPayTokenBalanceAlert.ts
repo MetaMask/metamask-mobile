@@ -115,6 +115,19 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isPendingAlert, isPostQuote, payToken, totalSourceAmountRaw],
   );
 
+  // For post-quote flows, the fee is subtracted from the withdrawal amount.
+  // Block if the fee exceeds the source amount (user would receive nothing).
+  const isPostQuoteFeeExceedsSource = useMemo(() => {
+    if (!isPostQuote || isLoading) {
+      return false;
+    }
+
+    const feeRaw = new BigNumber(totals?.fees.sourceNetwork.max.raw ?? '0');
+    const sourceRaw = new BigNumber(totals?.sourceAmount.raw ?? '0');
+
+    return sourceRaw.isGreaterThan(0) && feeRaw.isGreaterThanOrEqualTo(sourceRaw);
+  }, [isLoading, isPostQuote, totals]);
+
   // For post-quote flows, we still need to check if the user has enough native
   // token to pay for gas on the source network (e.g., POL for Polygon)
   // In post-quote (withdrawal) flows payToken may be unset when the user keeps
@@ -159,7 +172,7 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
-    if (isInsufficientForFees) {
+    if (isInsufficientForFees || isPostQuoteFeeExceedsSource) {
       return [
         {
           ...baseAlert,
@@ -194,6 +207,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
     isPostQuote,
+    isPostQuoteFeeExceedsSource,
     ticker,
   ]);
 }
