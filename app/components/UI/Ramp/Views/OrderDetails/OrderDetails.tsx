@@ -35,11 +35,13 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-import { rampsDebugLog } from '../../debug/rampsDebugLogger';
-
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
+  /** Optional: needed when order is not yet in controller state (e.g. race after PayPal return). */
+  providerCode?: string;
+  /** Optional: needed with providerCode to fetch order from API when not in state. */
+  walletAddress?: string;
 }
 
 export const createRampsOrderDetailsNavDetails =
@@ -74,23 +76,9 @@ const OrderDetails = () => {
   const order = getOrderById(params.orderId);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
-  // #region agent log
-  useEffect(() => {
-    rampsDebugLog({
-      location: 'OrderDetails.tsx:mount',
-      message: 'OrderDetails mounted',
-      data: {
-        orderId: params.orderId,
-        hasOrder: Boolean(order),
-        status: order?.status,
-        isPending,
-      },
-    });
-  }, [params.orderId, order, isPending]);
-  // #endregion
-
   const [isLoading, setIsLoading] = useState(isPending);
   const [error, setError] = useState<string | null>(null);
+  const [hydrationAttempted, setHydrationAttempted] = useState(false);
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
@@ -139,32 +127,11 @@ const OrderDetails = () => {
       setError(null);
       setIsRefreshing(true);
       const providerCode = normalizeProviderCode(order.provider?.id ?? '');
-      // #region agent log
-      rampsDebugLog({
-        location: 'OrderDetails.tsx:handleOnRefresh',
-        message: 'refreshing order',
-        data: {
-          providerOrderId: order.providerOrderId,
-          providerCode,
-          currentStatus: order.status,
-        },
-      });
-      // #endregion
-      const updatedOrder = await refreshOrder(
+      await refreshOrder(
         providerCode,
         order.providerOrderId,
         order.walletAddress,
       );
-      // #region agent log
-      rampsDebugLog({
-        location: 'OrderDetails.tsx:handleOnRefresh',
-        message: 'refresh complete',
-        data: {
-          providerOrderId: order.providerOrderId,
-          newStatus: updatedOrder?.status,
-        },
-      });
-      // #endregion
     } catch (fetchError) {
       Logger.error(fetchError as Error, {
         message: 'FiatOrders::RampsOrderDetails error while refreshing order',
@@ -190,7 +157,81 @@ const OrderDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // When order is missing but we have providerCode/wallet (e.g. race after PayPal return),
+  // fetch from API to hydrate controller state.
+  useEffect(() => {
+    if (
+      order ||
+      hydrationAttempted ||
+      !params.providerCode ||
+      !params.walletAddress ||
+      !params.orderId
+    ) {
+      return;
+    }
+    setHydrationAttempted(true);
+    setIsLoading(true);
+    const providerCode = normalizeProviderCode(params.providerCode);
+    refreshOrder(providerCode, params.orderId, params.walletAddress)
+      .then(() => {
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error
+            ? err.message
+            : strings('ramps_order_details.error_message'),
+        );
+        setIsLoading(false);
+      });
+  }, [
+    order,
+    hydrationAttempted,
+    params.providerCode,
+    params.walletAddress,
+    params.orderId,
+    refreshOrder,
+  ]);
+
   if (!order) {
+    if (isLoading) {
+      return (
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <ScreenLayout.Content>
+              <ActivityIndicator />
+            </ScreenLayout.Content>
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      );
+    }
+    if (error && hydrationAttempted) {
+      return (
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <Box twClassName="flex-1 items-center justify-center px-16 py-16">
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                twClassName="text-error-default mb-2"
+              />
+              <Text
+                variant={TextVariant.HeadingSm}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('ramps_order_details.error_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-alternative text-center mb-8"
+              >
+                {error}
+              </Text>
+            </Box>
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      );
+    }
     return <ScreenLayout />;
   }
 
