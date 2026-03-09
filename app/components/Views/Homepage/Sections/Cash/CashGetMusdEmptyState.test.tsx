@@ -3,14 +3,17 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
+import NavigationService from '../../../../../core/NavigationService';
 
-const mockNavigationServiceNavigate = jest.fn();
-jest.mock('../../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: { navigate: mockNavigationServiceNavigate },
-  },
-}));
+jest.mock('../../../../../core/NavigationService', () => {
+  const mockNavigate = jest.fn();
+  return {
+    __esModule: true,
+    default: {
+      navigation: { navigate: mockNavigate },
+    },
+  };
+});
 
 const mockGoToBuy = jest.fn();
 jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
@@ -66,7 +69,8 @@ describe('CashGetMusdEmptyState', () => {
 
     fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW));
 
-    expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({
         symbol: 'mUSD',
