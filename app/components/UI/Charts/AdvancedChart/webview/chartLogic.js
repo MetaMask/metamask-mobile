@@ -296,14 +296,107 @@ function handleRemoveIndicator(payload) {
 }
 
 // ============================================
+// Series Color Helper
+// ============================================
+function generatePaletteShades(hex) {
+  var r = parseInt(hex.slice(1, 3), 16);
+  var g = parseInt(hex.slice(3, 5), 16);
+  var b = parseInt(hex.slice(5, 7), 16);
+  var shades = [];
+  for (var i = 0; i < 19; i++) {
+    var t = i / 18;
+    var sr, sg, sb;
+    if (t < 0.5) {
+      var f = 1 - t * 2;
+      sr = Math.round(r + (255 - r) * f);
+      sg = Math.round(g + (255 - g) * f);
+      sb = Math.round(b + (255 - b) * f);
+    } else {
+      var f2 = (t - 0.5) * 2;
+      sr = Math.round(r * (1 - f2));
+      sg = Math.round(g * (1 - f2));
+      sb = Math.round(b * (1 - f2));
+    }
+    shades.push(
+      '#' + ((1 << 24) + (sr << 16) + (sg << 8) + sb).toString(16).slice(1),
+    );
+  }
+  return shades;
+}
+
+function getSeriesColorOverrides(color) {
+  return {
+    'mainSeriesProperties.lineStyle.color': color,
+    'mainSeriesProperties.lineStyle.colorType': 'solid',
+    'mainSeriesProperties.lineStyle.linewidth': 2,
+    'mainSeriesProperties.lineWithMarkersStyle.color': color,
+    'mainSeriesProperties.lineWithMarkersStyle.colorType': 'solid',
+    'mainSeriesProperties.lineWithMarkersStyle.linewidth': 2,
+    'mainSeriesProperties.areaStyle.linecolor': color,
+    'mainSeriesProperties.areaStyle.linewidth': 2,
+    'mainSeriesProperties.baselineStyle.topLineColor': color,
+    'mainSeriesProperties.baselineStyle.topLineWidth': 2,
+    'mainSeriesProperties.baselineStyle.bottomLineColor': color,
+    'mainSeriesProperties.baselineStyle.bottomLineWidth': 2,
+    'mainSeriesProperties.baselineStyle.topFillColor1': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
+  };
+}
+
+// ============================================
 // Chart Type Handler
 // ============================================
+
+/**
+ * Re-apply series color overrides + style properties for line/baseline.
+ * Called once in onChartReady as a safety net on top of constructor overrides.
+ */
+function applySeriesColors() {
+  if (!window.chartWidget) return;
+  var color = window.CONFIG.theme.successColor;
+  try {
+    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
+    var series = window.chartWidget.activeChart().getSeries();
+    series.setChartStyleProperties(2, {
+      color: color,
+      colorType: 'solid',
+      linewidth: 2,
+    });
+    series.setChartStyleProperties(10, {
+      topLineColor: color,
+      bottomLineColor: color,
+      topLineWidth: 2,
+      bottomLineWidth: 2,
+    });
+  } catch (e) {}
+}
+
 function handleSetChartType(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
 
+  var type = payload.type;
   try {
-    var chart = window.chartWidget.activeChart();
-    chart.setChartType(payload.type);
+    var ac = window.chartWidget.activeChart();
+    ac.setChartType(type);
+
+    var color = window.CONFIG.theme.successColor;
+    var series = ac.getSeries();
+    if (type === 2) {
+      series.setChartStyleProperties(2, {
+        color: color,
+        colorType: 'solid',
+        linewidth: 2,
+      });
+    } else if (type === 10) {
+      series.setChartStyleProperties(10, {
+        topLineColor: color,
+        bottomLineColor: color,
+        topLineWidth: 2,
+        bottomLineWidth: 2,
+      });
+    }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
@@ -436,18 +529,36 @@ function createVolumeStudy() {
   if (window.volumeStudyId) return;
 
   try {
-    window.chartWidget
-      .activeChart()
-      .createStudy('Volume', false, false, {}, { 'volume ma.visible': false })
+    var chart = window.chartWidget.activeChart();
+    var gray = '#858585';
+    chart
+      .createStudy(
+        'Volume',
+        false,
+        false,
+        {},
+        {
+          'volume ma.visible': false,
+          'volume.color.0': gray,
+          'volume.color.1': gray,
+          'volume.transparency': 50,
+        },
+      )
       .then(function (studyId) {
         window.volumeStudyId = studyId;
+        try {
+          var heights = chart.getAllPanesHeight();
+          if (heights.length === 2) {
+            var total = heights[0] + heights[1];
+            chart.setAllPanesHeight([
+              Math.round(total * 0.78),
+              Math.round(total * 0.22),
+            ]);
+          }
+        } catch (e) {}
       })
-      .catch(function () {
-        // Volume study creation failed
-      });
-  } catch (e) {
-    // Not critical
-  }
+      .catch(function () {});
+  } catch (e) {}
 }
 
 function handleToggleVolume(payload) {
@@ -760,34 +871,47 @@ function initChart() {
       autosize: true,
       theme: 'Dark',
 
-      disabled_features: disabledFeatures,
+      disabled_features: disabledFeatures.concat(
+        'use_localstorage_for_settings',
+      ),
       enabled_features: ['study_templates', 'iframe_loading_same_origin'],
 
-      overrides: {
-        'paneProperties.background': theme.backgroundColor,
-        'paneProperties.backgroundType': 'solid',
-        'paneProperties.vertGridProperties.color': theme.borderColor,
-        'paneProperties.horzGridProperties.color': theme.borderColor,
-        'scalesProperties.textColor': theme.textColor,
-        'scalesProperties.lineColor': theme.borderColor,
-        'scalesProperties.fontSize': 11,
-        'scalesProperties.showStudyLastValue': true,
-        'scalesProperties.showSeriesLastValue': true,
-        'scalesProperties.showSymbolLabels': true,
-        'scalesProperties.showRightScale': true,
-        'scalesProperties.showLeftScale': false,
-        'paneProperties.bottomMargin': 5,
-        'mainSeriesProperties.candleStyle.upColor': theme.successColor,
-        'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
-        'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
-        'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
-        'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
-        'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+      custom_themes: {
+        dark: {
+          color1: generatePaletteShades(theme.successColor),
+          color3: generatePaletteShades(theme.errorColor),
+        },
       },
+
+      overrides: Object.assign(
+        {
+          'paneProperties.background': theme.backgroundColor,
+          'paneProperties.backgroundType': 'solid',
+          'paneProperties.vertGridProperties.color': 'transparent',
+          'paneProperties.horzGridProperties.color': 'transparent',
+          'scalesProperties.textColor': theme.textColor,
+          // TODO: revert to 'transparent' after verifying candle count against designs
+          'scalesProperties.lineColor': '#444444',
+          'scalesProperties.fontSize': 11,
+          'scalesProperties.showStudyLastValue': true,
+          'scalesProperties.showSeriesLastValue': true,
+          'scalesProperties.showSymbolLabels': true,
+          'scalesProperties.showRightScale': true,
+          'scalesProperties.showLeftScale': false,
+          'paneProperties.bottomMargin': 5,
+          'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+          'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+          'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+        },
+        getSeriesColorOverrides(theme.successColor),
+      ),
 
       loading_screen: {
         backgroundColor: theme.backgroundColor,
-        foregroundColor: theme.primaryColor,
+        foregroundColor: theme.successColor,
       },
     });
 
@@ -800,6 +924,8 @@ function initChart() {
         timeScale.defaultRightOffset().setValue(0);
         timeScale.setRightOffset(0);
       } catch (e) {}
+
+      applySeriesColors();
 
       sendToReactNative('CHART_READY', {});
 
@@ -843,11 +969,6 @@ function initChart() {
           });
       } catch (e) {
         // Crosshair subscription not critical
-      }
-
-      // Auto-add volume study if showVolume is true (no SMA overlay)
-      if (features.showVolume) {
-        createVolumeStudy();
       }
 
       // Process pending messages

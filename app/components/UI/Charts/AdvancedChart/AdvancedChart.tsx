@@ -70,16 +70,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
-    const prevShowVolumeRef = useRef(showVolume);
 
     const htmlContent = useMemo(
       () =>
         createAdvancedChartTemplate(theme, {
           enableDrawingTools,
-          showVolume,
           disabledFeatures,
         }),
-      [theme, enableDrawingTools, showVolume, disabledFeatures],
+      [theme, enableDrawingTools, disabledFeatures],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -89,7 +87,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
-      prevShowVolumeRef.current = showVolume;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -162,7 +159,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
-            prevShowVolumeRef.current = showVolume;
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
@@ -200,7 +196,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       },
       [
         isChartReady,
-        showVolume,
         onChartReady,
         onError,
         onCrosshairMove,
@@ -236,11 +231,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevChartTypeRef.current = undefined;
-          prevShowVolumeRef.current = showVolume;
           webViewRef.current?.reload();
         },
       }),
-      [addIndicator, removeIndicator, setChartTypeInternal, showVolume],
+      [addIndicator, removeIndicator, setChartTypeInternal],
     );
 
     // ---- Declarative prop syncing ----
@@ -300,12 +294,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setChartTypeInternal(chartType);
     }, [chartType, chartReadyCount, setChartTypeInternal]);
 
-    // Sync showVolume prop
+    // Sync showVolume prop (always fires on chart ready to set initial state)
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (showVolume === prevShowVolumeRef.current) return;
-      prevShowVolumeRef.current = showVolume;
-
       postMessage({
         type: 'TOGGLE_VOLUME',
         payload: { visible: showVolume },

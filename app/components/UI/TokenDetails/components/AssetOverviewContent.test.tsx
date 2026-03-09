@@ -132,8 +132,6 @@ const defaultProps: AssetOverviewContentProps = {
   prices: [],
   isLoading: false,
   timePeriod: '1d',
-  setTimePeriod: jest.fn(),
-  chartNavigationButtons: ['1d', '1w', '1m'],
   isPerpsEnabled: true,
   displayBuyButton: false,
   displaySwapsButton: false,

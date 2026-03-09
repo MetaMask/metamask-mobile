@@ -41,7 +41,6 @@ const stripHexAlpha = (hex: string): string =>
 
 interface ChartFeatures {
   enableDrawingTools?: boolean;
-  showVolume?: boolean;
   disabledFeatures?: string[];
 }
 
@@ -62,7 +61,6 @@ window.CONFIG = {
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    showVolume: ${features.showVolume ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
   }
 };

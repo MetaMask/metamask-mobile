@@ -1,5 +1,5 @@
 import type { Theme } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -14,8 +14,11 @@ const styleSheet = (params: {
   const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
+      width: '100%',
       paddingHorizontal: 16,
-    },
+      paddingVertical: 4,
+      gap: 4,
+    } as ViewStyle,
     assetWrapper: {
       flexDirection: 'row',
       justifyContent: 'flex-start',
@@ -37,6 +40,16 @@ const styleSheet = (params: {
     loadingPriceDiff: {
       paddingTop: 2,
     },
+    chartContainer: {
+      width: '100%',
+    } as ViewStyle,
+    timeRangeContainer: {
+      paddingBottom: 16,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: 16,
+      alignSelf: 'stretch',
+    } as ViewStyle,
   });
 };
 

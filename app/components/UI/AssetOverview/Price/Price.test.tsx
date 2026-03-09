@@ -1,20 +1,27 @@
 import React from 'react';
-import { render, userEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import Price from './Price';
 import { TokenI } from '../../Tokens/types';
 import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import PriceChart from '../PriceChart/PriceChart';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
 
-jest.mock('../PriceChart/PriceChart', () => ({
-  ...jest.requireActual('../PriceChart/PriceChart'),
-  __esModule: true,
-  default: jest.fn().mockImplementation(() => null),
+jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: () => <View testID="mock-advanced-chart" />,
+  };
+});
+
+jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
+  useOHLCVChart: () => ({
+    ohlcvData: [],
+    isLoading: false,
+    fetchMoreHistory: jest.fn(),
+  }),
 }));
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
@@ -77,8 +84,6 @@ describe('Price Component', () => {
 
       const { getByText } = render(<Price {...props} />);
 
-      // Name and symbol are rendered together when ticker is not provided
-      // Format: "name (symbol)"
       expect(
         getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
       ).toBeTruthy();
@@ -102,8 +107,6 @@ describe('Price Component', () => {
     it('renders header correctly when name and ticker are provided', () => {
       const { getByText } = render(<Price {...mockProps} />);
 
-      // Name and ticker are rendered together
-      // Format: "name (ticker)"
       expect(
         getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
       ).toBeTruthy();
@@ -118,27 +121,9 @@ describe('Price Component', () => {
     expect(getByTestId('loading-price-diff')).toBeTruthy();
   });
 
-  it('renders price at selected date', async () => {
-    jest
-      .mocked(PriceChart)
-      .mockImplementation(({ onChartIndexChange }) => (
-        <Button
-          testID="mock-price-chart"
-          variant={ButtonVariants.Primary}
-          label="TEST BUTTON"
-          onPress={() => onChartIndexChange(1)}
-        />
-      ));
+  it('renders the advanced chart', () => {
+    const { getByTestId } = render(<Price {...mockProps} />);
 
-    const { getByTestId } = render(<Price {...{ ...mockProps }} />);
-
-    // No item selected - assert label
-    expect(getByTestId('price-label')).toHaveTextContent('Today');
-
-    // Act - click mock button to change chart index
-    await userEvent.press(getByTestId('mock-price-chart'));
-
-    // A date has been selected, show correct mock date
-    expect(getByTestId('price-label')).toHaveTextContent('Jan 13 at 4:40 am');
+    expect(getByTestId('mock-advanced-chart')).toBeTruthy();
   });
 });

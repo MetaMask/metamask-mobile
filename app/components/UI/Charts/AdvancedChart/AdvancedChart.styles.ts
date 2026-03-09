@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../util/theme/models';
 
-export const DEFAULT_CHART_HEIGHT = 400;
+export const DEFAULT_CHART_HEIGHT = 900;
 
 const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
   StyleSheet.create({
