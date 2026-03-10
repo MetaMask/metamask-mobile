@@ -1,6 +1,6 @@
-import { parseCaipChainId, toHex } from '@metamask/controller-utils';
+import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux';
