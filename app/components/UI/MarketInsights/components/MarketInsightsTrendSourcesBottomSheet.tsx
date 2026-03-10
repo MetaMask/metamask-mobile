@@ -71,10 +71,7 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
         </Text>
       </BottomSheetHeader>
 
-      <ScrollView
-        style={tw.style('px-4')}
-        contentContainerStyle={tw.style('pb-24')}
-      >
+      <ScrollView style={tw.style('px-4')}>
         {articles.map((article, index) => {
           const isLastItem =
             index === articles.length - 1 && tweets.length === 0;
