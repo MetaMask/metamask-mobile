@@ -5,7 +5,7 @@ const selectOnboarding = (state: RootState) => state.onboarding;
 
 export const selectCompletedOnboarding = createSelector(
   selectOnboarding,
-  (onboardingState) => onboardingState.completedOnboarding,
+  (onboardingState) => onboardingState?.completedOnboarding ?? false,
 );
 
 export const selectOnboardingAccountType = createSelector(
