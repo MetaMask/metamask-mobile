@@ -10,6 +10,8 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 6,
       borderRadius: 6,
       flexShrink: 0,
+    },
+    maxLeverageColumn: {
       alignSelf: 'flex-start' as const,
       marginTop: 4,
     },

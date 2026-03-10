@@ -125,7 +125,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               {changePercent}
             </Text>
 
-            <PerpsLeverage maxLeverage={market.maxLeverage} />
+            <PerpsLeverage maxLeverage={market.maxLeverage} variant="column" />
           </View>
 
           <View style={styles.tokenLogoWrapper}>
