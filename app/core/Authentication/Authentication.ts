@@ -743,6 +743,7 @@ class AuthenticationService {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
             fallbackToPassword = true;
+            Alert.alert('Rehydration done');
           } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
