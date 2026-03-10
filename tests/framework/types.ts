@@ -7,6 +7,7 @@ import ContractAddressRegistry from '../../app/util/test/contract-address-regist
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
+import type { Fixture } from './fixtures/types.ts';
 import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 
 /*
@@ -317,9 +318,10 @@ export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
 export interface WithFixturesOptions {
   fixture:
     | FixtureBuilder
+    | Fixture
     | ((ctx: {
         localNodes?: LocalNode[];
-      }) => FixtureBuilder | Promise<FixtureBuilder>);
+      }) => FixtureBuilder | Fixture | Promise<FixtureBuilder | Fixture>);
   restartDevice?: boolean;
   smartContracts?: string[];
   disableLocalNodes?: boolean;

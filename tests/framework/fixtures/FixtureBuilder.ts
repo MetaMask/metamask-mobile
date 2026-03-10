@@ -40,7 +40,20 @@ import {
   MOCK_ENTROPY_SOURCE_3,
 } from '../../../app/util/test/keyringControllerTestUtils.ts';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import type {
+  Fixture,
+  ProviderConfig,
+  PermissionControllerState,
+  SnapControllerState,
+  TokenInfo,
+  UserKeyringState,
+  UserSnapState,
+  UserPermissionState,
+} from './types.ts';
+import type { PreferencesState } from '@metamask/preferences-controller';
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -87,14 +100,12 @@ export interface MusdFixtureOptions {
  * FixtureBuilder class provides a fluent interface for building fixture data.
  */
 class FixtureBuilder {
-  // We currently have no type representation of the whole fixture state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private fixture: any;
+  private fixture!: Fixture;
 
   /**
    * Create a new instance of FixtureBuilder.
-   * @param {Object} options - Options for the fixture builder.
-   * @param {boolean} options.onboarding - Flag indicating if onboarding fixture should be used.
+   * @param options - Options for the fixture builder.
+   * @param options.onboarding - Flag indicating if onboarding fixture should be used.
    */
   constructor({ onboarding = false } = {}) {
     // Initialize the fixture based on the onboarding flag
@@ -105,27 +116,17 @@ class FixtureBuilder {
 
   /**
    * Set the asyncState property of the fixture.
-   * @param {any} asyncState - The value to set for asyncState.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param asyncState - The value to set for asyncState.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  withAsyncState(asyncState: Record<string, unknown>) {
+  withAsyncState(asyncState: Record<string, string>) {
     this.fixture.asyncState = asyncState;
     return this;
   }
 
   /**
-   * Set the state property of the fixture.
-   * @param {any} state - The value to set for state.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   */
-  withState(state: Record<string, unknown>) {
-    this.fixture.state = state;
-    return this;
-  }
-
-  /**
    * Ensures that the Solana feature modal is suppressed by adding the appropriate flag to asyncState.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   ensureSolanaModalSuppressed() {
     if (!this.fixture.asyncState) {
@@ -137,11 +138,11 @@ class FixtureBuilder {
 
   /**
    * Ensures that the multichain accounts intro modal is suppressed by setting the appropriate flag.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   ensureMultichainIntroModalSuppressed() {
     if (!this.fixture?.state?.user) {
-      this.fixture.state.user = {};
+      this.fixture.state.user = {} as typeof this.fixture.state.user;
     }
     this.fixture.state.user.multichainAccountsIntroModalSeen = true;
     return this;
@@ -151,8 +152,7 @@ class FixtureBuilder {
    * Defines a Perps profile for E2E mocks.
    * The value is stored in the PerpsController state so that the mocks can read it.
    * @param profile Profile, e.g.: 'no-funds', 'default'.
-   * @returns {FixtureBuilder}
-   */
+   * @returns */
   withPerpsProfile(profile: string) {
     merge(this.fixture.state.engine.backgroundState.PerpsController, {
       // Field only for E2E; read by the mocks mixin
@@ -191,7 +191,7 @@ class FixtureBuilder {
 
   /**
    * Set the showTestNetworks property of the fixture to false.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withTestNetworksOff() {
     this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks = false;
@@ -201,7 +201,7 @@ class FixtureBuilder {
   /**
    * Set the default fixture values.
    * Uses JSON-based fixture with runtime-injected dynamic values.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
@@ -233,7 +233,7 @@ class FixtureBuilder {
           {
             networkClientId,
             name: 'Localhost default RPC',
-            type: 'custom',
+            type: RpcEndpointType.Custom,
             url: '',
           },
         ],
@@ -247,56 +247,49 @@ class FixtureBuilder {
 
   /**
    * Merges provided data into the background state of the PermissionController.
-   * @param {object} data - Data to merge into the PermissionController's state.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param data - Data to merge into the PermissionController's state.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  withPermissionController(data: Record<string, unknown>) {
+  withPermissionController(data: Partial<PermissionControllerState>) {
     merge(this.fixture.state.engine.backgroundState.PermissionController, data);
     return this;
   }
 
   /**
-   * Merges provided data into the background state of the NetworkController.
-   * @param {object} data - Data to merge into the NetworkController's state.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * Configures the NetworkController with a custom network using a provider config.
+   * @param providerConfig - The provider configuration for the new network.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  withNetworkController(data: Record<string, unknown>) {
+  withNetworkController(providerConfig: ProviderConfig) {
     const networkController =
       this.fixture.state.engine.backgroundState.NetworkController;
 
-    // Extract providerConfig data
-    const { providerConfig } = data as {
-      providerConfig: Record<string, unknown>;
-    };
-
-    // Generate a unique key for the new network client ID
     const newNetworkClientId = `networkClientId${
       Object.keys(networkController.networkConfigurationsByChainId).length + 1
     }`;
 
-    // Define the network configuration
-    const networkConfig = {
+    // NetworkConfiguration type is more specific than our ProviderConfig; cast is safe here
+    (
+      networkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >
+    )[providerConfig.chainId] = {
       chainId: providerConfig.chainId,
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
           url: providerConfig.rpcUrl,
-          type: providerConfig.type,
+          type: providerConfig.type as 'custom' | 'infura',
           name: providerConfig.nickname,
         },
       ],
       defaultRpcEndpointIndex: 0,
       blockExplorerUrls: [],
-      name: providerConfig.nickname,
-      nativeCurrency: providerConfig.ticker,
+      name: providerConfig.nickname ?? '',
+      nativeCurrency: providerConfig.ticker ?? 'ETH',
     };
 
-    // Add the new network configuration to the object
-    networkController.networkConfigurationsByChainId[
-      providerConfig.chainId as string
-    ] = networkConfig;
-
-    // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
     return this;
   }
@@ -304,8 +297,8 @@ class FixtureBuilder {
   /**
    * Private helper method to create permission controller configuration
    * @private
-   * @param {Object} additionalPermissions - Additional permissions to merge with permission
-   * @returns {Object} Permission controller configuration object
+   * @param additionalPermissions - Additional permissions to merge with permission
+   * @returns Permission controller configuration object
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
@@ -369,8 +362,8 @@ class FixtureBuilder {
 
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
-   * @param {Object} additionalPermissions - Additional permissions to merge.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param additionalPermissions - Additional permissions to merge.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withPermissionControllerConnectedToTestDapp(
     additionalPermissions = {},
@@ -395,8 +388,8 @@ class FixtureBuilder {
   }
 
   /**
-   * @param {RampsRegion | null} region - The region to set, or null for default (Saint Lucia).
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param region - The region to set, or null for default (Saint Lucia).
+   * @returns - The FixtureBuilder instance for method chaining.
    * @example
    * new FixtureBuilder()
    *   .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.UNITED_STATES])
@@ -489,7 +482,7 @@ class FixtureBuilder {
 
   /**
    * Sets the selected payment method for the fiat orders.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withRampsSelectedPaymentMethod() {
     const paymentType = '/payments/debit-credit-card';
@@ -502,8 +495,8 @@ class FixtureBuilder {
   /**
    * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
    * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
-   * @param {string} countryCode - ISO country code (e.g. 'AR' for Argentina).
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param countryCode - ISO country code (e.g. 'AR' for Argentina).
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withDetectedGeolocation(countryCode: string) {
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
@@ -513,8 +506,8 @@ class FixtureBuilder {
 
   /**
    * Adds chain switching permission for specific chains.
-   * @param {string[]} chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param chainIds - Array of chain IDs to permit (defaults to ['0x1']), other nexts like linea mainnet 0xe708
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withChainPermission(chainIds: `0x${string}`[] = ['0x1']) {
     const optionalScopes = chainIds
@@ -561,7 +554,7 @@ class FixtureBuilder {
 
   /**
    * Adds Solana account permissions for default fixture account.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withSolanaAccountPermission() {
     const caveatValue = {
@@ -598,19 +591,23 @@ class FixtureBuilder {
 
   /**
    * Sets the user profile key ring in the fixture's background state.
-   * @param {object} userState - The user state to set.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param userState - The user state to set.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withUserProfileKeyRing(userState: any) {
+  withUserProfileKeyRing(userState: UserKeyringState) {
     merge(
       this.fixture.state.engine.backgroundState.KeyringController,
       userState.KEYRING_CONTROLLER_STATE,
     );
 
     // Add accounts controller with the first account selected
-    const firstAccountAddress =
-      userState.KEYRING_CONTROLLER_STATE.keyrings[0].accounts[0];
+    const keyrings = userState.KEYRING_CONTROLLER_STATE.keyrings;
+    if (!keyrings?.[0]?.accounts?.[0]) {
+      throw new Error(
+        'withUserProfileKeyRing: userState must contain at least one keyring with one account',
+      );
+    }
+    const firstAccountAddress = keyrings[0].accounts[0];
     const accountId = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
 
     merge(this.fixture.state.engine.backgroundState.AccountsController, {
@@ -647,11 +644,10 @@ class FixtureBuilder {
 
   /**
    * Sets the user profile snap unencrypted state in the fixture's background state.
-   * @param {object} userState - The user state to set.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param userState - The user state to set.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withUserProfileSnapUnencryptedState(userState: any) {
+  withUserProfileSnapUnencryptedState(userState: UserSnapState) {
     merge(
       this.fixture.state.engine.backgroundState.SnapController,
       userState.SNAPS_CONTROLLER_STATE,
@@ -662,11 +658,10 @@ class FixtureBuilder {
 
   /**
    * Sets the user profile snap permissions in the fixture's background state.
-   * @param {object} userState - The user state to set.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param userState - The user state to set.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  withUserProfileSnapPermissions(userState: any) {
+  withUserProfileSnapPermissions(userState: UserPermissionState) {
     merge(
       this.fixture.state.engine.backgroundState.PermissionController,
       userState.PERMISSION_CONTROLLER_STATE,
@@ -678,12 +673,11 @@ class FixtureBuilder {
    * Sets the tokens for all popular networks in the fixture's background state.
    * @param tokens - The tokens to set.
    * @param userState - The user state to set.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withTokensForAllPopularNetworks(
-    tokens: Record<string, unknown>[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    userState: any = null,
+    tokens: TokenInfo[],
+    userState: UserKeyringState | null = null,
   ) {
     // Get all popular network chain IDs using proper constants
     const popularChainIds = [
@@ -700,30 +694,27 @@ class FixtureBuilder {
 
     // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
     let allAccountAddresses: string[] = [];
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-    if (userState && userState.KEYRING_CONTROLLER_STATE) {
+    if (userState?.KEYRING_CONTROLLER_STATE) {
       // Extract all account addresses from the user state keyring
-      allAccountAddresses = userState.KEYRING_CONTROLLER_STATE.keyrings.flatMap(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (keyring: any) => keyring.accounts,
-      );
+      allAccountAddresses = (
+        userState.KEYRING_CONTROLLER_STATE.keyrings ?? []
+      ).flatMap((keyring) => keyring.accounts);
     } else {
       // Fallback to the hardcoded accounts
       const accountsData =
         MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
       allAccountAddresses = Object.values(accountsData).map(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (account: any) => account.address,
+        (account: { address: string }) => account.address,
       );
     }
 
     // Create tokens object for all accounts
-    const accountTokens: Record<string, Record<string, unknown>[]> = {};
+    const accountTokens: Record<string, TokenInfo[]> = {};
     allAccountAddresses.forEach((address) => {
       accountTokens[address] = tokens;
     });
 
-    const allTokens: Record<string, Record<string, unknown>> = {};
+    const allTokens: Record<string, Record<string, TokenInfo[]>> = {};
 
     // Add tokens to each popular network
     popularChainIds.forEach((chainId) => {
@@ -750,8 +741,7 @@ class FixtureBuilder {
       popularChainIds.forEach((chainId) => {
         tokenBalances[accountAddress][chainId] = {};
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        tokens.forEach((token: any, tokenIndex: number) => {
+        tokens.forEach((token, tokenIndex) => {
           // Generate realistic but varied balances for testing
           // Using different multipliers to create variety across accounts and tokens
           const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
@@ -778,7 +768,7 @@ class FixtureBuilder {
   /**
    * Set the fixture to an empty object for onboarding.
    * Uses JSON-based fixture for consistency.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withOnboardingFixture() {
     // Deep clone the JSON fixture to avoid mutations
@@ -808,7 +798,7 @@ class FixtureBuilder {
         {
           networkClientId: newNetworkClientId,
           url: `http://localhost:${port}`,
-          type: 'custom',
+          type: RpcEndpointType.Custom,
           name: 'Localhost',
         },
       ],
@@ -820,8 +810,12 @@ class FixtureBuilder {
     };
 
     // Add the new Ganache network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
-      ganacheNetworkConfig;
+    (
+      fixtures.NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >
+    )[chainId] = ganacheNetworkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
@@ -849,7 +843,7 @@ class FixtureBuilder {
         {
           networkClientId: newNetworkClientId,
           url: sepoliaConfig.rpcUrl,
-          type: 'custom',
+          type: RpcEndpointType.Custom,
           name: sepoliaConfig.nickname,
         },
       ],
@@ -860,9 +854,12 @@ class FixtureBuilder {
     };
 
     // Add the new Sepolia network configuration
-    fixtures.NetworkController.networkConfigurationsByChainId[
-      sepoliaConfig.chainId
-    ] = sepoliaNetworkConfig;
+    (
+      fixtures.NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >
+    )[sepoliaConfig.chainId] = sepoliaNetworkConfig;
 
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
@@ -892,7 +889,7 @@ class FixtureBuilder {
         {
           networkClientId: newNetworkClientId,
           url: `http://localhost:${getMockServerPortForFixture()}/proxy?url=https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
-          type: 'custom',
+          type: RpcEndpointType.Custom,
           name: 'Polygon Localhost',
         },
       ],
@@ -903,8 +900,12 @@ class FixtureBuilder {
       nativeCurrency: 'MATIC',
     };
 
-    fixtures.NetworkController.networkConfigurationsByChainId[chainId] =
-      polygonNetworkConfig;
+    (
+      fixtures.NetworkController.networkConfigurationsByChainId as Record<
+        string,
+        unknown
+      >
+    )[chainId] = polygonNetworkConfig;
 
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
@@ -940,7 +941,7 @@ class FixtureBuilder {
           {
             networkClientId: newNetworkClientId,
             url: rpcTarget,
-            type: 'custom',
+            type: RpcEndpointType.Custom,
             name: nickname,
           },
         ],
@@ -951,7 +952,8 @@ class FixtureBuilder {
       };
 
       // Add the new network configuration to the object
-      networkConfigurationsByChainId[chainId] = networkConfig;
+      (networkConfigurationsByChainId as Record<string, unknown>)[chainId] =
+        networkConfig;
     }
 
     // Assign networkConfigurationsByChainId object to NetworkController in fixtures
@@ -968,7 +970,7 @@ class FixtureBuilder {
    * Sets the privacy mode preferences in the fixture's asyncState.
    * This indicates that the user has agreed to MetaMetrics data collection.
    *
-   * @returns {FixtureBuilder} The current instance for method chaining.
+   * @returns The current instance for method chaining.
    */
   withPrivacyModePreferences(privacyMode: boolean) {
     merge(this.fixture.state.engine.backgroundState.PreferencesController, {
@@ -988,7 +990,12 @@ class FixtureBuilder {
     return this;
   }
 
-  withPreferencesController(data: Record<string, unknown>) {
+  /**
+   * Merges provided data into the background state of the PreferencesController.
+   * @param data - Data to merge into the PreferencesController's state.
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withPreferencesController(data: Partial<PreferencesState>) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
@@ -1000,8 +1007,9 @@ class FixtureBuilder {
    * Merges provided data into the KeyringController's state with a random imported account.
    * and also includes the default HD Key Tree fixture account.
    *
-   * @param {Object} account - ethers.Wallet object containing address and privateKey.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param address - The account address to import.
+   * @param privateKey - The private key for the imported account.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withRandomImportedAccountKeyringController(
     address: string,
@@ -1294,7 +1302,7 @@ class FixtureBuilder {
 
   /**
    * Enables profile syncing in the fixture.
-   * @returns {this} The current instance for method chaining.
+   * @returns The current instance for method chaining.
    */
   withKeyringControllerOfMultipleAccounts() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
@@ -1378,7 +1386,7 @@ class FixtureBuilder {
 
   /**
    * Enables profile syncing in the fixture.
-   * @returns {this} The current instance for method chaining.
+   * @returns The current instance for method chaining.
    */
   withProfileSyncingEnabled() {
     // Enable AuthenticationController - user must be signed in for profile syncing
@@ -1405,7 +1413,7 @@ class FixtureBuilder {
 
   /**
    * Disables profile syncing in the fixture.
-   * @returns {this} The current instance for method chaining.
+   * @returns The current instance for method chaining.
    */
   withProfileSyncingDisabled() {
     merge(this.fixture.state.engine.backgroundState.UserStorageController, {
@@ -1473,7 +1481,7 @@ class FixtureBuilder {
    * and enables the AnalyticsController.
    * This indicates that the user has agreed to MetaMetrics data collection.
    *
-   * @returns {this} The current instance for method chaining.
+   * @returns The current instance for method chaining.
    */
   withMetaMetricsOptIn() {
     if (!this.fixture.asyncState) {
@@ -1493,8 +1501,8 @@ class FixtureBuilder {
    * Adds multiple test dapp tabs to the browser state.
    * This is intended to be used for testing multiple dapps concurrently.
    * The dapps are opened in the order they are added.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   * @param {number} extraTabs - The amount of extra tabs to open.
+   * @returns - The FixtureBuilder instance for method chaining.
+   * @param extraTabs - The amount of extra tabs to open.
    */
   withExtraTabs(extraTabs = 1) {
     if (!this.fixture.state.browser.tabs) {
@@ -1515,12 +1523,13 @@ class FixtureBuilder {
 
   /**
    * Sets ETH as the primary currency for both currency rate controller and settings.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withETHAsPrimaryCurrency() {
     this.fixture.state.engine.backgroundState.CurrencyRateController.currentCurrency =
       'ETH';
-    this.fixture.state.settings.primaryCurrency = 'ETH';
+    (this.fixture.state.settings as Record<string, unknown>).primaryCurrency =
+      'ETH';
     return this;
   }
 
@@ -1552,7 +1561,7 @@ class FixtureBuilder {
    * Disables the seedphraseBackedUp flag in the user state.
    * This is useful for testing scenarios where the user hasn't backed up their seedphrase.
    *
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+   * @returns - The FixtureBuilder instance for method chaining
    */
   withSeedphraseBackedUpDisabled() {
     this.fixture.state.user.seedphraseBackedUp = false;
@@ -1565,10 +1574,10 @@ class FixtureBuilder {
    * with pre-defined grouping rules. Uses existing entropy sources (MOCK_ENTROPY_SOURCE),
    * real keyring types (KeyringTypes.hd, .qr, .simple), and actual Snap IDs from the codebase.
    * If custom wallets are provided, they completely replace the defaults.
-   * @param {object} data - Data to merge into the AccountTreeController's state. Optional.
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @param data - Data to merge into the AccountTreeController's state. Optional.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
-  withAccountTreeController(data: Record<string, unknown> = {}) {
+  withAccountTreeController(data: Partial<AccountTreeControllerState> = {}) {
     // Define a comprehensive default state following @metamask/account-tree-controller specs
     // Leverages existing keyring types, entropy sources (MOCK_ENTROPY_SOURCE*), and real Snap IDs from the codebase
     const defaultAccountTreeState = {
@@ -1832,7 +1841,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withSnapController(data: Record<string, unknown> = {}) {
+  withSnapController(data: Partial<SnapControllerState> = {}) {
     merge(this.fixture.state.engine.backgroundState.SnapController, data);
     return this;
   }
@@ -1936,7 +1945,7 @@ class FixtureBuilder {
    * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC, MUSD?]), and withTokenRates.
    *
    * @param options - mUSD conversion options (education seen, USDC/MUSD balances).
-   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   * @returns - The FixtureBuilder instance for method chaining.
    */
   withMusdConversion(options: MusdFixtureOptions) {
     const USDC_DECIMALS = 6;
@@ -2023,7 +2032,7 @@ class FixtureBuilder {
 
   /**
    * Build and return the fixture object.
-   * @returns {Object} - The built fixture object.
+   * @returns - The built fixture object.
    */
   build() {
     return this.fixture;

@@ -62,13 +62,11 @@ export async function createMusdFixture(
 
   return new FixtureBuilder()
     .withNetworkController({
-      providerConfig: {
-        chainId: CHAIN_IDS.MAINNET,
-        rpcUrl: `http://localhost:${rpcPort}`,
-        type: 'custom',
-        nickname: 'Ethereum Mainnet',
-        ticker: 'ETH',
-      },
+      chainId: CHAIN_IDS.MAINNET,
+      rpcUrl: `http://localhost:${rpcPort}`,
+      type: 'custom',
+      nickname: 'Ethereum Mainnet',
+      ticker: 'ETH',
     })
     .withNetworkEnabledMap({ eip155: { [CHAIN_IDS.MAINNET]: true } })
     .withMetaMetricsOptIn()

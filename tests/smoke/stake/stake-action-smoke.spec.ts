@@ -36,13 +36,11 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
           return new FixtureBuilder()
             .withPolygon()
             .withNetworkController({
-              providerConfig: {
-                chainId,
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Localhost',
-                ticker: 'ETH',
-              },
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
             })
             .build();
         },
