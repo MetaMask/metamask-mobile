@@ -166,7 +166,15 @@ export async function main(): Promise<void> {
   let fromRef: string | null;
   let spawnShell: boolean;
 
-  if (args.path !== null && args.branch !== null) {
+  const hasPath = args.path !== null;
+  const hasBranch = args.branch !== null;
+
+  if (hasPath !== hasBranch) {
+    const missing = hasPath ? '--branch' : '--path';
+    throw new Error(`${missing} is required when using CLI arguments. Provide both --path and --branch, or run without arguments for interactive mode.`);
+  }
+
+  if (hasPath && hasBranch) {
     pathArg = args.path;
     branchArg = args.branch;
     fromRef = args.from;

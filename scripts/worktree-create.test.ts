@@ -262,6 +262,20 @@ describe('worktree-create main flow', () => {
     expect(stderrCalls).toContain('worktrees.json not found');
   });
 
+  it('rejects when only --path is provided without --branch', async () => {
+    jest.mocked(existsSync).mockReturnValue(false);
+    process.argv = ['node', 'worktree-create.ts', '--path', '../wt-partial'];
+
+    await expect(main()).rejects.toThrow('--branch is required');
+  });
+
+  it('rejects when only --branch is provided without --path', async () => {
+    jest.mocked(existsSync).mockReturnValue(false);
+    process.argv = ['node', 'worktree-create.ts', '--branch', 'feat'];
+
+    await expect(main()).rejects.toThrow('--path is required');
+  });
+
   it('spawns interactive shell when --cd is passed', async () => {
     jest.mocked(existsSync).mockReturnValue(false);
 
