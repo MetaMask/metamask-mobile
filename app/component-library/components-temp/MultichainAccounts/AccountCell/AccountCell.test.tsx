@@ -256,7 +256,7 @@ describe('AccountCell', () => {
     });
 
     // The balance element should be present but showing masked characters
-    expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.BALANCE)).toBeOnTheScreen();
     // The actual balance text should not be visible
     expect(queryByText('$100.00')).toBeNull();
   });
@@ -266,7 +266,16 @@ describe('AccountCell', () => {
     mockBalance.currency = 'usd';
     const { getByText } = renderAccountCell({ privacyMode: false });
 
-    expect(getByText('$100.00')).toBeTruthy();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+  });
+
+  it('shows nothing when privacyMode is true and there is no balance', () => {
+    mockBalance.value = undefined as unknown as number;
+    mockBalance.currency = 'usd';
+    const { queryByText } = renderAccountCell({ privacyMode: true });
+
+    // No masked dots when there is no balance to hide
+    expect(queryByText('••••••••••••')).toBeNull();
   });
 
   it('displays correct test IDs for all elements', () => {
