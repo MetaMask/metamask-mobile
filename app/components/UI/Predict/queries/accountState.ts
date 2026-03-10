@@ -33,7 +33,11 @@ async function ensurePolygonNetwork(): Promise<void> {
   const { NetworkController } = Engine.context;
 
   if (NetworkController.state.networkConfigurationsByChainId[chainId]) {
-    enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
+    try {
+      enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
+    } catch (_enableError) {
+      // Swallow so getAccountState can still proceed.
+    }
     return;
   }
 
