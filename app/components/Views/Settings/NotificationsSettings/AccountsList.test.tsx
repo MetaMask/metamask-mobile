@@ -245,9 +245,9 @@ describe('AccountList', () => {
     );
 
     // Assert - Items exist
-    expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeTruthy();
-    expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeTruthy();
-    expect(getByTestId(ACCOUNT_3_TEST_ID.item)).toBeTruthy();
+    expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeOnTheScreen();
+    expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeOnTheScreen();
+    expect(getByTestId(ACCOUNT_3_TEST_ID.item)).toBeOnTheScreen();
 
     // Assert - Item Loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemLoading)).toBeTruthy();
