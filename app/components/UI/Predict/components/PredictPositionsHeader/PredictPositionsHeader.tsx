@@ -35,6 +35,7 @@ import {
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectSelectedAccountGroupId } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -79,6 +80,8 @@ const PredictPositionsHeader = forwardRef<
     isLoading: isBalanceLoading,
     error: balanceError,
   } = usePredictBalance();
+  // Subscribe to account group changes so the component re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const evmAccount = getEvmAccountFromSelectedAccountGroup();
   const selectedAddress = evmAccount?.address ?? '0x0';
   const { isDepositPending } = usePredictDeposit();
@@ -185,7 +188,7 @@ const PredictPositionsHeader = forwardRef<
         >
           <SensitiveText
             variant={ComponentTextVariant.BodyMD}
-            color={ComponentTextColor.Inverse}
+            color="white"
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}
           >

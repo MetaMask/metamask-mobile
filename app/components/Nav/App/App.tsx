@@ -127,6 +127,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -171,10 +172,6 @@ const clearStackNavigatorOptions = {
 };
 
 const Stack = createStackNavigator();
-
-const AccountAlreadyExists = () => <AccountStatus type="found" />;
-
-const AccountNotFound = () => <AccountStatus type="not_exist" />;
 
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
 
@@ -267,12 +264,14 @@ const OnboardingNav = () => (
     />
     <Stack.Screen
       name="AccountAlreadyExists"
-      component={AccountAlreadyExists}
+      component={AccountStatus}
+      initialParams={{ type: 'found' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
       name="AccountNotFound"
-      component={AccountNotFound}
+      component={AccountStatus}
+      initialParams={{ type: 'not_exist' }}
       options={{ headerShown: false }}
     />
     <Stack.Screen
@@ -1154,6 +1153,8 @@ const App: React.FC = () => {
 
   return (
     <WebSocketHealthToastProvider>
+      {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
+      <RampsBootstrap />
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
