@@ -237,7 +237,7 @@ class WalletView {
     // Wait for the token list to finish loading/reordering before tapping.
     // New tokens appearing asynchronously can shift positions mid-tap.
     await Utilities.waitForElementToStopMoving(elem, {
-      timeout: 5000,
+      timeout: 10000,
       interval: 500,
       stableCount: 6,
     });

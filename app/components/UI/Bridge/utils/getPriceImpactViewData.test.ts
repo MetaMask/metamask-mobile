@@ -1,22 +1,31 @@
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../../component-library/components/Texts/Text';
+import {
+  IconColor,
+  IconName,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { getPriceImpactViewData } from './getPriceImpactViewData';
 
 const DEFAULT_THRESHOLD = { warning: 0.05, error: 0.25 };
 
 const ALTERNATIVE = {
-  textColor: TextColor.Alternative,
+  textColor: TextColor.TextAlternative,
   icon: undefined,
+  title: 'bridge.price_impact_info_title',
+  description: 'bridge.price_impact_info_description',
 };
 
 const WARNING = {
-  textColor: TextColor.Warning,
-  icon: { name: IconName.Warning, color: TextColor.Warning },
+  textColor: TextColor.WarningDefault,
+  icon: { name: IconName.Warning, color: IconColor.WarningDefault },
+  title: 'bridge.price_impact_warning_title',
+  description: 'bridge.price_impact_warning_description',
 };
 
 const DANGER = {
-  textColor: TextColor.Error,
-  icon: { name: IconName.Danger, color: TextColor.Error },
+  textColor: TextColor.ErrorDefault,
+  icon: { name: IconName.Danger, color: IconColor.ErrorDefault },
+  title: 'bridge.price_impact_error_title',
+  description: 'bridge.price_impact_error_description',
 };
 
 describe('getPriceImpactViewData', () => {
