@@ -86,10 +86,14 @@ describe('SectionHeader', () => {
     it('calls onPress when the header is pressed', () => {
       const onPress = jest.fn();
       const { getByTestId } = render(
-        <SectionHeader title="Tokens" onPress={onPress} />,
+        <SectionHeader
+          title="Tokens"
+          onPress={onPress}
+          testID={CONTAINER_TEST_ID}
+        />,
       );
 
-      fireEvent.press(getByTestId(BUTTON_ICON_TEST_ID));
+      fireEvent.press(getByTestId(CONTAINER_TEST_ID));
 
       expect(onPress).toHaveBeenCalledTimes(1);
     });

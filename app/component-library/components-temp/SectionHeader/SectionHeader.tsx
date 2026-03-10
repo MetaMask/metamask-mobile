@@ -61,49 +61,60 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     style,
   ]);
 
-  return (
-    <View testID={onPress ? undefined : testID} style={containerStyle}>
+  const content = (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+    >
+      {/* Left side: Title + optional endAccessory */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+        gap={1}
       >
-        {/* Left side: Title + optional endAccessory */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          {typeof title === 'string' ? (
-            <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-              {title}
-            </Text>
-          ) : (
-            title
-          )}
-          {endAccessory}
-        </Box>
-
-        {/* Right side: Icon in circle — touch handled by parent TouchableOpacity */}
-        {onPress && (
-          <TouchableOpacity
-            testID={testID}
-            onPress={onPress}
-            accessibilityRole="button"
-            accessibilityLabel={typeof title === 'string' ? title : undefined}
-          >
-            <View
-              pointerEvents="none"
-              style={tw.style(
-                'w-8 h-8 rounded-full items-center justify-center',
-                showEndIconBackground && 'bg-background-muted',
-              )}
-            >
-              <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
-            </View>
-          </TouchableOpacity>
+        {typeof title === 'string' ? (
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {title}
+          </Text>
+        ) : (
+          title
         )}
+        {endAccessory}
       </Box>
+
+      {/* Right side: Icon in circle — visual indicator only, touch handled by parent */}
+      {onPress && (
+        <View
+          pointerEvents="none"
+          style={tw.style(
+            'w-8 h-8 rounded-full items-center justify-center',
+            showEndIconBackground && 'bg-background-muted',
+          )}
+        >
+          <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
+        </View>
+      )}
+    </Box>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        testID={testID}
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={typeof title === 'string' ? title : undefined}
+        style={containerStyle}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View testID={testID} style={containerStyle}>
+      {content}
     </View>
   );
 };
