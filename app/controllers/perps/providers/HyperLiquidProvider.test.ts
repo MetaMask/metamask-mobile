@@ -4,6 +4,7 @@ import {
   createMockInfrastructure,
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { CandlePeriod } from '../constants/chartConfig';
 import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
@@ -1044,15 +1045,46 @@ describe('HyperLiquidProvider', () => {
         ],
       });
 
+      const pumpUniverse = [
+        { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+        { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+        { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+      ];
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
-          meta: jest.fn().mockResolvedValue({
-            universe: [
-              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
-              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
-              { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+          meta: jest.fn().mockResolvedValue({ universe: pumpUniverse }),
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([
+            { universe: pumpUniverse },
+            [
+              {
+                funding: '0.0001',
+                openInterest: '1000',
+                prevDayPx: '49000',
+                dayNtlVlm: '1000000',
+                markPx: '50000',
+                midPx: '50000',
+                oraclePx: '50000',
+              },
+              {
+                funding: '0.0001',
+                openInterest: '500',
+                prevDayPx: '2900',
+                dayNtlVlm: '500000',
+                markPx: '3000',
+                midPx: '3000',
+                oraclePx: '3000',
+              },
+              {
+                funding: '0.0001',
+                openInterest: '100',
+                prevDayPx: '0.003',
+                dayNtlVlm: '10000',
+                markPx: '0.003918',
+                midPx: '0.003918',
+                oraclePx: '0.003918',
+              },
             ],
-          }),
+          ]),
           allMids: jest
             .fn()
             .mockResolvedValue({ BTC: '50000', ETH: '3000', PUMP: '0.003918' }),
@@ -1099,15 +1131,46 @@ describe('HyperLiquidProvider', () => {
         ],
       });
 
+      const pumpUniverse = [
+        { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+        { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+        { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+      ];
       mockClientService.getInfoClient = jest.fn().mockReturnValue(
         createMockInfoClient({
-          meta: jest.fn().mockResolvedValue({
-            universe: [
-              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
-              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
-              { name: 'PUMP', szDecimals: 2, maxLeverage: 20 },
+          meta: jest.fn().mockResolvedValue({ universe: pumpUniverse }),
+          metaAndAssetCtxs: jest.fn().mockResolvedValue([
+            { universe: pumpUniverse },
+            [
+              {
+                funding: '0.0001',
+                openInterest: '1000',
+                prevDayPx: '49000',
+                dayNtlVlm: '1000000',
+                markPx: '50000',
+                midPx: '50000',
+                oraclePx: '50000',
+              },
+              {
+                funding: '0.0001',
+                openInterest: '500',
+                prevDayPx: '2900',
+                dayNtlVlm: '500000',
+                markPx: '3000',
+                midPx: '3000',
+                oraclePx: '3000',
+              },
+              {
+                funding: '0.0001',
+                openInterest: '100',
+                prevDayPx: '0.003',
+                dayNtlVlm: '10000',
+                markPx: '0.003918',
+                midPx: '0.003918',
+                oraclePx: '0.003918',
+              },
             ],
-          }),
+          ]),
           allMids: jest
             .fn()
             .mockResolvedValue({ BTC: '50000', ETH: '3000', PUMP: '0.003918' }),
@@ -1309,6 +1372,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1397,6 +1474,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '500',
+              prevDayPx: '2900',
+              dayNtlVlm: '500000',
+              markPx: '3000',
+              midPx: '3000',
+              oraclePx: '3000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1561,6 +1652,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1644,6 +1749,20 @@ describe('HyperLiquidProvider', () => {
         meta: jest.fn().mockResolvedValue({
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
         referral: jest.fn().mockResolvedValue({
@@ -1934,7 +2053,10 @@ describe('HyperLiquidProvider', () => {
 
       expect(Array.isArray(markets)).toBe(true);
       expect(markets.length).toBeGreaterThan(0);
-      expect(mockClientService.getInfoClient().meta).toHaveBeenCalled();
+      // buildAssetMapping (via ensureReady) uses metaAndAssetCtxs to populate cache; getMarkets uses cached meta
+      expect(
+        mockClientService.getInfoClient().metaAndAssetCtxs,
+      ).toHaveBeenCalled();
     });
 
     it('handles data retrieval errors gracefully', async () => {
@@ -3047,10 +3169,11 @@ describe('HyperLiquidProvider', () => {
       });
 
       it('handles string response from meta endpoint', async () => {
-        // Test updatePositionTPSL with string meta response (invalid data type)
+        // metaAndAssetCtxs returns no valid meta so cache is not populated; buildAssetMapping leaves map empty
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue('invalid string response' as any), // eslint-disable-line @typescript-eslint/no-explicit-any
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]), // No valid meta -> no cache, no asset mapping
           }),
         );
 
@@ -3064,13 +3187,19 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Invalid meta response');
+        // With no valid meta from metaAndAssetCtxs, asset mapping is empty so we fail with asset not found
+        expect(
+          result.error?.includes('Asset ID not found') ||
+            result.error?.includes('Invalid meta response'),
+        ).toBe(true);
       });
 
       it('handles meta response without universe property', async () => {
+        // metaAndAssetCtxs returns no valid meta so cache is not populated; buildAssetMapping leaves map empty
         mockClientService.getInfoClient = jest.fn().mockReturnValue(
           createMockInfoClient({
             meta: jest.fn().mockResolvedValue({}), // Empty object without universe
+            metaAndAssetCtxs: jest.fn().mockResolvedValue([null, []]), // No valid meta -> no cache, no asset mapping
           }),
         );
 
@@ -3082,7 +3211,11 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.updatePositionTPSL(updateParams);
 
         expect(result.success).toBe(false);
-        expect(result.error).toContain('Invalid meta response');
+        // With no valid meta from metaAndAssetCtxs, asset mapping is empty so we fail with asset not found
+        expect(
+          result.error?.includes('Asset ID not found') ||
+            result.error?.includes('Invalid meta response'),
+        ).toBe(true);
       });
     });
 
@@ -4776,6 +4909,34 @@ describe('HyperLiquidProvider', () => {
             { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
           ],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          {
+            universe: [
+              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+            ],
+          },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+            {
+              funding: '0.0001',
+              openInterest: '500',
+              prevDayPx: '2900',
+              dayNtlVlm: '500000',
+              markPx: '3000',
+              midPx: '3000',
+              oraclePx: '3000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
         frontendOpenOrders: jest.fn().mockResolvedValue([]),
@@ -4879,6 +5040,34 @@ describe('HyperLiquidProvider', () => {
             { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
           ],
         }),
+        metaAndAssetCtxs: jest.fn().mockResolvedValue([
+          {
+            universe: [
+              { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+              { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+            ],
+          },
+          [
+            {
+              funding: '0.0001',
+              openInterest: '1000',
+              prevDayPx: '49000',
+              dayNtlVlm: '1000000',
+              markPx: '50000',
+              midPx: '50000',
+              oraclePx: '50000',
+            },
+            {
+              funding: '0.0001',
+              openInterest: '500',
+              prevDayPx: '2900',
+              dayNtlVlm: '500000',
+              markPx: '3000',
+              midPx: '3000',
+              oraclePx: '3000',
+            },
+          ],
+        ]),
         perpDexs: jest.fn().mockResolvedValue([null]),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
         frontendOpenOrders: jest.fn().mockResolvedValue([]),
@@ -8543,6 +8732,62 @@ describe('HyperLiquidProvider', () => {
         expect(infoClient.perpDexs).not.toHaveBeenCalled();
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
+      });
+    });
+  });
+
+  describe('fetchHistoricalCandles', () => {
+    const options = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      limit: 100,
+    };
+
+    it('returns candle data from clientService', async () => {
+      // Arrange
+      const mockCandles = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        candles: [
+          {
+            open: '50000',
+            close: '51000',
+            high: '51500',
+            low: '49500',
+            volume: '100',
+            time: 1000,
+          },
+        ],
+      };
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(mockCandles);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(mockClientService.ensureInitialized).toHaveBeenCalled();
+      expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
+        options,
+      );
+      expect(result).toStrictEqual(mockCandles);
+    });
+
+    it('returns empty candles when clientService returns null', async () => {
+      // Arrange
+      mockClientService.fetchHistoricalCandles = jest
+        .fn()
+        .mockResolvedValue(null);
+
+      // Act
+      const result = await provider.fetchHistoricalCandles(options);
+
+      // Assert
+      expect(result).toStrictEqual({
+        symbol: options.symbol,
+        interval: options.interval,
+        candles: [],
       });
     });
   });

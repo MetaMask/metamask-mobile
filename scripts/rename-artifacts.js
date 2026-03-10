@@ -132,6 +132,16 @@ function renameAndroid() {
     }
   }
 
+  // Expose sourcemap directory for all non-Debug builds (prod, RC, beta, test, e2e, exp)
+  if (buildConfig === 'release') {
+    const sourcemapDir = path.join(
+      __dirname,
+      `../android/app/build/generated/sourcemaps/react/${appFlavor}Release`,
+    );
+    setGithubOutput('android_sourcemap_dir', sourcemapDir);
+    console.log(`✅ Sourcemap dir: ${sourcemapDir}`);
+  }
+
   // List final artifacts
   console.log('📦 Final artifacts:');
   const outputDir = path.join(__dirname, '../android/app/build/outputs');
@@ -228,6 +238,13 @@ function renameIos() {
     }
   } else {
     console.log(`⚠️  Binary not found: ${oldBinary}`);
+  }
+
+  // Expose sourcemap path for device builds (mirrors Bitrise's Deploy Source Map step)
+  if (!isSimBuild) {
+    const sourcemapPath = path.join(__dirname, '../sourcemaps/ios/index.js.map');
+    setGithubOutput('ios_sourcemap_path', sourcemapPath);
+    console.log(`✅ Sourcemap path: ${sourcemapPath}`);
   }
 
   // Rename xcarchive (only for device builds)

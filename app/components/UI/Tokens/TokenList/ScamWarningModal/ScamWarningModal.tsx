@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Modal from 'react-native-modal';
 import { useTheme } from '../../../../../util/theme';
 import Box from '../../../Ramp/Aggregator/components/Box';
@@ -10,14 +10,12 @@ import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
-import {
-  selectEvmTicker,
-  selectProviderConfig,
-} from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Colors } from '../../../../../util/theme/models';
+import type { Hex } from '@metamask/utils';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -50,9 +48,10 @@ const createStyles = (colors: Colors) =>
       marginTop: 4,
     },
   });
+
 interface ScamWarningModalProps {
-  showScamWarningModal: boolean;
-  setShowScamWarningModal: (arg: boolean) => void;
+  showScamWarningModal: string | null;
+  setShowScamWarningModal: (chainId: string | null) => void;
 }
 
 export const ScamWarningModal = ({
@@ -63,21 +62,38 @@ export const ScamWarningModal = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const ticker = useSelector(selectEvmTicker);
-  const { rpcUrl } = useSelector(selectProviderConfig);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+
+  const networkConfig = useMemo(() => {
+    if (!showScamWarningModal) return undefined;
+    return networkConfigurations?.[showScamWarningModal as Hex];
+  }, [showScamWarningModal, networkConfigurations]);
+
+  const ticker = networkConfig?.nativeCurrency;
 
   const goToNetworkEdit = () => {
+    if (!networkConfig) return;
+    const defaultEndpoint =
+      networkConfig.rpcEndpoints[networkConfig.defaultRpcEndpointIndex];
+    if (!defaultEndpoint) return;
+
+    const networkIdentifier = defaultEndpoint.networkClientId;
+
+    setShowScamWarningModal(null);
     navigation.navigate(Routes.ADD_NETWORK, {
-      network: rpcUrl,
+      network: networkIdentifier,
+      shouldNetworkSwitchPopToWallet: false,
+      shouldShowPopularNetworks: false,
     });
-    setShowScamWarningModal(false);
   };
 
   return (
     <Modal
-      isVisible={showScamWarningModal}
-      onBackdropPress={() => setShowScamWarningModal(false)}
-      onSwipeComplete={() => setShowScamWarningModal(false)}
+      isVisible={showScamWarningModal !== null}
+      onBackdropPress={() => setShowScamWarningModal(null)}
+      onSwipeComplete={() => setShowScamWarningModal(null)}
       swipeDirection="down"
       propagateSwipe
       avoidKeyboard
@@ -92,7 +108,7 @@ export const ScamWarningModal = ({
         <Box style={styles.boxContent}>
           <Text>
             {strings('wallet.network_not_matching')}
-            {` ${ticker},`}
+            {` ${ticker ?? ''},`}
             {strings('wallet.target_scam_network')}
           </Text>
         </Box>

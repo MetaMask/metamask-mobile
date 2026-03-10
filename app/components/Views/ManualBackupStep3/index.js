@@ -2,12 +2,10 @@ import React, { PureComponent } from 'react';
 import { Alert, BackHandler, View, StyleSheet, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
-import { showAlert } from '../../../actions/alert';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Confetti from '../../UI/Confetti';
@@ -27,42 +25,8 @@ const createStyles = (colors) =>
       flex: 1,
       marginTop: 16,
     },
-    actionView: {
-      paddingTop: 40,
-    },
-    wrapper: {
-      flex: 1,
-      paddingHorizontal: 50,
-    },
     onBoardingWrapper: {
       paddingHorizontal: 20,
-    },
-    congratulations: {
-      fontSize: Device.isMediumDevice() ? 28 : 32,
-      marginBottom: 12,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
-      ...fontStyles.bold,
-    },
-    baseText: {
-      fontSize: 16,
-      color: colors.text.default,
-      textAlign: 'center',
-      ...fontStyles.normal,
-    },
-    successText: {
-      marginBottom: 32,
-    },
-    hintText: {
-      marginBottom: 26,
-      color: colors.primary.default,
-    },
-    learnText: {
-      color: colors.primary.default,
-    },
-    recoverText: {
-      marginBottom: 26,
     },
   });
 
@@ -130,15 +94,6 @@ class ManualBackupStep3 extends PureComponent {
   toggleHint = () => {
     this.setState((state) => ({ showHint: !state.showHint }));
   };
-
-  learnMore = () =>
-    this.props.navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: 'https://support.metamask.io',
-        title: strings('drawer.metamask_support'),
-      },
-    });
 
   isHintSeedPhrase = (hintText) => {
     const words = this.props.route.params?.words;
@@ -220,7 +175,6 @@ class ManualBackupStep3 extends PureComponent {
 ManualBackupStep3.contextType = ThemeContext;
 
 const mapDispatchToProps = (dispatch) => ({
-  showAlert: (config) => dispatch(showAlert(config)),
   saveOnboardingEvent: (...eventArgs) => dispatch(saveEvent(eventArgs)),
 });
 

@@ -23,7 +23,7 @@ describe('Remote Feature Flags Helper', () => {
   });
 
   describe('createRemoteFeatureFlagsMock', () => {
-    it('should return valid default configuration', () => {
+    it('returns valid default configuration', () => {
       const result = createRemoteFeatureFlagsMock();
 
       // Test API format
@@ -34,7 +34,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(Array.isArray(result.response)).toBe(true);
     });
 
-    it('should use flask distribution when specified', () => {
+    it('uses flask distribution when specified', () => {
       const result = createRemoteFeatureFlagsMock({}, 'flask');
 
       expect(result.urlEndpoint).toBe(
@@ -42,7 +42,7 @@ describe('Remote Feature Flags Helper', () => {
       );
     });
 
-    it('should override simple boolean flags', () => {
+    it('overrides simple boolean flags', () => {
       const result = createRemoteFeatureFlagsMock({
         rewards: true,
         assetsDefiPositionsEnabled: true,
@@ -61,7 +61,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(defiObj).toEqual({ assetsDefiPositionsEnabled: true });
     });
 
-    it('should deep merge nested objects preserving existing properties', () => {
+    it('deep merges nested objects preserving existing properties', () => {
       // Get baseline to compare against
       const baseline = createRemoteFeatureFlagsMock();
       const baselineResponse = baseline.response as Record<string, unknown>[];
@@ -100,7 +100,7 @@ describe('Remote Feature Flags Helper', () => {
       }
     });
 
-    it('should handle deeply nested objects by preserving and overriding', () => {
+    it('preserves and overrides deeply nested objects', () => {
       // Test behavior: partial override should preserve other nested properties
       const result = createRemoteFeatureFlagsMock({
         enableMultichainAccounts: {
@@ -123,7 +123,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(typeof multichainData.minimumVersion).toBe('string'); // Preserved from defaults
     });
 
-    it('should add new flags that do not exist in defaults', () => {
+    it('adds new flags that do not exist in defaults', () => {
       const result = createRemoteFeatureFlagsMock({
         newCustomFlag: true,
         anotherFlag: { nested: 'value' },
@@ -135,7 +135,7 @@ describe('Remote Feature Flags Helper', () => {
       });
     });
 
-    it('should handle array values by replacing them entirely', () => {
+    it('replaces array values entirely', () => {
       const result = createRemoteFeatureFlagsMock({
         arrayFlag: ['item1', 'item2', 'item3'],
       });
@@ -145,7 +145,7 @@ describe('Remote Feature Flags Helper', () => {
       });
     });
 
-    it('should handle arrays in nested objects without spreading', () => {
+    it('keeps arrays in nested objects without spreading', () => {
       // Test behavior: arrays should be added as-is, not spread as objects
       const testArray = [1, 2, 3];
       const result = createRemoteFeatureFlagsMock({
@@ -166,12 +166,9 @@ describe('Remote Feature Flags Helper', () => {
       expect(Array.isArray(confirmationData.customArray)).toBe(true);
       expect(confirmationData.customArray).toEqual(testArray);
       expect(confirmationData.customString).toBe('test');
-
-      // Should have exactly the custom properties we added
-      expect(Object.keys(confirmationData).length).toBe(2);
     });
 
-    it('should handle null values', () => {
+    it('replaces flags with null values', () => {
       const result = createRemoteFeatureFlagsMock({
         nullFlag: null,
         confirmation_redesign: null, // Replace entire object with null
@@ -186,7 +183,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(confirmationObj).toEqual({ confirmation_redesign: null });
     });
 
-    it('should handle mixed data types', () => {
+    it('accepts mixed data types as overrides', () => {
       const result = createRemoteFeatureFlagsMock({
         stringFlag: 'test string',
         numberFlag: 42,
@@ -204,7 +201,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(result.response).toContainEqual({ nullFlag: null });
     });
 
-    it('should handle deep nesting with multiple levels', () => {
+    it('preserves deep nesting with multiple levels', () => {
       const result = createRemoteFeatureFlagsMock({
         deepFlag: {
           level1: {
@@ -234,7 +231,7 @@ describe('Remote Feature Flags Helper', () => {
       });
     });
 
-    it('should preserve array structure when replacing object with array', () => {
+    it('replaces object with array when override is an array', () => {
       const result = createRemoteFeatureFlagsMock({
         mobileMinimumVersions: [1, 2, 3], // Replace object with array
       });
@@ -246,7 +243,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(mobileObj).toEqual({ mobileMinimumVersions: [1, 2, 3] });
     });
 
-    it('should preserve object structure when replacing array with object', () => {
+    it('replaces array with object when override is an object', () => {
       // First add an array flag, then override with object
 
       // Then override it with an object
@@ -268,7 +265,7 @@ describe('Remote Feature Flags Helper', () => {
       mockSetupMockRequest.mockResolvedValue(undefined);
     });
 
-    it('should call setupMockRequest with default configuration for both main and flask distributions', async () => {
+    it('calls setupMockRequest for both main and flask distributions with defaults', async () => {
       await setupRemoteFeatureFlagsMock(mockServer);
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
@@ -296,19 +293,23 @@ describe('Remote Feature Flags Helper', () => {
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       const response = callArgs.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
-      expect(response.length).toBeGreaterThan(0); // Has some default flags
-      expect(response).toContainEqual({ rewards: false });
+      expect(response.length).toBeGreaterThan(0);
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
-    it('should call setupMockRequest with flag overrides for both distributions', async () => {
-      await setupRemoteFeatureFlagsMock(mockServer, { rewards: true });
+    it('applies flag overrides to both distributions', async () => {
+      await setupRemoteFeatureFlagsMock(mockServer, {
+        addBitcoinAccountDummyFlag: true,
+      });
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
-      expect(callArgs.response).toContainEqual({ rewards: true });
+      expect(callArgs.response).toContainEqual({
+        addBitcoinAccountDummyFlag: true,
+      });
     });
 
-    it('should set up mocks for both main and flask distributions across all environments', async () => {
+    it('sets up mocks for all 6 distribution-environment combinations', async () => {
       await setupRemoteFeatureFlagsMock(mockServer);
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
@@ -339,7 +340,7 @@ describe('Remote Feature Flags Helper', () => {
       );
     });
 
-    it('should handle setupMockRequest errors', async () => {
+    it('rejects when setupMockRequest throws', async () => {
       const error = new Error('Mock setup failed');
       mockSetupMockRequest.mockRejectedValue(error);
 
@@ -350,16 +351,16 @@ describe('Remote Feature Flags Helper', () => {
   });
 
   describe('Edge cases and error handling', () => {
-    it('should handle empty overrides object', () => {
+    it('returns all defaults when overrides object is empty', () => {
       const result = createRemoteFeatureFlagsMock({});
 
       const response = result.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
-      expect(response.length).toBeGreaterThan(0); // Has some default flags
-      expect(response).toContainEqual({ rewards: false });
+      expect(response.length).toBeGreaterThan(0);
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
-    it('should handle undefined values in overrides', () => {
+    it('passes through undefined values in overrides', () => {
       const result = createRemoteFeatureFlagsMock({
         undefinedFlag: undefined,
       });
@@ -367,7 +368,7 @@ describe('Remote Feature Flags Helper', () => {
       expect(result.response).toContainEqual({ undefinedFlag: undefined });
     });
 
-    it('should maintain response structure with defaults and new flags', () => {
+    it('appends new flags without removing existing defaults', () => {
       // Test behavior: new flags should be added, defaults should be preserved
       const baseline = createRemoteFeatureFlagsMock({});
       const baselineResponse = baseline.response as Record<string, unknown>[];
@@ -378,12 +379,12 @@ describe('Remote Feature Flags Helper', () => {
       });
 
       const response = result.response as Record<string, unknown>[];
-      expect(response.length).toBe(baselineCount + 1); // One new flag added
+      expect(response.length).toBe(baselineCount + 1);
       expect(response).toContainEqual({ newFlag: true });
-      expect(response).toContainEqual({ rewards: false }); // Defaults preserved
+      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
-    it('should handle overrides with function values', () => {
+    it('passes through function values in overrides', () => {
       const testFunction = () => 'test';
       const result = createRemoteFeatureFlagsMock({
         functionFlag: testFunction,

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsOrderTypeBottomSheet from './PerpsOrderTypeBottomSheet';
 import { type OrderType } from '@metamask/perps-controller';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
@@ -14,16 +15,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: '#000000', muted: '#666666' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0066cc', muted: '#cce0ff' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({
@@ -36,13 +33,13 @@ jest.mock('./PerpsOrderTypeBottomSheet.styles', () => ({
       paddingHorizontal: 16,
       borderRadius: 12,
       marginBottom: 16,
-      backgroundColor: '#f0f0f0',
+      backgroundColor: mockTheme.colors.background.alternative,
       borderWidth: 1,
-      borderColor: '#e1e1e1',
+      borderColor: mockTheme.colors.border.muted,
     },
     optionSelected: {
-      backgroundColor: '#cce0ff',
-      borderColor: '#0066cc',
+      backgroundColor: 'rgb(204, 224, 255)',
+      borderColor: mockTheme.colors.primary.default,
     },
     optionHeader: {
       flexDirection: 'row',

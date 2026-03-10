@@ -404,7 +404,11 @@ export const useRewardOptinSummary = (): useRewardOptinSummaryResult => {
     fetchOptInStatus();
   }, [fetchOptInStatus]);
 
-  useInvalidateByRewardEvents(['RewardsController:accountLinked'], refresh);
+  const invalidateEvents = useMemo(
+    () => ['RewardsController:accountLinked' as const],
+    [],
+  );
+  useInvalidateByRewardEvents(invalidateEvents, refresh);
 
   // Fetch opt-in status when accounts change or enabled changes
   useEffect(() => {

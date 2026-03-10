@@ -62,13 +62,23 @@ import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
+import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
+import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
+import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
+import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -113,6 +123,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
+    bannerWrapper: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    } as ViewStyle,
   });
 };
 
@@ -156,6 +170,8 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  inLockPeriodBalance?: string;
+  readyForWithdrawalBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
@@ -193,6 +209,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  inLockPeriodBalance,
+  readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -299,22 +317,27 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
-    if (!onMarketInsightsDisplayResolved) {
-      return;
-    }
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved(false);
+      onMarketInsightsDisplayResolved?.(false);
       return;
     }
     if (isMarketInsightsLoading) {
       return;
     }
-    onMarketInsightsDisplayResolved(Boolean(marketInsightsReport));
+    if (!marketInsightsReport && marketInsightsCaip19Id) {
+      // No report available — cancel the orphaned trace that was started during render
+      endTrace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
+    marketInsightsCaip19Id,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered
@@ -333,6 +356,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       id: marketInsightsCaip19Id,
     });
   }
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -528,6 +555,45 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 hideTitleHeading
                 hidePercentageChange
               />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && readyForWithdrawalBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakedBanner amount={readyForWithdrawalBalance} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakingBanner amount={inLockPeriodBalance} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronStakingButtons asset={stakedTrxAsset} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && !stakedTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronStakingCta
+                  asset={token}
+                  aprText={tronApyPercent ?? undefined}
+                />
+              </View>
             )
             ///: END:ONLY_INCLUDE_IF
           }

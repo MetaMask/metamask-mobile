@@ -8,6 +8,7 @@ import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CandlePeriod } from './constants/chartConfig';
@@ -23,6 +24,7 @@ import {
   PROVIDER_CONFIG,
 } from './constants/perpsConfig';
 import type { SortOptionId } from './constants/perpsConfig';
+import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { AggregatedPerpsProvider } from './providers/AggregatedPerpsProvider';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
@@ -562,142 +564,7 @@ export type PerpsControllerEvents = ControllerStateChangeEvent<
  */
 export type PerpsControllerActions =
   | ControllerGetStateAction<'PerpsController', PerpsControllerState>
-  | {
-      type: 'PerpsController:placeOrder';
-      handler: PerpsController['placeOrder'];
-    }
-  | {
-      type: 'PerpsController:editOrder';
-      handler: PerpsController['editOrder'];
-    }
-  | {
-      type: 'PerpsController:cancelOrder';
-      handler: PerpsController['cancelOrder'];
-    }
-  | {
-      type: 'PerpsController:cancelOrders';
-      handler: PerpsController['cancelOrders'];
-    }
-  | {
-      type: 'PerpsController:closePosition';
-      handler: PerpsController['closePosition'];
-    }
-  | {
-      type: 'PerpsController:closePositions';
-      handler: PerpsController['closePositions'];
-    }
-  | {
-      type: 'PerpsController:withdraw';
-      handler: PerpsController['withdraw'];
-    }
-  | {
-      type: 'PerpsController:getPositions';
-      handler: PerpsController['getPositions'];
-    }
-  | {
-      type: 'PerpsController:getOrderFills';
-      handler: PerpsController['getOrderFills'];
-    }
-  | {
-      type: 'PerpsController:getOrders';
-      handler: PerpsController['getOrders'];
-    }
-  | {
-      type: 'PerpsController:getOpenOrders';
-      handler: PerpsController['getOpenOrders'];
-    }
-  | {
-      type: 'PerpsController:getFunding';
-      handler: PerpsController['getFunding'];
-    }
-  | {
-      type: 'PerpsController:getAccountState';
-      handler: PerpsController['getAccountState'];
-    }
-  | {
-      type: 'PerpsController:getMarkets';
-      handler: PerpsController['getMarkets'];
-    }
-  | {
-      type: 'PerpsController:refreshEligibility';
-      handler: PerpsController['refreshEligibility'];
-    }
-  | {
-      type: 'PerpsController:toggleTestnet';
-      handler: PerpsController['toggleTestnet'];
-    }
-  | {
-      type: 'PerpsController:disconnect';
-      handler: PerpsController['disconnect'];
-    }
-  | {
-      type: 'PerpsController:calculateFees';
-      handler: PerpsController['calculateFees'];
-    }
-  | {
-      type: 'PerpsController:markTutorialCompleted';
-      handler: PerpsController['markTutorialCompleted'];
-    }
-  | {
-      type: 'PerpsController:markFirstOrderCompleted';
-      handler: PerpsController['markFirstOrderCompleted'];
-    }
-  | {
-      type: 'PerpsController:getHistoricalPortfolio';
-      handler: PerpsController['getHistoricalPortfolio'];
-    }
-  | {
-      type: 'PerpsController:resetFirstTimeUserState';
-      handler: PerpsController['resetFirstTimeUserState'];
-    }
-  | {
-      type: 'PerpsController:clearPendingTransactionRequests';
-      handler: PerpsController['clearPendingTransactionRequests'];
-    }
-  | {
-      type: 'PerpsController:saveTradeConfiguration';
-      handler: PerpsController['saveTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:getTradeConfiguration';
-      handler: PerpsController['getTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:saveMarketFilterPreferences';
-      handler: PerpsController['saveMarketFilterPreferences'];
-    }
-  | {
-      type: 'PerpsController:getMarketFilterPreferences';
-      handler: PerpsController['getMarketFilterPreferences'];
-    }
-  | {
-      type: 'PerpsController:savePendingTradeConfiguration';
-      handler: PerpsController['savePendingTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:getPendingTradeConfiguration';
-      handler: PerpsController['getPendingTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:clearPendingTradeConfiguration';
-      handler: PerpsController['clearPendingTradeConfiguration'];
-    }
-  | {
-      type: 'PerpsController:getOrderBookGrouping';
-      handler: PerpsController['getOrderBookGrouping'];
-    }
-  | {
-      type: 'PerpsController:saveOrderBookGrouping';
-      handler: PerpsController['saveOrderBookGrouping'];
-    }
-  | {
-      type: 'PerpsController:setSelectedPaymentToken';
-      handler: PerpsController['setSelectedPaymentToken'];
-    }
-  | {
-      type: 'PerpsController:resetSelectedPaymentToken';
-      handler: PerpsController['resetSelectedPaymentToken'];
-    };
+  | PerpsControllerMethodActions;
 
 /**
  * PerpsController messenger constraints.
@@ -874,6 +741,8 @@ export class PerpsController extends BaseController<
    */
   #standaloneProvider: HyperLiquidProvider | null = null;
 
+  #handlersRegistered = false;
+
   #standaloneProviderIsTestnet: boolean | null = null;
 
   #standaloneProviderHip3Version: number | null = null;
@@ -987,11 +856,6 @@ export class PerpsController extends BaseController<
 
     // Migrate old persisted data without accountAddress
     this.#migrateRequestsIfNeeded();
-
-    this.messenger.registerMethodActionHandlers(
-      this,
-      MESSENGER_EXPOSED_METHODS,
-    );
   }
 
   // ============================================================================
@@ -1506,6 +1370,14 @@ export class PerpsController extends BaseController<
    * @returns A promise that resolves when the operation completes.
    */
   async init(): Promise<void> {
+    if (!this.#handlersRegistered) {
+      this.messenger.registerMethodActionHandlers(
+        this,
+        MESSENGER_EXPOSED_METHODS,
+      );
+      this.#handlersRegistered = true;
+    }
+
     if (this.isInitialized) {
       return undefined;
     }
@@ -1559,123 +1431,7 @@ export class PerpsController extends BaseController<
         this.providers.clear();
         await this.#cleanupStandaloneProvider();
 
-        const { activeProvider } = this.state;
-
-        this.#debugLog(
-          'PerpsController: Creating provider with HIP-3 configuration',
-          {
-            hip3Enabled: this.#hip3Enabled,
-            hip3AllowlistMarkets: this.#hip3AllowlistMarkets,
-            hip3BlocklistMarkets: this.#hip3BlocklistMarkets,
-            hip3ConfigSource: this.#hip3ConfigSource,
-            isTestnet: this.state.isTestnet,
-            activeProvider,
-          },
-        );
-
-        // Always create HyperLiquid provider as the base provider
-        const hyperLiquidProvider = new HyperLiquidProvider({
-          isTestnet: this.state.isTestnet,
-          hip3Enabled: this.#hip3Enabled,
-          allowlistMarkets: this.#hip3AllowlistMarkets,
-          blocklistMarkets: this.#hip3BlocklistMarkets,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-        });
-        this.providers.set('hyperliquid', hyperLiquidProvider);
-
-        // Register MYX provider if enabled via feature flag
-        const isMYXEnabled = this.#isMYXProviderEnabled();
-        if (isMYXEnabled) {
-          const myxIsTestnet =
-            PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
-          const config = this.#options.clientConfig ?? {};
-          // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
-          // Uses firstNonEmpty because env vars default to '' (not null/undefined),
-          // so ?? would not fall through on empty strings.
-          const firstNonEmpty = (...vals: (string | undefined)[]): string =>
-            vals.find(
-              (val) => val !== null && val !== undefined && val !== '',
-            ) ?? '';
-          const myxAppId = myxIsTestnet
-            ? (config.myxAppIdTestnet ?? '')
-            : firstNonEmpty(config.myxAppIdMainnet, config.myxAppIdTestnet);
-          const myxApiSecret = myxIsTestnet
-            ? (config.myxApiSecretTestnet ?? '')
-            : firstNonEmpty(
-                config.myxApiSecretMainnet,
-                config.myxApiSecretTestnet,
-              );
-          const myxBrokerAddress = myxIsTestnet
-            ? (config.myxBrokerAddressTestnet ?? '')
-            : firstNonEmpty(
-                config.myxBrokerAddressMainnet,
-                config.myxBrokerAddressTestnet,
-              );
-          const myxProvider = new MYXProvider({
-            isTestnet: myxIsTestnet,
-            platformDependencies: this.#options.infrastructure,
-            messenger: this.messenger,
-            myxAuthConfig: {
-              appId: myxAppId,
-              apiSecret: myxApiSecret,
-              brokerAddress: myxBrokerAddress,
-            },
-          });
-          this.providers.set('myx', myxProvider);
-          this.#debugLog('PerpsController: MYX provider registered', {
-            isTestnet: myxIsTestnet,
-          });
-        }
-
-        // Set up active provider based on activeProvider value in state
-        // 'aggregated' is treated as just another provider that wraps others
-        if (activeProvider === 'aggregated') {
-          // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
-          this.activeProviderInstance = new AggregatedPerpsProvider({
-            providers: this.providers,
-            defaultProvider: 'hyperliquid',
-            infrastructure: this.#options.infrastructure,
-          });
-          this.#debugLog(
-            'PerpsController: Using aggregated provider (multi-provider)',
-            { registeredProviders: Array.from(this.providers.keys()) },
-          );
-        } else if (activeProvider === 'hyperliquid') {
-          // Direct provider mode: use HyperLiquid provider directly
-          this.activeProviderInstance = hyperLiquidProvider;
-          this.#debugLog(
-            `PerpsController: Using direct provider (${activeProvider})`,
-          );
-        } else if (activeProvider === 'myx') {
-          // MYX provider mode
-          const myxProvider = this.providers.get('myx');
-          if (myxProvider) {
-            this.activeProviderInstance = myxProvider;
-          } else {
-            // MYX feature flag is disabled — fall back to HyperLiquid
-            this.#debugLog(
-              'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
-            );
-            this.activeProviderInstance = hyperLiquidProvider;
-            this.update((state) => {
-              state.activeProvider = 'hyperliquid';
-            });
-          }
-          this.#debugLog(
-            `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
-          );
-        } else {
-          // Unsupported provider - throw error to prevent silent misconfiguration
-          throw new Error(
-            `Unsupported provider: ${String(activeProvider)}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
-          );
-        }
-
-        // Future providers can be added here with their own authentication patterns:
-        // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
-        // - Some might use different wallet patterns: new GMXProvider({ signer })
-        // - Some might not need auth at all: new DydxProvider()
+        this.#createProviders();
 
         // Wait for WebSocket transport to be ready before marking as initialized
         await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
@@ -1688,7 +1444,7 @@ export class PerpsController extends BaseController<
 
         this.#debugLog('PerpsController: Providers initialized successfully', {
           providerCount: this.providers.size,
-          activeProvider,
+          activeProvider: this.state.activeProvider,
           timestamp: new Date().toISOString(),
           attempts: attempt,
         });
@@ -1733,6 +1489,125 @@ export class PerpsController extends BaseController<
       attempts: maxAttempts,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  /**
+   * Instantiate provider instances based on current state and register them.
+   * Selects and assigns the active provider instance from the registry.
+   * Future providers can be added here with their own authentication patterns:
+   * - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
+   * - Some might use different wallet patterns: new GMXProvider({ signer })
+   * - Some might not need auth at all: new DydxProvider()
+   */
+  #createProviders(): void {
+    const { activeProvider } = this.state;
+
+    this.#debugLog(
+      'PerpsController: Creating provider with HIP-3 configuration',
+      {
+        hip3Enabled: this.#hip3Enabled,
+        hip3AllowlistMarkets: this.#hip3AllowlistMarkets,
+        hip3BlocklistMarkets: this.#hip3BlocklistMarkets,
+        hip3ConfigSource: this.#hip3ConfigSource,
+        isTestnet: this.state.isTestnet,
+        activeProvider,
+      },
+    );
+
+    // Always create HyperLiquid provider as the base provider
+    const hyperLiquidProvider = new HyperLiquidProvider({
+      isTestnet: this.state.isTestnet,
+      hip3Enabled: this.#hip3Enabled,
+      allowlistMarkets: this.#hip3AllowlistMarkets,
+      blocklistMarkets: this.#hip3BlocklistMarkets,
+      platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
+    });
+    this.providers.set('hyperliquid', hyperLiquidProvider);
+
+    // Register MYX provider if enabled via feature flag
+    const isMYXEnabled = this.#isMYXProviderEnabled();
+    if (isMYXEnabled) {
+      const myxIsTestnet =
+        PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
+      const config = this.#options.clientConfig ?? {};
+      // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
+      // Uses firstNonEmpty because env vars default to '' (not null/undefined),
+      // so ?? would not fall through on empty strings.
+      const firstNonEmpty = (...vals: (string | undefined)[]): string =>
+        vals.find((val) => val !== null && val !== undefined && val !== '') ??
+        '';
+      const myxAppId = myxIsTestnet
+        ? (config.myxAppIdTestnet ?? '')
+        : firstNonEmpty(config.myxAppIdMainnet, config.myxAppIdTestnet);
+      const myxApiSecret = myxIsTestnet
+        ? (config.myxApiSecretTestnet ?? '')
+        : firstNonEmpty(config.myxApiSecretMainnet, config.myxApiSecretTestnet);
+      const myxBrokerAddress = myxIsTestnet
+        ? (config.myxBrokerAddressTestnet ?? '')
+        : firstNonEmpty(
+            config.myxBrokerAddressMainnet,
+            config.myxBrokerAddressTestnet,
+          );
+      const myxProvider = new MYXProvider({
+        isTestnet: myxIsTestnet,
+        platformDependencies: this.#options.infrastructure,
+        messenger: this.messenger,
+        myxAuthConfig: {
+          appId: myxAppId,
+          apiSecret: myxApiSecret,
+          brokerAddress: myxBrokerAddress,
+        },
+      });
+      this.providers.set('myx', myxProvider);
+      this.#debugLog('PerpsController: MYX provider registered', {
+        isTestnet: myxIsTestnet,
+      });
+    }
+
+    // Set up active provider based on activeProvider value in state
+    // 'aggregated' is treated as just another provider that wraps others
+    if (activeProvider === 'aggregated') {
+      // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
+      this.activeProviderInstance = new AggregatedPerpsProvider({
+        providers: this.providers,
+        defaultProvider: 'hyperliquid',
+        infrastructure: this.#options.infrastructure,
+      });
+      this.#debugLog(
+        'PerpsController: Using aggregated provider (multi-provider)',
+        { registeredProviders: Array.from(this.providers.keys()) },
+      );
+    } else if (activeProvider === 'hyperliquid') {
+      // Direct provider mode: use HyperLiquid provider directly
+      this.activeProviderInstance = hyperLiquidProvider;
+      this.#debugLog(
+        `PerpsController: Using direct provider (${activeProvider})`,
+      );
+    } else if (activeProvider === 'myx') {
+      // MYX provider mode
+      const myxProvider = this.providers.get('myx');
+      if (myxProvider) {
+        this.activeProviderInstance = myxProvider;
+      } else {
+        // MYX feature flag is disabled — fall back to HyperLiquid
+        this.#debugLog(
+          'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
+        );
+        this.activeProviderInstance = hyperLiquidProvider;
+        this.update((state) => {
+          state.activeProvider = 'hyperliquid';
+        });
+      }
+      this.#debugLog(
+        `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
+      );
+    } else {
+      // Unsupported provider - throw error to prevent silent misconfiguration
+      throw new Error(
+        `Unsupported provider: ${String(activeProvider)}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
+      );
+    }
   }
 
   /**
@@ -2144,6 +2019,15 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
+      addBreadcrumb({
+        category: 'perps',
+        message: 'Deposit action started',
+        level: 'info',
+        data: {
+          place_order_after_deposit: placeOrder === true,
+        },
+      });
+
       if (placeOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const addResult = await this.#submitTransaction(transaction, {
@@ -2302,8 +2186,8 @@ export class PerpsController extends BaseController<
             const isCancellation =
               errorMessage.includes('User denied') ||
               errorMessage.includes('User rejected') ||
-              errorMessage.includes('cancelled') ||
-              errorMessage.includes('canceled');
+              errorMessage.includes('User cancelled') ||
+              errorMessage.includes('User canceled');
             this.update((state) => {
               const requestToUpdate = state.depositRequests.find(
                 (req) => req.id === currentDepositId,
@@ -4043,9 +3927,13 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.#blockedRegionListVersion;
 
     try {
-      // TODO: It would be good to have this location before we call this async function to avoid the race condition
+      const geoLocation = await this.messenger.call(
+        'GeolocationController:getGeolocation',
+      );
+
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,
+        geoLocation,
       });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
