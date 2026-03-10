@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -9,7 +9,6 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   TextColor,
 } from '@metamask/design-system-react-native';
 import SectionRow from '../SectionRow';
@@ -23,13 +22,9 @@ interface SectionTitleProps {
    * Optional callback when the title or arrow is pressed
    */
   onPress?: () => void;
-  /**
-   * Optional accessory element to display next to the title (e.g., info button)
-   */
-  endAccessory?: React.ReactNode;
 }
 
-const SectionTitle = ({ title, onPress, endAccessory }: SectionTitleProps) => (
+const SectionTitle = ({ title, onPress }: SectionTitleProps) => (
   <SectionRow>
     <TouchableOpacity
       onPress={onPress}
@@ -40,32 +35,17 @@ const SectionTitle = ({ title, onPress, endAccessory }: SectionTitleProps) => (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
+        gap={1}
       >
-        {/* Left side: Title + optional endAccessory */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          {typeof title === 'string' ? (
-            <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-              {title}
-            </Text>
-          ) : (
-            title
-          )}
-          {endAccessory}
-        </Box>
-
-        {/* Right side: Arrow icon (visual indicator, passes touch to parent) */}
+        {typeof title === 'string' ? (
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {title}
+          </Text>
+        ) : (
+          title
+        )}
         {onPress && (
-          <View pointerEvents="none">
-            <ButtonIcon
-              iconName={IconName.ArrowRight}
-              size={ButtonIconSize.Sm}
-            />
-          </View>
+          <ButtonIcon iconName={IconName.ArrowRight} size={ButtonIconSize.Sm} />
         )}
       </Box>
     </TouchableOpacity>
