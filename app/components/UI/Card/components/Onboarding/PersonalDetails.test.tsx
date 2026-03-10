@@ -1230,7 +1230,7 @@ describe('PersonalDetails Component', () => {
         'Maria',
       );
 
-      expect(getByTestId('personal-details-name-error')).toBeTruthy();
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
     });
 
     it('shows name error when lastName is edited to drop second surname', () => {
@@ -1249,7 +1249,7 @@ describe('PersonalDetails Component', () => {
         'Garcia',
       );
 
-      expect(getByTestId('personal-details-name-error')).toBeTruthy();
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
     });
 
     it('clears name error when names are corrected back to match', () => {
@@ -1267,7 +1267,7 @@ describe('PersonalDetails Component', () => {
         getByTestId('personal-details-first-name-input'),
         'Maria',
       );
-      expect(getByTestId('personal-details-name-error')).toBeTruthy();
+      expect(getByTestId('personal-details-name-error')).toBeOnTheScreen();
 
       fireEvent.changeText(
         getByTestId('personal-details-first-name-input'),
