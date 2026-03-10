@@ -31,8 +31,9 @@ on:
           - 'MM Card Team'
           - 'Ramp Provider Testing'
 
+# contents: write required by build.yml update-build-version job (version bump)
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
