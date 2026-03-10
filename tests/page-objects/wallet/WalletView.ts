@@ -34,7 +34,7 @@ class WalletView {
 
   /** Homepage content container (inside ScrollView); use for scroll gestures when on homepage. */
   get homepageContainer(): DetoxElement {
-    return Matchers.getElementByID('homepage-container');
+    return Matchers.getElementByID(WalletViewSelectorsIDs.HOMEPAGE_CONTAINER);
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
