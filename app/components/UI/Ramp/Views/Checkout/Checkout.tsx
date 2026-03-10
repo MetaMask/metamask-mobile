@@ -178,7 +178,7 @@ const Checkout = () => {
       orderId: effectiveOrderId,
       providerCode: normalizeProviderCode(providerCode),
       walletAddress,
-      chainId: network,
+      chainId: network || undefined,
     });
   }, [
     effectiveOrderId,
