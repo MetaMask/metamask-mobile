@@ -95,7 +95,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const priceImpactIsSafe =
     !activeQuote?.quote.priceData?.priceImpact ||
-    activeQuote.quote.priceData.priceImpact <=
+    Number(activeQuote.quote.priceData.priceImpact) <=
       // @ts-expect-error TODO: remove comment after changes to core are published.
       (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
         AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
