@@ -7,7 +7,7 @@ const INITIAL_DELAY_MS = 1000;
  */
 const getEngine = () =>
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  require('../Engine/Engine').default;
+  require('../../core/Engine/Engine').default;
 
 /**
  * Check if Engine is initialized
