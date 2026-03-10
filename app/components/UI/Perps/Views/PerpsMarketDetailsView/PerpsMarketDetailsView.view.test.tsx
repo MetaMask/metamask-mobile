@@ -275,6 +275,24 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders header and title section with market title', async () => {
+      renderPerpsMarketDetailsView({
+        streamOverrides: { positions: [] },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+        },
+      });
+
+      expect(
+        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
+      expect(screen.getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
+    });
+
     it('opens fullscreen chart modal and close button is pressable', async () => {
       renderPerpsMarketDetailsView({
         streamOverrides: { positions: [] },
