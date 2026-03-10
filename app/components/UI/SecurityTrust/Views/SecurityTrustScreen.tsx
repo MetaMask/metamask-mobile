@@ -140,8 +140,8 @@ const RiskFactorRow: React.FC<{
 }> = ({ title, description, level }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.FlexStart}
-    justifyContent={BoxJustifyContent.SpaceBetween}
+    alignItems={BoxAlignItems.Start}
+    justifyContent={BoxJustifyContent.Between}
     twClassName="px-4 py-3"
   >
     <Box twClassName="flex-1 mr-3">
@@ -282,7 +282,7 @@ const SecurityTrustScreen: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.SpaceBetween}
+        justifyContent={BoxJustifyContent.Between}
         twClassName="px-4"
         style={{ paddingTop: insets.top + 8 }}
       >
@@ -422,12 +422,12 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* Distribution rows grid: padding 4px 0, row-gap 12px, 2-col (label flex-1, value) */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4" style={{ paddingVertical: 4, rowGap: 12 }}>
+        <Box twClassName="px-4 py-1 gap-y-3">
           {/* Top 10 holders */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.SpaceBetween}
+            justifyContent={BoxJustifyContent.Between}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -460,7 +460,7 @@ const SecurityTrustScreen: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.SpaceBetween}
+            justifyContent={BoxJustifyContent.Between}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -489,7 +489,7 @@ const SecurityTrustScreen: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.SpaceBetween}
+            justifyContent={BoxJustifyContent.Between}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -522,7 +522,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 4: Contract Security ════════════════════════════════════ */}
         <SectionHeader title="Contract security" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
+        <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label="Source code verified on Etherscan"
             description="Source code verified on Etherscan"
@@ -543,7 +543,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 5: Honeypot Analysis ════════════════════════════════════ */}
         <SectionHeader title="Honeypot analysis" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
+        <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label="Buy/sell enabled"
             description="Trading is open in both directions" // todo: do we want another description for when all features are present?
@@ -573,7 +573,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 6: Liquidity ═════════════════════════════════════════════ */}
         <SectionHeader title="Liquidity" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
+        <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label="Liquidity Locked"
             description={
@@ -607,7 +607,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 7: Audits & Reviews ══════════════════════════════════════ */}
         <SectionHeader title="Audits & Reviews" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
+        <Box twClassName="px-4 w-full" gap={3}>
           {(
             ['Trail of bits', 'OpenZeppelin', 'Consensys Diligence'] as const
           ).map((auditor) => (
@@ -623,7 +623,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 8: Buy/Sell Tax ══════════════════════════════════════════ */}
         <SectionHeader title="Buy/Sell Tax" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 12 }}>
+        <Box twClassName="px-4 w-full" gap={3}>
           {/* Three percentage columns */}
           <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full">
             {(
@@ -637,7 +637,7 @@ const SecurityTrustScreen: React.FC = () => {
                 key={label}
                 twClassName="flex-1 py-1"
                 gap={3}
-                alignItems={BoxAlignItems.FlexStart}
+                alignItems={BoxAlignItems.Start}
               >
                 <Text
                   variant={TextVariant.HeadingMd}
@@ -664,14 +664,8 @@ const SecurityTrustScreen: React.FC = () => {
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                twClassName="bg-success-muted rounded"
-                // eslint-disable-next-line react-native/no-inline-styles
-                style={{
-                  paddingHorizontal: 6,
-                  minWidth: 22,
-                  gap: 4,
-                  alignSelf: 'flex-start',
-                }}
+                gap={1}
+                twClassName="bg-success-muted rounded px-1.5 min-w-[22px] self-start"
               >
                 <Icon
                   name={IconName.SecurityTick}
@@ -693,10 +687,10 @@ const SecurityTrustScreen: React.FC = () => {
         <SectionHeader title="Token Info" />
         {/* 2-column grid: row-gap 8, column-gap 12 */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 8 }}>
+        <Box twClassName="px-4 w-full" gap={2}>
           {/* Row 1: Created | Token age */}
           {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Box flexDirection={BoxFlexDirection.Row} style={{ gap: 12 }}>
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
                 variant={TextVariant.BodySm}
@@ -724,7 +718,7 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
           {/* Row 2: Network | Type */}
           {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Box flexDirection={BoxFlexDirection.Row} style={{ gap: 12 }}>
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
                 variant={TextVariant.BodySm}
@@ -755,10 +749,10 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 10: On-chain Activity ════════════════════════════════════ */}
         <SectionHeader title="On-chain Activity" />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
-        <Box twClassName="px-4 w-full" style={{ gap: 8 }}>
+        <Box twClassName="px-4 w-full" gap={2}>
           {/* Row 1: 24h Transactions | Active Wallets (24h) */}
           {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Box flexDirection={BoxFlexDirection.Row} style={{ gap: 12 }}>
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
                 variant={TextVariant.BodySm}
@@ -786,7 +780,7 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
           {/* Row 2: Avg Tx Value | Gas (avg) */}
           {/* eslint-disable-next-line react-native/no-inline-styles */}
-          <Box flexDirection={BoxFlexDirection.Row} style={{ gap: 12 }}>
+          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
                 variant={TextVariant.BodySm}
@@ -820,16 +814,10 @@ const SecurityTrustScreen: React.FC = () => {
             <SectionHeader title="Official Links" />
             {/* Pills container: padding 4px 0, flex-wrap, gap 12 */}
             <Box
-              twClassName="px-4 w-full"
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                paddingVertical: 4,
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                gap: 12,
-                alignItems: 'center',
-                alignContent: 'center',
-              }}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={3}
+              twClassName="px-4 w-full py-1 flex-wrap content-center"
             >
               {metadata.externalLinks.homepage && (
                 <ButtonBase
