@@ -266,4 +266,90 @@ describe('configRegistryControllerInit', () => {
     configRegistryControllerInit(request);
     expect(mockStartPolling).toHaveBeenCalledWith(null);
   });
+
+  it('subscribe callback stops polling when flag turns false', () => {
+    const mockStopAllPolling = jest.fn();
+    mockControllerInstance.stopAllPolling = mockStopAllPolling;
+    (ConfigRegistryController as jest.Mock).mockImplementation(() => ({
+      ...mockControllerInstance,
+      state: mockControllerInstance.state,
+    }));
+
+    const request = buildInitRequest({
+      [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+    });
+    configRegistryControllerInit(request);
+
+    expect(mockStartPolling).toHaveBeenCalledWith(null);
+
+    const subscribeCb = (request.initMessenger.subscribe as jest.Mock).mock
+      .calls[0][1];
+    (request.initMessenger.call as jest.Mock).mockImplementation(
+      (action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: false,
+            },
+            localOverrides: {},
+          } as never;
+        }
+        return undefined as never;
+      },
+    );
+
+    subscribeCb();
+
+    expect(mockStopAllPolling).toHaveBeenCalled();
+  });
+
+  it('subscribe callback restarts polling after OFF → ON toggle', () => {
+    const mockStopAllPolling = jest.fn();
+    mockControllerInstance.stopAllPolling = mockStopAllPolling;
+    (ConfigRegistryController as jest.Mock).mockImplementation(() => ({
+      ...mockControllerInstance,
+      state: mockControllerInstance.state,
+    }));
+
+    const request = buildInitRequest({
+      [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+    });
+    configRegistryControllerInit(request);
+
+    const subscribeCb = (request.initMessenger.subscribe as jest.Mock).mock
+      .calls[0][1];
+
+    (request.initMessenger.call as jest.Mock).mockImplementation(
+      (action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: false,
+            },
+            localOverrides: {},
+          } as never;
+        }
+        return undefined as never;
+      },
+    );
+    subscribeCb();
+    expect(mockStopAllPolling).toHaveBeenCalledTimes(1);
+
+    (request.initMessenger.call as jest.Mock).mockImplementation(
+      (action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              [CONFIG_REGISTRY_API_ENABLED_FLAG_KEY]: true,
+            },
+            localOverrides: {},
+          } as never;
+        }
+        return undefined as never;
+      },
+    );
+    subscribeCb();
+
+    expect(mockStartPolling).toHaveBeenCalledTimes(2);
+  });
 });

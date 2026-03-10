@@ -186,6 +186,10 @@ export const configRegistryControllerInit: ControllerInitFunction<
 
     initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
       if (!isConfigRegistryApiEnabled(initMessenger)) {
+        if (pollingStarted) {
+          pollingStarted = false;
+          controller.stopAllPolling();
+        }
         return;
       }
       const hasConfigs =
