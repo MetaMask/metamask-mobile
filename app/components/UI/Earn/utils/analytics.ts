@@ -1,9 +1,8 @@
-import { toHex } from '@metamask/controller-utils';
+import { toHex, isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { Hex, Json } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
-import { chainIdsMatch } from './network';
 import { snakeCase } from 'lodash';
 import type { DeepSnakeCaseKeys } from './analytics.types';
 
@@ -69,10 +68,10 @@ export function getMusdConversionQuoteTrackingData(
   const quotePaymentTokenAddress = quoteRequest?.sourceTokenAddress;
   const quoteOutputTokenAddress = quoteRequest?.targetTokenAddress;
 
-  const quoteIsSameChain = chainIdsMatch(
-    quotePaymentChainId,
-    quoteOutputChainId,
-  );
+  const quoteIsSameChain =
+    quotePaymentChainId && quoteOutputChainId
+      ? isEqualCaseInsensitive(quotePaymentChainId, quoteOutputChainId)
+      : undefined;
 
   const payQuoteStrategy = quote?.strategy
     ? String(quote.strategy).toLowerCase()
@@ -84,15 +83,15 @@ export function getMusdConversionQuoteTrackingData(
   const selectedPaymentChainId = transactionMeta.metamaskPay?.chainId;
   const selectedPaymentTokenAddress = transactionMeta.metamaskPay?.tokenAddress;
 
-  const selectedPaymentChainMatchesQuotePaymentChain = chainIdsMatch(
-    selectedPaymentChainId,
-    quotePaymentChainId,
-  );
+  const selectedPaymentChainMatchesQuotePaymentChain =
+    selectedPaymentChainId && quotePaymentChainId
+      ? isEqualCaseInsensitive(selectedPaymentChainId, quotePaymentChainId)
+      : undefined;
 
-  const txExecutionChainMatchesQuoteOutputChain = chainIdsMatch(
-    transactionMeta?.chainId,
-    quoteOutputChainId,
-  );
+  const txExecutionChainMatchesQuoteOutputChain =
+    transactionMeta?.chainId && quoteOutputChainId
+      ? isEqualCaseInsensitive(transactionMeta.chainId, quoteOutputChainId)
+      : undefined;
 
   const paymentTokenAddress =
     selectedPaymentTokenAddress ?? quotePaymentTokenAddress;

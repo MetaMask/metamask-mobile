@@ -19,9 +19,3 @@ export const getNetworkName = (chainId?: Hex) => {
 
   return name ?? nickname ?? chainId;
 };
-
-// TODO: See if existing util exists for this.
-export const chainIdsMatch = (a?: Hex, b?: Hex): boolean | undefined => {
-  if (!a || !b) return undefined;
-  return a.toLowerCase() === b.toLowerCase();
-};
