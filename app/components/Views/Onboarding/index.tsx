@@ -1007,6 +1007,23 @@ const Onboarding = () => {
           onPressImport={onPressImport}
           onPressCreate={onPressCreate}
         />
+        <View
+          style={{
+            position: 'absolute',
+            top: 180,
+            right: 16,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+          }}
+          testID="ota-test-label-onboarding"
+        >
+          <Text style={{ fontSize: 12, color: '#FFFFFF' }}>
+            OTA: Onboarding
+          </Text>
+        </View>
       </SafeAreaView>
     </ErrorBoundary>
   );

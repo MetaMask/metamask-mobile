@@ -1406,6 +1406,16 @@ const Wallet = ({
   const content = (
     <>
       <AssetPollingProvider />
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 4,
+          backgroundColor: colors.background.alternative,
+        }}
+        testID="ota-test-label-wallet"
+      >
+        <CustomText style={{ fontSize: 12 }}>OTA: Wallet</CustomText>{' '}
+      </View>
       <View style={styles.banner}>
         {!basicFunctionalityEnabled ? (
           <BannerAlert
