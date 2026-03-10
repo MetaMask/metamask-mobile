@@ -30,7 +30,7 @@ import styleSheet, {
 } from './NotificationsSettings.styles';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
-import { useFirstHDWalletAccounts } from './AccountsList.hooks';
+import { useNotificationWalletAccountGroups } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
@@ -39,10 +39,8 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
-  const firstHDWallet = useFirstHDWalletAccounts();
-  const hasFirstHDWallet = Boolean(
-    firstHDWallet?.data && firstHDWallet?.data.length > 0,
-  );
+  const notificationWalletAccountGroups = useNotificationWalletAccountGroups();
+  const hasNotificationAccounts = notificationWalletAccountGroups.length > 0;
 
   const loadingText = useSwitchNotificationLoadingText();
 
@@ -99,7 +97,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
           />
 
           {/* Account Notification Toggles */}
-          {hasFirstHDWallet && (
+          {hasNotificationAccounts && (
             <>
               <SessionHeader
                 title={strings(
