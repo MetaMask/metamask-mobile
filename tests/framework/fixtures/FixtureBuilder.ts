@@ -29,7 +29,11 @@ import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
-import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
+import {
+  BackupAndSyncSettings,
+  getRegionLocationCode,
+  RampsRegion,
+} from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
   TEST_ANALYTICS_ID,
@@ -474,8 +478,10 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
-    this.fixture.state.fiatOrders.detectedGeolocation =
-      selectedRegion.countryIsoCode;
+    // Keep GeolocationController in sync so selectors reading from
+    // engine.backgroundState.GeolocationController.location return the
+    // ISO 3166-2 location code (e.g. 'US-CA', 'FR').
+    this.withDetectedGeolocation(getRegionLocationCode(selectedRegion));
 
     return this;
   }
@@ -499,8 +505,14 @@ class FixtureBuilder {
    * @returns - The FixtureBuilder instance for method chaining.
    */
   withDetectedGeolocation(countryCode: string) {
-    this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, { detectedGeolocation: countryCode });
+    merge(this.fixture.state.engine.backgroundState, {
+      GeolocationController: {
+        location: countryCode,
+        status: 'complete',
+        lastFetchedAt: Date.now(),
+        error: null,
+      },
+    });
     return this;
   }
 
@@ -1958,9 +1970,10 @@ class FixtureBuilder {
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
     merge(this.fixture.state.fiatOrders, {
-      detectedGeolocation: 'US',
       rampRoutingDecision: 'AGGREGATOR',
     });
+
+    this.withDetectedGeolocation('US');
 
     if (!this.fixture.state.engine.backgroundState.CurrencyRateController) {
       merge(this.fixture.state.engine.backgroundState, {

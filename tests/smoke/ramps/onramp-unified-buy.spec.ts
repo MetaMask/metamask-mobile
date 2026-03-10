@@ -11,6 +11,7 @@ import OrderDetailsView from '../../page-objects/Ramps/OrderDetailsView';
 import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { getRegionLocationCode } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import {
   setupDepositOnRampMocks,
@@ -292,9 +293,9 @@ describe(SmokeRamps('Onramp Unified Buy'), () => {
     );
     const rampsButtonClickedRegion = rampsButtonClicked?.properties
       ?.region as string;
-    // The region property is a plain string (e.g. "us-ca") matching the
-    // geolocation endpoint response, not a JSON-serialized object.
-    const expectedRegionId = selectedRegion.id.replace('/regions/', '');
+    // The GeolocationController stores the ISO 3166-2 location code
+    // returned by the geolocation API (e.g. 'US-CA'), not the ramp region id.
+    const expectedRegionId = getRegionLocationCode(selectedRegion);
     await softAssert.checkAndCollect(
       async () =>
         await Assertions.checkIfTextMatches(
