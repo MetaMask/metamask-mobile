@@ -48,6 +48,8 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -154,6 +156,8 @@ const TokenDetails: React.FC<{
     networkName,
   });
 
+  const { isBuyable } = useTokenBuyability(token);
+
   const {
     transactions,
     submittedTxs,
@@ -175,6 +179,9 @@ const TokenDetails: React.FC<{
     },
   });
   const displaySwapsButton = isSwapsAssetAllowed && AppConstants.SWAPS.ACTIVE;
+
+  const showSwapButton = hasEligibleSwapTokens;
+  const showBuyButton = isBuyable || !hasEligibleSwapTokens;
 
   const rampNetworks = useSelector(getRampNetworks);
 
@@ -282,7 +289,7 @@ const TokenDetails: React.FC<{
               paddingBottom: insets.bottom + 6,
             }}
             buttonPropsArray={[
-              ...(displaySwapsButton && hasEligibleSwapTokens
+              ...(showSwapButton
                 ? [
                     {
                       variant: ButtonVariants.Primary,
@@ -292,12 +299,16 @@ const TokenDetails: React.FC<{
                     },
                   ]
                 : []),
-              {
-                variant: ButtonVariants.Primary,
-                label: strings('asset_overview.buy_button'),
-                size: ButtonSize.Lg,
-                onPress: onBuy,
-              },
+              ...(showBuyButton
+                ? [
+                    {
+                      variant: ButtonVariants.Primary,
+                      label: strings('asset_overview.buy_button'),
+                      size: ButtonSize.Lg,
+                      onPress: onBuy,
+                    },
+                  ]
+                : []),
             ]}
             buttonsAlignment={ButtonsAlignment.Horizontal}
           />
