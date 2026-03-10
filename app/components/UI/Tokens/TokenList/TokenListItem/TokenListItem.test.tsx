@@ -1,6 +1,7 @@
 import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { mockTheme } from '../../../../../util/theme';
 import { ACCOUNT_TYPE_LABEL_TEST_ID, TokenListItem } from './TokenListItem';
 import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
@@ -63,9 +64,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ colors: {} }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme: realMockTheme } = jest.requireActual(
+    '../../../../../util/theme',
+  );
+  return {
+    useTheme: () => ({ colors: {} }),
+    mockTheme: realMockTheme,
+  };
+});
 
 const FIXED_NOW_MS = 1730000000000;
 const mockTrackEvent = jest.fn();
@@ -504,8 +511,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      expect(percentageText.props.style.color).toBe('#457a39');
+      expect(percentageText.props.style.color).toBe(
+        mockTheme.colors.success.default,
+      );
     });
 
     it('covers Number.isFinite check preventing Infinity', () => {
