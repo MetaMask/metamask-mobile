@@ -1,0 +1,44 @@
+# Maestro Flow: Import Wallet
+# Captures baseline screenshots for the wallet import flow
+appId: io.metamask.MetaMask
+---
+- launchApp
+
+# Handle Expo Dev Client screen
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 10000
+- tapOn:
+    text: "http://localhost:8081"
+
+# Wait for developer menu and dismiss
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 60000
+- swipe:
+    start: "50%,50%"
+    end: "50%,95%"
+
+# Welcome Screen - wait for app to fully load
+- extendedWaitUntil:
+    visible:
+      text: "Create a new wallet"
+    timeout: 60000
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+- takeScreenshot: .maestro/baselines/ios/onboarding/welcome-import
+
+# Tap "Import using Secret Recovery Phrase" button
+- tapOn:
+    text: "Import using Secret Recovery Phrase"
+
+# Wait for import screen
+- extendedWaitUntil:
+    visible:
+      text: "Import a wallet"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/import-srp

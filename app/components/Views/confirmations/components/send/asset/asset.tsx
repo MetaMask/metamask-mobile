@@ -30,6 +30,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { HighlightedItem } from '../../UI/highlighted-item';
 import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
+import { AssetSelectorsIDs } from './asset.testIds';
 
 export interface AssetProps {
   hideNfts?: boolean;
@@ -194,7 +195,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1">
+    <Box twClassName="flex-1" testID={AssetSelectorsIDs.CONTAINER}>
       {highlightedItemsOutsideAssetList.length > 0 && (
         <Box>
           {highlightedItemsOutsideAssetList.map((item, index) => (
@@ -215,6 +216,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
               : strings('send.search_tokens_and_nfts')
           }
           onPressClearButton={clearSearch}
+          testID={AssetSelectorsIDs.SEARCH_INPUT}
         />
       </Box>
       {!hideNetworkFilter && (

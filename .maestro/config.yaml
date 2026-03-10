@@ -1,0 +1,22 @@
+# Maestro Visual Regression Testing Configuration
+# Documentation: https://docs.maestro.dev
+
+appId: io.metamask.MetaMask
+
+# Screenshot settings
+screenshotDir: .maestro/baselines
+
+# Default timeout for element visibility (ms)
+defaultTimeout: 10000
+
+# Environment variables available in flows
+env:
+  # Test wallet credentials (use test accounts only)
+  TEST_PASSWORD: "testpassword123!"
+  
+# Flow hooks
+onFlowStart:
+  - launchApp
+  
+onFlowComplete:
+  - stopApp

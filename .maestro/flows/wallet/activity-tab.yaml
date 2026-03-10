@@ -1,0 +1,116 @@
+# Maestro Flow: Activity Tab
+# Captures baseline screenshots for the activity/transactions view
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for developer menu modal
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 15000
+    optional: true
+
+# Close developer menu - tap outside modal
+- tapOn:
+    point: "50%,30%"
+
+# Wait for app
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Handle Polymarket promo
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Tap Activity in bottom nav
+- tapOn:
+    text: "Activity"
+
+# Wait for Activity screen to load
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+- takeScreenshot: .maestro/baselines/ios/activity/transactions-tab
+
+# Tap network dropdown (use regex to match any dropdown text)
+- tapOn:
+    text: ".*networks.*|.*Linea.*|.*Ethereum.*"
+
+# Wait for Networks modal to appear
+- extendedWaitUntil:
+    visible:
+      text: "All popular networks"
+    timeout: 10000
+
+- takeScreenshot: .maestro/baselines/ios/activity/networks-modal
+
+# Dismiss the networks modal - tap X button (top right of modal ~95%,27%)
+- tapOn:
+    point: "95%,27%"
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Tap Transfers tab (shifted right to ~48% horizontal)
+- tapOn:
+    point: "48%,16%"
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+- takeScreenshot: .maestro/baselines/ios/activity/transfers-tab
+
+# Tap Perps tab (~62% horizontal - middle of Perps text)
+- tapOn:
+    point: "62%,16%"
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+- takeScreenshot: .maestro/baselines/ios/activity/perps-tab
