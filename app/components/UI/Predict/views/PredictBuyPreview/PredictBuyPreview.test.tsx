@@ -11,7 +11,6 @@ import { PredictMarket } from '../../types';
 import PredictBuyPreview from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import Engine from '../../../../../core/Engine';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -19,9 +18,6 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       trackPredictOrderEvent: jest.fn(),
-      setActiveOrder: jest.fn(),
-      clearActiveOrder: jest.fn(),
-      setSelectedPaymentToken: jest.fn(),
     },
   },
 }));
@@ -70,13 +66,12 @@ let mockExpectedAmount = 120;
 let mockMetamaskFee = 0.5;
 let mockProviderFee = 1.0;
 let mockTotalFeePercentage = 4;
-let mockPreviewOutcomeTokenId = 'outcome-token-789';
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: {
       marketId: 'market-123',
       outcomeId: 'outcome-456',
-      outcomeTokenId: mockPreviewOutcomeTokenId,
+      outcomeTokenId: 'outcome-token-789',
       timestamp: Date.now(),
       side: 'BUY',
       sharePrice: 0.5,
@@ -118,44 +113,17 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
   }),
 }));
 
-const mockTriggerPayWithAnyToken = jest.fn();
-jest.mock('../../hooks/usePredictPayWithAnyToken', () => ({
-  usePredictPayWithAnyToken: () => ({
-    triggerPayWithAnyToken: mockTriggerPayWithAnyToken,
-  }),
-}));
-
-let mockIsPredictBalanceSelected = true;
-let mockSelectedPaymentToken: { address: string; chainId: string } | null =
-  null;
-jest.mock('../../hooks/usePredictPaymentToken', () => ({
-  usePredictPaymentToken: () => ({
-    isPredictBalanceSelected: mockIsPredictBalanceSelected,
-    selectedPaymentToken: mockSelectedPaymentToken,
-    onPaymentTokenChange: jest.fn(),
-  }),
-}));
-
-jest.mock('../../hooks/usePredictAutoPlaceOrder', () => ({
-  usePredictAutoPlaceOrder: () => ({
-    isAutoPlaceLoading: false,
-  }),
-}));
-
 // Mock usePredictRewards hook
 let mockRewardsEnabled = false;
 let mockRewardsLoading = false;
 let mockAccountOptedIn: boolean | null = null;
 let mockEstimatedPoints: number | null = null;
 let mockRewardsError = false;
-let mockRewardsAccountScope = null;
 jest.mock('../../hooks/usePredictRewards', () => ({
   usePredictRewards: (_?: number) => ({
     enabled: mockRewardsEnabled,
     isLoading: mockRewardsLoading,
     accountOptedIn: mockAccountOptedIn,
-    rewardsAccountScope: mockRewardsAccountScope,
-    shouldShowRewardsRow: mockRewardsEnabled,
     estimatedPoints: mockEstimatedPoints,
     hasError: mockRewardsError,
   }),
@@ -288,16 +256,11 @@ describe('PredictBuyPreview', () => {
     mockMetamaskFee = 0.5;
     mockProviderFee = 1.0;
     mockTotalFeePercentage = 4;
-    mockPreviewOutcomeTokenId = 'outcome-token-789';
     mockRewardsEnabled = false;
     mockRewardsLoading = false;
     mockAccountOptedIn = null;
     mockEstimatedPoints = null;
     mockRewardsError = false;
-    mockRewardsAccountScope = null;
-    mockIsPredictBalanceSelected = true;
-    mockSelectedPaymentToken = null;
-    mockTriggerPayWithAnyToken.mockResolvedValue(undefined);
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -331,33 +294,6 @@ describe('PredictBuyPreview', () => {
       expect(
         screen.getByText(/By continuing, you accept Polymarket.s terms\./),
       ).toBeOnTheScreen();
-    });
-  });
-
-  describe('payment token initialization', () => {
-    it('resets selected payment token to predict balance on regular buy preview entry', () => {
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).toHaveBeenCalledWith(null);
-    });
-
-    it('keeps selected payment token when returning from predict info auto-flow', () => {
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          amount: 25,
-          transactionId: 'deposit-tx-id',
-        },
-      });
-
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      expect(
-        Engine.context.PredictController.setSelectedPaymentToken,
-      ).not.toHaveBeenCalled();
     });
   });
 
@@ -493,20 +429,14 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcome: {
-            ...mockRoute.params.outcome,
-            tokens: [
-              {
-                id: 'outcome-token-790',
-                title: 'No',
-                price: 0.5,
-              },
-            ],
+          outcomeToken: {
+            id: 'outcome-token-no',
+            title: 'No',
+            price: 0.6,
           },
         },
       };
       mockUseRoute.mockReturnValue(noOutcomeRoute);
-      mockPreviewOutcomeTokenId = 'outcome-token-790';
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
@@ -518,20 +448,14 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcome: {
-            ...mockRoute.params.outcome,
-            tokens: [
-              {
-                id: 'outcome-token-custom',
-                title: 'Maybe',
-                price: 0.75,
-              },
-            ],
+          outcomeToken: {
+            id: 'outcome-token-custom',
+            title: 'Maybe',
+            price: 0.75,
           },
         },
       };
       mockUseRoute.mockReturnValue(customOutcomeRoute);
-      mockPreviewOutcomeTokenId = 'outcome-token-custom';
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
@@ -2116,20 +2040,14 @@ describe('PredictBuyPreview', () => {
         ...mockRoute,
         params: {
           ...mockRoute.params,
-          outcome: {
-            ...mockRoute.params.outcome,
-            tokens: [
-              {
-                id: 'outcome-token-no',
-                title: 'No',
-                price: 0.35,
-              },
-            ],
+          outcomeToken: {
+            id: 'outcome-token-no',
+            title: 'No',
+            price: 0.35,
           },
         },
       };
       mockUseRoute.mockReturnValue(routeWithNoOutcome);
-      mockPreviewOutcomeTokenId = 'outcome-token-no';
       mockBalance = 1000;
       mockBalanceLoading = false;
 

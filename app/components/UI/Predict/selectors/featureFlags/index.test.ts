@@ -3,6 +3,7 @@ import {
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeeCollectionFlag,
   selectPredictHotTabFlag,
+  selectPredictWithAnyTokenEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -920,6 +921,140 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       const result = selectPredictFakOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictPayWithAnyTokenEnabledFlag', () => {
+    it('returns true when remote flag is enabled and version check passes', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPayWithAnyToken: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPayWithAnyToken: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPayWithAnyToken: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when remote flag is null', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPayWithAnyToken: null,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when remote feature flags are empty', () => {
+      const result = selectPredictWithAnyTokenEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when controller is undefined', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: undefined,
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults to false when remote flag is invalid', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPayWithAnyToken: {
+                  enabled: 'invalid',
+                  minimumVersion: 123,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictWithAnyTokenEnabledFlag(state);
 
       expect(result).toBe(false);
     });
