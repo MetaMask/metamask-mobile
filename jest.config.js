@@ -67,6 +67,8 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
+    '^@metamask/geolocation-controller$':
+      '<rootDir>/app/__mocks__/@metamask/geolocation-controller.js',
     '^@metamask/perps-controller$': '<rootDir>/app/controllers/perps',
     '^@metamask/perps-controller(/.*)?$': '<rootDir>/app/controllers/perps$1',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
