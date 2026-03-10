@@ -194,13 +194,7 @@ export const Footer = () => {
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
-    return (
-      <PredictClaimFooter
-        address={transactionMetadata.txParams.from}
-        onPress={onConfirm}
-        onError={onReject}
-      />
-    );
+    return <PredictClaimFooter onPress={onConfirm} onError={onReject} />;
   }
 
   return (

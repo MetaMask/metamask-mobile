@@ -21,27 +21,29 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export interface PredictClaimFooterProps {
-  address: string;
   onPress: () => void;
   onError: (error?: Error) => void;
 }
 
 export function PredictClaimFooter({
-  address,
   onPress,
   onError,
 }: PredictClaimFooterProps) {
+  const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
+
+  const address = transactionMetadata?.txParams.from;
 
   const wonPositions = useSelector(
     selectPredictWonPositions({
-      address,
+      address: address ?? '0x',
     }),
   );
 
-  const hasNoPositions = !wonPositions?.length;
+  const hasNoPositions = !address || !wonPositions?.length;
 
   useEffect(() => {
     if (hasNoPositions) {

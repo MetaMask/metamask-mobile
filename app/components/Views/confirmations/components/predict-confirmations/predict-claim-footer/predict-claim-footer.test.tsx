@@ -12,12 +12,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
 function render({
-  address,
   onPress,
   onError,
   singlePosition,
 }: {
-  address?: string;
   onPress?: () => void;
   onError?: (error?: Error) => void;
   singlePosition?: boolean;
@@ -39,11 +37,7 @@ function render({
   }
 
   return renderWithProvider(
-    <PredictClaimFooter
-      address={address ?? accountMock}
-      onPress={onPress ?? noop}
-      onError={onError ?? noop}
-    />,
+    <PredictClaimFooter onPress={onPress ?? noop} onError={onError ?? noop} />,
     {
       state,
     },
@@ -82,22 +76,31 @@ describe('PredictClaimFooter', () => {
   });
 
   it('calls onError when there are no won positions', async () => {
-    // Arrange - state with no claimable positions for the given address
+    // Arrange - state with transaction from address that has no claimable positions
     const onErrorMock = jest.fn();
     const state = merge(
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  txParams: { from: '0xunknown' },
+                },
+              ],
+            },
+          },
+        },
+      },
     );
 
     // Act
     const { queryByTestId } = renderWithProvider(
-      <PredictClaimFooter
-        address={'0xunknown'}
-        onPress={noop}
-        onError={onErrorMock}
-      />,
+      <PredictClaimFooter onPress={noop} onError={onErrorMock} />,
       { state },
     );
 
