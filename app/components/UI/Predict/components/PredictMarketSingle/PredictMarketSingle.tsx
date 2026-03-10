@@ -255,7 +255,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.SuccessDefault}
               >
@@ -271,7 +271,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.ErrorDefault}
               >
