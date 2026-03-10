@@ -3,7 +3,11 @@ import { ActivityIndicator, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampSDK } from '../../sdk';
 
-import Text from '../../../../../Base/Text';
+import {
+  Text,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import styleSheet from './Quotes.styles';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -28,13 +32,13 @@ const Timer = ({
           <Text> {strings('fiat_on_ramp_aggregator.fetching_new_quotes')}</Text>
         </>
       ) : (
-        <Text primary centered>
+        <Text color={TextColor.TextDefault} twClassName="text-center">
           {pollingCyclesLeft > 0
             ? strings('fiat_on_ramp_aggregator.new_quotes_in')
             : strings('fiat_on_ramp_aggregator.quotes_expire_in')}{' '}
           <Text
-            bold
-            primary
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
             style={[
               styles.timer,
               remainingTime <= appConfig.POLLING_INTERVAL_HIGHLIGHT &&

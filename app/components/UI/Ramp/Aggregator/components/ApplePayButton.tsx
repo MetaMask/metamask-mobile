@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../../../styles/common';
 import { useAssetFromTheme } from '../../../../../util/theme';
-import Text from '../../../../Base/Text';
+import { Text, FontWeight } from '@metamask/design-system-react-native';
 import StyledButton from '../../../StyledButton';
 
 /* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
@@ -66,7 +66,11 @@ const ApplePayButton = ({
       onPress={onPress}
       containerStyle={[styles.applePayButton, appleButtonColors.applePayButton]}
     >
-      <Text centered bold style={[appleButtonColors.applePayButtonText]}>
+      <Text
+        fontWeight={FontWeight.Bold}
+        style={appleButtonColors.applePayButtonText}
+        twClassName="text-center"
+      >
         {label}
       </Text>{' '}
       <ApplePay />

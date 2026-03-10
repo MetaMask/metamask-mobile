@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import EthereumAddress from '../../../EthereumAddress';
 import JSIdenticon from '../../../Identicon';
-import Text from '../../../../Base/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
@@ -73,7 +73,12 @@ const Account = ({
       style={[styles.container, transparent && styles.transparentContainer]}
     >
       <Identicon diameter={15} address={address || selectedAddress} />
-      <Text style={styles.accountText} primary centered numberOfLines={1}>
+      <Text
+        style={styles.accountText}
+        color={TextColor.TextDefault}
+        twClassName="text-center"
+        numberOfLines={1}
+      >
         {accountName} (
         <EthereumAddress address={address || selectedAddress} type={'short'} />)
       </Text>
