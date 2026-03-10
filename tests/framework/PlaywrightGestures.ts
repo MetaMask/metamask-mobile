@@ -1,5 +1,6 @@
-import { PlaywrightElement } from './PlaywrightAdapter.ts';
-import { boxedStep } from './Utilities.ts';
+import { PlatformDetector } from './PlatformLocator';
+import { PlaywrightElement } from './PlaywrightAdapter';
+import { boxedStep, getDriver } from './Utilities';
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
@@ -113,5 +114,26 @@ export default class PlaywrightGestures {
   @boxedStep
   static async scrollIntoView(elem: PlaywrightElement): Promise<void> {
     await elem.unwrap().scrollIntoView();
+  }
+
+  /**
+   * Terminate the app
+   * @param packageName - The package name of the app to terminate (Android only)
+   * @param appId - The app id of the app to terminate (iOS only)
+   */
+  @boxedStep
+  static async terminateApp(
+    packageName?: string,
+    appId?: string,
+  ): Promise<void> {
+    const driver = getDriver();
+    if (!driver) throw new Error('Driver is not available');
+    if ((await PlatformDetector.isAndroid()) && packageName) {
+      await driver.terminateApp(packageName);
+    } else if ((await PlatformDetector.isIOS()) && appId) {
+      await driver.terminateApp(appId);
+    } else {
+      throw new Error('Package name or app id is not available');
+    }
   }
 }
