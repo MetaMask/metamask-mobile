@@ -3,7 +3,7 @@ import { ETHERSCAN_SUPPORTED_CHAIN_IDS } from '@metamask/preferences-controller'
 const OLD_SUPPORTED_CHAIN_IDS = { ...ETHERSCAN_SUPPORTED_CHAIN_IDS };
 
 // Remove 0x3e7 from the list of supported chain ids since it was not in the map at the time of migration
-delete OLD_SUPPORTED_CHAIN_IDS['0x3e7'];
+delete OLD_SUPPORTED_CHAIN_IDS.HYPEREVM;
 
 export default function migrate(state) {
   try {
