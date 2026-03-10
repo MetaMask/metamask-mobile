@@ -33,10 +33,12 @@ jest.mock('@react-navigation/native', () => {
 
 const ADDRESS_1 = '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29'.toLowerCase();
 const ADDRESS_2 = '0x700CcD8172BC3807D893883a730A1E0E6630F8EC'.toLowerCase();
+const ADDRESS_3 = '0x111CcD8172BC3807D893883a730A1E0E6630F8AA'.toLowerCase();
 
 // The component uses toFormattedAddress for testIDs, so we need the checksummed versions
 const CHECKSUMMED_ADDRESS_1 = toFormattedAddress(ADDRESS_1);
 const CHECKSUMMED_ADDRESS_2 = toFormattedAddress(ADDRESS_2);
+const CHECKSUMMED_ADDRESS_3 = toFormattedAddress(ADDRESS_3);
 
 const ACCOUNT_1_TEST_ID = {
   item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
@@ -66,6 +68,16 @@ const ACCOUNT_2_TEST_ID = {
   ),
   itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
     CHECKSUMMED_ADDRESS_2,
+  ),
+};
+const ACCOUNT_3_TEST_ID = {
+  item: NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(
+    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+      CHECKSUMMED_ADDRESS_3,
+    ),
+  ),
+  itemSwitch: NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATION_TOGGLE(
+    CHECKSUMMED_ADDRESS_3,
   ),
 };
 
@@ -111,30 +123,50 @@ describe('AccountList', () => {
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_2}`,
       'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD9B',
     ]);
+    const importedGroup = createMockAccountGroup(2, [
+      `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_3}`,
+    ]);
 
     const mockUseAccountProps = jest
       .spyOn(AccountListHooksModule, 'useAccountProps')
       .mockReturnValue({
         accountAvatarType: AvatarAccountType.JazzIcon,
-        firstHDWalletGroups: {
-          title: 'Wallet 1',
-          wallet: {
-            id: 'entropy:wallet-1',
-            type: AccountWalletType.Entropy,
-            metadata: {
-              entropy: {
-                id: '',
+        accountWalletGroups: [
+          {
+            title: 'Wallet 1',
+            wallet: {
+              id: 'entropy:wallet-1',
+              type: AccountWalletType.Entropy,
+              metadata: {
+                entropy: {
+                  id: '',
+                },
+                name: 'Wallet 1',
               },
-              name: 'Wallet 1',
+              status: 'ready',
+              groups: {
+                [group1.id]: group1,
+                [group2.id]: group2,
+              },
             },
-            status: 'ready',
-            groups: {
-              [group1.id]: group1,
-              [group2.id]: group2,
-            },
+            data: [group1, group2],
           },
-          data: [group1, group2],
-        },
+          {
+            title: 'Imported wallet',
+            wallet: {
+              id: 'keyring:wallet-2',
+              type: AccountWalletType.Keyring,
+              metadata: {
+                name: 'Imported wallet',
+              },
+              status: 'ready',
+              groups: {
+                [importedGroup.id]: importedGroup,
+              },
+            },
+            data: [importedGroup],
+          },
+        ],
       });
 
     const mockRefetchAccountSettings = jest.fn();
@@ -191,6 +223,7 @@ describe('AccountList', () => {
     // Assert - Items exist
     expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeTruthy();
     expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeTruthy();
+    expect(getByTestId(ACCOUNT_3_TEST_ID.item)).toBeTruthy();
 
     // Assert - Item Loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemLoading)).toBeTruthy();
@@ -217,6 +250,7 @@ describe('AccountList', () => {
     // Assert switches are disabled since we are loading
     expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.disabled).toBe(true);
     expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.disabled).toBe(true);
+    expect(getByTestId(ACCOUNT_3_TEST_ID.itemSwitch).props.disabled).toBe(true);
   });
 
   it('invokes switch toggle logic when clicked', async () => {

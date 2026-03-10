@@ -9,6 +9,7 @@ import { getValidNotificationAccounts } from '../../../../selectors/notification
 import {
   useAccountProps,
   useNotificationAccountListProps,
+  useNotificationWalletAccountGroups,
 } from './AccountsList.hooks';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -94,7 +95,7 @@ const arrangeMockUseAccounts = () => {
         title: 'Wallet 2',
         wallet: {
           id: 'entropy:wallet-2',
-          type: AccountWalletType.Entropy,
+          type: AccountWalletType.Keyring,
           metadata: {
             entropy: {
               id: '',
@@ -296,12 +297,81 @@ describe('useNotificationAccountListProps', () => {
   });
 });
 
+describe('useNotificationWalletAccountGroups', () => {
+  const arrangeMocks = () => {
+    const mocks = arrangeMockUseAccounts();
+    jest.mocked(selectInternalAccountsById).mockReturnValue({
+      'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29': {
+        id: 'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+        address: '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+        type: 'eip155:eoa',
+      } as InternalAccount,
+      'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC': {
+        id: 'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+        address: '0x700CcD8172BC3807D893883a730A1E0E6630F8EC',
+        type: 'eip155:eoa',
+      } as InternalAccount,
+      'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20': {
+        id: 'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+        address: '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20',
+        type: 'eip155:eoa',
+      } as InternalAccount,
+      'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0': {
+        id: 'MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+        address: '0x700CcD8172BC3807D893883a730A1E0E6630F8E0',
+        type: 'eip155:eoa',
+      } as InternalAccount,
+      'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY': {
+        id: 'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
+        address: '63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
+        type: 'solana:data-account',
+      } as InternalAccount,
+    });
+
+    return mocks;
+  };
+
+  it('returns wallet groups for all wallets with EVM accounts', () => {
+    arrangeMocks();
+    const { result } = renderHookWithProvider(() =>
+      useNotificationWalletAccountGroups(),
+    );
+
+    expect(result.current).toHaveLength(2);
+    expect(result.current[0]).toStrictEqual(
+      expect.objectContaining({
+        title: 'Wallet 1',
+        wallet: expect.objectContaining({
+          id: 'entropy:wallet-1',
+          type: AccountWalletType.Entropy,
+        }),
+      }),
+    );
+    expect(result.current[1]).toStrictEqual(
+      expect.objectContaining({
+        title: 'Wallet 2',
+        wallet: expect.objectContaining({
+          id: 'entropy:wallet-2',
+          type: AccountWalletType.Keyring,
+        }),
+      }),
+    );
+  });
+});
+
 describe('useAccountProps', () => {
   const arrangeMocks = () => {
     const mockStore = jest.fn().mockReturnValue({
       settings: {
         avatarAccountType: AvatarAccountType.Maskicon,
       },
+    });
+    jest.mocked(selectInternalAccountsById).mockReturnValue({
+      'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29': {
+        id: 'MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+        address: '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29',
+        type: 'eip155:eoa',
+      } as InternalAccount,
     });
 
     return {
@@ -317,14 +387,16 @@ describe('useAccountProps', () => {
     });
 
     expect(result.current.accountAvatarType).toBe(AvatarAccountType.Maskicon);
-    expect(result.current.firstHDWalletGroups).toStrictEqual(
-      expect.objectContaining({
-        title: 'Wallet 1',
-        wallet: expect.objectContaining({
-          id: 'entropy:wallet-1',
-          type: AccountWalletType.Entropy,
+    expect(result.current.accountWalletGroups).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: 'Wallet 1',
+          wallet: expect.objectContaining({
+            id: 'entropy:wallet-1',
+            type: AccountWalletType.Entropy,
+          }),
         }),
-      }),
+      ]),
     );
   });
 });

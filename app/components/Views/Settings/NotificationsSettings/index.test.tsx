@@ -14,9 +14,6 @@ const mockInitialState = {
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
   },
-  notificationsSettings: {
-    isEnabled: true,
-  },
   engine: {
     backgroundState: {
       ...backgroundState,
