@@ -280,12 +280,6 @@ export const useMusdConversion = () => {
           } = Engine.context;
 
           try {
-            Logger.log('[mUSD Max Conversion] Setting payment token:', {
-              transactionId,
-              tokenAddress,
-              chainId: tokenChainId,
-            });
-
             // Must be called BEFORE updatePaymentToken.
             TransactionPayController.setTransactionConfig(
               transactionId,
