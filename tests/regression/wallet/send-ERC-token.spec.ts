@@ -44,13 +44,11 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withNetworkEnabledMap({
               eip155: { '0x539': true },
