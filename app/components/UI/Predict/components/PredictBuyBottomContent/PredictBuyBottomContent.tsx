@@ -31,14 +31,14 @@ const PredictBuyBottomContent = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Column}
-      twClassName="border-t border-muted p-4 pb-0 gap-4"
+      twClassName="border-t border-muted p-4 pb-0"
     >
       <Box justifyContent={BoxJustifyContent.Center} twClassName="gap-2">
         {errorMessage && (
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            style={tw.style('text-center pb-2')}
+            style={tw.style('text-center px-2')}
           >
             {errorMessage}
           </Text>

@@ -132,6 +132,8 @@ export const usePredictBuyActions = ({
     async (depositErrorMessage?: string) => {
       updateActiveOrder({
         state: ActiveOrderState.REDIRECTING,
+        error:
+          depositErrorMessage ?? strings('predict.deposit.error_description'),
       });
       const response = await triggerPayWithAnyToken({
         market,
@@ -139,8 +141,6 @@ export const usePredictBuyActions = ({
         outcomeToken,
         isInputFocused,
         ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-        transactionError:
-          depositErrorMessage ?? strings('predict.deposit.error_description'),
       });
       updateActiveOrder({
         state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
@@ -159,6 +159,8 @@ export const usePredictBuyActions = ({
   );
 
   const handleConfirm = useCallback(async () => {
+    updateActiveOrder({ error: null });
+
     if (isConfirmation) {
       updateActiveOrder({
         state: ActiveOrderState.DEPOSITING,

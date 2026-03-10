@@ -23,7 +23,6 @@ import { OrderPreview } from '../types';
 export interface PredictPayWithAnyTokenParams {
   amount?: number;
   isInputFocused?: boolean;
-  transactionError?: string;
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
   outcomeToken: PredictBuyPreviewParams['outcomeToken'];
@@ -112,7 +111,6 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             amount: params.amount,
             isConfirmation: true,
             preview: params.preview,
-            transactionError: params.transactionError,
           },
         });
         return { transactionId: response?.transactionId };

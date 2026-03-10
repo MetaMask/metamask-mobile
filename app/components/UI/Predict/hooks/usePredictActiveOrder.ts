@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PredictControllerState } from '../controllers/PredictController';
@@ -27,6 +27,9 @@ export const usePredictActiveOrder = () => {
 
   const activeOrder = useSelector(selectPredictActiveOrder);
 
+  const activeOrderRef = useRef(activeOrder);
+  activeOrderRef.current = activeOrder;
+
   const updateActiveOrder = useCallback(
     (order: PredictActiveOrderPatch) => {
       if (order === null) {
@@ -36,7 +39,7 @@ export const usePredictActiveOrder = () => {
       }
 
       const nextOrder: Partial<PredictActiveOrderValue> = {
-        ...(activeOrder ?? {}),
+        ...(activeOrderRef.current ?? {}),
       };
 
       if ('amount' in order) {
@@ -71,11 +74,19 @@ export const usePredictActiveOrder = () => {
         }
       }
 
+      if ('error' in order) {
+        if (order.error === null) {
+          delete nextOrder.error;
+        } else {
+          nextOrder.error = order.error;
+        }
+      }
+
       PredictController.setActiveOrder(
         nextOrder.state ? (nextOrder as PredictActiveOrderValue) : null,
       );
     },
-    [PredictController, activeOrder],
+    [PredictController],
   );
 
   const initializeActiveOrder = useCallback(

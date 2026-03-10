@@ -3,11 +3,14 @@ import { useMemo } from 'react';
 import { useTransactionPayTotals } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { OrderPreview } from '../types';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
+import { usePredictActiveOrder } from './usePredictActiveOrder';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
   preview?: OrderPreview | null;
   previewError: string | null;
+  placeOrderError?: string | null;
+  isOrderNotFilled: boolean;
   isPlaceOrderLoading: boolean;
 }
 
@@ -15,10 +18,13 @@ export const usePredictBuyInfo = ({
   preview,
   previewError,
   currentValue,
+  placeOrderError,
+  isOrderNotFilled,
   isPlaceOrderLoading,
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
+  const { activeOrder } = usePredictActiveOrder();
 
   const depositFee = useMemo(() => {
     if (isPredictBalanceSelected || !payTotals?.fees) return 0;
@@ -56,6 +62,14 @@ export const usePredictBuyInfo = ({
     ],
   );
 
+  const errorMessage = useMemo(
+    () =>
+      isOrderNotFilled
+        ? undefined
+        : (previewError ?? placeOrderError ?? activeOrder?.error),
+    [isOrderNotFilled, previewError, placeOrderError, activeOrder?.error],
+  );
+
   return {
     toWin,
     metamaskFee,
@@ -63,5 +77,6 @@ export const usePredictBuyInfo = ({
     depositFee,
     total,
     rewardsFeeAmount,
+    errorMessage,
   };
 };

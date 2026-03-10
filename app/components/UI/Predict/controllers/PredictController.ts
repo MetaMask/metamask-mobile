@@ -157,6 +157,7 @@ export type PredictControllerState = {
     transactionId?: string;
     isInputFocused?: boolean;
     state: ActiveOrderState;
+    error?: string;
   } | null;
 
   selectedPaymentToken: {

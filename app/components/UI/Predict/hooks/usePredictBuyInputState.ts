@@ -38,11 +38,16 @@ export const usePredictBuyInputState = () => {
           ? (value as (prevState: number) => number)(previousValue)
           : value;
 
+      const isUserInput = nextValue !== previousValue && nextValue > 0;
+
       if (nextValue !== previousValue) {
-        setIsUserInputChange(nextValue > 0);
+        setIsUserInputChange(isUserInput);
       }
 
-      updateActiveOrder({ amount: nextValue });
+      updateActiveOrder({
+        amount: nextValue,
+        ...(isUserInput ? { error: null } : {}),
+      });
     },
     [updateActiveOrder],
   );

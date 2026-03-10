@@ -74,7 +74,6 @@ const PredictBuyPreview = () => {
     transactionId,
     isConfirmation,
     preview: initialPreview,
-    transactionError,
   } = route.params;
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
@@ -197,11 +196,14 @@ const PredictBuyPreview = () => {
     total,
     depositFee,
     rewardsFeeAmount,
+    errorMessage,
   } = usePredictBuyInfo({
     currentValue,
     preview,
     previewError,
     isPlaceOrderLoading,
+    placeOrderError,
+    isOrderNotFilled,
   });
 
   const {
@@ -274,14 +276,6 @@ const PredictBuyPreview = () => {
       isBalanceLoading,
     },
   });
-
-  const errorMessage = useMemo(
-    () =>
-      isOrderNotFilled
-        ? undefined
-        : (previewError ?? placeOrderError ?? transactionError),
-    [isOrderNotFilled, previewError, placeOrderError, transactionError],
-  );
 
   useEffect(() => {
     if (result?.success) {
