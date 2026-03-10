@@ -33,7 +33,7 @@ export const useBalanceRefresh = () => {
     selectHomepageSectionsV1Enabled,
   );
 
-  const useNftDetection = useSelector(selectUseNftDetection);
+  const isNftDetectionEnabled = useSelector(selectUseNftDetection);
 
   const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
 
@@ -75,6 +75,7 @@ export const useBalanceRefresh = () => {
       .filter((id): id is string => Boolean(id));
 
     try {
+      const nftAbortController = new AbortController();
       await Promise.race([
         Promise.allSettled([
           AccountTrackerController.refresh(networkClientIds),
@@ -85,15 +86,20 @@ export const useBalanceRefresh = () => {
           TokenBalancesController.updateBalances({
             chainIds: evmChainIdsForRefresh,
           }),
-          ...(isHomepageSectionsV1Enabled && useNftDetection
-            ? [NftDetectionController.detectNfts(evmChainIdsForRefresh)]
+          ...(isHomepageSectionsV1Enabled && isNftDetectionEnabled
+            ? [
+                NftDetectionController.detectNfts(evmChainIdsForRefresh, {
+                  firstPageOnly: true,
+                  signal: nftAbortController.signal,
+                }),
+              ]
             : []),
         ]),
         new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE)),
-            REFRESH_TIMEOUT_MS,
-          ),
+          setTimeout(() => {
+            nftAbortController.abort();
+            reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE));
+          }, REFRESH_TIMEOUT_MS),
         ),
       ]);
     } catch (error) {
@@ -109,7 +115,7 @@ export const useBalanceRefresh = () => {
     evmChainIdsForRefresh,
     nativeCurrencies,
     isHomepageSectionsV1Enabled,
-    useNftDetection,
+    isNftDetectionEnabled,
   ]);
 
   const handleRefresh = useCallback(async () => {

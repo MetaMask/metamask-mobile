@@ -148,7 +148,7 @@ describe('useBalanceRefresh', () => {
   });
 
   describe('NftDetectionController', () => {
-    it('calls detectNfts with popular chain IDs when sections v1 is enabled', async () => {
+    it('calls detectNfts with popular chain IDs and firstPageOnly when sections v1 is enabled', async () => {
       const { result } = renderHook(() => useBalanceRefresh());
 
       await act(async () => {
@@ -157,7 +157,13 @@ describe('useBalanceRefresh', () => {
 
       expect(
         Engine.context.NftDetectionController.detectNfts,
-      ).toHaveBeenCalledWith(['0x1', '0x89']);
+      ).toHaveBeenCalledWith(
+        ['0x1', '0x89'],
+        expect.objectContaining({
+          firstPageOnly: true,
+          signal: expect.any(AbortSignal),
+        }),
+      );
     });
 
     it('does not call detectNfts when sections v1 is disabled', async () => {
