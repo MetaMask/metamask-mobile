@@ -1,0 +1,9 @@
+Running on iPhone 17 Pro - iOS 26.2 - 46637862-A9F5-4545-B10F-2814C7086101
+ > Flow create-wallet
+Launch app "io.metamask.MetaMask"... FAILED
+
+Unable to launch app io.metamask.MetaMask
+
+==== Debug output (logs & screenshots) ====
+
+/Users/sallem/.maestro/tests/2026-03-10_102219
