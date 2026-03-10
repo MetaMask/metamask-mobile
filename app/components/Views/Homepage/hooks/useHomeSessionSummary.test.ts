@@ -37,8 +37,6 @@ const HomepageEntryPoints = {
 let mockGetViewedSectionCount = jest.fn(() => 3);
 let mockNotifySectionViewed = jest.fn();
 
-let mockShouldSkipSessionSummary = jest.fn(() => false);
-
 let mockContextValue = {
   subscribeToScroll: jest.fn(() => jest.fn()),
   viewportHeight: 800,
@@ -47,8 +45,6 @@ let mockContextValue = {
   visitId: 1,
   notifySectionViewed: mockNotifySectionViewed,
   getViewedSectionCount: mockGetViewedSectionCount,
-  skipNextSessionSummary: jest.fn(),
-  shouldSkipSessionSummary: mockShouldSkipSessionSummary,
 };
 
 jest.mock('../context/HomepageScrollContext', () => ({
@@ -84,7 +80,6 @@ describe('useHomeSessionSummary', () => {
     jest.clearAllMocks();
     mockGetViewedSectionCount = jest.fn(() => 3);
     mockNotifySectionViewed = jest.fn();
-    mockShouldSkipSessionSummary = jest.fn(() => false);
     mockContextValue = {
       subscribeToScroll: jest.fn(() => jest.fn()),
       viewportHeight: 800,
@@ -93,8 +88,6 @@ describe('useHomeSessionSummary', () => {
       visitId: 1,
       notifySectionViewed: mockNotifySectionViewed,
       getViewedSectionCount: mockGetViewedSectionCount,
-      skipNextSessionSummary: jest.fn(),
-      shouldSkipSessionSummary: mockShouldSkipSessionSummary,
     };
   });
 
@@ -110,39 +103,6 @@ describe('useHomeSessionSummary', () => {
       });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('skip via context — shouldSkipSessionSummary', () => {
-    it('does not fire when shouldSkipSessionSummary returns true', () => {
-      mockShouldSkipSessionSummary = jest.fn(() => true);
-      mockContextValue = {
-        ...mockContextValue,
-        shouldSkipSessionSummary: mockShouldSkipSessionSummary,
-      };
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockShouldSkipSessionSummary).toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
-    it('fires normally when shouldSkipSessionSummary returns false', () => {
-      const { simulateBlur } = setupFocusBlur();
-
-      renderHook(() => useHomeSessionSummary({ totalSectionsLoaded: 5 }));
-
-      act(() => {
-        simulateBlur();
-      });
-
-      expect(mockShouldSkipSessionSummary).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
 

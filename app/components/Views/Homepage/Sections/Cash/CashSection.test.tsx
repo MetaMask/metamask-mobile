@@ -31,13 +31,6 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
 
-const mockSkipNextSessionSummary = jest.fn();
-jest.mock('../../context/HomepageScrollContext', () => ({
-  useHomepageScrollContext: () => ({
-    skipNextSessionSummary: mockSkipNextSessionSummary,
-  }),
-}));
-
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -133,19 +126,6 @@ describe('CashSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
     );
-  });
-
-  it('calls skipNextSessionSummary before navigating on section header press', () => {
-    renderWithProvider(
-      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    fireEvent.press(screen.getByText('Cash'));
-
-    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
-    const skipOrder = mockSkipNextSessionSummary.mock.invocationCallOrder[0];
-    const navOrder = mockNavigate.mock.invocationCallOrder[0];
-    expect(skipOrder).toBeLessThan(navOrder);
   });
 
   it('shows annualized copy', () => {

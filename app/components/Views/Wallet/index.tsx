@@ -124,10 +124,7 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
-import {
-  HomepageScrollContext,
-  consumeModuleLevelSkipFlag,
-} from '../Homepage/context/HomepageScrollContext';
+import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -1300,17 +1297,6 @@ const Wallet = ({
     [],
   );
 
-  const skipSessionSummaryRef = useRef(false);
-  const skipNextSessionSummary = useCallback(() => {
-    skipSessionSummaryRef.current = true;
-  }, []);
-  const shouldSkipSessionSummary = useCallback(() => {
-    const skipLocal = skipSessionSummaryRef.current;
-    skipSessionSummaryRef.current = false;
-    const skipModule = consumeModuleLevelSkipFlag();
-    return skipLocal || skipModule;
-  }, []);
-
   const homepageScrollContextValue = useMemo(
     () => ({
       subscribeToScroll,
@@ -1320,8 +1306,6 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
-      skipNextSessionSummary,
-      shouldSkipSessionSummary,
     }),
     [
       subscribeToScroll,
@@ -1331,8 +1315,6 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
-      skipNextSessionSummary,
-      shouldSkipSessionSummary,
     ],
   );
 

@@ -44,13 +44,6 @@ jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
 }));
 
-const mockSkipNextSessionSummary = jest.fn();
-jest.mock('../../context/HomepageScrollContext', () => ({
-  useHomepageScrollContext: () => ({
-    skipNextSessionSummary: mockSkipNextSessionSummary,
-  }),
-}));
-
 const mockInitiateCustomConversion = jest.fn();
 jest.mock('../../../../UI/Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
@@ -78,7 +71,6 @@ describe('CashGetMusdEmptyState', () => {
     mockUseMusdConversionFlowData.isEmptyWallet = false;
     mockUseMusdConversionFlowData.hasConvertibleTokens = true;
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
-    mockSkipNextSessionSummary.mockClear();
   });
 
   it('renders annualized copy and Get mUSD button', () => {
@@ -113,18 +105,6 @@ describe('CashGetMusdEmptyState', () => {
         source: 'mobile-token-list-page',
       }),
     );
-  });
-
-  it('calls skipNextSessionSummary before navigating to Asset', () => {
-    renderWithProvider(<CashGetMusdEmptyState />);
-
-    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW));
-
-    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
-    const navigateOrder = jest.mocked(NavigationService.navigation.navigate)
-      .mock.invocationCallOrder[0];
-    const skipOrder = mockSkipNextSessionSummary.mock.invocationCallOrder[0];
-    expect(skipOrder).toBeLessThan(navigateOrder);
   });
 
   it('calls initiateCustomConversion when Get mUSD pressed and has convertible tokens', async () => {
@@ -169,11 +149,18 @@ describe('CashGetMusdEmptyState', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('calls skipNextSessionSummary when Get mUSD is pressed', () => {
+  it('hides Get mUSD button when no convertible tokens and mUSD is not buyable', () => {
+    mockUseMusdConversionFlowData.hasConvertibleTokens = false;
+    mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = false;
+
     renderWithProvider(<CashGetMusdEmptyState />);
 
-    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
-
-    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(CashGetMusdEmptyStateSelectors.BUTTON),
+    ).toBeNull();
+    // Token row still renders
+    expect(
+      screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW),
+    ).toBeOnTheScreen();
   });
 });

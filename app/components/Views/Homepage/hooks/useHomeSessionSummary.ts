@@ -18,20 +18,12 @@ interface UseHomeSessionSummaryParams {
  * - `session_time` — seconds spent on the homepage this visit
  *
  * All session state is held in refs — no re-renders occur on scroll or blur.
- *
- * Any child component can call `skipNextSessionSummary()` from
- * `HomepageScrollContext` before navigating to a detail screen (e.g. Asset)
- * to suppress the event for that blur.
  */
 const useHomeSessionSummary = ({
   totalSectionsLoaded,
 }: UseHomeSessionSummaryParams) => {
-  const {
-    visitId,
-    entryPoint,
-    getViewedSectionCount,
-    shouldSkipSessionSummary,
-  } = useHomepageScrollContext();
+  const { visitId, entryPoint, getViewedSectionCount } =
+    useHomepageScrollContext();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const sessionStartRef = useRef<number>(Date.now());
@@ -60,7 +52,6 @@ const useHomeSessionSummary = ({
     useCallback(
       () => () => {
         if (visitIdRef.current === 0) return;
-        if (shouldSkipSessionSummary()) return;
         const sessionTime = Math.round(
           (Date.now() - sessionStartRef.current) / 1000,
         );
@@ -77,12 +68,7 @@ const useHomeSessionSummary = ({
             .build(),
         );
       },
-      [
-        trackEvent,
-        createEventBuilder,
-        getViewedSectionCount,
-        shouldSkipSessionSummary,
-      ],
+      [trackEvent, createEventBuilder, getViewedSectionCount],
     ),
   );
 };

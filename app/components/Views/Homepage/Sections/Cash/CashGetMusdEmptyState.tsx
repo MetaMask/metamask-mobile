@@ -43,7 +43,6 @@ import {
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
-import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
 import CashAnnualizedCopy from './CashAnnualizedCopy';
 
 /**
@@ -53,7 +52,6 @@ import CashAnnualizedCopy from './CashAnnualizedCopy';
  */
 const CashGetMusdEmptyState = () => {
   const tw = useTailwind();
-  const { skipNextSessionSummary } = useHomepageScrollContext();
   const { goToBuy } = useRampNavigation();
   const {
     hasConvertibleTokens,
@@ -92,8 +90,9 @@ const CashGetMusdEmptyState = () => {
     return result.replace('US$', '$');
   }, [currentCurrency, mainnetConversionRate, mainnetUsdConversionRate]);
 
+  const canGetMusd = hasConvertibleTokens || isMusdBuyableOnAnyChain;
+
   const handleTokenRowPress = useCallback(() => {
-    skipNextSessionSummary();
     NavigationService.navigation.navigate(
       'Asset' as never,
       {
@@ -101,10 +100,9 @@ const CashGetMusdEmptyState = () => {
         source: TokenDetailsSource.MobileTokenListPage,
       } as never,
     );
-  }, [skipNextSessionSummary]);
+  }, []);
 
   const handleGetMusdPress = useCallback(async () => {
-    skipNextSessionSummary();
     const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
     const getRedirectLocation = () => {
       if (hasConvertibleTokens) {
@@ -164,7 +162,6 @@ const CashGetMusdEmptyState = () => {
       goToBuy(rampIntent);
     }
   }, [
-    skipNextSessionSummary,
     isMusdBuyableOnAnyChain,
     hasConvertibleTokens,
     hasSeenConversionEducationScreen,
@@ -224,20 +221,22 @@ const CashGetMusdEmptyState = () => {
             </Box>
           </Box>
         </Pressable>
-        <Button
-          testID={CashGetMusdEmptyStateSelectors.BUTTON}
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Md}
-          onPress={handleGetMusdPress}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+        {canGetMusd && (
+          <Button
+            testID={CashGetMusdEmptyStateSelectors.BUTTON}
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            onPress={handleGetMusdPress}
           >
-            {strings('earn.musd_conversion.get_musd')}
-          </Text>
-        </Button>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {strings('earn.musd_conversion.get_musd')}
+            </Text>
+          </Button>
+        )}
       </View>
     </Box>
   );
