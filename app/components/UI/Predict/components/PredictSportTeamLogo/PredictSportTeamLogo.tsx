@@ -33,10 +33,9 @@ const PredictSportTeamLogo: React.FC<PredictSportTeamLogoProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       testID={testID}
-      style={tw.style('overflow-hidden', {
+      style={tw.style('overflow-hidden rounded-lg', {
         width: size,
         height: size,
-        borderRadius: size / 2,
         backgroundColor: color,
       })}
     >
