@@ -3,6 +3,7 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -13,6 +14,8 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../../component-library/components/Banners/Banner';
+import Accordion from '../../../../../../component-library/components/Accordions/Accordion/Accordion';
+import { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
@@ -21,10 +24,12 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
+import { DiffHighlightedAddress } from '../diff-highlighted-address/diff-highlighted-address';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
@@ -44,6 +49,10 @@ export const Recipient = () => {
     loading,
     resolvedAddress,
   } = useToAddressValidation();
+
+  const { bestMatch: poisoningMatch } = useAddressPoisoningDetection(
+    !toAddressError ? to : undefined,
+  );
 
   const isReviewButtonDisabled = Boolean(toAddressError);
   // This hook needs to be called to update ERC721 NFTs in send flow
@@ -95,6 +104,7 @@ export const Recipient = () => {
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
       !toAddressWarning &&
+      !poisoningMatch &&
       !loading
     ) {
       handleReview(true);
@@ -105,6 +115,7 @@ export const Recipient = () => {
     toAddressError,
     toAddressValidated,
     toAddressWarning,
+    poisoningMatch,
     loading,
   ]);
 
@@ -186,6 +197,43 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
+              {poisoningMatch && to && (
+                <Banner
+                  testID="address-poisoning-warning-banner"
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Error}
+                  style={styles.banner}
+                  title={strings('send.address_poisoning_warning_title')}
+                  description={strings(
+                    'send.address_poisoning_warning_message',
+                  )}
+                >
+                  <Accordion
+                    title={strings('send.compare_addresses')}
+                    isExpanded={false}
+                    horizontalAlignment={
+                      AccordionHeaderHorizontalAlignment.Start
+                    }
+                  >
+                    <Box twClassName="mt-2 gap-2">
+                      <DiffHighlightedAddress
+                        address={to}
+                        diffIndices={poisoningMatch.diffIndices}
+                        label={strings('send.entered_malicious')}
+                        dotTwColor="bg-error-default"
+                      />
+                      <DiffHighlightedAddress
+                        address={poisoningMatch.knownAddress}
+                        diffIndices={poisoningMatch.diffIndices}
+                        label={strings('send.known_safe')}
+                        dotTwColor="bg-success-default"
+                        highlightTwColor="bg-success-muted"
+                        diffTextColor={TextColor.SuccessDefault}
+                      />
+                    </Box>
+                  </Accordion>
+                </Banner>
+              )}
               {toAddressWarning && (
                 <Banner
                   testID="to-address-warning-banner"
