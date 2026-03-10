@@ -41,7 +41,7 @@ const STUB_TX = {
 export function getBumpParamsForCancelSpeedup(
   tx: TransactionMeta,
   isCancel: boolean,
-  gasFeeEstimates: ReturnType<typeof selectGasFeeEstimates>,
+  gasFeeEstimates?: ReturnType<typeof selectGasFeeEstimates>,
 ): GasPriceValue | FeeMarketEIP1559Values | undefined {
   const txParams = tx?.txParams;
   if (!tx || !txParams) {
@@ -88,7 +88,7 @@ export function getBumpParamsForCancelSpeedup(
   const suggestedGasPrice = existingGasPrice.times(rate).integerValue();
   let gasPriceHex = addHexPrefix(suggestedGasPrice.toString(16));
 
-  if (suggestedGasPrice.isZero()) {
+  if (suggestedGasPrice.isZero() && gasFeeEstimates) {
     gasPriceHex = getMediumGasPriceHex(
       gasFeeEstimates as Parameters<typeof getMediumGasPriceHex>[0],
     );
@@ -122,7 +122,7 @@ export function useCancelSpeedupGas({
 }: UseCancelSpeedupGasInput): UseCancelSpeedupGasResult {
   const tx = useSelector((state: RootState) =>
     txId ? selectTransactionMetadataById(state, txId) : undefined,
-  ) as TransactionMeta | undefined;
+  );
 
   const chainId = tx?.chainId;
 

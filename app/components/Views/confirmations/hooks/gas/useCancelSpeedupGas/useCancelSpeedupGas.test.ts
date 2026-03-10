@@ -161,28 +161,6 @@ describe('useCancelSpeedupGas', () => {
     expect(result.current.nativeTokenSymbol).toBe('ETH');
   });
 
-  it('returns EIP-1559 params with higher values for cancel', () => {
-    const stateWithTx = buildStateWithTransaction(mockTxEip1559);
-    const { result: speedUpResult } = renderHookWithProvider(
-      () =>
-        useCancelSpeedupGas({
-          txId: 'tx-1',
-        }),
-      stateWithTx,
-    );
-
-    const { result: cancelResult } = renderHookWithProvider(
-      () =>
-        useCancelSpeedupGas({
-          txId: 'tx-1',
-        }),
-      stateWithTx,
-    );
-
-    expect(cancelResult.current.paramsForController).toBeDefined();
-    expect(speedUpResult.current.paramsForController).toBeDefined();
-  });
-
   it('returns legacy params when tx.txParams has gasPrice (zero gasPrice)', () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -343,22 +321,39 @@ describe('useCancelSpeedupGas', () => {
 });
 
 describe('getBumpParamsForCancelSpeedup', () => {
+  const eip1559Tx = {
+    id: 'tx-1',
+    chainId: '0x1',
+    txParams: {
+      gas: '0x5208',
+      maxFeePerGas: '0x174876e800',
+      maxPriorityFeePerGas: '0x59682f00',
+    },
+  } as unknown as TransactionMeta;
+
   it('returns EIP-1559 params for speed up', () => {
-    const tx = {
-      id: 'tx-1',
-      chainId: '0x1',
-      txParams: {
-        gas: '0x5208',
-        maxFeePerGas: '0x174876e800',
-        maxPriorityFeePerGas: '0x59682f00',
-      },
-    } as unknown as TransactionMeta;
-    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    const params = getBumpParamsForCancelSpeedup(eip1559Tx, false);
     expect(params).toBeDefined();
     expect((params as FeeMarketEIP1559Values).maxFeePerGas).toBeDefined();
     expect(
       (params as FeeMarketEIP1559Values).maxPriorityFeePerGas,
     ).toBeDefined();
+  });
+
+  it('returns EIP-1559 params for cancel with same or higher values than speed up', () => {
+    const speedUpParams = getBumpParamsForCancelSpeedup(eip1559Tx, false);
+    const cancelParams = getBumpParamsForCancelSpeedup(eip1559Tx, true);
+    expect(speedUpParams).toBeDefined();
+    expect(cancelParams).toBeDefined();
+
+    const speedUp = speedUpParams as FeeMarketEIP1559Values;
+    const cancel = cancelParams as FeeMarketEIP1559Values;
+    expect(parseInt(cancel.maxFeePerGas ?? '0', 16)).toBeGreaterThanOrEqual(
+      parseInt(speedUp.maxFeePerGas ?? '0', 16),
+    );
+    expect(
+      parseInt(cancel.maxPriorityFeePerGas ?? '0', 16),
+    ).toBeGreaterThanOrEqual(parseInt(speedUp.maxPriorityFeePerGas ?? '0', 16));
   });
 
   it('returns legacy gasPrice when tx is legacy', () => {
@@ -367,14 +362,14 @@ describe('getBumpParamsForCancelSpeedup', () => {
       chainId: '0x1',
       txParams: { gas: '0x5208', gasPrice: '0x2540be400' },
     } as unknown as TransactionMeta;
-    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    const params = getBumpParamsForCancelSpeedup(tx, false);
     expect(params).toBeDefined();
     expect((params as GasPriceValue).gasPrice).toBeDefined();
   });
 
   it('returns undefined when tx has no txParams', () => {
     const tx = { id: 'tx-1', chainId: '0x1' } as unknown as TransactionMeta;
-    const params = getBumpParamsForCancelSpeedup(tx, false, null);
+    const params = getBumpParamsForCancelSpeedup(tx, false);
     expect(params).toBeUndefined();
   });
 });
