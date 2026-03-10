@@ -8008,7 +8008,7 @@
   },
   "homepage": {
     "sections": {
-      "cash": "mUSD",
+      "cash": "Cash",
       "cash_annualized_copy": "Get {{percentage}}% annualized bonus on your stablecoins when you convert to mUSD.",
       "cash_empty_description": "You don't have any mUSD yet. Convert stablecoins to mUSD from the Cash section on the homepage.",
       "cash_empty_description_network_filter": "No mUSD on this network. Switch network to see your mUSD.",

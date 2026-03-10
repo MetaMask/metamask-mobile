@@ -420,6 +420,17 @@ export const TokenListItemV2 = React.memo(
         };
       }
 
+      // mUSD with no claimable bonus: show green "3% bonus" (not clickable)
+      if (asset && isMusdToken(asset.address)) {
+        return {
+          text: strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+          color: TextColor.Success,
+          onPress: undefined,
+        };
+      }
+
       if (shouldShowConvertToMusdCta) {
         return {
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
@@ -468,6 +479,7 @@ export const TokenListItemV2 = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
+      asset,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,

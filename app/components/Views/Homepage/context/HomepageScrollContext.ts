@@ -47,6 +47,17 @@ interface HomepageScrollContextValue {
    * Intended for use in the session_summary event fired on blur.
    */
   getViewedSectionCount: () => number;
+  /**
+   * Call before navigating to a detail screen (e.g. Asset) from within the
+   * homepage. Sets a flag so the next blur does NOT fire the session_summary
+   * "Home Viewed" event.
+   */
+  skipNextSessionSummary: () => void;
+  /**
+   * Reads (and resets) the skip flag. Returns `true` if the upcoming
+   * session_summary should be suppressed.
+   */
+  shouldSkipSessionSummary: () => boolean;
 }
 
 const noop = () => () => {
@@ -61,6 +72,8 @@ const defaultValue: HomepageScrollContextValue = {
   visitId: 0,
   notifySectionViewed: () => undefined,
   getViewedSectionCount: () => 0,
+  skipNextSessionSummary: () => undefined,
+  shouldSkipSessionSummary: () => false,
 };
 
 export const HomepageScrollContext =

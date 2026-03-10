@@ -4,6 +4,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import NavigationService from '../../../../../core/NavigationService';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
 
 jest.mock('../../../../../core/NavigationService', () => {
   const mockNavigate = jest.fn();
@@ -20,10 +22,40 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: mockGoToBuy }),
 }));
 
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
+  useNetworkName: () => 'Ethereum Mainnet',
+}));
+
+jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+}));
+
+const mockSkipNextSessionSummary = jest.fn();
+jest.mock('../../context/HomepageScrollContext', () => ({
+  useHomepageScrollContext: () => ({
+    skipNextSessionSummary: mockSkipNextSessionSummary,
+  }),
+}));
+
 const mockInitiateCustomConversion = jest.fn();
 jest.mock('../../../../UI/Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
     initiateCustomConversion: mockInitiateCustomConversion,
+    hasSeenConversionEducationScreen: true,
   }),
 }));
 
@@ -46,6 +78,7 @@ describe('CashGetMusdEmptyState', () => {
     mockUseMusdConversionFlowData.isEmptyWallet = false;
     mockUseMusdConversionFlowData.hasConvertibleTokens = true;
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
+    mockSkipNextSessionSummary.mockClear();
   });
 
   it('renders annualized copy and Get mUSD button', () => {
@@ -82,6 +115,18 @@ describe('CashGetMusdEmptyState', () => {
     );
   });
 
+  it('calls skipNextSessionSummary before navigating to Asset', () => {
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.ROW));
+
+    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
+    const navigateOrder = jest.mocked(NavigationService.navigation.navigate)
+      .mock.invocationCallOrder[0];
+    const skipOrder = mockSkipNextSessionSummary.mock.invocationCallOrder[0];
+    expect(skipOrder).toBeLessThan(navigateOrder);
+  });
+
   it('calls initiateCustomConversion when Get mUSD pressed and has convertible tokens', async () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
@@ -104,5 +149,31 @@ describe('CashGetMusdEmptyState', () => {
       }),
     );
     expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
+  });
+
+  it('tracks MUSD_CONVERSION_CTA_CLICKED with home_cash_section when Get mUSD is pressed', () => {
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+        cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
+        cta_text: 'Get mUSD',
+      }),
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('calls skipNextSessionSummary when Get mUSD is pressed', () => {
+    renderWithProvider(<CashGetMusdEmptyState />);
+
+    fireEvent.press(screen.getByTestId(CashGetMusdEmptyStateSelectors.BUTTON));
+
+    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
   });
 });

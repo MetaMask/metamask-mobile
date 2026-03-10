@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import BigNumber from 'bignumber.js';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -26,8 +25,13 @@ import { RampIntent } from '../../../../UI/Ramp/types';
 import { useMusdConversion } from '../../../../UI/Earn/hooks/useMusdConversion';
 import { useMusdConversionFlowData } from '../../../../UI/Earn/hooks/useMusdConversionFlowData';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../../UI/Earn/types/musd.types';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
+import { selectMusdQuickConvertEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../../core/NavigationService';
 import { RootState } from '../../../../../reducers';
@@ -36,9 +40,10 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../../../selectors/currencyRateController';
-import formatFiat from '../../../../../util/formatFiat';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
+import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
 import CashAnnualizedCopy from './CashAnnualizedCopy';
 
 /**
@@ -48,13 +53,18 @@ import CashAnnualizedCopy from './CashAnnualizedCopy';
  */
 const CashGetMusdEmptyState = () => {
   const tw = useTailwind();
+  const { skipNextSessionSummary } = useHomepageScrollContext();
   const { goToBuy } = useRampNavigation();
   const {
     hasConvertibleTokens,
     isMusdBuyableOnAnyChain,
     getPaymentTokenForSelectedNetwork,
   } = useMusdConversionFlowData();
-  const { initiateCustomConversion } = useMusdConversion();
+  const { initiateCustomConversion, hasSeenConversionEducationScreen } =
+    useMusdConversion();
+  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const networkName = useNetworkName(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const mainnetConversionRate = useSelector((state: RootState) =>
@@ -72,10 +82,18 @@ const CashGetMusdEmptyState = () => {
       mainnetUsdConversionRate > 0
         ? mainnetConversionRate / mainnetUsdConversionRate
         : 1;
-    return formatFiat(new BigNumber(oneUsdInUserCurrency), currency);
+    const value = Number(Number(oneUsdInUserCurrency).toFixed(2));
+    const result = getIntlNumberFormatter(I18n.locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+    return result.replace('US$', '$');
   }, [currentCurrency, mainnetConversionRate, mainnetUsdConversionRate]);
 
   const handleTokenRowPress = useCallback(() => {
+    skipNextSessionSummary();
     NavigationService.navigation.navigate(
       'Asset' as never,
       {
@@ -83,9 +101,35 @@ const CashGetMusdEmptyState = () => {
         source: TokenDetailsSource.MobileTokenListPage,
       } as never,
     );
-  }, []);
+  }, [skipNextSessionSummary]);
 
   const handleGetMusdPress = useCallback(async () => {
+    skipNextSessionSummary();
+    const { EVENT_LOCATIONS, MUSD_CTA_TYPES } = MUSD_EVENTS_CONSTANTS;
+    const getRedirectLocation = () => {
+      if (hasConvertibleTokens) {
+        if (!hasSeenConversionEducationScreen) {
+          return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
+        }
+        return isQuickConvertEnabled
+          ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+          : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+      }
+      return EVENT_LOCATIONS.BUY_SCREEN;
+    };
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
+        .addProperties({
+          location: EVENT_LOCATIONS.HOME_CASH_SECTION,
+          redirects_to: getRedirectLocation(),
+          cta_type: MUSD_CTA_TYPES.PRIMARY,
+          cta_text: strings('earn.musd_conversion.get_musd'),
+          network_chain_id: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+          network_name: networkName ?? undefined,
+        })
+        .build(),
+    );
+
     // Prefer Convert when user has convertible tokens
     if (hasConvertibleTokens) {
       const paymentToken = getPaymentTokenForSelectedNetwork();
@@ -120,11 +164,17 @@ const CashGetMusdEmptyState = () => {
       goToBuy(rampIntent);
     }
   }, [
+    skipNextSessionSummary,
     isMusdBuyableOnAnyChain,
     hasConvertibleTokens,
+    hasSeenConversionEducationScreen,
+    isQuickConvertEnabled,
     getPaymentTokenForSelectedNetwork,
     goToBuy,
     initiateCustomConversion,
+    trackEvent,
+    createEventBuilder,
+    networkName,
   ]);
 
   return (

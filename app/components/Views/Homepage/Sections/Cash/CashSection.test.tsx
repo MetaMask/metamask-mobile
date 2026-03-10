@@ -31,6 +31,13 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: () => mockUseMusdBalance(),
 }));
 
+const mockSkipNextSessionSummary = jest.fn();
+jest.mock('../../context/HomepageScrollContext', () => ({
+  useHomepageScrollContext: () => ({
+    skipNextSessionSummary: mockSkipNextSessionSummary,
+  }),
+}));
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -95,7 +102,7 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('mUSD')).toBeNull();
+    expect(queryByText('Cash')).toBeNull();
   });
 
   it('returns null when geo is ineligible', () => {
@@ -105,15 +112,15 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(queryByText('mUSD')).toBeNull();
+    expect(queryByText('Cash')).toBeNull();
   });
 
-  it('renders mUSD title when enabled', () => {
+  it('renders Cash title when enabled', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByText('mUSD')).toBeOnTheScreen();
+    expect(screen.getByText('Cash')).toBeOnTheScreen();
   });
 
   it('navigates to CASH_TOKENS_FULL_VIEW when section header is pressed', () => {
@@ -121,11 +128,24 @@ describe('CashSection', () => {
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByText('mUSD'));
+    fireEvent.press(screen.getByText('Cash'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
     );
+  });
+
+  it('calls skipNextSessionSummary before navigating on section header press', () => {
+    renderWithProvider(
+      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    fireEvent.press(screen.getByText('Cash'));
+
+    expect(mockSkipNextSessionSummary).toHaveBeenCalledTimes(1);
+    const skipOrder = mockSkipNextSessionSummary.mock.invocationCallOrder[0];
+    const navOrder = mockNavigate.mock.invocationCallOrder[0];
+    expect(skipOrder).toBeLessThan(navOrder);
   });
 
   it('shows annualized copy', () => {

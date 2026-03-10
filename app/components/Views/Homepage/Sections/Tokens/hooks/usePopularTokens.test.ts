@@ -31,6 +31,15 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   ),
 }));
 
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
+jest.mock('../../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 
@@ -192,5 +201,28 @@ describe('usePopularTokens', () => {
     await result.current.refetch();
 
     expect(mockHandleFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('excludes mUSD from tokens when Cash section is enabled', async () => {
+    mockHandleFetch.mockResolvedValue({});
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+    // First call: selectCurrentCurrency → 'usd'; second: selectIsMusdConversionFlowEnabledFlag → true.
+    // Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
+    mockUseSelector
+      .mockReturnValueOnce('usd')
+      .mockReturnValueOnce(true)
+      .mockReturnValue(true);
+
+    const { result } = renderHook(() => usePopularTokens());
+
+    await waitFor(() => {
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    expect(result.current.tokens).toHaveLength(4);
+    expect(
+      result.current.tokens.find((t) => t.symbol === 'mUSD'),
+    ).toBeUndefined();
+    expect(result.current.tokens[0].name).toBe('Ethereum');
   });
 });

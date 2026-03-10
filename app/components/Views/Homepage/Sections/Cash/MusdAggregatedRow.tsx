@@ -24,9 +24,13 @@ import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  MUSD_CONVERSION_APY,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
+import { MUSD_EVENTS_CONSTANTS } from '../../../../UI/Earn/constants/events';
+import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
+import type { Hex } from '@metamask/utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import { useMerklBonusClaim } from '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim';
@@ -59,6 +63,7 @@ const MusdAggregatedRow = () => {
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
     useMerklBonusClaim(LINEA_MUSD_ASSET);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
   const hasClaimableBonus = Boolean(claimableReward) && !hasPendingClaim;
 
@@ -68,14 +73,15 @@ const MusdAggregatedRow = () => {
         .addProperties({
           action_type: 'claim_bonus',
           button_text: strings('earn.claim_bonus'),
-          location: 'home_cash_section',
+          location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
           network_chain_id: LINEA_MUSD_ASSET.chainId,
+          network_name: networkName ?? undefined,
           asset_symbol: LINEA_MUSD_ASSET.symbol,
         })
         .build(),
     );
     claimRewards();
-  }, [trackEvent, createEventBuilder, claimRewards]);
+  }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const tokenBalanceDisplay = `${Number(tokenBalanceAggregated).toLocaleString(
     'en-US',
@@ -151,7 +157,17 @@ const MusdAggregatedRow = () => {
                   {strings('earn.claim_bonus')}
                 </Text>
               </TouchableOpacity>
-            ) : null}
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {strings('earn.musd_conversion.percentage_bonus', {
+                  percentage: MUSD_CONVERSION_APY,
+                })}
+              </Text>
+            )}
           </Box>
         </Box>
       </Box>

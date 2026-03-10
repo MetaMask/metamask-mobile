@@ -34,6 +34,10 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: () => false,
 }));
 
+jest.mock('../../../../Views/confirmations/hooks/useNetworkName', () => ({
+  useNetworkName: () => 'Linea Mainnet',
+}));
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: mockTrackEvent,
@@ -90,5 +94,19 @@ describe('MusdAggregatedRow', () => {
 
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
     expect(screen.queryByText('Claim bonus')).toBeNull();
+  });
+
+  it('shows green "3% bonus" when not claimable', () => {
+    mockUseMerklBonusClaim.mockReturnValue({
+      claimableReward: null,
+      hasPendingClaim: false,
+      claimRewards: mockClaimRewards,
+      isClaiming: false,
+    });
+
+    renderWithProvider(<MusdAggregatedRow />);
+
+    expect(screen.queryByText('Claim bonus')).toBeNull();
+    expect(screen.getByText('3% bonus')).toBeOnTheScreen();
   });
 });

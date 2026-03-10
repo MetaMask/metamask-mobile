@@ -24,7 +24,10 @@ import {
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
+import {
+  MUSD_CONVERSION_APY,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
@@ -1248,10 +1251,12 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   });
 
   describe('Merkl Claim Bonus', () => {
-    // Use an address that isTokenEligibleForMerklRewards would accept
+    // Use mUSD address so isMusdToken(asset.address) is true and we show "3% bonus" when not claimable
     const claimableAsset = {
       ...defaultAsset,
-      address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
+      address: MUSD_TOKEN_ADDRESS,
+      symbol: 'mUSD',
+      name: 'MetaMask USD',
       chainId: '0x1',
     };
 
@@ -1280,7 +1285,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
     });
 
-    it('hides "Claim bonus" CTA when claimableReward is null', () => {
+    it('shows green "3% bonus" when mUSD and claimableReward is null', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 2.0,
@@ -1298,7 +1303,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       );
 
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-      expect(getByText('+2.00%')).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('earn.musd_conversion.percentage_bonus', {
+            percentage: MUSD_CONVERSION_APY,
+          }),
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('calls claimRewards when "Claim bonus" CTA is pressed', async () => {

@@ -69,7 +69,7 @@ describe('CashTokensFullView', () => {
 
   it('renders mUSD title', () => {
     renderWithProvider(<CashTokensFullView />);
-    expect(screen.getByText('mUSD')).toBeOnTheScreen();
+    expect(screen.getByText('Cash')).toBeOnTheScreen();
   });
 
   it('renders Get mUSD empty state when user has no mUSD', () => {

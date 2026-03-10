@@ -16,6 +16,7 @@ import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import CashAnnualizedCopy from './CashAnnualizedCopy';
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
+import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
 import Logger from '../../../../../util/Logger';
 
 interface CashSectionProps {
@@ -34,6 +35,7 @@ const CashSection = ({
 }: CashSectionProps) => {
   const sectionViewRef = useRef<View>(null);
   const navigation = useNavigation();
+  const { skipNextSessionSummary } = useHomepageScrollContext();
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
@@ -43,8 +45,9 @@ const CashSection = ({
   const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
   const handleViewCashTokens = useCallback(() => {
+    skipNextSessionSummary();
     navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+  }, [skipNextSessionSummary, navigation]);
 
   useHomeViewedEvent({
     sectionRef: sectionViewRef,
