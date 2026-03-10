@@ -46,7 +46,7 @@ interface TokenListProps {
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
   showPercentageChange?: boolean;
-  setShowScamWarningModal: () => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
   maxItems?: number;
   isFullView?: boolean;
 }
