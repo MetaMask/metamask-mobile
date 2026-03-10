@@ -14,7 +14,10 @@ import {
   LayoutChangeEvent,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -44,7 +47,11 @@ import {
 } from '@react-navigation/native';
 import {
   PredictMarketListSelectorsIDs,
+  PredictSearchSelectorsIDs,
+  PredictFeedSelectorsIDs,
   getPredictMarketListSelector,
+  getPredictFeedSelector,
+  getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
@@ -117,7 +124,7 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
       tabs={tabItems}
       activeIndex={activeIndex}
       onTabPress={onTabPress}
-      testID="predict-feed-tabs"
+      testID={PredictFeedSelectorsIDs.TABS}
     />
   );
 };
@@ -291,8 +298,12 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     if (!isFetchingMore) return null;
     return (
       <Box twClassName="py-2">
-        <PredictMarketSkeleton testID={`skeleton-footer-${category}-1`} />
-        <PredictMarketSkeleton testID={`skeleton-footer-${category}-2`} />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonFooter(category, 1)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonFooter(category, 2)}
+        />
       </Box>
     );
   }, [isFetchingMore, category]);
@@ -315,10 +326,18 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   if (!hasEverBeenActive || (isFetching && !isRefreshing && !isFetchingMore)) {
     return (
       <Box twClassName="flex-1 px-4" style={{ paddingTop: currentPaddingTop }}>
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-1`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-2`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-3`} />
-        <PredictMarketSkeleton testID={`skeleton-loading-${category}-4`} />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 1)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 2)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 3)}
+        />
+        <PredictMarketSkeleton
+          testID={getPredictFeedSelector.skeletonLoading(category, 4)}
+        />
       </Box>
     );
   }
@@ -334,7 +353,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   if (!marketData || marketData.length === 0) {
     return (
       <Box
-        testID={`predict-empty-state-${category}`}
+        testID={getPredictFeedSelector.emptyState(category)}
         twClassName="flex-1 justify-center items-center p-8"
         style={{ paddingTop: currentPaddingTop }}
       >
@@ -348,7 +367,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
   return (
     <AnimatedFlashList
       ref={listRef}
-      testID={`predict-market-list-${category}`}
+      testID={getPredictFeedSelector.marketList(category)}
       data={marketData}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -417,13 +436,13 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
       style={tw.style('flex-1')}
       initialPage={initialPage}
       onPageSelected={handlePageSelected}
-      testID="predict-feed-pager"
+      testID={PredictFeedSelectorsIDs.PAGER}
     >
       {tabs.map((tab, index) => (
         <View
           key={tab.key}
           style={tw.style('flex-1')}
-          testID={`predict-feed-tab-page-${tab.key}`}
+          testID={getPredictFeedSelector.tabPage(tab.key)}
           collapsable={false}
         >
           <PredictTabContent
@@ -480,7 +499,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       <PredictMarketListItem
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
-        testID={`predict-search-result-${info.index}`}
+        testID={getPredictSearchSelector.resultCard(info.index)}
       />
     ),
     [],
@@ -510,7 +529,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
           twClassName="flex-1 bg-muted rounded-lg px-3 py-2"
         >
           <Icon
-            testID="search-icon"
+            testID={PredictFeedSelectorsIDs.SEARCH_ICON}
             name={IconName.Search}
             size={IconSize.Sm}
             color={IconColor.IconMuted}
@@ -525,7 +544,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
             autoFocus
           />
           {searchQuery.length > 0 && (
-            <Pressable testID="clear-button" onPress={() => onSearchChange('')}>
+            <Pressable
+              testID={PredictSearchSelectorsIDs.CLEAR_BUTTON}
+              onPress={() => onSearchChange('')}
+            >
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Md}
@@ -544,9 +566,15 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       <Box twClassName="flex-1">
         {isSearchLoading ? (
           <Box twClassName="px-4 pt-4">
-            <PredictMarketSkeleton testID="search-skeleton-1" />
-            <PredictMarketSkeleton testID="search-skeleton-2" />
-            <PredictMarketSkeleton testID="search-skeleton-3" />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(1)}
+            />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(2)}
+            />
+            <PredictMarketSkeleton
+              testID={getPredictFeedSelector.searchSkeleton(3)}
+            />
           </Box>
         ) : error ? (
           <PredictOffline onRetry={refetch} />
@@ -584,7 +612,6 @@ const PredictFeed: React.FC = () => {
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
@@ -678,68 +705,73 @@ const PredictFeed: React.FC = () => {
   );
 
   return (
-    <Box
-      testID={PredictMarketListSelectorsIDs.CONTAINER}
-      twClassName="flex-1"
-      style={{ backgroundColor: colors.background.default }}
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
     >
       <Box
-        style={tw.style('z-20', {
-          backgroundColor: colors.background.default,
-          paddingTop: insets.top,
-        })}
+        testID={PredictMarketListSelectorsIDs.CONTAINER}
+        twClassName="flex-1"
+        style={{ backgroundColor: colors.background.default }}
       >
-        <HeaderCompactStandard
-          title={strings('wallet.predict')}
-          onBack={handleBackPress}
-          backButtonProps={{
-            testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-          }}
-          endButtonIconProps={[
-            {
-              iconName: IconName.Search,
-              onPress: showSearch,
-              testID: 'predict-search-button',
-            },
-          ]}
-        />
-      </Box>
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderCompactStandard
+            includesTopInset
+            title={strings('wallet.predict')}
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: showSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
-      <Box twClassName="flex-1 relative">
-        <AnimatedHeader
-          headerTranslateY={headerTranslateY}
-          headerHeight={headerHeight}
-          headerRef={headerRef}
-          tabBarRef={tabBarRef}
-          tabs={tabs}
-          activeIndex={activeIndex}
-          onTabPress={handleTabPress}
-          onHeaderLayout={onHeaderLayout}
-          onTabBarLayout={onTabBarLayout}
-        />
-
-        {layoutReady && (
-          <PredictFeedTabs
+        <Box twClassName="flex-1 relative">
+          <AnimatedHeader
+            headerTranslateY={headerTranslateY}
+            headerHeight={headerHeight}
+            headerRef={headerRef}
+            tabBarRef={tabBarRef}
             tabs={tabs}
             activeIndex={activeIndex}
-            onPageChange={handlePageChange}
-            scrollHandler={scrollHandler}
-            headerHeight={headerHeight}
-            tabBarHeight={tabBarHeight + 6}
-            headerHidden={headerHidden}
-            hotTabQueryParams={hotTabQueryParams}
-            initialPage={activeIndex}
+            onTabPress={handleTabPress}
+            onHeaderLayout={onHeaderLayout}
+            onTabBarLayout={onTabBarLayout}
           />
-        )}
-      </Box>
 
-      <PredictSearchOverlay
-        isVisible={isSearchVisible}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onClose={clearSearchAndClose}
-      />
-    </Box>
+          {layoutReady && (
+            <PredictFeedTabs
+              tabs={tabs}
+              activeIndex={activeIndex}
+              onPageChange={handlePageChange}
+              scrollHandler={scrollHandler}
+              headerHeight={headerHeight}
+              tabBarHeight={tabBarHeight + 6}
+              headerHidden={headerHidden}
+              hotTabQueryParams={hotTabQueryParams}
+              initialPage={activeIndex}
+            />
+          )}
+        </Box>
+
+        <PredictSearchOverlay
+          isVisible={isSearchVisible}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onClose={clearSearchAndClose}
+        />
+      </Box>
+    </SafeAreaView>
   );
 };
 

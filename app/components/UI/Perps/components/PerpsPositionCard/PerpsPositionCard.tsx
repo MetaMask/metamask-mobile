@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
@@ -18,7 +19,11 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import { useStyles } from '../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   PERPS_CONSTANTS,
   getPerpsDisplaySymbol,
@@ -33,7 +38,9 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { buildTpSlLabel } from '../../utils/positionCalculations';
 import PerpsTokenLogo from '../PerpsTokenLogo';
+import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import styleSheet from './PerpsPositionCard.styles';
 
 /**
@@ -80,12 +87,16 @@ interface PerpsPositionCardProps {
   onSharePress?: () => void;
   /** Render as a compact row (similar to PerpsCard) */
   compact?: boolean;
+  /** Compact layout variant: 'default' shows size/PnL, 'position' shows leverage badge + TP/SL */
+  compactVariant?: 'default' | 'position';
   /** Press handler for compact mode */
   onPress?: () => void;
   /** Test ID for the card */
   testID?: string;
   /** Icon size for compact mode (default: 40) */
   iconSize?: number;
+  /** When true, shows a small skeleton placeholder for the TP/SL field instead of "No TP/SL" */
+  tpSlLoading?: boolean;
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -98,12 +109,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onMarginPress,
   onSharePress,
   compact = false,
+  compactVariant = 'default',
   onPress,
   testID,
   iconSize = 40,
+  tpSlLoading = false,
 }) => {
   const { styles } = useStyles(styleSheet, { iconSize });
   const [showSizeInUSD, setShowSizeInUSD] = useState(false);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine if position is long or short based on size
   const isLong = parseFloat(position.size) >= 0;
@@ -112,7 +126,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
   const pnlNum = parseFloat(position.unrealizedPnl);
 
-  // ROE is always stored as a decimal (e.g., 0.171 for 17.1%)
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.10%)
   // Convert to percentage for display
   const roeValue = parseFloat(position.returnOnEquity || '0');
   const roe = isNaN(roeValue) ? 0 : roeValue * 100;
@@ -189,14 +203,85 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
   };
 
-  // Compact mode: render a simplified row view similar to PerpsCard
+  // Compact mode: render a simplified row view
   if (compact) {
     const displaySymbol = getPerpsDisplaySymbol(position.symbol);
     const roeRaw = Number.parseFloat(position.returnOnEquity || '');
     const hasValidRoe = !Number.isNaN(roeRaw) && Number.isFinite(roeRaw);
     const roeDisplay = hasValidRoe
-      ? formatPercentage(roeRaw * 100, 1)
+      ? formatPercentage(roeRaw * 100, 2)
       : PERPS_CONSTANTS.FallbackPercentageDisplay;
+
+    const isPositionVariant = compactVariant === 'position';
+
+    const directionLabel = isLong
+      ? strings('perps.order.long_label')
+      : strings('perps.order.short_label');
+    const leverageLabel = `${position.leverage.value}X ${isLong ? strings('perps.market.long_lowercase') : strings('perps.market.short_lowercase')}`;
+
+    let secondaryLabel: React.ReactNode;
+    let secondaryValue: React.ReactNode;
+
+    if (isPositionVariant) {
+      const tpSlLabel = buildTpSlLabel(
+        position,
+        strings('perps.order.tp'),
+        strings('perps.order.sl'),
+      );
+      const showTpSlSkeleton = tpSlLoading && !tpSlLabel;
+      secondaryLabel = showTpSlSkeleton ? (
+        <View style={styles.tpSlSkeleton} testID="tp-sl-skeleton" />
+      ) : (
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {tpSlLabel ?? strings('homepage.sections.positions.no_tp_sl')}
+        </Text>
+      );
+      secondaryValue = (
+        <SensitiveText
+          variant={TextVariant.BodySM}
+          color={
+            privacyMode
+              ? TextColor.Default
+              : hasValidRoe
+                ? roeRaw >= 0
+                  ? TextColor.Success
+                  : TextColor.Error
+                : TextColor.Alternative
+          }
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {roeDisplay}
+        </SensitiveText>
+      );
+    } else {
+      secondaryLabel = (
+        <SensitiveText
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPositionSize(absoluteSize.toString())} {displaySymbol}
+        </SensitiveText>
+      );
+      secondaryValue = (
+        <SensitiveText
+          variant={TextVariant.BodySM}
+          color={
+            privacyMode
+              ? TextColor.Default
+              : pnlNum >= 0
+                ? TextColor.Success
+                : TextColor.Error
+          }
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+        >
+          {formatPnl(pnlNum)} ({roeDisplay})
+        </SensitiveText>
+      );
+    }
 
     return (
       <TouchableOpacity
@@ -213,30 +298,30 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               style={styles.compactIcon}
             />
             <View style={styles.compactInfo}>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-              >
-                {displaySymbol} {position.leverage.value}x{' '}
-                {isLong ? 'long' : 'short'}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {formatPositionSize(absoluteSize.toString())} {displaySymbol}
-              </Text>
+              <View style={styles.compactNameRow}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {directionLabel} {displaySymbol}
+                </Text>
+                <PerpsLeverage maxLeverage={leverageLabel} />
+              </View>
+              {secondaryLabel}
             </View>
           </View>
           <View style={styles.compactRight}>
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {formatPerpsFiat(position.positionValue, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
-            </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
-            >
-              {formatPnl(pnlNum)} ({roeDisplay})
-            </Text>
+            </SensitiveText>
+            {secondaryValue}
           </View>
         </View>
       </TouchableOpacity>
@@ -269,13 +354,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.position.card.pnl_label')}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMD}
-            color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
+            color={
+              privacyMode
+                ? TextColor.Default
+                : pnlNum >= 0
+                  ? TextColor.Success
+                  : TextColor.Error
+            }
             testID={PerpsPositionCardSelectorsIDs.PNL_VALUE}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
           >
             {formatPnl(pnlNum)}
-          </Text>
+          </SensitiveText>
         </View>
 
         <View
@@ -285,14 +378,22 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.position.card.return_label')}
           </Text>
-          <Text
+          <SensitiveText
             variant={TextVariant.BodyMD}
-            color={roe >= 0 ? TextColor.Success : TextColor.Error}
+            color={
+              privacyMode
+                ? TextColor.Default
+                : roe >= 0
+                  ? TextColor.Success
+                  : TextColor.Error
+            }
             testID={PerpsPositionCardSelectorsIDs.RETURN_VALUE}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
           >
             {roe >= 0 ? '+' : ''}
             {roe.toFixed(2)}%
-          </Text>
+          </SensitiveText>
         </View>
       </View>
 
@@ -307,17 +408,19 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.size_label')}
             </Text>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.SIZE_VALUE}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
             >
               {showSizeInUSD && currentPrice
                 ? formatPerpsFiat(absoluteSize * currentPrice, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : `${formatPositionSize(absoluteSize.toString())} ${getPerpsDisplaySymbol(position.symbol)}`}
-            </Text>
+            </SensitiveText>
           </View>
           <View style={styles.iconButtonContainer}>
             <ButtonIcon
@@ -341,15 +444,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               {strings('perps.position.card.margin_label')}
             </Text>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
               testID={PerpsPositionCardSelectorsIDs.MARGIN_VALUE}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
             >
               {formatPerpsFiat(position.marginUsed, {
                 ranges: PRICE_RANGES_MINIMAL_VIEW,
               })}
-            </Text>
+            </SensitiveText>
           </View>
           {onMarginPress && (
             <View style={styles.iconButtonContainer}>
@@ -427,9 +532,14 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               }
 
               return (
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                <SensitiveText
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                >
                   {parts.join(', ')}
-                </Text>
+                </SensitiveText>
               );
             }
 
@@ -497,11 +607,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {strings('perps.position.card.entry_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <SensitiveText
+            variant={TextVariant.BodyMD}
+            color={TextColor.Default}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+          >
             {formatPerpsFiat(position.entryPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             })}
-          </Text>
+          </SensitiveText>
         </View>
 
         <View style={styles.detailRow}>
@@ -512,15 +627,20 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {strings('perps.position.card.liquidation_price_label')}
           </Text>
           <View style={styles.liquidationPriceValue}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {position.liquidationPrice !== undefined &&
               position.liquidationPrice !== null
                 ? formatPerpsFiat(position.liquidationPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
                   })
                 : PERPS_CONSTANTS.FallbackPriceDisplay}
-            </Text>
-            {liquidationDistance !== null && (
+            </SensitiveText>
+            {liquidationDistance !== null && !privacyMode && (
               <>
                 <Text
                   variant={TextVariant.BodyMD}
@@ -546,13 +666,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           >
             {strings('perps.position.card.funding_payments_label')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={fundingColor}>
+          <SensitiveText
+            variant={TextVariant.BodyMD}
+            color={privacyMode ? TextColor.Default : fundingColor}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+          >
             {fundingDisplay}
-          </Text>
+          </SensitiveText>
         </View>
       </View>
     </View>
   );
 };
 
-export default PerpsPositionCard;
+export default React.memo(PerpsPositionCard);

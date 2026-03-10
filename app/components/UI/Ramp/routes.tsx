@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import TokenSelection from './Views/TokenSelection';
@@ -16,7 +16,13 @@ import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification'
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
-import ProviderPickerModal from './Views/Modals/ProviderPickerModal';
+import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
+import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
+import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
+import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
+import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import RampsOrderDetails from './Views/OrderDetails';
+import LockManagerService from '../../../core/LockManagerService';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
@@ -39,7 +45,11 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
-    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen
+      name={Routes.RAMP.AMOUNT_INPUT}
+      component={BuildQuote}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />
@@ -72,6 +82,10 @@ const MainRoutes = () => (
         detachPreviousScreen: false,
       }}
     />
+    <Stack.Screen
+      name={Routes.RAMP.RAMPS_ORDER_DETAILS}
+      component={RampsOrderDetails}
+    />
   </Stack.Navigator>
 );
 
@@ -93,30 +107,58 @@ const TokenListModalsRoutes = () => (
       component={PaymentSelectionModal}
     />
     <ModalsStack.Screen
-      name={Routes.RAMP.MODALS.PROVIDER_PICKER}
-      component={ProviderPickerModal}
+      name={Routes.RAMP.MODALS.TOKEN_NOT_AVAILABLE}
+      component={TokenNotAvailableModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PROVIDER_SELECTION}
+      component={ProviderSelectionModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.ERROR_DETAILS}
+      component={ErrorDetailsModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.PROCESSING_INFO}
+      component={ProcessingInfoModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.SSN_INFO}
+      component={SsnInfoModal}
     />
   </ModalsStack.Navigator>
 );
 
-const TokenListRoutes = () => (
-  <RootStack.Navigator
-    initialRouteName={Routes.RAMP.TOKEN_SELECTION}
-    headerMode="none"
-  >
-    <RootStack.Screen
-      name={Routes.RAMP.TOKEN_SELECTION}
-      component={MainRoutes}
-    />
-    <RootStack.Screen
-      name={Routes.RAMP.MODALS.ID}
-      component={TokenListModalsRoutes}
-      options={{
-        ...clearStackNavigatorOptions,
-        detachPreviousScreen: false,
-      }}
-    />
-  </RootStack.Navigator>
-);
+const TokenListRoutes = () => {
+  // Disable auto-lock during Ramps unified buy v2 flow
+  // This allows users to minimize the app to check personal details or complete
+  // verification steps without being locked out and redirected to wallet home
+  useEffect(() => {
+    LockManagerService.stopListening();
+    return () => {
+      LockManagerService.startListening();
+    };
+  }, []);
+
+  return (
+    <RootStack.Navigator
+      initialRouteName={Routes.RAMP.TOKEN_SELECTION}
+      headerMode="none"
+    >
+      <RootStack.Screen
+        name={Routes.RAMP.TOKEN_SELECTION}
+        component={MainRoutes}
+      />
+      <RootStack.Screen
+        name={Routes.RAMP.MODALS.ID}
+        component={TokenListModalsRoutes}
+        options={{
+          ...clearStackNavigatorOptions,
+          detachPreviousScreen: false,
+        }}
+      />
+    </RootStack.Navigator>
+  );
+};
 
 export default TokenListRoutes;

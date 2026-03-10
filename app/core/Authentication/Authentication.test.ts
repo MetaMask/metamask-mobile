@@ -14,7 +14,6 @@ import SecureKeychain from '../SecureKeychain';
 import ReduxService, { ReduxStore } from '../redux';
 import AuthenticationError from './AuthenticationError';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_STORE_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
@@ -38,7 +37,10 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -731,7 +733,7 @@ describe('Authentication', () => {
       jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
     });
 
-    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC', async () => {
+    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC or DEVICE_AUTHENTICATION', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
 
       const passcodeResult =
@@ -783,6 +785,48 @@ describe('Authentication', () => {
 
       const result = await Authentication.requestBiometricsAccessControlForIOS(
         AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns authType when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync succeeds', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: true });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync returns success false', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: false });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync throws', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       );
 
       expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
@@ -3616,6 +3660,7 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setCompletedOnboarding(false),
       );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -4051,47 +4096,6 @@ describe('Authentication', () => {
         expect.any(Error),
         'SecuritySettings:biometrics',
       );
-
-      alertSpy.mockRestore();
-    });
-
-    it('converts PASSWORD_NOT_SET_WITH_BIOMETRICS error to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS', async () => {
-      // Mock reauthenticate to throw PASSWORD_NOT_SET_WITH_BIOMETRICS error
-      const biometricNotEnabledError = new Error(
-        `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored with biometrics in keychain.`,
-      );
-      jest
-        .spyOn(Authentication, 'reauthenticate')
-        .mockRejectedValueOnce(biometricNotEnabledError);
-
-      const loggerErrorSpy = jest.spyOn(Logger, 'error');
-      const alertSpy = jest.spyOn(Alert, 'alert');
-      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
-
-      // Verify the error is converted to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS
-      let caughtError: unknown;
-      try {
-        await Authentication.updateAuthPreference({
-          authType: AUTHENTICATION_TYPE.BIOMETRIC,
-        });
-      } catch (error) {
-        caughtError = error;
-      }
-
-      // Verify it throws AuthenticationError
-      expect(caughtError).toBeInstanceOf(AuthenticationError);
-
-      // Verify the error has the correct customErrorMessage
-      expect((caughtError as AuthenticationError).customErrorMessage).toBe(
-        AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-      );
-
-      // Verify that invalid password handling was not triggered
-      expect(alertSpy).not.toHaveBeenCalled();
-      expect(trackErrorSpy).not.toHaveBeenCalled();
-
-      // Verify that Logger.error was not called (since this is a converted error)
-      expect(loggerErrorSpy).not.toHaveBeenCalled();
 
       alertSpy.mockRestore();
     });
@@ -4605,6 +4609,29 @@ describe('Authentication', () => {
       });
     });
 
+    it('tracks unlock error as analytics when unlock fails', async () => {
+      const trackErrorSpy = jest.mocked(trackErrorAsAnalytics);
+      const unlockError = new Error('Failed to rehydrate seed phrase');
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(unlockError);
+
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(trackErrorSpy).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        unlockError.message,
+      );
+    });
+
     it('calls lockApp when error is thrown', async () => {
       const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
       // Mock rehydrateSeedPhrase to reject.
@@ -4627,6 +4654,10 @@ describe('Authentication', () => {
         reset: false,
         navigateToLogin: false,
       });
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        'Failed to rehydrate seed phrase',
+      );
     });
 
     it('calls lockApp when error is thrown and logs error when lockApp fails', async () => {
@@ -4663,6 +4694,11 @@ describe('Authentication', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
         'Failed to lock app during unlockWallet error condition.',
+      );
+
+      expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
+        'Unlock Wallet Error',
+        'Failed to rehydrate seed phrase',
       );
     });
 
@@ -4867,6 +4903,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
           authDescription: undefined,
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.REMEMBER_ME,
@@ -4910,6 +4947,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
           authDescription: 'app_settings.enable_device_authentication_desc',
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.BIOMETRIC,
@@ -4930,6 +4968,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
           authDescription: 'app_settings.enable_device_authentication_desc',
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,
@@ -4960,6 +4999,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
           authDescription: 'app_settings.enable_device_authentication_desc',
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSCODE,
@@ -4980,6 +5020,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: false,
           authLabel: expect.any(String),
           authDescription: 'app_settings.enable_device_authentication_desc',
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,
@@ -5032,6 +5073,7 @@ describe('Authentication', () => {
           deviceAuthRequiresSettings: true,
           authLabel: '',
           authDescription: '',
+          authIcon: expect.any(String),
           osAuthEnabled,
           allowLoginWithRememberMe,
           authType: AUTHENTICATION_TYPE.PASSWORD,

@@ -90,6 +90,8 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.CLOSE_ALL_POSITIONS,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: positions?.length || 0,
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        PERPS_EVENT_VALUE.SOURCE.CLOSE_ALL_POSITIONS_BUTTON,
     },
   });
 

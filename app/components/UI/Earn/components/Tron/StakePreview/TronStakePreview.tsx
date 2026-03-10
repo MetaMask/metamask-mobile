@@ -12,7 +12,7 @@ import {
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { selectTronResourcesBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
+import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
 import type { ComputeFeeResult } from '../../../types/tron-staking.types';
 import useTronStakeApy from '../../../hooks/useTronStakeApy';
 
@@ -46,7 +46,7 @@ const TronStakePreview = ({
   const tw = useTailwind();
 
   const { totalStakedTrx } = useSelector(
-    selectTronResourcesBySelectedAccountGroup,
+    selectTronSpecialAssetsBySelectedAccountGroup,
   );
 
   const { apyDecimal } = useTronStakeApy();

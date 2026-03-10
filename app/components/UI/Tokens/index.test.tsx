@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
@@ -21,8 +23,6 @@ import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdC
 // eslint-disable-next-line import/no-namespace
 import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
 // eslint-disable-next-line import/no-namespace
-import * as MultichainAccountsModule from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-// eslint-disable-next-line import/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import/no-namespace
 import * as RefreshTokensModule from './util/refreshTokens';
@@ -30,7 +30,6 @@ import * as RefreshTokensModule from './util/refreshTokens';
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
-
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => ({
     isEligible: true,
@@ -128,10 +127,6 @@ const arrangeMockComponents = () => {
 };
 
 const arrangeMockSelectors = () => {
-  const mockSelectMultichainAccountsState2Enabled = jest
-    .spyOn(MultichainAccountsModule, 'selectMultichainAccountsState2Enabled')
-    .mockImplementation(() => true);
-
   const mockSelectSortedAssetsBySelectedAccountGroup = jest
     .spyOn(
       AssetsListSelectorsModule,
@@ -144,7 +139,6 @@ const arrangeMockSelectors = () => {
     ]);
 
   return {
-    mockSelectMultichainAccountsState2Enabled,
     mockSelectSortedAssetsBySelectedAccountGroup,
   };
 };
@@ -252,7 +246,7 @@ describe('Tokens', () => {
 
     // Assert - navigation to add token screen
     await waitFor(() =>
-      expect(mockPush).toHaveBeenCalledWith('AddAsset', {
+      expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
         assetType: 'token',
       }),
     );
@@ -284,6 +278,77 @@ describe('Tokens', () => {
         expect(mockRemoveNonEvmToken).toHaveBeenCalled(),
     },
   ];
+
+  describe('Position Screen Viewed Analytics', () => {
+    let mockTrackEvent: jest.Mock;
+    let mockAddProperties: jest.Mock;
+
+    beforeEach(() => {
+      mockTrackEvent = jest.fn();
+      mockAddProperties = jest.fn().mockReturnThis();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: jest.fn().mockReturnValue({
+            addProperties: mockAddProperties,
+            addSensitiveProperties: jest.fn().mockReturnThis(),
+            removeProperties: jest.fn().mockReturnThis(),
+            removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
+            build: jest.fn(),
+          }),
+        }),
+      );
+    });
+
+    it('tracks Position Screen Viewed when isFullView is true and tokens are loaded', async () => {
+      renderComponent(initialState, true);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            item_count: 3,
+            location: 'homepage',
+            is_empty: false,
+            screen_type: 'tokens',
+          }),
+        );
+      });
+    });
+
+    it('tracks Position Screen Viewed with is_empty true when no tokens are present', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            item_count: 0,
+            is_empty: true,
+            screen_type: 'tokens',
+          }),
+        );
+      });
+    });
+
+    it('does not track Position Screen Viewed when isFullView is false', async () => {
+      renderComponent(initialState, false);
+
+      await waitFor(() => {
+        expect(mockAddProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'tokens',
+            location: 'homepage',
+          }),
+        );
+      });
+    });
+  });
 
   it.each(removeTokenTests)(
     'performs token removal - $type',

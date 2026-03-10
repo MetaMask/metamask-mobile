@@ -115,6 +115,8 @@ import {
   getEarnControllerInitMessenger,
   getEarnControllerMessenger,
 } from './earn-controller-messenger';
+import { getGeolocationApiServiceMessenger } from './geolocation-api-service-messenger';
+import { getGeolocationControllerMessenger } from './geolocation-controller-messenger';
 import { getRewardsDataServiceMessenger } from './rewards-data-service-messenger';
 import { getSwapsControllerMessenger } from './swaps-controller-messenger';
 import {
@@ -125,7 +127,10 @@ import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-c
 import { getErrorReportingServiceMessenger } from './error-reporting-service-messenger';
 import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
-import { getRampsControllerMessenger } from './ramps-controller-messenger';
+import {
+  getRampsControllerMessenger,
+  getRampsControllerInitMessenger,
+} from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
@@ -146,6 +151,7 @@ import {
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getAnalyticsControllerMessenger } from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
+import { getCardControllerMessenger } from './card-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -186,6 +192,14 @@ export const CONTROLLER_MESSENGERS = {
   EarnController: {
     getMessenger: getEarnControllerMessenger,
     getInitMessenger: getEarnControllerInitMessenger,
+  },
+  GeolocationApiService: {
+    getMessenger: getGeolocationApiServiceMessenger,
+    getInitMessenger: noop,
+  },
+  GeolocationController: {
+    getMessenger: getGeolocationControllerMessenger,
+    getInitMessenger: noop,
   },
   ErrorReportingService: {
     getMessenger: getErrorReportingServiceMessenger,
@@ -399,7 +413,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   RampsController: {
     getMessenger: getRampsControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getRampsControllerInitMessenger,
   },
   RampsService: {
     getMessenger: getRampsServiceMessenger,
@@ -455,6 +469,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,
+    getInitMessenger: noop,
+  },
+  CardController: {
+    getMessenger: getCardControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

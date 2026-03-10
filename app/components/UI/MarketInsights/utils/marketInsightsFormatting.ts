@@ -1,10 +1,7 @@
+import type { MarketInsightsSource } from '@metamask/ai-controllers';
+
 export interface RelativeTimeOptions {
   nowLabel?: string;
-}
-
-export interface HighlightedSegment {
-  text: string;
-  highlighted: boolean;
 }
 
 export const getFaviconUrl = (source: string): string => {
@@ -44,41 +41,57 @@ export const formatRelativeTime = (
   return `${diffDays}d ago`;
 };
 
-export const buildHighlightedSegments = (
-  text: string,
-  highlightTerms: string[],
-): HighlightedSegment[] => {
-  const validHighlightTerms = highlightTerms.filter(
-    (term) => term.trim().length > 0,
-  );
+export const getNormalizedHandle = (author: string): string =>
+  `@${author.replace(/^@+/, '')}`;
 
-  if (validHighlightTerms.length === 0) {
-    return [{ text, highlighted: false }];
+export const isXSourceUrl = (source: string): boolean => {
+  const trimmedSource = source.trim();
+  const normalized = trimmedSource.toLowerCase();
+
+  if (normalized === 'x' || normalized === 'twitter') {
+    return true;
   }
 
-  const escapedTerms = validHighlightTerms.map((term) =>
-    term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-  );
-  const pattern = new RegExp(`(${escapedTerms.join('|')})`, 'gi');
+  try {
+    const normalizedSource = trimmedSource.includes('://')
+      ? trimmedSource
+      : `https://${trimmedSource}`;
+    const hostname = new URL(normalizedSource).hostname
+      .replace(/^www\./, '')
+      .toLowerCase();
+    return (
+      hostname === 'x.com' ||
+      hostname.endsWith('.x.com') ||
+      hostname === 'twitter.com' ||
+      hostname.endsWith('.twitter.com')
+    );
+  } catch {
+    return false;
+  }
+};
 
-  const parts: HighlightedSegment[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+const SAFE_URL_SCHEMES = ['http:', 'https:'];
 
-  while ((match = pattern.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({
-        text: text.slice(lastIndex, match.index),
-        highlighted: false,
-      });
+export const isSafeUrl = (url: string): boolean => {
+  try {
+    const parsed = new URL(url);
+    return SAFE_URL_SCHEMES.includes(parsed.protocol);
+  } catch {
+    return false;
+  }
+};
+
+export const getUniqueSourcesByFavicon = (
+  sources: MarketInsightsSource[],
+): MarketInsightsSource[] => {
+  const seenFaviconUrls = new Set<string>();
+
+  return sources.filter((source) => {
+    const faviconUrl = getFaviconUrl(source.url);
+    if (seenFaviconUrls.has(faviconUrl)) {
+      return false;
     }
-    parts.push({ text: match[0], highlighted: true });
-    lastIndex = pattern.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    parts.push({ text: text.slice(lastIndex), highlighted: false });
-  }
-
-  return parts.length > 0 ? parts : [{ text, highlighted: false }];
+    seenFaviconUrls.add(faviconUrl);
+    return true;
+  });
 };

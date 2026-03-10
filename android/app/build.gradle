@@ -187,7 +187,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.68.0"
+        versionName "7.70.0"
         versionCode 3607
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -357,10 +357,6 @@ android {
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
-      // Used to point to staging environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
-      // Used to point to dev environment API for ramp
-      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
     }
 
     buildFeatures {

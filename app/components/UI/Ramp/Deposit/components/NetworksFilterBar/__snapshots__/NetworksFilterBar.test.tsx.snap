@@ -29,7 +29,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -60,7 +60,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -71,7 +71,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
           See all
         </Text>
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={12}
           name="ArrowDown"
@@ -96,7 +96,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
@@ -159,7 +159,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#131416",
           "borderRadius": 12,
           "flexDirection": "row",
           "height": 32,
@@ -222,7 +222,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -238,7 +238,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is a subset of u
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -282,7 +282,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -413,7 +413,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -424,7 +424,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is null 1`] = `
           All networks
         </Text>
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={12}
           name="ArrowDown"
@@ -471,7 +471,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#b4b4b528",
           "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
@@ -602,7 +602,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -613,7 +613,7 @@ exports[`NetworksFilterBar renders correctly when networkFilter is the same as u
           All networks
         </Text>
         <SvgMock
-          color="#121314"
+          color="#131416"
           fill="currentColor"
           height={12}
           name="ArrowDown"

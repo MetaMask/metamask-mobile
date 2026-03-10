@@ -1,1 +1,1 @@
-export { createAdapter, requiresBluetooth } from './factory';
+export { createAdapter } from './factory';

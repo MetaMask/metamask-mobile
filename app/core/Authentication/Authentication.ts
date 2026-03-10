@@ -16,13 +16,15 @@ import {
   setExistingUser,
   setIsConnectionRemoved,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
-  AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
   AUTHENTICATION_FAILED_WALLET_CREATION,
   AUTHENTICATION_RESET_PASSWORD_FAILED,
   AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE,
@@ -72,7 +74,6 @@ import {
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
-import { IconName } from '../../component-library/components/Icons/Icon';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
@@ -82,7 +83,8 @@ import {
   SecurityLevel,
   authenticateAsync,
 } from 'expo-local-authentication';
-import { getAuthLabel, getAuthType } from './utils';
+import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
+import { IconName } from '@metamask/design-system-react-native';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -490,7 +492,11 @@ class AuthenticationService {
   requestBiometricsAccessControlForIOS = async (
     authType: AUTHENTICATION_TYPE,
   ): Promise<AUTHENTICATION_TYPE> => {
-    if (Platform.OS === 'ios' && authType === AUTHENTICATION_TYPE.BIOMETRIC) {
+    if (
+      Platform.OS === 'ios' &&
+      (authType === AUTHENTICATION_TYPE.BIOMETRIC ||
+        authType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION)
+    ) {
       try {
         // Prompt user for biometrics access control
         const result = await authenticateAsync({ disableDeviceFallback: true });
@@ -652,6 +658,14 @@ class AuthenticationService {
           ? strings('app_settings.enable_device_authentication_desc')
           : undefined;
 
+      const authIcon = getAuthIcon({
+        supportedBiometricTypes,
+        legacyUserChoseBiometrics,
+        legacyUserChosePasscode,
+        isBiometricsAvailable,
+        passcodeAvailable,
+      });
+
       // Device auth cannot be used until user changes device settings
       const deviceAuthRequiresSettings =
         (legacyUserChoseBiometrics && !isBiometricsAvailable) ||
@@ -661,6 +675,7 @@ class AuthenticationService {
       return {
         isBiometricsAvailable,
         passcodeAvailable,
+        authIcon,
         authLabel,
         authDescription,
         osAuthEnabled,
@@ -673,6 +688,7 @@ class AuthenticationService {
       return {
         isBiometricsAvailable: false,
         passcodeAvailable: false,
+        authIcon: IconName.Question,
         authLabel: '',
         authDescription: '',
         osAuthEnabled,
@@ -817,8 +833,10 @@ class AuthenticationService {
         );
       }
 
-      // TODO: Use handlePasswordSubmissionError once we have a standard way of displaying error messages in the UI.
-      // handlePasswordSubmissionError(error as Error);
+      if (error instanceof Error) {
+        // Track unlockWallet error as analytics.
+        trackErrorAsAnalytics('Unlock Wallet Error', error.message);
+      }
       throw error;
     } finally {
       // Wipe sensitive data.
@@ -1186,7 +1204,6 @@ class AuthenticationService {
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
-        const entropySources: EntropySourceId[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
             try {
@@ -1198,9 +1215,7 @@ class AuthenticationService {
                 });
               } else if (item.type === SecretType.Mnemonic) {
                 const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                const entropySource =
-                  await this.importSeedlessMnemonicToVault(mnemonic);
-                entropySources.push(entropySource);
+                await this.importSeedlessMnemonicToVault(mnemonic);
               } else {
                 Logger.error(
                   new Error(
@@ -1220,10 +1235,6 @@ class AuthenticationService {
         }
         await this.syncKeyringEncryptionKey();
 
-        for (const entropySource of entropySources) {
-          // NOTE: Initial implementation of discovery was not awaited, thus we also follow this pattern here.
-          this.attemptMultichainAccountWalletDiscovery(entropySource);
-        }
         this.dispatchOauthReset();
         ReduxService.store.dispatch(setExistingUser(true));
 
@@ -1283,7 +1294,14 @@ class AuthenticationService {
         // also show a info popup to user.
 
         // rehydrate with social accounts if max keychain length exceeded
-        await SeedlessOnboardingController.refreshAuthTokens();
+        try {
+          await SeedlessOnboardingController.refreshAuthTokens();
+        } catch (refreshError) {
+          Logger.error(
+            refreshError as Error,
+            'Failed to refresh auth tokens during MaxKeyChainLength recovery, attempting rehydration anyway',
+          );
+        }
         await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         ReduxService.store.dispatch(setIsConnectionRemoved(true));
@@ -1324,9 +1342,6 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
-      renewSeedlessControllerRefreshTokens(globalPassword).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
-      });
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true, reset: false });
@@ -1431,6 +1446,7 @@ class AuthenticationService {
     // Clear metrics opt-in UI state and reset onboarding completion
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(setCompletedOnboarding(false));
+    ReduxService.store.dispatch(clearAccountType());
   };
 
   /**
@@ -1524,20 +1540,6 @@ class AuthenticationService {
       );
     } catch (e) {
       const errorWithMessage = e as { message: string };
-
-      // Check if the error is because password is not set with biometrics
-      // Convert it to AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS so UI can handle it
-      if (
-        errorWithMessage.message.includes(
-          ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS,
-        )
-      ) {
-        throw new AuthenticationError(
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          AUTHENTICATION_APP_TRIGGERED_AUTH_NO_CREDENTIALS,
-          this.authData,
-        );
-      }
 
       if (
         errorWithMessage.message === 'Invalid password' ||

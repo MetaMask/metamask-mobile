@@ -131,12 +131,14 @@ describe('Transfer', () => {
     });
 
     expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalled();
-    expect(getByText('0xDc477...0c164')).toBeDefined();
+    expect(
+      getByText('0xDc47789de4ceFF0e8Fe9D15D728Af7F17550c164'),
+    ).toBeDefined();
     expect(getByText('Network fee')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getNavbar).toHaveBeenCalled();
     expect(getNavbar).toHaveBeenCalledWith({
-      title: 'Review',
+      title: '',
       onReject: mockOnReject,
       addBackButton: true,
       theme: expect.any(Object),

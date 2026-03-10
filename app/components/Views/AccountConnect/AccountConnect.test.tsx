@@ -77,6 +77,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockedNavigate,
       goBack: mockedGoBack,
+      isFocused: () => true,
     }),
   };
 });
@@ -957,7 +958,7 @@ describe('AccountConnect', () => {
           mockMultichainWalletSnapClient.createAccount,
         ).toHaveBeenCalledWith({
           scope: SolScope.Mainnet,
-          accountNameSuggestion: 'Solana Account 1',
+          accountNameSuggestion: 'Solana Account ',
           entropySource: mockKeyringId,
         });
       });

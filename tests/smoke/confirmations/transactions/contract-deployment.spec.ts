@@ -22,6 +22,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remote
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
+import { Gestures } from '../../../framework';
 
 describe(SmokeConfirmations('Contract Deployment'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -58,13 +59,11 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
@@ -85,7 +84,14 @@ describe(SmokeConfirmations('Contract Deployment'), () => {
         await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
+
         await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
+
+        // Scroll to reveal GasFeesDetails on Android due to taller From/To row
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.SimulationDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );

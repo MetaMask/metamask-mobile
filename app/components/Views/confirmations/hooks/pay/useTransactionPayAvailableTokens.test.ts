@@ -7,10 +7,23 @@ import { AssetType, TokenStandard } from '../../types/token';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { getAvailableTokens } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import {
+  selectMetaMaskPayTokensFlags,
+  MetaMaskPayTokensFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 
 jest.mock('../send/useAccountTokens');
-jest.mock('../../utils/transaction-pay');
+jest.mock('../../utils/transaction-pay', () => ({
+  ...jest.requireActual('../../utils/transaction-pay'),
+  getAvailableTokens: jest.fn(),
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock(
+  '../../../../../selectors/featureFlagController/confirmations',
+  () => ({
+    selectMetaMaskPayTokensFlags: jest.fn(),
+  }),
+);
 
 const TOKEN_MOCK = {
   accountType: EthAccountType.Eoa,
@@ -30,12 +43,26 @@ describe('useTransactionPayAvailableTokens', () => {
     useTransactionMetadataRequest,
   );
 
+  const selectMetaMaskPayTokensFlagsMock = jest.mocked(
+    selectMetaMaskPayTokensFlags,
+  );
+
+  const defaultPayTokensFlags: MetaMaskPayTokensFlags = {
+    preferredTokens: { default: [], overrides: {} },
+    blockedTokens: {
+      default: { chainIds: [], tokens: [] },
+      overrides: {},
+    },
+    minimumRequiredTokenBalance: 0,
+  };
+
   beforeEach(() => {
     jest.resetAllMocks();
 
     useAccountTokensMock.mockReturnValue([]);
     useTransactionMetadataRequestMock.mockReturnValue(undefined);
     jest.mocked(getAvailableTokens).mockReturnValue([TOKEN_MOCK]);
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue(defaultPayTokensFlags);
   });
 
   it('returns available tokens and hasTokens true when tokens exist', () => {
@@ -60,5 +87,57 @@ describe('useTransactionPayAvailableTokens', () => {
     const { result } = renderHookWithProvider(useTransactionPayAvailableTokens);
     expect(result.current.availableTokens).toEqual([]);
     expect(result.current.hasTokens).toBe(true);
+  });
+
+  it('passes resolved blocklist to getAvailableTokens', () => {
+    const blockedList = {
+      chainIds: ['0xa4b1'],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    };
+
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      ...defaultPayTokensFlags,
+      blockedTokens: {
+        default: { chainIds: [], tokens: [] },
+        overrides: {
+          perpsDeposit: blockedList,
+        },
+      },
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(getAvailableTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        blockedTokens: blockedList,
+      }),
+    );
+  });
+
+  it('passes default blocklist when transaction type has no override', () => {
+    const defaultBlocked = {
+      chainIds: ['0x1'],
+      tokens: [],
+    };
+
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      ...defaultPayTokensFlags,
+      blockedTokens: {
+        default: defaultBlocked,
+        overrides: {},
+      },
+    });
+
+    renderHookWithProvider(useTransactionPayAvailableTokens);
+
+    expect(getAvailableTokens).toHaveBeenCalledWith(
+      expect.objectContaining({
+        blockedTokens: defaultBlocked,
+      }),
+    );
   });
 });

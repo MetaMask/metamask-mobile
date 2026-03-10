@@ -69,6 +69,7 @@ import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
+import corporatefareSVG from './assets/corporate-fare.svg';
 import creditcheckSVG from './assets/credit-check.svg';
 import currencyfrancSVG from './assets/currency-franc.svg';
 import currencyliraSVG from './assets/currency-lira.svg';
@@ -152,6 +153,7 @@ import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
 import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
+import metamaskfoxfilledSVG from './assets/metamask-fox-filled.svg';
 import micSVG from './assets/mic.svg';
 import minusboldSVG from './assets/minus-bold.svg';
 import minussquareSVG from './assets/minus-square.svg';
@@ -196,6 +198,7 @@ import scanbarcodeSVG from './assets/scan-barcode.svg';
 import scanfocusSVG from './assets/scan-focus.svg';
 import scanSVG from './assets/scan.svg';
 import searchSVG from './assets/search.svg';
+import searchfilledSVG from './assets/search-filled.svg';
 import securityalertSVG from './assets/security-alert.svg';
 import securitycrossSVG from './assets/security-cross.svg';
 import securitykeySVG from './assets/security-key.svg';
@@ -348,6 +351,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: connectSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
+  [IconName.CorporateFare]: corporatefareSVG,
   [IconName.CreditCheck]: creditcheckSVG,
   [IconName.CurrencyFranc]: currencyfrancSVG,
   [IconName.CurrencyLira]: currencyliraSVG,
@@ -431,6 +435,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
   [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
+  [IconName.MetamaskFoxFilled]: metamaskfoxfilledSVG,
   [IconName.Mic]: micSVG,
   [IconName.MinusBold]: minusboldSVG,
   [IconName.MinusSquare]: minussquareSVG,
@@ -475,6 +480,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ScanFocus]: scanfocusSVG,
   [IconName.Scan]: scanSVG,
   [IconName.Search]: searchSVG,
+  [IconName.SearchFilled]: searchfilledSVG,
   [IconName.SecurityAlert]: securityalertSVG,
   [IconName.SecurityCross]: securitycrossSVG,
   [IconName.SecurityKey]: securitykeySVG,

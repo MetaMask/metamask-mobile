@@ -1,7 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
 import {
-  SafeAreaView,
   StyleSheet,
   Image,
   Text,
@@ -10,6 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   getApplicationName,
   getVersion,
@@ -203,10 +203,12 @@ class AppInformation extends PureComponent {
 
     return (
       <SafeAreaView
+        edges={{ bottom: 'additive' }}
         style={styles.wrapper}
         testID={AboutMetaMaskSelectorsIDs.CONTAINER}
       >
         <HeaderCompactStandard
+          includesTopInset
           title={aboutTitle}
           onBack={() => this.props.navigation.goBack()}
           backButtonProps={{ testID: AboutMetaMaskSelectorsIDs.BACK_BUTTON }}
@@ -241,6 +243,12 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}

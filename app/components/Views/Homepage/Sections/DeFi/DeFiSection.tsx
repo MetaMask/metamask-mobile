@@ -1,5 +1,11 @@
-import React, { forwardRef, useCallback, useImperativeHandle } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+} from 'react';
 import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Box } from '@metamask/design-system-react-native';
@@ -7,14 +13,25 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
+import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
 import { useDeFiPositionsForHomepage, DeFiPositionEntry } from './hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import DeFiPositionsListItem from '../../../../UI/DeFiPositions/DeFiPositionsListItem';
 import { selectAssetsDefiPositionsEnabled } from '../../../../../selectors/featureFlagController/assetsDefiPositions';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
 
 const MAX_POSITIONS_DISPLAYED = 5;
+
+interface DeFiSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
 /**
  * Skeleton placeholder for loading state - matches DeFi list item layout
@@ -56,53 +73,96 @@ const DeFiPositionsSkeleton = () => {
  * Only renders if the user has DeFi positions.
  * Uses Redux state from DeFiPositionsController.
  */
-const DeFiSection = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
-  const privacyMode = useSelector(selectPrivacyMode);
-  const title = strings('homepage.sections.defi');
+const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
+  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+    const sectionViewRef = useRef<View>(null);
+    const navigation = useNavigation();
+    const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+    const privacyMode = useSelector(selectPrivacyMode);
+    const title = strings('homepage.sections.defi');
 
-  const { positions, isLoading, hasError, isEmpty } =
-    useDeFiPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
+    const { positions, isLoading, hasError, isEmpty } =
+      useDeFiPositionsForHomepage(MAX_POSITIONS_DISPLAYED);
 
-  // DeFi positions come from Redux selectors - no async refresh needed
-  const refresh = useCallback(async () => {
-    // Data refreshes automatically via DeFiPositionsController
-  }, []);
+    const handleViewAllDeFi = useCallback(() => {
+      navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW as never);
+    }, [navigation]);
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    const refresh = useCallback(async () => {
+      const controller = Engine.context.DeFiPositionsController;
+      await controller._executePoll();
+    }, []);
 
-  // Don't render if DeFi is disabled
-  if (!isDeFiEnabled) {
-    return null;
-  }
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-  // Don't render if error or empty (and not loading)
-  if (!isLoading && (hasError || isEmpty)) {
-    return null;
-  }
+    // Always pass sectionViewRef once loading is done so the viewport check
+    // decides when to fire. When the section returns null (empty, no error),
+    // sectionViewRef.current is null and the viewport check returns early —
+    // no premature immediate fire via the null path.
+    const willRender = !isLoading;
 
-  return (
-    <Box gap={3}>
-      <SectionTitle title={title} />
-      <SectionRow>
-        <Box>
-          {isLoading ? (
-            <DeFiPositionsSkeleton />
-          ) : (
-            positions.map((position: DeFiPositionEntry) => (
-              <DeFiPositionsListItem
-                key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
-                chainId={position.chainId}
-                protocolId={position.protocolId}
-                protocolAggregate={position.protocolAggregate}
-                privacyMode={privacyMode}
-              />
-            ))
-          )}
+    useHomeViewedEvent({
+      sectionRef: willRender ? sectionViewRef : null,
+      isLoading,
+      sectionName: HomeSectionNames.DEFI,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty: isEmpty || hasError || !isDeFiEnabled,
+      itemCount: isEmpty ? 0 : positions.length,
+    });
+
+    // Don't render if DeFi is disabled
+    if (!isDeFiEnabled) {
+      return null;
+    }
+
+    // Don't render if empty and not loading (200 with no data)
+    if (!isLoading && isEmpty) {
+      return null;
+    }
+
+    // Show retry UI on error
+    if (!isLoading && hasError) {
+      return (
+        <View ref={sectionViewRef}>
+          <Box gap={3}>
+            <SectionTitle title={title} onPress={handleViewAllDeFi} />
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={refresh}
+            />
+          </Box>
+        </View>
+      );
+    }
+
+    return (
+      <View ref={sectionViewRef}>
+        <Box gap={3}>
+          <SectionTitle title={title} onPress={handleViewAllDeFi} />
+          <SectionRow>
+            <Box>
+              {isLoading ? (
+                <DeFiPositionsSkeleton />
+              ) : (
+                positions.map((position: DeFiPositionEntry) => (
+                  <DeFiPositionsListItem
+                    key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
+                    chainId={position.chainId}
+                    protocolId={position.protocolId}
+                    protocolAggregate={position.protocolAggregate}
+                    privacyMode={privacyMode}
+                  />
+                ))
+              )}
+            </Box>
+          </SectionRow>
         </Box>
-      </SectionRow>
-    </Box>
-  );
-});
+      </View>
+    );
+  },
+);
 
 export default DeFiSection;

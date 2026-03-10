@@ -27,6 +27,10 @@ jest.mock('../../hooks/transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn(),
 }));
 
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: () => ({ isFullScreenConfirmation: false }),
+}));
+
 describe('HeroNft', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,6 +115,20 @@ describe('HeroNft', () => {
     expect(mockNavigate).toHaveBeenCalledWith('NftDetailsFullImage', {
       collectible: mockNft,
     });
+  });
+
+  it('renders horizontal layout with Sending label, name and tokenId', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <HeroNft layout="horizontal" />,
+      {
+        state: MOCK_STATE_NFT,
+      },
+    );
+
+    expect(getByText('Sending')).toBeOnTheScreen();
+    expect(getByText('Test Dapp NFTs')).toBeOnTheScreen();
+    expect(getByText('#12345')).toBeOnTheScreen();
+    expect(getByTestId('nft-image')).toBeOnTheScreen();
   });
 
   it('renders NFT image correctly when image is defined in collection.imageUrl', () => {

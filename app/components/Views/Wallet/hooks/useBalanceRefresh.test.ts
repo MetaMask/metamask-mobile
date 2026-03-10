@@ -3,8 +3,16 @@ import { useBalanceRefresh } from './useBalanceRefresh';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 
+let mockPopularEvmNetworks: string[] = ['0x1', '0x89'];
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
+}));
+
+jest.mock('../../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    popularEvmNetworks: mockPopularEvmNetworks,
+  }),
 }));
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -19,6 +27,15 @@ jest.mock('../../../../selectors/networkController', () => ({
     },
   })),
   selectNativeNetworkCurrencies: jest.fn(() => ['ETH', 'POL']),
+  selectNetworkConfigurations: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../../selectors/networkEnablementController', () => ({
+  selectEVMEnabledNetworks: jest.fn(() => []),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -29,16 +46,36 @@ jest.mock('../../../../core/Engine', () => ({
     CurrencyRateController: {
       updateExchangeRate: jest.fn(() => Promise.resolve()),
     },
+    TokenDetectionController: {
+      detectTokens: jest.fn(() => Promise.resolve()),
+    },
+    TokenBalancesController: {
+      updateBalances: jest.fn(() => Promise.resolve()),
+    },
   },
 }));
 
 jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
   error: jest.fn(),
 }));
 
 describe('useBalanceRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPopularEvmNetworks = ['0x1', '0x89'];
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.CurrencyRateController.updateExchangeRate as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenDetectionController.detectTokens as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.TokenBalancesController.updateBalances as jest.Mock
+    ).mockResolvedValue(undefined);
   });
 
   it('returns refreshBalance, handleRefresh, and refreshing', () => {
@@ -73,6 +110,21 @@ describe('useBalanceRefresh', () => {
     ).toHaveBeenCalledWith(['mainnet-client', 'polygon-client']);
   });
 
+  it('calls TokenDetectionController.detectTokens and TokenBalancesController.updateBalances with popular chain IDs', async () => {
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.TokenDetectionController.detectTokens,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
+    expect(
+      Engine.context.TokenBalancesController.updateBalances,
+    ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
+  });
+
   it('calls CurrencyRateController.updateExchangeRate with native currencies', async () => {
     const { result } = renderHook(() => useBalanceRefresh());
 
@@ -85,7 +137,7 @@ describe('useBalanceRefresh', () => {
     ).toHaveBeenCalledWith(['ETH', 'POL']);
   });
 
-  it('handles individual promise rejections gracefully without logging', async () => {
+  it('does not log errors when individual refresh promises reject', async () => {
     const mockError = new Error('Refresh failed');
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
@@ -101,7 +153,7 @@ describe('useBalanceRefresh', () => {
     expect(Logger.error).not.toHaveBeenCalled();
   });
 
-  it('handles timeout gracefully', async () => {
+  it('logs timeout as non-error without emitting error events', async () => {
     jest.useFakeTimers();
 
     (
@@ -123,11 +175,57 @@ describe('useBalanceRefresh', () => {
 
     await refreshPromise;
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ message: 'Balance refresh timed out' }),
-      'Error refreshing balance',
-    );
+    expect(Logger.log).toHaveBeenCalledWith('Balance refresh timed out');
+    expect(Logger.error).not.toHaveBeenCalled();
 
     jest.useRealTimers();
+  });
+
+  it('logs unexpected refresh exceptions as errors', async () => {
+    const unexpectedError = new Error('Unexpected refresh failure');
+    (
+      Engine.context.AccountTrackerController.refresh as jest.Mock
+    ).mockImplementationOnce(() => {
+      throw unexpectedError;
+    });
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      unexpectedError,
+      'Error refreshing balance',
+    );
+  });
+
+  it('calls AccountTrackerController.refresh only for popular EVM chain IDs', async () => {
+    mockPopularEvmNetworks = ['0x1'];
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.AccountTrackerController.refresh,
+    ).toHaveBeenCalledWith(['mainnet-client']);
+  });
+
+  it('calls AccountTrackerController.refresh with empty array when no popular chains', async () => {
+    mockPopularEvmNetworks = [];
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.AccountTrackerController.refresh,
+    ).toHaveBeenCalledWith([]);
   });
 });

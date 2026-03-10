@@ -136,11 +136,6 @@ export const removeFiatSellTxHash = (orderId: string) => ({
   payload: orderId,
 });
 
-export const setDetectedGeolocation = (geolocation: string | undefined) => ({
-  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
-  payload: geolocation,
-});
-
 export const setRampRoutingDecision = (
   routingDecision: FiatOrdersState['rampRoutingDecision'],
 ) => ({
@@ -165,7 +160,8 @@ export const getProviderName = (
     case FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY: {
       return 'Wyre';
     }
-    case FIAT_ORDER_PROVIDERS.TRANSAK: {
+    case FIAT_ORDER_PROVIDERS.TRANSAK:
+    case FIAT_ORDER_PROVIDERS.DEPOSIT: {
       return 'Transak';
     }
     case FIAT_ORDER_PROVIDERS.MOONPAY: {
@@ -324,8 +320,11 @@ export const networkShortNameSelector = createSelector(
 
 export const getDetectedGeolocation: (
   state: RootState,
-) => string | undefined = (state: RootState) =>
-  state.fiatOrders.detectedGeolocation;
+) => string | undefined = (state: RootState) => {
+  const location =
+    state.engine?.backgroundState?.GeolocationController?.location;
+  return location === 'UNKNOWN' || !location ? undefined : location;
+};
 
 export const getRampRoutingDecision: (
   state: RootState,
@@ -346,7 +345,6 @@ export const initialState: FiatOrdersState = {
   getStartedDeposit: false,
   authenticationUrls: [],
   activationKeys: [],
-  detectedGeolocation: undefined,
   rampRoutingDecision: null,
 };
 
@@ -634,12 +632,6 @@ const fiatOrderReducer: (
           },
           ...orders.slice(index + 1),
         ],
-      };
-    }
-    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
-      return {
-        ...state,
-        detectedGeolocation: action.payload,
       };
     }
     case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {

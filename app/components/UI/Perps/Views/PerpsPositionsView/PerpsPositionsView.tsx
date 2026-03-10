@@ -1,10 +1,7 @@
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -17,6 +14,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
@@ -35,7 +36,8 @@ import { PerpsPositionsViewSelectorsIDs } from '../../Perps.testIds';
 
 const PerpsPositionsView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const { account } = usePerpsLiveAccount();
 
@@ -158,55 +160,76 @@ const PerpsPositionsView: React.FC = () => {
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.total_balance')}
             </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {account?.totalBalance !== undefined &&
               account?.totalBalance !== null
                 ? formatPerpsFiat(account.totalBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : PERPS_CONSTANTS.FallbackDataDisplay}
-            </Text>
+            </SensitiveText>
           </View>
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.available_balance')}
             </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {account?.availableBalance !== undefined &&
               account?.availableBalance !== null
                 ? formatPerpsFiat(account.availableBalance, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : PERPS_CONSTANTS.FallbackDataDisplay}
-            </Text>
+            </SensitiveText>
           </View>
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.margin_used')}
             </Text>
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Default}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {account?.marginUsed !== undefined && account?.marginUsed !== null
                 ? formatPerpsFiat(account.marginUsed, {
                     ranges: PRICE_RANGES_MINIMAL_VIEW,
                   })
                 : PERPS_CONSTANTS.FallbackDataDisplay}
-            </Text>
+            </SensitiveText>
           </View>
 
           <View style={styles.summaryRow}>
             <Text variant={TextVariant.BodySM} color={TextColor.Muted}>
               {strings('perps.position.account.total_unrealized_pnl')}
             </Text>
-            <Text
+            <SensitiveText
               variant={TextVariant.BodySMMedium}
               color={
-                totalUnrealizedPnl >= 0 ? TextColor.Success : TextColor.Error
+                privacyMode
+                  ? TextColor.Default
+                  : totalUnrealizedPnl >= 0
+                    ? TextColor.Success
+                    : TextColor.Error
               }
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
             >
               {formatPnl(totalUnrealizedPnl)}
-            </Text>
+            </SensitiveText>
           </View>
         </View>
         {renderContent()}
