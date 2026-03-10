@@ -44,8 +44,11 @@ import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
+import {
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
@@ -297,6 +300,7 @@ const TokenDetails: React.FC<{
                       label: strings('asset_overview.swap'),
                       size: ButtonSize.Lg,
                       startIconName: IconName.SwapVertical,
+                      startIconSize: IconSize.Md,
                       onPress: () => goToSwaps(),
                     },
                   ]
@@ -308,6 +312,7 @@ const TokenDetails: React.FC<{
                       label: strings('asset_overview.buy_button'),
                       size: ButtonSize.Lg,
                       startIconName: IconName.AttachMoney,
+                      startIconSize: IconSize.Md,
                       onPress: onBuy,
                     },
                   ]
