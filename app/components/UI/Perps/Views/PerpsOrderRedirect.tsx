@@ -17,7 +17,7 @@ import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 
@@ -77,6 +77,7 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               assetsASSETS2493AbtestTokenDetailsLayout,
+              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
