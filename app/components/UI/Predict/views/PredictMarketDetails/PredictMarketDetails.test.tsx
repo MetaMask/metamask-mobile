@@ -1949,7 +1949,7 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(
-        screen.getByText('confirm.predict_claim.button_label'),
+        screen.getByText(strings('predict.claim_winnings_text')),
       ).toBeOnTheScreen();
     });
 
@@ -1998,7 +1998,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const claimButton = screen.getByText(
-        'confirm.predict_claim.button_label',
+        strings('predict.claim_winnings_text'),
       );
       fireEvent.press(claimButton);
 

@@ -30,7 +30,6 @@ import {
 } from '../utils/rewards-api-url';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
-import { successfulFetch } from '@metamask/controller-utils';
 
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
@@ -45,9 +44,6 @@ jest.mock('../../../../AppConstants', () => ({
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.50.1'),
 }));
-jest.mock('@metamask/controller-utils', () => ({
-  successfulFetch: jest.fn(),
-}));
 jest.mock('../utils/rewards-api-url', () => ({
   ...jest.requireActual('../utils/rewards-api-url'),
   canChangeRewardsEnvUrl: jest.fn(),
@@ -56,9 +52,6 @@ jest.mock('../utils/rewards-api-url', () => ({
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
   typeof getSubscriptionToken
->;
-const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
-  typeof successfulFetch
 >;
 const mockCanChangeRewardsEnv = canChangeRewardsEnvUrl as jest.MockedFunction<
   typeof canChangeRewardsEnvUrl
@@ -145,10 +138,6 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -2473,115 +2462,6 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('fetchGeoLocation', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should successfully fetch geolocation using PROD URL', async () => {
-      // Arrange
-      const mockLocation = 'US';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should always use PROD geolocation URL regardless of environment', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      // Always uses PROD URL, not DEV
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should return UNKNOWN when geolocation request fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: false,
-        status: 500,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when network error occurs', async () => {
-      // Arrange
-      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when response text parsing fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockRejectedValue(new Error('Parse error')),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return location string from response', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-    });
-  });
-
   describe('validateReferralCode', () => {
     it('should successfully validate a referral code', async () => {
       // Arrange
@@ -4677,6 +4557,97 @@ describe('RewardsDataService', () => {
       await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
         'Get campaigns failed: 401',
       );
+    });
+  });
+
+  describe('optInToCampaign', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: true };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with POST and returns status', async () => {
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+
+      await expect(
+        service.optInToCampaign(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow('Opt-in to campaign failed: 409');
+    });
+  });
+
+  describe('getCampaignParticipantStatus', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: false };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with GET and returns status', async () => {
+      const result = await service.getCampaignParticipantStatus(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/campaigns/${mockCampaignId}/status`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getCampaignParticipantStatus(
+          mockSubscriptionId,
+          mockCampaignId,
+        ),
+      ).rejects.toThrow('Get campaign participant status failed: 404');
     });
   });
 });

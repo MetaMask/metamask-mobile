@@ -24,10 +24,11 @@ import SoftAssert from '../../framework/SoftAssert';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
 const setupGeoBlockedBase = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
+  });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
 };
@@ -135,6 +136,7 @@ describe(
         },
         async ({ mockServer }) => {
           await loginToApp();
+          await device.disableSynchronization();
           await WalletView.tapOnPredictionsTab();
           await Assertions.expectElementToBeVisible(
             WalletView.PredictionsTabContainer,

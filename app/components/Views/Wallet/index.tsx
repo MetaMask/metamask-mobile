@@ -17,14 +17,11 @@ import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -112,7 +109,6 @@ import {
 } from '../../../util/networks';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
-import { colorWithOpacity } from '../../../util/colors';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
 import usePrevious from '../../hooks/usePrevious';
@@ -165,6 +161,7 @@ import {
   selectPerpsEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
+import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import {
   selectPredictEnabledFlag,
@@ -212,13 +209,6 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
-    },
-    bottomFadeOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 40,
     },
   });
 
@@ -456,10 +446,6 @@ const WalletTokensTabView = forwardRef<
     },
   }));
 
-  // Calculate Perps tab visibility
-  const perpsTabIndex = isPerpsEnabled ? 1 : -1;
-  const isPerpsTabVisible = currentTabIndex === perpsTabIndex;
-
   // Calculate Predict tab visibility
   let predictTabIndex = -1;
   if (isPerpsEnabled && isPredictEnabled) {
@@ -468,18 +454,6 @@ const WalletTokensTabView = forwardRef<
     predictTabIndex = 1;
   }
   const isPredictTabVisible = currentTabIndex === predictTabIndex;
-
-  // Store the visibility update callback from PerpsTabView
-  const perpsVisibilityCallback = useRef<((visible: boolean) => void) | null>(
-    null,
-  );
-
-  // Update Perps visibility when tab changes
-  useEffect(() => {
-    if (isPerpsEnabled && perpsVisibilityCallback.current) {
-      perpsVisibilityCallback.current(isPerpsTabVisible);
-    }
-  }, [currentTabIndex, perpsTabIndex, isPerpsTabVisible, isPerpsEnabled]);
 
   // Background preload perps market data when feature is enabled
   useEffect(() => {
@@ -513,16 +487,7 @@ const WalletTokensTabView = forwardRef<
     ];
 
     if (isPerpsEnabled) {
-      tabs.push(
-        <PerpsTabView
-          {...perpsTabProps}
-          key={perpsTabProps.key}
-          isVisible={isPerpsTabVisible}
-          onVisibilityChange={(callback) => {
-            perpsVisibilityCallback.current = callback;
-          }}
-        />,
-      );
+      tabs.push(<PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />);
     }
 
     if (isPredictEnabled) {
@@ -560,7 +525,6 @@ const WalletTokensTabView = forwardRef<
     tokensTabProps,
     isPerpsEnabled,
     perpsTabProps,
-    isPerpsTabVisible,
     isPredictEnabled,
     predictTabProps,
     isPredictTabVisible,
@@ -1093,28 +1057,6 @@ const Wallet = ({
   const shouldEnableParentScroll =
     isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
 
-  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
-
-  const scrollContentHeight = useRef(0);
-  const scrollLayoutHeight = useRef(0);
-  const scrollOffsetY = useRef(0);
-
-  const computeFadeOpacity = useCallback(
-    (contentH: number, layoutH: number, offsetY: number) => {
-      const scrollableHeight = contentH - layoutH;
-      if (scrollableHeight <= 0) {
-        setBottomFadeOpacity(0);
-        return;
-      }
-      const distanceFromEnd = scrollableHeight - offsetY;
-      const fadeThreshold = 100;
-      setBottomFadeOpacity(
-        Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
-      );
-    },
-    [],
-  );
-
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
     if (!isHomepageSectionsV1Enabled) return;
@@ -1124,43 +1066,6 @@ const Wallet = ({
       scrollSubscribersRef.current.forEach((cb) => cb());
     }
   }, [isHomepageSectionsV1Enabled]);
-
-  const handleVerticalScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      scrollContentHeight.current = contentSize.height;
-      scrollLayoutHeight.current = layoutMeasurement.height;
-      scrollOffsetY.current = contentOffset.y;
-      computeFadeOpacity(
-        contentSize.height,
-        layoutMeasurement.height,
-        contentOffset.y,
-      );
-      handleHomepageScroll();
-    },
-    [computeFadeOpacity, handleHomepageScroll],
-  );
-
-  const handleScrollContentSizeChange = useCallback(
-    (_w: number, h: number) => {
-      scrollContentHeight.current = h;
-      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
-    },
-    [computeFadeOpacity],
-  );
-
-  const handleScrollLayout = useCallback(
-    (event: { nativeEvent: { layout: { height: number } } }) => {
-      scrollLayoutHeight.current = event.nativeEvent.layout.height;
-      computeFadeOpacity(
-        scrollContentHeight.current,
-        event.nativeEvent.layout.height,
-        scrollOffsetY.current,
-      );
-    },
-    [computeFadeOpacity],
-  );
 
   useEffect(() => {
     if (!selectedInternalAccount) return;
@@ -1482,70 +1387,51 @@ const Wallet = ({
 
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View style={baseStyles.flexGrow}>
-        {selectedInternalAccount ? (
-          <View
-            ref={containerViewRef}
-            style={styles.wrapper}
-            testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-            onLayout={(e) => {
-              setViewportHeight(e.nativeEvent.layout.height);
-              // measureInWindow gives the absolute screen Y of the container
-              // top, which is needed to form correct visible bounds when
-              // sections call measureInWindow on themselves.
-              containerViewRef.current?.measureInWindow((_x, y) => {
-                setContainerScreenY(y);
-              });
-            }}
-          >
-            <ConditionalScrollView
-              ref={scrollViewRef}
-              isScrollEnabled={shouldEnableParentScroll}
-              scrollViewProps={{
-                contentContainerStyle: scrollViewContentStyle,
-                showsVerticalScrollIndicator: false,
-                onScroll: isHomepageSectionsV1Enabled
-                  ? handleVerticalScroll
-                  : undefined,
-                onContentSizeChange: isHomepageSectionsV1Enabled
-                  ? handleScrollContentSizeChange
-                  : undefined,
-                onLayout: isHomepageSectionsV1Enabled
-                  ? handleScrollLayout
-                  : undefined,
-                scrollEventThrottle: 16,
-                refreshControl: shouldEnableParentScroll ? (
-                  <RefreshControl
-                    colors={[colors.primary.default]}
-                    tintColor={colors.icon.default}
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                ) : undefined,
+      <PerpsAlwaysOnProvider>
+        <View style={baseStyles.flexGrow}>
+          {selectedInternalAccount ? (
+            <View
+              ref={containerViewRef}
+              style={styles.wrapper}
+              testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+              onLayout={(e) => {
+                setViewportHeight(e.nativeEvent.layout.height);
+                // measureInWindow gives the absolute screen Y of the container
+                // top, which is needed to form correct visible bounds when
+                // sections call measureInWindow on themselves.
+                containerViewRef.current?.measureInWindow((_x, y) => {
+                  setContainerScreenY(y);
+                });
               }}
             >
-              {content}
-            </ConditionalScrollView>
-            {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-              <LinearGradient
-                pointerEvents="none"
-                colors={[
-                  colorWithOpacity(colors.background.default, 0),
-                  colors.background.default,
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                style={[
-                  styles.bottomFadeOverlay,
-                  { opacity: bottomFadeOpacity },
-                ]}
-              />
-            )}
-          </View>
-        ) : (
-          renderLoader()
-        )}
-      </View>
+              <ConditionalScrollView
+                ref={scrollViewRef}
+                isScrollEnabled={shouldEnableParentScroll}
+                scrollViewProps={{
+                  contentContainerStyle: scrollViewContentStyle,
+                  showsVerticalScrollIndicator: false,
+                  onScroll: isHomepageSectionsV1Enabled
+                    ? handleHomepageScroll
+                    : undefined,
+                  scrollEventThrottle: 16,
+                  refreshControl: shouldEnableParentScroll ? (
+                    <RefreshControl
+                      colors={[colors.primary.default]}
+                      tintColor={colors.icon.default}
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  ) : undefined,
+                }}
+              >
+                {content}
+              </ConditionalScrollView>
+            </View>
+          ) : (
+            renderLoader()
+          )}
+        </View>
+      </PerpsAlwaysOnProvider>
     </ErrorBoundary>
   );
 };

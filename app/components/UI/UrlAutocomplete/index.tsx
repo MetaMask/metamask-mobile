@@ -621,8 +621,8 @@ const UrlAutocomplete = forwardRef<
         keyboardVerticalOffset={100}
       >
         {isSearchMode ? (
-          // Search mode: wrap with Perps providers for omni-search
-          <PerpsConnectionProvider>
+          // Search mode: wrap with PerpsConnectionProvider (context only) and PerpsStreamProvider for omni-search
+          <PerpsConnectionProvider suppressErrorView>
             <PerpsStreamProvider>
               <SearchContent
                 searchQuery={searchQuery}

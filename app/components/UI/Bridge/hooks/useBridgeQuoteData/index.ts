@@ -28,6 +28,7 @@ import { BigNumber as EthersBigNumber } from 'ethers';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
+import AppConstants from '../../../../../core/AppConstants';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -228,18 +229,13 @@ export const useBridgeQuoteData = ({
     !bestQuote && quotesLastFetched && !isLoading,
   );
 
-  // Check if price impact warning should be shown
-  const isGasless =
-    activeQuote?.quote.gasIncluded || activeQuote?.quote.gasIncluded7702;
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      ((isGasless &&
-        Number(activeQuote?.quote.priceData?.priceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-        (!isGasless &&
-          Number(activeQuote?.quote.priceData?.priceImpact) >=
-            bridgeFeatureFlags.priceImpactThreshold.normal)),
+      Number(activeQuote?.quote.priceData?.priceImpact) >=
+        // @ts-expect-error TODO: remove comment after changes to core are published.
+        (bridgeFeatureFlags.priceImpactThreshold.warning ??
+          AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );
 
   const abortController = useRef<AbortController | null>(new AbortController());

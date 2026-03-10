@@ -11,7 +11,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
@@ -37,18 +36,6 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 
 const MAX_MARKETS_DISPLAYED = 5;
-
-// Card dimensions for snap offsets
-const CARD_WIDTH = 240;
-const GAP = 12;
-const PADDING = 16; // px-4
-
-// Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
-// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
-// causing the scroll view to snap back and never reach it.
-const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
-  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
-);
 
 // Skeleton keys for loading state
 const SKELETON_KEYS = Array.from(
@@ -233,34 +220,25 @@ const PredictionsSection = forwardRef<
     <View ref={sectionViewRef}>
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <FadingScrollContainer>
-          {(scrollProps) => (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              snapToOffsets={SNAP_OFFSETS}
-              decelerationRate="fast"
-              {...scrollProps}
-            >
-              {isLoadingMarkets ? (
-                SKELETON_KEYS.map((key) => (
-                  <PredictMarketCardSkeleton key={key} />
-                ))
-              ) : (
-                <>
-                  {markets.map((market) => (
-                    <PredictMarketCard key={market.id} market={market} />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAllPredictions}
-                    twClassName="w-[180px] flex-1"
-                  />
-                </>
-              )}
-            </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+        >
+          {isLoadingMarkets ? (
+            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
+          ) : (
+            <>
+              {markets.map((market) => (
+                <PredictMarketCard key={market.id} market={market} />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAllPredictions}
+                twClassName="w-[180px] flex-1"
+              />
+            </>
           )}
-        </FadingScrollContainer>
+        </ScrollView>
       </Box>
     </View>
   );

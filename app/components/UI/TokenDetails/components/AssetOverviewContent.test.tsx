@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
-import { Pressable as MockPressable } from 'react-native';
+import { Pressable as MockPressable, View as MockView } from 'react-native';
 import AssetOverviewContent, {
   type AssetOverviewContentProps,
 } from './AssetOverviewContent';
@@ -25,6 +25,7 @@ const mockBuild = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
+const mockUsePerpsPositionForAsset = jest.fn();
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -70,6 +71,21 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
+}));
+
+jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
+  usePerpsPositionForAsset: (...args: unknown[]) =>
+    mockUsePerpsPositionForAsset(...args),
+}));
+
+jest.mock('../../Perps/components/PerpsPositionCard', () => ({
+  __esModule: true,
+  default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
+}));
+
+jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
+  __esModule: true,
+  default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
 }));
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
@@ -159,6 +175,13 @@ const defaultMarketInsightsResult = {
 };
 
 describe('AssetOverviewContent', () => {
+  const defaultPerpsPositionResult = {
+    position: null,
+    hasFundsInPerps: false,
+    accountState: null,
+    isLoading: false,
+  };
+
   describe('Long / Short with perps eligibility', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -169,6 +192,7 @@ describe('AssetOverviewContent', () => {
       });
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -359,6 +383,102 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('Perps / Market Insights layout ordering', () => {
+    // Token with enough aggregators to pass isTokenTrustworthyForPerps (requires >= 2)
+    const trustworthyToken: TokenI = {
+      ...defaultToken,
+      aggregators: ['uniswap', 'sushiswap'],
+    };
+
+    const trustworthyProps: AssetOverviewContentProps = {
+      ...defaultProps,
+      token: trustworthyToken,
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: null,
+        hasFundsInPerps: false,
+        accountState: null,
+        isLoading: false,
+      });
+    });
+
+    it('renders perps position card above market insights when a position exists', () => {
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: { symbol: 'ETH', size: '1', side: 'long' },
+        hasFundsInPerps: true,
+        accountState: null,
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...trustworthyProps} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
+      ).toBeOnTheScreen();
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER),
+      ).toBeNull();
+    });
+
+    it('renders discovery banner below market insights when no position exists', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...trustworthyProps} />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
+      ).toBeNull();
+    });
+
+    it('does not render discovery banner when a position exists', () => {
+      mockUsePerpsPositionForAsset.mockReturnValue({
+        position: { symbol: 'ETH', size: '1', side: 'long' },
+        hasFundsInPerps: true,
+        accountState: null,
+        isLoading: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...trustworthyProps} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER),
+      ).toBeNull();
+    });
+
+    it('does not render position card when no position exists', () => {
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...trustworthyProps} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
+      ).toBeNull();
     });
   });
 });

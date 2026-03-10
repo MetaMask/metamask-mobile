@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectNetworkConfigurationsByCaipChainId } from '../../selectors/networkController';
 import { useNetworkEnablement } from './useNetworkEnablement/useNetworkEnablement';
-import { selectMultichainAccountsState2Enabled } from '../../selectors/featureFlagController/multichainAccounts';
 import { KnownCaipNamespace } from '@metamask/utils';
 
 export interface NetworkInfo {
@@ -29,34 +28,20 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
   const networksByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
 
   // Get all enabled networks for the namespace
   const enabledNetworks = useMemo(() => {
-    if (isMultichainAccountsState2Enabled) {
-      const networksForNamespace = {
-        ...Object.values(enabledNetworksByNamespace).reduce(
-          (acc, obj) => ({ ...acc, ...obj }),
-          {},
-        ),
-      };
+    const networksForNamespace = {
+      ...Object.values(enabledNetworksByNamespace).reduce(
+        (acc, obj) => ({ ...acc, ...obj }),
+        {},
+      ),
+    };
 
-      return Object.entries(networksForNamespace)
-        .filter(([_key, value]) => value)
-        .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-    }
-
-    const networksForNamespace = enabledNetworksByNamespace[namespace] || {};
     return Object.entries(networksForNamespace)
       .filter(([_key, value]) => value)
       .map(([chainId, enabled]) => ({ chainId, enabled: Boolean(enabled) }));
-  }, [
-    enabledNetworksByNamespace,
-    isMultichainAccountsState2Enabled,
-    namespace,
-  ]);
+  }, [enabledNetworksByNamespace]);
 
   // Generic function to get network info by index
   const getNetworkInfo = useCallback(
