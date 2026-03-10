@@ -733,7 +733,7 @@ export const parsePolymarketEvents = (
       // guaranteed to be accurate. They also do this on their webbsite.
       //
       // However, we noticed that the above statement is not correct, at least for game events.
-      const moneylineMarket = event.markets.find((m) => isMoneylineMarket(m));
+      const moneylineMarket = event.markets?.find((m) => isMoneylineMarket(m));
       const description =
         moneylineMarket?.description ??
         event.markets?.[0]?.description ??
