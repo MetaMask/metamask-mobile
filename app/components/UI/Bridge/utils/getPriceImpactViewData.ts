@@ -1,5 +1,8 @@
-import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../../component-library/components/Texts/Text';
+import {
+  IconColor,
+  IconName,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 interface Params {
   priceImpactValue?: string;
@@ -12,8 +15,10 @@ export const getPriceImpactViewData = ({
 }: Params) => {
   if (!priceImpactValue) {
     return {
-      textColor: TextColor.Alternative,
+      textColor: TextColor.TextAlternative,
       icon: undefined,
+      title: 'bridge.price_impact_info_title',
+      description: 'bridge.price_impact_info_description',
     };
   }
 
@@ -21,33 +26,41 @@ export const getPriceImpactViewData = ({
 
   if (!Number.isFinite(priceImpact)) {
     return {
-      textColor: TextColor.Alternative,
+      textColor: TextColor.TextAlternative,
       icon: undefined,
+      title: 'bridge.price_impact_info_title',
+      description: 'bridge.price_impact_info_description',
     };
   }
 
   if (priceImpact >= threshold.error) {
     return {
-      textColor: TextColor.Error,
+      textColor: TextColor.ErrorDefault,
       icon: {
         name: IconName.Danger,
-        color: TextColor.Error,
+        color: IconColor.ErrorDefault,
       },
+      title: 'bridge.price_impact_error_title',
+      description: 'bridge.price_impact_error_description',
     };
   }
 
   if (priceImpact >= threshold.warning) {
     return {
-      textColor: TextColor.Warning,
+      textColor: TextColor.WarningDefault,
       icon: {
         name: IconName.Warning,
-        color: TextColor.Warning,
+        color: IconColor.WarningDefault,
       },
+      title: 'bridge.price_impact_warning_title',
+      description: 'bridge.price_impact_warning_description',
     };
   }
 
   return {
-    textColor: TextColor.Alternative,
+    textColor: TextColor.TextAlternative,
     icon: undefined,
+    title: 'bridge.price_impact_info_title',
+    description: 'bridge.price_impact_info_description',
   };
 };

@@ -848,58 +848,55 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <View
+                                <Text
+                                  accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "display": "flex",
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                  testID="label"
+                                >
+                                  Price impact
+                                </Text>
+                                <TouchableOpacity
+                                  accessibilityLabel="Price impact tooltip"
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "opacity": 1,
+                                      "width": 24,
+                                    }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <SvgMock
+                                    color="#66676a"
+                                    fill="currentColor"
+                                    height={16}
+                                    name="Info"
                                     style={
-                                      [
-                                        {
-                                          "color": "#66676a",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 16,
-                                          "fontWeight": 400,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  >
-                                    Price impact
-                                  </Text>
-                                  <TouchableOpacity
-                                    activeOpacity={0.6}
-                                    onPress={[Function]}
-                                    testID="price-impact-info-button"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="Info"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#66676a",
-                                            "height": 16,
-                                            "width": 16,
-                                          },
-                                          undefined,
-                                        ]
+                                      {
+                                        "height": 16,
+                                        "width": 16,
                                       }
-                                    />
-                                  </TouchableOpacity>
-                                </View>
+                                    }
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
                               </View>
                             </View>
                           </View>
@@ -928,21 +925,43 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 }
                               >
-                                <Text
-                                  accessibilityRole="text"
+                                <View
                                   style={
-                                    {
-                                      "color": "#66676a",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexDirection": "row",
+                                        "gap": 4,
+                                      },
+                                      undefined,
+                                    ]
                                   }
-                                  testID="label"
                                 >
-                                  0%
-                                </Text>
+                                  <TouchableOpacity
+                                    activeOpacity={0.6}
+                                    onPress={[Function]}
+                                    testID="price-impact-info-button"
+                                  />
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
+                                    }
+                                  >
+                                    0%
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                           </View>
