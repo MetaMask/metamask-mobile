@@ -141,7 +141,9 @@ const CashGetMusdEmptyState = () => {
       try {
         await initiateCustomConversion({
           preferredPaymentToken: paymentToken,
-          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
+          navigationOverride: isQuickConvertEnabled
+            ? MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT
+            : undefined,
         });
         return;
       } catch (error) {
