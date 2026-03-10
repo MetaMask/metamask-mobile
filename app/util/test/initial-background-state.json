@@ -449,6 +449,12 @@
       }
     }
   },
+  "GeolocationController": {
+    "location": "UNKNOWN",
+    "status": "loading",
+    "lastFetchedAt": null,
+    "error": null
+  },
   "GasFeeController": {
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
@@ -755,6 +761,7 @@
     "pointsEvents": {},
     "snapshots": {},
     "campaigns": {},
+    "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -769,6 +776,7 @@
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
+    "pendingClaims": {},
     "withdrawTransaction": null,
     "accountMeta": {}
   },

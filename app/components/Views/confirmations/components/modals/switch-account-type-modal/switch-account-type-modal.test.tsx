@@ -13,8 +13,6 @@ import * as Networks7702 from '../../../hooks/7702/useEIP7702Networks';
 import { EIP7702NetworkConfiguration } from '../../../hooks/7702/useEIP7702Networks';
 import SwitchAccountTypeModal from './switch-account-type-modal';
 
-import {} from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
@@ -69,13 +67,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock(
-  '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState1Enabled: () => false,
-  }),
-);
-
 const MOCK_STATE = {
   engine: {
     backgroundState: {
@@ -124,8 +115,6 @@ describe('Switch Account Type Modal', () => {
       );
       expect(getByText('Account 1')).toBeOnTheScreen();
       expect(getByText('Sepolia')).toBeOnTheScreen();
-      expect(getByText('Smart account')).toBeOnTheScreen();
-      expect(getByText('Switch back')).toBeOnTheScreen();
     });
 
     it('renders empty state when network7702List is empty', () => {

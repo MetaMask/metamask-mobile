@@ -41,6 +41,7 @@ import {
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { PredictFeatureFlags } from '../../types/flags';
+import { isLiveSportsEvent } from '../../utils/gameParser';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
 import {
@@ -184,6 +185,11 @@ jest.mock('./WebSocketManager', () => ({
   },
 }));
 
+jest.mock('../../utils/gameParser', () => ({
+  ...jest.requireActual('../../utils/gameParser'),
+  isLiveSportsEvent: jest.fn(),
+}));
+
 jest.mock('../../../../../util/transactions', () => ({
   generateTransferData: jest.fn(),
   isSmartContractAddress: jest.fn(),
@@ -220,6 +226,7 @@ const mockHasAllowances = hasAllowances as jest.Mock;
 const mockQuery = query as jest.Mock;
 const mockPreviewOrder = previewOrder as jest.Mock;
 const mockGetBalance = getBalance as jest.Mock;
+const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
@@ -3038,6 +3045,7 @@ describe('PolymarketProvider', () => {
 
     it('get market details successfully', async () => {
       const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+      mockIsLiveSportsEvent.mockReturnValueOnce(true);
       mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
       mockParsePolymarketEvents.mockReturnValue([mockParsedMarket]);
 
@@ -7305,8 +7313,9 @@ describe('PolymarketProvider', () => {
     });
 
     describe('getMarketDetails', () => {
-      it('applies GameCache overlay to fetched market details when live sports are enabled', async () => {
+      it('applies GameCache overlay to fetched market details when event is a sports event', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValue(true);
         const mockEvent = { id: 'market-1', question: 'Test Market?' };
         const parsedMarket = {
           id: 'market-1',
@@ -7323,8 +7332,9 @@ describe('PolymarketProvider', () => {
         );
       });
 
-      it('returns market with cached game data overlay applied when live sports are enabled', async () => {
+      it('returns market with cached game data overlay applied when event is a sports event', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValue(true);
         const mockEvent = { id: 'market-1', question: 'Test Market?' };
         const parsedMarket = { id: 'market-1', title: 'Test Market' };
         const overlaidMarket = {
@@ -7343,8 +7353,28 @@ describe('PolymarketProvider', () => {
         expect(result).toEqual(overlaidMarket);
       });
 
+      it('skips GameCache overlay when event is not a sports event despite leagues being enabled', async () => {
+        const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValue(false);
+        const mockEvent = { id: 'market-1', question: 'Will BTC hit 100k?' };
+        const parsedMarket = { id: 'market-1', title: 'Will BTC hit 100k?' };
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
+        mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
+
+        const result = await provider.getMarketDetails({
+          marketId: 'market-1',
+        });
+
+        expect(mockGameCacheInstance.overlayOnMarket).not.toHaveBeenCalled();
+        expect(
+          mockTeamsCacheInstance.ensureLeaguesLoaded,
+        ).not.toHaveBeenCalled();
+        expect(result).toEqual(parsedMarket);
+      });
+
       it('throws error when parsing fails without calling GameCache overlay', async () => {
         const provider = createProvider({ liveSportsLeagues: ['nfl'] });
+        mockIsLiveSportsEvent.mockReturnValueOnce(true);
         mockGetMarketDetailsFromGammaApi.mockResolvedValue({});
         mockParsePolymarketEvents.mockReturnValue([]);
 
