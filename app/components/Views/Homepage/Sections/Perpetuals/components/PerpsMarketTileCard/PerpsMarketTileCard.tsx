@@ -111,7 +111,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               color={TextColor.TextDefault}
             >
               {truncateText(
-                getPerpsDisplaySymbol('SOMETHINGVERYLONG'),
+                getPerpsDisplaySymbol(market.symbol),
                 MAX_TICKER_LENGTH,
               )}
             </Text>
