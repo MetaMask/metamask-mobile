@@ -32,7 +32,6 @@ import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnectio
 import { filterAndSortMarkets } from '../../../../UI/Perps/utils/filterAndSortMarkets';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
-import PerpsPositionCard from '../../../../UI/Perps/components/PerpsPositionCard/PerpsPositionCard';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsMarketTileCard from './components/PerpsMarketTileCard';
@@ -50,41 +49,6 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
 const HOMEPAGE_THROTTLE_MS = 5000;
-
-/** Key fields that affect position card display; skip re-render if unchanged. Exported for testing. */
-export function positionDisplayKey(p: Position): string {
-  return `${p.symbol}:${p.entryPrice ?? ''}:${p.size ?? ''}:${p.unrealizedPnl ?? ''}:${p.takeProfitPrice ?? ''}:${p.stopLossPrice ?? ''}`;
-}
-
-/**
- * Memoized row so only the position card whose data changed re-renders on stream updates.
- */
-const PositionCardItem = React.memo<{
-  position: Position;
-  tpSlLoading: boolean;
-  onPositionPress: (position: Position) => void;
-}>(
-  ({ position, tpSlLoading, onPositionPress }) => {
-    const handlePress = useCallback(
-      () => onPositionPress(position),
-      [onPositionPress, position],
-    );
-    return (
-      <PerpsPositionCard
-        position={position}
-        compact
-        compactVariant="position"
-        tpSlLoading={tpSlLoading}
-        onPress={handlePress}
-        testID={`perps-position-row-${position.symbol}`}
-      />
-    );
-  },
-  (prev, next) =>
-    prev.tpSlLoading === next.tpSlLoading &&
-    prev.onPositionPress === next.onPositionPress &&
-    positionDisplayKey(prev.position) === positionDisplayKey(next.position),
-);
 
 /**
  * PerpsSection — single "Perpetuals" section on the homepage.
@@ -128,36 +92,6 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }, [hookLoading]);
 
     const showSkeleton = hookLoading || deferredLoading;
-
-    // TP/SL is extracted from orders and merged into positions by the
-    // subscription service. Due to the 5s throttle the merged update can be
-    // delayed — positions appear first without TP/SL. If any position already
-    // has TP/SL the merge is done for all of them; otherwise wait for a
-    // fallback timeout (throttle interval + margin).
-    const anyPositionHasTpSl = useMemo(
-      () =>
-        positions.some(
-          (p) => p.takeProfitPrice != null || p.stopLossPrice != null,
-        ),
-      [positions],
-    );
-
-    const [tpSlSettled, setTpSlSettled] = useState(false);
-
-    useEffect(() => {
-      if (showSkeleton) {
-        setTpSlSettled(false);
-        return undefined;
-      }
-      if (anyPositionHasTpSl) return undefined;
-      const timer = setTimeout(
-        () => setTpSlSettled(true),
-        HOMEPAGE_THROTTLE_MS + 500,
-      );
-      return () => clearTimeout(timer);
-    }, [showSkeleton, anyPositionHasTpSl]);
-
-    const tpSlReady = anyPositionHasTpSl || tpSlSettled;
 
     const { markets, isLoading: marketsLoading } = usePerpsMarkets();
     const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
@@ -333,11 +267,11 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             <SectionRow>
               <Box testID="homepage-perps-positions">
                 {displayPositions.map((position) => (
-                  <PositionCardItem
+                  <PerpsCard
                     key={position.symbol}
                     position={position}
-                    tpSlLoading={!tpSlReady}
-                    onPositionPress={handlePositionPress}
+                    onPress={() => handlePositionPress(position)}
+                    testID={`perps-position-row-${position.symbol}`}
                   />
                 ))}
                 {displayOrders.map((order) => (
