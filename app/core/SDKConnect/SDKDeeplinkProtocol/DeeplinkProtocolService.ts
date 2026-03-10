@@ -119,8 +119,8 @@ export default class DeeplinkProtocolService {
     }
 
     if (
-      (selfReportedUrl && selfReportedUrl === ORIGIN_METAMASK) ||
-      (selfReportedTitle && selfReportedTitle === ORIGIN_METAMASK)
+      INTERNAL_ORIGINS.includes(selfReportedUrl) ||
+      INTERNAL_ORIGINS.includes(selfReportedTitle)
     ) {
       throw new Error('Connections from metamask origin are not allowed');
     }
