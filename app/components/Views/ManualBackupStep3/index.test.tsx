@@ -522,7 +522,7 @@ describe('ManualBackupStep3', () => {
       );
     });
 
-    it('toggles hint modal closed after successful save', async () => {
+    it('closes hint modal after successful save', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify({}),
       );
