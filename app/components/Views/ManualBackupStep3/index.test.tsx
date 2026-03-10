@@ -154,7 +154,6 @@ const createProps = (overrides = {}) => ({
       words: ['apple', 'banana', 'cherry'],
     },
   },
-  saveOnboardingEvent: jest.fn(),
   ...overrides,
 });
 
