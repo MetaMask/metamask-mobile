@@ -4,6 +4,7 @@ import {
   createMockPerpsControllerState,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { PERPS_EVENT_VALUE } from '../constants/eventNames';
 import { PerpsAnalyticsEvent } from '../types';
 import type {
   PerpsProvider,
@@ -318,6 +319,48 @@ describe('TradingService', () => {
           trade_with_token: true,
           mm_pay_token_selected: 'USDC',
           mm_pay_network_selected: 'ethereum',
+        }),
+      );
+    });
+
+    it('includes mm_pay_token_selected "Perps Balance" when user uses perps balance', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: false,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          trade_with_token: false,
+          mm_pay_token_selected: PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
         }),
       );
     });

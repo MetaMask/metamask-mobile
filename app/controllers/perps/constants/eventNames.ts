@@ -305,6 +305,8 @@ export const PERPS_EVENT_VALUE = {
     // Pay-with interactions
     PAYMENT_TOKEN_SELECTOR: 'payment_token_selector',
     PAYMENT_METHOD_CHANGED: 'payment_method_changed',
+    // Deposit + order (pay-with token) cancel
+    CANCEL_TRADE_WITH_TOKEN: 'cancel_trade_with_token',
   },
   ACTION_TYPE: {
     START_TRADING: 'start_trading',
@@ -376,6 +378,8 @@ export const PERPS_EVENT_VALUE = {
     ADD_MARGIN: 'add_margin',
     REMOVE_MARGIN: 'remove_margin',
     GEO_BLOCK_NOTIF: 'geo_block_notif',
+    // Deposit + order (pay-with token) cancel toast
+    CANCEL_TRADE_WITH_TOKEN_TOAST: 'cancel_trade_with_token_toast',
   },
   SETTING_TYPE: {
     LEVERAGE: 'leverage',
@@ -412,6 +416,10 @@ export const PERPS_EVENT_VALUE = {
     ORDERS: 'orders',
     FUNDING: 'funding',
     DEPOSITS: 'deposits',
+  },
+  /** Value for mm_pay_token_selected when user pays with Perps balance (not a token) */
+  MM_PAY_TOKEN: {
+    PERPS_BALANCE: 'Perps Balance',
   },
   // A/B testing values
   AB_TEST: {

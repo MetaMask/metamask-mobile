@@ -5,7 +5,6 @@ import {
   BoxJustifyContent,
   Text,
   TextVariant,
-  ButtonSize as ButtonSizeHero,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -51,8 +50,8 @@ import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
 
@@ -73,7 +72,7 @@ const PredictPositionsHeader = forwardRef<
 >((props, ref) => {
   const { onError } = props;
   const privacyMode = useSelector(selectPrivacyMode);
-  const { claim } = usePredictClaim();
+  const { claim, isClaimPending } = usePredictClaim();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
@@ -202,23 +201,13 @@ const PredictPositionsHeader = forwardRef<
   return (
     <Box twClassName="gap-4 pb-4 pt-2">
       {hasClaimableAmount && (
-        <ButtonHero
-          size={ButtonSizeHero.Lg}
-          testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
+        <PredictClaimButton
+          amount={totalClaimableAmount}
           onPress={handleClaim}
-          style={tw.style('w-full')}
-        >
-          <SensitiveText
-            variant={ComponentTextVariant.BodyMD}
-            color="white"
-            isHidden={privacyMode}
-            length={SensitiveTextLength.Medium}
-          >
-            {strings('predict.claim_amount_text', {
-              amount: totalClaimableAmount.toFixed(2),
-            })}
-          </SensitiveText>
-        </ButtonHero>
+          isLoading={isClaimPending}
+          isHidden={privacyMode}
+          testID={PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON}
+        />
       )}
 
       {(hasAvailableBalance ||
