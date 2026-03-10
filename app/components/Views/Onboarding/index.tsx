@@ -416,16 +416,6 @@ const Onboarding = () => {
         const accountType = getSocialAccountType(provider, result.existingUser);
         dispatch(setAccountType(accountType));
 
-        if (result.existingUser) {
-          track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-            account_type: accountType,
-          });
-        } else {
-          track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-            account_type: accountType,
-          });
-        }
-
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
           account_type: accountType,
         });
@@ -700,13 +690,14 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
+      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: `${AccountType.Metamask}_${provider}`,
+          account_type: accountType,
         });
       } else {
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: `${AccountType.Imported}_${provider}`,
+          account_type: accountType,
         });
       }
 
