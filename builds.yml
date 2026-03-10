@@ -97,8 +97,8 @@ _secrets: &secrets # Infrastructure
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
 # GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
 _signing_prod: &signing_prod
-  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
-  aws_secret: 'metamask-mobile-main-prod-signer'
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer-new'
+  aws_secret: 'metamask-mobile-main-prod-signer-new'
   android_keystore_path: 'release.keystore'
 _signing_rc: &signing_rc
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
