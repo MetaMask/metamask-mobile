@@ -819,6 +819,10 @@ class WalletView {
     await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');
   }
 
+  async scrollToDefiSection(): Promise<void> {
+    await this.scrollToSection(this.defiPositionsNew, 'DeFi section');
+  }
+
   async scrollAndTapPerpsSection(): Promise<void> {
     await this.scrollAndTapSection(
       this.perpsSectionHeader,
@@ -827,86 +831,17 @@ class WalletView {
   }
 
   async scrollAndTapPredictionsSection(): Promise<void> {
-    await this.scrollToPredictionsSection();
-    try {
-      await Gestures.waitAndTap(this.predictionsSectionHeader, {
-        timeout: 2000,
-        checkStability: true,
-        elemDescription: 'Predictions section',
-      });
-    } catch {
-      await Gestures.waitAndTap(this.predictionsTab, {
-        timeout: 2000,
-        checkStability: true,
-        elemDescription: 'Predict section',
-      });
-    }
-  }
-
-  private async progressiveSwipeMainWalletUntilVisible(
-    targets: DetoxElement[],
-    options: {
-      directions?: ('up' | 'down')[];
-      iterationsPerDirection?: number;
-      percentage?: number;
-      description: string;
-    },
-  ): Promise<boolean> {
-    const {
-      directions = ['up', 'down'],
-      iterationsPerDirection = 8,
-      percentage = 0.25,
-      description,
-    } = options;
-
-    for (const direction of directions) {
-      for (let i = 0; i < iterationsPerDirection; i++) {
-        for (const target of targets) {
-          if (await Utilities.isElementVisible(target, 500)) {
-            return true;
-          }
-        }
-
-        await Gestures.swipe(this.walletScrollView, direction, {
-          timeout: 1200,
-          speed: 'slow',
-          percentage,
-          checkVisibility: false,
-          checkEnabled: false,
-          elemDescription: `${description} (${direction})`,
-        });
-      }
-    }
-
-    return false;
+    await this.scrollAndTapSection(
+      this.predictionsSectionHeader,
+      'Predictions section',
+    );
   }
 
   async scrollToPredictionsSection(): Promise<void> {
-    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
-
-    try {
-      await Gestures.scrollToElement(
-        this.predictionsSectionHeader,
-        this.walletScrollViewIdentifier,
-        {
-          direction: 'down',
-          scrollAmount: 260,
-          timeout: 12000,
-          elemDescription: 'Scroll to Predictions section',
-        },
-      );
-    } catch {
-      await Gestures.scrollToElement(
-        this.predictionsSectionHeader,
-        this.walletScrollViewIdentifier,
-        {
-          direction: 'up',
-          scrollAmount: 260,
-          timeout: 12000,
-          elemDescription: 'Scroll up fallback to Predictions section',
-        },
-      );
-    }
+    await this.scrollToSection(
+      this.predictionsSectionHeader,
+      'Predictions section',
+    );
   }
 
   async scrollAndTapPredictionPosition(positionName: string): Promise<void> {
@@ -922,8 +857,6 @@ class WalletView {
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
-    await this.scrollToPredictionsSection();
-
     const target = Matchers.getElementByText(positionName);
     try {
       await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {

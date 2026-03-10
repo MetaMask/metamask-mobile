@@ -65,7 +65,6 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
 
-        await WalletView.scrollToPredictionsSection();
         await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
 

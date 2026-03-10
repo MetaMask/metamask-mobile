@@ -77,6 +77,8 @@ export const WalletViewSelectorsIDs = {
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  DEFI_POSITION_LIST_ITEM: (protocolName: string): string =>
+    `defi-position-list-item-${protocolName}`,
   WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
