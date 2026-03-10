@@ -1899,7 +1899,6 @@ describe('PolymarketProvider', () => {
         }),
       );
     });
-
   });
 
   describe('placeOrder FAK order type for sell orders', () => {
