@@ -88,6 +88,17 @@ describe('OrderContent', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
+  it('shows ellipsis for token amount when cryptoAmount is 0 or missing', () => {
+    const orderWithZeroCrypto: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+      fiatAmount: 100,
+      status: RampsOrderStatus.Pending,
+    };
+    renderOrder(orderWithZeroCrypto);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
   it('copies order ID to clipboard when order ID is tapped', () => {
     renderOrder(mockOrder);
     const copyButton = screen.getByText('...abc123').parent;

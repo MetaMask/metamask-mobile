@@ -110,17 +110,25 @@ describe('useRampsQuotes', () => {
         },
       } as Quote;
 
+      const mockBuyWidget = {
+        url: 'https://global.transak.com/?apiKey=test',
+        orderId: null,
+      };
       (
         Engine.context.RampsController.getBuyWidgetData as jest.Mock
-      ).mockResolvedValue('https://global.transak.com/?apiKey=test');
+      ).mockResolvedValue(mockBuyWidget);
 
+      let resolvedValue: Awaited<
+        ReturnType<typeof result.current.getBuyWidgetData>
+      > = null;
       await act(async () => {
-        await result.current.getBuyWidgetData(testQuote);
+        resolvedValue = await result.current.getBuyWidgetData(testQuote);
       });
 
       expect(
         Engine.context.RampsController.getBuyWidgetData,
       ).toHaveBeenCalledWith(testQuote);
+      expect(resolvedValue).toEqual(mockBuyWidget);
     });
   });
 

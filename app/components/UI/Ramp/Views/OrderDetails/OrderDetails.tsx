@@ -15,6 +15,7 @@ import {
   normalizeProviderCode,
   RampsOrderStatus,
 } from '@metamask/ramps-controller';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -73,7 +74,8 @@ const styles = StyleSheet.create({
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
-  const order = getOrderById(params.orderId);
+  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
+  const order = getOrderById(params.orderId ?? '');
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);
@@ -165,14 +167,14 @@ const OrderDetails = () => {
       hydrationAttempted ||
       !params.providerCode ||
       !params.walletAddress ||
-      !params.orderId
+      !orderCode
     ) {
       return;
     }
     setHydrationAttempted(true);
     setIsLoading(true);
     const providerCode = normalizeProviderCode(params.providerCode);
-    refreshOrder(providerCode, params.orderId, params.walletAddress)
+    refreshOrder(providerCode, orderCode, params.walletAddress)
       .then(() => {
         setIsLoading(false);
       })
@@ -189,7 +191,7 @@ const OrderDetails = () => {
     hydrationAttempted,
     params.providerCode,
     params.walletAddress,
-    params.orderId,
+    orderCode,
     refreshOrder,
   ]);
 

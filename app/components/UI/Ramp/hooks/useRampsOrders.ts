@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { RampsOrder } from '@metamask/ramps-controller';
+import { extractOrderCode } from '../utils/extractOrderCode';
 import Engine from '../../../../core/Engine';
 import { selectRampsOrders } from '../../../../selectors/rampsController';
 
@@ -33,8 +34,10 @@ export function useRampsOrders(): UseRampsOrdersResult {
   const orders = useSelector(selectRampsOrders);
 
   const getOrderById = useCallback(
-    (providerOrderId: string) =>
-      orders.find((o) => o.providerOrderId === providerOrderId),
+    (providerOrderId: string) => {
+      const orderCode = extractOrderCode(providerOrderId);
+      return orders.find((o) => o.providerOrderId === orderCode);
+    },
     [orders],
   );
 

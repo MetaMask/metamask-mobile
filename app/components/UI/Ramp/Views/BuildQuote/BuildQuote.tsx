@@ -33,6 +33,7 @@ import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
@@ -591,9 +592,7 @@ function BuildQuote() {
           }
 
           if (effectiveOrderId) {
-            const orderCode = effectiveOrderId.includes('/orders/')
-              ? effectiveOrderId.split('/orders/')[1]
-              : effectiveOrderId;
+            const orderCode = extractOrderCode(effectiveOrderId);
             navigation.reset({
               index: 0,
               routes: [
