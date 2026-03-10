@@ -33,6 +33,7 @@ async function ensurePolygonNetwork(): Promise<void> {
   const { NetworkController } = Engine.context;
 
   if (NetworkController.state.networkConfigurationsByChainId[chainId]) {
+    enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
     return;
   }
 
