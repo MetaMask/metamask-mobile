@@ -615,14 +615,19 @@ const COMMANDS = {
       if (!renderers) return { ok: false, error: 'No renderers' };
       var getFiberRoots = hook.getFiberRoots;
       var opts = ${optsJson};
-      function tryScroll(fiber) {
-        if (!fiber) return false;
-        var sn = fiber.stateNode;
-        if (sn) {
-          if (typeof sn.scrollTo === 'function') { sn.scrollTo({ y: opts.offset, animated: opts.animated }); return true; }
-          if (typeof sn.scrollToOffset === 'function') { sn.scrollToOffset({ offset: opts.offset, animated: opts.animated }); return true; }
+      function tryScroll(fiber, walkSiblings) {
+        if (walkSiblings === undefined) walkSiblings = true;
+        var current = fiber;
+        while (current) {
+          var sn = current.stateNode;
+          if (sn) {
+            if (typeof sn.scrollTo === 'function') { sn.scrollTo({ y: opts.offset, animated: opts.animated }); return true; }
+            if (typeof sn.scrollToOffset === 'function') { sn.scrollToOffset({ offset: opts.offset, animated: opts.animated }); return true; }
+          }
+          if (tryScroll(current.child)) return true;
+          current = walkSiblings ? current.sibling : null;
         }
-        return tryScroll(fiber.child) || tryScroll(fiber.sibling);
+        return false;
       }
       function findTestId(fiber) {
         if (!fiber) return null;
@@ -638,7 +643,7 @@ const COMMANDS = {
           if (scrolled) return;
           if (opts.testId) {
             var anchor = findTestId(r.current);
-            if (anchor) scrolled = tryScroll(anchor);
+            if (anchor) scrolled = tryScroll(anchor, false);
           } else {
             scrolled = tryScroll(r.current);
           }
