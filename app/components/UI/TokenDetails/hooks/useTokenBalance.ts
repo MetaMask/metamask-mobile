@@ -23,6 +23,7 @@ export interface UseTokenBalanceResult {
   isTronNative: boolean;
   stakedTrxAsset: TokenI | undefined;
   inLockPeriodBalance: string | undefined;
+  readyForWithdrawalBalance: string | undefined;
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -36,19 +37,28 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { stakedTrxForEnergy, stakedTrxForBandwidth, trxInLockPeriod } =
-    useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
+  const {
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+    trxInLockPeriod,
+    trxReadyForWithdrawal,
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
 
   const isTronNative =
     token.ticker === 'TRX' && String(token.chainId).startsWith('tron:');
 
-  const stakedTrxAsset = isTronNative
-    ? createStakedTrxAsset(
-        token,
-        stakedTrxForEnergy?.balance,
-        stakedTrxForBandwidth?.balance,
-      )
-    : undefined;
+  const totalStaked =
+    (Number(stakedTrxForEnergy?.balance) || 0) +
+    (Number(stakedTrxForBandwidth?.balance) || 0);
+
+  const stakedTrxAsset =
+    isTronNative && totalStaked > 0
+      ? createStakedTrxAsset(
+          token,
+          stakedTrxForEnergy?.balance,
+          stakedTrxForBandwidth?.balance,
+        )
+      : undefined;
 
   const parsedInLockPeriod = trxInLockPeriod
     ? parseFloat(trxInLockPeriod.balance)
@@ -56,6 +66,17 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
   const inLockPeriodBalance =
     isTronNative && parsedInLockPeriod > 0
       ? formatWithThreshold(parsedInLockPeriod, 0.00001, I18n.locale, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 5,
+        }) || undefined
+      : undefined;
+
+  const parsedReadyForWithdrawal = trxReadyForWithdrawal
+    ? parseFloat(trxReadyForWithdrawal.balance)
+    : 0;
+  const readyForWithdrawalBalance =
+    isTronNative && parsedReadyForWithdrawal > 0
+      ? formatWithThreshold(parsedReadyForWithdrawal, 0.00001, I18n.locale, {
           minimumFractionDigits: 0,
           maximumFractionDigits: 5,
         }) || undefined
@@ -74,6 +95,7 @@ export const useTokenBalance = (token: TokenI): UseTokenBalanceResult => {
     isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
+    readyForWithdrawalBalance,
     ///: END:ONLY_INCLUDE_IF
   };
 };
