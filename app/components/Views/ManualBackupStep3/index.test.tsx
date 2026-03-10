@@ -160,8 +160,7 @@ const createProps = (overrides = {}) => ({
 
 const renderComponent = (
   props = createProps(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contextValue: any = themeValue,
+  contextValue: Record<string, unknown> = themeValue,
 ) => {
   const ManualBackupStep3 = jest.requireActual('./index').default;
   return render(
@@ -183,11 +182,18 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('rendering', () => {
-    it('renders Confetti and OnboardingSuccessComponent', async () => {
+    it('renders Confetti animation', async () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
         expect(getByTestId('confetti')).toBeOnTheScreen();
+      });
+    });
+
+    it('renders OnboardingSuccessComponent', async () => {
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
         expect(getByTestId('onboarding-success-done')).toBeOnTheScreen();
       });
     });
