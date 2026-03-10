@@ -1,10 +1,8 @@
 import { toHex } from '@metamask/controller-utils';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { CaipChainId, parseCaipChainId } from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import ReduxService from '../../../../core/redux';
-import { selectMultichainAccountsState2Enabled } from '../../../../selectors/featureFlagController/multichainAccounts';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -18,24 +16,12 @@ const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
- * Enable a network respecting the multichain accounts feature flag.
- * Mirrors the conditional logic in useNetworkEnablement hook.
+ * Enable a network unconditionally via NetworkEnablementController.
+ * Matches the behavior of useNetworkEnablement.enableNetwork.
  */
 function enablePolygonNetwork(caipChainId: CaipChainId): void {
   const { NetworkEnablementController } = Engine.context;
-  const isMultichainState2 = selectMultichainAccountsState2Enabled(
-    ReduxService.store.getState(),
-  );
-
-  if (isMultichainState2) {
-    NetworkEnablementController.enableNetwork(caipChainId);
-  } else {
-    const { namespace } = parseCaipChainId(caipChainId);
-    NetworkEnablementController.enableNetworkInNamespace(
-      caipChainId,
-      namespace,
-    );
-  }
+  NetworkEnablementController.enableNetwork(caipChainId);
 }
 
 /**
