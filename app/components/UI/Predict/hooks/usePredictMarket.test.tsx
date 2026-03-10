@@ -107,7 +107,7 @@ describe('usePredictMarket', () => {
   });
 
   describe('successful market fetching', () => {
-    it('fetches market data successfully with string id', async () => {
+    it('returns market data when given a valid id', async () => {
       const { Wrapper } = createWrapper();
       mockGetMarket.mockResolvedValue(mockMarket);
 
@@ -132,7 +132,7 @@ describe('usePredictMarket', () => {
       });
     });
 
-    it('handles null market response', async () => {
+    it('returns null data when API responds with null', async () => {
       const { Wrapper } = createWrapper();
       mockGetMarket.mockResolvedValue(null);
 
@@ -151,7 +151,7 @@ describe('usePredictMarket', () => {
   });
 
   describe('error handling', () => {
-    it('handles API error with Error instance', async () => {
+    it('exposes Error instance when API rejects with Error', async () => {
       const { Wrapper } = createWrapper();
       const errorMessage = 'Network error occurred';
       mockGetMarket.mockRejectedValue(new Error(errorMessage));
@@ -170,7 +170,7 @@ describe('usePredictMarket', () => {
       expect(result.current.error?.message).toBe(errorMessage);
     });
 
-    it('handles API error with non-Error instance', async () => {
+    it('exposes raw value when API rejects with non-Error', async () => {
       const { Wrapper } = createWrapper();
       mockGetMarket.mockRejectedValue('String error');
 
