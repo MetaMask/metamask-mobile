@@ -6357,10 +6357,10 @@
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to MUSD."
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -6871,11 +6871,15 @@
       "title": "Enter password",
       "description": "Enter your wallet password to view card details.",
       "description_unfreeze": "Enter your wallet password to resume spending on your card.",
+      "description_view_pin": "Enter your wallet password to view your card PIN.",
       "placeholder": "Password",
       "confirm": "Confirm",
       "cancel": "Cancel",
       "error_empty": "Please enter your password",
       "error_incorrect": "Incorrect password. Please try again."
+    },
+    "view_pin_bottomsheet": {
+      "title": "Your Card PIN"
     },
     "choose_your_card": {
       "title": "Choose your card",
@@ -7192,6 +7196,9 @@
         "view_card_details": "View card details",
         "hide_card_details": "Hide card details",
         "view_card_details_description": "Card number, expiration and CVV",
+        "view_pin": "View PIN",
+        "view_pin_description": "View your card PIN securely",
+        "view_pin_error": "Failed to load PIN. Please try again.",
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
@@ -7804,6 +7811,7 @@
   "trending": {
     "title": "Explore",
     "trending_tokens": "Trending tokens",
+    "stocks": "Stocks",
     "price_change": "Price change",
     "all_networks": "All networks",
     "24h": "24h",

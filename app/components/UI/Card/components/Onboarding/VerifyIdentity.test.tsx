@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-shadow */
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { useNavigation, StackActions } from '@react-navigation/native';
-import VeriffSdk from '@veriff/react-native-sdk';
+import { useNavigation } from '@react-navigation/native';
 import VerifyIdentity from './VerifyIdentity';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
@@ -12,32 +10,6 @@ import useStartVerification from '../../hooks/useStartVerification';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
-  StackActions: {
-    replace: jest.fn((route: string) => ({
-      type: 'REPLACE',
-      payload: { name: route },
-    })),
-  },
-}));
-
-// Mock Veriff SDK
-jest.mock('@veriff/react-native-sdk', () => ({
-  __esModule: true,
-  default: {
-    launchVeriff: jest.fn(),
-    statusDone: 'done',
-    statusCanceled: 'canceled',
-    statusError: 'error',
-  },
-}));
-
-// Mock Logger
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
-  },
 }));
 
 // Mock useStartVerification hook
@@ -252,7 +224,6 @@ const createTestStore = (initialState = {}) =>
 
 describe('VerifyIdentity Component', () => {
   const mockNavigate = jest.fn();
-  const mockDispatch = jest.fn();
   let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
@@ -262,7 +233,6 @@ describe('VerifyIdentity Component', () => {
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
-      dispatch: mockDispatch,
     });
 
     (useStartVerification as jest.Mock).mockReturnValue({
@@ -270,10 +240,6 @@ describe('VerifyIdentity Component', () => {
       isLoading: false,
       isError: false,
       error: null,
-    });
-
-    (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
-      status: VeriffSdk.statusDone,
     });
 
     store = createTestStore();
@@ -434,8 +400,8 @@ describe('VerifyIdentity Component', () => {
     });
   });
 
-  describe('Button Interaction and Veriff SDK', () => {
-    it('launches Veriff SDK with theme-aware branding when continue button is pressed', async () => {
+  describe('Button Interaction and Navigation', () => {
+    it('navigates to WebView when continue button is pressed', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <VerifyIdentity />
@@ -446,98 +412,16 @@ describe('VerifyIdentity Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(VeriffSdk.launchVeriff).toHaveBeenCalledWith({
-          sessionUrl: 'https://example.com/verify',
-          branding: expect.objectContaining({
-            logo: 'fox',
-            background: expect.any(String),
-            primary: expect.any(String),
-            onPrimary: expect.any(String),
-            onBackground: expect.any(String),
-            onBackgroundSecondary: expect.any(String),
-            onBackgroundTertiary: expect.any(String),
-            secondary: expect.any(String),
-            onSecondary: expect.any(String),
-            outline: expect.any(String),
-            error: expect.any(String),
-            success: expect.any(String),
-            buttonRadius: 12,
-            // Camera overlay colors are static — always dark + white text
-            cameraOverlay: '#121314',
-            onCameraOverlay: '#ffffff',
-          }),
-        });
-      });
-    });
-
-    it('navigates to VERIFYING_VERIFF_KYC when Veriff status is done', async () => {
-      (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
-        status: VeriffSdk.statusDone,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(StackActions.replace).toHaveBeenCalledWith(
-          Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.WEBVIEW,
+          {
+            url: 'https://example.com/verify',
+          },
         );
-        expect(mockDispatch).toHaveBeenCalled();
       });
     });
 
-    it('stays on screen when Veriff status is canceled', async () => {
-      (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
-        status: VeriffSdk.statusCanceled,
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(VeriffSdk.launchVeriff).toHaveBeenCalled();
-        expect(mockDispatch).not.toHaveBeenCalled();
-      });
-    });
-
-    it('logs error and stays on screen when Veriff status is error', async () => {
-      const Logger = jest.requireMock('../../../../../util/Logger').default;
-      (VeriffSdk.launchVeriff as jest.Mock).mockResolvedValue({
-        status: VeriffSdk.statusError,
-        error: 'CAMERA_UNAVAILABLE',
-      });
-
-      const { getByTestId } = render(
-        <Provider store={store}>
-          <VerifyIdentity />
-        </Provider>,
-      );
-
-      const button = getByTestId('verify-identity-continue-button');
-      fireEvent.press(button);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.any(Error),
-          'Veriff verification failed with error=CAMERA_UNAVAILABLE',
-        );
-        expect(mockDispatch).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not launch Veriff SDK when continue button is pressed without sessionUrl', async () => {
+    it('does not navigate when continue button is pressed without sessionUrl', async () => {
       (useStartVerification as jest.Mock).mockReturnValue({
         data: null,
         isLoading: false,
@@ -555,7 +439,31 @@ describe('VerifyIdentity Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(VeriffSdk.launchVeriff).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+    });
+
+    it('handles multiple button presses', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      const button = getByTestId('verify-identity-continue-button');
+
+      fireEvent.press(button);
+      fireEvent.press(button);
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledTimes(3);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.ONBOARDING.WEBVIEW,
+          {
+            url: 'https://example.com/verify',
+          },
+        );
       });
     });
   });

@@ -1,6 +1,6 @@
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
@@ -25,7 +25,6 @@ import { TokenI } from '../../types';
 import { ScamWarningIcon } from '../TokenListItem/ScamWarningIcon/ScamWarningIcon';
 import { FlashListAssetKey } from '../TokenList';
 import {
-  selectMerklCampaignClaimingEnabledFlag,
   selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
@@ -54,12 +53,7 @@ import Logger from '../../../../../util/Logger';
 import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
 import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
-import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import {
-  MerklClaimHandler,
-  DEFAULT_MERKL_CLAIM_DATA,
-  type MerklClaimData,
-} from '../../../Earn/components/MerklRewards/hooks/MerklClaimHandler';
+import { useMerklBonusClaim } from '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -215,34 +209,10 @@ export const TokenListItemV2 = React.memo(
       [asset, shouldShowTokenListItemCta],
     );
 
-    // Check for claimable Merkl rewards
-    const isMerklCampaignClaimingEnabled = useSelector(
-      selectMerklCampaignClaimingEnabledFlag,
-    );
+    const merklClaimData = useMerklBonusClaim(asset);
+    const { claimRewards, claimableReward, hasPendingClaim } = merklClaimData;
 
-    const isEligibleForMerkl = useMemo(
-      () =>
-        asset?.chainId && asset?.address
-          ? isEligibleForMerklRewards(
-              asset.chainId as Hex,
-              asset.address as Hex | undefined,
-            )
-          : false,
-      [asset?.chainId, asset?.address],
-    );
-
-    // Merkl hooks are only mounted for eligible tokens via MerklClaimHandler
-    // to avoid unnecessary hook overhead for non-eligible tokens
-    const [merklData, setMerklData] = useState<MerklClaimData>(
-      DEFAULT_MERKL_CLAIM_DATA,
-    );
-
-    const hasClaimableBonus = Boolean(
-      isMerklCampaignClaimingEnabled &&
-        merklData.claimableReward &&
-        isEligibleForMerkl &&
-        !merklData.hasPendingClaim,
-    );
+    const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
     const handleClaimBonus = useCallback(() => {
       trackEvent(
@@ -257,14 +227,14 @@ export const TokenListItemV2 = React.memo(
           })
           .build(),
       );
-      merklData.claimRewards();
+      claimRewards();
     }, [
       trackEvent,
       createEventBuilder,
       asset?.chainId,
       asset?.symbol,
       networkName,
-      merklData,
+      claimRewards,
     ]);
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
@@ -511,170 +481,165 @@ export const TokenListItemV2 = React.memo(
     const tokenBalance = `${asset.balance} ${asset.symbol}`;
 
     return (
-      <>
-        {isEligibleForMerkl && isMerklCampaignClaimingEnabled && (
-          <MerklClaimHandler asset={asset} onDataChange={setMerklData} />
-        )}
-        <TouchableOpacity
-          onPress={() => {
-            onItemPress?.(asset);
-          }}
-          onLongPress={() => {
-            const onLongPress =
-              asset.isNative || isMusdToken(asset.address)
-                ? null
-                : showRemoveMenu;
-            onLongPress?.(asset);
-          }}
-          style={styles.itemWrapper}
-          {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      <TouchableOpacity
+        onPress={() => {
+          onItemPress?.(asset);
+        }}
+        onLongPress={() => {
+          const onLongPress =
+            asset.isNative || isMusdToken(asset.address)
+              ? null
+              : showRemoveMenu;
+          onLongPress?.(asset);
+        }}
+        style={styles.itemWrapper}
+        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      >
+        {/* Column: 1 - Token logo */}
+        <BadgeWrapper
+          style={styles.badge}
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            networkBadgeSource && (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+              />
+            )
+          }
         >
-          {/* Column: 1 - Token logo */}
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
+          <AssetLogo asset={asset} />
+        </BadgeWrapper>
+
+        {/* Column 2*/}
+        <Box twClassName="flex-1 ml-5">
+          {/* Row: 1 - Token name, label, earn CTA, stock badge */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
-            <AssetLogo asset={asset} />
-          </BadgeWrapper>
-
-          {/* Column 2*/}
-          <Box twClassName="flex-1 ml-5">
-            {/* Row: 1 - Token name, label, earn CTA, stock badge */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-2.5"
-            >
-              {/*
-               * Token name and label
-               * The name of the token must callback to the symbol
-               * The reason for this is that the wallet_watchAsset doesn't return the name
-               * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-               */}
-              <View style={styles.assetNameContainer}>
-                <View style={styles.assetName}>
-                  <Text
-                    variant={TextVariant.BodyMDBold}
-                    numberOfLines={1}
-                    style={styles.assetNameText}
-                  >
-                    {asset.name || asset.symbol}
-                  </Text>
-                  {label && (
-                    <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
-                  )}
-                </View>
-
-                {renderEarnCta()}
-
-                {isStockToken(asset as BridgeToken) && (
-                  <StockBadge
-                    style={styles.stockBadgeWrapper}
-                    token={asset as BridgeToken}
-                  />
-                )}
-              </View>
-
-              {/* Fiat Balance */}
-              <SensitiveText
-                variant={
-                  asset?.hasBalanceError ||
-                  asset.balanceFiat === TOKEN_RATE_UNDEFINED
-                    ? TextVariant.BodySM
-                    : TextVariant.BodyMDBold
-                }
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={BALANCE_TEST_ID}
-              >
-                {fiatBalance === TOKEN_BALANCE_LOADING ||
-                fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                  <SkeletonText thin style={styles.skeleton} />
-                ) : (
-                  fiatBalance
-                )}
-              </SensitiveText>
-            </Box>
-
-            {/* Row: 2 - Token price and percentage change and token balance */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="gap-2.5"
-            >
-              {/* Token price and percentage change — or claim bonus CTA */}
-              <View style={styles.percentageChange}>
-                {merklData.isClaiming ? (
-                  <Spinner />
-                ) : (
-                  <>
-                    {!hasClaimableBonus && (
-                      <Text
-                        variant={TextVariant.BodySMMedium}
-                        style={styles.balanceFiat}
-                      >
-                        {tokenPriceInFiat
-                          ? addCurrencySymbol(
-                              tokenPriceInFiat,
-                              currentCurrency,
-                              true,
-                              true,
-                            )
-                          : '-'}
-                        {' • '}
-                      </Text>
-                    )}
-
-                    <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
-                      onPress={secondaryBalanceDisplay.onPress}
-                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                    >
-                      <SensitiveText
-                        variant={TextVariant.BodySMMedium}
-                        color={secondaryBalanceDisplay.color}
-                        isHidden={false}
-                        length={SensitiveTextLength.Short}
-                        testID={SECONDARY_BALANCE_TEST_ID}
-                      >
-                        {secondaryBalanceDisplay.text || '-'}
-                      </SensitiveText>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-
-              {/* Token balance */}
-              <Box twClassName="shrink">
-                <SensitiveText
-                  variant={TextVariant.BodySMMedium}
-                  style={styles.secondaryBalance}
-                  length={SensitiveTextLength.Short}
-                  isHidden={privacyMode}
+            {/*
+             * Token name and label
+             * The name of the token must callback to the symbol
+             * The reason for this is that the wallet_watchAsset doesn't return the name
+             * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+             */}
+            <View style={styles.assetNameContainer}>
+              <View style={styles.assetName}>
+                <Text
+                  variant={TextVariant.BodyMDBold}
                   numberOfLines={1}
-                  ellipsizeMode="tail"
+                  style={styles.assetNameText}
                 >
-                  {tokenBalance}
-                </SensitiveText>
-              </Box>
-            </Box>
+                  {asset.name || asset.symbol}
+                </Text>
+                {label && (
+                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                )}
+              </View>
+
+              {renderEarnCta()}
+
+              {isStockToken(asset as BridgeToken) && (
+                <StockBadge
+                  style={styles.stockBadgeWrapper}
+                  token={asset as BridgeToken}
+                />
+              )}
+            </View>
+
+            {/* Fiat Balance */}
+            <SensitiveText
+              variant={
+                asset?.hasBalanceError ||
+                asset.balanceFiat === TOKEN_RATE_UNDEFINED
+                  ? TextVariant.BodySM
+                  : TextVariant.BodyMDBold
+              }
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              testID={BALANCE_TEST_ID}
+            >
+              {fiatBalance === TOKEN_BALANCE_LOADING ||
+              fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <SkeletonText thin style={styles.skeleton} />
+              ) : (
+                fiatBalance
+              )}
+            </SensitiveText>
           </Box>
 
-          {/* Scam warning icon */}
-          <ScamWarningIcon
-            asset={asset as TokenI & { chainId: string }}
-            setShowScamWarningModal={setShowScamWarningModal}
-          />
-        </TouchableOpacity>
-      </>
+          {/* Row: 2 - Token price and percentage change and token balance */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
+          >
+            {/* Token price and percentage change — or claim bonus CTA */}
+            <View style={styles.percentageChange}>
+              {merklClaimData.isClaiming ? (
+                <Spinner />
+              ) : (
+                <>
+                  {!hasClaimableBonus && (
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      style={styles.balanceFiat}
+                    >
+                      {tokenPriceInFiat
+                        ? addCurrencySymbol(
+                            tokenPriceInFiat,
+                            currentCurrency,
+                            true,
+                            true,
+                          )
+                        : '-'}
+                      {' • '}
+                    </Text>
+                  )}
+
+                  <TouchableOpacity
+                    disabled={!secondaryBalanceDisplay.onPress}
+                    onPress={secondaryBalanceDisplay.onPress}
+                    testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
+                  >
+                    <SensitiveText
+                      variant={TextVariant.BodySMMedium}
+                      color={secondaryBalanceDisplay.color}
+                      isHidden={false}
+                      length={SensitiveTextLength.Short}
+                      testID={SECONDARY_BALANCE_TEST_ID}
+                    >
+                      {secondaryBalanceDisplay.text || '-'}
+                    </SensitiveText>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            {/* Token balance */}
+            <Box twClassName="shrink">
+              <SensitiveText
+                variant={TextVariant.BodySMMedium}
+                style={styles.secondaryBalance}
+                length={SensitiveTextLength.Short}
+                isHidden={privacyMode}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {tokenBalance}
+              </SensitiveText>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Scam warning icon */}
+        <ScamWarningIcon
+          asset={asset as TokenI & { chainId: string }}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+      </TouchableOpacity>
     );
   },
 );
