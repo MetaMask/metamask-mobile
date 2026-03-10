@@ -48,6 +48,7 @@ const styleSheet = (params: {
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
+      marginHorizontal: 16,
       marginBottom: 16,
     },
     shimmerOverlay: {
