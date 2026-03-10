@@ -1,3 +1,4 @@
+import { isPaymentLink } from '@reown/walletkit';
 import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
 import AppConstants from '../../../AppConstants';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
@@ -54,6 +55,7 @@ import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
+import handleWalletConnectPay from './handleWalletConnectPay';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
@@ -180,6 +182,12 @@ async function handleUniversalLink({
     validatedUrl.hostname.includes('&')
   ) {
     throw new Error('Invalid hostname');
+  }
+
+  if (isPaymentLink(url)) {
+    handled();
+    handleWalletConnectPay({ paymentUrl: url });
+    return;
   }
 
   // Skip handling deeplinks that do not have a pathname or query

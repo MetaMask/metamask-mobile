@@ -157,6 +157,7 @@ import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
+import { WalletConnectPayModal } from '../../UI/WalletConnectPayModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -608,6 +609,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.IMPORT_WALLET_TIP}
       component={ImportWalletTipBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.WALLET_CONNECT_PAY.PAYMENT_MODAL}
+      component={WalletConnectPayModal}
     />
   </Stack.Navigator>
 );
