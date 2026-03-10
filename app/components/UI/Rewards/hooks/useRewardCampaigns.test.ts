@@ -61,7 +61,7 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
   useInvalidateByRewardEvents: jest.fn(),
 }));
 
-jest.mock('../components/CampaignTile/CampaignTile.utils', () => ({
+jest.mock('../components/Campaigns/CampaignTile.utils', () => ({
   getCampaignStatus: jest.fn(
     (campaign: { startDate: string; endDate: string }) => {
       const now = new Date();

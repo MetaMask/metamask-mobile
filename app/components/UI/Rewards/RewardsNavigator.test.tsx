@@ -151,6 +151,11 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
 
+// Mock useRewardCampaigns hook
+jest.mock('./hooks/useRewardCampaigns', () => ({
+  useRewardCampaigns: jest.fn(),
+}));
+
 // Mock useSeasonStatus hook
 jest.mock('./hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),

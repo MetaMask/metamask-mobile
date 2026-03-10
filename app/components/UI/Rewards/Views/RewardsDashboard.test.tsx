@@ -3,7 +3,6 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert } from 'react-native';
 import RewardsDashboard from './RewardsDashboard';
-import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 
@@ -725,14 +724,11 @@ describe('RewardsDashboard', () => {
       // Act
       const { getByTestId } = render(<RewardsDashboard />);
 
-      // Assert - season content with tabs shown by default (active season)
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
-      expect(getByTestId('season-status')).toBeTruthy();
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-content')).toBeTruthy();
-      expect(getByTestId('rewards-campaigns-tab')).toBeTruthy();
+      // Assert
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(getByTestId(REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON)).toBeTruthy();
+      expect(getByTestId('campaigns-preview')).toBeTruthy();
     });
 
     it('should call modal hooks when component is rendered', () => {
@@ -778,9 +774,11 @@ describe('RewardsDashboard', () => {
       expect(queryByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeNull();
     });
 
-    it('should render mUSD and previous season tabs when season ended and geo allowed', () => {
-      // Arrange - Season ended + geo allowed → two-tab layout
-      const pastDateObj = new Date(pastDate);
+    it('should not render previous season summary when season is active', () => {
+      // Arrange
+      const futureDateObj = new Date(futureDate);
+      mockSelectSeasonId.mockReturnValue(currentSeasonId);
+      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
           return defaultSelectorValues.activeTab;
@@ -812,9 +810,8 @@ describe('RewardsDashboard', () => {
       // Act - defaults have active season (future end date)
       const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - SeasonStatus + overview/snapshots/activity tabs
-      expect(getByTestId(REWARDS_VIEW_SELECTORS.TAB_CONTROL)).toBeTruthy();
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert
+      expect(getByTestId(REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON)).toBeTruthy();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
@@ -843,10 +840,9 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - shows season content, not previous season summary
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
@@ -875,10 +871,9 @@ describe('RewardsDashboard', () => {
       });
 
       // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
+      const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - shows season content, not previous season summary
-      expect(getByTestId('season-status')).toBeTruthy();
+      // Assert
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.PREVIOUS_SEASON_SUMMARY),
       ).toBeNull();
@@ -1014,72 +1009,7 @@ describe('RewardsDashboard', () => {
     });
   });
 
-  describe('tab functionality', () => {
-    it('should handle tab change when user selects different tab', () => {
-      // Act - tab-1 is Activity when campaigns enabled (Campaigns=tab-0, Activity=tab-1)
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
-    });
-
-    it('should render all tab options', () => {
-      // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      // Assert - Campaigns + Activity when isCampaignsEnabled is true
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-0')).toBeTruthy();
-      expect(getByTestId('tab-1')).toBeTruthy();
-    });
-
-    it('should show campaigns tab content by default', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
-      // Assert
-      expect(getByTestId('rewards-campaigns-tab')).toBeTruthy();
-    });
-
-    it('switches to activity tab when activity tab is pressed', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-
-    it('allows tab switching when user is not opted in', () => {
-      // Arrange
-      const futureDateObj = new Date(futureDate);
-      mockSelectRewardsSubscriptionId.mockReturnValue(null);
-      mockSelectSeasonEndDate.mockReturnValue(futureDateObj);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate) return futureDateObj;
-        if (selector === selectCampaignsRewardsEnabledFlag)
-          return defaultSelectorValues.isCampaignsEnabled;
-        return undefined;
-      });
-
-      // Act - switch to Activity tab (tab-1 when campaigns enabled)
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - tab change occurred
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-  });
-
-  describe('tabComponents when isCampaignsEnabled is false', () => {
+  describe('when isCampaignsEnabled is false', () => {
     beforeEach(() => {
       mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
       mockSelectActiveTab.mockReturnValue('overview');
@@ -1101,108 +1031,12 @@ describe('RewardsDashboard', () => {
       });
     });
 
-    it('renders only overview and activity tabs when campaigns is disabled', () => {
-      // Act
-      const { getByTestId, queryByTestId } = render(<RewardsDashboard />);
-
-      // Assert - verify only 2 tabs are rendered
-      expect(getByTestId('tab-headers')).toBeTruthy();
-      expect(getByTestId('tab-0')).toBeTruthy();
-      expect(getByTestId('tab-1')).toBeTruthy();
-      expect(queryByTestId('tab-2')).toBeNull();
-    });
-
-    it('does not render campaigns tab when campaigns is disabled', () => {
+    it('does not render CampaignsPreview when campaigns is disabled', () => {
       // Act
       const { queryByTestId } = render(<RewardsDashboard />);
 
-      // Assert - campaigns tab should not be visible by default
-      expect(queryByTestId('rewards-campaigns-tab')).toBeNull();
-    });
-
-    it('renders overview tab as first tab when campaigns is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-
       // Assert
-      expect(getByTestId('rewards-overview-tab')).toBeTruthy();
-    });
-
-    it('switches directly to activity tab at index 1 when campaigns is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - activity tab is now at index 1 instead of index 2
-      expect(getByTestId('rewards-activity-tab')).toBeTruthy();
-    });
-
-    it('dispatches setActiveTab with activity when tab-1 is pressed and campaigns is disabled', () => {
-      // Act
-      const { getByTestId } = render(<RewardsDashboard />);
-      const activityTab = getByTestId('tab-1');
-      fireEvent.press(activityTab);
-
-      // Assert - tab-1 should now be activity, not campaigns
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('activity'));
-    });
-
-    it('resets activeTab to overview when campaigns tab becomes unavailable', () => {
-      // Arrange - activeTab is 'campaigns' but isCampaignsEnabled is false
-      mockSelectActiveTab.mockReturnValue('campaigns');
-      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'campaigns';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectCampaignsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should dispatch setActiveTab('overview') to reset the invalid tab
-      expect(mockDispatch).toHaveBeenCalledWith(setActiveTab('overview'));
-    });
-
-    it('does not reset activeTab when current tab is still available', () => {
-      // Arrange - activeTab is 'activity' and isCampaignsEnabled is false
-      // activity tab should still be available
-      mockSelectActiveTab.mockReturnValue('activity');
-      mockSelectCampaignsRewardsEnabledFlag.mockReturnValue(false);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab) return 'activity';
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectSeasonId) return currentSeasonId;
-        if (selector === selectSeasonEndDate)
-          return defaultSelectorValues.seasonEndDate;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === selectCampaignsRewardsEnabledFlag) return false;
-        return undefined;
-      });
-
-      // Act
-      render(<RewardsDashboard />);
-
-      // Assert - should NOT dispatch setActiveTab since 'activity' is still valid
-      expect(mockDispatch).not.toHaveBeenCalledWith(setActiveTab('overview'));
+      expect(queryByTestId('campaigns-preview')).toBeNull();
     });
   });
 

@@ -42,7 +42,6 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
-    participantCount: 0,
     ...overrides,
   };
 }

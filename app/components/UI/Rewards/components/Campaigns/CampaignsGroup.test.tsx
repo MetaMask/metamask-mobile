@@ -20,7 +20,7 @@ const createTestCampaign = (
   ...overrides,
 });
 
-jest.mock('../../CampaignTile/CampaignTile', () => {
+jest.mock('./CampaignTile', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return {
