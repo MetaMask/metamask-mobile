@@ -1,29 +1,4 @@
 /* eslint-disable import/no-commonjs */
-const snapshotMatcherRestrictions = [
-  {
-    selector: "CallExpression[callee.property.name='toMatchSnapshot']",
-    message:
-      'Snapshot tests are banned. Use explicit behavioral assertions instead.',
-  },
-  {
-    selector: "CallExpression[callee.property.name='toMatchInlineSnapshot']",
-    message:
-      'Inline snapshot tests are banned. Use explicit behavioral assertions instead.',
-  },
-  {
-    selector:
-      "CallExpression[callee.property.name='toThrowErrorMatchingSnapshot']",
-    message:
-      'Snapshot-based error assertions are banned. Assert on the error explicitly instead.',
-  },
-  {
-    selector:
-      "CallExpression[callee.property.name='toThrowErrorMatchingInlineSnapshot']",
-    message:
-      'Inline snapshot-based error assertions are banned. Assert on the error explicitly instead.',
-  },
-];
-
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -142,12 +117,6 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.test.{js,jsx,ts,tsx}'],
-      rules: {
-        'no-restricted-syntax': ['error', ...snapshotMatcherRestrictions],
-      },
-    },
-    {
       files: [
         'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
         'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
@@ -174,7 +143,6 @@ module.exports = {
       rules: {
         'no-restricted-syntax': [
           'error',
-          ...snapshotMatcherRestrictions,
           {
             selector: `ImportSpecifier[imported.name=/${[
               'selectChainId',
@@ -224,7 +192,6 @@ module.exports = {
       rules: {
         'no-restricted-syntax': [
           'error',
-          ...snapshotMatcherRestrictions,
           {
             selector:
               "CallExpression[callee.object.name='jest'][callee.property.name='mock'][arguments.0.type='Literal'][arguments.0.value!='../../../core/Engine'][arguments.0.value!='../../../core/Engine/Engine'][arguments.0.value!='react-native-device-info']",

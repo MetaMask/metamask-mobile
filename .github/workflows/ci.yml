@@ -159,6 +159,21 @@ jobs:
             echo "No changes detected"
           fi
 
+  new-snapshot-assertions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Fetch PR base branch
+        if: ${{ github.event_name == 'pull_request' && github.base_ref != '' }}
+        run: git fetch origin ${{ github.base_ref }} --depth=1
+      - run: yarn lint:snapshots:new
+
   js-bundle-size-check:
     runs-on: ubuntu-latest
     steps:
