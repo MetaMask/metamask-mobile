@@ -48,8 +48,6 @@ import { strings } from '../../../../../locales/i18n';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -155,8 +153,6 @@ const TokenDetails: React.FC<{
     token,
     networkName,
   });
-
-  const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 
   const {
     transactions,
@@ -279,7 +275,6 @@ const TokenDetails: React.FC<{
       {networkModal}
       {useNewLayout &&
         !txLoading &&
-        !isBuyableLoading &&
         isTokenTradingOpen(token as BridgeToken) && (
           <BottomSheetFooter
             style={{
@@ -297,16 +292,12 @@ const TokenDetails: React.FC<{
                     },
                   ]
                 : []),
-              ...(isBuyable || !hasEligibleSwapTokens
-                ? [
-                    {
-                      variant: ButtonVariants.Primary,
-                      label: strings('asset_overview.buy_button'),
-                      size: ButtonSize.Lg,
-                      onPress: onBuy,
-                    },
-                  ]
-                : []),
+              {
+                variant: ButtonVariants.Primary,
+                label: strings('asset_overview.buy_button'),
+                size: ButtonSize.Lg,
+                onPress: onBuy,
+              },
             ]}
             buttonsAlignment={ButtonsAlignment.Horizontal}
           />
