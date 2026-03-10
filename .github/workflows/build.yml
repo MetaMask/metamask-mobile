@@ -382,7 +382,7 @@ jobs:
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
           {
-            echo "### 📲 TestFlight Upload (pending approval)"
+            echo "### 📲 TestFlight Upload"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
