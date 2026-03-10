@@ -4,8 +4,14 @@ import { PredictWithdrawInfo } from './predict-withdraw-info';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { CustomAmountInfo } from '../custom-amount-info';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../custom-amount-info', () => ({
   CustomAmountInfo: jest.fn(() => null),
