@@ -7,6 +7,7 @@ import { TokenI } from '../../../../Tokens/types';
 import { selectAsset } from '../../../../../../selectors/assets/assets-list';
 import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 import { EVENT_LOCATIONS } from '../../../../Stake/constants/events';
+import { TronStakingButtonsTestIds } from './TronStakingButtons.testIds';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -111,7 +112,7 @@ describe('TronStakingButtons', () => {
   it('navigates to stake screen on Stake more press', () => {
     const { getByTestId } = render(<TronStakingButtons asset={baseAsset} />);
 
-    fireEvent.press(getByTestId('stake-more-button'));
+    fireEvent.press(getByTestId(TronStakingButtonsTestIds.STAKE_MORE_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
@@ -130,7 +131,7 @@ describe('TronStakingButtons', () => {
   it('navigates to unstake screen on Unstake press', () => {
     const { getByTestId } = render(<TronStakingButtons asset={baseAsset} />);
 
-    fireEvent.press(getByTestId('unstake-button'));
+    fireEvent.press(getByTestId(TronStakingButtonsTestIds.UNSTAKE_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
@@ -158,7 +159,7 @@ describe('TronStakingButtons', () => {
 
     const { getByTestId } = render(<TronStakingButtons asset={stakedTrx} />);
 
-    fireEvent.press(getByTestId('stake-more-button'));
+    fireEvent.press(getByTestId(TronStakingButtonsTestIds.STAKE_MORE_BUTTON));
 
     const call = mockNavigate.mock.calls.find((c) => c[0] === 'StakeScreens');
     const tokenArg = call?.[1]?.params?.token;
@@ -178,7 +179,11 @@ describe('TronStakingButtons', () => {
       <TronStakingButtons asset={baseAsset} />,
     );
 
-    expect(queryByTestId('stake-more-button')).toBeNull();
-    expect(getByTestId('unstake-button')).toBeOnTheScreen();
+    expect(
+      queryByTestId(TronStakingButtonsTestIds.STAKE_MORE_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(TronStakingButtonsTestIds.UNSTAKE_BUTTON),
+    ).toBeOnTheScreen();
   });
 });

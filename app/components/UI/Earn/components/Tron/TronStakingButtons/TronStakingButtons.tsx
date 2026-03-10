@@ -10,6 +10,7 @@ import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
 import styleSheet from './TronStakingButtons.styles';
+import { TronStakingButtonsTestIds } from './TronStakingButtons.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -78,7 +79,7 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
     <View style={styles.balanceButtonsContainer}>
       <View style={styles.buttonsRow}>
         <Button
-          testID={'unstake-button'}
+          testID={TronStakingButtonsTestIds.UNSTAKE_BUTTON}
           style={styles.balanceActionButton}
           variant={ButtonVariants.Secondary}
           label={strings('stake.unstake')}
@@ -86,7 +87,7 @@ const TronStakingButtons = ({ asset }: TronStakingButtonsProps) => {
         />
         {isEligible && (
           <Button
-            testID={'stake-more-button'}
+            testID={TronStakingButtonsTestIds.STAKE_MORE_BUTTON}
             style={styles.balanceActionButton}
             variant={ButtonVariants.Secondary}
             label={strings('stake.stake_more')}
