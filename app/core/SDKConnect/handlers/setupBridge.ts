@@ -49,9 +49,8 @@ export const setupBridge = ({
     INTERNAL_ORIGINS.includes(selfReportedUrl) ||
     INTERNAL_ORIGINS.includes(selfReportedTitle)
   ) {
-    throw new Error('Connections from internal origins are not allowed');
+    throw new Error('Connections from metamask origin are not allowed');
   }
-
 
   const backgroundBridge = new BackgroundBridge({
     webview: null,
