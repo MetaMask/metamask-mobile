@@ -570,10 +570,12 @@ describe('ManualBackupStep3', () => {
         expect(addSpy).toHaveBeenCalled();
       });
 
-      expect(capturedHandler).toBeDefined();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- guaranteed by assertion above
-      const result = capturedHandler!();
-      expect(result).toEqual({});
+      if (capturedHandler) {
+        const result = capturedHandler();
+        expect(result).toEqual({});
+      } else {
+        fail('BackHandler handler was not captured');
+      }
 
       addSpy.mockRestore();
     });
