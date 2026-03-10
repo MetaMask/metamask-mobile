@@ -39,6 +39,8 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
+
 const setOptions = jest.fn();
 
 describe('NotificationsSettings', () => {
