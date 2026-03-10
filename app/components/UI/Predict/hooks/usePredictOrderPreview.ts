@@ -24,20 +24,6 @@ export function usePredictOrderPreview(
     initialPreview?: OrderPreview | null;
   },
 ): OrderPreviewResult {
-  const [preview, setPreview] = useState<OrderPreview | null>(
-    params.initialPreview ?? null,
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
-
-  const currentOperationRef = useRef<number>(0);
-  const isMountedRef = useRef<boolean>(true);
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const { previewOrder } = usePredictTrading();
-
-  const isLoading = useMemo(() => preview === null && !error, [preview, error]);
-
   // Destructure params for stable dependencies
   const {
     marketId,
@@ -82,7 +68,9 @@ export function usePredictOrderPreview(
       hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
   });
 
-  const preview = hasValidSize ? (query.data ?? null) : null;
+  const preview = hasValidSize
+    ? (query.data ?? params.initialPreview)
+    : params.initialPreview;
   const error = query.error
     ? parseErrorMessage({
         error: query.error,
@@ -93,8 +81,8 @@ export function usePredictOrderPreview(
   const isCalculating = query.isFetching;
 
   useEffect(() => {
-    if (!query.error) return;
-    Logger.error(ensureError(query.error), {
+    if (!query.error && !params.initialPreview) return;
+    Logger.error(ensureError(query.error ?? params.initialPreview), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictOrderPreview',
@@ -116,6 +104,7 @@ export function usePredictOrderPreview(
     debouncedParams.side,
     debouncedParams.marketId,
     debouncedParams.outcomeId,
+    params.initialPreview,
   ]);
 
   return {

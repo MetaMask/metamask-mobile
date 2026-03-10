@@ -1,3 +1,9 @@
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import React, {
@@ -7,23 +13,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { useSelector } from 'react-redux';
-import { usePreviousValue } from '../../hooks/usePreviousValue';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { strings } from '../../../../../../locales/i18n';
+import { ScrollView } from 'react-native';
 import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
@@ -39,7 +31,9 @@ import PredictKeypad, {
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from '../../components/PredictPayWithAnyTokenInfo';
+import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 import { usePredictBuyAvailableBalance } from '../../hooks/usePredictBuyAvailableBalance';
+import usePredictBuyBackSwipe from '../../hooks/usePredictBuyBackSwipe';
 import { usePredictBuyConditions } from '../../hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from '../../hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from '../../hooks/usePredictBuyInputState';
@@ -47,25 +41,13 @@ import { usePredictBuyActions } from '../../hooks/usePredictBuyPreviewActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
-import { PredictPayWithRow } from '../../components/PredictPayWithRow';
-import { usePredictAutoPlaceOrder } from '../../hooks/usePredictAutoPlaceOrder';
-import { usePredictPayWithAnyToken } from '../../hooks/usePredictPayWithAnyToken';
 import { usePredictPayWithAnyTokenTracking } from '../../hooks/usePredictPayWithAnyTokenTracking';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
+import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import usePredictBuyBackSwipe from '../../hooks/usePredictBuyBackSwipe';
-import {
-  Box,
-  BoxAlignItems,
-  BoxJustifyContent,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
-import { ScrollView } from 'react-native';
-import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -122,65 +104,6 @@ const PredictBuyPreview = () => {
     setIsFeeBreakdownVisible(false);
   }, []);
 
-  const handleTokenSelected = useCallback(
-    async (
-      selectedTokenAddress: string | null,
-      selectedTokenKey: string | null,
-    ) => {
-      if (selectedTokenKey === 'predict-balance' || !selectedTokenAddress) {
-        return;
-      }
-
-      await triggerPayWithAnyToken({
-        market,
-        outcome,
-        outcomeToken,
-        isInputFocused,
-        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-      });
-    },
-    [
-      currentValue,
-      isInputFocused,
-      market,
-      outcome,
-      outcomeToken,
-      triggerPayWithAnyToken,
-    ],
-  );
-
-  usePredictPaymentToken({
-    onTokenSelected: handleTokenSelected,
-  });
-
-  const handleDepositFailed = useCallback(
-    async (depositErrorMessage?: string) => {
-      await triggerPayWithAnyTokenFlow({
-        market,
-        outcome,
-        outcomeToken,
-        isInputFocused,
-        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
-        transactionError:
-          depositErrorMessage ?? strings('predict.deposit.error_description'),
-      });
-    },
-    [
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused,
-      currentValue,
-      triggerPayWithAnyTokenFlow,
-    ],
-  );
-
-  const { isProcessing } = usePredictPayWithAnyTokenTracking({
-    transactionId,
-    onFail: handleDepositFailed,
-  });
-
-  const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const {
