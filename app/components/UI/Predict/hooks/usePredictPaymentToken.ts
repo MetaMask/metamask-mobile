@@ -55,7 +55,7 @@ export function usePredictPaymentToken({
         return;
       }
 
-      Engine.context.PredictController?.setSelectedPaymentToken({
+      PredictController.setSelectedPaymentToken({
         address: token.address,
         chainId: token.chainId ?? '',
         symbol: token.symbol,

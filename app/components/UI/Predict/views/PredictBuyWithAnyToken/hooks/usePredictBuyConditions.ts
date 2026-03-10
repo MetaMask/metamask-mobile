@@ -6,6 +6,8 @@ import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useTransactionPayQuotes,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
@@ -30,7 +32,10 @@ export const usePredictBuyConditions = ({
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
-  const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const quotes = useTransactionPayQuotes();
+  const requiredTokens = useTransactionPayRequiredTokens();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
 
@@ -59,19 +64,60 @@ export const usePredictBuyConditions = ({
     [activeOrder],
   );
 
+  // Workaround: TransactionPayController sets paymentToken and isLoading in
+  // separate state updates, causing a render with stale totals + loading=false.
+  // Compare quote source token with selected token to bridge the gap.
+  const isQuotesStale = useMemo(() => {
+    if (
+      !shouldWaitForPayFees ||
+      isPredictBalanceSelected ||
+      !selectedPaymentToken
+    ) {
+      return false;
+    }
+    if (!quotes && !payTotals) {
+      return false;
+    }
+    if (!quotes?.length) {
+      const isPaymentTokenRequired = requiredTokens?.some(
+        (token) =>
+          token.address.toLowerCase() ===
+            selectedPaymentToken.address?.toLowerCase() &&
+          token.chainId.toLowerCase() ===
+            selectedPaymentToken.chainId?.toLowerCase(),
+      );
+      return !isPaymentTokenRequired;
+    }
+    const request = quotes[0]?.request;
+    if (!request) {
+      return false;
+    }
+    return (
+      request.sourceTokenAddress?.toLowerCase() !==
+        selectedPaymentToken.address?.toLowerCase() ||
+      request.sourceChainId?.toLowerCase() !==
+        selectedPaymentToken.chainId?.toLowerCase()
+    );
+  }, [
+    shouldWaitForPayFees,
+    isPredictBalanceSelected,
+    selectedPaymentToken,
+    quotes,
+    payTotals,
+    requiredTokens,
+  ]);
+
   const isPayFeesLoading = useMemo(
     () =>
       isRedirecting ||
       (shouldWaitForPayFees &&
-        (isPayTotalsLoading ||
-          isPayQuoteLoading ||
-          payTotals?.estimatedDuration === 0)),
+        (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale)),
     [
       isRedirecting,
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
-      payTotals?.estimatedDuration,
+      isQuotesStale,
     ],
   );
 

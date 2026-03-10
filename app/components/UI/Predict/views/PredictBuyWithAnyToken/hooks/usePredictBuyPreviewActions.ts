@@ -178,6 +178,7 @@ export const usePredictBuyActions = ({
     }
 
     if (isFromPayWithAnyToken) {
+      resetSelectedPaymentToken();
       setIsPreviewFromRouteUsed(true);
     }
 
@@ -189,16 +190,17 @@ export const usePredictBuyActions = ({
       preview: previewToUse,
     });
   }, [
-    analyticsProperties,
+    updateActiveOrder,
     isConfirmation,
-    isPreviewFromRouteUsed,
-    onApprovalConfirm,
-    placeOrder,
     livePreview,
     previewFromRoute,
-    redirectToBuyPreview,
     transactionId,
-    updateActiveOrder,
+    isPreviewFromRouteUsed,
+    placeOrder,
+    analyticsProperties,
+    redirectToBuyPreview,
+    onApprovalConfirm,
+    resetSelectedPaymentToken,
   ]);
 
   const handleBack = useCallback(() => {
