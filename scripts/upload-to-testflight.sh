@@ -49,8 +49,14 @@ echo "🚀 Uploading to TestFlight..."
 echo "IPA: $IPA_PATH"
 echo "Group: $TESTFLIGHT_GROUP"
 
-# Extract environment from pipeline name (first part before underscore)
-ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
+# Extract environment from pipeline name for changelog
+# GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-rc); preserve full build type.
+# Bitrise and others pass pipeline title; use first segment before underscore.
+if [[ "$PIPELINE_NAME" == github_actions_* ]]; then
+  ENVIRONMENT=$(echo "$PIPELINE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+else
+  ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
+fi
 if [ -z "$ENVIRONMENT" ] || [ "$ENVIRONMENT" = "$PIPELINE_NAME" ]; then
   ENVIRONMENT="Unknown"
 fi
