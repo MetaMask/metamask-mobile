@@ -133,13 +133,11 @@ const withBridgeFixtures = async (run: () => Promise<void>) => {
 
         return new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
           .withDisabledSmartTransactions()
           .build();
