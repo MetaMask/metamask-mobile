@@ -6,7 +6,7 @@ const styleSheet = (params: { vars: { compact: boolean } }) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingVertical: params.vars.compact ? 8 : 16,
+      paddingVertical: params.vars.compact ? 8 : 12,
     },
     perpIcon: {
       marginRight: 16,
