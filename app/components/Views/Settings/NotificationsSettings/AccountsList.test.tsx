@@ -299,4 +299,34 @@ describe('AccountList', () => {
       expect(mocks.mockRefetchAccountSettings).toHaveBeenCalled();
     });
   });
+
+  it('renders nothing when there are no notification wallet groups', () => {
+    const mocks = arrangeMocks();
+    mocks.mockUseAccountProps.mockReturnValue({
+      accountAvatarType: AvatarAccountType.JazzIcon,
+      accountWalletGroups: [],
+    });
+
+    const { queryByTestId } = renderWithProvider(<AccountsList />, {
+      state: initialRootState,
+    });
+
+    expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
+  });
+
+  it('skips account groups without an EVM address', () => {
+    const mocks = arrangeMocks();
+    mocks.mockUseNotificationAccountListProps.mockReturnValue({
+      ...mocks.createUseNotificationAccountListProps(),
+      getEvmAddress: jest.fn().mockReturnValue(undefined),
+    });
+
+    const { queryByTestId } = renderWithProvider(<AccountsList />, {
+      state: initialRootState,
+    });
+
+    expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
+    expect(queryByTestId(ACCOUNT_2_TEST_ID.item)).not.toBeOnTheScreen();
+    expect(queryByTestId(ACCOUNT_3_TEST_ID.item)).not.toBeOnTheScreen();
+  });
 });

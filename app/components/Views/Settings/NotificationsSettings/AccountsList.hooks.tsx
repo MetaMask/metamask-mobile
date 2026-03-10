@@ -85,21 +85,28 @@ export function useNotificationWalletAccountGroups() {
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
   const accountsMap = useSelector(selectInternalAccountsById);
 
+  const isEvmAccountId = useCallback(
+    (accountId: string) =>
+      Boolean(accountsMap?.[accountId]?.address) &&
+      isEvmAccountType(accountsMap[accountId].type),
+    [accountsMap],
+  );
+
+  const hasNotificationEligibleAccount = useCallback(
+    (accountGroup: { accounts: string[] }) =>
+      accountGroup.accounts.some(isEvmAccountId),
+    [isEvmAccountId],
+  );
+
   return useMemo(
     () =>
       accountGroupsByWallet
         .map((walletGroup) => ({
           ...walletGroup,
-          data: walletGroup.data.filter((accountGroup) =>
-            accountGroup.accounts.some(
-              (accountId) =>
-                Boolean(accountsMap?.[accountId]?.address) &&
-                isEvmAccountType(accountsMap[accountId].type),
-            ),
-          ),
+          data: walletGroup.data.filter(hasNotificationEligibleAccount),
         }))
         .filter((walletGroup) => walletGroup.data.length > 0),
-    [accountGroupsByWallet, accountsMap],
+    [accountGroupsByWallet, hasNotificationEligibleAccount],
   );
 }
 
