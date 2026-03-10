@@ -106,6 +106,10 @@ export const WalletViewSelectorsText = {
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
   AVAILABLE_BALANCE: enContent.predict.available_balance,
+  PERPETUALS_SECTION: enContent.homepage.sections.perpetuals,
+  TOKENS_SECTION: enContent.homepage.sections.tokens,
+  DEFI_SECTION: enContent.homepage.sections.defi,
+  NFTS_SECTION: enContent.homepage.sections.nfts,
   DEFI_EMPTY_STATE_DESCRIPTION:
     enContent.defi_positions.empty_state.description,
   DEFI_EMPTY_STATE_EXPLORE_BUTTON:

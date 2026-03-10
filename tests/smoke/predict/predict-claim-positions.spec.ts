@@ -61,7 +61,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);

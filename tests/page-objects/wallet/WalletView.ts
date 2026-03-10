@@ -571,12 +571,14 @@ class WalletView {
   }
 
   get defiPositionsNew(): DetoxElement {
-    return Matchers.getElementByText('DeFi');
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
   }
 
-  /** Perpetuals section title button on the homepage (assumes English locale). */
+  /** Perpetuals section title button on the homepage. */
   get perpsSectionHeader(): DetoxElement {
-    return Matchers.getElementByLabel('Perpetuals');
+    return Matchers.getElementByLabel(
+      WalletViewSelectorsText.PERPETUALS_SECTION,
+    );
   }
 
   /** Predictions section title button on the homepage. */
@@ -586,14 +588,14 @@ class WalletView {
     );
   }
 
-  /** Tokens section header on the homepage (assumes English locale). */
+  /** Tokens section header on the homepage. */
   get tokensSectionHeader(): DetoxElement {
-    return Matchers.getElementByText('Tokens');
+    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
   }
 
-  /** NFTs section header on the homepage (assumes English locale). */
+  /** NFTs section header on the homepage. */
   get nftsSectionHeader(): DetoxElement {
-    return Matchers.getElementByText('NFTs');
+    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
   }
 
   async tapOnDeFiPositionsNew(): Promise<void> {
