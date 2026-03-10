@@ -3,6 +3,7 @@ import { useRoute } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import OAuthRehydration from '../../Views/OAuthRehydration';
+import TelegramLogin from '../../Views/TelegramLogin';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import DataCollectionModal from '../../Views/DataCollectionModal';
 import Onboarding from '../../Views/Onboarding';
@@ -279,6 +280,7 @@ const OnboardingNav = () => (
       component={OAuthRehydration}
       options={{ headerShown: false }}
     />
+    <Stack.Screen name="TelegramLogin" component={TelegramLogin} />
     <Stack.Screen
       name={Routes.ONBOARDING.WALLET_CREATION_ERROR}
       component={WalletCreationError}

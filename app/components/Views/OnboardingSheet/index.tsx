@@ -27,6 +27,7 @@ export interface OnboardingSheetParams {
   onPressImport?: () => void;
   onPressContinueWithGoogle?: (createWallet: boolean) => void;
   onPressContinueWithApple?: (createWallet: boolean) => void;
+  onPressContinueWithTelegram?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
@@ -73,6 +74,9 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       columnGap: 8,
     },
+    emojiIcon: {
+      fontSize: 20,
+    },
     termsText: {
       marginTop: 24,
       alignItems: 'center',
@@ -99,6 +103,7 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
+    onPressContinueWithTelegram,
     createWallet = false,
   } = props.route.params;
   const { colors } = useTheme();
@@ -125,6 +130,12 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
   const onPressContinueWithAppleAction = () => {
     if (onPressContinueWithApple) {
       onPressContinueWithApple(createWallet);
+    }
+  };
+
+  const onPressContinueWithTelegramAction = () => {
+    if (onPressContinueWithTelegram) {
+      onPressContinueWithTelegram(createWallet);
     }
   };
 
@@ -212,6 +223,32 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
                   {createWallet
                     ? strings('onboarding.continue_with_apple')
                     : strings('onboarding.sign_in_with_apple')}
+                </Text>
+              </View>
+            }
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+            style={styles.socialBtn}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            onPress={onPressContinueWithTelegramAction}
+            testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+            label={
+              <View style={styles.buttonLabel}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  style={styles.emojiIcon}
+                >
+                  {'✈️'}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  style={{ color: colors.background.default }}
+                >
+                  {createWallet
+                    ? strings('onboarding.continue_with_telegram')
+                    : strings('onboarding.sign_in_with_telegram')}
                 </Text>
               </View>
             }

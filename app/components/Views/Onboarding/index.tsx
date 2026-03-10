@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   BackHandler,
   View,
   ScrollView,
@@ -114,11 +115,22 @@ interface OAuthLoginResult {
   error?: Error;
 }
 
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 interface OnboardingRouteParams {
   [PREVIOUS_SCREEN]: string;
   delete_wallet_toast_visible?: boolean;
   delete?: string;
   showErrorReportSentToast?: boolean;
+  telegramUser?: TelegramUser;
 }
 
 const Onboarding = () => {
@@ -749,6 +761,15 @@ const Onboarding = () => {
     [onPressContinueWithSocialLogin],
   );
 
+  const onPressContinueWithTelegram = useCallback(
+    (_createWallet: boolean): void => {
+      navigation.navigate('TelegramLogin', {
+        createWallet: _createWallet,
+      });
+    },
+    [navigation],
+  );
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -759,6 +780,7 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
+            onPressContinueWithTelegram,
             createWallet: actionType === 'create',
           },
         });
@@ -775,6 +797,7 @@ const Onboarding = () => {
       onPressImport,
       onPressContinueWithGoogle,
       onPressContinueWithApple,
+      onPressContinueWithTelegram,
     ],
   );
 
@@ -918,6 +941,20 @@ const Onboarding = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  useEffect(() => {
+    const telegramUser = (route?.params as OnboardingRouteParams)?.telegramUser;
+    if (telegramUser) {
+      Alert.alert(
+        'Telegram Login Success',
+        `Welcome, ${telegramUser.first_name}${telegramUser.last_name ? ' ' + telegramUser.last_name : ''}!\n\n` +
+          `Username: ${telegramUser.username ? '@' + telegramUser.username : 'N/A'}\n` +
+          `Telegram ID: ${telegramUser.id}\n` +
+          `Auth Date: ${new Date(telegramUser.auth_date * 1000).toLocaleString()}`,
+      );
+      navigation.setParams({ telegramUser: undefined } as never);
+    }
+  }, [route?.params, navigation]);
 
   useEffect(() => {
     // When a new user has onboarded and the PNA25 feature flag is on,

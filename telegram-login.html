@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: #ffffff;
+      color: #141618;
+      padding: 24px;
+    }
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #141618; color: #ffffff; }
+      .header p { color: #9fa6ae; }
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 14px;
+      color: #6a737d;
+      line-height: 1.5;
+    }
+    .widget-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 60px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2 id="title">Log in with Telegram</h2>
+    <p id="subtitle">Tap the button below to authenticate<br/>with your Telegram account</p>
+  </div>
+  <div class="widget-container" id="telegram-widget"></div>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var botName = params.get('bot') || '';
+    var platform = params.get('platform') || 'ios';
+
+    // Check if this is an auth callback (Telegram appends user data as query params)
+    var userId = params.get('id');
+    if (userId) {
+      document.getElementById('title').textContent = 'Login Successful!';
+      document.getElementById('subtitle').textContent = 'Returning to MetaMask...';
+
+      // If opened in WebView (iOS), send data via postMessage
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'telegram_auth_success',
+          user: {
+            id: Number(userId),
+            first_name: params.get('first_name') || '',
+            last_name: params.get('last_name') || null,
+            username: params.get('username') || null,
+            photo_url: params.get('photo_url') || null,
+            auth_date: Number(params.get('auth_date')),
+            hash: params.get('hash') || ''
+          }
+        }));
+      } else {
+        // Opened in InAppBrowser (Android) — redirect to custom scheme so InAppBrowser can intercept
+        var deepLink = 'metamask-telegram://callback?' + window.location.search.substring(1);
+        window.location.href = deepLink;
+      }
+    } else if (botName) {
+      var callbackUrl = window.location.origin + window.location.pathname +
+        '?bot=' + botName + '&platform=' + platform;
+
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', botName);
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-radius', '8');
+      script.setAttribute('data-request-access', 'write');
+
+      if (platform === 'ios') {
+        script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      } else {
+        script.setAttribute('data-auth-url', callbackUrl);
+      }
+
+      document.getElementById('telegram-widget').appendChild(script);
+    }
+
+    function onTelegramAuth(user) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'telegram_auth_success',
+          user: user
+        }));
+      }
+    }
+  </script>
+</body>
+</html>
