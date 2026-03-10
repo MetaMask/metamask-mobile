@@ -81,6 +81,7 @@ import {
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -543,6 +544,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   <Badge
                     variant={BadgeVariant.Network}
                     imageSource={networkBadgeSource}
+                    size={AvatarSize.Xs}
                   />
                 ) : undefined
               }
@@ -599,7 +601,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
           <PriceChartProvider>
             <Price
-              asset={token}
               prices={prices}
               priceDiff={priceDiff}
               currentCurrency={currentCurrency}
