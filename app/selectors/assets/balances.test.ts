@@ -211,7 +211,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceForAllWallets', () => {
     it('returns calculated balance for all wallets', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
 
       expect(result.userCurrency).toBe('usd');
       expect(result.wallets).toHaveProperty('wallet-1');
@@ -253,7 +253,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
         },
       }) as unknown as RootState;
 
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
       expect(result).toBeDefined();
     });
   });
@@ -418,7 +418,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceBySelectedAccountGroup', () => {
     it('returns selected group balance when group exists', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
 
       expect(result).toEqual({
         walletId: 'wallet-1',
@@ -433,7 +433,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
       state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toEqual({
         walletId: 'keyring:wallet-1',
         groupId: 'keyring:wallet-1/group-999',
@@ -447,7 +447,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
       state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
         '';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toBeNull();
     });
   });

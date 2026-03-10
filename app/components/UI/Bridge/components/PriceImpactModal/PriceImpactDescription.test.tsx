@@ -10,7 +10,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Execution}
-          priceImpact="-30%"
+          formattedPriceImpact="-30%"
         />,
       );
 
@@ -27,7 +27,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Execution}
-          priceImpact={undefined}
+          formattedPriceImpact={undefined}
         />,
       );
 
@@ -44,7 +44,7 @@ describe('PriceImpactDescription', () => {
       const { queryByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Execution}
-          priceImpact="-30%"
+          formattedPriceImpact="-30%"
         />,
       );
 
@@ -59,7 +59,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact="-10%"
+          formattedPriceImpact="-10%"
         />,
       );
 
@@ -76,7 +76,7 @@ describe('PriceImpactDescription', () => {
       const { queryByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact="-10%"
+          formattedPriceImpact="-10%"
         />,
       );
 
@@ -89,7 +89,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact="0"
+          formattedPriceImpact="0"
         />,
       );
 
@@ -108,7 +108,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact={undefined}
+          formattedPriceImpact={undefined}
         />,
       );
 
@@ -121,7 +121,7 @@ describe('PriceImpactDescription', () => {
       const { getByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact=""
+          formattedPriceImpact=""
         />,
       );
 
@@ -134,7 +134,7 @@ describe('PriceImpactDescription', () => {
       const { queryByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Info}
-          priceImpact={undefined}
+          formattedPriceImpact={undefined}
         />,
       );
 
@@ -153,7 +153,7 @@ describe('PriceImpactDescription', () => {
       const { getByText, queryByText } = render(
         <PriceImpactDescription
           type={PriceImpactModalType.Execution}
-          priceImpact="-10%"
+          formattedPriceImpact="-10%"
         />,
       );
 
