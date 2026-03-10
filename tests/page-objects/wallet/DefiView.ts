@@ -23,7 +23,7 @@ class DefiView {
 
   /** Back button in the header (navigates to previous screen) */
   get backButton(): DetoxElement {
-    return Matchers.getElementByID('back-button');
+    return Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON);
   }
 
   /** Network filter button ("Popular networks" with chevron) */

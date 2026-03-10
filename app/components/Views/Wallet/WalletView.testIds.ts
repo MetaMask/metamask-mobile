@@ -73,6 +73,7 @@ export const WalletViewSelectorsIDs = {
     `carousel-slide-${id}-title`,
   CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string =>
     `carousel-slide-${id}-close-button`,
+  BACK_BUTTON: 'back-button',
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
