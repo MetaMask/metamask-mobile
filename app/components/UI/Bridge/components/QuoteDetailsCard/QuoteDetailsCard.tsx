@@ -44,7 +44,6 @@ import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGa
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 import {
   TextVariant as TextVariantLegacy,
   TextColor as TextColorLegacy,
@@ -52,6 +51,7 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
+import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 
 if (
   Platform.OS === 'android' &&
@@ -132,9 +132,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     activeQuote?.minToTokenAmount?.amount || '0',
   );
 
-  const priceImactViewData = useMemo(
-    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
-    [formattedQuoteData?.priceImpact],
+  const priceImactViewData = usePriceImpactViewData(
+    activeQuote?.quote.priceData?.priceImpact,
   );
 
   // Early return for invalid states

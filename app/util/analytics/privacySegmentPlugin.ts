@@ -5,7 +5,7 @@ import {
   SegmentClient,
   SegmentEvent,
 } from '@segment/analytics-react-native';
-import METAMETRICS_ANONYMOUS_ID from './MetaMetrics.constants';
+import ANALYTICS_ANONYMOUS_ID from './constants';
 
 /**
  * Plugin to replace the user id with anonymous id for anonymous events
@@ -23,7 +23,7 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
   constructor(userId: string) {
     super();
     // Default userId to our own anonymous id if empty, which should not happen but...
-    this.userId = userId.trim() || METAMETRICS_ANONYMOUS_ID;
+    this.userId = userId.trim() || ANALYTICS_ANONYMOUS_ID;
   }
 
   configure(analytics: SegmentClient) {
@@ -58,19 +58,19 @@ class MetaMetricsPrivacySegmentPlugin extends Plugin {
 
     // if the event anonymous id is not our default id, we update SDK anonymous id in storage
     // and update the current event anonymous id as stored value will only be available for next events
-    if (event.anonymousId !== METAMETRICS_ANONYMOUS_ID) {
+    if (event.anonymousId !== ANALYTICS_ANONYMOUS_ID) {
       await this.analytics?.userInfo.set({
-        anonymousId: METAMETRICS_ANONYMOUS_ID,
+        anonymousId: ANALYTICS_ANONYMOUS_ID,
       });
-      event.anonymousId = METAMETRICS_ANONYMOUS_ID;
+      event.anonymousId = ANALYTICS_ANONYMOUS_ID;
     }
 
     // if the event is marked as anonymous, we replace the userId with our anonymous id
     if (
       event.properties?.anonymous &&
-      event.userId !== METAMETRICS_ANONYMOUS_ID
+      event.userId !== ANALYTICS_ANONYMOUS_ID
     ) {
-      event.userId = METAMETRICS_ANONYMOUS_ID;
+      event.userId = ANALYTICS_ANONYMOUS_ID;
     }
 
     // We remove the anonymous property from the event properties once we have read it

@@ -1,3 +1,4 @@
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { RewardsIntegrationService } from './RewardsIntegrationService';
@@ -363,7 +364,23 @@ export class TradingService {
       | { success: boolean; error?: string; orderId?: string }
       | undefined;
 
+    const paymentToken =
+      params.trackingData?.tradeWithToken === true
+        ? (params.trackingData.mmPayTokenSelected ?? 'unknown_token')
+        : 'perps_balance';
+
     try {
+      addBreadcrumb({
+        category: 'perps',
+        message: 'Order execution started',
+        level: 'info',
+        data: {
+          payment_token: paymentToken,
+          market: params.symbol,
+          orderType: params.orderType,
+        },
+      });
+
       // Start trace for the entire operation
       this.#deps.tracer.trace({
         name: PerpsTraceNames.PlaceOrder,
@@ -375,10 +392,12 @@ export class TradingService {
           market: params.symbol,
           leverage: String(params.leverage ?? 1),
           isTestnet: String(context.tracingContext.isTestnet),
+          payment_token: paymentToken,
         },
         data: {
           isBuy: params.isBuy,
           orderPrice: params.price ?? '',
+          payment_token: paymentToken,
         },
       });
 

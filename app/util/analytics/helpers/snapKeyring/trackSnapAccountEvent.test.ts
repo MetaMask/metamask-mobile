@@ -1,4 +1,4 @@
-import { IMetaMetricsEvent } from '../..';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 import { trackSnapAccountEvent } from './trackSnapAccountEvent';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';

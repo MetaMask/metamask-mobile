@@ -1,4 +1,4 @@
-import { IMetaMetricsEvent } from '../..';
+import { IMetaMetricsEvent } from '../../../../core/Analytics';
 import Logger from '../../../../util/Logger';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
