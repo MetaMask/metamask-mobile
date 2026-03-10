@@ -35,9 +35,7 @@ class PredictDetailsPage {
     );
   }
   get backButton(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
-    );
+    return Matchers.getElementByLabel('Back') as unknown as DetoxElement;
   }
   get balanceCard(): DetoxElement {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
