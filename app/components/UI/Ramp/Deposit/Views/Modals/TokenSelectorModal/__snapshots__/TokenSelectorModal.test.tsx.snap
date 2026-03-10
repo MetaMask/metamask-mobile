@@ -3219,10 +3219,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3348,7 +3348,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3362,9 +3362,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -3448,10 +3448,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3577,7 +3577,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3591,9 +3591,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -3662,10 +3662,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3791,7 +3791,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3805,9 +3805,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -3876,10 +3876,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4005,7 +4005,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4019,9 +4019,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4090,10 +4090,10 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4219,7 +4219,7 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4233,9 +4233,9 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
