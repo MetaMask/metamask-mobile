@@ -47,6 +47,8 @@ import PredictMarketDetailsTabContent from './components/PredictMarketDetailsTab
 import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
+import { useSelector } from 'react-redux';
+import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -56,7 +58,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { colors } = useTheme();
-  const { claim } = usePredictClaim();
+  const { claim, isClaimPending } = usePredictClaim();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
@@ -128,8 +130,11 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     enabled: !isMarketFetching && Boolean(resolvedMarketId),
   });
 
-  // check if market has fee exemption (note: worth moveing to a const or util at some point))
-  const isFeeExemption = market?.tags?.includes('Middle East') ?? false;
+  const feeCollectionConfig = useSelector(selectPredictFeeCollectionFlag);
+  const isFeeExemption =
+    market?.tags?.some((slug) =>
+      feeCollectionConfig.waiveList?.includes(slug),
+    ) ?? false;
 
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
@@ -344,6 +349,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           0,
         )}
         isLoading={isClaimablePositionsLoading}
+        isClaimPending={isClaimPending}
       />
     );
   }
@@ -456,6 +462,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
+          isClaimPending={isClaimPending}
         />
       </Box>
       {isFeeExemption && (

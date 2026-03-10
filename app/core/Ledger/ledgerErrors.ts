@@ -80,6 +80,31 @@ export const isEthAppNotOpenError = (error: unknown): boolean => {
   return false;
 };
 
+/**
+ * Error names thrown by Ledger transport libraries when the BLE connection drops.
+ */
+export const DISCONNECT_ERROR_NAMES = [
+  'DisconnectedDeviceDuringOperation',
+  'DisconnectedDevice',
+] as const;
+
+/**
+ * Check if an error represents a Ledger BLE disconnect.
+ *
+ * Uses duck-typing (`'name' in e`) rather than `instanceof Error` so it works
+ * with cross-realm errors and plain objects thrown by Ledger transport packages.
+ *
+ * @param e - The value to check
+ * @returns True if `e` has a `name` property matching a known disconnect error
+ */
+export const isDisconnectError = (e: unknown): boolean =>
+  e !== null &&
+  typeof e === 'object' &&
+  'name' in e &&
+  (DISCONNECT_ERROR_NAMES as readonly string[]).includes(
+    (e as { name: string }).name,
+  );
+
 export enum BluetoothPermissionErrors {
   BluetoothAccessBlocked = 'BluetoothAccessBlocked',
   LocationAccessBlocked = 'LocationAccessBlocked',

@@ -29,7 +29,11 @@ import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
-import { BackupAndSyncSettings, RampsRegion } from '../types.ts';
+import {
+  BackupAndSyncSettings,
+  getRegionLocationCode,
+  RampsRegion,
+} from '../types.ts';
 import {
   MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER,
   TEST_ANALYTICS_ID,
@@ -215,9 +219,32 @@ class FixtureBuilder {
     this.fixture.state.browser.tabs[0].url = `http://localhost:${getMockServerPortForFixture()}/health-check`;
 
     // 3. Ganache port for localhost network RPC URL
-    this.fixture.state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-      '0x539'
-    ].rpcEndpoints[0].url = `http://localhost:${getGanachePortForFixture()}`;
+    const networkConfigs =
+      this.fixture.state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId;
+    if (!networkConfigs['0x539']) {
+      const networkClientId = `networkClientId${
+        Object.keys(networkConfigs).length + 1
+      }`;
+      networkConfigs['0x539'] = {
+        blockExplorerUrls: ['https://localhost'],
+        chainId: '0x539',
+        defaultBlockExplorerUrlIndex: 0,
+        defaultRpcEndpointIndex: 0,
+        name: 'Localhost',
+        nativeCurrency: 'ETH',
+        rpcEndpoints: [
+          {
+            networkClientId,
+            name: 'Localhost default RPC',
+            type: 'custom',
+            url: '',
+          },
+        ],
+      };
+    }
+    networkConfigs['0x539'].rpcEndpoints[0].url =
+      `http://localhost:${getGanachePortForFixture()}`;
 
     return this;
   }
@@ -458,6 +485,11 @@ class FixtureBuilder {
     // with the sell/offramp flow which still uses the aggregator SDK
     this.fixture.state.fiatOrders.selectedRegionAgg = aggregatorCountry;
 
+    // Keep GeolocationController in sync so selectors reading from
+    // engine.backgroundState.GeolocationController.location return the
+    // ISO 3166-2 location code (e.g. 'US-CA', 'FR').
+    this.withDetectedGeolocation(getRegionLocationCode(selectedRegion));
+
     return this;
   }
 
@@ -470,6 +502,24 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
+    return this;
+  }
+
+  /**
+   * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
+   * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
+   * @param {string} countryCode - ISO 3166-2 location code (e.g. 'AR', 'US-NY').
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withDetectedGeolocation(countryCode: string) {
+    merge(this.fixture.state.engine.backgroundState, {
+      GeolocationController: {
+        location: countryCode,
+        status: 'complete',
+        lastFetchedAt: Date.now(),
+        error: null,
+      },
+    });
     return this;
   }
 
@@ -1769,6 +1819,13 @@ class FixtureBuilder {
       nativeAssetIdentifiers: {},
     };
 
+    if (
+      !this.fixture.state.engine.backgroundState.NetworkEnablementController
+    ) {
+      this.fixture.state.engine.backgroundState.NetworkEnablementController =
+        {};
+    }
+
     merge(
       this.fixture.state.engine.backgroundState.NetworkEnablementController,
       stateToMerge,
@@ -1904,9 +1961,10 @@ class FixtureBuilder {
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
     merge(this.fixture.state.fiatOrders, {
-      detectedGeolocation: 'US',
       rampRoutingDecision: 'AGGREGATOR',
     });
+
+    this.withDetectedGeolocation('US');
 
     if (!this.fixture.state.engine.backgroundState.CurrencyRateController) {
       merge(this.fixture.state.engine.backgroundState, {

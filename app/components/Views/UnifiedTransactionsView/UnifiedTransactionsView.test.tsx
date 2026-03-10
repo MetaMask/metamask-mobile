@@ -18,6 +18,18 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../confirmations/hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({
+    gasFeeEstimates: {
+      medium: {
+        suggestedMaxFeePerGas: '25',
+        suggestedMaxPriorityFeePerGas: '2',
+        minWaitTimeEstimate: 15000,
+      },
+    },
+  })),
+}));
+
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
 }));
@@ -51,7 +63,6 @@ jest.mock('./useUnifiedTxActions', () => ({
     cancel1559IsOpen: false,
     speedUpConfirmDisabled: false,
     cancelConfirmDisabled: false,
-    existingGas: null,
     existingTx: null,
     speedUpTxId: null,
     cancelTxId: null,
@@ -92,6 +103,20 @@ jest.mock(
   () => 'MultichainBridgeTransactionListItem',
 );
 jest.mock('../../UI/TransactionActionModal', () => 'TransactionActionModal');
+jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    CancelSpeedupModal: ({ isCancel }: { isCancel: boolean }) =>
+      ReactActual.createElement(
+        Text,
+        {
+          testID: isCancel ? 'cancel-modal' : 'speedup-modal',
+        },
+        isCancel ? 'Cancel Transaction' : 'Speed Up Transaction',
+      ),
+  };
+});
 jest.mock('../../UI/Transactions/RetryModal', () => 'RetryModal');
 jest.mock(
   '../../UI/Transactions/TransactionsFooter',

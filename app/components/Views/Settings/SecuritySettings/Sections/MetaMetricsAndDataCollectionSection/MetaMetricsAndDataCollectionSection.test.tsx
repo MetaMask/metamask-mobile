@@ -1,9 +1,16 @@
+import React from 'react';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 
 import MetaMetricsAndDataCollectionSection from './MetaMetricsAndDataCollectionSection';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
+
+const MetaMetricsScreenWithParams = ({
+  route,
+}: {
+  route?: { params?: Record<string, unknown> };
+}) => <MetaMetricsAndDataCollectionSection {...(route?.params || {})} />;
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -100,6 +107,18 @@ const mockGetMarketingOptInStatus =
 jest.mock('../../../../../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: jest.fn(),
 }));
+
+jest.mock('../../../../../../selectors/onboarding', () => ({
+  selectOnboardingAccountType: jest.fn(),
+}));
+
+import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
+import { AccountType } from '../../../../../../constants/onboarding';
+
+const mockSelectOnboardingAccountType =
+  selectOnboardingAccountType as jest.MockedFunction<
+    typeof selectOnboardingAccountType
+  >;
 
 const mockSelectSeedlessOnboardingLoginFlow =
   selectSeedlessOnboardingLoginFlow as jest.MockedFunction<
@@ -312,7 +331,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAnalytics.optOut).toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockAnalytics.identify).not.toHaveBeenCalled();
-          expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'settings',
+              }),
+            }),
+          );
         });
       });
 
@@ -357,6 +384,127 @@ describe('MetaMetricsAndDataCollectionSection', () => {
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
                 location: 'settings',
+              }),
+            }),
+          );
+        });
+      });
+
+      it('tracks ANALYTICS_PREFERENCE_SELECTED with onboarding_default_settings when turned on from onboarding', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsScreenWithParams,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+          { analyticsLocation: 'onboarding_default_settings' },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
+                is_metrics_opted_in: true,
+                updated_after_onboarding: true,
+                location: 'onboarding_default_settings',
+              }),
+            }),
+          );
+        });
+      });
+
+      it('tracks METRICS_OPT_OUT with onboarding_default_settings when turned off from onboarding', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+        const { findByTestId } = renderScreen(
+          MetaMetricsScreenWithParams,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingTrue },
+          { analyticsLocation: 'onboarding_default_settings' },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'onboarding_default_settings',
+              }),
+            }),
+          );
+        });
+      });
+
+      it('includes account_type in ANALYTICS_PREFERENCE_SELECTED when accountType is in Redux state', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(false);
+        mockSelectOnboardingAccountType.mockReturnValue(
+          AccountType.MetamaskGoogle,
+        );
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+              properties: expect.objectContaining({
+                is_metrics_opted_in: true,
+                updated_after_onboarding: true,
+                location: 'settings',
+                account_type: AccountType.MetamaskGoogle,
+              }),
+            }),
+          );
+        });
+      });
+
+      it('includes account_type in METRICS_OPT_OUT when accountType is in Redux state', async () => {
+        (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+        mockSelectOnboardingAccountType.mockReturnValue(AccountType.Imported);
+
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingTrue },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', false);
+
+        await waitFor(() => {
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+              properties: expect.objectContaining({
+                updated_after_onboarding: true,
+                location: 'settings',
+                account_type: AccountType.Imported,
               }),
             }),
           );
@@ -512,7 +660,15 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockAnalytics.optOut).toHaveBeenCalled();
             expect(mockAlert).toHaveBeenCalled();
             expect(mockAnalytics.identify).not.toHaveBeenCalled();
-            expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+            expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+              expect.objectContaining({
+                name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+                properties: expect.objectContaining({
+                  updated_after_onboarding: true,
+                  location: 'settings',
+                }),
+              }),
+            );
           });
         });
 

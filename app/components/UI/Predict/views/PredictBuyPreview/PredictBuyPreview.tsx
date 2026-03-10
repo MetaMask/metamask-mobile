@@ -15,7 +15,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  NavigationProp,
   RouteProp,
   StackActions,
   useNavigation,
@@ -35,6 +34,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -79,15 +79,14 @@ import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-
+import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 export const MINIMUM_BET = 1; // $1 minimum bet
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
-  const { goBack, dispatch } =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
 
@@ -133,6 +132,7 @@ const PredictBuyPreview = () => {
     usePredictBalance();
 
   const { deposit } = usePredictDeposit();
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -655,6 +655,7 @@ const PredictBuyPreview = () => {
           betAmount={currentValue}
           total={total}
           onClose={handleFeeBreakdownClose}
+          fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
       <PredictOrderRetrySheet

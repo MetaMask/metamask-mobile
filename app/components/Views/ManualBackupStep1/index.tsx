@@ -54,7 +54,7 @@ import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   createTrackFunction,
   handleSkipBackup,
@@ -92,7 +92,7 @@ const ManualBackupStep1 = () => {
   const [hasFunds, setHasFunds] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
@@ -417,6 +417,7 @@ const ManualBackupStep1 = () => {
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
+                      maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
@@ -428,10 +429,7 @@ const ManualBackupStep1 = () => {
                       numberOfLines={1}
                       style={styles.word}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                      adjustsFontSizeToFit
-                      allowFontScaling
-                      minimumFontScale={0.1}
-                      maxFontSizeMultiplier={0}
+                      maxFontSizeMultiplier={1}
                     >
                       {item}
                     </Text>

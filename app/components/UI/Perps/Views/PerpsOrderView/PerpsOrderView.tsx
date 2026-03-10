@@ -2,7 +2,6 @@ import {
   useNavigation,
   useRoute,
   CommonActions,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import React, {
@@ -96,7 +95,6 @@ import {
   type OrderType,
   type Position,
 } from '@metamask/perps-controller';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -169,6 +167,8 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** A/B test variant for token details layout - e.g. 'control' or 'treatment' */
   assetsASSETS2493AbtestTokenDetailsLayout?: string;
+  /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
+  source?: string;
 }
 
 interface PerpsOrderViewContentProps {
@@ -192,12 +192,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   hideTPSL = false,
   routeAbTestTokenDetailsLayout,
 }) => {
-  // Auto-detect source based on trending session state
-  const source = TrendingFeedSessionManager.getInstance().isFromTrending
-    ? 'trending'
-    : undefined;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+  // Source: from route params (caller-passed) or trending session, else default
+  const source =
+    route.params?.source ??
+    (TrendingFeedSessionManager.getInstance().isFromTrending
+      ? 'trending'
+      : undefined);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -377,7 +379,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       orderForm.direction === 'long'
         ? PERPS_EVENT_VALUE.DIRECTION.LONG
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
-    ...(source && { [PERPS_EVENT_PROPERTY.SOURCE]: source }),
+    [PERPS_EVENT_PROPERTY.SOURCE]:
+      source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
     ...(routeAbTestTokenDetailsLayout && {
       ab_tests: {
         assetsASSETS2493AbtestTokenDetailsLayout: routeAbTestTokenDetailsLayout,
@@ -571,18 +574,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return requiredUsd > balanceUsd;
   }, [hasCustomTokenSelected, marginRequired, payToken]);
 
-  // Order execution using new hook
+  // Order execution using new hook. "Submitting your trade" toast is shown before execution; no separate "Order submitted" toast.
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSubmitted: () => {
-        showToast(
-          PerpsToastOptions.orderManagement[orderForm.type].submitted(
-            orderForm.direction,
-            positionSize,
-            orderForm.asset,
-          ),
-        );
-      },
       onSuccess: (_position) => {
         showToast(
           PerpsToastOptions.orderManagement[orderForm.type].confirmed(
@@ -1048,6 +1042,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           },
         };
 
+        // Persistent "Submitting your trade" toast until order completes (user can dismiss via close button or swipe)
+        showToast(PerpsToastOptions.orderManagement.shared.submitting());
+
         // Check if TP/SL should be handled separately (for new positions or position flips)
         const shouldHandleTPSLSeparately =
           (orderForm.takeProfitPrice || orderForm.stopLossPrice) &&
@@ -1106,6 +1103,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       executeOrder,
       showToast,
       PerpsToastOptions.formValidation.orderForm,
+      PerpsToastOptions.orderManagement.shared,
       PerpsToastOptions.positionManagement.tpsl,
       updatePositionTPSL,
       marginRequired,
