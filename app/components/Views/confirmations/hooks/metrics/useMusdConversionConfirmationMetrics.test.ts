@@ -61,6 +61,27 @@ function runHook() {
   });
 }
 
+function runHookWithoutTransaction() {
+  return renderHookWithProvider(useMusdConversionConfirmationMetrics, {
+    state: merge(
+      {},
+      simpleSendTransactionControllerMock,
+      otherControllersMock,
+      {
+        engine: {
+          backgroundState: {
+            ApprovalController: {
+              pendingApprovals: {},
+              pendingApprovalCount: 0,
+              approvalFlows: [],
+            },
+          },
+        },
+      },
+    ),
+  });
+}
+
 describe('useMusdConversionConfirmationMetrics', () => {
   const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
@@ -201,5 +222,11 @@ describe('useMusdConversionConfirmationMetrics', () => {
         sensitiveProperties: {},
       },
     });
+  });
+
+  it('does not dispatch updateConfirmationMetric when txMeta is undefined', () => {
+    runHookWithoutTransaction();
+
+    expect(updateConfirmationMetricMock).not.toHaveBeenCalled();
   });
 });

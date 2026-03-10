@@ -41,6 +41,10 @@ export function useMusdConversionConfirmationMetrics() {
   }, [txMeta, quotes]);
 
   useEffect(() => {
+    if (!transactionId) {
+      return;
+    }
+
     dispatch(
       updateConfirmationMetric({
         id: transactionId,
