@@ -32,14 +32,12 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: () => ({
-    colors: {
-      error: { default: '#FF0000' },
-      accent04: { normal: '#0000FF' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useAppThemeFromContext: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../component-library/components/Toast', () => {
   const actualReact = jest.requireActual('react');

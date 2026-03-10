@@ -9,7 +9,7 @@ import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import SetPhoneNumber from './SetPhoneNumber';
 
 // Mock whenEngineReady to prevent async polling after test teardown
-jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
   __esModule: true,
   default: jest.fn().mockResolvedValue(undefined),
 }));

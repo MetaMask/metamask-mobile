@@ -16,7 +16,8 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { selectSortedAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectSortedAssetsBySelectedAccountGroupForChainIds } from '../../../../../selectors/assets/assets-list';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
 import { TokenListItemV2 } from '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2';
@@ -25,17 +26,21 @@ import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningMod
 import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { RootState } from '../../../../../reducers';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
+import { toHex } from '@metamask/controller-utils';
+import type { Hex } from '@metamask/utils';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -54,8 +59,12 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const sectionViewRef = useRef<View>(null);
     const navigation = useNavigation();
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
-    const sortedTokenKeys = useSelector(
-      selectSortedAssetsBySelectedAccountGroup,
+    const { popularNetworks: popularChainIds } = useNetworkEnablement();
+    const sortedTokenKeys = useSelector((state: RootState) =>
+      selectSortedAssetsBySelectedAccountGroupForChainIds(
+        state,
+        popularChainIds,
+      ),
     );
     const accountGroupBalance = useSelector(
       selectAccountGroupBalanceForEmptyState,
@@ -63,6 +72,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const privacyMode = useSelector(selectPrivacyMode);
     const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
     const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
+    const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
@@ -78,6 +88,20 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const evmNetworkConfigurationsByChainId = useSelector(
       selectEvmNetworkConfigurationsByChainId,
     );
+
+    // Restrict refresh to popular EVM networks so we only poll/refresh those chains.
+    const evmNetworkConfigurationsForRefresh = useMemo(() => {
+      const allowedEvmChainIds = new Set<string>(
+        popularChainIds
+          .filter((id) => id.startsWith('eip155:'))
+          .map((id) => toHex(id.slice(7)) as Hex),
+      );
+      return Object.fromEntries(
+        Object.entries(evmNetworkConfigurationsByChainId).filter(([chainId]) =>
+          allowedEvmChainIds.has(chainId),
+        ),
+      );
+    }, [evmNetworkConfigurationsByChainId, popularChainIds]);
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
     const selectedSolanaAccount =
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
@@ -117,7 +141,8 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
         try {
           await refreshTokens({
             isSolanaSelected,
-            evmNetworkConfigurationsByChainId,
+            evmNetworkConfigurationsByChainId:
+              evmNetworkConfigurationsForRefresh,
             selectedAccountId,
           });
         } catch {
@@ -127,7 +152,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }, [
       isZeroBalanceAccount,
       isSolanaSelected,
-      evmNetworkConfigurationsByChainId,
+      evmNetworkConfigurationsForRefresh,
       selectedAccountId,
     ]);
 
@@ -182,20 +207,21 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
                   setShowScamWarningModal={setShowScamWarningModal}
                   privacyMode={privacyMode}
                   showPercentageChange
+                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
                 />
               ))}
             </SectionRow>
           )}
-          <ScamWarningModal
-            showScamWarningModal={showScamWarningModal}
-            setShowScamWarningModal={setShowScamWarningModal}
-          />
-          <RemoveTokenBottomSheet
-            isVisible={removeTokenState.isVisible}
-            onClose={handleCloseRemoveTokenBottomSheet}
-            onRemove={removeToken}
-          />
         </Box>
+        <ScamWarningModal
+          showScamWarningModal={showScamWarningModal}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+        <RemoveTokenBottomSheet
+          isVisible={removeTokenState.isVisible}
+          onClose={handleCloseRemoveTokenBottomSheet}
+          onRemove={removeToken}
+        />
       </View>
     );
   },
