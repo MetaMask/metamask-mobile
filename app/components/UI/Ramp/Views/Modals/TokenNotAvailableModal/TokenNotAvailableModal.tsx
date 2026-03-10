@@ -83,11 +83,22 @@ function TokenNotAvailableModal() {
     createEventBuilder,
   ]);
 
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
+    },
+    [navigation],
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
       shouldNavigateBack
-      isInteractable={false}
+      onClose={handleDismiss}
       testID="token-unavailable-for-provider-modal"
     >
       <BottomSheetHeader

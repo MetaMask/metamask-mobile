@@ -53,6 +53,8 @@ const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
   if (callback) callback();
 });
 
+let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
+
 jest.mock(
   '../../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -61,11 +63,14 @@ jest.mock(
       (
         {
           children,
+          onClose,
         }: {
           children: React.ReactNode;
+          onClose?: (hasPendingAction?: boolean) => void;
         },
         ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
       ) => {
+        capturedOnClose = onClose;
         ReactActual.useImperativeHandle(ref, () => ({
           onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
@@ -148,6 +153,24 @@ describe('TokenNotAvailableModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
       screen: Routes.RAMP.TOKEN_SELECTION,
     });
+  });
+
+  it('navigates to token selection when modal is dismissed without a pending action', () => {
+    render(TokenNotAvailableModal);
+
+    capturedOnClose?.(false);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION,
+    });
+  });
+
+  it('does not navigate on dismiss when there is a pending action', () => {
+    render(TokenNotAvailableModal);
+
+    capturedOnClose?.(true);
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('matches snapshot with missing provider and token names', () => {
