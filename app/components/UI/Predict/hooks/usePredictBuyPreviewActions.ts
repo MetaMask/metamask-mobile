@@ -25,7 +25,7 @@ interface UsePredictBuyActionsParams {
 
 export const usePredictBuyActions = ({
   currentValue,
-  preview,
+  preview: livePreview,
   analyticsProperties,
   placeOrder,
 }: UsePredictBuyActionsParams) => {
@@ -37,10 +37,7 @@ export const usePredictBuyActions = ({
   const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
   const { updateActiveOrder, clearActiveOrder } = usePredictActiveOrder();
   const { navigateToBuyPreview } = usePredictNavigation();
-  const [
-    isPreviewFromPayWithAnyTokenUsed,
-    setIsPreviewFromPayWithAnyTokenUsed,
-  ] = useState(false);
+  const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
 
   const {
     market,
@@ -50,7 +47,7 @@ export const usePredictBuyActions = ({
     transactionId,
     isConfirmation,
     isInputFocused,
-    preview: previewFromPayWithAnyToken,
+    preview: previewFromRoute,
   } = route.params;
 
   const redirectToBuyPreview = useCallback(
@@ -64,9 +61,7 @@ export const usePredictBuyActions = ({
           ...(params?.includeTransaction && transactionId
             ? { transactionId }
             : {}),
-          ...(params?.includeTransaction && preview
-            ? { preview: { ...preview } }
-            : {}),
+          ...(livePreview ? { preview: { ...livePreview } } : {}),
           animationEnabled: false,
           entryPoint,
         },
@@ -80,7 +75,7 @@ export const usePredictBuyActions = ({
       navigateToBuyPreview,
       outcome,
       outcomeToken,
-      preview,
+      livePreview,
       transactionId,
     ],
   );
@@ -109,6 +104,7 @@ export const usePredictBuyActions = ({
           outcomeToken,
           isInputFocused,
           ...(currentValue > 0 ? { amount: currentValue } : {}),
+          ...(livePreview ? { preview: { ...livePreview } } : {}),
         });
 
         updateActiveOrder({
@@ -125,6 +121,7 @@ export const usePredictBuyActions = ({
       onReject,
       outcome,
       outcomeToken,
+      livePreview,
       redirectToBuyPreview,
       triggerPayWithAnyToken,
       updateActiveOrder,
@@ -178,27 +175,19 @@ export const usePredictBuyActions = ({
       return;
     }
 
-    if (!preview && !previewFromPayWithAnyToken) {
+    if (!livePreview && !previewFromRoute) {
       throw new Error('Preview is required');
     }
 
-    if (transactionId && !isPreviewFromPayWithAnyTokenUsed) {
-      if (!previewFromPayWithAnyToken) {
-        throw new Error('Preview is required');
-      }
-      setIsPreviewFromPayWithAnyTokenUsed(true);
-      updateActiveOrder({
-        state: ActiveOrderState.PLACING_ORDER,
-      });
-      await placeOrder({
-        analyticsProperties,
-        preview: previewFromPayWithAnyToken,
-      });
-      return;
+    const isFromPayWithAnyToken = transactionId && !isPreviewFromRouteUsed;
+    const previewToUse = isFromPayWithAnyToken ? previewFromRoute : livePreview;
+
+    if (!previewToUse) {
+      throw new Error('Preview is required');
     }
 
-    if (!preview) {
-      throw new Error('Preview is required');
+    if (isFromPayWithAnyToken) {
+      setIsPreviewFromRouteUsed(true);
     }
 
     updateActiveOrder({
@@ -206,16 +195,16 @@ export const usePredictBuyActions = ({
     });
     await placeOrder({
       analyticsProperties,
-      preview,
+      preview: previewToUse,
     });
   }, [
     analyticsProperties,
     isConfirmation,
-    isPreviewFromPayWithAnyTokenUsed,
+    isPreviewFromRouteUsed,
     onApprovalConfirm,
     placeOrder,
-    preview,
-    previewFromPayWithAnyToken,
+    livePreview,
+    previewFromRoute,
     redirectToBuyPreview,
     transactionId,
     updateActiveOrder,

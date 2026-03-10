@@ -19,8 +19,26 @@ interface OrderPreviewResult {
  * isLoading/isCalculating flags are used by all 3 consumers for skeleton/inline states.
  */
 export function usePredictOrderPreview(
-  params: PreviewOrderParams & { autoRefreshTimeout?: number },
+  params: PreviewOrderParams & {
+    autoRefreshTimeout?: number;
+    initialPreview?: OrderPreview | null;
+  },
 ): OrderPreviewResult {
+  const [preview, setPreview] = useState<OrderPreview | null>(
+    params.initialPreview ?? null,
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+
+  const currentOperationRef = useRef<number>(0);
+  const isMountedRef = useRef<boolean>(true);
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { previewOrder } = usePredictTrading();
+
+  const isLoading = useMemo(() => preview === null && !error, [preview, error]);
+
+  // Destructure params for stable dependencies
   const {
     marketId,
     outcomeId,

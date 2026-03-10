@@ -92,6 +92,47 @@ describe('usePredictOrderPreview', () => {
       expect(result.current.error).toBeNull();
     });
 
+    it('initializes with initialPreview when provided', () => {
+      const { result } = renderHook(() =>
+        usePredictOrderPreview({
+          ...defaultParams,
+          initialPreview: mockPreview,
+        }),
+      );
+
+      expect(result.current.preview).toEqual(mockPreview);
+      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+    });
+
+    it('replaces initialPreview when new preview loads from API', async () => {
+      const updatedPreview: OrderPreview = {
+        ...mockPreview,
+        sharePrice: 0.75,
+        maxAmountSpent: 200,
+      };
+      mockPreviewOrder.mockResolvedValue(updatedPreview);
+
+      const { result, waitForNextUpdate } = renderHook(() =>
+        usePredictOrderPreview({
+          ...defaultParams,
+          initialPreview: mockPreview,
+        }),
+      );
+
+      expect(result.current.preview).toEqual(mockPreview);
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitForNextUpdate();
+
+      expect(result.current.preview).toEqual(updatedPreview);
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it('calculates preview when size is valid', async () => {
       const { Wrapper } = createWrapper();
       const { result } = renderHook(

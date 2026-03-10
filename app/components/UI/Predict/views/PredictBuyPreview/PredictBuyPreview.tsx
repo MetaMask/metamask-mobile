@@ -73,6 +73,8 @@ const PredictBuyPreview = () => {
     entryPoint,
     transactionId,
     isConfirmation,
+    preview: initialPreview,
+    transactionError,
   } = route.params;
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
@@ -185,6 +187,7 @@ const PredictBuyPreview = () => {
     side: Side.BUY,
     size: currentValue,
     autoRefreshTimeout: 1000,
+    initialPreview,
   });
 
   const {
@@ -273,8 +276,11 @@ const PredictBuyPreview = () => {
   });
 
   const errorMessage = useMemo(
-    () => (isOrderNotFilled ? undefined : (previewError ?? placeOrderError)),
-    [isOrderNotFilled, previewError, placeOrderError],
+    () =>
+      isOrderNotFilled
+        ? undefined
+        : (previewError ?? placeOrderError ?? transactionError),
+    [isOrderNotFilled, previewError, placeOrderError, transactionError],
   );
 
   useEffect(() => {

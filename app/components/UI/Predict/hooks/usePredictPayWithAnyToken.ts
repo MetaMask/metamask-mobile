@@ -18,6 +18,7 @@ import {
 } from '../types/navigation';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
+import { OrderPreview } from '../types';
 
 export interface PredictPayWithAnyTokenParams {
   amount?: number;
@@ -26,6 +27,7 @@ export interface PredictPayWithAnyTokenParams {
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
   outcomeToken: PredictBuyPreviewParams['outcomeToken'];
+  preview?: OrderPreview;
 }
 
 interface UsePredictPayWithAnyTokenResult {
@@ -109,6 +111,8 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             transactionId: response?.transactionId,
             amount: params.amount,
             isConfirmation: true,
+            preview: params.preview,
+            transactionError: params.transactionError,
           },
         });
         return { transactionId: response?.transactionId };

@@ -3,7 +3,10 @@ import { MINIMUM_BET } from '../constants/transactions';
 import { ActiveOrderState, OrderPreview } from '../types';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 import { usePredictActiveOrder } from './usePredictActiveOrder';
-import { useIsTransactionPayLoading } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useIsTransactionPayQuoteLoading,
+} from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 
 interface UsePredictBuyConditionsParams {
@@ -24,6 +27,7 @@ export const usePredictBuyConditions = ({
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const { activeOrder } = usePredictActiveOrder();
   const isPayTotalsLoading = useIsTransactionPayLoading();
+  const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
@@ -54,8 +58,15 @@ export const usePredictBuyConditions = ({
   );
 
   const isPayFeesLoading = useMemo(
-    () => isRedirecting || (shouldWaitForPayFees && isPayTotalsLoading),
-    [isRedirecting, shouldWaitForPayFees, isPayTotalsLoading],
+    () =>
+      isRedirecting ||
+      (shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading)),
+    [
+      isRedirecting,
+      shouldWaitForPayFees,
+      isPayTotalsLoading,
+      isPayQuoteLoading,
+    ],
   );
 
   const canPlaceBet = useMemo(
