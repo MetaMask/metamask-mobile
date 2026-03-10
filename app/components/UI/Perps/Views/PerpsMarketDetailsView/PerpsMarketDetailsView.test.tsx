@@ -3,6 +3,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -77,6 +78,13 @@ jest.mock('../../selectors/chartPreferences', () => ({
   selectPerpsChartPreferredCandlePeriod: jest.fn(() => '15m'),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/marketInsights',
+  () => ({
+    selectMarketInsightsEnabled: jest.fn(),
+  }),
+);
+
 // Mock Logger
 const mockLoggerError = jest.fn();
 const mockLoggerLog = jest.fn();
@@ -97,6 +105,24 @@ const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUsePerpsLivePrices = jest.fn();
+const mockUseMarketInsights = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn((eventName: string) => ({
+  addProperties: (properties: Record<string, unknown>) => ({
+    build: () => ({ category: eventName, properties }),
+  }),
+}));
+
+jest.mock('../../../MarketInsights/hooks/useMarketInsights', () => ({
+  useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 // Mock usePerpsLiveAccount to avoid PerpsStreamProvider requirement
 jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
@@ -713,12 +739,27 @@ describe('PerpsMarketDetailsView', () => {
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
+    const mockSelectMarketInsightsEnabled = jest.requireMock(
+      '../../../../../selectors/featureFlagController/marketInsights',
+    ).selectMarketInsightsEnabled;
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === mockSelectMarketInsightsEnabled) {
+        return false;
+      }
       return undefined;
     });
+
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      timeAgo: '',
+      isLoading: false,
+      error: null,
+    });
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
 
     // Reset notification feature flag to default
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
@@ -3103,6 +3144,166 @@ describe('PerpsMarketDetailsView', () => {
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();
+    });
+  });
+
+  describe('Market Insights integration', () => {
+    const mockMarketInsightsReport = {
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'Bitcoin momentum improves',
+      summary: 'Momentum improves on macro risk-on signals.',
+      trends: [],
+      sources: [],
+    };
+
+    const enableMarketInsightsFlag = () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const mockSelectMarketInsightsEnabled = jest.requireMock(
+        '../../../../../selectors/featureFlagController/marketInsights',
+      ).selectMarketInsightsEnabled;
+
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === mockSelectMarketInsightsEnabled) {
+          return true;
+        }
+        return undefined;
+      });
+    };
+
+    it('renders the entry card for mapped crypto markets', () => {
+      enableMarketInsightsFlag();
+      mockUseMarketInsights.mockReturnValue({
+        report: mockMarketInsightsReport,
+        timeAgo: '3m ago',
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(
+        getByText('Momentum improves on macro risk-on signals.'),
+      ).toBeOnTheScreen();
+      expect(mockUseMarketInsights).toHaveBeenCalledWith(
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        true,
+      );
+    });
+
+    it('does not render the entry card when the market is unmapped', () => {
+      enableMarketInsightsFlag();
+      mockRouteParams.market = {
+        symbol: 'xyz:TSLA',
+        name: 'Tesla',
+        price: '$250.00',
+        change24h: '+$5.00',
+        change24hPercent: '+2.00%',
+        volume: '$10M',
+        maxLeverage: '25x',
+      };
+      mockUseMarketInsights.mockReturnValue({
+        report: mockMarketInsightsReport,
+        timeAgo: '3m ago',
+        isLoading: false,
+        error: null,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+      expect(mockUseMarketInsights).toHaveBeenCalledWith(null, true);
+    });
+
+    it('does not render the entry card when the feature flag is disabled', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: mockMarketInsightsReport,
+        timeAgo: '3m ago',
+        isLoading: false,
+        error: null,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+      expect(mockUseMarketInsights).toHaveBeenCalledWith(
+        'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        false,
+      );
+    });
+
+    it('navigates to the full Market Insights view with mapped token metadata', () => {
+      enableMarketInsightsFlag();
+      mockUseMarketInsights.mockReturnValue({
+        report: mockMarketInsightsReport,
+        timeAgo: '3m ago',
+        isLoading: false,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(getByTestId('market-insights-entry-card'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Market Insights Opened',
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: expect.objectContaining({
+            category: 'Market Insights Opened',
+          }),
+          properties: {
+            caip19: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+          },
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MARKET_INSIGHTS.VIEW, {
+        assetSymbol: 'BTC',
+        caip19Id: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        tokenImageUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
+        tokenAddress: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        tokenDecimals: 8,
+        tokenName: 'Bitcoin',
+        tokenChainId: 'bip122:000000000019d6689c085ae165831e93',
+      });
     });
   });
 });

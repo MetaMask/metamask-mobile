@@ -12,6 +12,7 @@ import React, {
   useState,
 } from 'react';
 import { Linking, RefreshControl, ScrollView, View } from 'react-native';
+import type { CaipAssetType } from '@metamask/utils';
 import {
   CandlePeriod,
   TimeDuration,
@@ -44,10 +45,12 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
-import { TraceName } from '../../../../../util/trace';
+import { TraceName, TraceOperation, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { getPerpsMarketDetailsNavbar } from '../../../Navbar';
+import MarketInsightsEntryCard from '../../../MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCard';
+import { useMarketInsights } from '../../../MarketInsights/hooks/useMarketInsights';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -98,6 +101,8 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { selectMarketInsightsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import {
   selectPerpsButtonColorTestVariant,
@@ -110,6 +115,7 @@ import {
 import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
+import { getPerpsMarketInsightsAssetMetadata } from '../../utils/marketInsightsRegistry';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
@@ -160,6 +166,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market: routeMarket, monitoringIntent, source } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
@@ -174,6 +181,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return fullMarket || routeMarket;
   }, [markets, routeMarket, needsEnrichment]);
+  const marketInsightsAssetMetadata = useMemo(
+    () => getPerpsMarketInsightsAssetMetadata(market?.symbol),
+    [market?.symbol],
+  );
+  const marketInsightsCaip19Id = marketInsightsAssetMetadata?.caip19Id ?? null;
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -182,14 +194,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+  const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
 
   // Stop loss prompt banner state - for loading/success when setting stop loss via banner
   const [isSettingStopLoss, setIsSettingStopLoss] = useState(false);
   const [isStopLossSuccess, setIsStopLossSuccess] = useState(false);
+  const { report: marketInsightsReport, timeAgo: marketInsightsTimeAgo } =
+    useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
   // Preserve banner variant during success fade-out (hook's variant becomes null after SL is set)
   const preservedBannerVariantRef = useRef<'stop_loss' | 'add_margin' | null>(
     null,
   );
+  const entryCardTraceStartedRef = useRef<CaipAssetType | null>(null);
   // Track current market symbol for staleness checks in async callbacks
   // Using a ref allows reading the CURRENT value at execution time, not closure-captured value
   const currentMarketSymbolRef = useRef<string | undefined>(market?.symbol);
@@ -215,6 +231,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     boolean | null
   >(null);
   const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
+
+  if (
+    isMarketInsightsEnabled &&
+    marketInsightsCaip19Id &&
+    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
+  ) {
+    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
+    trace({
+      name: TraceName.MarketInsightsEntryCardLoad,
+      op: TraceOperation.MarketInsightsLoad,
+      id: marketInsightsCaip19Id,
+    });
+  }
 
   // Reset optimistic state when market changes
   useEffect(() => {
@@ -784,6 +813,42 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   }, [market, navigation, track]);
 
+  const handleMarketInsightsPress = useCallback(() => {
+    if (!marketInsightsCaip19Id || !market || !marketInsightsAssetMetadata) {
+      return;
+    }
+
+    trace({
+      name: TraceName.MarketInsightsViewLoad,
+      op: TraceOperation.MarketInsightsLoad,
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
+        .addProperties({
+          caip19: marketInsightsCaip19Id,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.MARKET_INSIGHTS.VIEW, {
+      assetSymbol: market.symbol,
+      caip19Id: marketInsightsCaip19Id,
+      tokenImageUrl: marketInsightsAssetMetadata.tokenImageUrl,
+      tokenAddress: marketInsightsAssetMetadata.tokenAddress,
+      tokenDecimals: marketInsightsAssetMetadata.tokenDecimals,
+      tokenName: marketInsightsAssetMetadata.tokenName,
+      tokenChainId: marketInsightsAssetMetadata.tokenChainId,
+    });
+  }, [
+    createEventBuilder,
+    market,
+    marketInsightsAssetMetadata,
+    marketInsightsCaip19Id,
+    navigation,
+    trackEvent,
+  ]);
+
   // Close position handler
   const handleClosePosition = useCallback(() => {
     if (!existingPosition) return;
@@ -1194,6 +1259,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               }
             />
           </View>
+
+          {isMarketInsightsEnabled &&
+          marketInsightsReport &&
+          marketInsightsCaip19Id ? (
+            <View style={styles.marketInsightsWrapper}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                caip19Id={marketInsightsCaip19Id}
+                testID="market-insights-entry-card"
+              />
+            </View>
+          ) : null}
 
           {/* Recent Trades Section */}
           {market?.symbol && (
