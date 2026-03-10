@@ -104,6 +104,7 @@ interface RampsOrderFailed {
   currency_destination_network?: string;
   currency_source: string;
   error_message: string;
+  error_code?: string;
   is_authenticated: boolean;
 }
 

@@ -358,6 +358,13 @@ const BuildQuote = () => {
         'Deposit::BuildQuote - Error handling authentication',
       );
 
+      const axiosError = routeError as {
+        response?: {
+          data?: { error?: { errorCode?: number; message?: string } };
+        };
+      };
+      const errorCode = axiosError?.response?.data?.error?.errorCode;
+
       trackEvent('RAMPS_ORDER_FAILED', {
         ramp_type: 'DEPOSIT',
         amount_source: quote?.fiatAmount || amountAsNumber,
@@ -371,7 +378,12 @@ const BuildQuote = () => {
           selectedCryptoCurrency?.chainId,
         ),
         currency_source: selectedRegion?.currency || '',
-        error_message: 'BuildQuote - Error handling authentication',
+        error_message:
+          axiosError?.response?.data?.error?.message ||
+          (routeError instanceof Error
+            ? routeError.message
+            : 'BuildQuote - Error handling authentication'),
+        error_code: errorCode != null ? String(errorCode) : undefined,
         is_authenticated: isAuthenticated,
       });
 
