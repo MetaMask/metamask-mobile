@@ -384,6 +384,7 @@ const concurrentTasks = {
 const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
+  renderer: IS_CI ? 'verbose' : 'default',
   rendererOptions,
 });
 
