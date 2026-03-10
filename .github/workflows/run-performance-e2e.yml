@@ -235,6 +235,7 @@ jobs:
       platform: android
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -257,6 +258,7 @@ jobs:
       platform: ios
       build_type: onboarding
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
@@ -295,6 +297,7 @@ jobs:
       platform: android
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -318,6 +321,7 @@ jobs:
       platform: ios
       build_type: imported-wallet
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_ios_imported_wallet }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
@@ -377,6 +381,7 @@ jobs:
       platform: android
       build_type: mm-connect
       sentry_target: ${{ inputs.sentry_target || 'test' }}
+      build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url || inputs.browserstack_app_url_android_imported_wallet }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.with-srp-version || 'Manual-Input' }}
