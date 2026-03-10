@@ -36,7 +36,7 @@ jest.mock('../BackupVault', () => ({
 jest.mock('../../util/test/network-store.js', () => jest.fn());
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../Analytics/whenEngineReady', () => ({
+jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

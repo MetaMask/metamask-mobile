@@ -68,7 +68,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <Box twClassName="bg-muted rounded-[16px]">
+      <Box twClassName="bg-muted rounded-[12px]">
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon

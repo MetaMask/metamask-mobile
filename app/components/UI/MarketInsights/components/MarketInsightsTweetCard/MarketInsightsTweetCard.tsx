@@ -38,8 +38,8 @@ const MarketInsightsTweetCard: React.FC<MarketInsightsTweetCardProps> = ({
       testID={testID}
     >
       <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
         twClassName="mb-3"
       >
         {tweet.contentSummary}

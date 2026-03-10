@@ -13,7 +13,7 @@ import { SkeletonProps } from './Skeleton.types';
 import { isE2E } from '../../../util/test/utils';
 
 /**
- * @deprecated Please update your code to use `Skeleton` from `@metamask/design-system-react-native`.
+ * @deprecated Please update your code to use `Skeleton` from `app/component-library/components-temp/Skeleton`.
  * The API may have changed — compare props before migrating.
  * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Skeleton/README.md}
  * @since @metamask/design-system-react-native@0.7.0
