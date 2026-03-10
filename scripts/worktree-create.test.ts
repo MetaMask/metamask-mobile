@@ -19,6 +19,11 @@ import {
   loadWorktreesConfig,
 } from './worktree-create';
 
+afterEach(() => {
+  jest.mocked(existsSync).mockReset();
+  jest.mocked(readFileSync).mockReset();
+});
+
 /** Fake child for spawn mock: resolves run() with optional stdout and exit 0. */
 function fakeChild(stdoutData: string) {
   return {
