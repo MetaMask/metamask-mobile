@@ -417,6 +417,7 @@ const ManualBackupStep1 = () => {
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
+                      allowFontScaling={false}
                     >
                       {index + 1}.
                     </Text>
@@ -428,10 +429,7 @@ const ManualBackupStep1 = () => {
                       numberOfLines={1}
                       style={styles.word}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                      adjustsFontSizeToFit
-                      allowFontScaling
-                      minimumFontScale={0.1}
-                      maxFontSizeMultiplier={0}
+                      allowFontScaling={false}
                     >
                       {item}
                     </Text>
