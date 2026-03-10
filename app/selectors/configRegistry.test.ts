@@ -203,7 +203,7 @@ describe('configRegistry selectors', () => {
       expect(result[0]).toHaveProperty('rpcUrl');
     });
 
-    it('returns empty array when flag is on and networks are loading', () => {
+    it('returns static PopularList when flag is on and networks are loading', () => {
       const state = {
         engine: {
           backgroundState: {
@@ -222,7 +222,10 @@ describe('configRegistry selectors', () => {
         },
       };
       const result = getAdditionalNetworksList(state as never);
-      expect(result).toEqual([]);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('chainId');
+      expect(result[0]).toHaveProperty('nickname');
     });
 
     it('returns dynamic list when flag is on and API has featured networks', () => {

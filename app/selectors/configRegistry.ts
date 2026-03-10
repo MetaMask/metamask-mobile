@@ -113,7 +113,7 @@ export const getAdditionalNetworksList = createSelector(
       return PopularList as PopularListNetworkShape[];
     }
     if (loading) {
-      return [];
+      return PopularList as PopularListNetworkShape[];
     }
     // Package selector returns Record<string, RegistryNetworkConfig>; type is complex due to reselect.
     const featuredRecord = selectFeaturedNetworks(configState);
