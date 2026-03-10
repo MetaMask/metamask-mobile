@@ -1133,13 +1133,13 @@ describe('PersonalDetails Component', () => {
 
   describe('Error Reset on Name Change', () => {
     it('clears registration error when first name is edited', () => {
-      const mockReset2 = jest.fn();
+      const mockResetRegister = jest.fn();
       (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
         registerPersonalDetails: mockRegisterPersonalDetails,
         isLoading: false,
         isError: true,
         error: 'Registration failed',
-        reset: mockReset2,
+        reset: mockResetRegister,
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -1149,17 +1149,17 @@ describe('PersonalDetails Component', () => {
         'Jane',
       );
 
-      expect(mockReset2).toHaveBeenCalled();
+      expect(mockResetRegister).toHaveBeenCalled();
     });
 
     it('clears registration error when last name is edited', () => {
-      const mockReset2 = jest.fn();
+      const mockResetRegister = jest.fn();
       (useRegisterPersonalDetails as jest.Mock).mockReturnValue({
         registerPersonalDetails: mockRegisterPersonalDetails,
         isLoading: false,
         isError: true,
         error: 'Registration failed',
-        reset: mockReset2,
+        reset: mockResetRegister,
       });
 
       const { getByTestId } = render(<PersonalDetails />);
@@ -1169,7 +1169,7 @@ describe('PersonalDetails Component', () => {
         'Smith',
       );
 
-      expect(mockReset2).toHaveBeenCalled();
+      expect(mockResetRegister).toHaveBeenCalled();
     });
   });
 
@@ -1194,7 +1194,9 @@ describe('PersonalDetails Component', () => {
 
       const { queryByTestId } = render(<PersonalDetails />);
 
-      expect(queryByTestId('personal-details-name-error')).toBeNull();
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
     });
 
     it('does not show name error when no userData is provided', () => {
@@ -1211,7 +1213,9 @@ describe('PersonalDetails Component', () => {
         'Doe',
       );
 
-      expect(queryByTestId('personal-details-name-error')).toBeNull();
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
     });
 
     it('shows name error when firstName is edited to drop middle name', () => {
@@ -1273,7 +1277,9 @@ describe('PersonalDetails Component', () => {
         getByTestId('personal-details-first-name-input'),
         'Maria Elena',
       );
-      expect(queryByTestId('personal-details-name-error')).toBeNull();
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
     });
 
     it('allows different name splits as long as full name matches', () => {
@@ -1296,7 +1302,9 @@ describe('PersonalDetails Component', () => {
         'Elena Garcia',
       );
 
-      expect(queryByTestId('personal-details-name-error')).toBeNull();
+      expect(
+        queryByTestId('personal-details-name-error'),
+      ).not.toBeOnTheScreen();
     });
 
     it('disables continue button when name mismatch exists', () => {

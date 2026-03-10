@@ -227,8 +227,9 @@ const PersonalDetails = () => {
     const currentFullName = [firstName.trim(), lastName.trim()]
       .filter(Boolean)
       .join(' ')
-      .replace(/\s+/g, ' ');
-    const expectedFullName = veriffFullName.replace(/\s+/g, ' ');
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+    const expectedFullName = veriffFullName.replace(/\s+/g, ' ').toLowerCase();
 
     if (currentFullName !== expectedFullName) {
       return strings(
@@ -247,6 +248,7 @@ const PersonalDetails = () => {
       !lastName ||
       !dateOfBirth ||
       !nationalityKey ||
+      nameError ||
       (!SSN && selectedCountry?.key === 'US')
     ) {
       return;
