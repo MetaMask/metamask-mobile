@@ -47,11 +47,10 @@ export function usePredictPrices(options: UsePredictPricesOptions) {
           method: 'loadPrices',
           action: 'prices_load',
           operation: 'data_fetching',
-          queriesCount: queries.length,
         },
       },
     });
-  }, [query.error, queries.length]);
+  }, [query.error]);
 
   return query;
 }
