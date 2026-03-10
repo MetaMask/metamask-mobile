@@ -42,6 +42,7 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
+    participantCount: 0,
     ...overrides,
   };
 }
@@ -142,7 +143,7 @@ describe('CampaignTile.utils', () => {
       const result = formatCampaignStatusLabel('upcoming', campaign);
 
       expect(strings).toHaveBeenCalledWith('rewards.campaign.starts_date', {
-        date: expect.stringMatching(/Mar 15, \d{1,2}:\d{2} [AP]M/),
+        date: 'March 15',
       });
       expect(result).toContain('rewards.campaign.starts_date:');
       expect(result).toContain('"date"');
@@ -157,7 +158,7 @@ describe('CampaignTile.utils', () => {
       const result = formatCampaignStatusLabel('active', campaign);
 
       expect(strings).toHaveBeenCalledWith('rewards.campaign.ends_date', {
-        date: expect.stringMatching(/Dec 31, \d{1,2}:\d{2} [AP]M/),
+        date: 'December 31',
       });
       expect(result).toContain('rewards.campaign.ends_date:');
       expect(result).toContain('"date"');
@@ -172,7 +173,7 @@ describe('CampaignTile.utils', () => {
       const result = formatCampaignStatusLabel('complete', campaign);
 
       expect(strings).not.toHaveBeenCalled();
-      expect(result).toMatch(/Jul 4, \d{1,2}:\d{2} [AP]M/);
+      expect(result).toBe('July 4');
     });
 
     it('returns empty string for unknown status', () => {
@@ -278,7 +279,7 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'complete',
         statusLabel: 'rewards.campaign.pill_complete',
-        statusDescription: expect.stringMatching(/Dec 31, \d{1,2}:\d{2} [AP]M/),
+        statusDescription: 'December 31',
         statusDescriptionIcon: 'Confirmation',
       });
     });

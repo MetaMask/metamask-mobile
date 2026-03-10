@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import CampaignTile from '../../CampaignTile/CampaignTile';
-import type { CampaignDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import CampaignTile from './CampaignTile';
+import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 interface CampaignsGroupProps {
   title: string;

@@ -9,14 +9,12 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
-import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
-import { RewardsTab } from '../../../../reducers/rewards/types';
 import {
   selectActiveTab,
   selectHideUnlinkedAccountsBanner,
@@ -25,7 +23,6 @@ import {
   selectSeasonEndDate,
   selectOptinAllowedForGeo,
 } from '../../../../reducers/rewards/selectors';
-import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
@@ -48,6 +45,7 @@ import { ToastRef } from '../../../../component-library/components/Toast/Toast.t
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
+import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -55,7 +53,6 @@ const RewardsDashboard: React.FC = () => {
   const toastRef = useRef<ToastRef>(null);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const activeTab = useSelector(selectActiveTab);
-  const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasTrackedDashboardViewed = useRef(false);
   const hideUnlinkedAccountsBanner = useSelector(
@@ -83,9 +80,6 @@ const RewardsDashboard: React.FC = () => {
   const [showPreviousSeasonSummary, setShowPreviousSeasonSummary] = useState<
     boolean | null
   >(null);
-
-  // Ref for TabsList to control active tab programmatically
-  const tabsListRef = useRef<TabsListRef>(null);
 
   // Use the reward dashboard modals hook
   const {
@@ -124,116 +118,6 @@ const RewardsDashboard: React.FC = () => {
       ),
     [optInByWallet],
   );
-
-  const tabOptions = useMemo(() => {
-    const options: {
-      value: 'overview' | 'campaigns' | 'activity';
-      label: string;
-    }[] = [];
-
-    if (!isCampaignsEnabled) {
-      options.push({
-        value: 'overview' as const,
-        label: strings('rewards.tab_overview_title'),
-      });
-    }
-
-    if (isCampaignsEnabled) {
-      options.push({
-        value: 'campaigns' as const,
-        label: strings('rewards.tab_campaigns_title'),
-      });
-    }
-
-    options.push({
-      value: 'activity' as const,
-      label: strings('rewards.tab_activity_title'),
-    });
-
-    return options;
-  }, [isCampaignsEnabled]);
-
-  const getActiveIndex = useCallback(
-    () => tabOptions.findIndex((tab) => tab.value === activeTab),
-    [tabOptions, activeTab],
-  );
-
-  // Reset activeTab to the first available tab if current tab becomes unavailable
-  useEffect(() => {
-    const isCurrentTabAvailable = tabOptions.some(
-      (tab) => tab.value === activeTab,
-    );
-    if (!isCurrentTabAvailable && tabOptions.length > 0) {
-      dispatch(setActiveTab(tabOptions[0].value));
-    }
-  }, [tabOptions, activeTab, dispatch]);
-
-  // Sync TabsList with Redux state changes
-  useEffect(() => {
-    const activeIndex = tabOptions.findIndex((tab) => tab.value === activeTab);
-    if (tabsListRef.current && activeIndex !== -1) {
-      // Use setTimeout to avoid race conditions with TabsList internal state
-      if (tabsListRef.current) {
-        tabsListRef.current.goToTabIndex(activeIndex);
-      }
-    }
-  }, [activeTab, tabOptions]);
-
-  const handleTabChange = useCallback(
-    ({ i }: { i: number }) => {
-      const newTab = tabOptions[i]?.value as RewardsTab;
-      // Only dispatch if the tab is actually different to prevent loops
-      if (newTab && newTab !== activeTab) {
-        dispatch(setActiveTab(newTab));
-      }
-    },
-    [dispatch, tabOptions, activeTab],
-  );
-
-  const tabsListProps = useMemo(
-    () => ({
-      ref: tabsListRef,
-      initialActiveIndex: getActiveIndex(),
-      onChangeTab: handleTabChange,
-      testID: REWARDS_VIEW_SELECTORS.TAB_CONTROL,
-      tabsBarProps: {
-        twClassName: 'px-4',
-      },
-      tabsListContentTwClassName: 'px-0',
-    }),
-    [getActiveIndex, handleTabChange],
-  );
-
-  const tabComponents = useMemo(() => {
-    const tabs: React.ReactElement[] = [];
-
-    if (!isCampaignsEnabled) {
-      tabs.push(
-        <RewardsOverview
-          key="overview"
-          tabLabel={strings('rewards.tab_overview_title')}
-        />,
-      );
-    }
-
-    if (isCampaignsEnabled) {
-      tabs.push(
-        <CampaignsTab
-          key="campaigns"
-          tabLabel={strings('rewards.tab_campaigns_title')}
-        />,
-      );
-    }
-
-    tabs.push(
-      <RewardsActivity
-        key="activity"
-        tabLabel={strings('rewards.tab_activity_title')}
-      />,
-    );
-
-    return tabs;
-  }, [isCampaignsEnabled]);
 
   // Auto-resume interrupted bulk link process when screen comes into focus.
   // This handles the case where the app was closed during a bulk opt-in process.
@@ -370,7 +254,8 @@ const RewardsDashboard: React.FC = () => {
               : []),
           ]}
         />
-        <Box twClassName="flex-1 gap-4">
+        <Box twClassName="flex-1 gap-4 p-4">
+          {isCampaignsEnabled && <CampaignsPreview />}
           {showPreviousSeasonSummary && optinAllowedForGeo ? (
             <TabsList
               ref={tabsListRef}

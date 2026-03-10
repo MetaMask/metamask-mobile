@@ -193,7 +193,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'rewards.main_title': 'Rewards',
       'rewards.tab_overview_title': 'Overview',
-      'rewards.tab_campaigns_title': 'Campaigns',
+      'rewards.tab_snapshots_title': 'Snapshots',
       'rewards.tab_activity_title': 'Activity',
       'rewards.not_implemented': 'Not implemented yet',
     };
@@ -214,15 +214,15 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 }));
 
 // Mock child components
-jest.mock('../components/SeasonStatus/SeasonStatus', () => ({
+jest.mock('../components/Campaigns/CampaignsPreview', () => ({
   __esModule: true,
-  default: function MockSeasonStatus() {
+  default: function MockCampaignsPreview() {
     const ReactActual = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
     return ReactActual.createElement(
       View,
-      { testID: 'season-status' },
-      ReactActual.createElement(Text, null, 'Season Status'),
+      { testID: 'campaigns-preview' },
+      ReactActual.createElement(Text, null, 'Campaigns Preview'),
     );
   },
 }));
@@ -255,16 +255,16 @@ jest.mock('../components/Tabs/RewardsOverview', () => ({
   },
 }));
 
-jest.mock('../components/Tabs/CampaignsTab/CampaignsTab', () => {
+jest.mock('../Views/CampaignsView', () => {
   const ReactActual = jest.requireActual('react');
   const RN = jest.requireActual('react-native');
-  const MockCampaignsTab = ({ tabLabel }: { tabLabel?: string }) =>
+  const MockCampaignsView = ({ tabLabel }: { tabLabel?: string }) =>
     ReactActual.createElement(
       RN.View,
       { testID: 'rewards-campaigns-tab' },
       ReactActual.createElement(RN.Text, null, tabLabel || 'Campaigns'),
     );
-  return { CampaignsTab: MockCampaignsTab };
+  return { __esModule: true, default: MockCampaignsView };
 });
 
 jest.mock('../components/Tabs/RewardsActivity', () => ({

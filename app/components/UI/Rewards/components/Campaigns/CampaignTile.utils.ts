@@ -33,37 +33,31 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
 }
 
 const MONTHS = [
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
+  'January',
+  'February',
+  'March',
+  'April',
   'May',
-  'Jun',
-  'Jul',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 
 /**
  * Formats a date for display in campaign tiles.
  *
  * @param date - The date to format
- * @returns Formatted date string (e.g., "Mar 15, 2:30 PM")
+ * @returns Formatted date string (e.g., "March 15")
  */
 function formatCampaignDate(date: Date): string {
   const month = MONTHS[date.getMonth()];
   const day = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
 
-  const hour12 = hours % 12 || 12;
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const paddedMinutes = minutes.toString().padStart(2, '0');
-
-  return `${month} ${day}, ${hour12}:${paddedMinutes} ${ampm}`;
+  return `${month} ${day}`;
 }
 
 /**

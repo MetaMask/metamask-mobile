@@ -4,7 +4,7 @@ import CampaignsGroup from './CampaignsGroup';
 import type {
   CampaignDto,
   CampaignType,
-} from '../../../../../../core/Engine/controllers/rewards-controller/types';
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},

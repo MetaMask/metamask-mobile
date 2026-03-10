@@ -7514,7 +7514,6 @@
     "main_title": "Rewards",
     "referral_title": "Referrals",
     "tab_overview_title": "Overview",
-    "tab_campaigns_title": "Campaigns",
     "tab_activity_title": "Activity",
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
@@ -7779,7 +7778,7 @@
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "pill_up_next": "Up next",
-      "pill_active": "Active",
+      "pill_active": "Live",
       "pill_complete": "Complete"
     },
     "campaign_details": {
@@ -7790,7 +7789,13 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again."
     },
-    "campaigns_tab": {
+    "campaigns_preview": {
+      "title": "Campaigns",
+      "coming_soon": "Coming soon",
+      "notify_me": "Notify me"
+    },
+    "campaigns_view": {
+      "title": "Campaigns",
       "active_title": "Active",
       "upcoming_title": "Upcoming",
       "previous_title": "Previous",

@@ -63,7 +63,11 @@ export const REWARDS_VIEW_SELECTORS = {
   ACTIVITY_EVENT_ROW_DATE: 'activity-event-row-date',
   ACTIVITY_EVENT_ROW_BONUS: 'activity-event-row-bonus',
   // Campaigns
-  TAB_CONTENT_CAMPAIGNS: 'rewards-view-tab-content-campaigns',
+  CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',
+  CAMPAIGNS_PREVIEW_ACTIVE_TILE: 'rewards-view-campaigns-preview-active-tile',
+  CAMPAIGNS_PREVIEW_UPCOMING_BANNER:
+    'rewards-view-campaigns-preview-upcoming-banner',
+  CAMPAIGNS_VIEW: 'rewards-view-campaigns-view',
   CAMPAIGNS_ACTIVE_SECTION: 'rewards-view-campaigns-active-section',
   CAMPAIGNS_UPCOMING_SECTION: 'rewards-view-campaigns-upcoming-section',
   CAMPAIGNS_PREVIOUS_SECTION: 'rewards-view-campaigns-previous-section',

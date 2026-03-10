@@ -21,7 +21,7 @@ import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-co
 import {
   getCampaignStatusInfo,
   CampaignStatusInfo,
-} from '../components/CampaignTile/CampaignTile.utils';
+} from '../components/Campaigns/CampaignTile.utils';
 import { useOptInToCampaign } from '../hooks/useOptInToCampaign';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 

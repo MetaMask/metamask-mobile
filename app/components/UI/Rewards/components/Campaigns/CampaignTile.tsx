@@ -42,7 +42,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       onPress={handlePress}
       style={({ pressed }) =>
         tw.style(
-          'rounded-lg overflow-hidden h-50 bg-muted',
+          'rounded-xl overflow-hidden h-50 bg-muted',
           pressed && 'opacity-70',
         )
       }
@@ -69,7 +69,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
         </Box>
 
         <Box flexDirection={BoxFlexDirection.Column}>
-          <Text variant={TextVariant.BodySm} twClassName="text-default">
+          <Text variant={TextVariant.BodySm} twClassName="text-success-default">
             {statusLabel}
           </Text>
 

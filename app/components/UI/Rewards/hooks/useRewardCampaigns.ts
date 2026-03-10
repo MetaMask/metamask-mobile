@@ -16,7 +16,7 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatus } from '../components/CampaignTile/CampaignTile.utils';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 
 interface CategorizedCampaigns {
   active: CampaignDto[];
