@@ -180,6 +180,10 @@ describe('ManualBackupStep3', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('rendering', () => {
     it('renders Confetti animation', async () => {
       const { getByTestId } = renderComponent();
@@ -300,7 +304,7 @@ describe('ManualBackupStep3', () => {
       });
     });
 
-    it('handles null storage value gracefully', async () => {
+    it('leaves hint input empty when storage returns null', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
       const { getByTestId } = renderComponent();
 
@@ -311,7 +315,7 @@ describe('ManualBackupStep3', () => {
       expect(getByTestId('hint-input').props.value).toBeUndefined();
     });
 
-    it('handles storage with no manualBackup key', async () => {
+    it('leaves hint input empty when storage has no manualBackup key', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify({ otherKey: 'value' }),
       );
@@ -346,7 +350,7 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('toggleHint', () => {
-    it('toggles hint modal visibility via cancel button', async () => {
+    it('opens hint modal when cancel button is pressed', async () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
@@ -356,6 +360,22 @@ describe('ManualBackupStep3', () => {
       expect(getByTestId('hint-modal').props.accessibilityState.expanded).toBe(
         false,
       );
+
+      fireEvent.press(getByTestId('hint-cancel'));
+
+      await waitFor(() => {
+        expect(
+          getByTestId('hint-modal').props.accessibilityState.expanded,
+        ).toBe(true);
+      });
+    });
+
+    it('closes hint modal when cancel button is pressed again', async () => {
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-modal')).toBeOnTheScreen();
+      });
 
       fireEvent.press(getByTestId('hint-cancel'));
 
@@ -392,7 +412,7 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('saveHint', () => {
-    it('does nothing when hint text is empty', async () => {
+    it('skips storage write when hint text is empty', async () => {
       const { getByTestId } = renderComponent();
 
       await waitFor(() => {
@@ -445,13 +465,12 @@ describe('ManualBackupStep3', () => {
       alertSpy.mockRestore();
     });
 
-    it('saves hint to storage and tracks event for valid hint', async () => {
+    it('writes hint to storage for valid hint', async () => {
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
         JSON.stringify({ existingKey: 'value' }),
       );
 
-      const props = createProps();
-      const { getByTestId } = renderComponent(props);
+      const { getByTestId } = renderComponent();
 
       await waitFor(() => {
         expect(getByTestId('hint-input')).toBeOnTheScreen();
@@ -469,14 +488,31 @@ describe('ManualBackupStep3', () => {
           }),
         );
       });
+    });
 
-      expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+    it('tracks onboarding event after saving valid hint', async () => {
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(
+        JSON.stringify({}),
       );
-      expect(trackOnboarding).toHaveBeenCalledWith(
-        { event: 'mock-event' },
-        expect.any(Function),
-      );
+
+      const { getByTestId } = renderComponent();
+
+      await waitFor(() => {
+        expect(getByTestId('hint-input')).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(getByTestId('hint-input'), 'my valid hint');
+      fireEvent.press(getByTestId('hint-confirm'));
+
+      await waitFor(() => {
+        expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+        );
+        expect(trackOnboarding).toHaveBeenCalledWith(
+          { event: 'mock-event' },
+          expect.any(Function),
+        );
+      });
 
       const actions = store.getActions();
       expect(actions).toEqual(
