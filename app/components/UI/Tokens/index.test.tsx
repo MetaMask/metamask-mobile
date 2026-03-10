@@ -493,6 +493,92 @@ describe('Tokens', () => {
         );
       });
     });
+
+    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+      const stateWithMusdEnabled = clone(initialRootState);
+      (
+        stateWithMusdEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithMusdEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithMusdEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          expect.anything(),
+        );
+      });
+    });
+
+    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+      const stateWithBothEnabled = clone(initialRootState);
+      (
+        stateWithBothEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithBothEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+          homepageSectionsV1: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithBothEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.not.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          expect.anything(),
+        );
+      });
+    });
   });
 
   it.each(removeTokenTests)(

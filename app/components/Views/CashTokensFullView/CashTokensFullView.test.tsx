@@ -38,6 +38,20 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionFlowData', () => ({
     }),
   }),
 }));
+jest.mock('../../../core/Engine', () => ({
+  context: {},
+}));
+jest.mock('../../Views/confirmations/hooks/useNetworkName', () => ({
+  useNetworkName: () => 'Ethereum Mainnet',
+}));
+jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+}));
+jest.mock('../Homepage/context/HomepageScrollContext', () => ({
+  useHomepageScrollContext: () => ({
+    skipNextSessionSummary: jest.fn(),
+  }),
+}));
 
 jest.mock('../../UI/Tokens', () => {
   const { createElement } = jest.requireActual('react');
