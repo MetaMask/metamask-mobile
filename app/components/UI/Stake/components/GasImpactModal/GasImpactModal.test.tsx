@@ -112,6 +112,7 @@ describe('GasImpactModal', () => {
     useNavigationMock.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      isFocused: jest.fn(() => true),
     } as unknown as ReturnType<typeof useNavigation>);
   });
 

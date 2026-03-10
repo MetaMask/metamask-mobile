@@ -62,6 +62,9 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
             responseCode: 200,
           });
           await setupRemoteFeatureFlagsMock(mockServer, {
+            bridgeConfigV2: {
+              sse: { enabled: false },
+            },
             smartTransactionsNetworks: {
               '0x1': {
                 mobileActiveIOS: true,

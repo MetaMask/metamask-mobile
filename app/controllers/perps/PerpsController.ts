@@ -8,6 +8,7 @@ import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
+import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CandlePeriod } from './constants/chartConfig';
@@ -2018,6 +2019,15 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
+      addBreadcrumb({
+        category: 'perps',
+        message: 'Deposit action started',
+        level: 'info',
+        data: {
+          place_order_after_deposit: placeOrder === true,
+        },
+      });
+
       if (placeOrder) {
         // Use addTransaction to create transaction without navigating to confirmation screen
         const addResult = await this.#submitTransaction(transaction, {
@@ -3917,9 +3927,13 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.#blockedRegionListVersion;
 
     try {
-      // TODO: It would be good to have this location before we call this async function to avoid the race condition
+      const geoLocation = await this.messenger.call(
+        'GeolocationController:getGeolocation',
+      );
+
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,
+        geoLocation,
       });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
