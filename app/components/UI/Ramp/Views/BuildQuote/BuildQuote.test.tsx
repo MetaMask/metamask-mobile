@@ -354,11 +354,13 @@ describe('BuildQuote', () => {
       userRegion: USER_REGION,
       selectedProvider: WIDGET_PROVIDER,
       selectedToken: SELECTED_TOKEN,
+      paymentMethods: [SELECTED_PAYMENT_METHOD],
       getBuyWidgetData: mockGetBuyWidgetData,
       addPrecreatedOrder: mockAddPrecreatedOrder,
       addOrder: mockAddOrder,
       getOrderFromCallback: mockGetOrderFromCallback,
       paymentMethodsLoading: false,
+      paymentMethodsStatus: 'success',
       selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
     });
     mockUseRampsQuotes.mockReturnValue({

@@ -152,11 +152,13 @@ function BuildQuote() {
     userRegion,
     selectedProvider,
     selectedToken,
+    paymentMethods,
     getBuyWidgetData,
     addPrecreatedOrder,
     addOrder,
     getOrderFromCallback,
     paymentMethodsLoading,
+    paymentMethodsStatus,
     selectedPaymentMethod,
   } = useRampsController();
 
@@ -174,16 +176,39 @@ function BuildQuote() {
     }
   }, [selectedProvider]);
 
-  const isTokenUnavailable = useMemo(
-    () =>
-      !!(
-        selectedProvider &&
-        params?.assetId &&
-        selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[params.assetId]
-      ),
-    [selectedProvider, params?.assetId],
-  );
+  const tokenStateIsSettled =
+    !params?.assetId || selectedToken?.assetId === params.assetId;
+
+  const isTokenUnavailable = useMemo(() => {
+    if (!selectedProvider) {
+      return false;
+    }
+
+    if (
+      params?.assetId &&
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[params.assetId]
+    ) {
+      return true;
+    }
+
+    if (
+      params?.assetId &&
+      tokenStateIsSettled &&
+      paymentMethodsStatus === 'success' &&
+      paymentMethods.length === 0
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [
+    selectedProvider,
+    params?.assetId,
+    tokenStateIsSettled,
+    paymentMethodsStatus,
+    paymentMethods.length,
+  ]);
 
   /*
    * Shows the "token not available modal" if the token is not available for the selected provider.
@@ -270,6 +295,7 @@ function BuildQuote() {
     selectedPaymentMethod &&
     selectedProvider &&
     selectedToken?.assetId &&
+    tokenStateIsSettled &&
     debouncedPollingAmount > 0
   );
 
