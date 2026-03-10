@@ -18,7 +18,7 @@ jest.mock('../../../../UI/Earn/hooks/useMusdBalance', () => ({
 }));
 
 const mockUseMerklBonusClaim = jest.fn(() => ({
-  claimableReward: { amount: '10' },
+  claimableReward: { amount: '10' } as { amount: string } | null,
   hasPendingClaim: false,
   claimRewards: mockClaimRewards,
   isClaiming: false,
