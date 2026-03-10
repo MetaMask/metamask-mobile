@@ -20,6 +20,7 @@ import { RiskLevel, type TokenSecurityData } from '../../types';
 import { getRiskLevel, getFeatureTags } from '../../utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 
 interface SecurityTrustEntryCardProps {
   securityData: TokenSecurityData | null;
@@ -31,22 +32,19 @@ interface SecurityTrustEntryCardProps {
 const RISK_CONFIG: Record<RiskLevel, { label: string; textColor: TextColor }> =
   {
     [RiskLevel.Low]: {
-      // Verified and Benign
-      label: 'No risks detected',
+      label: strings('security_trust.no_risks_detected'),
       textColor: TextColor.SuccessDefault,
     },
     [RiskLevel.Medium]: {
-      // Warning and Spam
-      label: 'Medium risk',
+      label: strings('security_trust.medium_risk'),
       textColor: TextColor.WarningDefault,
     },
     [RiskLevel.High]: {
-      // Malicious
-      label: 'High risk',
+      label: strings('security_trust.high_risk'),
       textColor: TextColor.ErrorDefault,
     },
     [RiskLevel.Unknown]: {
-      label: 'Security data unavailable',
+      label: strings('security_trust.data_unavailable'),
       textColor: TextColor.TextAlternative,
     },
   };
@@ -92,7 +90,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
           gap={1}
         >
           <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            Security and trust
+            {strings('security_trust.title')}
           </Text>
           <Icon
             name={IconName.ArrowRight}
@@ -113,7 +111,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Loading…
+              {strings('security_trust.loading')}
             </Text>
           </Box>
         ) : (

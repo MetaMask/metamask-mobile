@@ -19,6 +19,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Hex } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 import { useNetworkName } from '../../../Views/confirmations/hooks/useNetworkName';
 import type { TokenDetailsRouteParams } from '../../TokenDetails/constants/constants';
 import { RiskLevel } from '../types';
@@ -60,22 +61,22 @@ const RISK_BADGE: Record<
   { label: string; bg: string; text: TextColor }
 > = {
   [RiskLevel.Low]: {
-    label: 'Low',
+    label: strings('security_trust.risk_low'),
     bg: 'bg-success-muted',
     text: TextColor.SuccessDefault,
   },
   [RiskLevel.Medium]: {
-    label: 'Medium',
+    label: strings('security_trust.risk_medium'),
     bg: 'bg-warning-muted',
     text: TextColor.WarningDefault,
   },
   [RiskLevel.High]: {
-    label: 'High',
+    label: strings('security_trust.risk_high'),
     bg: 'bg-error-muted',
     text: TextColor.ErrorDefault,
   },
   [RiskLevel.Unknown]: {
-    label: 'N/A',
+    label: strings('security_trust.na'),
     bg: 'bg-muted',
     text: TextColor.TextAlternative,
   },
@@ -191,7 +192,7 @@ const SecurityTrustScreen: React.FC = () => {
 
   const formattedCreatedDate = React.useMemo(() => {
     const raw = securityData?.created;
-    if (!raw) return 'N/A';
+    if (!raw) return strings('security_trust.na');
     try {
       return new Date(raw).toLocaleDateString(undefined, {
         year: 'numeric',
@@ -205,7 +206,7 @@ const SecurityTrustScreen: React.FC = () => {
 
   const tokenAgeDisplay = React.useMemo(() => {
     const raw = securityData?.created;
-    if (!raw) return 'N/A';
+    if (!raw) return strings('security_trust.na');
     try {
       const diffMs = Date.now() - new Date(raw).getTime();
       const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -213,7 +214,7 @@ const SecurityTrustScreen: React.FC = () => {
       if (days < 365) return `${Math.floor(days / 30)}mo`;
       return `${Math.floor(days / 365)}yr`;
     } catch {
-      return 'N/A';
+      return strings('security_trust.na');
     }
   }, [securityData?.created]);
 
@@ -235,45 +236,47 @@ const SecurityTrustScreen: React.FC = () => {
     { heading: string; headingColor: TextColor; subtitle: string }
   > = {
     Verified: {
-      heading: 'No risks detected',
+      heading: strings('security_trust.no_risks_detected'),
       headingColor: TextColor.SuccessDefault,
-      subtitle: `${params?.name ?? 'This token'} is one of the most secure and audited smart contract platforms. Low risk for rugpull or honeypot.`,
+      subtitle: strings('security_trust.subtitle_verified', {
+        name: params?.name ?? 'This token',
+      }),
     },
     Benign: {
-      heading: 'No risks detected',
+      heading: strings('security_trust.no_risks_detected'),
       headingColor: TextColor.SuccessDefault,
-      subtitle: 'No significant risks were detected for this token.',
+      subtitle: strings('security_trust.subtitle_benign'),
     },
     Warning: {
-      heading: 'Warning',
+      heading: strings('security_trust.warning'),
       headingColor: TextColor.WarningDefault,
-      subtitle:
-        'Some risk factors were detected. Review details before trading.',
+      subtitle: strings('security_trust.subtitle_warning'),
     },
     Spam: {
-      heading: 'Spam',
+      heading: strings('security_trust.spam'),
       headingColor: TextColor.WarningDefault,
-      subtitle:
-        'Some risk factors were detected. Review details before trading.',
+      subtitle: strings('security_trust.subtitle_warning'),
     },
     Malicious: {
-      heading: 'Malicious',
+      heading: strings('security_trust.malicious'),
       headingColor: TextColor.ErrorDefault,
-      subtitle: 'Significant risk factors detected. This token may be unsafe.',
+      subtitle: strings('security_trust.subtitle_malicious'),
     },
   };
 
   const resultConfig = RESULT_CONFIG[securityData?.resultType ?? ''] ?? {
-    heading: 'Security data unavailable',
+    heading: strings('security_trust.data_unavailable'),
     headingColor: TextColor.TextAlternative,
-    subtitle: 'Security analysis could not be loaded for this token.',
+    subtitle: strings('security_trust.subtitle_unavailable'),
   };
 
   const whaleConcentrationLevel = getWhaleConcentrationRisk(top10Pct);
   const whaleDescription =
     top10Pct !== null
-      ? `Top 10 wallets hold ${top10Pct.toFixed(0)}% of supply`
-      : 'Distribution data unavailable';
+      ? strings('security_trust.whale_description', {
+          percent: top10Pct.toFixed(0),
+        })
+      : strings('security_trust.whale_description_unavailable');
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
@@ -303,8 +306,7 @@ const SecurityTrustScreen: React.FC = () => {
           color={TextColor.TextDefault}
           twClassName="flex-1 text-center"
         >
-          {/* TODO: Localize this string and all other strings in this file*/}
-          Security and trust
+          {strings('security_trust.title')}
         </Text>
 
         {/* Spacer matching the back-button icon width so the title stays centered */}
@@ -319,8 +321,10 @@ const SecurityTrustScreen: React.FC = () => {
         <Box twClassName="px-4 py-4" gap={3}>
           <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {params?.name
-              ? `${params.name} security analysis`
-              : 'Security analysis'}
+              ? strings('security_trust.security_analysis', {
+                  name: params.name,
+                })
+              : strings('security_trust.security_analysis_default')}
           </Text>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {resultConfig.subtitle}
@@ -351,29 +355,33 @@ const SecurityTrustScreen: React.FC = () => {
         <Divider />
 
         {/* ══ Section 2: Risk Factors ══════════════════════════════════════════ */}
-        <SectionHeader title="Risk factors" />
+        <SectionHeader title={strings('security_trust.risk_factors')} />
         <RiskFactorRow
-          title="Whale concentration"
+          title={strings('security_trust.whale_concentration')}
           description={whaleDescription}
           level={whaleConcentrationLevel}
         />
         <RiskFactorRow
-          title="Staking Centralization"
-          description="N/A"
+          title={strings('security_trust.staking_centralization')}
+          description={strings('security_trust.na')}
           level={RiskLevel.Unknown}
         />
         <RiskFactorRow
-          title="Smart Contract Risk"
+          title={strings('security_trust.smart_contract_risk')}
           description={
             riskLevel === RiskLevel.Low
-              ? `Battle-tested contracts${totalLiquidity ? ` with ${formatCompactUSD(totalLiquidity)} TVL` : ''}`
-              : 'Review smart contract risks before trading'
+              ? totalLiquidity
+                ? strings('security_trust.smart_contract_low_risk', {
+                    tvl: formatCompactUSD(totalLiquidity),
+                  })
+                : strings('security_trust.smart_contract_low_risk_no_tvl')
+              : strings('security_trust.smart_contract_review')
           }
           level={getSmartContractRisk(securityData?.resultType)}
         />
 
         {/* ══ Section 3: Token Distribution ═══════════════════════════════════ */}
-        <SectionHeader title="Token distribution" />
+        <SectionHeader title={strings('security_trust.token_distribution')} />
 
         {/* Total supply + Circulating supply */}
         <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pb-3 gap-6">
@@ -382,7 +390,7 @@ const SecurityTrustScreen: React.FC = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Total supply
+              {strings('security_trust.total_supply')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
@@ -399,14 +407,14 @@ const SecurityTrustScreen: React.FC = () => {
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Circulating supply
+              {strings('security_trust.circulating_supply')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
               twClassName="mt-0.5"
             >
-              N/A
+              {strings('security_trust.na')}
             </Text>
           </Box>
         </Box>
@@ -440,7 +448,7 @@ const SecurityTrustScreen: React.FC = () => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                Top 10 holders
+                {strings('security_trust.top_10_holders')}
               </Text>
             </Box>
             <Text
@@ -452,7 +460,9 @@ const SecurityTrustScreen: React.FC = () => {
               }
               fontWeight={FontWeight.Medium}
             >
-              {top10Pct !== null ? `${top10Pct.toFixed(1)}%` : 'N/A'}
+              {top10Pct !== null
+                ? `${top10Pct.toFixed(1)}%`
+                : strings('security_trust.na')}
             </Text>
           </Box>
 
@@ -473,7 +483,7 @@ const SecurityTrustScreen: React.FC = () => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                Top 100 holders
+                {strings('security_trust.top_100_holders')}
               </Text>
             </Box>
             <Text
@@ -481,7 +491,7 @@ const SecurityTrustScreen: React.FC = () => {
               color={TextColor.TextAlternative}
               fontWeight={FontWeight.Medium}
             >
-              N/A
+              {strings('security_trust.na')}
             </Text>
           </Box>
 
@@ -502,7 +512,7 @@ const SecurityTrustScreen: React.FC = () => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                Other
+                {strings('security_trust.other')}
               </Text>
             </Box>
             <Text
@@ -514,39 +524,41 @@ const SecurityTrustScreen: React.FC = () => {
               }
               fontWeight={FontWeight.Medium}
             >
-              {otherPct !== null ? `${otherPct.toFixed(1)}%` : 'N/A'}
+              {otherPct !== null
+                ? `${otherPct.toFixed(1)}%`
+                : strings('security_trust.na')}
             </Text>
           </Box>
         </Box>
 
         {/* ══ Section 4: Contract Security ════════════════════════════════════ */}
-        <SectionHeader title="Contract security" />
+        <SectionHeader title={strings('security_trust.contract_security')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
-            label="Source code verified on Etherscan"
-            description="Source code verified on Etherscan"
+            label={strings('security_trust.source_code_verified')}
+            description={strings('security_trust.source_code_verified')}
             isPositive={hasFeature(features, 'VERIFIED_CONTRACT')}
           />
           <CheckRow
-            label="No mint function"
-            description="Fixed supply, cannot mint new tokens"
+            label={strings('security_trust.no_mint_function')}
+            description={strings('security_trust.no_mint_description')}
             isPositive={!hasFeature(features, 'IS_MINTABLE')}
           />
           <CheckRow
-            label="No blacklist"
-            description="No address blacklisting capability"
+            label={strings('security_trust.no_blacklist')}
+            description={strings('security_trust.no_blacklist_description')}
             isPositive={!hasFeature(features, 'CAN_BLACKLIST')}
           />
         </Box>
 
         {/* ══ Section 5: Honeypot Analysis ════════════════════════════════════ */}
-        <SectionHeader title="Honeypot analysis" />
+        <SectionHeader title={strings('security_trust.honeypot_analysis')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
-            label="Buy/sell enabled"
-            description="Trading is open in both directions" // todo: do we want another description for when all features are present?
+            label={strings('security_trust.buy_sell_enabled')}
+            description={strings('security_trust.buy_sell_description')}
             isPositive={
               !hasFeature(features, 'HONEYPOT') &&
               !hasFeature(features, 'RUGPULL') &&
@@ -554,8 +566,8 @@ const SecurityTrustScreen: React.FC = () => {
             }
           />
           <CheckRow
-            label="No hidden fees"
-            description="Transfer fees match expected values"
+            label={strings('security_trust.no_hidden_fees')}
+            description={strings('security_trust.no_hidden_fees_description')}
             isPositive={
               fees !== null &&
               fees.transfer === 0 &&
@@ -564,48 +576,55 @@ const SecurityTrustScreen: React.FC = () => {
             }
           />
           <CheckRow
-            label="Slippage normal"
-            description="N/A"
+            label={strings('security_trust.slippage_normal')}
+            description={strings('security_trust.na')}
             isPositive={false}
           />
         </Box>
 
         {/* ══ Section 6: Liquidity ═════════════════════════════════════════════ */}
-        <SectionHeader title="Liquidity" />
+        <SectionHeader title={strings('security_trust.liquidity')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
-            label="Liquidity Locked"
+            label={strings('security_trust.liquidity_locked')}
             description={
               financialStats?.lockedLiquidityPct != null
-                ? `${financialStats.lockedLiquidityPct.toFixed(0)}% of LP tokens locked`
-                : 'Lock status unavailable'
+                ? strings('security_trust.liquidity_locked_description', {
+                    percent: financialStats.lockedLiquidityPct.toFixed(0),
+                  })
+                : strings('security_trust.liquidity_lock_unavailable')
             }
             isPositive={(financialStats?.lockedLiquidityPct ?? 0) > 0}
           />
           {totalLiquidity !== null && (
             <CheckRow
-              label="Deep Liquidity"
-              description={
-                formatCompactUSD(totalLiquidity) + ' in liquidity pools'
-              }
+              label={strings('security_trust.deep_liquidity')}
+              description={strings(
+                'security_trust.deep_liquidity_description',
+                {
+                  amount: formatCompactUSD(totalLiquidity),
+                },
+              )}
               isPositive={totalLiquidity > 100_000}
             />
           )}
           {financialStats?.markets && financialStats.markets.length > 1 && (
             <CheckRow
-              label="Multiple DEXs"
-              description={`Listed on ${financialStats.markets
-                .map((m) => m.marketName)
-                .filter(Boolean)
-                .join(', ')}`}
+              label={strings('security_trust.multiple_dexs')}
+              description={strings('security_trust.multiple_dexs_description', {
+                dexes: financialStats.markets
+                  .map((m) => m.marketName)
+                  .filter(Boolean)
+                  .join(', '),
+              })}
               isPositive
             />
           )}
         </Box>
 
         {/* ══ Section 7: Audits & Reviews ══════════════════════════════════════ */}
-        <SectionHeader title="Audits & Reviews" />
+        <SectionHeader title={strings('security_trust.audits_reviews')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           {(
@@ -614,23 +633,29 @@ const SecurityTrustScreen: React.FC = () => {
             <CheckRow
               key={auditor}
               label={auditor}
-              description="N/A"
+              description={strings('security_trust.na')}
               isPositive={false}
             />
           ))}
         </Box>
 
         {/* ══ Section 8: Buy/Sell Tax ══════════════════════════════════════════ */}
-        <SectionHeader title="Buy/Sell Tax" />
+        <SectionHeader title={strings('security_trust.buy_sell_tax')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           {/* Three percentage columns */}
           <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full">
             {(
               [
-                { label: 'Buy tax', value: fees?.buy },
-                { label: 'Sell tax', value: fees?.sell },
-                { label: 'Transfer', value: fees?.transfer },
+                { label: strings('security_trust.buy_tax'), value: fees?.buy },
+                {
+                  label: strings('security_trust.sell_tax'),
+                  value: fees?.sell,
+                },
+                {
+                  label: strings('security_trust.transfer'),
+                  value: fees?.transfer,
+                },
               ] as const
             ).map(({ label, value }) => (
               <Box
@@ -677,14 +702,14 @@ const SecurityTrustScreen: React.FC = () => {
                   color={TextColor.SuccessDefault}
                   fontWeight={FontWeight.Medium}
                 >
-                  No hidden fees detected
+                  {strings('security_trust.no_hidden_fees_detected')}
                 </Text>
               </Box>
             )}
         </Box>
 
         {/* ══ Section 9: Token Info ════════════════════════════════════════════ */}
-        <SectionHeader title="Token Info" />
+        <SectionHeader title={strings('security_trust.token_info')} />
         {/* 2-column grid: row-gap 8, column-gap 12 */}
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={2}>
@@ -697,7 +722,7 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Created
+                {strings('security_trust.created')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {formattedCreatedDate}
@@ -709,7 +734,7 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Token age
+                {strings('security_trust.token_age')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {tokenAgeDisplay}
@@ -725,10 +750,10 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Network
+                {strings('security_trust.network')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {networkName ?? 'N/A'}
+                {networkName ?? strings('security_trust.na')}
               </Text>
             </Box>
             <Box twClassName="flex-1 py-1">
@@ -737,7 +762,7 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Type
+                {strings('security_trust.type')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {tokenType}
@@ -747,7 +772,7 @@ const SecurityTrustScreen: React.FC = () => {
         </Box>
 
         {/* ══ Section 10: On-chain Activity ════════════════════════════════════ */}
-        <SectionHeader title="On-chain Activity" />
+        <SectionHeader title={strings('security_trust.on_chain_activity')} />
         {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={2}>
           {/* Row 1: 24h Transactions | Active Wallets (24h) */}
@@ -759,10 +784,10 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                24h Transactions
+                {strings('security_trust.transactions_24h')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                N/A
+                {strings('security_trust.na')}
               </Text>
             </Box>
             <Box twClassName="flex-1 py-1">
@@ -771,10 +796,10 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Active Wallets (24h)
+                {strings('security_trust.active_wallets_24h')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                N/A
+                {strings('security_trust.na')}
               </Text>
             </Box>
           </Box>
@@ -787,10 +812,10 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Avg Tx Value
+                {strings('security_trust.avg_tx_value')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                N/A
+                {strings('security_trust.na')}
               </Text>
             </Box>
             <Box twClassName="flex-1 py-1">
@@ -799,10 +824,10 @@ const SecurityTrustScreen: React.FC = () => {
                 color={TextColor.TextAlternative}
                 fontWeight={FontWeight.Medium}
               >
-                Gas (avg)
+                {strings('security_trust.gas_avg')}
               </Text>
               <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                N/A
+                {strings('security_trust.na')}
               </Text>
             </Box>
           </Box>
@@ -811,7 +836,7 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 11: Official Links ═══════════════════════════════════════ */}
         {metadata?.externalLinks && (
           <>
-            <SectionHeader title="Official Links" />
+            <SectionHeader title={strings('security_trust.official_links')} />
             {/* Pills container: padding 4px 0, flex-wrap, gap 12 */}
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -839,7 +864,7 @@ const SecurityTrustScreen: React.FC = () => {
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
                   >
-                    Website
+                    {strings('security_trust.website')}
                   </Text>
                 </ButtonBase>
               )}
@@ -865,7 +890,7 @@ const SecurityTrustScreen: React.FC = () => {
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
                   >
-                    Twitter / X
+                    {strings('security_trust.twitter_x')}
                   </Text>
                 </ButtonBase>
               )}
@@ -891,7 +916,7 @@ const SecurityTrustScreen: React.FC = () => {
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
                   >
-                    Telegram
+                    {strings('security_trust.telegram')}
                   </Text>
                 </ButtonBase>
               )}
@@ -915,7 +940,7 @@ const SecurityTrustScreen: React.FC = () => {
                     variant={TextVariant.BodySm}
                     color={TextColor.TextDefault}
                   >
-                    Etherscan
+                    {strings('security_trust.etherscan')}
                   </Text>
                 </ButtonBase>
               )}
