@@ -99,7 +99,7 @@ export class TeamsCache {
       'merge',
       'TeamsCache.ensureTeamsLoaded',
       uncached,
-    );
+    ).then(() => undefined as void);
     this.teamBatchLoadingPromises.set(key, loadPromise);
 
     try {
