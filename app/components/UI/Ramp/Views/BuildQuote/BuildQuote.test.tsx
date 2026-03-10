@@ -44,9 +44,13 @@ const createMockToken = (overrides?: Partial<RampsToken>): RampsToken => ({
 
 const mockTokenNetworkInfo = {
   networkName: 'Ethereum Mainnet',
+  networkImageSource: { uri: 'https://example.com/eth.png' },
 };
 
 const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
+const mockGetRampsBuildQuoteNavbarOptions = jest.fn(
+  (_navigation: unknown, _options: unknown) => ({}),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -82,50 +86,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        subtitle,
-        onBack,
-        backButtonProps,
-        endButtonIconProps,
-      }: {
-        title?: string;
-        subtitle?: string;
-        onBack?: () => void;
-        backButtonProps?: { testID?: string };
-        endButtonIconProps?: {
-          iconName: string;
-          onPress?: () => void;
-          testID?: string;
-        }[];
-      }) => (
-        <View testID="header-compact-standard">
-          {title ? <Text>{title}</Text> : null}
-          {subtitle ? <Text>{subtitle}</Text> : null}
-          {onBack ? (
-            <View
-              testID={backButtonProps?.testID ?? 'back-button'}
-              onTouchEnd={onBack}
-            />
-          ) : null}
-          {endButtonIconProps?.map((btn, i) => (
-            <View
-              key={i}
-              testID={btn.testID ?? `end-button-${i}`}
-              onTouchEnd={btn.onPress}
-            />
-          ))}
-        </View>
-      ),
-    };
-  },
-);
+jest.mock('../../../Navbar', () => ({
+  getRampsBuildQuoteNavbarOptions: (navigation: unknown, options: unknown) =>
+    mockGetRampsBuildQuoteNavbarOptions(navigation, options),
+}));
 
 jest.mock('../../../../hooks/useFormatters', () => ({
   useFormatters: () => ({
@@ -197,6 +161,9 @@ const defaultUserRegion: MockUserRegion = {
 let mockUserRegion: MockUserRegion | null = defaultUserRegion;
 let mockSelectedProvider: unknown = null;
 let mockSelectedPaymentMethod: unknown = null;
+let mockPaymentMethods: unknown[] = [];
+let mockPaymentMethodsLoading = false;
+let mockPaymentMethodsStatus: 'idle' | 'loading' | 'success' | 'error' = 'idle';
 let mockSelectedQuote: Record<string, unknown> | null = null;
 let mockTokens: {
   allTokens: ReturnType<typeof createMockToken>[];
@@ -221,7 +188,9 @@ jest.mock('../../hooks/useRampsController', () => ({
     selectedProvider: mockSelectedProvider,
     selectedToken: mockTokens?.allTokens?.[0] ?? null,
     getWidgetUrl: mockGetWidgetUrl,
-    paymentMethodsLoading: false,
+    paymentMethods: mockPaymentMethods,
+    paymentMethodsLoading: mockPaymentMethodsLoading,
+    paymentMethodsStatus: mockPaymentMethodsStatus,
     selectedPaymentMethod: mockSelectedPaymentMethod,
   }),
 }));
@@ -297,6 +266,11 @@ describe('BuildQuote', () => {
     mockUserRegion = defaultUserRegion;
     mockSelectedProvider = null;
     mockSelectedPaymentMethod = null;
+    mockPaymentMethods = [
+      { id: '/payments/debit-credit-card', name: 'Debit/Credit Card' },
+    ];
+    mockPaymentMethodsLoading = false;
+    mockPaymentMethodsStatus = 'idle';
     mockQuotesData = null;
     mockQuotesLoading = false;
     mockQuotesError = null;
@@ -402,14 +376,24 @@ describe('BuildQuote', () => {
     expect(getByText('$10')).toBeOnTheScreen();
   });
 
-  it('renders inline header with token and network data', () => {
-    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
+  it('sets navigation options with token and network data', () => {
+    renderWithTheme(<BuildQuote />);
 
-    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
-    expect(getByText('fiat_on_ramp.buy')).toBeOnTheScreen();
-    expect(getByText('fiat_on_ramp.on_network')).toBeOnTheScreen();
-    expect(getByTestId('build-quote-back-button')).toBeOnTheScreen();
-    expect(getByTestId('build-quote-settings-button')).toBeOnTheScreen();
+    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        goBack: mockGoBack,
+      }),
+      expect.objectContaining({
+        tokenName: 'USD Coin',
+        tokenSymbol: 'USDC',
+        tokenIconUrl: 'https://example.com/usdc.png',
+        networkName: 'Ethereum Mainnet',
+        networkImageSource: { uri: 'https://example.com/eth.png' },
+        onSettingsPress: expect.any(Function),
+      }),
+    );
   });
 
   it('renders the payment method pill', () => {
@@ -432,17 +416,29 @@ describe('BuildQuote', () => {
     );
   });
 
-  it('renders inline header without title or subtitle when token is not found', () => {
+  it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
     mockTokens = {
       allTokens: [],
       topTokens: [],
     };
 
-    const { getByTestId, queryByText } = renderWithTheme(<BuildQuote />);
+    renderWithTheme(<BuildQuote />);
 
-    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
-    expect(queryByText('fiat_on_ramp.buy')).toBeNull();
-    expect(queryByText('fiat_on_ramp.on_network')).toBeNull();
+    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        goBack: mockGoBack,
+      }),
+      expect.objectContaining({
+        tokenName: undefined,
+        tokenSymbol: undefined,
+        tokenIconUrl: undefined,
+        networkName: undefined,
+        networkImageSource: undefined,
+        onSettingsPress: expect.any(Function),
+      }),
+    );
   });
 
   it('renders quick amount buttons when amount is zero', () => {
@@ -1610,6 +1606,138 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('navigates to token unavailable modal when payment methods are empty after loading', async () => {
+      const provider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+      mockSelectedProvider = provider;
+      mockPaymentMethods = [];
+      mockPaymentMethodsLoading = true;
+      mockPaymentMethodsStatus = 'loading';
+
+      const { rerender } = renderWithTheme(<BuildQuote />);
+
+      // Simulate fetch completing with empty result
+      mockPaymentMethodsLoading = false;
+      mockPaymentMethodsStatus = 'success';
+      rerender(
+        <ThemeContext.Provider value={mockTheme}>
+          <BuildQuote />
+        </ThemeContext.Provider>,
+      );
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when payment methods have not loaded yet', () => {
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          [MOCK_ASSET_ID]: true,
+        },
+      };
+      // Default Redux state: data=[], isLoading=false — no fetch has occurred yet
+      mockPaymentMethods = [];
+      mockPaymentMethodsLoading = false;
+
+      renderWithTheme(<BuildQuote />);
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate to token unavailable modal when no assetId param and payment methods are empty', async () => {
+      mockUseParams.mockReturnValue({});
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {},
+      };
+      mockPaymentMethods = [];
+      mockPaymentMethodsLoading = false;
+      mockPaymentMethodsStatus = 'success';
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('navigates to token unavailable modal via supportedCryptoCurrencies even when selectedToken is null', async () => {
+      // Regression guard: tokenStateIsSettled is false when selectedToken is null
+      // (token not yet in controller list), but the supportedCryptoCurrencies check
+      // should still fire because it only needs selectedProvider + params.assetId.
+      mockSelectedProvider = {
+        id: '/providers/transak',
+        name: 'Transak',
+        environmentType: 'PRODUCTION',
+        description: 'Test Provider',
+        hqAddress: '123 Test St',
+        links: [],
+        logos: { light: '', dark: '', height: 24, width: 79 },
+        supportedCryptoCurrencies: {
+          // MOCK_ASSET_ID is intentionally absent
+        },
+      };
+      mockTokens = null; // selectedToken will be null → tokenStateIsSettled is false
+
+      renderWithTheme(<BuildQuote />);
+
+      await act(async () => {
+        await flushPromises();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: { assetId: MOCK_ASSET_ID },
         }),
       );
     });

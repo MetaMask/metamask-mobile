@@ -54,6 +54,7 @@ export interface UseRampsControllerResult {
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
+  paymentMethodsStatus: UseRampsPaymentMethodsResult['status'];
 
   // Quotes
   getQuotes: UseRampsQuotesResult['getQuotes'];
@@ -145,6 +146,7 @@ export function useRampsController(): UseRampsControllerResult {
     setSelectedPaymentMethod,
     isLoading: paymentMethodsLoading,
     error: paymentMethodsError,
+    status: paymentMethodsStatus,
   } = useRampsPaymentMethods();
 
   const { getQuotes, getWidgetUrl } = useRampsQuotes();
@@ -184,6 +186,7 @@ export function useRampsController(): UseRampsControllerResult {
     setSelectedPaymentMethod,
     paymentMethodsLoading,
     paymentMethodsError,
+    paymentMethodsStatus,
 
     getQuotes,
     getWidgetUrl,

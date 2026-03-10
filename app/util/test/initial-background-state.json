@@ -449,12 +449,6 @@
       }
     }
   },
-  "GeolocationController": {
-    "location": "UNKNOWN",
-    "status": "loading",
-    "lastFetchedAt": null,
-    "error": null
-  },
   "GasFeeController": {
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
@@ -522,8 +516,13 @@
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
     "selectedPaymentToken": null,
-    "cachedMarketDataByProvider": {},
-    "cachedUserDataByProvider": {}
+    "cachedMarketData": null,
+    "cachedMarketDataTimestamp": 0,
+    "cachedPositions": null,
+    "cachedOrders": null,
+    "cachedAccountState": null,
+    "cachedUserDataTimestamp": 0,
+    "cachedUserDataAddress": null
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
@@ -756,12 +755,9 @@
     "accounts": {},
     "activeAccount": null,
     "activeBoosts": {},
-    "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "snapshots": {},
-    "campaigns": {},
-    "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
     "seasons": {},
@@ -776,13 +772,11 @@
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
-    "pendingClaims": {},
     "withdrawTransaction": null,
     "accountMeta": {}
   },
   "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
+    "marketInsights": {}
   },
   "RampsController": {
     "userRegion": null,
@@ -790,25 +784,29 @@
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "providers": {
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "tokens": {
       "data": null,
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "paymentMethods": {
       "data": [],
       "selected": null,
       "isLoading": false,
-      "error": null
+      "error": null,
+      "status": "idle"
     },
     "nativeProviders": {
       "transak": {
@@ -816,20 +814,23 @@
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         },
         "isAuthenticated": false,
         "kycRequirement": {
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         },
         "userDetails": {
           "data": null,
           "selected": null,
           "isLoading": false,
-          "error": null
+          "error": null,
+          "status": "idle"
         }
       }
     },

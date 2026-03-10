@@ -25,6 +25,7 @@ const createDefaultResourceState = <TData, TSelected = null>(
   selected,
   isLoading: false,
   error: null,
+  status: 'idle' as const,
 });
 
 type RampsControllerStateOverride = Partial<RampsControllerState>;
@@ -163,6 +164,7 @@ describe('RampsController Selectors', () => {
           selected: mockProvider,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -189,6 +191,7 @@ describe('RampsController Selectors', () => {
           selected: mockToken,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -213,6 +216,7 @@ describe('RampsController Selectors', () => {
           selected: null,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -236,6 +240,7 @@ describe('RampsController Selectors', () => {
           selected: mockPaymentMethod,
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       });
 
@@ -322,16 +327,19 @@ describe('RampsController Selectors', () => {
           data: { firstName: 'John', lastName: 'Doe' },
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
         buyQuote: {
           data: { quoteId: 'q1', fiatAmount: 100 },
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
         kycRequirement: {
           data: { status: 'APPROVED', kycType: 'SIMPLE' },
           isLoading: false,
           error: null,
+          status: 'idle' as const,
         },
       };
 
@@ -384,6 +392,111 @@ describe('RampsController Selectors', () => {
 
       const result = selectTransak(state);
       expect(result.isAuthenticated).toBe(true);
+    });
+
+    it('preserves referential equality when status exists on all sub-states', () => {
+      const transakState = {
+        isAuthenticated: true,
+        userDetails: createDefaultResourceState({ firstName: 'John' }),
+        buyQuote: createDefaultResourceState({ quoteId: 'q1' }),
+        kycRequirement: createDefaultResourceState({ status: 'APPROVED' }),
+      };
+
+      const state = createMockState({
+        nativeProviders: {
+          transak: transakState,
+        },
+      } as never);
+
+      const result = selectTransak(state);
+      expect(result).toBe(transakState);
+    });
+  });
+
+  describe('referential equality', () => {
+    it('preserves reference for providers when status exists', () => {
+      const providersState = {
+        data: [mockProvider],
+        selected: mockProvider,
+        isLoading: false,
+        error: null,
+        status: 'idle' as const,
+      };
+
+      const state = createMockState({
+        providers: providersState,
+      });
+
+      const result = selectProviders(state);
+      expect(result).toBe(providersState);
+    });
+
+    it('preserves reference for tokens when status exists', () => {
+      const tokensState = {
+        data: mockTokens,
+        selected: mockToken,
+        isLoading: false,
+        error: null,
+        status: 'idle' as const,
+      };
+
+      const state = createMockState({
+        tokens: tokensState,
+      });
+
+      const result = selectTokens(state);
+      expect(result).toBe(tokensState);
+    });
+
+    it('preserves reference for countries when status exists', () => {
+      const countriesState = {
+        data: mockCountries,
+        selected: null,
+        isLoading: false,
+        error: null,
+        status: 'idle' as const,
+      };
+
+      const state = createMockState({
+        countries: countriesState,
+      });
+
+      const result = selectCountries(state);
+      expect(result).toBe(countriesState);
+    });
+
+    it('preserves reference for paymentMethods when status exists', () => {
+      const paymentMethodsState = {
+        data: mockPaymentMethods,
+        selected: mockPaymentMethod,
+        isLoading: false,
+        error: null,
+        status: 'idle' as const,
+      };
+
+      const state = createMockState({
+        paymentMethods: paymentMethodsState,
+      });
+
+      const result = selectPaymentMethods(state);
+      expect(result).toBe(paymentMethodsState);
+    });
+
+    it('creates new object when status is missing (pre-migration tolerance)', () => {
+      const providersStateWithoutStatus = {
+        data: [mockProvider],
+        selected: mockProvider,
+        isLoading: false,
+        error: null,
+      };
+
+      const state = createMockState({
+        providers: providersStateWithoutStatus as never,
+      });
+
+      const result = selectProviders(state);
+      expect(result).not.toBe(providersStateWithoutStatus);
+      expect(result.status).toBe('idle');
     });
   });
 });

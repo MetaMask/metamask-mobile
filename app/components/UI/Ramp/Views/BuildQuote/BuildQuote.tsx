@@ -22,11 +22,10 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { getRampsBuildQuoteNavbarOptions } from '../../../Navbar';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -64,6 +63,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { RequestStatus } from '@metamask/ramps-controller';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -136,7 +136,9 @@ function BuildQuote() {
     selectedProvider,
     selectedToken,
     getWidgetUrl,
+    paymentMethods,
     paymentMethodsLoading,
+    paymentMethodsStatus,
     selectedPaymentMethod,
   } = useRampsController();
 
@@ -150,16 +152,42 @@ function BuildQuote() {
     }
   }, [selectedProvider]);
 
-  const isTokenUnavailable = useMemo(
-    () =>
-      !!(
-        selectedProvider &&
-        params?.assetId &&
-        selectedProvider.supportedCryptoCurrencies &&
-        !selectedProvider.supportedCryptoCurrencies[params.assetId]
-      ),
-    [selectedProvider, params?.assetId],
-  );
+  const tokenStateIsSettled =
+    !params?.assetId || selectedToken?.assetId === params.assetId;
+
+  const isTokenUnavailable = useMemo(() => {
+    if (!selectedProvider) return false;
+
+    // Explicit signal from provider metadata — no need to wait for token state to settle.
+    if (
+      params?.assetId &&
+      selectedProvider.supportedCryptoCurrencies &&
+      !selectedProvider.supportedCryptoCurrencies[params.assetId]
+    ) {
+      return true;
+    }
+
+    // API returned no payment methods after a successful fetch.
+    // The status field distinguishes 'idle' (never fetched) from 'success' (fetched empty).
+    // Wait for token state to settle before acting on this signal to avoid false positives
+    // during the initial async load when paymentMethods is still empty.
+    if (
+      params?.assetId &&
+      tokenStateIsSettled &&
+      paymentMethodsStatus === RequestStatus.SUCCESS &&
+      paymentMethods.length === 0
+    ) {
+      return true;
+    }
+
+    return false;
+  }, [
+    selectedProvider,
+    params?.assetId,
+    tokenStateIsSettled,
+    paymentMethodsStatus,
+    paymentMethods,
+  ]);
 
   const hasShownTokenUnavailableRef = useRef(false);
 
@@ -230,30 +258,34 @@ function BuildQuote() {
     debouncedPollingAmount > 0
   );
 
-  const quoteFetchParams = useMemo(
-    () =>
-      selectedToken?.assetId &&
-      walletAddress &&
-      selectedPaymentMethod &&
-      selectedProvider
-        ? {
-            assetId: selectedToken.assetId,
-            amount: debouncedPollingAmount,
-            walletAddress,
-            redirectUrl: getRampCallbackBaseUrl(),
-            paymentMethods: [selectedPaymentMethod.id],
-            providers: [selectedProvider.id],
-            forceRefresh: true,
-          }
-        : null,
-    [
-      selectedToken?.assetId,
-      debouncedPollingAmount,
+  const quoteFetchParams = useMemo(() => {
+    if (
+      !selectedToken?.assetId ||
+      !walletAddress ||
+      !selectedPaymentMethod ||
+      !selectedProvider ||
+      !tokenStateIsSettled
+    ) {
+      return null;
+    }
+
+    return {
+      assetId: selectedToken.assetId,
+      amount: debouncedPollingAmount,
       walletAddress,
-      selectedPaymentMethod,
-      selectedProvider,
-    ],
-  );
+      redirectUrl: getRampCallbackBaseUrl(),
+      paymentMethods: [selectedPaymentMethod.id],
+      providers: [selectedProvider.id],
+      forceRefresh: true,
+    };
+  }, [
+    selectedToken?.assetId,
+    tokenStateIsSettled,
+    debouncedPollingAmount,
+    walletAddress,
+    selectedPaymentMethod,
+    selectedProvider,
+  ]);
 
   const {
     data: quotesResponse,
@@ -326,29 +358,38 @@ function BuildQuote() {
     return getTokenNetworkInfo(selectedToken.chainId as CaipChainId);
   }, [selectedToken, getTokenNetworkInfo]);
 
-  const handleSettingsPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
-        .addProperties({
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
+  useEffect(() => {
+    navigation.setOptions(
+      getRampsBuildQuoteNavbarOptions(navigation, {
+        tokenName: selectedToken?.name,
+        tokenSymbol: selectedToken?.symbol,
+        tokenIconUrl: selectedToken?.iconUrl,
+        networkName: networkInfo?.networkName ?? undefined,
+        networkImageSource: networkInfo?.networkImageSource,
+        onSettingsPress: () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_SETTINGS_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+          navigation.navigate(...createSettingsModalNavDetails());
+        },
+        onBackPress: () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+              .addProperties({
+                location: 'Amount Input',
+                ramp_type: 'UNIFIED_BUY_2',
+              })
+              .build(),
+          );
+        },
+      }),
     );
-    navigation.navigate(...createSettingsModalNavDetails());
-  }, [trackEvent, createEventBuilder, navigation]);
-
-  const handleBackPress = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-        .addProperties({
-          location: 'Amount Input',
-          ramp_type: 'UNIFIED_BUY_2',
-        })
-        .build(),
-    );
-    navigation.goBack();
-  }, [trackEvent, createEventBuilder, navigation]);
+  }, [navigation, selectedToken, networkInfo, trackEvent, createEventBuilder]);
 
   const handleKeypadChange = useCallback(
     ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
@@ -633,136 +674,110 @@ function BuildQuote() {
     : strings('fiat_on_ramp.no_quotes_available');
 
   return (
-    <>
-      <HeaderCompactStandard
-        title={
-          selectedToken?.symbol
-            ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
-            : undefined
-        }
-        subtitle={
-          networkInfo?.networkName
-            ? strings('fiat_on_ramp.on_network', {
-                networkName: networkInfo.networkName,
-              })
-            : undefined
-        }
-        onBack={handleBackPress}
-        backButtonProps={{ testID: 'build-quote-back-button' }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Setting,
-            onPress: handleSettingsPress,
-            testID: 'build-quote-settings-button',
-          },
-        ]}
-        includesTopInset
-      />
-      <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content style={styles.content}>
-            <View style={styles.centerGroup}>
-              <View style={styles.amountContainer}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.HeadingLG}
-                  color={
-                    nativeFlowError || hasNoQuotes || quoteFetchError
-                      ? TextColor.Error
-                      : undefined
-                  }
-                  style={styles.mainAmount}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {formatCurrency(amountAsNumber, currency, {
-                    currencyDisplay: 'narrowSymbol',
-                  })}
-                </Text>
-                <PaymentMethodPill
-                  label={
-                    selectedPaymentMethod?.name ||
-                    strings('fiat_on_ramp.select_payment_method')
-                  }
-                  isLoading={paymentMethodsLoading}
-                  onPress={handlePaymentPillPress}
-                />
-              </View>
-            </View>
-
-            {quoteFetchError && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Error}
-                description={parseUserFacingError(
-                  quoteFetchError,
-                  strings('deposit.buildQuote.quoteFetchError'),
-                )}
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <ScreenLayout.Content style={styles.content}>
+          <View style={styles.centerGroup}>
+            <View style={styles.amountContainer}>
+              <Text
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                variant={TextVariant.HeadingLG}
+                color={
+                  nativeFlowError || hasNoQuotes || quoteFetchError
+                    ? TextColor.Error
+                    : undefined
+                }
+                style={styles.mainAmount}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatCurrency(amountAsNumber, currency, {
+                  currencyDisplay: 'narrowSymbol',
+                })}
+              </Text>
+              <PaymentMethodPill
+                label={
+                  selectedPaymentMethod?.name ||
+                  strings('fiat_on_ramp.select_payment_method')
+                }
+                isLoading={paymentMethodsLoading}
+                onPress={handlePaymentPillPress}
               />
-            )}
-
-            <View style={styles.actionSection}>
-              {hasAmount ? (
-                <>
-                  {nativeFlowError ? (
-                    <TruncatedError
-                      error={nativeFlowError}
-                      providerName={selectedProvider?.name}
-                      providerSupportUrl={
-                        selectedProvider?.links?.find(
-                          (link) => link.name === PROVIDER_LINKS.SUPPORT,
-                        )?.url
-                      }
-                    />
-                  ) : hasNoQuotes ? (
-                    <TruncatedError
-                      error={strings('fiat_on_ramp.encountered_error')}
-                      errorDetails={noQuotesErrorMessage}
-                      showChangeProvider
-                      amount={amountAsNumber}
-                    />
-                  ) : (
-                    selectedProvider && (
-                      <Text
-                        variant={TextVariant.BodySM}
-                        style={styles.poweredByText}
-                      >
-                        {strings('fiat_on_ramp.powered_by_provider', {
-                          provider: selectedProvider.name,
-                        })}
-                      </Text>
-                    )
-                  )}
-                  <Button
-                    variant={ButtonVariant.Primary}
-                    size={ButtonSize.Lg}
-                    onPress={handleContinuePress}
-                    isFullWidth
-                    isDisabled={!canContinue}
-                    isLoading={selectedQuoteLoading || isContinueLoading}
-                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                  >
-                    {strings('fiat_on_ramp.continue')}
-                  </Button>
-                </>
-              ) : (
-                quickAmounts.length > 0 && (
-                  <QuickAmounts
-                    amounts={quickAmounts}
-                    currency={currency}
-                    onAmountPress={handleQuickAmountPress}
-                  />
-                )
-              )}
             </View>
-            <Keypad
-              currency={currency}
-              value={amount}
-              onChange={handleKeypadChange}
+          </View>
+
+          {quoteFetchError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              description={parseUserFacingError(
+                quoteFetchError,
+                strings('deposit.buildQuote.quoteFetchError'),
+              )}
             />
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-      </ScreenLayout>
-    </>
+          )}
+
+          <View style={styles.actionSection}>
+            {hasAmount ? (
+              <>
+                {nativeFlowError ? (
+                  <TruncatedError
+                    error={nativeFlowError}
+                    providerName={selectedProvider?.name}
+                    providerSupportUrl={
+                      selectedProvider?.links?.find(
+                        (link) => link.name === PROVIDER_LINKS.SUPPORT,
+                      )?.url
+                    }
+                  />
+                ) : hasNoQuotes ? (
+                  <TruncatedError
+                    error={strings('fiat_on_ramp.encountered_error')}
+                    errorDetails={noQuotesErrorMessage}
+                    showChangeProvider
+                    amount={amountAsNumber}
+                  />
+                ) : (
+                  selectedProvider && (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      style={styles.poweredByText}
+                    >
+                      {strings('fiat_on_ramp.powered_by_provider', {
+                        provider: selectedProvider.name,
+                      })}
+                    </Text>
+                  )
+                )}
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContinuePress}
+                  isFullWidth
+                  isDisabled={!canContinue}
+                  isLoading={selectedQuoteLoading || isContinueLoading}
+                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                >
+                  {strings('fiat_on_ramp.continue')}
+                </Button>
+              </>
+            ) : (
+              quickAmounts.length > 0 && (
+                <QuickAmounts
+                  amounts={quickAmounts}
+                  currency={currency}
+                  onAmountPress={handleQuickAmountPress}
+                />
+              )
+            )}
+          </View>
+          <Keypad
+            currency={currency}
+            value={amount}
+            onChange={handleKeypadChange}
+          />
+        </ScreenLayout.Content>
+      </ScreenLayout.Body>
+    </ScreenLayout>
   );
 }
 

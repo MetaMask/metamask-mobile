@@ -136,6 +136,7 @@ const mockUseRampsControllerInitialValues: ReturnType<
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
+  paymentMethodsStatus: 'idle',
   getQuotes: jest.fn(),
   getWidgetUrl: jest.fn(),
   orders: [],

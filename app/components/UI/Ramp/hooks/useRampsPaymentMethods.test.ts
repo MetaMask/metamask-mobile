@@ -42,6 +42,7 @@ const createMockStore = (paymentMethodsState = {}) =>
               selected: null,
               isLoading: false,
               error: null,
+              status: 'idle',
               ...paymentMethodsState,
             },
           },
@@ -61,7 +62,7 @@ describe('useRampsPaymentMethods', () => {
   });
 
   describe('return value structure', () => {
-    it('returns paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod, isLoading, and error', () => {
+    it('returns paymentMethods, selectedPaymentMethod, setSelectedPaymentMethod, isLoading, status, and error', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsPaymentMethods(), {
         wrapper: wrapper(store),
@@ -70,6 +71,7 @@ describe('useRampsPaymentMethods', () => {
         paymentMethods: [],
         selectedPaymentMethod: null,
         isLoading: false,
+        status: 'idle',
         error: null,
       });
       expect(typeof result.current.setSelectedPaymentMethod).toBe('function');
