@@ -1,7 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
+import { rampsQueries } from '../queries';
+import type { RampsQueryStatus } from './useRampsPaymentMethods';
 
 /**
  * Options for fetching quotes (matches RampsController.getQuotes).
@@ -38,6 +41,10 @@ export interface UseRampsQuotesResult {
   data: QuotesResponse | null;
   /** True while a fetch is in progress. Reset when fetch settles, unless the effect was cancelled (component unmounted). */
   loading: boolean;
+  /** Query lifecycle status for the active quotes request. */
+  status: RampsQueryStatus;
+  /** Whether the active quotes request completed successfully. */
+  isSuccess: boolean;
   /** Error message when fetch rejects. */
   error: string | null;
 }
@@ -65,54 +72,50 @@ export function useRampsQuotes(
     [],
   );
 
-  const [data, setData] = useState<QuotesResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryEnabled = Boolean(
+    options?.assetId &&
+      options.walletAddress &&
+      options.amount > 0 &&
+      options.paymentMethods?.[0] &&
+      options.providers?.[0],
+  );
 
-  useEffect(() => {
-    if (options == null) {
-      setData(null);
-      setLoading(false);
-      setError(null);
-      return;
+  const quotesQuery = useQuery({
+    ...rampsQueries.quotes.options({
+      assetId: options?.assetId,
+      amount: options?.amount ?? 0,
+      walletAddress: options?.walletAddress ?? '',
+      redirectUrl: options?.redirectUrl,
+      paymentMethodId: options?.paymentMethods?.[0] ?? '',
+      providerId: options?.providers?.[0] ?? '',
+      forceRefresh: options?.forceRefresh,
+      ttl: options?.ttl,
+    }),
+    enabled: queryEnabled,
+  });
+
+  const status = useMemo<RampsQueryStatus>(() => {
+    if (!queryEnabled) {
+      return 'idle';
     }
-
-    let cancelled = false;
-    setLoading(true);
-    setData(null);
-    setError(null);
-
-    getQuotes(options)
-      .then((response) => {
-        if (!cancelled) {
-          setData(response);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setData(null);
-          setError(
-            err instanceof Error ? err.message : 'Failed to fetch quotes',
-          );
-        }
-      })
-      .finally(() => {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [options, getQuotes]);
+    if (quotesQuery.isPending) {
+      return 'loading';
+    }
+    if (quotesQuery.isError) {
+      return 'error';
+    }
+    return 'success';
+  }, [queryEnabled, quotesQuery.isError, quotesQuery.isPending]);
 
   return {
     getQuotes,
     getWidgetUrl,
-    data,
-    loading,
-    error,
+    data: quotesQuery.data ?? null,
+    loading: status === 'loading',
+    status,
+    isSuccess: status === 'success',
+    error:
+      quotesQuery.error instanceof Error ? quotesQuery.error.message : null,
   };
 }
 
