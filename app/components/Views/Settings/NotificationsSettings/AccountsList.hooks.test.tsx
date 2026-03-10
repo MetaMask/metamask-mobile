@@ -15,6 +15,7 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 jest.mock('../../../../selectors/notifications', () => ({
   getValidNotificationAccounts: jest.fn(),
@@ -33,8 +34,10 @@ jest.mock(
   }),
 );
 
+const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
+
 const arrangeMockUseAccounts = () => {
-  const createMockAccountGroup = (
+  const createMockMultichainAccountGroup = (
     idx: number,
     accounts: [string, ...string[]],
   ) =>
@@ -52,22 +55,39 @@ const arrangeMockUseAccounts = () => {
       },
     }) as const;
 
-  const group1 = createMockAccountGroup(0, [
+  const createMockSingleAccountGroup = <
+    T extends `keyring:${string}/${string}`,
+  >(
+    id: T,
+    account: string,
+  ) =>
+    ({
+      accounts: [account] as [string],
+      id,
+      type: AccountGroupType.SingleAccount,
+      metadata: {
+        hidden: false,
+        name: id,
+        pinned: false,
+      },
+    }) as const;
+
+  const group1 = createMockMultichainAccountGroup(0, [
     `MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29`,
     'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
   ]);
-  const group2 = createMockAccountGroup(1, [
+  const group2 = createMockMultichainAccountGroup(1, [
     `MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8EC`,
     'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD9B',
   ]);
-  const group3 = createMockAccountGroup(0, [
+  const group3 = createMockSingleAccountGroup(
+    'keyring:wallet-2/0',
     `MOCK-ID-FOR-0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a20`,
-    'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGR0',
-  ]);
-  const group4 = createMockAccountGroup(1, [
+  );
+  const group4 = createMockSingleAccountGroup(
+    'keyring:wallet-2/1',
     `MOCK-ID-FOR-0x700CcD8172BC3807D893883a730A1E0E6630F8E0`,
-    'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD90',
-  ]);
+  );
 
   const mockSelectoWallets = jest
     .mocked(selectAccountGroupsByWallet)
@@ -94,13 +114,13 @@ const arrangeMockUseAccounts = () => {
       {
         title: 'Wallet 2',
         wallet: {
-          id: 'entropy:wallet-2',
+          id: 'keyring:wallet-2',
           type: AccountWalletType.Keyring,
           metadata: {
-            entropy: {
-              id: '',
-            },
             name: 'Wallet 2',
+            keyring: {
+              type: MOCK_KEYRING_TYPE,
+            },
           },
           status: 'ready',
           groups: {
@@ -351,7 +371,7 @@ describe('useNotificationWalletAccountGroups', () => {
       expect.objectContaining({
         title: 'Wallet 2',
         wallet: expect.objectContaining({
-          id: 'entropy:wallet-2',
+          id: 'keyring:wallet-2',
           type: AccountWalletType.Keyring,
         }),
       }),

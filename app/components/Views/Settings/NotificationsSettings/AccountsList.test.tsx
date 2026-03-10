@@ -13,6 +13,7 @@ import {
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as AccountSelectorsModule from '../../../../selectors/multichainAccounts/accounts';
@@ -20,6 +21,8 @@ import initialRootState from '../../../../util/test/initial-root-state';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockVar = any;
+
+const MOCK_KEYRING_TYPE = 'HD Key Tree' as KeyringTypes;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -97,7 +100,7 @@ describe('AccountList', () => {
         name: `My Account ${idx}`,
       }));
 
-    const createMockAccountGroup = (
+    const createMockMultichainAccountGroup = (
       idx: number,
       accounts: [string, ...string[]],
     ) =>
@@ -115,17 +118,35 @@ describe('AccountList', () => {
         },
       }) as const;
 
-    const group1 = createMockAccountGroup(0, [
+    const createMockSingleAccountGroup = <
+      T extends `keyring:${string}/${string}`,
+    >(
+      id: T,
+      account: string,
+    ) =>
+      ({
+        accounts: [account] as [string],
+        id,
+        type: AccountGroupType.SingleAccount,
+        metadata: {
+          hidden: false,
+          name: id,
+          pinned: false,
+        },
+      }) as const;
+
+    const group1 = createMockMultichainAccountGroup(0, [
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_1}`,
       'MOCK-ID-FOR-63jw5Q7pJXeHgHSvfTmKytUQ19hQgiAJQ5LZykmSMGRY',
     ]);
-    const group2 = createMockAccountGroup(1, [
+    const group2 = createMockMultichainAccountGroup(1, [
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_2}`,
       'MOCK-ID-FOR-Agsjd8HjGH5DxiXLMWc8fR4jjgHhvJG3TXcCpc1ieD9B',
     ]);
-    const importedGroup = createMockAccountGroup(2, [
+    const importedGroup = createMockSingleAccountGroup(
+      'keyring:wallet-2/0',
       `MOCK-ID-FOR-${CHECKSUMMED_ADDRESS_3}`,
-    ]);
+    );
 
     const mockUseAccountProps = jest
       .spyOn(AccountListHooksModule, 'useAccountProps')
@@ -158,6 +179,9 @@ describe('AccountList', () => {
               type: AccountWalletType.Keyring,
               metadata: {
                 name: 'Imported wallet',
+                keyring: {
+                  type: MOCK_KEYRING_TYPE,
+                },
               },
               status: 'ready',
               groups: {
