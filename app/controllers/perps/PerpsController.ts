@@ -3917,9 +3917,13 @@ export class PerpsController extends BaseController<
     const versionAtStart = this.#blockedRegionListVersion;
 
     try {
-      // TODO: It would be good to have this location before we call this async function to avoid the race condition
+      const geoLocation = await this.messenger.call(
+        'GeolocationController:getGeolocation',
+      );
+
       const isEligible = await this.#eligibilityService.checkEligibility({
         blockedRegions: this.blockedRegionList.list,
+        geoLocation,
       });
 
       // Only update state if the blocked region list hasn't changed while we were awaiting.
