@@ -362,7 +362,7 @@ export class TradingService {
 
     const paymentToken =
       params.trackingData?.tradeWithToken === true
-        ? (params.trackingData.mmPayTokenSelected ?? 'custom_token')
+        ? (params.trackingData.mmPayTokenSelected ?? 'unknown_token')
         : 'perps_balance';
 
     try {

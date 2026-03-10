@@ -573,7 +573,7 @@ Order execution is traced with a **payment_token** tag so you can build Sentry d
 - **payment_token** values:
   - `perps_balance` – order paid with existing Perps balance (no deposit in this flow)
   - Token symbol when paying with a custom token (e.g. `ETH`, `USDC`) – from `trackingData.mmPayTokenSelected`
-  - `custom_token` – pay with any token but symbol not set
+  - `unknown_token` – pay with any token but symbol not set
 
 ### Breadcrumbs: deposit vs order execution
 
