@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
@@ -57,14 +57,20 @@ describe('useHydrateRampsController', () => {
     jest.useRealTimers();
   });
 
-  it('does not call init when userRegion has regionCode', () => {
+  it('calls init when userRegion has regionCode (persisted-region fallback)', async () => {
     const store = createMockStore({ regionCode: 'us-ca' });
     renderHook(() => useHydrateRampsController(), {
       wrapper: wrapper(store),
     });
 
-    jest.advanceTimersByTime(6000);
-    expect(Engine.context.RampsController.init).not.toHaveBeenCalled();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(Engine.context.RampsController.init).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.RampsController.startOrderPolling,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('does not call init when userRegion has no regionCode but V2 disabled', () => {

@@ -9,11 +9,9 @@ const BACKUP_INIT_DELAY_MS = 5000;
 /**
  * Backup init for RampsController when Engine init may not have run or completed.
  *
- * When V2 is enabled and userRegion is still null after a delay, calls controller.init()
- * once. Engine (rampsControllerInit) is the primary init; this handles edge cases where
- * the React tree mounts before Engine finishes. init() is idempotent so duplicate
- * calls are safe.
- *
+ * When V2 is enabled: if userRegion exists (e.g. restored from persistence),
+ * calls init() immediately so tokens/providers load. If userRegion is null,
+ * schedules init() after a delay as a backup. init() is idempotent.
  * Should be called from a top-level component that mounts early (e.g. RampsBootstrap).
  */
 export function useHydrateRampsController(): void {
@@ -21,12 +19,24 @@ export function useHydrateRampsController(): void {
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
 
   useEffect(() => {
-    if (!isV2UnifiedEnabled || userRegion?.regionCode) {
+    if (!isV2UnifiedEnabled) {
+      return;
+    }
+
+    const { RampsController } = Engine.context;
+
+    if (userRegion?.regionCode) {
+      RampsController.init()
+        .then(() => {
+          RampsController.startOrderPolling();
+        })
+        .catch(() => {
+          // Error is stored in state
+        });
       return;
     }
 
     const timeoutId = setTimeout(() => {
-      const { RampsController } = Engine.context;
       if (RampsController.state.userRegion?.regionCode) {
         return;
       }
