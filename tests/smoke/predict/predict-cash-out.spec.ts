@@ -46,6 +46,7 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
@@ -64,10 +65,10 @@ describe(SmokePredictions('Predictions'), () => {
       },
       async ({ mockServer }) => {
         await loginToApp();
+        await device.disableSynchronization();
 
         await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
-
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         // Set up cash out mocks before tapping cash out
         // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh

@@ -24,6 +24,8 @@ const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };

@@ -60,6 +60,8 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
@@ -310,7 +312,6 @@ describe(SmokePredictions('Claim winnings:'), () => {
     );
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
   it('claim winnings via market details', async () => {
     await withFixtures(
       {
