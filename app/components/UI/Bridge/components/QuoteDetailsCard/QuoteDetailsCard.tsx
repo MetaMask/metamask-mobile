@@ -52,6 +52,7 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
+import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
 
 if (
   Platform.OS === 'android' &&
@@ -155,17 +156,29 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('bridge.rate')}
-          </Text>
-          <QuoteCountdownTimer />
-          <TouchableOpacity onPress={handleRatePress} testID="rate-info-button">
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </TouchableOpacity>
+          <KeyValueRowLabel
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            }
+            tooltip={{
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            }}
+          />
           <Box twClassName="flex-1 min-w-0">
             <Text
               variant={TextVariant.BodyMd}
