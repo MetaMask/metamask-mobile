@@ -828,9 +828,15 @@ export interface GetParsedMarketsOptions extends GetMarketsParams {
   teamLookup?: PolymarketTeamLookupFn;
 }
 
-export const getParsedMarketsFromPolymarketApi = async (
+export interface FetchEventsResult {
+  events: PolymarketApiEvent[];
+  category: PredictCategory;
+  isSearch: boolean;
+}
+
+export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
+): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
@@ -838,7 +844,6 @@ export const getParsedMarketsFromPolymarketApi = async (
     q,
     limit = 20,
     offset = 0,
-    teamLookup,
     customQueryParams,
   } = params || {};
   DevLogger.log(
@@ -911,13 +916,23 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
+  return { events, category, isSearch: !!q };
+};
+
+export const getParsedMarketsFromPolymarketApi = async (
+  params?: GetParsedMarketsOptions,
+): Promise<PredictMarket[]> => {
+  const { teamLookup } = params || {};
+  const { events, category, isSearch } =
+    await fetchEventsFromPolymarketApi(params);
+
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
     sortMarketsBy: 'price',
     teamLookup,
   });
 
-  if (q) {
+  if (isSearch) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);
   }
 

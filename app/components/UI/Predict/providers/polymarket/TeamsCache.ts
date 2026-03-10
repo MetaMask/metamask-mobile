@@ -16,6 +16,7 @@ export class TeamsCache {
   private cache: Map<PredictSportsLeague, Map<string, PolymarketApiTeam>> =
     new Map();
   private loadingPromises: Map<PredictSportsLeague, Promise<void>> = new Map();
+  private teamBatchLoadingPromises: Map<string, Promise<void>> = new Map();
 
   // eslint-disable-next-line no-empty-function
   private constructor() {}
@@ -56,6 +57,34 @@ export class TeamsCache {
     await Promise.all(leagues.map((league) => this.ensureLeagueLoaded(league)));
   }
 
+  async ensureTeamsLoaded(
+    league: PredictSportsLeague,
+    abbreviations: string[],
+  ): Promise<void> {
+    const uncached = [
+      ...new Set(abbreviations.map((a) => a.toLowerCase())),
+    ].filter((abbr) => !this.getTeam(league, abbr));
+
+    if (uncached.length === 0) {
+      return;
+    }
+
+    const key = `${league}:${uncached.sort().join(',')}`;
+    const existingPromise = this.teamBatchLoadingPromises.get(key);
+    if (existingPromise) {
+      return existingPromise;
+    }
+
+    const loadPromise = this.fetchAndCacheSpecificTeams(league, uncached);
+    this.teamBatchLoadingPromises.set(key, loadPromise);
+
+    try {
+      await loadPromise;
+    } finally {
+      this.teamBatchLoadingPromises.delete(key);
+    }
+  }
+
   getTeam(
     league: PredictSportsLeague,
     abbreviation: string,
@@ -74,6 +103,7 @@ export class TeamsCache {
   clear(): void {
     this.cache.clear();
     this.loadingPromises.clear();
+    this.teamBatchLoadingPromises.clear();
   }
 
   getTeamCount(league: PredictSportsLeague): number {
@@ -140,6 +170,82 @@ export class TeamsCache {
         provider: POLYMARKET_PROVIDER_ID,
         method: 'TeamsCache.fetchAndCacheTeams',
         league,
+      });
+    }
+  }
+
+  private async fetchAndCacheSpecificTeams(
+    league: PredictSportsLeague,
+    abbreviations: string[],
+  ): Promise<void> {
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const params = new URLSearchParams({ league });
+    abbreviations.forEach((abbr) => params.append('abbreviation', abbr));
+    const url = `${GAMMA_API_ENDPOINT}/teams?${params.toString()}`;
+
+    DevLogger.log(
+      `[TeamsCache] Fetching specific teams for league: ${league}, teams: ${abbreviations.join(', ')}`,
+    );
+
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        const errorMessage = `Failed to fetch specific teams for ${league}: ${response.status}`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: POLYMARKET_PROVIDER_ID,
+          method: 'TeamsCache.fetchAndCacheSpecificTeams',
+          league,
+          abbreviations,
+          statusCode: response.status,
+        });
+        return;
+      }
+
+      const teams: PolymarketApiTeam[] = await response.json();
+
+      if (!Array.isArray(teams)) {
+        const errorMessage = `Invalid response format for ${league} specific teams`;
+        DevLogger.log(`[TeamsCache] ${errorMessage}`);
+        Logger.error(new Error(errorMessage), {
+          feature: 'predict',
+          provider: POLYMARKET_PROVIDER_ID,
+          method: 'TeamsCache.fetchAndCacheSpecificTeams',
+          league,
+          abbreviations,
+        });
+        return;
+      }
+
+      let leagueCache = this.cache.get(league);
+      if (!leagueCache) {
+        leagueCache = new Map<string, PolymarketApiTeam>();
+        this.cache.set(league, leagueCache);
+      }
+
+      for (const team of teams) {
+        if (team.abbreviation) {
+          team.color = TEAM_COLOR_OVERRIDES[team.abbreviation] ?? team.color;
+          leagueCache.set(team.abbreviation.toLowerCase(), team);
+        }
+      }
+
+      DevLogger.log(
+        `[TeamsCache] Cached ${teams.length} specific teams for league: ${league}`,
+      );
+    } catch (error) {
+      DevLogger.log(
+        `[TeamsCache] Error fetching specific teams for ${league}:`,
+        error instanceof Error ? error.message : 'Unknown error',
+      );
+      Logger.error(error instanceof Error ? error : new Error(String(error)), {
+        feature: 'predict',
+        provider: POLYMARKET_PROVIDER_ID,
+        method: 'TeamsCache.fetchAndCacheSpecificTeams',
+        league,
+        abbreviations,
       });
     }
   }
