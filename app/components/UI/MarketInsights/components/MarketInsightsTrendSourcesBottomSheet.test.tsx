@@ -49,7 +49,6 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
         isVisible
         onClose={onClose}
         onSourcePress={onSourcePress}
-        trendTitle="Developer debates"
         articles={
           [
             {
@@ -73,7 +72,6 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
       />,
     );
 
-    expect(getByText('Developer debates')).toBeOnTheScreen();
     expect(getByText('coindesk.com')).toBeOnTheScreen();
     expect(getByText('@adam3us')).toBeOnTheScreen();
 
@@ -82,21 +80,5 @@ describe('MarketInsightsTrendSourcesBottomSheet', () => {
 
     fireEvent.press(getByText('@adam3us'));
     expect(onSourcePress).toHaveBeenCalledWith(tweetUrl);
-  });
-
-  it('renders safely when hidden and has no callbacks', () => {
-    const onClose = jest.fn();
-
-    const { queryByText } = renderWithProvider(
-      <MarketInsightsTrendSourcesBottomSheet
-        isVisible={false}
-        onClose={onClose}
-        trendTitle="Hidden"
-        articles={[] as never}
-        tweets={[] as never}
-      />,
-    );
-
-    expect(queryByText('Hidden')).toBeOnTheScreen();
   });
 });

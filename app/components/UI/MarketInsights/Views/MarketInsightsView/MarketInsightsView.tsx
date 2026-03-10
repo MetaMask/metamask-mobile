@@ -468,13 +468,12 @@ const MarketInsightsView: React.FC = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={3}
           >
             <Pressable
               onPress={handleThumbsUpPress}
               style={({ pressed }) =>
                 tw.style(
-                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
+                  'h-12 w-12 items-center justify-center',
                   pressed && 'opacity-70',
                 )
               }
@@ -490,7 +489,7 @@ const MarketInsightsView: React.FC = () => {
               onPress={handleThumbsDownPress}
               style={({ pressed }) =>
                 tw.style(
-                  'h-12 w-12 items-center justify-center rounded-full bg-muted',
+                  'h-12 w-12 items-center justify-center',
                   pressed && 'opacity-70',
                 )
               }
@@ -506,7 +505,7 @@ const MarketInsightsView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="pt-3"
+            twClassName="pt-1"
           >
             {strings('market_insights.helpful_prompt')}
           </Text>
@@ -536,7 +535,6 @@ const MarketInsightsView: React.FC = () => {
         <MarketInsightsTrendSourcesBottomSheet
           isVisible
           onClose={handleCloseTrendSources}
-          trendTitle={selectedTrend.title}
           articles={selectedTrend.articles}
           tweets={selectedTrend.tweets ?? []}
           onSourcePress={handleSourcePress}

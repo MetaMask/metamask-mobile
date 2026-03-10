@@ -206,9 +206,8 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
         {isSomethingElse ? (
           <Box twClassName="mt-5">
             <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               twClassName="mb-2"
             >
               {strings('market_insights.feedback.additional_feedback_label')}
@@ -224,13 +223,13 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
                 'market_insights.feedback.additional_feedback_placeholder',
               )}
               style={tw.style(
-                'min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-default',
+                'min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
               )}
               testID={MarketInsightsSelectorsIDs.FEEDBACK_ADDITIONAL_INPUT}
             />
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
+              color={TextColor.TextAlternative}
               twClassName="mt-2"
             >
               {strings('market_insights.feedback.characters_remaining', {
