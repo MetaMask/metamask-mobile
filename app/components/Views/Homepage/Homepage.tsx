@@ -13,6 +13,7 @@ import PredictionsSection from './Sections/Predictions';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import { SectionRefreshHandle } from './types';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
@@ -75,7 +76,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   return (
-    <Box gap={10} marginBottom={8} marginTop={4} testID="homepage-container">
+    <Box
+      gap={10}
+      marginBottom={8}
+      marginTop={4}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+    >
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
