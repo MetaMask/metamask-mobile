@@ -5,6 +5,7 @@ import {
   interceptProxyUrl,
   setupMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
   GET_QUOTE_ETH_USDC_RESPONSE_CUSTOM_SLIPPAGE,
@@ -73,6 +74,12 @@ export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
+
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    bridgeConfigV2: {
+      sse: { enabled: false },
+    },
+  });
 
   // ── SSE path (bridge-controller SSE feature flag ON) ──────────────────────
   // Catch-all for getQuoteStream with no slippage param (initial render before
