@@ -38,6 +38,10 @@ jest.mock('../../../../selectors/networkEnablementController', () => ({
   selectEVMEnabledNetworks: jest.fn(() => []),
 }));
 
+jest.mock('../../../../selectors/preferencesController', () => ({
+  selectUseNftDetection: jest.fn(() => true),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AccountTrackerController: {
@@ -73,8 +77,12 @@ describe('useBalanceRefresh', () => {
     const { selectEVMEnabledNetworks } = jest.requireMock(
       '../../../../selectors/networkEnablementController',
     );
+    const { selectUseNftDetection } = jest.requireMock(
+      '../../../../selectors/preferencesController',
+    );
     (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(true);
     (selectEVMEnabledNetworks as jest.Mock).mockReturnValue([]);
+    (selectUseNftDetection as jest.Mock).mockReturnValue(true);
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
     ).mockResolvedValue(undefined);
@@ -161,6 +169,23 @@ describe('useBalanceRefresh', () => {
       );
       (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(false);
       (selectEVMEnabledNetworks as jest.Mock).mockReturnValue(['0x1']);
+
+      const { result } = renderHook(() => useBalanceRefresh());
+
+      await act(async () => {
+        await result.current.refreshBalance();
+      });
+
+      expect(
+        Engine.context.NftDetectionController.detectNfts,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not call detectNfts when user has disabled NFT detection in settings', async () => {
+      const { selectUseNftDetection } = jest.requireMock(
+        '../../../../selectors/preferencesController',
+      );
+      (selectUseNftDetection as jest.Mock).mockReturnValue(false);
 
       const { result } = renderHook(() => useBalanceRefresh());
 

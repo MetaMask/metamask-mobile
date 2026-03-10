@@ -9,6 +9,7 @@ import {
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectHomepageSectionsV1Enabled } from '../../../../selectors/featureFlagController/homepage';
 import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectUseNftDetection } from '../../../../selectors/preferencesController';
 
 const REFRESH_TIMEOUT_MS = 5000;
 const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
@@ -31,6 +32,8 @@ export const useBalanceRefresh = () => {
   const isHomepageSectionsV1Enabled = useSelector(
     selectHomepageSectionsV1Enabled,
   );
+
+  const useNftDetection = useSelector(selectUseNftDetection);
 
   const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
 
@@ -82,7 +85,7 @@ export const useBalanceRefresh = () => {
           TokenBalancesController.updateBalances({
             chainIds: evmChainIdsForRefresh,
           }),
-          ...(isHomepageSectionsV1Enabled
+          ...(isHomepageSectionsV1Enabled && useNftDetection
             ? [NftDetectionController.detectNfts(evmChainIdsForRefresh)]
             : []),
         ]),
@@ -106,6 +109,7 @@ export const useBalanceRefresh = () => {
     evmChainIdsForRefresh,
     nativeCurrencies,
     isHomepageSectionsV1Enabled,
+    useNftDetection,
   ]);
 
   const handleRefresh = useCallback(async () => {
