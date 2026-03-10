@@ -2,7 +2,11 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
-import SharedDeeplinkManager, { DeeplinkManager } from './DeeplinkManager';
+import SharedDeeplinkManager, {
+  DeeplinkManager,
+  rewriteBranchUri,
+} from './DeeplinkManager';
+import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
@@ -282,6 +286,34 @@ describe('SharedDeeplinkManager', () => {
   });
 });
 
+describe('rewriteBranchUri', () => {
+  it('rewrites host and path to link.metamask.io and preserves query when +clicked_branch_link and $deeplink_path are set', () => {
+    const uri =
+      'https://metamask-alternate.app.link/1WkF6GmE40b?amount=100&from=0x';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      $deeplink_path: 'swap',
+    };
+    expect(rewriteBranchUri(uri, params)).toBe(
+      'https://link.metamask.io/swap?amount=100&from=0x',
+    );
+  });
+
+  it('returns uri unchanged when +clicked_branch_link is false', () => {
+    const uri = 'https://metamask.app.link/swap';
+    expect(
+      rewriteBranchUri(uri, { '+clicked_branch_link': false } as BranchParams),
+    ).toBe(uri);
+  });
+
+  it('returns uri unchanged when $deeplink_path is missing', () => {
+    const uri = 'https://metamask.app.link/swap';
+    expect(
+      rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
+    ).toBe(uri);
+  });
+});
+
 describe('DeeplinkManager.start Branch deeplink handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -304,15 +336,29 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
-  it('normalizes $deeplink_path by stripping leading slash (avoids triple-slash URL)', async () => {
+  it('rewrites cold start Branch link using $deeplink_path from getLatestReferringParams', async () => {
     (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
-      $deeplink_path: '/dapp/example.com',
+      '+clicked_branch_link': true,
+      $deeplink_path: 'swap',
+      '~referring_link':
+        'https://metamask-alternate.app.link/1WkF6GmE40b?amount=500',
     });
     DeeplinkManager.start();
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'metamask://dapp/example.com',
+      uri: 'https://link.metamask.io/swap?amount=500',
     });
+  });
+
+  it('falls back to +non_branch_link on cold start when +clicked_branch_link is false', async () => {
+    const mockDeeplink = 'https://link.metamask.io/home';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+non_branch_link': mockDeeplink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
   it('subscribes to Branch deeplink events', async () => {
@@ -330,17 +376,67 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
   });
 
-  it('normalizes $deeplink_path in subscribe path by stripping leading slash', async () => {
-    (branch.getLatestReferringParams as jest.Mock)
-      .mockResolvedValueOnce({}) // cold start
-      .mockResolvedValueOnce({ $deeplink_path: '/dapp/example.com' });
+  it('rewrites Branch short link to link.metamask.io when +clicked_branch_link and $deeplink_path are present', async () => {
     DeeplinkManager.start();
-    await new Promise((resolve) => setImmediate(resolve));
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
-    callback({ uri: 'https://metamask.app.link/something' });
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/1WkF6GmE40b?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'swap',
+      },
+    });
+
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: 'metamask://dapp/example.com',
+      uri: 'https://link.metamask.io/swap?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+    });
+  });
+
+  it('passes URI through unchanged when +clicked_branch_link is false', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://metamask.app.link/swap?amount=100';
+
+    callback({
+      uri: mockUri,
+      params: { '+clicked_branch_link': false },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('passes URI through unchanged when $deeplink_path is missing', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://metamask.app.link/swap?amount=100';
+
+    callback({
+      uri: mockUri,
+      params: { '+clicked_branch_link': true },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('strips leading slash from $deeplink_path when rewriting', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/ABC123',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: '/swap/token',
+      },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap/token',
     });
   });
 });
