@@ -29,6 +29,7 @@ export interface UsePredictPaymentTokenResult {
     chainId: string;
     symbol?: string;
   } | null;
+  resetSelectedPaymentToken: () => void;
 }
 
 export function usePredictPaymentToken({
@@ -41,6 +42,8 @@ export function usePredictPaymentToken({
   const hasInitializedSelectionRef = useRef(false);
   const previousSelectedTokenKeyRef = useRef<string | null>(null);
 
+  const { PredictController } = Engine.context;
+
   const onPaymentTokenChange = useCallback(
     (token: AssetType | null) => {
       if (!token) {
@@ -48,7 +51,7 @@ export function usePredictPaymentToken({
       }
 
       if (token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS) {
-        Engine.context.PredictController?.setSelectedPaymentToken(null);
+        PredictController.setSelectedPaymentToken(null);
         return;
       }
 
@@ -64,7 +67,7 @@ export function usePredictPaymentToken({
         });
       }
     },
-    [setPayToken, transactionMeta?.id],
+    [PredictController, setPayToken, transactionMeta?.id],
   );
 
   useEffect(() => {
@@ -124,9 +127,14 @@ export function usePredictPaymentToken({
     selectedPaymentToken?.address,
   ]);
 
+  const resetSelectedPaymentToken = useCallback(() => {
+    PredictController.setSelectedPaymentToken(null);
+  }, [PredictController]);
+
   return {
     onPaymentTokenChange,
     isPredictBalanceSelected,
     selectedPaymentToken,
+    resetSelectedPaymentToken,
   };
 }

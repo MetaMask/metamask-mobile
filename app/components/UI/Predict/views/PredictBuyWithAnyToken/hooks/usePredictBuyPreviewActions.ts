@@ -19,6 +19,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -42,6 +43,7 @@ export const usePredictBuyActions = ({
   const { updateActiveOrder, clearActiveOrder } = usePredictActiveOrder();
   const { navigateToBuyPreview } = usePredictNavigation();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
+  const { resetSelectedPaymentToken } = usePredictPaymentToken();
 
   const {
     market,
@@ -215,6 +217,10 @@ export const usePredictBuyActions = ({
     navigation.dispatch(StackActions.pop());
   }, [clearActiveOrder, navigation]);
 
+  const handlePlaceOrderError = useCallback(() => {
+    resetSelectedPaymentToken();
+  }, [resetSelectedPaymentToken]);
+
   return {
     handleBack,
     handleBackSwipe,
@@ -222,5 +228,6 @@ export const usePredictBuyActions = ({
     handleConfirm,
     handleDepositFailed,
     handlePlaceOrderSuccess,
+    handlePlaceOrderError,
   };
 };

@@ -48,6 +48,7 @@ import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags'
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
+import { usePredictOrderTracking } from './hooks/usePredictOrderTracking';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -144,6 +145,7 @@ const PredictBuyWithAnyToken = () => {
     handleConfirm,
     handleDepositFailed,
     handlePlaceOrderSuccess,
+    handlePlaceOrderError,
   } = usePredictBuyActions({
     currentValue,
     analyticsProperties,
@@ -208,11 +210,12 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
-  useEffect(() => {
-    if (result?.success) {
-      handlePlaceOrderSuccess();
-    }
-  }, [handlePlaceOrderSuccess, result]);
+  usePredictOrderTracking({
+    result,
+    error: placeOrderError,
+    onSuccess: handlePlaceOrderSuccess,
+    onError: handlePlaceOrderError,
+  });
 
   const edges = useMemo(
     () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
