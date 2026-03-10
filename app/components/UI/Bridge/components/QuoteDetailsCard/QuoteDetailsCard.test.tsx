@@ -602,18 +602,26 @@ describe('QuoteDetailsCard', () => {
     });
   });
 
-  it('navigates to quote selector when rate info button is pressed', () => {
-    const { getByTestId } = renderScreen(
+  it('opens rate tooltip modal when rate info icon is pressed', () => {
+    const { getByLabelText } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    fireEvent.press(getByTestId('rate-info-button'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+    fireEvent.press(
+      getByLabelText(`${strings('bridge.quote_info_title')} tooltip`),
     );
+
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'tooltipModal',
+      params: {
+        title: strings('bridge.quote_info_title'),
+        tooltip: strings('bridge.quote_info_content'),
+        footerText: undefined,
+        buttonText: undefined,
+      },
+    });
   });
 
   it('navigates to quote selector when rate arrow button is pressed', () => {
