@@ -43,9 +43,7 @@ import { DEFAULT_FEE_COLLECTION_FLAG } from '../../constants/flags';
 import type { PredictFeatureFlags } from '../../types/flags';
 import {
   extractNeededTeamsFromEvents,
-  getEventLeague,
   isLiveSportsEvent,
-  parseGameSlugTeams,
 } from '../../utils/gameParser';
 import { OrderPreview, PlaceOrderParams } from '../types';
 import { PolymarketProvider } from './PolymarketProvider';
@@ -161,6 +159,8 @@ jest.mock('./GameCache', () => ({
 
 jest.mock('../../constants/sports', () => ({
   SUPPORTED_SPORTS_LEAGUES: ['nfl'],
+  filterSupportedLeagues: (leagues: string[]) =>
+    leagues.filter((l) => ['nfl'].includes(l)),
 }));
 
 const mockTeamsCacheInstance = {
@@ -243,8 +243,6 @@ const mockGetBalance = getBalance as jest.Mock;
 const mockIsLiveSportsEvent = isLiveSportsEvent as jest.Mock;
 const mockExtractNeededTeamsFromEvents =
   extractNeededTeamsFromEvents as jest.Mock;
-const mockGetEventLeague = getEventLeague as jest.Mock;
-const mockParseGameSlugTeams = parseGameSlugTeams as jest.Mock;
 
 describe('PolymarketProvider', () => {
   const defaultFeatureFlags: PredictFeatureFlags = {
@@ -7380,12 +7378,9 @@ describe('PolymarketProvider', () => {
           providerId: POLYMARKET_PROVIDER_ID,
         };
         mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
-        mockGetEventLeague.mockReturnValue('nfl');
-        mockParseGameSlugTeams.mockReturnValue({
-          awayAbbreviation: 'sea',
-          homeAbbreviation: 'den',
-          dateString: '2024-01-15',
-        });
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
         mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
 
         await provider.getMarketDetails({ marketId: 'market-1' });
@@ -7414,12 +7409,9 @@ describe('PolymarketProvider', () => {
           gameData: { score: '1-0', status: 'live', elapsed: '45:00' },
         };
         mockGetMarketDetailsFromGammaApi.mockResolvedValue(mockEvent);
-        mockGetEventLeague.mockReturnValue('nfl');
-        mockParseGameSlugTeams.mockReturnValue({
-          awayAbbreviation: 'sea',
-          homeAbbreviation: 'den',
-          dateString: '2024-01-15',
-        });
+        mockExtractNeededTeamsFromEvents.mockReturnValue(
+          new Map([['nfl', ['sea', 'den']]]),
+        );
         mockParsePolymarketEvents.mockReturnValue([parsedMarket]);
         mockGameCacheInstance.overlayOnMarket.mockReturnValue(overlaidMarket);
 
