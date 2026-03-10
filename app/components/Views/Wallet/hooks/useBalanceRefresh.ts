@@ -82,7 +82,9 @@ export const useBalanceRefresh = () => {
           TokenBalancesController.updateBalances({
             chainIds: evmChainIdsForRefresh,
           }),
-          NftDetectionController.detectNfts(evmChainIdsForRefresh),
+          ...(isHomepageSectionsV1Enabled
+            ? [NftDetectionController.detectNfts(evmChainIdsForRefresh)]
+            : []),
         ]),
         new Promise((_, reject) =>
           setTimeout(
@@ -103,6 +105,7 @@ export const useBalanceRefresh = () => {
     evmNetworkConfigurationsFiltered,
     evmChainIdsForRefresh,
     nativeCurrencies,
+    isHomepageSectionsV1Enabled,
   ]);
 
   const handleRefresh = useCallback(async () => {

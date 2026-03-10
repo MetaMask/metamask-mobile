@@ -67,6 +67,14 @@ describe('useBalanceRefresh', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPopularEvmNetworks = ['0x1', '0x89'];
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../../selectors/featureFlagController/homepage',
+    );
+    const { selectEVMEnabledNetworks } = jest.requireMock(
+      '../../../../selectors/networkEnablementController',
+    );
+    (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(true);
+    (selectEVMEnabledNetworks as jest.Mock).mockReturnValue([]);
     (
       Engine.context.AccountTrackerController.refresh as jest.Mock
     ).mockResolvedValue(undefined);
@@ -131,40 +139,39 @@ describe('useBalanceRefresh', () => {
     ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
   });
 
-  it('calls NftDetectionController.detectNfts with popular chain IDs when sections v1 is enabled', async () => {
-    const { result } = renderHook(() => useBalanceRefresh());
+  describe('NftDetectionController', () => {
+    it('calls detectNfts with popular chain IDs when sections v1 is enabled', async () => {
+      const { result } = renderHook(() => useBalanceRefresh());
 
-    await act(async () => {
-      await result.current.refreshBalance();
+      await act(async () => {
+        await result.current.refreshBalance();
+      });
+
+      expect(
+        Engine.context.NftDetectionController.detectNfts,
+      ).toHaveBeenCalledWith(['0x1', '0x89']);
     });
 
-    expect(
-      Engine.context.NftDetectionController.detectNfts,
-    ).toHaveBeenCalledWith(['0x1', '0x89']);
-  });
+    it('does not call detectNfts when sections v1 is disabled', async () => {
+      const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+        '../../../../selectors/featureFlagController/homepage',
+      );
+      const { selectEVMEnabledNetworks } = jest.requireMock(
+        '../../../../selectors/networkEnablementController',
+      );
+      (selectHomepageSectionsV1Enabled as jest.Mock).mockReturnValue(false);
+      (selectEVMEnabledNetworks as jest.Mock).mockReturnValue(['0x1']);
 
-  it('calls NftDetectionController.detectNfts with enabled chain IDs when sections v1 is disabled', async () => {
-    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
-      '../../../../selectors/featureFlagController/homepage',
-    );
-    const { selectEVMEnabledNetworks } = jest.requireMock(
-      '../../../../selectors/networkEnablementController',
-    );
-    selectHomepageSectionsV1Enabled.mockReturnValue(false);
-    selectEVMEnabledNetworks.mockReturnValue(['0x1']);
+      const { result } = renderHook(() => useBalanceRefresh());
 
-    const { result } = renderHook(() => useBalanceRefresh());
+      await act(async () => {
+        await result.current.refreshBalance();
+      });
 
-    await act(async () => {
-      await result.current.refreshBalance();
+      expect(
+        Engine.context.NftDetectionController.detectNfts,
+      ).not.toHaveBeenCalled();
     });
-
-    expect(
-      Engine.context.NftDetectionController.detectNfts,
-    ).toHaveBeenCalledWith(['0x1']);
-
-    selectHomepageSectionsV1Enabled.mockReturnValue(true);
-    selectEVMEnabledNetworks.mockReturnValue([]);
   });
 
   it('calls CurrencyRateController.updateExchangeRate with native currencies', async () => {
