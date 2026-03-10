@@ -1,7 +1,12 @@
 import React, { useCallback } from 'react';
 import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
-import Text from '../../../../Base/Text';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import Box from './Box';
 import { useTheme } from '../../../../../util/theme';
@@ -77,15 +82,24 @@ const RegionAlert: React.FC<Props> = ({
           <EvilIcons name="close" size={17} color={colors.icon.default} />
         </TouchableOpacity>
         <View style={styles.row}>
-          <Text bold primary bigger>
+          <Text
+            fontWeight={FontWeight.Bold}
+            color={TextColor.TextDefault}
+            variant={TextVariant.BodyLg}
+          >
             {title}
           </Text>
-          <Text black>{subtitle}</Text>
+          <Text color={TextColor.TextDefault}>{subtitle}</Text>
           <View style={styles.row}>
-            <Text small>{body}</Text>
+            <Text variant={TextVariant.BodySm}>{body}</Text>
           </View>
           <TouchableOpacity onPress={handleSupportLinkPress}>
-            <Text blue underline small style={styles.link}>
+            <Text
+              color={TextColor.PrimaryDefault}
+              variant={TextVariant.BodySm}
+              style={styles.link}
+              twClassName="underline"
+            >
               {link}
             </Text>
           </TouchableOpacity>
