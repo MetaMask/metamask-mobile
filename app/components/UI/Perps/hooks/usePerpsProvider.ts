@@ -4,7 +4,6 @@ import Engine from '../../../../core/Engine';
 import { selectPerpsProvider } from '../selectors/perpsController';
 import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import type {
-  PerpsProviderType,
   PerpsActiveProviderMode,
   SwitchProviderResult,
 } from '@metamask/perps-controller';
@@ -24,11 +23,12 @@ export function usePerpsProvider() {
   /**
    * Get list of available providers based on feature flags
    */
-  const availableProviders = useMemo((): PerpsProviderType[] => {
-    const providers: PerpsProviderType[] = ['hyperliquid'];
+  const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
+    const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
 
     if (isMYXProviderEnabled) {
       providers.push('myx');
+      providers.push('aggregated');
     }
 
     return providers;
@@ -51,7 +51,7 @@ export function usePerpsProvider() {
    * Check if a specific provider is available
    */
   const isProviderAvailable = useCallback(
-    (providerId: PerpsProviderType): boolean =>
+    (providerId: PerpsActiveProviderMode): boolean =>
       availableProviders.includes(providerId),
     [availableProviders],
   );

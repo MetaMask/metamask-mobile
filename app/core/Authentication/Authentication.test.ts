@@ -37,7 +37,10 @@ import {
   logIn,
   passwordSet,
 } from '../../actions/user';
-import { setCompletedOnboarding } from '../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  clearAccountType,
+} from '../../actions/onboarding';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -730,7 +733,7 @@ describe('Authentication', () => {
       jest.replaceProperty(Platform, 'OS', 'ios'); // restore default for other tests
     });
 
-    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC', async () => {
+    it('returns authType unchanged when Platform.OS is ios but authType is not BIOMETRIC or DEVICE_AUTHENTICATION', async () => {
       jest.replaceProperty(Platform, 'OS', 'ios');
 
       const passcodeResult =
@@ -782,6 +785,48 @@ describe('Authentication', () => {
 
       const result = await Authentication.requestBiometricsAccessControlForIOS(
         AUTHENTICATION_TYPE.BIOMETRIC,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns authType when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync succeeds', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: true });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync returns success false', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockResolvedValue({ success: false });
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+
+      expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
+      expect(mockAuthenticateAsync).toHaveBeenCalledWith({
+        disableDeviceFallback: true,
+      });
+    });
+
+    it('returns PASSWORD when Platform.OS is ios and authType is DEVICE_AUTHENTICATION and authenticateAsync throws', async () => {
+      jest.replaceProperty(Platform, 'OS', 'ios');
+      mockAuthenticateAsync.mockRejectedValue(new Error('User cancelled'));
+
+      const result = await Authentication.requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       );
 
       expect(result).toBe(AUTHENTICATION_TYPE.PASSWORD);
@@ -3615,6 +3660,7 @@ describe('Authentication', () => {
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
         setCompletedOnboarding(false),
       );
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearAccountType());
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });

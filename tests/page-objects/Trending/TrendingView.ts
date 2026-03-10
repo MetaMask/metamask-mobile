@@ -143,6 +143,7 @@ class TrendingView {
   private getSectionId(sectionTitle: string): string {
     const sectionIdMap: Record<string, string> = {
       'Trending tokens': 'tokens',
+      Stocks: 'stocks',
       Sites: 'sites',
       Predictions: 'predictions',
       Perps: 'perps',
@@ -194,6 +195,7 @@ class TrendingView {
 
     await Gestures.tap(quickActionButton, {
       elemDescription: `Tap QuickAction button for ${sectionTitle}`,
+      checkStability: true, // Wait for element to stop moving after horizontal scroll
     });
   }
 
@@ -203,13 +205,9 @@ class TrendingView {
       `section-header-view-all-${id}`,
     );
 
-    // Determine scroll direction: Predictions and Trending tokens are usually near top
-    // But scrollToElement can handle both directions, so we try 'up' first for top sections
-    // and it will automatically adjust if needed
-    const direction =
-      sectionTitle === 'Predictions' || sectionTitle === 'Trending tokens'
-        ? 'up'
-        : 'down';
+    // Trending tokens is at the top of the feed; scroll up to find it.
+    // All other sections (stocks, perps, predictions, sites) are below.
+    const direction = sectionTitle === 'Trending tokens' ? 'up' : 'down';
 
     // Use generic scroll method
     await this.scrollToElementInFeed(
@@ -220,6 +218,7 @@ class TrendingView {
 
     await Gestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
+      checkStability: true, // Wait for element to stop moving after scroll
     });
   }
 

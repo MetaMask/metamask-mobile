@@ -98,6 +98,12 @@ const isUrlAllowed = (url: string): boolean => {
       return true;
     }
 
+    // Malformed npm: package URIs that leak through the snap proxy
+    // e.g. https://https//npm:@metamask/... or npm:@metamask/...
+    if (/^(?:https?:\/\/.*)?npm[:@]@?metamask\//.test(url)) {
+      return true;
+    }
+
     const parsedUrl = new URL(url);
     const hostname = parsedUrl.hostname;
 
@@ -162,6 +168,9 @@ export default class MockServerE2E implements Resource {
   private _testSpecificMock?: TestSpecificMock;
   private _activeRequests = 0;
   private _shuttingDown = false;
+  private _abortFilterHandler: ((...args: unknown[]) => void) | null = null;
+  private _abortSuppressCount = 0;
+  private _originalRejectionHandlers: ((...args: unknown[]) => void)[] = [];
 
   constructor(params: {
     events: MockEventsObject;
@@ -326,7 +335,10 @@ export default class MockServerE2E implements Resource {
 
             return {
               statusCode: matchingEvent.responseCode,
-              body: JSON.stringify(matchingEvent.response),
+              body:
+                typeof matchingEvent.response === 'string'
+                  ? matchingEvent.response
+                  : JSON.stringify(matchingEvent.response),
             };
           }
 
@@ -356,12 +368,22 @@ export default class MockServerE2E implements Resource {
             }
           }
 
-          return handleDirectFetch(
-            updatedUrl,
-            method,
-            request.headers,
-            method === 'POST' ? requestBodyText : undefined,
-          );
+          try {
+            return await handleDirectFetch(
+              updatedUrl,
+              method,
+              request.headers,
+              method === 'POST' ? requestBodyText : undefined,
+            );
+          } catch (error) {
+            // Client dropped the connection before we could respond (e.g. bridge
+            // controller AbortController fired mid-request). Return a benign
+            // response so mockttp doesn't surface an unhandled rejection.
+            if (error instanceof Error && error.message === 'Aborted') {
+              return { statusCode: 499, body: '' };
+            }
+            throw error;
+          }
         } finally {
           this._activeRequests--;
         }
@@ -404,7 +426,17 @@ export default class MockServerE2E implements Resource {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
           this._server?._liveRequests?.push({
             url: translatedUrl,
@@ -414,22 +446,63 @@ export default class MockServerE2E implements Resource {
         } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
           logger.warn(`Allowed URL: ${translatedUrl}`);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
         }
 
-        return handleDirectFetch(
-          translatedUrl,
-          request.method,
-          request.headers,
-          await request.body.getText(),
-        );
+        try {
+          return await handleDirectFetch(
+            translatedUrl,
+            request.method,
+            request.headers,
+            await request.body.getText(),
+          );
+        } catch (error) {
+          // Client dropped the connection before we could respond (e.g. bridge
+          // controller AbortController fired mid-request). Return a benign
+          // response so mockttp doesn't surface an unhandled rejection.
+          if (error instanceof Error && error.message === 'Aborted') {
+            return { statusCode: 499, body: '' };
+          }
+          throw error;
+        }
       } finally {
         this._activeRequests--;
       }
     });
 
     this._serverStatus = ServerStatus.STARTED;
+    this._installAbortFilter();
+  }
+
+  /**
+   * Puts the server into draining mode — handlers return 503 immediately
+   * without forwarding. Call this before stopping backend services (Anvil/Ganache)
+   * to prevent forwarding requests to dead backends during cleanup.
+   */
+  startDraining(): void {
+    logger.info(
+      'MockServer entering drain mode — new requests will receive 503',
+    );
+    this._shuttingDown = true;
+  }
+
+  /**
+   * Removes the lifecycle-wide abort filter. Call this AFTER all cleanup is
+   * complete to ensure late async "Aborted" rejections are caught.
+   */
+  removeAbortFilter(): void {
+    this._removeAbortFilter();
   }
 
   async stop(): Promise<void> {
@@ -453,7 +526,12 @@ export default class MockServerE2E implements Resource {
     await this._waitForActiveRequests();
 
     try {
-      await this._stopServerSuppressingAbortErrors();
+      if (this._server) {
+        await this._server.stop();
+      }
+      // Brief drain period: 'aborted' events from destroyed sockets may fire
+      // asynchronously on the next event-loop tick after `stop()` resolves.
+      await new Promise((resolve) => setTimeout(resolve, 150));
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
@@ -468,33 +546,35 @@ export default class MockServerE2E implements Resource {
   }
 
   /**
-   * Stops the mockttp server while suppressing "Aborted" unhandled promise rejections.
+   * Installs a lifecycle-wide filter for mockttp "Aborted" unhandled promise rejections.
    *
-   * When mockttp's `server.stop()` is called, its underlying `destroyable-server` immediately
-   * destroys all TCP connections via `socket.destroy()`. Any `IncomingMessage` whose body was
-   * being streamed through mockttp's `streamToBuffer` (buffer-utils.ts) will emit 'aborted',
-   * causing the buffer promise to reject with `Error('Aborted')`.
+   * When the app unexpectedly drops connections during a test (e.g., UI transitions,
+   * RN bridge interruptions), mockttp's internal `streamToBuffer` rejects with
+   * `Error('Aborted')` from `buffer-utils.ts`. Since this happens in mockttp's pipeline
+   * before reaching our handler callback, the rejection is unhandled and Jest catches it
+   * as a test failure.
    *
-   * There is a race window where requests have entered mockttp's internal pipeline
-   * (CallbackHandler.handle → waitForCompletedRequest → streamToBuffer) but have not yet
-   * reached our callback (so `_activeRequests` hasn't been incremented). For these requests,
-   * `_waitForActiveRequests()` sees zero active requests and proceeds with `stop()`, but the
-   * body buffering is still in progress. When the socket is destroyed, the buffer promise
-   * rejects and Jest catches it as an unhandled rejection, failing the test suite.
-   *
-   * This method temporarily replaces the process `unhandledRejection` handlers with a filter
-   * that suppresses "Aborted" errors originating from mockttp's buffer-utils (verified via
-   * stack trace), forwarding all other rejections to the original handlers.
-   * After the server is stopped and a brief drain period elapses, the original handlers are
-   * restored along with any handlers that were added by other code during the shutdown window.
+   * This filter is active for the entire server lifecycle (start → stop), not just
+   * during shutdown. It removes all existing `unhandledRejection` handlers (e.g. Jest's)
+   * and replaces them with a single filter that suppresses mockttp Aborted errors and
+   * forwards everything else to the original handlers. This ensures Jest never sees
+   * the Aborted rejections.
    */
-  private async _stopServerSuppressingAbortErrors(): Promise<void> {
-    // Snapshot current handlers so we can restore them after shutdown.
-    const originalHandlers = process.rawListeners('unhandledRejection').slice();
+  private _installAbortFilter(): void {
+    if (this._abortFilterHandler) {
+      return; // Already installed
+    }
+
+    this._abortSuppressCount = 0;
+
+    // Snapshot and remove all existing handlers so Jest never sees Aborted errors.
+    this._originalRejectionHandlers = process
+      .rawListeners('unhandledRejection')
+      .slice() as ((...args: unknown[]) => void)[];
     process.removeAllListeners('unhandledRejection');
 
-    let suppressCount = 0;
-    const filterHandler = (reason: unknown, promise: Promise<unknown>) => {
+    this._abortFilterHandler = (reason: unknown, promise: unknown) => {
+      const rejectedPromise = promise as Promise<unknown>;
       if (
         reason instanceof Error &&
         reason.message === 'Aborted' &&
@@ -502,22 +582,19 @@ export default class MockServerE2E implements Resource {
       ) {
         // Mark the promise as handled so Node.js does not consider it unhandled.
         // eslint-disable-next-line no-empty-function
-        promise.catch(() => {});
-        suppressCount++;
+        rejectedPromise.catch(() => {});
+        this._abortSuppressCount++;
         return;
       }
+
       // Forward any other unhandled rejection to the original handlers (e.g. Jest).
-      if (originalHandlers.length === 0) {
-        // No original handlers were registered. Since our filterHandler is a
-        // registered listener, Node considers the rejection "handled" and skips
-        // its default behaviour (warning + exit). Re-throw so the rejection
-        // surfaces as an uncaught exception instead of being silently dropped.
+      if (this._originalRejectionHandlers.length === 0) {
         throw reason;
       }
       let firstError: unknown;
-      for (const handler of originalHandlers) {
+      for (const handler of this._originalRejectionHandlers) {
         try {
-          (handler as (...args: unknown[]) => void)(reason, promise);
+          handler(reason, rejectedPromise);
         } catch (err) {
           if (firstError === undefined) {
             firstError = err;
@@ -528,40 +605,49 @@ export default class MockServerE2E implements Resource {
         throw firstError;
       }
     };
-    process.on('unhandledRejection', filterHandler);
 
-    try {
-      if (this._server) {
-        await this._server.stop();
-      }
-      // Brief drain period: 'aborted' events from destroyed sockets may fire
-      // asynchronously on the next event-loop tick after `stop()` resolves.
-      await new Promise((resolve) => setTimeout(resolve, 150));
-    } finally {
-      // Preserve any handlers that were added by other code during the
-      // shutdown window so they are not permanently lost.
-      const currentHandlers = process
-        .rawListeners('unhandledRejection')
-        .slice();
-      const addedDuringShutdown = currentHandlers.filter(
-        (h) => h !== filterHandler && !originalHandlers.includes(h),
-      );
+    process.on('unhandledRejection', this._abortFilterHandler);
+    logger.debug('Installed lifecycle-wide Aborted error filter');
+  }
 
-      // Remove all and restore: originals first, then any newly added handlers.
-      process.removeAllListeners('unhandledRejection');
-      for (const handler of [...originalHandlers, ...addedDuringShutdown]) {
-        process.on(
-          'unhandledRejection',
-          handler as (...args: unknown[]) => void,
-        );
-      }
-
-      if (suppressCount > 0) {
-        logger.info(
-          `Suppressed ${suppressCount} "Aborted" rejection(s) during mock server shutdown`,
-        );
-      }
+  /**
+   * Removes the lifecycle-wide Aborted error filter and restores original handlers.
+   * Any handlers added by other code during the filter's lifetime are preserved.
+   */
+  private _removeAbortFilter(): void {
+    if (!this._abortFilterHandler) {
+      return;
     }
+
+    // Preserve any handlers that were added by other code during the
+    // filter's lifetime so they are not permanently lost.
+    const currentHandlers = process.rawListeners('unhandledRejection').slice();
+    const addedDuringLifecycle = currentHandlers.filter(
+      (h) =>
+        h !== this._abortFilterHandler &&
+        !this._originalRejectionHandlers.includes(
+          h as (...args: unknown[]) => void,
+        ),
+    );
+
+    // Remove all and restore: originals first, then any newly added handlers.
+    process.removeAllListeners('unhandledRejection');
+    for (const handler of [
+      ...this._originalRejectionHandlers,
+      ...(addedDuringLifecycle as ((...args: unknown[]) => void)[]),
+    ]) {
+      process.on('unhandledRejection', handler);
+    }
+
+    this._abortFilterHandler = null;
+    this._originalRejectionHandlers = [];
+
+    if (this._abortSuppressCount > 0) {
+      logger.info(
+        `Suppressed ${this._abortSuppressCount} mockttp "Aborted" rejection(s) during server lifecycle`,
+      );
+    }
+    this._abortSuppressCount = 0;
   }
 
   /**

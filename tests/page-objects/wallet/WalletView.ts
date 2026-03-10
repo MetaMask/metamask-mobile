@@ -14,6 +14,15 @@ import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 8;
@@ -100,8 +109,15 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
   }
 
-  get totalBalance(): DetoxElement | DetoxMatcher {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+  get totalBalance(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
+        ),
+    });
   }
 
   get accountName(): DetoxElement {
@@ -218,6 +234,13 @@ class WalletView {
     await Assertions.expectElementToBeVisible(elem, {
       description: `${tokenLabel} token in wallet list`,
     });
+    // Wait for the token list to finish loading/reordering before tapping.
+    // New tokens appearing asynchronously can shift positions mid-tap.
+    await Utilities.waitForElementToStopMoving(elem, {
+      timeout: 5000,
+      interval: 500,
+      stableCount: 6,
+    });
     await Gestures.waitAndTap(elem, {
       elemDescription: 'Token',
     });
@@ -226,7 +249,6 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await Gestures.waitAndTap(this.accountIcon, {
       elemDescription: 'Top Account Icon',
-      checkStability: true,
     });
   }
 
@@ -565,9 +587,99 @@ class WalletView {
     });
   }
 
+  async waitForBalanceToStabilize(
+    options: {
+      maxWaitTime?: number;
+      pollInterval?: number;
+      sameResultTimeout?: number;
+    } = {},
+  ): Promise<string> {
+    const {
+      maxWaitTime = 60000,
+      pollInterval = 100,
+      sameResultTimeout = 8000,
+    } = options;
+
+    let result = '';
+    await encapsulatedAction({
+      appium: async () => {
+        const startTime = Date.now();
+        const isIOS = await PlatformDetector.isIOS();
+
+        if (isIOS) {
+          // iOS: Element lookups are extremely slow (15-30s each).
+          // Skip stability loop and just wait for a valid balance once.
+          let previousBalance = '';
+          while (Date.now() - startTime < maxWaitTime) {
+            try {
+              const balanceEl = await asPlaywrightElement(this.totalBalance);
+              const rawBalance = await balanceEl.textContent();
+              const balance = (rawBalance || '').trim();
+              previousBalance = balance;
+
+              if (balance && balance !== '' && balance !== '$0.00') {
+                result = balance;
+                return;
+              }
+            } catch {
+              // Element not found yet, retry
+            }
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+          result = previousBalance;
+          return;
+        }
+
+        // Android: Fast element lookups, use stability polling
+        let previousBalance = '';
+        let sameResultStartTime: number | null = null;
+
+        while (true) {
+          if (Date.now() - startTime > maxWaitTime) {
+            result = previousBalance;
+            return;
+          }
+
+          let currentBalance: string;
+          try {
+            const balanceEl = await asPlaywrightElement(this.totalBalance);
+            const rawBalance = await balanceEl.textContent();
+            currentBalance = (rawBalance || '').trim();
+          } catch {
+            await new Promise((r) => setTimeout(r, pollInterval));
+            continue;
+          }
+
+          if (
+            !currentBalance ||
+            currentBalance === '' ||
+            currentBalance === '$0.00'
+          ) {
+            await new Promise((r) => setTimeout(r, pollInterval));
+            continue;
+          }
+
+          if (currentBalance === previousBalance && sameResultStartTime) {
+            const timeSinceSameResult = Date.now() - sameResultStartTime;
+            if (timeSinceSameResult >= sameResultTimeout) {
+              result = currentBalance;
+              return;
+            }
+          } else {
+            sameResultStartTime = Date.now();
+            previousBalance = currentBalance;
+          }
+
+          await new Promise((r) => setTimeout(r, pollInterval));
+        }
+      },
+    });
+    return result;
+  }
+
   // TODO test this
   async getBalanceText(): Promise<string> {
-    const balanceElement = this.totalBalance;
+    const balanceElement = asDetoxElement(this.totalBalance);
     await Assertions.expectElementToBeVisible(balanceElement);
 
     const elem = await balanceElement;

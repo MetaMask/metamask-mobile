@@ -38,6 +38,7 @@ export function getBridgeStatusControllerMessenger(
       'SnapController:handleRequest',
       'TransactionController:getState',
       'RemoteFeatureFlagController:getState',
+      'AuthenticationController:getBearerToken',
     ],
     events: [
       'TransactionController:transactionConfirmed',

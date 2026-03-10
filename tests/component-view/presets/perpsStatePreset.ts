@@ -19,6 +19,7 @@ const defaultPerpsControllerState = {
   selectedPaymentToken: null,
   activeProvider: 'hyperliquid' as const,
   isTestnet: false,
+  withdrawalRequests: [] as unknown[],
 };
 
 /**
@@ -28,6 +29,11 @@ const defaultPerpsControllerState = {
 export const initialStatePerps = () =>
   createStateFixture()
     .withMinimalAccounts()
+    .withMinimalKeyringController()
+    .withMinimalTokenRates()
+    .withMinimalMultichainBalances()
+    .withMinimalMultichainAssets()
+    .withMinimalMultichainAssetsRates()
     .withMinimalMainnetNetwork()
     .withMinimalMultichainNetwork(true)
     .withRemoteFeatureFlags({
@@ -47,12 +53,24 @@ export const initialStatePerps = () =>
           },
           PreferencesController: {
             selectedAddress: '0x1234567890abcdef',
+            // useTokensWithBalance -> sortAssets expects tokenSortConfig.key
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
           },
           // PerpsMarketBalanceActions -> usePerpsHomeActions -> useConfirmNavigation reads TransactionController
           TransactionController: {
             transactions: [],
             transactionBatches: [],
           },
+          // usePerpsPaymentTokens -> useTokensWithBalance reads TokenBalancesController
+          TokenBalancesController: { tokenBalances: {} },
+          // HeroCardView -> useReferralDetails/useSeasonStatus -> selectRewardsSubscriptionId reads RewardsController
+          RewardsController: {
+            activeAccount: null,
+          } as Record<string, unknown>,
         },
       },
     } as unknown as DeepPartial<RootState>);

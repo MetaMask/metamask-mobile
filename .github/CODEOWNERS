@@ -70,8 +70,11 @@ app/selectors/rampsController                          @MetaMask/ramp
 **/ramps/**                                             @MetaMask/ramp
 
 # Card Team
-app/components/UI/Card/              @MetaMask/card
-app/core/redux/slices/card/          @MetaMask/card
+app/components/UI/Card/                                    @MetaMask/card
+app/core/redux/slices/card/                                @MetaMask/card
+app/core/Engine/controllers/card-controller                @MetaMask/card
+app/core/Engine/messengers/card-controller-messenger       @MetaMask/card
+app/selectors/cardController.ts                            @MetaMask/card
 
 # Confirmation Team
 app/components/Views/confirmations                          @MetaMask/confirmations
@@ -100,6 +103,10 @@ app/util/walletconnect.js                                   @MetaMask/wallet-int
 # Accounts Team
 app/core/Encryptor/                                         @MetaMask/accounts-engineers
 app/core/Engine/controllers/accounts-controller             @MetaMask/accounts-engineers
+app/core/Engine/controllers/multichain-account-service      @MetaMask/accounts-engineers
+app/core/Engine/controllers/snap-keyring                    @MetaMask/accounts-engineers
+app/core/Engine/controllers/keyring-controller              @MetaMask/accounts-engineers
+app/core/Engine/controllers/storage-service                 @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
@@ -107,7 +114,6 @@ app/core/SnapKeyring                                        @MetaMask/accounts-e
 
 # Co-owned by accounts and mobile-core-ux
 app/components/Views/AccountSelector                        @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
-app/components/UI/EvmAccountSelectorList                    @MetaMask/accounts-engineers @MetaMask/mobile-core-ux
 
 # Multichain Accounts
 **/multichain-accounts/**                                   @MetaMask/accounts-engineers

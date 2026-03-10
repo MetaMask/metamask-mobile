@@ -16,6 +16,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock AssetPollingProvider to avoid Engine/controller polling setup
+jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
+  AssetPollingProvider: () => null,
+}));
+
 // Mock Tokens component to avoid complex Redux state setup
 jest.mock('../../UI/Tokens', () => {
   const React = jest.requireActual('react');

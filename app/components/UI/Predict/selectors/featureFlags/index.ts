@@ -4,8 +4,12 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictHotTabFlag } from '../../types/flags';
-import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+import { PredictFeatureFlags, PredictHotTabFlag } from '../../types/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HOT_TAB_FLAG,
+} from '../../constants/flags';
+import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 
 /**
  * Selector for Predict trading feature enablement
@@ -20,8 +24,9 @@ import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
 export const selectPredictEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.predictTradingEnabled as unknown as VersionGatedFeatureFlag;
+    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+      remoteFeatureFlags?.predictTradingEnabled,
+    );
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
@@ -32,9 +37,11 @@ export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag =
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
+    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
+    );
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -65,8 +72,9 @@ export interface PredictHomeFeaturedVariantFlag
 export const selectPredictHomeFeaturedVariant = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHomeFeaturedVariant => {
-    const remoteFlag =
-      remoteFeatureFlags?.predictHomeFeaturedVariant as unknown as PredictHomeFeaturedVariantFlag;
+    const remoteFlag = unwrapRemoteFeatureFlag<PredictHomeFeaturedVariantFlag>(
+      remoteFeatureFlags?.predictHomeFeaturedVariant,
+    );
 
     const isEnabled = validatedVersionGatedFeatureFlag(remoteFlag);
 
@@ -85,14 +93,11 @@ export const selectPredictHomeFeaturedVariant = createSelector(
 export const selectPredictHotTabFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): PredictHotTabFlag => {
-    const flag =
-      remoteFeatureFlags?.predictHotTab as unknown as PredictHotTabFlag;
+    const flag = unwrapRemoteFeatureFlag<PredictHotTabFlag>(
+      remoteFeatureFlags?.predictHotTab,
+    );
 
-    if (
-      !validatedVersionGatedFeatureFlag(
-        flag as unknown as VersionGatedFeatureFlag,
-      )
-    ) {
+    if (!flag || !validatedVersionGatedFeatureFlag(flag)) {
       return DEFAULT_HOT_TAB_FLAG;
     }
 
@@ -106,4 +111,40 @@ export const selectPredictHotTabFlag = createSelector(
 
     return flag;
   },
+);
+
+/**
+ * Selector for Predict fee collection config flag
+ */
+export const selectPredictFeeCollectionFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const flag = unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+      remoteFeatureFlags?.predictFeeCollection,
+    );
+
+    if (!flag) {
+      return DEFAULT_FEE_COLLECTION_FLAG;
+    }
+
+    return flag;
+  },
+);
+
+/**
+ * Selector for Predict FAK (Fill-And-Kill) orders enablement
+ *
+ * Uses version-gated feature flag `predictFakOrders` from remote config.
+ * Falls back to `false` if remote flag is unavailable or invalid.
+ *
+ * @returns {boolean} True if FAK orders are enabled and version requirement is met
+ */
+export const selectPredictFakOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictFakOrders,
+      ),
+    ) ?? false,
 );
