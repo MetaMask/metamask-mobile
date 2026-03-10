@@ -28,6 +28,7 @@ export type ResultStatus = 'success' | 'error';
 export type ErrorType =
   | 'insufficient_funds'
   | 'expired'
+  | 'cancelled'
   | 'not_found'
   | 'generic';
 

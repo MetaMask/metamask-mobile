@@ -41,6 +41,9 @@ export function detectErrorType(message: string): ErrorType {
   if (lowerMsg.includes('expired') || lowerMsg.includes('timeout')) {
     return 'expired';
   }
+  if (lowerMsg.includes('cancel')) {
+    return 'cancelled';
+  }
   if (lowerMsg.includes('not found') || lowerMsg.includes('404')) {
     return 'not_found';
   }
@@ -53,6 +56,8 @@ export function getErrorTitle(errorType: ErrorType): string {
       return 'Not enough funds';
     case 'expired':
       return 'Payment expired';
+    case 'cancelled':
+      return 'Payment cancelled';
     case 'not_found':
       return 'Payment not found';
     case 'generic':
@@ -69,6 +74,8 @@ export function getErrorMessage(
       return "You don't have enough crypto to complete this payment.";
     case 'expired':
       return 'This payment took too long to approve and has expired.';
+    case 'cancelled':
+      return 'This payment was cancelled.';
     case 'not_found':
       return 'This payment link is not valid or has already been completed.';
     case 'generic':

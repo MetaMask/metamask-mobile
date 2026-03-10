@@ -365,13 +365,23 @@ const WalletConnectPayModal = () => {
         throw new Error('Payment confirmation failed - no response received');
       }
 
-      if (confirmResult.status === 'expired') {
+      if (
+        confirmResult.status === 'expired' ||
+        confirmResult.status === 'cancelled' ||
+        confirmResult.status === 'failed'
+      ) {
+        const errorType =
+          confirmResult.status === 'expired'
+            ? 'expired'
+            : confirmResult.status === 'cancelled'
+              ? 'cancelled'
+              : 'generic';
         dispatch({
           type: 'SET_RESULT',
           payload: {
             status: 'error',
-            message: getErrorMessage('expired'),
-            errorType: 'expired',
+            message: getErrorMessage(errorType),
+            errorType,
           },
         });
         return;
