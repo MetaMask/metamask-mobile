@@ -8777,6 +8777,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/geolocation-controller@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "@metamask/geolocation-controller@npm:0.1.1"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/messenger": "npm:^0.3.0"
+  checksum: 10/fb8bd2997911b87acb47931c2a9903d4a25cc8bf4681aa8ada98d1869fceb2a3d642423644863fb4eb991f8e8c611ba10fd6f5c9cd55602849af0a3c094db600
+  languageName: node
+  linkType: hard
+
 "@metamask/hw-wallet-sdk@npm:^0.4.0":
   version: 0.4.0
   resolution: "@metamask/hw-wallet-sdk@npm:0.4.0"
@@ -9011,36 +9022,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-core@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.2.0"
+"@metamask/mobile-wallet-protocol-core@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.4.0"
   dependencies:
+    async-mutex: "npm:^0.5.0"
     centrifuge: "npm:^5.3.5"
     eventemitter3: "npm:^5.0.1"
     uuid: "npm:^11.1.0"
-  checksum: 10/55bbdf85f6231b6f11a0156e0db878ebe33bb9e8aa13445d111853d153a85c0e7e621b05a74d76e58bba6c3c0c3d8961c2dad89393af1b0ddfb2f2b9c7694f07
+  checksum: 10/f81523ebc0c37ab548891df1a2bb65e41c13cacb6d1034f5ea63e4ef251d2783bc2d2216a3ee7542a87240be612d97dc7c4ab6105c8632818c6c9f5e77463815
   languageName: node
   linkType: hard
 
-"@metamask/mobile-wallet-protocol-core@npm:^0.3.1":
-  version: 0.3.1
-  resolution: "@metamask/mobile-wallet-protocol-core@npm:0.3.1"
+"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.3.0"
   dependencies:
-    centrifuge: "npm:^5.3.5"
-    eventemitter3: "npm:^5.0.1"
-    uuid: "npm:^11.1.0"
-  checksum: 10/2de5aab19913c31f6cfcd6dd97c8217207a511c20535fc2b44c91fdd4b553f63cb96d12bcfc248a9f1c357ddb1e29dd996752be89aa77a64229c52aba8d34625
-  languageName: node
-  linkType: hard
-
-"@metamask/mobile-wallet-protocol-wallet-client@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "@metamask/mobile-wallet-protocol-wallet-client@npm:0.2.1"
-  dependencies:
-    "@metamask/mobile-wallet-protocol-core": "npm:^0.2.0"
+    "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/utils": "npm:^9.1.0"
     uuid: "npm:^11.1.0"
-  checksum: 10/e3a82e7bf4673940ef433a0b16d8622a3d74cf69aa2c236c47b60f5f6e71d3da99c8ea8845a2635be592fd4ec5805d05a69bb31a2e13a00333c3ec455e18b9da
+  checksum: 10/0d44efb8b066517d61139eef7b047e68d92210c3db4bb9add8f51733d88aaaa2ddff3d766036f8e55361229216188772556a3c1fb46a8bdd1d8fc49a63023adf
   languageName: node
   linkType: hard
 
@@ -35476,6 +35477,7 @@ __metadata:
     "@metamask/foundryup": "npm:1.0.0"
     "@metamask/gas-fee-controller": "npm:^25.0.0"
     "@metamask/gator-permissions-controller": "npm:^0.3.0"
+    "@metamask/geolocation-controller": "npm:^0.1.1"
     "@metamask/hw-wallet-sdk": "npm:^0.4.0"
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
@@ -35490,8 +35492,8 @@ __metadata:
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
-    "@metamask/mobile-wallet-protocol-core": "npm:^0.3.1"
-    "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.2.1"
+    "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
+    "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/multichain-account-service": "npm:^7.0.0"
     "@metamask/multichain-api-client": "npm:^0.10.1"
     "@metamask/multichain-api-middleware": "npm:1.2.5"

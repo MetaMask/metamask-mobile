@@ -450,6 +450,12 @@
       }
     }
   },
+  "GeolocationController": {
+    "location": "UNKNOWN",
+    "status": "loading",
+    "lastFetchedAt": null,
+    "error": null
+  },
   "GasFeeController": {
     "gasFeeEstimates": {},
     "estimatedGasFeeTimeBounds": {},
@@ -773,6 +779,7 @@
     "balances": {},
     "claimablePositions": {},
     "pendingDeposits": {},
+    "pendingClaims": {},
     "withdrawTransaction": null,
     "accountMeta": {}
   },
