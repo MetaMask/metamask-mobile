@@ -38,7 +38,7 @@ const PredictBuyBottomContent = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
-            style={tw.style('text-center px-2 pt-2')}
+            style={tw.style('text-center px-2 pt-4')}
           >
             {errorMessage}
           </Text>

@@ -58,6 +58,14 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import usePredictBuyBackSwipe from '../../hooks/usePredictBuyBackSwipe';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  BoxFlexDirection,
+} from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native';
+import { PredictPayWithRow } from '../../components/PredictPayWithRow';
 
 const PredictBuyPreview = () => {
   const tw = useTailwind();
@@ -299,15 +307,29 @@ const PredictBuyPreview = () => {
         preview={preview}
         onBack={handleBack}
       />
-      <PredictBuyAmountSection
-        currentValueUSDString={currentValueUSDString}
-        keypadRef={keypadRef}
-        isInputFocused={isInputFocused}
-        isBalanceLoading={isBalanceLoading}
-        availableBalanceDisplay={availableBalance}
-        toWin={toWin}
-        isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
-      />
+      <ScrollView
+        style={tw.style('flex-col')}
+        contentContainerStyle={tw.style('flex-grow justify-center')}
+        showsVerticalScrollIndicator={false}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="w-full"
+        >
+          <PredictBuyAmountSection
+            currentValueUSDString={currentValueUSDString}
+            keypadRef={keypadRef}
+            isInputFocused={isInputFocused}
+            isBalanceLoading={isBalanceLoading}
+            availableBalanceDisplay={availableBalance}
+            toWin={toWin}
+            isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+          />
+          <PredictPayWithRow />
+        </Box>
+      </ScrollView>
       <PredictBuyMinimumError
         isBalanceLoading={isBalanceLoading}
         isBelowMinimum={isBelowMinimum}
