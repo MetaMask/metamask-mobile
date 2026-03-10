@@ -33,7 +33,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   ClaimRewardDto,
   SeasonRewardType,
@@ -403,17 +403,7 @@ const EndOfSeasonClaimBottomSheet = ({
       );
     }
 
-    // default return title
-    return (
-      <Box
-        twClassName="flex-col items-center justify-center w-full"
-        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE}
-      >
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {title}
-        </Text>
-      </Box>
-    );
+    return null;
   };
 
   const renderDescription = () => (
@@ -523,9 +513,11 @@ const EndOfSeasonClaimBottomSheet = ({
       testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
-      <BottomSheetHeader onClose={handleModalClose}>
-        {strings('rewards.end_of_season_rewards.reward_details')}
-      </BottomSheetHeader>
+      <HeaderCompactStandard
+        title={title}
+        onClose={handleModalClose}
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       {needsKeyboardAvoiding ? (
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
