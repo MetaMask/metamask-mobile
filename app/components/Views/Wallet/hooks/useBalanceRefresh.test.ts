@@ -52,6 +52,9 @@ jest.mock('../../../../core/Engine', () => ({
     TokenBalancesController: {
       updateBalances: jest.fn(() => Promise.resolve()),
     },
+    NftDetectionController: {
+      detectNfts: jest.fn(() => Promise.resolve()),
+    },
   },
 }));
 
@@ -75,6 +78,9 @@ describe('useBalanceRefresh', () => {
     ).mockResolvedValue(undefined);
     (
       Engine.context.TokenBalancesController.updateBalances as jest.Mock
+    ).mockResolvedValue(undefined);
+    (
+      Engine.context.NftDetectionController.detectNfts as jest.Mock
     ).mockResolvedValue(undefined);
   });
 
@@ -123,6 +129,42 @@ describe('useBalanceRefresh', () => {
     expect(
       Engine.context.TokenBalancesController.updateBalances,
     ).toHaveBeenCalledWith({ chainIds: ['0x1', '0x89'] });
+  });
+
+  it('calls NftDetectionController.detectNfts with popular chain IDs when sections v1 is enabled', async () => {
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.NftDetectionController.detectNfts,
+    ).toHaveBeenCalledWith(['0x1', '0x89']);
+  });
+
+  it('calls NftDetectionController.detectNfts with enabled chain IDs when sections v1 is disabled', async () => {
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../../selectors/featureFlagController/homepage',
+    );
+    const { selectEVMEnabledNetworks } = jest.requireMock(
+      '../../../../selectors/networkEnablementController',
+    );
+    selectHomepageSectionsV1Enabled.mockReturnValue(false);
+    selectEVMEnabledNetworks.mockReturnValue(['0x1']);
+
+    const { result } = renderHook(() => useBalanceRefresh());
+
+    await act(async () => {
+      await result.current.refreshBalance();
+    });
+
+    expect(
+      Engine.context.NftDetectionController.detectNfts,
+    ).toHaveBeenCalledWith(['0x1']);
+
+    selectHomepageSectionsV1Enabled.mockReturnValue(true);
+    selectEVMEnabledNetworks.mockReturnValue([]);
   });
 
   it('calls CurrencyRateController.updateExchangeRate with native currencies', async () => {

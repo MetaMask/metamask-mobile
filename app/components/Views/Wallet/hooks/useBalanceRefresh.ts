@@ -62,6 +62,7 @@ export const useBalanceRefresh = () => {
       CurrencyRateController,
       TokenBalancesController,
       TokenDetectionController,
+      NftDetectionController,
     } = Engine.context;
     const networkClientIds = Object.values(evmNetworkConfigurationsFiltered)
       .map(
@@ -81,6 +82,7 @@ export const useBalanceRefresh = () => {
           TokenBalancesController.updateBalances({
             chainIds: evmChainIdsForRefresh,
           }),
+          NftDetectionController.detectNfts(evmChainIdsForRefresh),
         ]),
         new Promise((_, reject) =>
           setTimeout(
