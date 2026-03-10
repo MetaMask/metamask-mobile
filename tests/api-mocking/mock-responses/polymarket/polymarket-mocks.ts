@@ -1269,7 +1269,7 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   mockServer: Mockttp,
   positionType: string,
 ) => {
-  // Update global balance based on position type (similar to POLYMARKET_USDC_BALANCE_MOCKS pattern)
+  // Update global balance based on position type
   if (positionType === 'claim') {
     currentUSDCBalance = POST_CLAIM_USDC_BALANCE_WEI; // 48.16 USDC
   } else if (positionType === 'cash-out') {
@@ -1281,7 +1281,6 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
   }
 
   // Increment block number to invalidate NetworkController's block cache
-  // This forces eth_call requests to fetch fresh data instead of using cached responses
   currentBlockNumber++;
 
   await mockServer
@@ -1410,27 +1409,30 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
       const urlParam = new URL(request.url).searchParams.get('url');
       return Boolean(urlParam?.includes('clob.polymarket.com'));
     })
-    .asPriority(PRIORITY.API_OVERRIDE) // Higher priority to catch all clob requests
-    .thenCallback(async () => {
-      // Return success for any clob request
-      const response = {
-        statusCode: 200,
-        json: {
-          success: true,
-          orderID:
-            '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
-          transactionsHashes: [
-            '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
-          ],
-          takingAmount: '30.50',
-          makingAmount: '5.00',
-        },
-      };
+    .asPriority(PRIORITY.API_OVERRIDE)
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: {
+        success: true,
+        orderID:
+          '0xa16ab020abcd8e48100463d7bcbe75e3a3e659dcee1c42e09ef2ef8cecb0ce2c',
+        transactionsHashes: [
+          '0x24ca9d1399d72efc9c5f83b0f37c88fb7d42e61095cf657f9dcfa857249adf6f',
+        ],
+        takingAmount: '30.50',
+        makingAmount: '5.00',
+      },
+    }));
 
-      return response;
-    });
-
-  await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
+  // NOTE: Balance update is NOT called here. PredictController.placeOrder
+  // reads cachedBalance AFTER the order response and does an optimistic
+  // update (cachedBalance + receivedAmount). If currentUSDCBalance is
+  // updated before the optimistic update completes, a background refetch
+  // can set cachedBalance to the post-cash-out value, making the optimistic
+  // update double-count: 58.66 + 30.50 = 89.16.
+  //
+  // The test must call POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out')
+  // AFTER the cash-out action completes (e.g. after tapCashOutButton).
 };
 
 /**

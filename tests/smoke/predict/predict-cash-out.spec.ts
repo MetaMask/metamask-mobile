@@ -16,6 +16,7 @@ import {
   POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS,
   POLYMARKET_POST_CASH_OUT_MOCKS,
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
+  POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -81,6 +82,11 @@ describe(SmokePredictions('Predictions'), () => {
         );
 
         await PredictCashOutPage.tapCashOutButton();
+
+        // Update USDC balance mock AFTER the cash-out completes.
+        // Must happen after the optimistic update in PredictController to
+        // avoid double-counting (see POLYMARKET_POST_CASH_OUT_MOCKS).
+        await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
 
         await PredictDetailsPage.tapBackButton();
         await device.enableSynchronization();
