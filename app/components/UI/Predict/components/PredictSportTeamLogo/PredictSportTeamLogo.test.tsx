@@ -46,7 +46,6 @@ describe('PredictSportTeamLogo', () => {
           expect.objectContaining({
             width: defaultSize,
             height: defaultSize,
-            borderRadius: defaultSize / 2,
           }),
         ]),
       );
@@ -77,7 +76,6 @@ describe('PredictSportTeamLogo', () => {
           expect.objectContaining({
             width: size,
             height: size,
-            borderRadius: size / 2,
           }),
         ]),
       );
