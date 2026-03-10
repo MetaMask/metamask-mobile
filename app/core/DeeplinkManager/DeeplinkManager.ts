@@ -19,15 +19,20 @@ export function rewriteBranchUri(
   uri: string | undefined,
   params: BranchParams | undefined,
 ): string | undefined {
-  if (!uri || !params?.['+clicked_branch_link']) return uri;
-  const rawPath = params.$deeplink_path;
-  if (typeof rawPath !== 'string') return uri;
+  try {
+    if (!uri || !params?.['+clicked_branch_link']) return uri;
+    const rawPath = params.$deeplink_path;
+    if (typeof rawPath !== 'string') return uri;
 
-  const parsed = new URL(uri);
-  parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-  // Set the pathname to the sanitized $deeplink_path
-  parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
-  return parsed.toString();
+    const parsed = new URL(uri);
+    parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
+    // Set the pathname to the sanitized $deeplink_path
+    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
+    return parsed.toString();
+  } catch (error) {
+    Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
+    return uri;
+  }
 }
 
 export class DeeplinkManager {
@@ -155,11 +160,6 @@ export class DeeplinkManager {
         opts.params as Record<string, unknown> | undefined,
       );
       getBranchDeeplink(rewritten ?? opts.uri);
-      //TODO: that async call in the subscribe doesn't look good to me
-      branch.getLatestReferringParams().then((val) => {
-        const deeplink = opts.uri || (val['+non_branch_link'] as string);
-        handleDeeplink({ uri: deeplink });
-      });
     });
   }
 }
