@@ -546,7 +546,7 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress2,
+            mockAddress1,
           ]);
         });
       });
