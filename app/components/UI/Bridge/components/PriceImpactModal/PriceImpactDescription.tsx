@@ -5,28 +5,28 @@ import { PriceImpactModalType } from './constants';
 
 interface PriceImpactDescriptionProps {
   type: PriceImpactModalType;
-  priceImpact?: string;
+  formattedPriceImpact?: string;
 }
 
 export function PriceImpactDescription({
   type,
-  priceImpact,
+  formattedPriceImpact,
 }: PriceImpactDescriptionProps) {
-  const isWarning = Boolean(priceImpact);
+  const isWarning = Boolean(formattedPriceImpact);
 
   const body = useMemo(() => {
     if (type === PriceImpactModalType.Execution) {
       return strings('bridge.price_impact_execution_description', {
-        priceImpact: priceImpact ?? '0',
+        priceImpact: formattedPriceImpact ?? '0',
       });
     }
     if (isWarning) {
       return strings('bridge.price_impact_warning_description', {
-        priceImpact: priceImpact ?? '0',
+        priceImpact: formattedPriceImpact ?? '0',
       });
     }
     return strings('bridge.price_impact_info_description');
-  }, [type, priceImpact, isWarning]);
+  }, [type, formattedPriceImpact, isWarning]);
 
   return (
     <Box paddingHorizontal={4} paddingVertical={2}>

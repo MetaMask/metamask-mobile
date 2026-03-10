@@ -187,7 +187,7 @@ pipelines:
         - bump_version_code
       upload_ios_main_to_testflight:
         depends_on:
-        - build_ios_main_exp    
+        - build_ios_main_exp
   rc_builds_to_testflight_pipeline:
     workflows:
       bump_version_code: {}
@@ -1814,15 +1814,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2265,15 +2265,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2482,15 +2482,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'e2e'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -2966,15 +2966,15 @@ workflows:
                 echo "║  Phase 1.5: Parallel Validation                            ║"
                 echo "║  Comparing Bitrise env vars with builds.yml config         ║"
                 echo "╚════════════════════════════════════════════════════════════╝"
-                
+
                 # Set defaults if not already set
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 export METAMASK_ENVIRONMENT=${METAMASK_ENVIRONMENT:-'production'}
-                
+
                 # Run verification (auto-detects build from env vars)
                 # Using --verbose to see all checks in build logs
                 node scripts/verify-build-config.js --verbose || true
-                
+
                 # Note: Currently running without --strict
                 # Once verified, change to: node scripts/verify-build-config.js --strict
       - script@1:
@@ -3420,7 +3420,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-                
+
                 ./scripts/setup-app-store-connect-api-key.sh \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
                   "$BITRISE_APP_STORE_CONNECT_API_KEY_KEY_ID" \
@@ -3432,7 +3432,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 set -e
-                
+
                 bash ./scripts/upload-to-testflight.sh \
                   "${BITRISEIO_PIPELINE_TITLE:-Unknown}" \
                   "${BITRISE_GIT_BRANCH:-Unknown}" \
@@ -3534,13 +3534,13 @@ app:
       VERSION_NAME: 7.70.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 3948
+      VERSION_NUMBER: 3911
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.70.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 3948
+      FLASK_VERSION_NUMBER: 3911
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

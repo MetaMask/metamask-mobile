@@ -9734,7 +9734,7 @@ describe('RewardsController', () => {
         optinAllowedForGeo: false,
       });
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).not.toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9764,7 +9764,7 @@ describe('RewardsController', () => {
 
       // Assert - Verify no additional API calls were made
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
 
       // Assert - Verify fetching log message was not called on cached access
@@ -9783,7 +9783,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9811,7 +9811,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(result).toEqual({
         geoLocation: mockGeoLocation,
@@ -9829,7 +9829,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching geo location for rewards metadata',
@@ -9854,7 +9854,7 @@ describe('RewardsController', () => {
 
       // Assert
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Failed to get geo rewards metadata:',
@@ -15828,6 +15828,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
@@ -15850,6 +15851,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
           "pointsEstimateHistory": [],
@@ -15877,6 +15879,7 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
+          "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
           "pointsEvents": {},
@@ -19320,6 +19323,276 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaigns data via API call',
+      );
+    });
+  });
+
+  describe('optInToCampaign', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockCampaignId = 'campaign-456';
+    const mockStatus = { optedIn: true };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns { optedIn: false } when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.optInToCampaign(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({ optedIn: false });
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('returns { optedIn: false } when campaigns feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => false,
+      });
+
+      const result = await disabledController.optInToCampaign(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({ optedIn: false });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('calls data service and returns status on success', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.optInToCampaign(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockStatus);
+    });
+
+    it('logs when opting in', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+      mockLogger.log.mockClear();
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Opting into campaign',
+        mockCampaignId,
+      );
+    });
+
+    it('invalidates the participant status cache after a successful opt-in', async () => {
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [cacheKey]: { optedIn: false, lastFetched: Date.now() },
+          },
+        },
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      expect(ctrl.state.campaignParticipantStatus[cacheKey]).toBeDefined();
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId);
+      expect(ctrl.state.campaignParticipantStatus[cacheKey]).toBeUndefined();
+    });
+  });
+
+  describe('getCampaignParticipantStatus', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockCampaignId = 'campaign-456';
+    const mockStatus = { optedIn: true };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns { optedIn: false } when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({ optedIn: false });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns { optedIn: false } when campaigns feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => false,
+      });
+
+      const result = await disabledController.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({ optedIn: false });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches status from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getCampaignParticipantStatus',
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockStatus);
+
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const cached = ctrl.state.campaignParticipantStatus[cacheKey];
+      expect(cached).toBeDefined();
+      expect(cached.optedIn).toBe(true);
+      expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('returns cached status when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [cacheKey]: { optedIn: false, lastFetched: recentTime },
+          },
+        },
+        isCampaignsEnabled: () => true,
+      });
+
+      const result = await ctrl.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({ optedIn: false });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches fresh status when cache is stale', async () => {
+      const staleTime = Date.now() - 1000 * 60 * 10;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [cacheKey]: { optedIn: false, lastFetched: staleTime },
+          },
+        },
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockStatus);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getCampaignParticipantStatus',
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+    });
+
+    it('logs when fetching fresh status', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isCampaignsEnabled: () => true,
+      });
+
+      mockMessenger.call.mockResolvedValue(mockStatus);
+      mockLogger.log.mockClear();
+
+      await ctrl.getCampaignParticipantStatus(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign participant status via API call',
       );
     });
   });
