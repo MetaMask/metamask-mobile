@@ -61,7 +61,9 @@ export async function main(): Promise<void> {
   }
 
   const worktrees = await listWorktrees(repoRoot);
-  const mainPath = normalize(repoRoot);
+  // The first entry in `git worktree list` is always the main worktree,
+  // whereas repoRoot (--show-toplevel) just reflects the current worktree.
+  const mainPath = worktrees.length > 0 ? normalize(worktrees[0].path) : normalize(repoRoot);
   const others = worktrees.filter((w) => normalize(w.path) !== mainPath);
   if (others.length === 0) {
     writeStderr(chalk.yellow('No additional worktrees to remove.\n'));

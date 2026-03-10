@@ -5,8 +5,10 @@
 
 const mockSpawnFn = jest.fn();
 jest.mock('child_process', () => ({ spawn: (...args: unknown[]) => mockSpawnFn(...args) }));
+jest.mock('prompts', () => jest.fn());
 
 import { resolve } from 'path';
+import prompts from 'prompts';
 import { main, parseWorktreeList } from './worktree-remove';
 
 function fakeChild(stdoutData: string) {
@@ -138,6 +140,49 @@ describe('worktree-remove main', () => {
     const output = stderrWrite.mock.calls.map((c: [string]) => c[0]).join('');
     expect(output).toContain('No additional worktrees');
     expect(stdoutWrite).not.toHaveBeenCalled();
+  });
+
+  it('excludes the real main worktree even when run from a linked worktree', async () => {
+    const threeWorktrees = [
+      'worktree /repo/root',
+      'HEAD abc123',
+      'branch refs/heads/main',
+      '',
+      'worktree /repo/wt-feat',
+      'HEAD def456',
+      'branch refs/heads/feat',
+      '',
+      'worktree /repo/wt-other',
+      'HEAD 789abc',
+      'branch refs/heads/other',
+    ].join('\n');
+
+    mockSpawnFn.mockImplementation((cmd: string, args: string[]) => {
+      if (cmd === 'git' && args[0] === 'rev-parse')
+        return fakeChild('/repo/wt-feat\n');
+      if (cmd === 'git' && args[0] === 'worktree' && args[1] === 'list')
+        return fakeChild(threeWorktrees);
+      return fakeChild('');
+    });
+    process.argv = ['node', 'worktree-remove.ts'];
+
+    jest.mocked(prompts).mockResolvedValueOnce({ chosen: '/repo/wt-other' });
+
+    await main();
+
+    const promptCall = jest.mocked(prompts).mock.calls[0][0];
+    const choices = (promptCall as { choices: { value: string }[] }).choices.map(
+      (c) => c.value,
+    );
+    expect(choices).not.toContain('/repo/root');
+    expect(choices).toContain('/repo/wt-feat');
+    expect(choices).toContain('/repo/wt-other');
+
+    expect(mockSpawnFn).toHaveBeenCalledWith(
+      'git',
+      ['worktree', 'remove', '/repo/wt-other', '-f'],
+      expect.objectContaining({ cwd: '/repo/wt-feat' }),
+    );
   });
 
   it('rejects when git worktree remove fails', async () => {
