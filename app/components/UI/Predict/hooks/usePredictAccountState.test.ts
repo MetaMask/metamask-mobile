@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { usePredictAccountState } from './usePredictAccountState';
+import { predictAccountStateKeys } from '../queries/accountState';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -157,7 +158,7 @@ describe('usePredictAccountState', () => {
 
       await act(async () => {
         await queryClient.invalidateQueries({
-          queryKey: ['predict', 'accountState'],
+          queryKey: predictAccountStateKeys.all(),
         });
       });
 

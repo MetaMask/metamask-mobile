@@ -13,7 +13,7 @@ import {
 } from '../providers/polymarket/constants';
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
+const infuraProjectId = InfuraKey === 'null' ? '' : (InfuraKey ?? '');
 
 /**
  * Enable a network unconditionally via NetworkEnablementController.
