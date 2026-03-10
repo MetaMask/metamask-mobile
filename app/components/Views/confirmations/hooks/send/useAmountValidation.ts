@@ -4,6 +4,7 @@ import BN from 'bnjs4';
 import { strings } from '../../../../../../locales/i18n';
 import {
   isValidPositiveNumericString,
+  normalizeAmount,
   toTokenMinimalUnit,
 } from '../../utils/send';
 import { AssetType, Nft, TokenStandard } from '../../types/token';
@@ -61,13 +62,7 @@ export const useAmountValidation = () => {
       return setAndReturnError(undefined);
     }
 
-    // Treat "." or trailing dot (e.g., "0.", "1.") as valid intermediate input
-    let normalizedValue = value;
-    if (value === '.') {
-      normalizedValue = '0';
-    } else if (value.endsWith('.')) {
-      normalizedValue = value.slice(0, -1);
-    }
+    const normalizedValue = normalizeAmount(value);
 
     const validations = [
       () => validatePositiveNumericString(normalizedValue),
@@ -95,13 +90,7 @@ export const useAmountValidation = () => {
 
   // This callback is needed for non-EVM validation when nothing is typed into amount
   const validateNonEvmAmountAsync = useCallback(async () => {
-    let normalized = value || '0';
-    if (normalized === '.') {
-      normalized = '0';
-    } else if (normalized.endsWith('.')) {
-      normalized = normalized.slice(0, -1);
-    }
-    const error = await validateNonEvmAmount(normalized);
+    const error = await validateNonEvmAmount(normalizeAmount(value));
     return setAndReturnError(error);
   }, [value, validateNonEvmAmount, setAndReturnError]);
 
