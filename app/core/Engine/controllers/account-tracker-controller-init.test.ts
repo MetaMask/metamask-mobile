@@ -12,6 +12,21 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/assets-controllers');
 
+jest.mock('../../../selectors/featureFlagController/homepage', () => ({
+  selectHomepageSectionsV1Enabled: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock(
+  '../../../selectors/featureFlagController/assetsAccountApiBalances',
+  () => ({
+    selectAssetsAccountApiBalancesEnabled: jest.fn().mockReturnValue([]),
+  }),
+);
+
+jest.mock('../../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
+}));
+
 function getInitRequestMock(): jest.Mocked<
   ControllerInitRequest<AccountTrackerControllerMessenger>
 > {
@@ -45,7 +60,7 @@ describe('AccountTrackerControllerInit', () => {
     expect(controller).toBeInstanceOf(AccountTrackerController);
   });
 
-  it('passes the proper arguments to the controller', () => {
+  it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {
     accountTrackerControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(AccountTrackerController);
@@ -56,6 +71,39 @@ describe('AccountTrackerControllerInit', () => {
       getStakedBalanceForChain: expect.any(Function),
       accountsApiChainIds: expect.any(Function),
       allowExternalServices: expect.any(Function),
+      isHomepageSectionsV1Enabled: expect.any(Function),
     });
+  });
+
+  it('isHomepageSectionsV1Enabled returns false when feature flag is off', () => {
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../selectors/featureFlagController/homepage',
+    );
+    selectHomepageSectionsV1Enabled.mockReturnValue(false);
+
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { isHomepageSectionsV1Enabled } = controllerMock.mock.calls[0][0] as {
+      isHomepageSectionsV1Enabled: () => boolean;
+    };
+
+    expect(isHomepageSectionsV1Enabled()).toBe(false);
+  });
+
+  it('isHomepageSectionsV1Enabled returns true when feature flag is on', () => {
+    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+      '../../../selectors/featureFlagController/homepage',
+    );
+    selectHomepageSectionsV1Enabled.mockReturnValue(true);
+
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { isHomepageSectionsV1Enabled } = controllerMock.mock.calls[0][0] as {
+      isHomepageSectionsV1Enabled: () => boolean;
+    };
+
+    expect(isHomepageSectionsV1Enabled()).toBe(true);
   });
 });
