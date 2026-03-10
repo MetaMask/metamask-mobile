@@ -81,7 +81,6 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
       testID="security-trust-entry-card"
     >
       <Box gap={3}>
-        {/* Row 1: "Security and trust" title + chevron — height 24, gap 4 */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -123,8 +122,6 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
             {config.label}
           </Text>
         )}
-
-        {/* Row 3: Feature tags — 2-column grid */}
         {!isLoading && featureTags.length > 0 && (
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -164,16 +161,12 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
             ))}
           </Box>
         )}
-
-        {/* Skeleton rows when loading */}
         {isLoading && (
           <Box>
             <View style={tw.style('h-3 rounded bg-muted w-3/4')} />
             <View style={tw.style('h-3 rounded bg-muted w-1/2 mt-2')} />
           </Box>
         )}
-
-        {/* Row 4: Timestamp */}
         {!isLoading && timeAgo ? (
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {timeAgo}

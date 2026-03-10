@@ -35,9 +35,6 @@ import {
   getSmartContractRisk,
 } from '../utils/securityUtils';
 
-// ─── Shared primitives ────────────────────────────────────────────────────────
-
-/** Full-width horizontal divider between major sections */
 const Divider: React.FC = () => (
   <Box twClassName="py-5 self-stretch">
     <Box twClassName="h-px bg-border-muted" />
@@ -53,8 +50,6 @@ const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
     {title}
   </Text>
 );
-
-// ─── Risk badge ───────────────────────────────────────────────────────────────
 
 const RISK_BADGE: Record<
   RiskLevel,
@@ -101,8 +96,6 @@ const RiskBadge: React.FC<{ level: RiskLevel }> = ({ level }) => {
   );
 };
 
-// ─── Check row (icon + title + optional description) ─────────────────────────
-
 const CheckRow: React.FC<{
   label: string;
   description?: string;
@@ -131,8 +124,6 @@ const CheckRow: React.FC<{
     </Box>
   </Box>
 );
-
-// ─── Risk factor row (title + description + badge) ───────────────────────────
 
 const RiskFactorRow: React.FC<{
   title: string;
@@ -164,8 +155,6 @@ const RiskFactorRow: React.FC<{
     <RiskBadge level={level} />
   </Box>
 );
-
-// ─── Main screen ─────────────────────────────────────────────────────────────
 
 const SecurityTrustScreen: React.FC = () => {
   const tw = useTailwind();
@@ -230,7 +219,6 @@ const SecurityTrustScreen: React.FC = () => {
     [insets.bottom],
   );
 
-  // ── Section 1 config ──
   const RESULT_CONFIG: Record<
     string,
     { heading: string; headingColor: TextColor; subtitle: string }
@@ -280,8 +268,6 @@ const SecurityTrustScreen: React.FC = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')} testID="security-trust-screen">
-      {/* ── Header bar ── */}
-      {/* padding: spacing/2 (8px) vertical, spacing/1 (4px) horizontal + safe area */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -300,7 +286,6 @@ const SecurityTrustScreen: React.FC = () => {
           />
         </TouchableOpacity>
 
-        {/* Centered title — flex-1 + text-center keeps it truly centered */}
         <Text
           variant={TextVariant.HeadingSm}
           color={TextColor.TextDefault}
@@ -309,7 +294,6 @@ const SecurityTrustScreen: React.FC = () => {
           {strings('security_trust.title')}
         </Text>
 
-        {/* Spacer matching the back-button icon width so the title stays centered */}
         <View style={tw.style('w-5')} />
       </Box>
 
@@ -383,7 +367,6 @@ const SecurityTrustScreen: React.FC = () => {
         {/* ══ Section 3: Token Distribution ═══════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.token_distribution')} />
 
-        {/* Total supply + Circulating supply */}
         <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pb-3 gap-6">
           <Box twClassName="flex-1">
             <Text
@@ -419,7 +402,6 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Stacked bar: top10 (blue) + other (grey) */}
         {top10Pct !== null && (
           <Box twClassName="px-4 pb-4">
             <Box twClassName="h-2 rounded-full overflow-hidden flex-row bg-[rgba(133,139,154,0.3)]">
@@ -428,10 +410,7 @@ const SecurityTrustScreen: React.FC = () => {
           </Box>
         )}
 
-        {/* Distribution rows grid: padding 4px 0, row-gap 12px, 2-col (label flex-1, value) */}
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 py-1 gap-y-3">
-          {/* Top 10 holders */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -466,7 +445,6 @@ const SecurityTrustScreen: React.FC = () => {
             </Text>
           </Box>
 
-          {/* Top 100 holders — not available from API */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -495,7 +473,6 @@ const SecurityTrustScreen: React.FC = () => {
             </Text>
           </Box>
 
-          {/* Other = 100 - top10 (approximate; ideally 100 - top100) */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -533,7 +510,6 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 4: Contract Security ════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.contract_security')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label={strings('security_trust.source_code_verified')}
@@ -554,7 +530,6 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 5: Honeypot Analysis ════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.honeypot_analysis')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label={strings('security_trust.buy_sell_enabled')}
@@ -584,7 +559,6 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 6: Liquidity ═════════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.liquidity')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           <CheckRow
             label={strings('security_trust.liquidity_locked')}
@@ -625,7 +599,6 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 7: Audits & Reviews ══════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.audits_reviews')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
           {(
             ['Trail of bits', 'OpenZeppelin', 'Consensys Diligence'] as const
@@ -641,9 +614,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 8: Buy/Sell Tax ══════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.buy_sell_tax')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={3}>
-          {/* Three percentage columns */}
           <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full">
             {(
               [
@@ -681,7 +652,6 @@ const SecurityTrustScreen: React.FC = () => {
               </Box>
             ))}
           </Box>
-          {/* No hidden fees tag */}
           {fees !== null &&
             fees.transfer === 0 &&
             fees.buy === 0 &&
@@ -710,11 +680,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 9: Token Info ════════════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.token_info')} />
-        {/* 2-column grid: row-gap 8, column-gap 12 */}
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={2}>
-          {/* Row 1: Created | Token age */}
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
           <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
@@ -741,8 +707,6 @@ const SecurityTrustScreen: React.FC = () => {
               </Text>
             </Box>
           </Box>
-          {/* Row 2: Network | Type */}
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
           <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
@@ -773,10 +737,7 @@ const SecurityTrustScreen: React.FC = () => {
 
         {/* ══ Section 10: On-chain Activity ════════════════════════════════════ */}
         <SectionHeader title={strings('security_trust.on_chain_activity')} />
-        {/* eslint-disable-next-line react-native/no-inline-styles */}
         <Box twClassName="px-4 w-full" gap={2}>
-          {/* Row 1: 24h Transactions | Active Wallets (24h) */}
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
           <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
@@ -803,8 +764,6 @@ const SecurityTrustScreen: React.FC = () => {
               </Text>
             </Box>
           </Box>
-          {/* Row 2: Avg Tx Value | Gas (avg) */}
-          {/* eslint-disable-next-line react-native/no-inline-styles */}
           <Box flexDirection={BoxFlexDirection.Row} gap={3}>
             <Box twClassName="flex-1 py-1">
               <Text
@@ -837,7 +796,6 @@ const SecurityTrustScreen: React.FC = () => {
         {metadata?.externalLinks && (
           <>
             <SectionHeader title={strings('security_trust.official_links')} />
-            {/* Pills container: padding 4px 0, flex-wrap, gap 12 */}
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
@@ -850,10 +808,8 @@ const SecurityTrustScreen: React.FC = () => {
                     openLink(metadata.externalLinks.homepage || '')
                   }
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
                   }
-                  // eslint-disable-next-line react-native/no-inline-styles
-                  style={{ height: 32 }}
                   startIconName={IconName.Global}
                   startIconProps={{
                     color: IconColor.IconDefault,
@@ -876,10 +832,8 @@ const SecurityTrustScreen: React.FC = () => {
                     )
                   }
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
                   }
-                  // eslint-disable-next-line react-native/no-inline-styles
-                  style={{ height: 32 }}
                   startIconName={IconName.X}
                   startIconProps={{
                     color: IconColor.IconDefault,
@@ -902,10 +856,8 @@ const SecurityTrustScreen: React.FC = () => {
                     )
                   }
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
                   }
-                  // eslint-disable-next-line react-native/no-inline-styles
-                  style={{ height: 32 }}
                   startIconName={IconName.Global}
                   startIconProps={{
                     color: IconColor.IconDefault,
@@ -926,10 +878,8 @@ const SecurityTrustScreen: React.FC = () => {
                     openLink(`https://etherscan.io/address/${params.address}`)
                   }
                   twClassName={(pressed) =>
-                    `rounded-lg bg-muted px-3 ${pressed ? 'opacity-70' : ''}`
+                    `rounded-lg bg-muted px-3 h-8 ${pressed ? 'opacity-70' : ''}`
                   }
-                  // eslint-disable-next-line react-native/no-inline-styles
-                  style={{ height: 32 }}
                   startIconName={IconName.Global}
                   startIconProps={{
                     color: IconColor.IconDefault,
