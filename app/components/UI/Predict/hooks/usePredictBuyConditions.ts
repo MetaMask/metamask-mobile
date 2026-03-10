@@ -6,6 +6,7 @@ import { usePredictActiveOrder } from './usePredictActiveOrder';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useTransactionPayTotals,
 } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 
@@ -26,6 +27,7 @@ export const usePredictBuyConditions = ({
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const { activeOrder } = usePredictActiveOrder();
+  const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const { isPredictBalanceSelected } = usePredictPaymentToken();
@@ -60,12 +62,16 @@ export const usePredictBuyConditions = ({
   const isPayFeesLoading = useMemo(
     () =>
       isRedirecting ||
-      (shouldWaitForPayFees && (isPayTotalsLoading || isPayQuoteLoading)),
+      (shouldWaitForPayFees &&
+        (isPayTotalsLoading ||
+          isPayQuoteLoading ||
+          payTotals?.estimatedDuration === 0)),
     [
       isRedirecting,
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
+      payTotals?.estimatedDuration,
     ],
   );
 
