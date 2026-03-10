@@ -5,7 +5,10 @@ import Engine from '../../../../core/Engine';
 import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
+import {
+  PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
+  PREDICT_BALANCE_TOKEN_KEY,
+} from '../constants/transactions';
 import { selectPredictSelectedPaymentToken } from '../selectors/predictController';
 
 interface UsePredictPaymentTokenParams {
@@ -93,7 +96,7 @@ export function usePredictPaymentToken({
   useEffect(() => {
     const selectedTokenAddress = selectedPaymentToken?.address ?? null;
     const selectedTokenKey = isPredictBalanceSelected
-      ? 'predict-balance'
+      ? PREDICT_BALANCE_TOKEN_KEY
       : selectedTokenAddress;
 
     if (!hasInitializedSelectionRef.current) {

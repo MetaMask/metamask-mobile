@@ -56,11 +56,9 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
-  amount?: number;
   transactionId?: string;
   animationEnabled?: boolean;
   isConfirmation?: boolean;
-  isInputFocused?: boolean;
   preview?: OrderPreview;
 }
 

@@ -18,6 +18,7 @@ import {
 import { strings } from '../../../../../../../locales/i18n';
 import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -28,7 +29,6 @@ interface UsePredictBuyActionsParams {
 }
 
 export const usePredictBuyActions = ({
-  currentValue,
   preview: livePreview,
   analyticsProperties,
   placeOrder,
@@ -50,7 +50,6 @@ export const usePredictBuyActions = ({
     entryPoint,
     transactionId,
     isConfirmation,
-    isInputFocused,
     preview: previewFromRoute,
   } = route.params;
 
@@ -61,7 +60,6 @@ export const usePredictBuyActions = ({
           market,
           outcome,
           outcomeToken,
-          ...(currentValue > 0 ? { amount: currentValue } : {}),
           ...(params?.includeTransaction && transactionId
             ? { transactionId }
             : {}),
@@ -73,7 +71,6 @@ export const usePredictBuyActions = ({
       );
     },
     [
-      currentValue,
       entryPoint,
       market,
       navigateToBuyPreview,
@@ -87,7 +84,7 @@ export const usePredictBuyActions = ({
   const handleTokenSelected = useCallback(
     async ({ tokenKey }: { tokenKey: string | null }) => {
       if (isConfirmation) {
-        if (tokenKey !== 'predict-balance') {
+        if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
           return;
         }
         updateActiveOrder({
@@ -98,7 +95,7 @@ export const usePredictBuyActions = ({
         onReject(undefined, true);
         return;
       }
-      if (tokenKey !== 'predict-balance') {
+      if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
         updateActiveOrder({
           state: ActiveOrderState.REDIRECTING,
         });
@@ -106,8 +103,6 @@ export const usePredictBuyActions = ({
           market,
           outcome,
           outcomeToken,
-          isInputFocused,
-          ...(currentValue > 0 ? { amount: currentValue } : {}),
           ...(livePreview ? { preview: { ...livePreview } } : {}),
         });
 
@@ -118,9 +113,7 @@ export const usePredictBuyActions = ({
       }
     },
     [
-      currentValue,
       isConfirmation,
-      isInputFocused,
       market,
       onReject,
       outcome,
@@ -143,23 +136,13 @@ export const usePredictBuyActions = ({
         market,
         outcome,
         outcomeToken,
-        isInputFocused,
-        ...(currentValue > 0 ? { amountUsd: currentValue } : {}),
       });
       updateActiveOrder({
         state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         transactionId: response?.transactionId,
       });
     },
-    [
-      updateActiveOrder,
-      triggerPayWithAnyToken,
-      market,
-      outcome,
-      outcomeToken,
-      isInputFocused,
-      currentValue,
-    ],
+    [updateActiveOrder, triggerPayWithAnyToken, market, outcome, outcomeToken],
   );
 
   const handleConfirm = useCallback(async () => {

@@ -6,3 +6,5 @@ export const PREDICT_BALANCE_PLACEHOLDER_ADDRESS =
 export const PREDICT_BALANCE_CHAIN_ID = '0x89' as Hex;
 
 export const MINIMUM_BET = 1; // $1 minimum bet
+
+export const PREDICT_BALANCE_TOKEN_KEY = 'predict-balance';

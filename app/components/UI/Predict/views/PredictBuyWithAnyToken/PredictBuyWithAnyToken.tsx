@@ -41,7 +41,7 @@ import { usePredictBuyActions } from './hooks/usePredictBuyPreviewActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPayWithAnyTokenTracking } from '../../hooks/usePredictPayWithAnyTokenTracking';
+import { usePredictPayWithAnyTokenTracking } from './hooks/usePredictPayWithAnyTokenTracking';
 import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';

@@ -21,8 +21,6 @@ import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview } from '../types';
 
 export interface PredictPayWithAnyTokenParams {
-  amount?: number;
-  isInputFocused?: boolean;
   market: PredictBuyPreviewParams['market'];
   outcome: PredictBuyPreviewParams['outcome'];
   outcomeToken: PredictBuyPreviewParams['outcomeToken'];
@@ -108,7 +106,6 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
             outcome: params.outcome,
             outcomeToken: params.outcomeToken,
             transactionId: response?.transactionId,
-            amount: params.amount,
             isConfirmation: true,
             preview: params.preview,
           },

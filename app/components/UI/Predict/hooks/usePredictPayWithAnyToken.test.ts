@@ -1,7 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import React from 'react';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import Engine from '../../../../core/Engine';
 import { PredictBuyPreviewParams } from '../types/navigation';
 import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -31,6 +30,10 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   }),
 }));
 
+jest.mock('../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
+  useAddToken: jest.fn(),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -38,19 +41,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: () => ({
     colors: {
-      error: { default: '#f00' },
-      accent04: { normal: '#100' },
+      error: { default: 'red' },
+      accent04: { normal: 'black' },
     },
   }),
-}));
-
-jest.mock('../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      setActiveOrder: jest.fn(),
-      clearActiveOrder: jest.fn(),
-    },
-  },
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -78,10 +72,10 @@ describe('usePredictPayWithAnyToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPayWithAnyTokenConfirmation.mockResolvedValue(undefined);
+    mockPayWithAnyTokenConfirmation.mockResolvedValue({ response: {} });
   });
 
-  it('sets active order, triggers payWithAnyTokenConfirmation, and navigates to confirmation', async () => {
+  it('triggers payWithAnyTokenConfirmation and navigates to confirmation', async () => {
     const { result } = renderHook(() => usePredictPayWithAnyToken(), {
       wrapper,
     });
@@ -91,36 +85,26 @@ describe('usePredictPayWithAnyToken', () => {
         market,
         outcome,
         outcomeToken,
-        amountUsd: 25,
-        isInputFocused: false,
       });
     });
 
-    expect(
-      Engine.context.PredictController.setActiveOrder,
-    ).toHaveBeenCalledWith(
-      expect.objectContaining({
-        market: expect.objectContaining({ id: 'market-1' }),
-        outcome: expect.objectContaining({ id: 'outcome-1' }),
-        outcomeToken: expect.objectContaining({ id: 'token-1' }),
-        amountUsd: 25,
-        isInputFocused: false,
-      }),
-    );
-    expect(mockPayWithAnyTokenConfirmation).toHaveBeenCalledWith({});
+    expect(mockPayWithAnyTokenConfirmation).toHaveBeenCalledWith();
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       headerShown: false,
       replace: true,
+      routeParams: expect.objectContaining({
+        market: expect.objectContaining({ id: 'market-1' }),
+        outcome: expect.objectContaining({ id: 'outcome-1' }),
+        outcomeToken: expect.objectContaining({ id: 'token-1' }),
+        isConfirmation: true,
+      }),
     });
-    expect(
-      Engine.context.PredictController.clearActiveOrder,
-    ).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('handles payWithAnyTokenConfirmation failure by clearing active order, going back, and showing error toast', async () => {
+  it('goes back and shows error toast when payWithAnyTokenConfirmation fails', async () => {
     mockPayWithAnyTokenConfirmation.mockRejectedValue(new Error('boom'));
 
     const { result } = renderHook(() => usePredictPayWithAnyToken(), {
@@ -135,9 +119,6 @@ describe('usePredictPayWithAnyToken', () => {
       });
     });
 
-    expect(
-      Engine.context.PredictController.clearActiveOrder,
-    ).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledTimes(1);
     expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
