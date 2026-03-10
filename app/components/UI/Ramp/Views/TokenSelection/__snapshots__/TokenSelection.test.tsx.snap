@@ -353,7 +353,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                               [
                                 {
                                   "display": "flex",
-                                  "paddingBottom": 8,
+                                  "paddingBottom": 16,
                                   "paddingTop": 8,
                                 },
                                 undefined,
@@ -391,7 +391,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -403,7 +403,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -429,7 +429,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -468,7 +468,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -494,7 +494,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -533,7 +533,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -559,7 +559,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -598,7 +598,7 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -619,7 +619,6 @@ exports[`TokenSelection Component displays empty state when no tokens match sear
                                   "paddingBottom": 12,
                                   "paddingLeft": 16,
                                   "paddingRight": 16,
-                                  "paddingTop": 12,
                                 },
                                 undefined,
                               ]
@@ -1213,7 +1212,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                               [
                                 {
                                   "display": "flex",
-                                  "paddingBottom": 8,
+                                  "paddingBottom": 16,
                                   "paddingTop": 8,
                                 },
                                 undefined,
@@ -1251,7 +1250,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1263,7 +1262,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1289,7 +1288,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1328,7 +1327,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1354,7 +1353,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1393,7 +1392,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1419,7 +1418,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -1458,7 +1457,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -1479,7 +1478,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                   "paddingBottom": 12,
                                   "paddingLeft": 16,
                                   "paddingRight": 16,
-                                  "paddingTop": 12,
                                 },
                                 undefined,
                               ]
@@ -1721,10 +1719,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -1850,7 +1848,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1864,9 +1862,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2021,10 +2019,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2150,7 +2148,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2164,9 +2162,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2321,10 +2319,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2450,7 +2448,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2464,9 +2462,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2621,10 +2619,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2750,7 +2748,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2764,9 +2762,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2921,10 +2919,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3050,7 +3048,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3064,9 +3062,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -3533,7 +3531,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                               [
                                 {
                                   "display": "flex",
-                                  "paddingBottom": 8,
+                                  "paddingBottom": 16,
                                   "paddingTop": 8,
                                 },
                                 undefined,
@@ -3571,7 +3569,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "backgroundColor": "#131416",
                                       "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -3583,7 +3581,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "color": "#ffffff",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3609,7 +3607,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -3648,7 +3646,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3674,7 +3672,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -3713,7 +3711,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3739,7 +3737,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
-                                      "height": 32,
+                                      "height": 40,
                                       "justifyContent": "center",
                                       "overflow": "hidden",
                                       "paddingHorizontal": 16,
@@ -3778,7 +3776,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "color": "#131416",
-                                        "fontFamily": "Geist-Regular",
+                                        "fontFamily": "Geist-Medium",
                                         "fontSize": 16,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
@@ -3799,7 +3797,6 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                   "paddingBottom": 12,
                                   "paddingLeft": 16,
                                   "paddingRight": 16,
-                                  "paddingTop": 12,
                                 },
                                 undefined,
                               ]
@@ -4041,10 +4038,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4170,7 +4167,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4184,9 +4181,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4341,10 +4338,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4470,7 +4467,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4484,9 +4481,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4641,10 +4638,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4770,7 +4767,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4784,9 +4781,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4941,10 +4938,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5070,7 +5067,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5084,9 +5081,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -5241,10 +5238,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5370,7 +5367,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5384,9 +5381,9 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#66676a",
                                               "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
