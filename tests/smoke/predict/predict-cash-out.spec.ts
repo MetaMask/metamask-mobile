@@ -66,8 +66,6 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
         await device.disableSynchronization();
-
-        await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         // Set up cash out mocks before tapping cash out

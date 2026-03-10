@@ -72,21 +72,27 @@ class DefiView {
   /**
    * Taps a DeFi position row by its visible name (e.g. "Aave V3", "Uniswap V3").
    * Waits for the DeFi container first, then taps the position row.
-   * Uses atIndex(0) to handle duplicates from the homepage navigation stack.
+   * Tries index 0 first; if the element is not hittable (duplicate from the
+   * homepage navigation stack), retries with index 1.
    */
   async tapPosition(positionName: string): Promise<void> {
     await Assertions.expectElementToBeVisible(this.container, {
       description: 'Wait for DeFi container before tapping position',
     });
-    const index = device.getPlatform() === 'ios' ? 1 : 0;
-    const elem = Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(positionName),
-      index,
-    );
-    await Gestures.waitAndTap(elem, {
-      checkVisibility: false,
-      elemDescription: `DeFi position: ${positionName}`,
-    });
+    const testID = WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(positionName);
+
+    for (const index of [0, 1]) {
+      try {
+        const elem = Matchers.getElementByID(testID, index);
+        await Gestures.waitAndTap(elem, {
+          checkVisibility: false,
+          elemDescription: `DeFi position: ${positionName}`,
+        });
+        return;
+      } catch (e) {
+        if (index === 1) throw e;
+      }
+    }
   }
 
   async checkContainerIsDisplayed(): Promise<void> {

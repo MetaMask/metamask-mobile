@@ -82,6 +82,8 @@ const celticsOrderSubmitted = new Set<string>();
 const PRIORITY = {
   BASE: 999,
   API_OVERRIDE: 1000,
+  HOMEPAGE_POSITIONS_OVERRIDE: 1010,
+  CLAIMABLE_POSITIONS_OVERRIDE: 1020,
   BALANCE_REFRESH_PROXY: 1005,
   BALANCE_REFRESH_WITHDRAW: 1006,
   BALANCE_REFRESH_DIRECT: 1007,
@@ -300,7 +302,13 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
 export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
   mockServer: Mockttp,
   includeWinnings: boolean = false,
+  options: { showWinningsAsActive?: boolean } = {},
 ) => {
+  const { showWinningsAsActive = false } = options;
+  const priority = showWinningsAsActive
+    ? PRIORITY.HOMEPAGE_POSITIONS_OVERRIDE
+    : PRIORITY.API_OVERRIDE;
+
   // Mock for positions (no redeemable or redeemable=false) - overrides POLYMARKET_CURRENT_POSITIONS_MOCKS
   await mockServer
     .forGet('/proxy')
@@ -313,25 +321,38 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
           !url.includes('redeemable=true'),
       );
     })
-    .asPriority(PRIORITY.API_OVERRIDE)
+    .asPriority(priority)
     .thenCallback((request) => {
       const url = new URL(request.url).searchParams.get('url');
       const redeemable = parseRedeemableParam(request.url);
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Check if eventId parameter is present for filtering
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
       const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      let winnings = includeWinnings
+        ? POLYMARKET_WINNING_POSITIONS_RESPONSE
+        : [];
+
+      if (showWinningsAsActive && winnings.length > 0) {
+        winnings = winnings.map((position) => ({
+          ...position,
+          redeemable: false,
+          mergeable: false,
+        }));
+      }
 
       const allPositions =
         redeemable === undefined
           ? [
               ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
               ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
-              ...(includeWinnings ? POLYMARKET_WINNING_POSITIONS_RESPONSE : []),
+              ...winnings,
             ]
-          : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
+          : showWinningsAsActive
+            ? [...POLYMARKET_CURRENT_POSITIONS_RESPONSE, ...winnings]
+            : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
 
       let filteredPositions = allPositions;
       if (eventId) {
@@ -340,7 +361,6 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         );
       }
 
-      // Update the mock response with the actual user address
       const dynamicResponse = filteredPositions.map((position) => ({
         ...position,
         proxyWallet: userAddress,
@@ -370,17 +390,14 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Check if eventId parameter is present for filtering
       const eventIdMatch = url?.match(/eventId=([0-9]+)/);
       const eventId = eventIdMatch ? eventIdMatch[1] : null;
 
-      // Combine lost positions with winning positions if includeWinnings is true
       let resolvedMarkets = POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE;
       let winningPositions = includeWinnings
         ? POLYMARKET_WINNING_POSITIONS_RESPONSE
         : [];
 
-      // Filter by eventId if provided
       if (eventId) {
         resolvedMarkets = resolvedMarkets.filter(
           (position) => position.eventId === eventId,
@@ -390,19 +407,15 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         );
       }
 
-      const resolvedMarketsWithAddress = resolvedMarkets.map((position) => ({
-        ...position,
-        proxyWallet: userAddress,
-      }));
-
-      const winningPositionsWithAddress = winningPositions.map((position) => ({
-        ...position,
-        proxyWallet: userAddress,
-      }));
-
       const resolvedPositions = [
-        ...resolvedMarketsWithAddress,
-        ...winningPositionsWithAddress,
+        ...resolvedMarkets.map((position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        })),
+        ...winningPositions.map((position) => ({
+          ...position,
+          proxyWallet: userAddress,
+        })),
       ];
 
       return {
@@ -411,6 +424,58 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
       };
     });
 };
+
+/**
+ * Override positions so winning positions return redeemable: true.
+ * Register at priority 1020 to override showWinningsAsActive (priority 1010).
+ *
+ * Must be registered AFTER the homepage has loaded (where redeemable: false
+ * was needed for visibility). React Query's staleTime (5s) will have elapsed
+ * by then, so market details triggers a background refetch that hits this mock.
+ */
+export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
+  mockServer: Mockttp,
+) {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(PRIORITY.CLAIMABLE_POSITIONS_OVERRIDE)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : undefined;
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      const allPositions = [
+        ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
+        ...POLYMARKET_WINNING_POSITIONS_RESPONSE,
+      ];
+      const filteredPositions = eventId
+        ? allPositions.filter((position) => position.eventId === eventId)
+        : allPositions;
+
+      const response = userAddress
+        ? filteredPositions.map((position) => ({
+            ...position,
+            proxyWallet: userAddress,
+          }))
+        : filteredPositions;
+
+      return {
+        statusCode: 200,
+        json: response,
+      };
+    });
+}
 
 /**
  * Mock for Polymarket CLOB prices API

@@ -17,6 +17,7 @@ import {
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
+  POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -25,7 +26,6 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import {
-  POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
@@ -70,116 +70,10 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
 
 const PredictionMarketFeatureForMarketDetails = async (mockServer: Mockttp) => {
   await PredictionMarketFeature(mockServer);
-  await POLYMARKET_ACTIVE_PLUS_WINNING_POSITIONS_MOCKS(mockServer);
+  await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true, {
+    showWinningsAsActive: true,
+  });
 };
-
-/**
- * Override positions endpoint so homepage active list includes winning positions too.
- * This allows opening a winning position from the homepage and validating claim flow in market details.
- */
-async function POLYMARKET_ACTIVE_PLUS_WINNING_POSITIONS_MOCKS(
-  mockServer: Mockttp,
-) {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          url.includes('data-api.polymarket.com/positions') &&
-          url.includes('user=0x') &&
-          !url.includes('redeemable=true'),
-      );
-    })
-    .asPriority(1010)
-    .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
-      const userAddress = userMatch ? userMatch[1] : undefined;
-      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
-      const eventId = eventIdMatch ? eventIdMatch[1] : null;
-
-      // Homepage "active positions" list is built from non-claimable positions.
-      // Expose winning positions there by mirroring them as non-redeemable in this
-      // specific endpoint override, while keeping redeemable=true mocks untouched
-      // for claim flow in market details.
-      const winningPositionsForActiveList =
-        POLYMARKET_WINNING_POSITIONS_RESPONSE.map((position) => ({
-          ...position,
-          redeemable: false,
-          mergeable: false,
-        }));
-
-      const allPositions = [
-        ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-        ...winningPositionsForActiveList,
-      ];
-      const filteredPositions = eventId
-        ? allPositions.filter((position) => position.eventId === eventId)
-        : allPositions;
-
-      const response = userAddress
-        ? filteredPositions.map((position) => ({
-            ...position,
-            proxyWallet: userAddress,
-          }))
-        : filteredPositions;
-
-      return {
-        statusCode: 200,
-        json: response,
-      };
-    });
-}
-
-/**
- * Override positions so winning positions return redeemable: true.
- * Must be registered AFTER the user has tapped the winning position on the
- * homepage (where redeemable: false was needed for visibility).
- * React Query's staleTime (5s) will have elapsed by then, so market details
- * triggers a background refetch that hits this higher-priority mock.
- */
-async function enableClaimablePositionsMock(mockServer: Mockttp) {
-  await mockServer
-    .forGet('/proxy')
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      return Boolean(
-        url &&
-          url.includes('data-api.polymarket.com/positions') &&
-          url.includes('user=0x') &&
-          !url.includes('redeemable=true'),
-      );
-    })
-    .asPriority(1020)
-    .thenCallback((request) => {
-      const url = new URL(request.url).searchParams.get('url');
-      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
-      const userAddress = userMatch ? userMatch[1] : undefined;
-      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
-      const eventId = eventIdMatch ? eventIdMatch[1] : null;
-
-      const allPositions = [
-        ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
-        ...POLYMARKET_WINNING_POSITIONS_RESPONSE,
-      ];
-      const filteredPositions = eventId
-        ? allPositions.filter((position) => position.eventId === eventId)
-        : allPositions;
-
-      const response = userAddress
-        ? filteredPositions.map((position) => ({
-            ...position,
-            proxyWallet: userAddress,
-          }))
-        : filteredPositions;
-
-      return {
-        statusCode: 200,
-        json: response,
-      };
-    });
-}
 
 /**
  * Mocks to updates balance, removes claimed positions, and adds them to activity
@@ -269,7 +163,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
           description:
             'Wallet screen should be visible after returning from activity',
         });
-        await WalletView.scrollAndTapPredictionsSection();
+        await WalletView.scrollAndTapPredictionsSection('up');
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events
@@ -340,7 +234,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Switch mock so winning positions return redeemable: true.
         // By this point, React Query's 5s staleTime has elapsed, so the
         // positions query will refetch when market details re-enables it.
-        await enableClaimablePositionsMock(mockServer);
+        await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
         await WalletView.scrollAndTapPredictionsPosition(positions.Won);
 
