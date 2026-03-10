@@ -26,12 +26,18 @@ import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/p
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 
-export function PredictPayWithRow() {
+interface PredictPayWithRowProps {
+  disabled?: boolean;
+}
+
+export function PredictPayWithRow({
+  disabled = false,
+}: PredictPayWithRowProps) {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const transactionMeta = useTransactionMetadataRequest();
   const from = transactionMeta?.txParams?.from;
-  const canEdit = !isHardwareAccount((from as string) ?? '');
+  const canEdit = !isHardwareAccount((from as string) ?? '') && !disabled;
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
 

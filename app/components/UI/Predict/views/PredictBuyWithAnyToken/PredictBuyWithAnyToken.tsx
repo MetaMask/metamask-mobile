@@ -253,7 +253,7 @@ const PredictBuyWithAnyToken = () => {
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
           />
-          <PredictPayWithRow />
+          <PredictPayWithRow disabled={isPlacingOrder} />
         </Box>
       </ScrollView>
       <PredictBuyMinimumError
