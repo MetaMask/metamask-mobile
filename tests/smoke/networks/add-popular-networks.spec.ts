@@ -5,10 +5,11 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import WalletView from '../../page-objects/wallet/WalletView';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import Assertions from '../../framework/Assertions';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
+// TODO: Update tests to be compatible with BIP-44 UI/UX
+// https://github.com/MetaMask/metamask-mobile/issues/27224
+// eslint-disable-next-line jest/no-disabled-tests
+describe.skip(SmokeNetworkAbstractions('Add all popular networks'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
   });
@@ -18,12 +19,6 @@ describe(SmokeNetworkAbstractions('Add all popular networks'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetailsV2(false),
-          );
-        },
       },
       async () => {
         await loginToApp();

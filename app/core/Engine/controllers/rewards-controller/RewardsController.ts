@@ -2686,9 +2686,8 @@ export class RewardsController extends BaseController<
         'RewardsController: Fetching geo location for rewards metadata',
       );
 
-      // Get geo location from data service
       const geoLocation = await this.messenger.call(
-        'RewardsDataService:fetchGeoLocation',
+        'GeolocationController:getGeolocation',
       );
 
       // Check if the location is supported (not in blocked regions)
