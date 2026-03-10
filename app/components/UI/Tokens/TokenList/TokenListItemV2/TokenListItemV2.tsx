@@ -438,7 +438,7 @@ export const TokenListItemV2 = React.memo(
           text: strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: TextColor.SuccessDefault,
+          color: CLTextColor.Success,
           onPress: undefined,
         };
       }
