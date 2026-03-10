@@ -161,6 +161,8 @@ import { smartTransactionsControllerInit } from './controllers/smart-transaction
 import { userStorageControllerInit } from './controllers/identity/user-storage-controller-init';
 import { authenticationControllerInit } from './controllers/identity/authentication-controller-init';
 import { earnControllerInit } from './controllers/earn-controller-init';
+import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
+import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
 import { swapsControllerInit } from './controllers/swaps-controller-init';
 import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
@@ -312,6 +314,8 @@ export class Engine {
         SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         EarnController: earnControllerInit,
+        GeolocationApiService: geolocationApiServiceInit,
+        GeolocationController: geolocationControllerInit,
         TokensController: tokensControllerInit,
         TokenBalancesController: tokenBalancesControllerInit,
         // MultichainNetworkController and NetworkEnablementController must be initialized before TokenRatesController
@@ -395,6 +399,7 @@ export class Engine {
     const transactionController = controllersByName.TransactionController;
     const seedlessOnboardingController =
       controllersByName.SeedlessOnboardingController;
+    const geolocationController = controllersByName.GeolocationController;
     const perpsController = controllersByName.PerpsController;
     const phishingController = controllersByName.PhishingController;
     const predictController = controllersByName.PredictController;
@@ -556,6 +561,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
+      GeolocationController: geolocationController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
       ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1300,6 +1306,7 @@ export default {
       DelegationController,
       EarnController,
       GasFeeController,
+      GeolocationController,
       GatorPermissionsController,
       KeyringController,
       LoggingController,
@@ -1368,6 +1375,7 @@ export default {
       DelegationController: DelegationController.state,
       EarnController: EarnController.state,
       GasFeeController: GasFeeController.state,
+      GeolocationController: GeolocationController.state,
       GatorPermissionsController: GatorPermissionsController.state,
       KeyringController: KeyringController.state,
       LoggingController: LoggingController.state,

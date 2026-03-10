@@ -150,6 +150,12 @@
           },
           "currentCurrency": "usd"
         },
+        "GeolocationController": {
+          "location": "UNKNOWN",
+          "status": "idle",
+          "lastFetchedAt": null,
+          "error": null
+        },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
           "gasEstimateType": "none",
@@ -612,7 +618,6 @@
       "activationKeys": [],
       "authenticationUrls": [],
       "customOrderIds": [],
-      "detectedGeolocation": null,
       "getStartedAgg": false,
       "getStartedDeposit": false,
       "getStartedSell": false,
