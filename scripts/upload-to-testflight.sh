@@ -50,10 +50,11 @@ echo "IPA: $IPA_PATH"
 echo "Group: $TESTFLIGHT_GROUP"
 
 # Extract environment from pipeline name for changelog
-# GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-rc); preserve full build type.
+# GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-exp); use segment after prefix and before first "-".
 # Bitrise and others pass pipeline title; use first segment before underscore.
 if [[ "$PIPELINE_NAME" == github_actions_* ]]; then
-  ENVIRONMENT=$(echo "$PIPELINE_NAME" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+  suffix="${PIPELINE_NAME#github_actions_}"
+  ENVIRONMENT=$(echo "${suffix%%-*}" | tr '[:lower:]' '[:upper:]')
 else
   ENVIRONMENT=$(echo "$PIPELINE_NAME" | cut -d'_' -f1 | tr '[:lower:]' '[:upper:]')
 fi
