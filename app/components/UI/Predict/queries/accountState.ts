@@ -12,8 +12,8 @@ import {
   POLYGON_MAINNET_CAIP_CHAIN_ID,
 } from '../providers/polymarket/constants';
 
-const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
-const infuraProjectId = InfuraKey === 'null' ? '' : (InfuraKey ?? '');
+const InfuraKey = process.env.MM_INFURA_PROJECT_ID ?? '';
+const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 /**
  * Enable a network unconditionally via NetworkEnablementController.
