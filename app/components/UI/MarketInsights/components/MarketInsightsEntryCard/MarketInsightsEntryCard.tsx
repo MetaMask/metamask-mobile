@@ -12,18 +12,13 @@ import {
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import { endTrace, TraceName } from '../../../../../util/trace';
 
 const SparkleIcon: React.FC = () => (
-  <Icon
-    name={IconName.Sparkle}
-    size={IconSize.Lg}
-    color={IconColor.IconDefault}
-  />
+  <Icon name={IconName.Ai} size={IconSize.Lg} color={IconColor.IconDefault} />
 );
 
 /**
@@ -60,18 +55,11 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
+          gap={1}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-              {strings('market_insights.title')}
-            </Text>
-            <SparkleIcon />
-          </Box>
+          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+            {strings('market_insights.title')}
+          </Text>
           <Icon
             name={IconName.ArrowRight}
             size={IconSize.Sm}
@@ -88,6 +76,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             alignItems={BoxAlignItems.Center}
             gap={1}
           >
+            <SparkleIcon />
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
