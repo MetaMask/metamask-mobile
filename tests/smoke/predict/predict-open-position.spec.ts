@@ -41,10 +41,11 @@ const positionDetails = {
 };
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
+  });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, false); // do not include winnings. Claim Button is animated and problematic for e2e
 };
