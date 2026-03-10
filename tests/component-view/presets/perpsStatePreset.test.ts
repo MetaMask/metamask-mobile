@@ -39,7 +39,7 @@ describe('initialStatePerps', () => {
           };
         }
       | undefined;
-    expect(prefs?.tokenSortConfig).toBe({
+    expect(prefs?.tokenSortConfig).toStrictEqual({
       key: 'tokenFiatAmount',
       order: 'dsc',
       sortCallback: 'stringNumeric',

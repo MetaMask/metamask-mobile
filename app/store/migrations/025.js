@@ -7,7 +7,7 @@ delete OLD_SUPPORTED_CHAIN_IDS['0x3e7'];
 
 export default function migrate(state) {
   try {
-    Object.values(ETHERSCAN_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
+    Object.values(OLD_SUPPORTED_CHAIN_IDS).forEach((hexChainId) => {
       const thirdPartyApiMode = state?.privacy?.thirdPartyApiMode ?? true;
       if (
         state?.engine?.backgroundState?.PreferencesController
