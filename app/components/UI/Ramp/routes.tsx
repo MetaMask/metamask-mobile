@@ -42,7 +42,11 @@ const MainRoutes = () => (
       name={Routes.RAMP.TOKEN_SELECTION}
       component={TokenSelection}
     />
-    <Stack.Screen name={Routes.RAMP.AMOUNT_INPUT} component={BuildQuote} />
+    <Stack.Screen
+      name={Routes.RAMP.AMOUNT_INPUT}
+      component={BuildQuote}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ENTER_EMAIL} component={V2EnterEmail} />
     <Stack.Screen name={Routes.RAMP.OTP_CODE} component={V2OtpCode} />
     <Stack.Screen name={Routes.RAMP.BASIC_INFO} component={V2BasicInfo} />

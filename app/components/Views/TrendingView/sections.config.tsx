@@ -19,8 +19,8 @@ import { usePredictMarketData } from '../../UI/Predict/hooks/usePredictMarketDat
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { usePerpsMarkets } from '../../UI/Perps/hooks';
 import {
-  PerpsConnectionProvider,
   PerpsConnectionContext,
+  PerpsConnectionProvider,
 } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { IconName as DSIconName } from '@metamask/design-system-react-native';

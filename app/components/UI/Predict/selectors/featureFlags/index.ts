@@ -4,8 +4,11 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictHotTabFlag } from '../../types/flags';
-import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+import { PredictFeatureFlags, PredictHotTabFlag } from '../../types/flags';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HOT_TAB_FLAG,
+} from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 
 /**
@@ -108,4 +111,40 @@ export const selectPredictHotTabFlag = createSelector(
 
     return flag;
   },
+);
+
+/**
+ * Selector for Predict fee collection config flag
+ */
+export const selectPredictFeeCollectionFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const flag = unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
+      remoteFeatureFlags?.predictFeeCollection,
+    );
+
+    if (!flag) {
+      return DEFAULT_FEE_COLLECTION_FLAG;
+    }
+
+    return flag;
+  },
+);
+
+/**
+ * Selector for Predict FAK (Fill-And-Kill) orders enablement
+ *
+ * Uses version-gated feature flag `predictFakOrders` from remote config.
+ * Falls back to `false` if remote flag is unavailable or invalid.
+ *
+ * @returns {boolean} True if FAK orders are enabled and version requirement is met
+ */
+export const selectPredictFakOrdersEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) =>
+    validatedVersionGatedFeatureFlag(
+      unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+        remoteFeatureFlags?.predictFakOrders,
+      ),
+    ) ?? false,
 );

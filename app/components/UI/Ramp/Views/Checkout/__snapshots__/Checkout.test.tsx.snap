@@ -468,16 +468,19 @@ exports[`Checkout renders error view when no URL is provided 1`] = `
                                   },
                                 ]
                               }
-                              testID="header"
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
+                            />
+                            <View>
                               <View
-                                style={
-                                  [
+                                onLayout={[Function]}
+                              >
+                                <TouchableOpacity
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
                                     {
                                       "alignItems": "center",
                                       "display": "flex",
@@ -1207,16 +1210,19 @@ exports[`Checkout sets and displays error on http error for callback URL 1`] = `
                                   },
                                 ]
                               }
-                              testID="header"
-                            >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                />
-                              </View>
+                            />
+                            <View>
                               <View
-                                style={
-                                  [
+                                onLayout={[Function]}
+                              >
+                                <TouchableOpacity
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
                                     {
                                       "alignItems": "center",
                                       "display": "flex",

@@ -1,11 +1,13 @@
 import FixtureBuilder, {
   type MusdFixtureOptions,
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../../framework/fixtures/FixtureBuilder';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 import { USDC_MAINNET, MUSD_MAINNET } from '../../../constants/musd-mainnet';
+import type { Hex } from '@metamask/utils';
 
 const USDC_DECIMALS = 6;
 const MUSD_DECIMALS = 6;
@@ -33,6 +35,7 @@ export async function createMusdFixture(
 
   if (node) {
     await seedErc20Stub(node, USDC_MAINNET);
+    await node.setAccountBalance('10', DEFAULT_FIXTURE_ACCOUNT_CHECKSUM as Hex);
   }
 
   const baseTokens = [

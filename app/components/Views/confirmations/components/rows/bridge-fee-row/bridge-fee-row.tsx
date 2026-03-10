@@ -28,10 +28,7 @@ import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import { Json } from '@metamask/utils';
-
-const NETWORK_FEE_ONLY_TYPES = [TransactionType.musdConversion];
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -40,16 +37,6 @@ export function BridgeFeeRow() {
   const totals = useTransactionPayTotals();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
-
-  if (hasTransactionType(transactionMetadata, NETWORK_FEE_ONLY_TYPES)) {
-    return (
-      <NetworkFeeRow
-        totals={totals}
-        hasAlert={hasAlert}
-        isLoading={isLoading}
-      />
-    );
-  }
 
   return (
     <TransactionFeeRow
@@ -127,45 +114,6 @@ function getNetworkFeeUsdBN({
   if (sourceNetworkUsd == null || targetNetworkUsd == null) return undefined;
 
   return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
-}
-
-function NetworkFeeRow({
-  totals,
-  hasAlert,
-  isLoading,
-}: {
-  totals?: TransactionPayTotals;
-  hasAlert: boolean;
-  isLoading: boolean;
-}) {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const networkFeeUsd = useMemo(() => {
-    const networkFeeUsdBN = getNetworkFeeUsdBN({ totals });
-    return networkFeeUsdBN ? formatFiat(networkFeeUsdBN) : '';
-  }, [totals, formatFiat]);
-
-  if (isLoading) return <InfoRowSkeleton testId="network-fee-row-skeleton" />;
-
-  return (
-    <AlertRow
-      testID="network-fee-row"
-      label={strings('confirm.label.network_fee')}
-      alertField={RowAlertKey.PayWithFee}
-      tooltipTitle={strings('confirm.label.network_fee')}
-      tooltip={strings('confirm.tooltip.network_fee')}
-      tooltipColor={IconColor.Alternative}
-      rowVariant={InfoRowVariant.Small}
-    >
-      <Text
-        variant={TextVariant.BodyMD}
-        color={hasAlert ? TextColor.Error : TextColor.Alternative}
-        testID={ConfirmationRowComponentIDs.NETWORK_FEE}
-      >
-        {networkFeeUsd}
-      </Text>
-    </AlertRow>
-  );
 }
 
 function Tooltip({
