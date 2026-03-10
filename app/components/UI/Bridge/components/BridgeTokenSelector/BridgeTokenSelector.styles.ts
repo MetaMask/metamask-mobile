@@ -15,12 +15,6 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingBottom: 16,
       flexGrow: 1,
     },
-    buttonContainer: {
-      paddingHorizontal: 8,
-    },
-    searchInput: {
-      marginVertical: 12,
-    },
     tokenItem: {
       paddingVertical: 8,
     },

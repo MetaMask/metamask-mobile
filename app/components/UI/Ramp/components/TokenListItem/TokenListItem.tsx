@@ -68,13 +68,13 @@ function TokenListItem({
           <AvatarToken
             name={token.name}
             imageSource={{ uri: token.iconUrl }}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
-        <Text variant={TextVariant.BodyMD} color={textColor}>
+        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
+        <Text variant={TextVariant.BodySM} color={textColor}>
           {token.symbol}
         </Text>
       </ListItemColumn>

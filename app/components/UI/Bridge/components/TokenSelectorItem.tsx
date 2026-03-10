@@ -59,13 +59,13 @@ const createStyles = ({
       flex: 1,
       flexShrink: 1,
       minWidth: 0,
-      marginLeft: 8,
+      marginLeft: 12,
     },
     container: {
       backgroundColor: vars.isSelected
         ? theme.colors.primary.muted
         : theme.colors.background.default,
-      paddingVertical: 4,
+      minHeight: 72,
       paddingLeft: 16,
       paddingRight: 10,
     },
@@ -81,7 +81,7 @@ const createStyles = ({
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingVertical: 10,
+      paddingVertical: 12,
       alignItems: 'flex-start',
     },
     tokenMainInfo: {
@@ -158,7 +158,7 @@ const FiatBalanceView = ({
 
   return (
     <Text
-      variant={TextVariant.BodyMD}
+      variant={TextVariant.BodySM}
       color={TextColor.Alternative}
       numberOfLines={1}
     >
@@ -250,7 +250,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <AvatarToken
               name={token.symbol}
               imageSource={getTokenImageSource(token.symbol, token.image)}
-              size={AvatarSize.Md}
+              size={AvatarSize.Lg}
               testID={
                 isNative
                   ? `network-logo-${token.symbol}`
@@ -314,7 +314,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               justifyContent={JustifyContent.spaceBetween}
             >
               <Text
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodySM}
                 color={TextColor.Alternative}
                 numberOfLines={1}
                 ellipsizeMode="tail"
