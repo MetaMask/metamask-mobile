@@ -13,10 +13,6 @@ on:
         required: false
         type: boolean
         default: false
-      testflight_group:
-        required: false
-        type: string
-        default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       build_name:
@@ -44,15 +40,6 @@ on:
         required: false
         type: boolean
         default: false
-      testflight_group:
-        description: 'TestFlight group (only used when platform is ios or both; ignored for android)'
-        required: false
-        type: choice
-        default: 'MetaMask BETA & Release Candidates'
-        options:
-          - 'MetaMask BETA & Release Candidates'
-          - 'MM Card Team'
-          - 'Ramp Provider Testing'
 
 permissions:
   contents: read
@@ -363,101 +350,3 @@ jobs:
             ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error
 
-  # Summary for approvers: build name, version, TestFlight group (runs before upload, no approval).
-  testflight-upload-summary:
-    name: TestFlight upload summary
-    needs: [prepare, build]
-    if: |
-      always() && !cancelled() &&
-      !inputs.skip_version_bump &&
-      needs.build.result == 'success' &&
-      (inputs.platform == 'ios' || inputs.platform == 'both') &&
-      (inputs.build_name == 'main-rc' || inputs.build_name == 'main-exp' || inputs.build_name == 'main-prod')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Display TestFlight upload summary
-        run: |
-          BUILD_VERSION=$(node -p "require('./package.json').version")
-          {
-            echo "### 📲 TestFlight Upload"
-            echo ""
-            echo "| Field | Value |"
-            echo "| --- | --- |"
-            echo "| **Build name** | ${{ inputs.build_name }} |"
-            echo "| **Build version** | ${BUILD_VERSION} |"
-            echo "| **TestFlight group** | ${{ inputs.testflight_group }} |"
-            echo "| **Branch** | ${{ github.ref_name }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # Upload iOS device build to TestFlight (only when version bump was applied).
-  # Uses GitHub Environment "apple" for App Store Connect API secrets:
-  # APP_STORE_CONNECT_API_KEY_ISSUER_ID, APP_STORE_CONNECT_API_KEY_KEY_ID,
-  # APP_STORE_CONNECT_API_KEY_KEY_CONTENT (.p8 content).
-  upload-ios-testflight:
-    name: Upload iOS to TestFlight
-    needs: [prepare, build, testflight-upload-summary]
-    if: |
-      always() && !cancelled() &&
-      !inputs.skip_version_bump &&
-      needs.build.result == 'success' &&
-      (inputs.platform == 'ios' || inputs.platform == 'both') &&
-      (inputs.build_name == 'main-rc' || inputs.build_name == 'main-exp' || inputs.build_name == 'main-prod')
-    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
-    environment: apple
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Ruby (iOS)
-        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
-        with:
-          ruby-version: '3.2.9'
-          working-directory: ios
-          bundler-cache: true
-
-      - name: Download iOS build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-${{ inputs.build_name }}
-
-      - name: Find IPA path
-        id: ipa
-        run: |
-          IPA=$(find . -name '*.ipa' -type f | head -1)
-          if [ -z "$IPA" ]; then
-            echo "::error::No .ipa file found in artifact"
-            exit 1
-          fi
-          # Portable absolute path (realpath not always on macOS)
-          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
-          echo "path=$ABS" >> "$GITHUB_OUTPUT"
-
-      - name: Setup App Store Connect API Key
-        run: |
-          bash scripts/setup-app-store-connect-api-key.sh \
-            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
-            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
-        env:
-          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
-
-      - name: Upload to TestFlight
-        run: |
-          bash scripts/upload-to-testflight.sh \
-            "github_actions_${{ inputs.build_name }}" \
-            "${{ github.ref_name }}" \
-            "${{ steps.ipa.outputs.path }}" \
-            "${{ inputs.testflight_group }}"
-
-      - name: Cleanup API Key
-        if: always()
-        run: |
-          rm -f ios/AuthKey.p8
-          echo "🧹 Cleaned up API key file"

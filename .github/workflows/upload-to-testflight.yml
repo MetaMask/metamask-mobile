@@ -1,0 +1,133 @@
+name: Upload to TestFlight
+
+# Dedicated workflow to build iOS (via build.yml) and upload to TestFlight.
+# All TestFlight logic lives here; build.yml only builds and uploads artifacts.
+#
+# Push to build/upload-to-testflight runs with default inputs (rc, MetaMask BETA & Release Candidates)
+# for testing. Manual run via workflow_dispatch allows choosing environment and TestFlight group.
+
+on:
+  push:
+    branches:
+      - build/upload-to-testflight
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Build environment / track'
+        required: true
+        type: choice
+        options:
+          - exp
+          - beta
+          - rc
+        default: rc
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: true
+        type: choice
+        default: 'MetaMask BETA & Release Candidates'
+        options:
+          - 'MetaMask BETA & Release Candidates'
+          - 'MM Card Team'
+          - 'Ramp Provider Testing'
+
+permissions:
+  contents: read
+  id-token: write
+
+# Defaults when triggered by push (no inputs); workflow_dispatch can override.
+env:
+  ENVIRONMENT: ${{ inputs.environment || 'rc' }}
+  TESTFLIGHT_GROUP: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
+
+jobs:
+  build:
+    name: Build iOS (${{ env.ENVIRONMENT }})
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-${{ env.ENVIRONMENT }}
+      platform: ios
+      skip_version_bump: false
+    secrets: inherit
+
+  testflight-upload-summary:
+    name: TestFlight upload summary
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Display TestFlight upload summary
+        run: |
+          BUILD_VERSION=$(node -p "require('./package.json').version")
+          {
+            echo "### 📲 TestFlight Upload"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Build name** | main-${{ env.ENVIRONMENT }} |"
+            echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **TestFlight group** | ${{ env.TESTFLIGHT_GROUP }} |"
+            echo "| **Branch** | ${{ github.ref_name }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Uses GitHub Environment "apple" for App Store Connect API secrets.
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [build, testflight-upload-summary]
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: apple
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-main-${{ env.ENVIRONMENT }}
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-${{ env.ENVIRONMENT }}" \
+            "${{ github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "${{ env.TESTFLIGHT_GROUP }}"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"
