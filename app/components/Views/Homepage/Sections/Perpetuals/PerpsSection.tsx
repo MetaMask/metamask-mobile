@@ -21,7 +21,6 @@ import {
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import SectionTitle from '../../components/SectionTitle';
 import SectionRow from '../../components/SectionRow';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -351,32 +350,27 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               </Box>
             </SectionRow>
           ) : allCarouselMarkets.length > 0 ? (
-            <FadingScrollContainer>
-              {(scrollProps) => (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={tw.style('px-4 gap-2.5')}
-                  testID="homepage-trending-perps-carousel"
-                  {...scrollProps}
-                >
-                  {(allCarouselMarkets ?? []).map((market) => (
-                    <PerpsMarketTileCard
-                      key={market.symbol}
-                      market={market}
-                      sparklineData={sparklines[market.symbol]}
-                      showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                      onPress={handleTilePress}
-                    />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewMorePerps}
-                    twClassName="w-[180px] flex-1"
-                    testID="perps-view-more-card"
-                  />
-                </ScrollView>
-              )}
-            </FadingScrollContainer>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-2.5')}
+              testID="homepage-trending-perps-carousel"
+            >
+              {(allCarouselMarkets ?? []).map((market) => (
+                <PerpsMarketTileCard
+                  key={market.symbol}
+                  market={market}
+                  sparklineData={sparklines[market.symbol]}
+                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
+                  onPress={handleTilePress}
+                />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewMorePerps}
+                twClassName="w-[180px] flex-1"
+                testID="perps-view-more-card"
+              />
+            </ScrollView>
           ) : null}
         </Box>
       </View>
