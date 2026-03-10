@@ -131,6 +131,55 @@ async function POLYMARKET_ACTIVE_PLUS_WINNING_POSITIONS_MOCKS(
 }
 
 /**
+ * Override positions so winning positions return redeemable: true.
+ * Must be registered AFTER the user has tapped the winning position on the
+ * homepage (where redeemable: false was needed for visibility).
+ * React Query's staleTime (5s) will have elapsed by then, so market details
+ * triggers a background refetch that hits this higher-priority mock.
+ */
+async function enableClaimablePositionsMock(mockServer: Mockttp) {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('data-api.polymarket.com/positions') &&
+          url.includes('user=0x') &&
+          !url.includes('redeemable=true'),
+      );
+    })
+    .asPriority(1020)
+    .thenCallback((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
+      const userAddress = userMatch ? userMatch[1] : undefined;
+      const eventIdMatch = url?.match(/eventId=([0-9]+)/);
+      const eventId = eventIdMatch ? eventIdMatch[1] : null;
+
+      const allPositions = [
+        ...POLYMARKET_CURRENT_POSITIONS_RESPONSE,
+        ...POLYMARKET_WINNING_POSITIONS_RESPONSE,
+      ];
+      const filteredPositions = eventId
+        ? allPositions.filter((position) => position.eventId === eventId)
+        : allPositions;
+
+      const response = userAddress
+        ? filteredPositions.map((position) => ({
+            ...position,
+            proxyWallet: userAddress,
+          }))
+        : filteredPositions;
+
+      return {
+        statusCode: 200,
+        json: response,
+      };
+    });
+}
+
+/**
  * Mocks to updates balance, removes claimed positions, and adds them to activity
  */
 const postClaimMocks = async (mockServer: Mockttp) => {
@@ -262,7 +311,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
   });
 
   // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('claim winnings via market details', async () => {
+  it('claim winnings via market details', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -286,6 +335,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
         await PredictDetailsPage.tapBackButton();
+
+        // Switch mock so winning positions return redeemable: true.
+        // By this point, React Query's 5s staleTime has elapsed, so the
+        // positions query will refetch when market details re-enables it.
+        await enableClaimablePositionsMock(mockServer);
 
         await WalletView.scrollAndTapPredictionsPosition(positions.Won);
 
@@ -324,8 +378,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await verifyResolvedPositionsRemoved();
 
-        await WalletView.scrollToPosition(positions.Open, 'up');
-
+        await WalletView.scrollAndTapPredictionsSection('up');
         await Assertions.expectTextDisplayed('$48.16');
       },
     );

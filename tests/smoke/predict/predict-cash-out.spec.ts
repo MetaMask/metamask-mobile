@@ -88,7 +88,7 @@ describe(SmokePredictions('Predictions'), () => {
         await WalletView.scrollAndTapPredictionsSection();
         await WalletView.tapOnAvailableBalance();
         await Assertions.expectTextDisplayed(positionDetails.newBalance, {
-          description: 'Predictions balance should be updated to $89.16',
+          description: 'Predictions balance should be updated to $58.66',
         });
 
         await PredictMarketList.tapBackButton();

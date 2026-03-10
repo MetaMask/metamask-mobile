@@ -27,7 +27,6 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
-  static readonly COORDINATE_EPSILON = 8;
 
   get container(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
@@ -46,58 +45,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
-  private async getElementCenterY(elem: DetoxElement): Promise<number | null> {
-    try {
-      const nativeElement = (await elem) as IndexableNativeElement;
-      const attributes = (await nativeElement.getAttributes()) as {
-        frame?: { y?: number; height?: number };
-        elementFrame?: { y?: number; height?: number };
-        y?: number;
-        height?: number;
-      };
-
-      const frame = attributes.frame ?? attributes.elementFrame;
-      if (frame && typeof frame.y === 'number') {
-        const height = typeof frame.height === 'number' ? frame.height : 0;
-        return frame.y + height / 2;
-      }
-
-      if (typeof attributes.y === 'number') {
-        const height =
-          typeof attributes.height === 'number' ? attributes.height : 0;
-        return attributes.y + height / 2;
-      }
-
-      return null;
-    } catch {
-      return null;
-    }
-  }
-
-  private async getPreferredScrollDirections(
-    target: DetoxElement,
-  ): Promise<('up' | 'down')[]> {
-    const [targetY, scrollViewY] = await Promise.all([
-      this.getElementCenterY(target),
-      this.getElementCenterY(this.walletScrollView),
-    ]);
-
-    if (targetY === null || scrollViewY === null) {
-      return ['up', 'down'];
-    }
-
-    if (Math.abs(targetY - scrollViewY) <= WalletView.COORDINATE_EPSILON) {
-      return ['up', 'down'];
-    }
-
-    const preferredDirection: 'up' | 'down' =
-      targetY > scrollViewY ? 'up' : 'down';
-    const secondaryDirection: 'up' | 'down' =
-      preferredDirection === 'up' ? 'down' : 'up';
-
-    return [preferredDirection, secondaryDirection];
-  }
-
   /**
    * Progressive scroll for homepage sections:
    * try tap -> small scroll down -> retry, until the section is tappable.
@@ -105,106 +52,27 @@ class WalletView {
   private async scrollAndTapSection(
     target: DetoxElement,
     description: string,
+    direction: 'up' | 'down' = 'down',
   ): Promise<void> {
-    // Sections-only mode precondition.
-    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
-    for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-      try {
-        await Gestures.waitAndTap(target, {
-          timeout: 1500,
-          checkStability: true,
-          elemDescription: description,
-        });
-        return;
-      } catch {
-        const swipeAnchors: DetoxElement[] = [
-          this.tokensSectionHeader,
-          this.perpsSectionHeader,
-          this.defiPositionsNew,
-          this.nftsSectionHeader,
-        ];
-
-        let didSwipe = false;
-        for (const anchor of swipeAnchors) {
-          try {
-            await Gestures.swipe(anchor, 'up', {
-              timeout: 1200,
-              speed: 'slow',
-              percentage: 0.4,
-              checkVisibility: false,
-              checkEnabled: false,
-              elemDescription: 'Homepage progressive swipe up',
-            });
-            // Let inertial scroll settle before next tap attempt.
-            await new Promise((resolve) => setTimeout(resolve, 350));
-            didSwipe = true;
-            break;
-          } catch {
-            // Try next anchor; some text nodes exist but are clipped/off-screen.
-          }
-        }
-
-        if (!didSwipe) {
-          // Fallback to the wallet scroll container when headers are clipped.
-          await Gestures.swipe(this.walletScrollView, 'up', {
-            timeout: 1200,
-            speed: 'slow',
-            percentage: 0.4,
-            checkVisibility: false,
-            checkEnabled: false,
-            elemDescription: 'Wallet home fallback swipe up',
-          });
-          await new Promise((resolve) => setTimeout(resolve, 350));
-        }
-      }
-    }
-
+    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+      direction,
+      scrollAmount: 200,
+      elemDescription: `Scroll to ${description}`,
+    });
     await Gestures.waitAndTap(target, {
-      checkStability: true,
-      elemDescription: `${description} (after progressive scroll retries)`,
+      elemDescription: description,
     });
   }
 
   private async scrollToSection(
     target: DetoxElement,
     description: string,
+    direction: 'up' | 'down' = 'down',
   ): Promise<void> {
-    // Sections-only mode precondition.
-    await Utilities.waitForElementToBeVisible(this.walletScrollView, 15000);
-    const tryScrollUntilVisible = async (
-      direction: 'up' | 'down',
-    ): Promise<boolean> => {
-      let hasSwiped = false;
-      for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-        // Force at least one real swipe so callers can reliably move the viewport.
-        if (hasSwiped && (await Utilities.isElementVisible(target, 800))) {
-          return true;
-        }
-
-        await Gestures.swipe(this.walletScrollView, direction, {
-          timeout: 1200,
-          speed: 'slow',
-          percentage: 0.4,
-          checkVisibility: false,
-          checkEnabled: false,
-          elemDescription: `Wallet home scroll view swipe ${direction}`,
-        });
-        await new Promise((resolve) => setTimeout(resolve, 350));
-        hasSwiped = true;
-      }
-      return false;
-    };
-
-    const directions = await this.getPreferredScrollDirections(target);
-    for (const direction of directions) {
-      if (await tryScrollUntilVisible(direction)) {
-        return;
-      }
-    }
-
-    await Assertions.expectElementToBeVisible(target, {
-      timeout: 3000,
-      description: `${description} should be visible after scrolling`,
+    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+      direction,
+      scrollAmount: 200,
+      elemDescription: `Scroll to ${description}`,
     });
   }
 
@@ -711,9 +579,11 @@ class WalletView {
     return Matchers.getElementByLabel('Perpetuals');
   }
 
-  /** Predictions section title button on the homepage (assumes English locale). */
+  /** Predictions section title button on the homepage. */
   get predictionsSectionHeader(): DetoxElement {
-    return Matchers.getElementByLabel('Predictions');
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
+    );
   }
 
   /** Tokens section header on the homepage (assumes English locale). */
@@ -830,17 +700,23 @@ class WalletView {
     );
   }
 
-  async scrollAndTapPredictionsSection(): Promise<void> {
+  async scrollAndTapPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
     await this.scrollAndTapSection(
       this.predictionsSectionHeader,
       'Predictions section',
+      direction,
     );
   }
 
-  async scrollToPredictionsSection(): Promise<void> {
+  async scrollToPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
     await this.scrollToSection(
       this.predictionsSectionHeader,
       'Predictions section',
+      direction,
     );
   }
 
@@ -891,45 +767,17 @@ class WalletView {
   }
 
   async tapClaimButton(): Promise<void> {
-    const tryTapWithProgressiveScroll = async (
-      direction: 'up' | 'down',
-    ): Promise<boolean> => {
-      for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-        try {
-          await Gestures.waitAndTap(this.claimButton, {
-            timeout: 1500,
-            checkStability: true,
-            elemDescription: 'Claim Button',
-          });
-          return true;
-        } catch {
-          await Gestures.swipe(this.walletScrollView, direction, {
-            timeout: 1200,
-            speed: 'slow',
-            percentage: 0.4,
-            checkVisibility: false,
-            checkEnabled: false,
-            elemDescription: `Claim section progressive swipe ${direction}`,
-          });
-          await new Promise((resolve) => setTimeout(resolve, 350));
-        }
-      }
-      return false;
-    };
-
-    const directions = await this.getPreferredScrollDirections(
+    await Gestures.scrollToElement(
       this.claimButton,
+      this.walletScrollViewIdentifier,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Scroll to Claim Button',
+      },
     );
-    for (const direction of directions) {
-      if (await tryTapWithProgressiveScroll(direction)) {
-        return;
-      }
-    }
-
     await Gestures.waitAndTap(this.claimButton, {
-      checkStability: true,
-      elemDescription:
-        'Claim Button (after progressive scroll retries up/down)',
+      elemDescription: 'Claim Button',
     });
   }
 

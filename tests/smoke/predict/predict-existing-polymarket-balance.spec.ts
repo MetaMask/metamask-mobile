@@ -59,7 +59,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
     );
   });
 
-  it('loads Wallet > Predictions tab and displays balance and positions', async () => {
+  it('loads Wallet > Predictions section and displays balance and positions', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -68,7 +68,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       },
       async () => {
         await loginToApp();
-
+        await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.balanceCard,

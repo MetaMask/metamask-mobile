@@ -12,6 +12,7 @@ import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
@@ -173,7 +174,13 @@ const PredictionsSection = forwardRef<
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <SectionTitle
+            title={title}
+            onPress={handleViewAllPredictions}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
+          />
           <ErrorState
             title={strings('homepage.error.unable_to_load', {
               section: title.toLowerCase(),
@@ -190,7 +197,13 @@ const PredictionsSection = forwardRef<
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <SectionTitle
+            title={title}
+            onPress={handleViewAllPredictions}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
+          />
           <Box>
             {isLoadingPositions ? (
               <>
@@ -231,7 +244,11 @@ const PredictionsSection = forwardRef<
   return (
     <View ref={sectionViewRef}>
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionTitle
+          title={title}
+          onPress={handleViewAllPredictions}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

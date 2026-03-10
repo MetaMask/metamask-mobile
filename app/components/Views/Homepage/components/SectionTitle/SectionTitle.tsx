@@ -27,11 +27,21 @@ interface SectionTitleProps {
    * Optional accessory element to display next to the title (e.g., info button)
    */
   endAccessory?: React.ReactNode;
+  /**
+   * Optional testID for the touchable wrapper
+   */
+  testID?: string;
 }
 
-const SectionTitle = ({ title, onPress, endAccessory }: SectionTitleProps) => (
+const SectionTitle = ({
+  title,
+  onPress,
+  endAccessory,
+  testID,
+}: SectionTitleProps) => (
   <SectionRow>
     <TouchableOpacity
+      testID={testID}
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}

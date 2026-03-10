@@ -88,6 +88,8 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
+  HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
+    `homepage-section-title-${sectionName}`,
 } as const;
 
 export const WalletViewSelectorsText = {
