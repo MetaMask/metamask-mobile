@@ -641,7 +641,12 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   style={
                                     [
                                       {
-                                        "display": "flex",
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
                                       },
                                       undefined,
                                     ]
@@ -749,6 +754,35 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                     </View>
                                   </View>
                                 </View>
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "display": "flex",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    [
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  Password
+                                </Text>
                                 <View
                                   style={
                                     [

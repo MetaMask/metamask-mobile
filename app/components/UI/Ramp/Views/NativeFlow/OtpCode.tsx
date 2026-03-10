@@ -54,7 +54,7 @@ export const createV2OtpCodeNavDetails =
   createNavigationDetails<V2OtpCodeParams>(Routes.RAMP.OTP_CODE);
 
 const CELL_COUNT = 6;
-const COOLDOWN_TIME = 30;
+const COOLDOWN_TIME = 60;
 const MAX_RESET_ATTEMPTS = 3;
 
 const ResendButton: FC<{
@@ -99,8 +99,8 @@ const V2OtpCode = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
-    'resend' | 'cooldown' | 'contactSupport' | 'resendError'
-  >('resend');
+    'resend' | 'cooldown' | 'contactSupport'
+  >('cooldown');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
@@ -191,7 +191,9 @@ const V2OtpCode = () => {
           .build(),
       );
     } catch (e) {
-      setResendButtonState('resendError');
+      setError(
+        parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
+      );
       Logger.error(e as Error, 'Error resending OTP code');
     }
   }, [
@@ -390,13 +392,6 @@ const V2OtpCode = () => {
               <ResendButton
                 onPress={handleContactSupport}
                 text="deposit.otp_code.need_help"
-                button="deposit.otp_code.contact_support"
-              />
-            ) : null}
-            {resendButtonState === 'resendError' ? (
-              <ResendButton
-                onPress={handleContactSupport}
-                text="deposit.otp_code.resend_code_error"
                 button="deposit.otp_code.contact_support"
               />
             ) : null}
