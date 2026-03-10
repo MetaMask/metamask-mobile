@@ -26,7 +26,10 @@ import { TEST_NETWORK_IDS } from '../../constants/network';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectNetworkConfigurationsByCaipChainId } from '../networkController';
+import {
+  selectNetworkConfigurations,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../networkController';
 import {
   selectAccountTreeControllerState,
   selectSelectedAccountGroupId,
@@ -49,6 +52,7 @@ import {
   selectInternalAccountsById,
   selectSelectedInternalAccountId,
 } from '../accountsController';
+import { NetworkConfig } from '@metamask/network-enablement-controller';
 
 // Narrow controller-state shapes using existing selectors
 const selectAccountTreeStateForBalances = createSelector(
@@ -186,6 +190,7 @@ export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
       selectTokensStateForBalances,
       selectCurrencyRateStateForBalances,
       selectNetworksMapForBalances(popularChainIds),
+      selectNetworkConfigurations,
     ],
     (
       accountTreeState: AccountTreeControllerState,
@@ -198,6 +203,7 @@ export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
       tokensState: TokensControllerState,
       currencyRateState: CurrencyRateState,
       enabledNetworkMap: Record<string, Record<string, boolean>> | undefined,
+      networkConfigurationsByChainId: Record<string, NetworkConfig>,
     ) =>
       calculateBalanceForAllWallets(
         accountTreeState,
@@ -210,6 +216,7 @@ export const selectBalanceForAllWallets = (popularChainIds?: CaipChainId[]) =>
         tokensState,
         currencyRateState,
         enabledNetworkMap,
+        networkConfigurationsByChainId,
       ),
   );
 
