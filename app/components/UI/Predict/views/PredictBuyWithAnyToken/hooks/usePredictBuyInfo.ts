@@ -12,6 +12,7 @@ interface UsePredictBuyInfoParams {
   placeOrderError?: string | null;
   isOrderNotFilled: boolean;
   isPlaceOrderLoading: boolean;
+  isConfirming: boolean;
 }
 
 export const usePredictBuyInfo = ({
@@ -21,6 +22,7 @@ export const usePredictBuyInfo = ({
   placeOrderError,
   isOrderNotFilled,
   isPlaceOrderLoading,
+  isConfirming,
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
@@ -64,10 +66,16 @@ export const usePredictBuyInfo = ({
 
   const errorMessage = useMemo(
     () =>
-      isOrderNotFilled
+      isOrderNotFilled || isConfirming
         ? undefined
         : (previewError ?? placeOrderError ?? activeOrder?.error),
-    [isOrderNotFilled, previewError, placeOrderError, activeOrder?.error],
+    [
+      isOrderNotFilled,
+      isConfirming,
+      previewError,
+      placeOrderError,
+      activeOrder?.error,
+    ],
   );
 
   return {

@@ -59,6 +59,7 @@ export interface PredictBuyPreviewParams {
   transactionId?: string;
   animationEnabled?: boolean;
   isConfirmation?: boolean;
+  isConfirming?: boolean;
   preview?: OrderPreview;
 }
 

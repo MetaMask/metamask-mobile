@@ -1,9 +1,16 @@
 import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { PredictNavigationParamList } from '../../../types/navigation';
 
 export const usePredictBuyInputState = () => {
   const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
+
+  const route =
+    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
+
+  const { isConfirming: initialIsConfirmingFromRoute = false } = route.params;
 
   const currentValue = activeOrder?.amount ?? 0;
 
@@ -29,6 +36,9 @@ export const usePredictBuyInputState = () => {
   );
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(
+    initialIsConfirmingFromRoute,
+  );
 
   const setCurrentValue = useCallback(
     (value: SetStateAction<number>) => {
@@ -61,5 +71,7 @@ export const usePredictBuyInputState = () => {
     setIsInputFocused,
     isUserInputChange,
     setIsUserInputChange,
+    isConfirming,
+    setIsConfirming,
   };
 };

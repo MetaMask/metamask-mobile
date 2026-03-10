@@ -186,12 +186,10 @@ export function usePredictPlaceOrder(
 
       try {
         setIsLoading(true);
+        setError(undefined);
 
         // Place order using Predict controller
         const orderResult = await controllerPlaceOrder(orderParams);
-
-        // Clear any previous error state
-        setError(undefined);
 
         onComplete?.(orderResult);
 

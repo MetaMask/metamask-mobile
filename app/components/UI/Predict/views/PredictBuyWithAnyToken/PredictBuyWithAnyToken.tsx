@@ -86,6 +86,8 @@ const PredictBuyWithAnyToken = () => {
     setIsInputFocused,
     isUserInputChange,
     setIsUserInputChange,
+    isConfirming,
+    setIsConfirming,
   } = usePredictBuyInputState();
 
   const {
@@ -136,6 +138,7 @@ const PredictBuyWithAnyToken = () => {
     isPlaceOrderLoading,
     placeOrderError,
     isOrderNotFilled,
+    isConfirming,
   });
 
   const {
@@ -152,6 +155,7 @@ const PredictBuyWithAnyToken = () => {
     preview,
     placeOrder,
     depositAmount: total - depositFee,
+    setIsConfirming,
   });
 
   usePredictBuyBackSwipe({ onBack: handleBackSwipe });
@@ -174,6 +178,7 @@ const PredictBuyWithAnyToken = () => {
     isPreviewCalculating,
     isPlaceOrderLoading,
     isUserInputChange,
+    isConfirming,
   });
 
   usePredictPaymentToken({

@@ -18,6 +18,7 @@ interface UsePredictBuyConditionsParams {
   isPreviewCalculating: boolean;
   isPlaceOrderLoading: boolean;
   isUserInputChange: boolean;
+  isConfirming: boolean;
 }
 
 export const usePredictBuyConditions = ({
@@ -26,6 +27,7 @@ export const usePredictBuyConditions = ({
   isPreviewCalculating,
   isPlaceOrderLoading,
   isUserInputChange,
+  isConfirming,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const { activeOrder } = usePredictActiveOrder();
@@ -123,6 +125,7 @@ export const usePredictBuyConditions = ({
 
   const canPlaceBet = useMemo(
     () =>
+      !isConfirming &&
       !isBelowMinimum &&
       !!preview &&
       !isPlaceOrderLoading &&
@@ -131,6 +134,7 @@ export const usePredictBuyConditions = ({
       !isRedirecting &&
       !isPayFeesLoading,
     [
+      isConfirming,
       isBelowMinimum,
       preview,
       isPlaceOrderLoading,

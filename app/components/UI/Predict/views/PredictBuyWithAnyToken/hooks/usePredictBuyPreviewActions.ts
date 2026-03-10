@@ -27,12 +27,14 @@ interface UsePredictBuyActionsParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   depositAmount: number;
+  setIsConfirming: (value: boolean) => void;
 }
 
 export const usePredictBuyActions = ({
   preview: livePreview,
   analyticsProperties,
   placeOrder,
+  setIsConfirming,
 }: UsePredictBuyActionsParams) => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
@@ -56,7 +58,7 @@ export const usePredictBuyActions = ({
   } = route.params;
 
   const redirectToBuyPreview = useCallback(
-    (params?: { includeTransaction: boolean }) => {
+    (params?: { includeTransaction?: boolean; isConfirming?: boolean }) => {
       navigateToBuyPreview(
         {
           market,
@@ -68,6 +70,7 @@ export const usePredictBuyActions = ({
           ...(livePreview ? { preview: { ...livePreview } } : {}),
           animationEnabled: false,
           entryPoint,
+          ...(params?.isConfirming ? { isConfirming: true } : {}),
         },
         { replace: true },
       );
@@ -129,6 +132,7 @@ export const usePredictBuyActions = ({
 
   const handleDepositFailed = useCallback(
     async (depositErrorMessage?: string) => {
+      setIsConfirming(false);
       updateActiveOrder({
         state: ActiveOrderState.REDIRECTING,
         error:
@@ -144,10 +148,18 @@ export const usePredictBuyActions = ({
         transactionId: response?.transactionId,
       });
     },
-    [updateActiveOrder, triggerPayWithAnyToken, market, outcome, outcomeToken],
+    [
+      setIsConfirming,
+      updateActiveOrder,
+      triggerPayWithAnyToken,
+      market,
+      outcome,
+      outcomeToken,
+    ],
   );
 
   const handleConfirm = useCallback(async () => {
+    setIsConfirming(true);
     updateActiveOrder({ error: null });
 
     if (isConfirmation) {
@@ -157,6 +169,7 @@ export const usePredictBuyActions = ({
       });
       redirectToBuyPreview({
         includeTransaction: true,
+        isConfirming: true,
       });
       await onApprovalConfirm({
         deleteAfterResult: true,
@@ -185,11 +198,16 @@ export const usePredictBuyActions = ({
     updateActiveOrder({
       state: ActiveOrderState.PLACING_ORDER,
     });
-    await placeOrder({
+    const outcome = await placeOrder({
       analyticsProperties,
       preview: previewToUse,
     });
+    if (outcome.status === 'error' || outcome.status === 'order_not_filled') {
+      setIsConfirming(false);
+      updateActiveOrder({ state: ActiveOrderState.PREVIEW });
+    }
   }, [
+    setIsConfirming,
     updateActiveOrder,
     isConfirmation,
     livePreview,
@@ -215,13 +233,16 @@ export const usePredictBuyActions = ({
   }, [clearActiveOrder, isConfirmation, navigation]);
 
   const handlePlaceOrderSuccess = useCallback(() => {
+    setIsConfirming(false);
     clearActiveOrder();
     navigation.dispatch(StackActions.pop());
-  }, [clearActiveOrder, navigation]);
+  }, [setIsConfirming, clearActiveOrder, navigation]);
 
   const handlePlaceOrderError = useCallback(() => {
+    setIsConfirming(false);
+    updateActiveOrder({ state: ActiveOrderState.PREVIEW });
     resetSelectedPaymentToken();
-  }, [resetSelectedPaymentToken]);
+  }, [setIsConfirming, updateActiveOrder, resetSelectedPaymentToken]);
 
   return {
     handleBack,
