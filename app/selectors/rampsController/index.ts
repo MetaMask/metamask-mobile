@@ -8,6 +8,7 @@ import {
   type TokensResponse,
   type ResourceState,
   type TransakState,
+  type RampsOrder,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -86,6 +87,14 @@ export const selectPaymentMethods = createSelector(
   ): ResourceState<PaymentMethod[], PaymentMethod | null> =>
     rampsControllerState?.paymentMethods ??
     createDefaultResourceState<PaymentMethod[], PaymentMethod | null>([], null),
+);
+
+/**
+ * Selects V2 orders from RampsController state.
+ */
+export const selectRampsOrders = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): RampsOrder[] => rampsControllerState?.orders ?? [],
 );
 
 /**

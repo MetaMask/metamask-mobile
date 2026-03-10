@@ -1,4 +1,11 @@
-import { renderHook, waitFor, act } from '@testing-library/react-native';
+import React from 'react';
+import {
+  renderHook,
+  waitFor,
+  act,
+  cleanup,
+} from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ethers } from 'ethers';
 import useGetLatestAllowanceForPriorityToken from './useGetLatestAllowanceForPriorityToken';
 import { useCardSDK } from '../sdk';
@@ -9,7 +16,6 @@ import {
   caipChainIdToNetwork,
 } from '../constants';
 
-// Mock dependencies
 jest.mock('../sdk');
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -29,6 +35,16 @@ const mockIsNonEvmChainId = jest.fn();
 jest.mock('../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
 }));
+
+let queryClient: QueryClient;
+
+const createWrapper = () => {
+  queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+};
 
 describe('useGetLatestAllowanceForPriorityToken', () => {
   const mockSDK = {
@@ -62,11 +78,13 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       toString: () => '11806489',
     });
     (ethers.utils.formatUnits as jest.Mock).mockReturnValue('15.0');
-    // Default: EVM chains return false (not non-EVM)
     mockIsNonEvmChainId.mockReturnValue(false);
   });
 
   afterEach(() => {
+    queryClient.cancelQueries();
+    queryClient.clear();
+    cleanup();
     jest.resetAllMocks();
   });
 
@@ -74,8 +92,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     (useCardSDK as jest.Mock).mockReturnValue({ sdk: null });
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -85,8 +104,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
   });
 
   it('returns null when priorityToken is null', async () => {
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(null),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(null),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -100,8 +120,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       allowanceState: AllowanceState.Enabled,
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -115,8 +136,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       allowanceState: AllowanceState.NotEnabled,
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -126,14 +148,14 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
   });
 
   it('skips fetch for non-EVM chains', async () => {
-    // Mock isNonEvmChainId to return true for Solana
     mockIsNonEvmChainId.mockReturnValue(true);
     const mockToken = createMockToken({
       caipChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -146,8 +168,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     (ethers.utils.isAddress as jest.Mock).mockReturnValue(false);
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -161,8 +184,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       delegationContract: undefined,
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -175,8 +199,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     mockSDK.getLatestAllowanceFromLogs.mockResolvedValue('15000000');
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -199,7 +224,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       stagingTokenAddress: '0xstagingtokenaddress123456789012345678',
     });
 
-    renderHook(() => useGetLatestAllowanceForPriorityToken(mockToken));
+    renderHook(() => useGetLatestAllowanceForPriorityToken(mockToken), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(mockSDK.getLatestAllowanceFromLogs).toHaveBeenCalledWith(
@@ -215,8 +242,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     mockSDK.getLatestAllowanceFromLogs.mockResolvedValue(null);
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -232,8 +260,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     mockSDK.getLatestAllowanceFromLogs.mockRejectedValue(mockError);
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -252,8 +281,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     mockSDK.getLatestAllowanceFromLogs.mockRejectedValue('string error');
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -270,8 +300,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       .mockResolvedValueOnce('20000000');
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -300,16 +331,15 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     );
     const mockToken = createMockToken();
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
-    // Hook starts fetching immediately, so loading should be true
     await waitFor(() => {
       expect(result.current.isLoading).toBe(true);
     });
 
-    // Wait for loading to complete
     await waitFor(
       () => {
         expect(result.current.isLoading).toBe(false);
@@ -325,7 +355,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
     const mockToken = createMockToken({ decimals: 6 });
     (ethers.utils.formatUnits as jest.Mock).mockReturnValue('15.0');
 
-    renderHook(() => useGetLatestAllowanceForPriorityToken(mockToken));
+    renderHook(() => useGetLatestAllowanceForPriorityToken(mockToken), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(ethers.utils.formatUnits).toHaveBeenCalledWith('15000000', 6);
@@ -337,8 +369,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       walletAddress: undefined as unknown as string,
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -352,8 +385,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
       decimals: undefined as unknown as number,
     });
 
-    const { result } = renderHook(() =>
-      useGetLatestAllowanceForPriorityToken(mockToken),
+    const { result } = renderHook(
+      () => useGetLatestAllowanceForPriorityToken(mockToken),
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -364,7 +398,6 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
 
   describe('unsupported tokens', () => {
     beforeEach(() => {
-      // Mock the includes method to return true only for AUSDC
       jest
         .spyOn(SPENDING_LIMIT_UNSUPPORTED_TOKENS, 'includes')
         .mockImplementation((symbol: string) => symbol === 'AUSDC');
@@ -379,8 +412,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         symbol: 'aUSDC',
       });
 
-      const { result } = renderHook(() =>
-        useGetLatestAllowanceForPriorityToken(mockToken),
+      const { result } = renderHook(
+        () => useGetLatestAllowanceForPriorityToken(mockToken),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -394,8 +428,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         symbol: 'ausdc',
       });
 
-      const { result } = renderHook(() =>
-        useGetLatestAllowanceForPriorityToken(mockToken),
+      const { result } = renderHook(
+        () => useGetLatestAllowanceForPriorityToken(mockToken),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -409,8 +444,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         symbol: 'AuSdC',
       });
 
-      const { result } = renderHook(() =>
-        useGetLatestAllowanceForPriorityToken(mockToken),
+      const { result } = renderHook(
+        () => useGetLatestAllowanceForPriorityToken(mockToken),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -425,8 +461,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         symbol: 'USDC',
       });
 
-      const { result } = renderHook(() =>
-        useGetLatestAllowanceForPriorityToken(mockToken),
+      const { result } = renderHook(
+        () => useGetLatestAllowanceForPriorityToken(mockToken),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -448,8 +485,9 @@ describe('useGetLatestAllowanceForPriorityToken', () => {
         symbol: undefined as unknown as string,
       });
 
-      const { result } = renderHook(() =>
-        useGetLatestAllowanceForPriorityToken(mockToken),
+      const { result } = renderHook(
+        () => useGetLatestAllowanceForPriorityToken(mockToken),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {

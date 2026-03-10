@@ -91,6 +91,10 @@ export interface LongPressOptions extends GestureOptions {
   duration?: number;
 }
 
+export interface MatcherOptions {
+  exact?: boolean;
+}
+
 /**
  * The options for the scroll gesture.
  * @param {string} direction - The direction to scroll.
@@ -140,6 +144,16 @@ export interface RampsRegion {
   unsupported: boolean;
   recommended: boolean;
   detected: boolean;
+}
+
+/**
+ * Returns the full ISO 3166-2 location code for a region,
+ * combining country and subdivision when present (e.g. 'US-CA', 'FR').
+ */
+export function getRegionLocationCode(region: RampsRegion): string {
+  return region.stateIsoCode
+    ? `${region.countryIsoCode}-${region.stateIsoCode}`
+    : region.countryIsoCode;
 }
 
 export enum ServerStatus {

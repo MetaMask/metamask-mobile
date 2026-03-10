@@ -8,7 +8,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 
-interface FilterButtonProps {
+export interface FilterButtonProps {
   testID: string;
   label: string;
   onPress: () => void;
@@ -17,9 +17,11 @@ interface FilterButtonProps {
   ellipsizeMode?: 'tail' | 'head' | 'middle' | 'clip';
   /** Extra horizontal padding (px-3) vs default (p-2) */
   wide?: boolean;
+  /** Optional Tailwind class overrides for layout in custom contexts */
+  twClassName?: string;
 }
 
-const FilterButton: React.FC<FilterButtonProps> = ({
+export const FilterButton: React.FC<FilterButtonProps> = ({
   testID,
   label,
   onPress,
@@ -27,6 +29,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({
   numberOfLines,
   ellipsizeMode,
   wide = false,
+  twClassName,
 }) => {
   const tw = useTailwind();
 
@@ -38,6 +41,7 @@ const FilterButton: React.FC<FilterButtonProps> = ({
         'min-w-0 shrink items-center rounded-lg bg-muted',
         wide ? 'py-2 px-3' : 'p-2',
         disabled && 'opacity-50',
+        twClassName,
       )}
       activeOpacity={0.2}
       disabled={disabled}
