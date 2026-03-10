@@ -7604,9 +7604,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/accounts-controller@npm:^36.0.0":
-  version: 36.0.1
-  resolution: "@metamask/accounts-controller@npm:36.0.1"
+"@metamask/accounts-controller@npm:^37.0.0":
+  version: 37.0.0
+  resolution: "@metamask/accounts-controller@npm:37.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7630,7 +7630,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/b60d45d06d85d481c2f6b397a1a2845866f8cfa18dd6d02ca0ab81809a1e543667c5d2bba82abc06ef53600bcd4e6c233268a530a81dce2779c3721d81946465
+  checksum: 10/4ea9a310d707160b05a314090a7a1e7eee9bcf68e0cc82e1aa471fc2932560fde856176748328932ed4d10a16a6ff8cb9288d10be8821a4460ee76290bf8d747
   languageName: node
   linkType: hard
 
@@ -35384,7 +35384,7 @@ __metadata:
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^4.1.1"
-    "@metamask/accounts-controller": "npm:^36.0.0"
+    "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/address-book-controller": "npm:^7.0.1"
     "@metamask/ai-controllers": "npm:^0.2.0"
     "@metamask/analytics-controller": "npm:^1.0.0"

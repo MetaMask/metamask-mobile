@@ -16,10 +16,15 @@ jest.mock('@sentry/react-native', () => ({
 
 const mockedCaptureException = jest.mocked(captureException);
 
+type AccountsControllerStateAtTimeOfMigration = Pick<
+  AccountsControllerState,
+  'internalAccounts'
+>;
+
 interface StateType {
   engine: {
     backgroundState: {
-      AccountsController: AccountsControllerState;
+      AccountsController: AccountsControllerStateAtTimeOfMigration;
     };
   };
 }

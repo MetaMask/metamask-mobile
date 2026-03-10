@@ -40,6 +40,7 @@ describe('logEngineCreation', () => {
   it('logs non-empty state initialization with accounts', () => {
     const initialState = {
       AccountsController: {
+        accountIdByAddress: {},
         internalAccounts: {
           accounts: {},
           selectedAccount: '',
@@ -83,6 +84,7 @@ describe('logEngineCreation', () => {
   it('logs non-empty state initialization with both accounts and keyring', () => {
     const initialState = {
       AccountsController: {
+        accountIdByAddress: {},
         internalAccounts: {
           accounts: {},
           selectedAccount: '',

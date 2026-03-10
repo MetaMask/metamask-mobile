@@ -314,6 +314,10 @@ export const mockSecondHDKeyringInternalAccount = {
 
 // used as a default mock for other tests
 export const MOCK_ACCOUNTS_CONTROLLER_STATE: AccountsControllerState = {
+  accountIdByAddress: {
+    [internalAccount1.address]: internalAccount1.id,
+    [internalAccount2.address]: internalAccount2.id,
+  },
   internalAccounts: {
     accounts: {
       [internalAccount1.id]: internalAccount1,
@@ -441,6 +445,10 @@ export function createMockAccountsControllerState(
       `Account ${index + 1}`,
     );
   });
+  const accountIdByAddress: Record<string, string> = {};
+  Object.entries(accounts).forEach(([uuid, account]) => {
+    accountIdByAddress[account.address] = uuid;
+  });
 
   const selectedAccount =
     selectedAddress && addresses.includes(selectedAddress)
@@ -448,6 +456,7 @@ export function createMockAccountsControllerState(
       : createMockUuidFromAddress(addresses[0].toLowerCase());
 
   return {
+    accountIdByAddress,
     internalAccounts: {
       accounts,
       selectedAccount,
