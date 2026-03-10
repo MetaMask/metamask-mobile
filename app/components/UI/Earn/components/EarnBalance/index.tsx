@@ -34,7 +34,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   const { isConversionToken } = useMusdConversionTokens();
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  
+
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTron = asset?.chainId?.startsWith('tron:');

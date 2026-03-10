@@ -4,6 +4,7 @@ import TronStakingCta from './TronStakingCta';
 import { TronStakingCtaTestIds } from './TronStakingCta.testIds';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenI } from '../../../../Tokens/types';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 const mockNavigate = jest.fn();
 
@@ -41,6 +42,15 @@ jest.mock('../../../../../../util/trace', () => ({
   TraceName: { EarnDepositScreen: 'EarnDepositScreen' },
 }));
 
+jest.mock('../../../../Stake/hooks/useStakingEligibility', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
+  typeof useStakingEligibility
+>;
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
@@ -61,12 +71,18 @@ describe('TronStakingCta', () => {
     ticker: 'TRX',
   } as TokenI;
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: true,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+  });
 
   it('renders CTA title and description', () => {
-    const { getByText } = render(
-      <TronStakingCta asset={asset} />,
-    );
+    const { getByText } = render(<TronStakingCta asset={asset} />);
 
     expect(getByText('Stake your TRX')).toBeOnTheScreen();
     expect(getByText(/Earn up to/)).toBeOnTheScreen();
@@ -82,9 +98,7 @@ describe('TronStakingCta', () => {
   });
 
   it('navigates to stake screen on Earn button press', () => {
-    const { getByTestId } = render(
-      <TronStakingCta asset={asset} />,
-    );
+    const { getByTestId } = render(<TronStakingCta asset={asset} />);
 
     fireEvent.press(getByTestId(TronStakingCtaTestIds.EARN_BUTTON));
 
@@ -92,5 +106,18 @@ describe('TronStakingCta', () => {
       screen: Routes.STAKING.STAKE,
       params: { token: asset },
     });
+  });
+
+  it('renders nothing when user is not eligible', () => {
+    mockUseStakingEligibility.mockReturnValue({
+      isEligible: false,
+      isLoadingEligibility: false,
+      error: null,
+      refreshPooledStakingEligibility: jest.fn(),
+    });
+
+    const { toJSON } = render(<TronStakingCta asset={asset} />);
+
+    expect(toJSON()).toBeNull();
   });
 });

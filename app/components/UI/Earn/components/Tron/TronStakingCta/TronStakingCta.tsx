@@ -19,6 +19,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { EVENT_LOCATIONS } from '../../../../../UI/Stake/constants/events';
 import { trace, TraceName } from '../../../../../../util/trace';
+import useStakingEligibility from '../../../../Stake/hooks/useStakingEligibility';
 
 interface TronStakingCtaProps {
   asset: TokenI;
@@ -30,6 +31,11 @@ const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
   const { styles } = useStyles(styleSheet, { theme });
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { isEligible } = useStakingEligibility();
+
+  if (!isEligible) {
+    return null;
+  }
 
   const onStakePress = () => {
     trace({ name: TraceName.EarnDepositScreen });
