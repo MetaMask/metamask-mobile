@@ -44,7 +44,7 @@ const SeedPhraseDisplay = ({
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Alternative}
-              allowFontScaling={false}
+              maxFontSizeMultiplier={1}
             >
               {index + 1}.
             </Text>
@@ -54,7 +54,7 @@ const SeedPhraseDisplay = ({
               key={index}
               ellipsizeMode="tail"
               numberOfLines={1}
-              allowFontScaling={false}
+              maxFontSizeMultiplier={1}
               style={styles.word}
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
             >

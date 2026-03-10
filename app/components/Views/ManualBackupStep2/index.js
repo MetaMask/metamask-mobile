@@ -318,14 +318,14 @@ const ManualBackupStep2 = ({
   const renderGridItemText = useCallback(
     (item, index, isEmpty) => (
       <>
-        <Text style={styles.gridItemIndex} allowFontScaling={false}>
+        <Text style={styles.gridItemIndex} maxFontSizeMultiplier={1}>
           {index + 1}.
         </Text>
         <Text
           variant={TextVariant.BodySM}
           color={TextColor.Default}
           style={styles.gridItemText}
-          allowFontScaling={false}
+          maxFontSizeMultiplier={1}
         >
           {isEmpty ? item : '••••••'}
         </Text>
@@ -407,7 +407,7 @@ const ManualBackupStep2 = ({
                 variant={TextVariant.BodyMDMedium}
                 color={isUsed ? TextColor.Alternative : TextColor.Primary}
                 testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM_MISSING}-${i}`}
-                allowFontScaling={false}
+                maxFontSizeMultiplier={1}
               >
                 {word}
               </Text>
