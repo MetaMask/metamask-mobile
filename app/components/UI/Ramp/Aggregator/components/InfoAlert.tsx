@@ -5,7 +5,11 @@ import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 
 import Box from './Box';
-import Text from '../../../../Base/Text';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import Title from '../../../../Base/Title';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { useTheme } from '../../../../../util/theme';
@@ -155,7 +159,11 @@ const InfoAlert: React.FC<Props> = ({
           )}
           {Boolean(subtitle) && (
             <View style={styles.row}>
-              <Text small grey centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                twClassName="text-center"
+              >
                 {subtitle}
               </Text>
             </View>
@@ -167,7 +175,11 @@ const InfoAlert: React.FC<Props> = ({
                 handleProviderHomepageLinkPress(providerWebsite as string)
               }
             >
-              <Text small link underline centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                twClassName="underline text-center"
+              >
                 {providerWebsite}
               </Text>
             </TouchableOpacity>
@@ -180,7 +192,11 @@ const InfoAlert: React.FC<Props> = ({
                 )
               }
             >
-              <Text small link underline centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                twClassName="underline text-center"
+              >
                 {strings('app_information.privacy_policy')}
               </Text>
             </TouchableOpacity>
@@ -191,7 +207,11 @@ const InfoAlert: React.FC<Props> = ({
                 handleTermsOfServiceLinkPress(providerTermsOfService as string)
               }
             >
-              <Text small link underline centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                twClassName="underline text-center"
+              >
                 {strings('fiat_on_ramp_aggregator.terms_of_service')}
               </Text>
             </TouchableOpacity>
@@ -202,7 +222,11 @@ const InfoAlert: React.FC<Props> = ({
                 handleProviderSupportLinkPress(providerSupport as string)
               }
             >
-              <Text small link underline centered>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                twClassName="underline text-center"
+              >
                 {providerName +
                   ' ' +
                   strings('fiat_on_ramp_aggregator.order_details.support')}
