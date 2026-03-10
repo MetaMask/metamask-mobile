@@ -35,17 +35,12 @@ permissions:
   contents: read
   id-token: write
 
-# Defaults when triggered by push (no inputs); workflow_dispatch can override.
-env:
-  ENVIRONMENT: ${{ inputs.environment || 'rc' }}
-  TESTFLIGHT_GROUP: ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}
-
 jobs:
   build:
-    name: Build iOS (${{ env.ENVIRONMENT }})
+    name: Build iOS (${{ inputs.environment || 'rc' }})
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-${{ env.ENVIRONMENT }}
+      build_name: main-${{ inputs.environment || 'rc' }}
       platform: ios
       skip_version_bump: false
     secrets: inherit
@@ -66,9 +61,9 @@ jobs:
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
-            echo "| **Build name** | main-${{ env.ENVIRONMENT }} |"
+            echo "| **Build name** | main-${{ inputs.environment || 'rc' }} |"
             echo "| **Build version** | ${BUILD_VERSION} |"
-            echo "| **TestFlight group** | ${{ env.TESTFLIGHT_GROUP }} |"
+            echo "| **TestFlight group** | ${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }} |"
             echo "| **Branch** | ${{ github.ref_name }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -94,7 +89,7 @@ jobs:
       - name: Download iOS build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-${{ env.ENVIRONMENT }}
+          name: ios-main-${{ inputs.environment || 'rc' }}
 
       - name: Find IPA path
         id: ipa
@@ -121,10 +116,10 @@ jobs:
       - name: Upload to TestFlight
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-${{ env.ENVIRONMENT }}" \
+            "github_actions_main-${{ inputs.environment || 'rc' }}" \
             "${{ github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
-            "${{ env.TESTFLIGHT_GROUP }}"
+            "${{ inputs.testflight_group || 'MetaMask BETA & Release Candidates' }}"
 
       - name: Cleanup API Key
         if: always()
