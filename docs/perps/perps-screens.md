@@ -72,7 +72,6 @@ Landing screen for Perps trading. Displays aggregated trading overview including
 | `PerpsWatchlistMarkets`      | User watchlist                          | `components/PerpsWatchlistMarkets/`   |
 | `PerpsMarketTypeSection`     | Market categories (Crypto/Stocks/Forex) | `components/`                         |
 | `PerpsRecentActivityList`    | Recent trades & orders                  | `components/PerpsRecentActivityList/` |
-| `PerpsHomeHeader`            | Header with balance display             | `components/`                         |
 | `PerpsCloseAllPositionsView` | Modal: Close all positions              | `Views/PerpsCloseAllPositionsView/`   |
 | `PerpsCancelAllOrdersView`   | Modal: Cancel all orders                | `Views/PerpsCancelAllOrdersView/`     |
 

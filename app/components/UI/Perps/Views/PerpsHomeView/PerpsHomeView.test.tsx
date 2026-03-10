@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
+import { ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectPerpsNetwork } from '../../selectors/perpsController';
 import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
@@ -27,8 +29,11 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-// Mock Redux - default feedback disabled
-const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
+const mockUseSelector = jest.fn<unknown, [unknown]>((selector: unknown) => {
+  if (selector === selectPerpsNetwork) return 'mainnet';
+  if (selector === selectPerpsFeedbackEnabledFlag) return false;
+  return false;
+});
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
@@ -54,6 +59,7 @@ const mockNavigateToMarketList = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
+const mockHandleScroll = jest.fn();
 jest.mock('../../hooks', () => ({
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
@@ -76,7 +82,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsHomeSectionTracking: jest.fn(() => ({
     handleSectionLayout: jest.fn(() => jest.fn()),
-    handleScroll: jest.fn(),
+    handleScroll: mockHandleScroll,
     resetTracking: jest.fn(),
   })),
 }));
@@ -259,64 +265,89 @@ jest.mock('@metamask/perps-controller', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
+jest.mock('react-native-reanimated', () =>
+  jest.requireActual('react-native-reanimated/mock'),
+);
 
-  interface MockPerpsHomeHeaderProps {
-    onSearchToggle: () => void;
-    onBack: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID: string;
-  }
+const mockSetTitleSectionHeight = jest.fn();
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated',
+  () => () => ({
+    scrollY: { value: 0 },
+    titleSectionHeightSv: { value: 0 },
+    setTitleSectionHeight: mockSetTitleSectionHeight,
+    onScroll: jest.fn(),
+  }),
+);
 
-  return function MockPerpsHomeHeader({
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (isSearchVisible) {
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderStandardAnimated',
+  () => {
+    const {
+      View: MockView,
+      TouchableOpacity: MockTouchableOpacity,
+      Text: MockText,
+    } = jest.requireActual<typeof import('react-native')>('react-native');
+    return function MockHeaderStandardAnimated({
+      onBack,
+      endButtonIconProps,
+      testID,
+    }: {
+      onBack?: () => void;
+      endButtonIconProps?: { onPress?: () => void; testID?: string }[];
+      testID?: string;
+    }) {
+      const searchProps = endButtonIconProps?.[0];
       return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
+        <MockView testID={testID}>
+          <MockTouchableOpacity testID="back-button" onPress={onBack}>
+            <MockText>Back</MockText>
+          </MockTouchableOpacity>
+          <MockTouchableOpacity
+            testID="perps-home-search-toggle"
+            onPress={searchProps?.onPress}
           >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+            <MockText>Search</MockText>
+          </MockTouchableOpacity>
+        </MockView>
       );
-    }
+    };
+  },
+);
 
-    return (
-      <View>
-        <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
-          <View testID="back-button" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
-});
+jest.mock(
+  '../../../../../component-library/components-temp/TitleStandard',
+  () => {
+    const { View: MockView, Text: MockText } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+    return function MockTitleStandard({
+      title,
+      titleAccessory,
+      testID,
+    }: {
+      title?: string;
+      titleAccessory?: ReactNode;
+      testID?: string;
+    }) {
+      return (
+        <MockView testID={testID ?? 'title-standard'}>
+          {title != null && (
+            <MockText testID="title-standard-title">{title}</MockText>
+          )}
+          {titleAccessory != null && (
+            <MockView testID="title-standard-accessory">
+              {titleAccessory}
+            </MockView>
+          )}
+        </MockView>
+      );
+    };
+  },
+);
+
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({ isMultiProviderEnabled: false })),
+}));
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -517,7 +548,14 @@ describe('PerpsHomeView', () => {
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
+    mockSetTitleSectionHeight.mockClear();
+    mockHandleScroll.mockClear();
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsNetwork) return 'mainnet';
+      if (selector === selectPerpsFeedbackEnabledFlag) return false;
+      return false;
+    });
   });
 
   it('renders without crashing', () => {
@@ -544,6 +582,53 @@ describe('PerpsHomeView', () => {
 
     // Assert
     expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+  });
+
+  it('renders HeaderStandardAnimated with perps-home testID', () => {
+    const { getByTestId } = render(<PerpsHomeView />);
+    expect(getByTestId('perps-home')).toBeTruthy();
+  });
+
+  it('renders TitleStandard with Perps title', () => {
+    const { getByTestId, getByText } = render(<PerpsHomeView />);
+    expect(getByTestId('title-standard')).toBeTruthy();
+    expect(getByText('perps.title')).toBeTruthy();
+  });
+
+  it('renders Testnet titleAccessory when network is testnet', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsNetwork) return 'testnet';
+      if (selector === selectPerpsFeedbackEnabledFlag) return false;
+      return false;
+    });
+    const { getByTestId } = render(<PerpsHomeView />);
+    expect(getByTestId('title-standard-accessory')).toBeTruthy();
+    expect(getByTestId('perps-home-testnet-badge')).toBeTruthy();
+  });
+
+  it('does not render Testnet accessory when network is mainnet', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsNetwork) return 'mainnet';
+      if (selector === selectPerpsFeedbackEnabledFlag) return false;
+      return false;
+    });
+    const { queryByTestId } = render(<PerpsHomeView />);
+    expect(queryByTestId('perps-home-testnet-badge')).toBeNull();
+  });
+
+  it('calls section tracking handleScroll when scroll fires', () => {
+    mockHandleScroll.mockClear();
+    const { UNSAFE_getAllByType } = render(<PerpsHomeView />);
+    const scrollViews = UNSAFE_getAllByType(ScrollView);
+    expect(scrollViews.length).toBeGreaterThan(0);
+    fireEvent.scroll(scrollViews[0], {
+      nativeEvent: {
+        contentOffset: { y: 50 },
+        contentSize: { width: 100, height: 500 },
+        layoutMeasurement: { width: 100, height: 200 },
+      },
+    });
+    expect(mockHandleScroll).toHaveBeenCalled();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {

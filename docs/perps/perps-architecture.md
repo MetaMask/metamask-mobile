@@ -115,7 +115,7 @@ Reusable UI components organized by feature:
 - **Card Components**: PerpsCard, PerpsPositionCard, PerpsOpenOrderCard, PerpsMarketStatisticsCard
 - **List Components**: PerpsMarketList, PerpsRecentActivityList, PerpsWatchlistMarkets
 - **Modal Components**: PerpsCancelAllOrdersModal, PerpsCloseAllPositionsModal, PerpsGTMModal
-- **Header Components**: PerpsHomeHeader, PerpsMarketHeader, PerpsOrderHeader, PerpsTabControlBar
+- **Header Components**: PerpsMarketHeader, PerpsOrderHeader, PerpsTabControlBar
 - **Navigation**: PerpsNavigationCard, PerpsMarketTabs
 - **Tooltips**: PerpsBottomSheetTooltip (with content registry), PerpsNotificationTooltip
 - **Charts**: TradingViewChart, PerpsCandlestickChartIntervalSelector, FundingCountdown
