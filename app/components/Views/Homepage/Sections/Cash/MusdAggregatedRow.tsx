@@ -22,7 +22,8 @@ import {
 } from '../../../../../component-library/components/Texts/Text/Text.types';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../../util/intl';
 import {
   MUSD_CONVERSION_APY,
   MUSD_TOKEN,
@@ -83,13 +84,10 @@ const MusdAggregatedRow = () => {
     claimRewards();
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
-  const tokenBalanceDisplay = `${Number(tokenBalanceAggregated).toLocaleString(
-    'en-US',
-    {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 6,
-    },
-  )} ${MUSD_TOKEN.symbol}`;
+  const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 6,
+  }).format(Number(tokenBalanceAggregated))} ${MUSD_TOKEN.symbol}`;
 
   return (
     <TouchableOpacity

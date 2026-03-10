@@ -64,6 +64,30 @@ const noop = () => () => {
   // No-op
 };
 
+// Module-level skip flag so screens rendered outside the Provider (e.g.
+// CashTokensFullView) can still suppress the next session_summary event.
+let _moduleSkipFlag = false;
+
+/**
+ * Sets a module-level flag that the Provider's `shouldSkipSessionSummary`
+ * will consume.  Used as the default context implementation so that
+ * `useHomepageScrollContext().skipNextSessionSummary()` works even outside
+ * the Provider tree.
+ */
+const skipNextSessionSummaryFallback = () => {
+  _moduleSkipFlag = true;
+};
+
+/**
+ * Reads (and resets) the module-level skip flag.
+ * Called by the Wallet's `shouldSkipSessionSummary` alongside its own ref.
+ */
+export const consumeModuleLevelSkipFlag = (): boolean => {
+  const skip = _moduleSkipFlag;
+  _moduleSkipFlag = false;
+  return skip;
+};
+
 const defaultValue: HomepageScrollContextValue = {
   subscribeToScroll: noop,
   viewportHeight: 0,
@@ -72,7 +96,7 @@ const defaultValue: HomepageScrollContextValue = {
   visitId: 0,
   notifySectionViewed: () => undefined,
   getViewedSectionCount: () => 0,
-  skipNextSessionSummary: () => undefined,
+  skipNextSessionSummary: skipNextSessionSummaryFallback,
   shouldSkipSessionSummary: () => false,
 };
 

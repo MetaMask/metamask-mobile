@@ -124,7 +124,10 @@ import {
 } from '../../../selectors/featureFlagController/homepage';
 import Homepage from '../Homepage';
 import { SectionRefreshHandle } from '../Homepage/types';
-import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+import {
+  HomepageScrollContext,
+  consumeModuleLevelSkipFlag,
+} from '../Homepage/context/HomepageScrollContext';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
@@ -1302,9 +1305,10 @@ const Wallet = ({
     skipSessionSummaryRef.current = true;
   }, []);
   const shouldSkipSessionSummary = useCallback(() => {
-    const skip = skipSessionSummaryRef.current;
+    const skipLocal = skipSessionSummaryRef.current;
     skipSessionSummaryRef.current = false;
-    return skip;
+    const skipModule = consumeModuleLevelSkipFlag();
+    return skipLocal || skipModule;
   }, []);
 
   const homepageScrollContextValue = useMemo(

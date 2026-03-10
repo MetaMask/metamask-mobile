@@ -47,12 +47,6 @@ jest.mock('../../Views/confirmations/hooks/useNetworkName', () => ({
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
 }));
-jest.mock('../Homepage/context/HomepageScrollContext', () => ({
-  useHomepageScrollContext: () => ({
-    skipNextSessionSummary: jest.fn(),
-  }),
-}));
-
 jest.mock('../../UI/Tokens', () => {
   const { createElement } = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
