@@ -20,199 +20,392 @@ exports[`SendTransaction View renders correctly 1`] = `
     }
   >
     <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
-        [
-          {
-            "backgroundColor": "rgb(242, 242, 242)",
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "zIndex": 1,
+        }
       }
     >
-      <RNSScreenContainer
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
         onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <RNCSafeAreaView
+          edges={
+            {
+              "bottom": "off",
+              "left": "off",
+              "right": "off",
+              "top": "additive",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "minHeight": 56,
+                  "paddingLeft": 8,
+                  "paddingRight": 8,
+                },
+                false,
+                undefined,
+              ]
+            }
+            testID="header"
+          >
+            <View>
+              <View
+                onLayout={[Function]}
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "display": "flex",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Sell crypto
+                </Text>
+              </View>
+            </View>
+            <View>
+              <View
+                onLayout={[Function]}
+              />
+            </View>
+          </View>
+        </RNCSafeAreaView>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
-            "flex": 1,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
           }
         }
       >
-        <RNSScreen
-          activityState={2}
+        <View
           collapsable={false}
-          gestureResponseDistance={
-            {
-              "bottom": -1,
-              "end": -1,
-              "start": -1,
-              "top": -1,
-            }
-          }
-          onGestureCancel={[Function]}
-          pointerEvents="box-none"
-          sheetAllowedDetents="large"
-          sheetCornerRadius={-1}
-          sheetExpandsWhenScrolledToEdge={true}
-          sheetGrabberVisible={false}
-          sheetLargestUndimmedDetent="all"
           style={
             {
-              "bottom": 0,
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": undefined,
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
             }
           }
         >
           <View
             collapsable={false}
-            style={
-              {
-                "opacity": 1,
-              }
-            }
-          />
-          <View
-            accessibilityElementsHidden={false}
-            closing={false}
-            collapsable={false}
-            gestureVelocityImpact={0.3}
-            importantForAccessibility="auto"
-            onClose={[Function]}
-            onGestureBegin={[Function]}
-            onGestureCanceled={[Function]}
-            onGestureEnd={[Function]}
-            onOpen={[Function]}
-            onTransition={[Function]}
+            needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              [
-                {
-                  "display": "flex",
-                  "overflow": undefined,
-                },
-                {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                },
-              ]
-            }
-            transitionSpec={
               {
-                "close": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
-                "open": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
+                "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
+              enabled={false}
+              handlerTag={2}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               style={
                 {
                   "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                enabled={false}
-                handlerTag={2}
-                handlerType="PanGestureHandler"
-                needsOffscreenAlphaCompositing={false}
-                onGestureHandlerEvent={[Function]}
-                onGestureHandlerStateChange={[Function]}
+                pointerEvents="none"
                 style={
                   {
-                    "flex": 1,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateX": 0,
-                      },
-                    ],
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
                   }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
                 }
               >
                 <View
-                  pointerEvents="box-none"
                   style={
-                    [
-                      {
-                        "flex": 1,
-                        "overflow": "hidden",
-                      },
-                      [
-                        {
-                          "backgroundColor": "rgb(242, 242, 242)",
-                        },
-                        undefined,
-                      ],
-                    ]
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
-                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
-                        }
+                      <View
                         style={
-                          {
-                            "flex": 1,
-                          }
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
+                              "flex": 1,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -223,6 +416,10 @@ exports[`SendTransaction View renders correctly 1`] = `
                             style={
                               [
                                 {
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
+                                },
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -231,301 +428,13 @@ exports[`SendTransaction View renders correctly 1`] = `
                           >
                             <View
                               style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  {
-                                    "flex": 1,
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "justifyContent": "center",
+                                }
                               }
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 20,
-                                          "fontWeight": "normal",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Send
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      0.012361263
-                                    </Text>
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
-                                        style={
-                                          {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
-                                          }
-                                        }
-                                        testID="token-avatar-image"
-                                      />
-                                    </View>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      ETH
-                                    </Text>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Down"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    source={
-                                      {
-                                        "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
-                                      }
-                                    }
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 65,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Down"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "columnGap": 4,
-                                        "flexDirection": "row",
-                                        "justifyContent": "center",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      selectable={false}
-                                      style={
-                                        [
-                                          {
-                                            "color": "#66676a",
-                                            "fontSize": 20,
-                                          },
-                                          undefined,
-                                          {
-                                            "fontFamily": "Material Design Icons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          {},
-                                        ]
-                                      }
-                                    >
-                                      󰁰
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 20,
-                                          "fontWeight": "normal",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Instant Bank Transfer
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                          <View>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                    {
-                                      "marginTop": 0,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                >
-                                  You will send your ETH to Test (Staging), who then sends your cash to Instant Bank Transfer
-                                </Text>
-                              </View>
                               <View
                                 style={
                                   [
@@ -538,25 +447,11 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "gap": 4,
                                     }
                                   }
                                 >
@@ -564,217 +459,318 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 20,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Send
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Next
+                                    0.012361263
                                   </Text>
-                                </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 12,
+                                        "height": 24,
+                                        "overflow": "hidden",
+                                        "width": 24,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={1}
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 20,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    ETH
+                                  </Text>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#66676a"
+                                  fill="currentColor"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  source={
+                                    {
+                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
+                                    }
+                                  }
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 65,
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#66676a"
+                                  fill="currentColor"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "columnGap": 4,
+                                      "flexDirection": "row",
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
+                                    style={
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontSize": 20,
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
+                                    }
+                                  >
+                                    󰁰
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 20,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Instant Bank Transfer
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
-                    </View>
-                    <View
-                      collapsable={false}
-                      pointerEvents="box-none"
-                      style={{}}
-                    >
-                      <View
-                        accessibilityElementsHidden={false}
-                        importantForAccessibility="auto"
-                        onLayout={[Function]}
-                        pointerEvents="box-none"
-                        style={null}
-                      >
-                        <RNCSafeAreaView
-                          edges={
-                            {
-                              "bottom": "off",
-                              "left": "off",
-                              "right": "off",
-                              "top": "additive",
-                            }
-                          }
-                          style={
-                            {
-                              "backgroundColor": "#ffffff",
-                            }
-                          }
-                        >
+                        <View>
                           <View
                             style={
                               [
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "minHeight": 56,
-                                  "paddingLeft": 8,
-                                  "paddingRight": 8,
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
-                                false,
+                                undefined,
                                 undefined,
                               ]
                             }
-                            testID="header"
                           >
-                            <View>
-                              <View
-                                onLayout={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  {
+                                    "marginTop": 0,
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
                               >
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
-                                      {
-                                        "transform": [
-                                          {
-                                            "scale": 1,
-                                          },
-                                        ],
-                                      },
-                                    ]
-                                  }
-                                  testID="deposit-back-navbar-button"
-                                >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="ArrowLeft"
-                                    style={
-                                      [
-                                        {
-                                          "color": "#131416",
-                                          "height": 24,
-                                          "width": 24,
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
+                                You will send your ETH to Test (Staging), who then sends your cash to Instant Bank Transfer
+                              </Text>
                             </View>
                             <View
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
+                                    "marginVertical": 8,
                                   },
+                                  undefined,
+                                  undefined,
                                   undefined,
                                 ]
                               }
                             >
-                              <View
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
-                                        "fontSize": 16,
-                                        "fontWeight": 400,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 20,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
-                                  Sell crypto
+                                  Next
                                 </Text>
-                              </View>
-                            </View>
-                            <View>
-                              <View
-                                onLayout={[Function]}
-                              />
+                              </TouchableOpacity>
                             </View>
                           </View>
-                        </RNCSafeAreaView>
+                        </View>
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </RNSScreen>
-      </RNSScreenContainer>
-      <View
-        collapsable={false}
-        pointerEvents="box-none"
-        style={
-          {
-            "height": 44,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": 1,
-          }
-        }
-      />
-    </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -799,199 +795,392 @@ exports[`SendTransaction View renders correctly for custom action payment method
     }
   >
     <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
-        [
-          {
-            "backgroundColor": "rgb(242, 242, 242)",
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "zIndex": 1,
+        }
       }
     >
-      <RNSScreenContainer
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
         onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <RNCSafeAreaView
+          edges={
+            {
+              "bottom": "off",
+              "left": "off",
+              "right": "off",
+              "top": "additive",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "minHeight": 56,
+                  "paddingLeft": 8,
+                  "paddingRight": 8,
+                },
+                false,
+                undefined,
+              ]
+            }
+            testID="header"
+          >
+            <View>
+              <View
+                onLayout={[Function]}
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "display": "flex",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Sell crypto
+                </Text>
+              </View>
+            </View>
+            <View>
+              <View
+                onLayout={[Function]}
+              />
+            </View>
+          </View>
+        </RNCSafeAreaView>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
-            "flex": 1,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
           }
         }
       >
-        <RNSScreen
-          activityState={2}
+        <View
           collapsable={false}
-          gestureResponseDistance={
-            {
-              "bottom": -1,
-              "end": -1,
-              "start": -1,
-              "top": -1,
-            }
-          }
-          onGestureCancel={[Function]}
-          pointerEvents="box-none"
-          sheetAllowedDetents="large"
-          sheetCornerRadius={-1}
-          sheetExpandsWhenScrolledToEdge={true}
-          sheetGrabberVisible={false}
-          sheetLargestUndimmedDetent="all"
           style={
             {
-              "bottom": 0,
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": undefined,
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
             }
           }
         >
           <View
             collapsable={false}
-            style={
-              {
-                "opacity": 1,
-              }
-            }
-          />
-          <View
-            accessibilityElementsHidden={false}
-            closing={false}
-            collapsable={false}
-            gestureVelocityImpact={0.3}
-            importantForAccessibility="auto"
-            onClose={[Function]}
-            onGestureBegin={[Function]}
-            onGestureCanceled={[Function]}
-            onGestureEnd={[Function]}
-            onOpen={[Function]}
-            onTransition={[Function]}
+            needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              [
-                {
-                  "display": "flex",
-                  "overflow": undefined,
-                },
-                {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                },
-              ]
-            }
-            transitionSpec={
               {
-                "close": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
-                "open": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
+                "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
+              enabled={false}
+              handlerTag={5}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               style={
                 {
                   "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                enabled={false}
-                handlerTag={5}
-                handlerType="PanGestureHandler"
-                needsOffscreenAlphaCompositing={false}
-                onGestureHandlerEvent={[Function]}
-                onGestureHandlerStateChange={[Function]}
+                pointerEvents="none"
                 style={
                   {
-                    "flex": 1,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateX": 0,
-                      },
-                    ],
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
                   }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
                 }
               >
                 <View
-                  pointerEvents="box-none"
                   style={
-                    [
-                      {
-                        "flex": 1,
-                        "overflow": "hidden",
-                      },
-                      [
-                        {
-                          "backgroundColor": "rgb(242, 242, 242)",
-                        },
-                        undefined,
-                      ],
-                    ]
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
-                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
-                        }
+                      <View
                         style={
-                          {
-                            "flex": 1,
-                          }
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
+                              "flex": 1,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -1002,6 +1191,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
                             style={
                               [
                                 {
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
+                                },
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -1010,219 +1203,13 @@ exports[`SendTransaction View renders correctly for custom action payment method
                           >
                             <View
                               style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  {
-                                    "flex": 1,
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "justifyContent": "center",
+                                }
                               }
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 20,
-                                          "fontWeight": "normal",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Send
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      0.0123456
-                                    </Text>
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
-                                          }
-                                        }
-                                        testID="token-avatar-image"
-                                      />
-                                    </View>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      USDC
-                                    </Text>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Down"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    source={
-                                      {
-                                        "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
-                                      }
-                                    }
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 65,
-                                      }
-                                    }
-                                  />
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                          <View>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                    {
-                                      "marginTop": 0,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                >
-                                  You will send your USDC to Test (Staging), who then sends your cash to Instant Bank Transfer
-                                </Text>
-                              </View>
                               <View
                                 style={
                                   [
@@ -1235,25 +1222,11 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "gap": 4,
                                     }
                                   }
                                 >
@@ -1261,217 +1234,236 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 20,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Send
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Next
+                                    0.0123456
                                   </Text>
-                                </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 12,
+                                        "height": 24,
+                                        "overflow": "hidden",
+                                        "width": 24,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 20,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    USDC
+                                  </Text>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#66676a"
+                                  fill="currentColor"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  source={
+                                    {
+                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
+                                    }
+                                  }
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 65,
+                                    }
+                                  }
+                                />
                               </View>
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
-                    </View>
-                    <View
-                      collapsable={false}
-                      pointerEvents="box-none"
-                      style={{}}
-                    >
-                      <View
-                        accessibilityElementsHidden={false}
-                        importantForAccessibility="auto"
-                        onLayout={[Function]}
-                        pointerEvents="box-none"
-                        style={null}
-                      >
-                        <RNCSafeAreaView
-                          edges={
-                            {
-                              "bottom": "off",
-                              "left": "off",
-                              "right": "off",
-                              "top": "additive",
-                            }
-                          }
-                          style={
-                            {
-                              "backgroundColor": "#ffffff",
-                            }
-                          }
-                        >
+                        <View>
                           <View
                             style={
                               [
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "minHeight": 56,
-                                  "paddingLeft": 8,
-                                  "paddingRight": 8,
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
-                                false,
+                                undefined,
                                 undefined,
                               ]
                             }
-                            testID="header"
                           >
-                            <View>
-                              <View
-                                onLayout={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  {
+                                    "marginTop": 0,
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
                               >
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
-                                      {
-                                        "transform": [
-                                          {
-                                            "scale": 1,
-                                          },
-                                        ],
-                                      },
-                                    ]
-                                  }
-                                  testID="deposit-back-navbar-button"
-                                >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="ArrowLeft"
-                                    style={
-                                      [
-                                        {
-                                          "color": "#131416",
-                                          "height": 24,
-                                          "width": 24,
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
+                                You will send your USDC to Test (Staging), who then sends your cash to Instant Bank Transfer
+                              </Text>
                             </View>
                             <View
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
+                                    "marginVertical": 8,
                                   },
+                                  undefined,
+                                  undefined,
                                   undefined,
                                 ]
                               }
                             >
-                              <View
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
-                                        "fontSize": 16,
-                                        "fontWeight": 400,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 20,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
-                                  Sell crypto
+                                  Next
                                 </Text>
-                              </View>
-                            </View>
-                            <View>
-                              <View
-                                onLayout={[Function]}
-                              />
+                              </TouchableOpacity>
                             </View>
                           </View>
-                        </RNCSafeAreaView>
+                        </View>
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </RNSScreen>
-      </RNSScreenContainer>
-      <View
-        collapsable={false}
-        pointerEvents="box-none"
-        style={
-          {
-            "height": 44,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": 1,
-          }
-        }
-      />
-    </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
   </RNCSafeAreaProvider>
 </View>
 `;
@@ -1496,199 +1488,392 @@ exports[`SendTransaction View renders correctly for token 1`] = `
     }
   >
     <View
+      collapsable={false}
+      pointerEvents="box-none"
       style={
-        [
-          {
-            "backgroundColor": "rgb(242, 242, 242)",
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "zIndex": 1,
+        }
       }
     >
-      <RNSScreenContainer
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
         onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <RNCSafeAreaView
+          edges={
+            {
+              "bottom": "off",
+              "left": "off",
+              "right": "off",
+              "top": "additive",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 16,
+                  "minHeight": 56,
+                  "paddingLeft": 8,
+                  "paddingRight": 8,
+                },
+                false,
+                undefined,
+              ]
+            }
+            testID="header"
+          >
+            <View>
+              <View
+                onLayout={[Function]}
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
+                    }
+                  }
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      },
+                      undefined,
+                      {
+                        "transform": [
+                          {
+                            "scale": 1,
+                          },
+                        ],
+                      },
+                    ]
+                  }
+                  testID="deposit-back-navbar-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#131416",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "display": "flex",
+                    "flexBasis": "0%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                  undefined,
+                ]
+              }
+            >
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "display": "flex",
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Bold",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  Sell crypto
+                </Text>
+              </View>
+            </View>
+            <View>
+              <View
+                onLayout={[Function]}
+              />
+            </View>
+          </View>
+        </RNCSafeAreaView>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        onGestureCancel={[Function]}
+        pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
-            "flex": 1,
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+            "zIndex": undefined,
           }
         }
       >
-        <RNSScreen
-          activityState={2}
+        <View
           collapsable={false}
-          gestureResponseDistance={
-            {
-              "bottom": -1,
-              "end": -1,
-              "start": -1,
-              "top": -1,
-            }
-          }
-          onGestureCancel={[Function]}
-          pointerEvents="box-none"
-          sheetAllowedDetents="large"
-          sheetCornerRadius={-1}
-          sheetExpandsWhenScrolledToEdge={true}
-          sheetGrabberVisible={false}
-          sheetLargestUndimmedDetent="all"
           style={
             {
-              "bottom": 0,
-              "left": 0,
-              "position": "absolute",
-              "right": 0,
-              "top": 0,
-              "zIndex": undefined,
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
             }
           }
         >
           <View
             collapsable={false}
-            style={
-              {
-                "opacity": 1,
-              }
-            }
-          />
-          <View
-            accessibilityElementsHidden={false}
-            closing={false}
-            collapsable={false}
-            gestureVelocityImpact={0.3}
-            importantForAccessibility="auto"
-            onClose={[Function]}
-            onGestureBegin={[Function]}
-            onGestureCanceled={[Function]}
-            onGestureEnd={[Function]}
-            onOpen={[Function]}
-            onTransition={[Function]}
+            needsOffscreenAlphaCompositing={false}
             pointerEvents="box-none"
             style={
-              [
-                {
-                  "display": "flex",
-                  "overflow": undefined,
-                },
-                {
-                  "bottom": 0,
-                  "left": 0,
-                  "position": "absolute",
-                  "right": 0,
-                  "top": 0,
-                },
-              ]
-            }
-            transitionSpec={
               {
-                "close": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
-                "open": {
-                  "animation": "spring",
-                  "config": {
-                    "damping": 500,
-                    "mass": 3,
-                    "overshootClamping": true,
-                    "restDisplacementThreshold": 10,
-                    "restSpeedThreshold": 10,
-                    "stiffness": 1000,
-                  },
-                },
+                "flex": 1,
               }
             }
           >
             <View
               collapsable={false}
-              pointerEvents="box-none"
+              enabled={false}
+              handlerTag={4}
+              handlerType="PanGestureHandler"
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
               style={
                 {
                   "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
                 }
               }
             >
               <View
                 collapsable={false}
-                enabled={false}
-                handlerTag={4}
-                handlerType="PanGestureHandler"
-                needsOffscreenAlphaCompositing={false}
-                onGestureHandlerEvent={[Function]}
-                onGestureHandlerStateChange={[Function]}
+                pointerEvents="none"
                 style={
                   {
-                    "flex": 1,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateX": 0,
-                      },
-                    ],
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
                   }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
                 }
               >
                 <View
-                  pointerEvents="box-none"
                   style={
-                    [
-                      {
-                        "flex": 1,
-                        "overflow": "hidden",
-                      },
-                      [
-                        {
-                          "backgroundColor": "rgb(242, 242, 242)",
-                        },
-                        undefined,
-                      ],
-                    ]
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
                   }
                 >
                   <View
                     style={
                       {
                         "flex": 1,
-                        "flexDirection": "column-reverse",
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
+                      edges={
+                        {
+                          "bottom": "additive",
+                          "left": "additive",
+                          "right": "additive",
+                          "top": "off",
+                        }
+                      }
                       style={
                         {
                           "flex": 1,
                         }
                       }
                     >
-                      <RNCSafeAreaView
-                        edges={
-                          {
-                            "bottom": "additive",
-                            "left": "additive",
-                            "right": "additive",
-                            "top": "off",
-                          }
-                        }
+                      <View
                         style={
-                          {
-                            "flex": 1,
-                          }
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
+                              "flex": 1,
+                            },
+                            undefined,
+                          ]
                         }
                       >
                         <View
                           style={
                             [
                               {
-                                "backgroundColor": "#ffffff",
                                 "flex": 1,
                               },
                               undefined,
@@ -1699,6 +1884,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                             style={
                               [
                                 {
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
+                                },
+                                {
                                   "flex": 1,
                                 },
                                 undefined,
@@ -1707,305 +1896,13 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                           >
                             <View
                               style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  {
-                                    "flex": 1,
-                                  },
-                                  undefined,
-                                ]
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "justifyContent": "center",
+                                }
                               }
                             >
-                              <View
-                                style={
-                                  {
-                                    "alignItems": "center",
-                                    "flex": 1,
-                                    "justifyContent": "center",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "flexDirection": "row",
-                                        "gap": 4,
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 20,
-                                          "fontWeight": "normal",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Send
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      0.0123456
-                                    </Text>
-                                    <View
-                                      style={
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "borderRadius": 12,
-                                          "height": 24,
-                                          "overflow": "hidden",
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={
-                                          {
-                                            "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
-                                          }
-                                        }
-                                        style={
-                                          {
-                                            "flex": 1,
-                                            "height": undefined,
-                                            "width": undefined,
-                                          }
-                                        }
-                                        testID="token-avatar-image"
-                                      />
-                                    </View>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Bold",
-                                          "fontSize": 20,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      USDC
-                                    </Text>
-                                  </View>
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Down"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    source={
-                                      {
-                                        "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
-                                      }
-                                    }
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 65,
-                                      }
-                                    }
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <SvgMock
-                                    color="#66676a"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Down"
-                                    style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
-                                    }
-                                    width={24}
-                                  />
-                                </View>
-                                <View
-                                  style={
-                                    [
-                                      {
-                                        "marginVertical": 8,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "columnGap": 4,
-                                        "flexDirection": "row",
-                                        "justifyContent": "center",
-                                      }
-                                    }
-                                  >
-                                    <Text
-                                      allowFontScaling={false}
-                                      selectable={false}
-                                      style={
-                                        [
-                                          {
-                                            "color": "#66676a",
-                                            "fontSize": 20,
-                                          },
-                                          undefined,
-                                          {
-                                            "fontFamily": "Material Design Icons",
-                                            "fontStyle": "normal",
-                                            "fontWeight": "normal",
-                                          },
-                                          {},
-                                        ]
-                                      }
-                                    >
-                                      󰁰
-                                    </Text>
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        {
-                                          "color": "#131416",
-                                          "fontFamily": "Geist-Regular",
-                                          "fontSize": 20,
-                                          "fontWeight": "normal",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
-                                      }
-                                    >
-                                      Instant Bank Transfer
-                                    </Text>
-                                  </View>
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                          <View>
-                            <View
-                              style={
-                                [
-                                  {
-                                    "padding": 15,
-                                    "paddingHorizontal": 16,
-                                  },
-                                  undefined,
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <View
-                                style={
-                                  [
-                                    {
-                                      "marginVertical": 8,
-                                    },
-                                    {
-                                      "marginTop": 0,
-                                    },
-                                    undefined,
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#131416",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "textAlign": "center",
-                                    }
-                                  }
-                                >
-                                  You will send your USDC to Test (Staging), who then sends your cash to Instant Bank Transfer
-                                </Text>
-                              </View>
                               <View
                                 style={
                                   [
@@ -2018,25 +1915,11 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  disabled={false}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
+                                <View
                                   style={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
                                       "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "gap": 4,
                                     }
                                   }
                                 >
@@ -2044,217 +1927,322 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 20,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Send
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
                                         "fontSize": 20,
                                         "letterSpacing": 0,
                                         "lineHeight": 24,
                                       }
                                     }
                                   >
-                                    Next
+                                    0.0123456
                                   </Text>
-                                </TouchableOpacity>
+                                  <View
+                                    style={
+                                      {
+                                        "backgroundColor": "#ffffff",
+                                        "borderRadius": 12,
+                                        "height": 24,
+                                        "overflow": "hidden",
+                                        "width": 24,
+                                      }
+                                    }
+                                  >
+                                    <Image
+                                      onError={[Function]}
+                                      resizeMode="contain"
+                                      source={
+                                        {
+                                          "uri": "https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/usdc.png",
+                                        }
+                                      }
+                                      style={
+                                        {
+                                          "flex": 1,
+                                          "height": undefined,
+                                          "width": undefined,
+                                        }
+                                      }
+                                      testID="token-avatar-image"
+                                    />
+                                  </View>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Bold",
+                                        "fontSize": 20,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    USDC
+                                  </Text>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#66676a"
+                                  fill="currentColor"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  source={
+                                    {
+                                      "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/test_light.png",
+                                    }
+                                  }
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 65,
+                                    }
+                                  }
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <SvgMock
+                                  color="#66676a"
+                                  fill="currentColor"
+                                  height={24}
+                                  name="Arrow2Down"
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  width={24}
+                                />
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "marginVertical": 8,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "columnGap": 4,
+                                      "flexDirection": "row",
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
+                                    style={
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontSize": 20,
+                                        },
+                                        undefined,
+                                        {
+                                          "fontFamily": "Material Design Icons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
+                                    }
+                                  >
+                                    󰁰
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 20,
+                                        "fontWeight": "normal",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    Instant Bank Transfer
+                                  </Text>
+                                </View>
                               </View>
                             </View>
                           </View>
                         </View>
-                      </RNCSafeAreaView>
-                    </View>
-                    <View
-                      collapsable={false}
-                      pointerEvents="box-none"
-                      style={{}}
-                    >
-                      <View
-                        accessibilityElementsHidden={false}
-                        importantForAccessibility="auto"
-                        onLayout={[Function]}
-                        pointerEvents="box-none"
-                        style={null}
-                      >
-                        <RNCSafeAreaView
-                          edges={
-                            {
-                              "bottom": "off",
-                              "left": "off",
-                              "right": "off",
-                              "top": "additive",
-                            }
-                          }
-                          style={
-                            {
-                              "backgroundColor": "#ffffff",
-                            }
-                          }
-                        >
+                        <View>
                           <View
                             style={
                               [
                                 {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "gap": 16,
-                                  "minHeight": 56,
-                                  "paddingLeft": 8,
-                                  "paddingRight": 8,
+                                  "padding": 15,
+                                  "paddingHorizontal": 16,
                                 },
-                                false,
+                                undefined,
                                 undefined,
                               ]
                             }
-                            testID="header"
                           >
-                            <View>
-                              <View
-                                onLayout={[Function]}
+                            <View
+                              style={
+                                [
+                                  {
+                                    "marginVertical": 8,
+                                  },
+                                  {
+                                    "marginTop": 0,
+                                  },
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#131416",
+                                    "fontFamily": "Geist-Regular",
+                                    "fontSize": 16,
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
                               >
-                                <View
-                                  accessibilityState={
-                                    {
-                                      "busy": undefined,
-                                      "checked": undefined,
-                                      "disabled": false,
-                                      "expanded": undefined,
-                                      "selected": undefined,
-                                    }
-                                  }
-                                  accessibilityValue={
-                                    {
-                                      "max": undefined,
-                                      "min": undefined,
-                                      "now": undefined,
-                                      "text": undefined,
-                                    }
-                                  }
-                                  accessible={true}
-                                  collapsable={false}
-                                  focusable={true}
-                                  onBlur={[Function]}
-                                  onClick={[Function]}
-                                  onFocus={[Function]}
-                                  onResponderGrant={[Function]}
-                                  onResponderMove={[Function]}
-                                  onResponderRelease={[Function]}
-                                  onResponderTerminate={[Function]}
-                                  onResponderTerminationRequest={[Function]}
-                                  onStartShouldSetResponder={[Function]}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "backgroundColor": "transparent",
-                                        "borderRadius": 8,
-                                        "height": 32,
-                                        "justifyContent": "center",
-                                        "opacity": 1,
-                                        "width": 32,
-                                      },
-                                      undefined,
-                                      {
-                                        "transform": [
-                                          {
-                                            "scale": 1,
-                                          },
-                                        ],
-                                      },
-                                    ]
-                                  }
-                                  testID="deposit-back-navbar-button"
-                                >
-                                  <SvgMock
-                                    fill="currentColor"
-                                    name="ArrowLeft"
-                                    style={
-                                      [
-                                        {
-                                          "color": "#131416",
-                                          "height": 24,
-                                          "width": 24,
-                                        },
-                                        undefined,
-                                      ]
-                                    }
-                                  />
-                                </View>
-                              </View>
+                                You will send your USDC to Test (Staging), who then sends your cash to Instant Bank Transfer
+                              </Text>
                             </View>
                             <View
                               style={
                                 [
                                   {
-                                    "alignItems": "center",
-                                    "display": "flex",
-                                    "flexBasis": "0%",
-                                    "flexGrow": 1,
-                                    "flexShrink": 1,
+                                    "marginVertical": 8,
                                   },
+                                  undefined,
+                                  undefined,
                                   undefined,
                                 ]
                               }
                             >
-                              <View
+                              <TouchableOpacity
+                                accessibilityRole="button"
+                                accessible={true}
+                                activeOpacity={1}
+                                disabled={false}
+                                onPress={[Function]}
+                                onPressIn={[Function]}
+                                onPressOut={[Function]}
                                 style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "display": "flex",
-                                    },
-                                    undefined,
-                                  ]
+                                  {
+                                    "alignItems": "center",
+                                    "alignSelf": "stretch",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "paddingHorizontal": 16,
+                                  }
                                 }
                               >
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    [
-                                      {
-                                        "color": "#131416",
-                                        "fontFamily": "Geist-Bold",
-                                        "fontSize": 16,
-                                        "fontWeight": 400,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      },
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#ffffff",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 20,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                 >
-                                  Sell crypto
+                                  Next
                                 </Text>
-                              </View>
-                            </View>
-                            <View>
-                              <View
-                                onLayout={[Function]}
-                              />
+                              </TouchableOpacity>
                             </View>
                           </View>
-                        </RNCSafeAreaView>
+                        </View>
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-        </RNSScreen>
-      </RNSScreenContainer>
-      <View
-        collapsable={false}
-        pointerEvents="box-none"
-        style={
-          {
-            "height": 44,
-            "left": 0,
-            "position": "absolute",
-            "right": 0,
-            "top": 0,
-            "zIndex": 1,
-          }
-        }
-      />
-    </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
   </RNCSafeAreaProvider>
 </View>
 `;

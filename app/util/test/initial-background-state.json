@@ -498,7 +498,7 @@
     "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "isEligible": false,
+    "isEligible": true,
     "isFirstTimeUser": {
       "testnet": true,
       "mainnet": true
