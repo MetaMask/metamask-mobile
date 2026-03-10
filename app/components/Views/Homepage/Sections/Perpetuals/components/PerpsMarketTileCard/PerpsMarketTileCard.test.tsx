@@ -183,26 +183,26 @@ describe('PerpsMarketTileCard', () => {
   });
 
   describe('ticker truncation', () => {
-    it('renders symbol without truncation when 10 characters or fewer', () => {
-      const market = { ...mockMarketData, symbol: 'ABCDEFGHIJ' };
+    it('renders symbol without truncation when 8 characters or fewer', () => {
+      const market = { ...mockMarketData, symbol: 'ABCDEFGH' };
       render(<PerpsMarketTileCard market={market} />);
 
-      expect(screen.getByText('ABCDEFGHIJ')).toBeOnTheScreen();
+      expect(screen.getByText('ABCDEFGH')).toBeOnTheScreen();
     });
 
-    it('truncates symbol with ... when longer than 10 characters', () => {
+    it('truncates symbol with ... when longer than 8 characters', () => {
       const market = { ...mockMarketData, symbol: 'LONGTICKERX' };
       render(<PerpsMarketTileCard market={market} />);
 
-      expect(screen.getByText('LONGTICKER...')).toBeOnTheScreen();
+      expect(screen.getByText('LONGTICK...')).toBeOnTheScreen();
       expect(screen.queryByText('LONGTICKERX')).toBeNull();
     });
 
-    it('truncates a prefixed symbol (e.g. hip3:LONGTICKERX) at 10 chars after stripping prefix', () => {
+    it('truncates a prefixed symbol (e.g. hip3:LONGTICKERX) at 8 chars after stripping prefix', () => {
       const market = { ...mockMarketData, symbol: 'hip3:LONGTICKERX' };
       render(<PerpsMarketTileCard market={market} />);
 
-      expect(screen.getByText('LONGTICKER...')).toBeOnTheScreen();
+      expect(screen.getByText('LONGTICK...')).toBeOnTheScreen();
     });
 
     it('renders leverage below change percent (not beside ticker)', () => {
