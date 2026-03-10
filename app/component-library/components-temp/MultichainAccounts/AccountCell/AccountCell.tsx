@@ -92,7 +92,9 @@ const BalanceEndContainer = ({
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
             length={SensitiveTextLength.Long}
-            isHidden={privacyMode && !!displayBalance}
+            isHidden={
+              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
+            }
             testID={AccountCellIds.BALANCE}
           >
             {totalBalance ? displayBalance : null}
