@@ -62,6 +62,7 @@ import { isCaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -118,6 +119,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
+    bannerWrapper: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    } as ViewStyle,
   });
 };
 
@@ -161,6 +166,7 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  inLockPeriodBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 }
 
@@ -198,6 +204,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  inLockPeriodBalance,
   onMarketInsightsDisplayResolved,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -269,6 +276,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
+
+  const showPerpsSection =
+    isPerpsEnabled &&
+    hasPerpsMarket &&
+    Boolean(marketData) &&
+    isTokenTrustworthy &&
+    !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const marketInsightsCaip19Id = useMemo(() => {
@@ -534,6 +548,31 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakingBanner amount={inLockPeriodBalance} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {showPerpsSection && perpsPosition && (
+            <View style={styles.perpsPositionCardContainer}>
+              <Text
+                variant={TextVariant.HeadingMD}
+                style={styles.perpsPositionTitle}
+              >
+                {strings('asset_overview.perps_position')}
+              </Text>
+              <PerpsPositionCard
+                position={perpsPosition}
+                compact
+                onPress={handlePerpsDiscoveryPress}
+                testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+              />
+            </View>
+          )}
           {isMarketInsightsEnabled &&
           marketInsightsReport &&
           marketInsightsCaip19Id ? (
@@ -547,44 +586,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           ) : null}
-          {isPerpsEnabled &&
-            hasPerpsMarket &&
-            marketData &&
-            isTokenTrustworthy &&
-            !isPerpsPositionLoading && (
-              <>
-                {perpsPosition ? (
-                  <View style={styles.perpsPositionCardContainer}>
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.perpsPositionTitle}
-                    >
-                      {strings('asset_overview.perps_position')}
-                    </Text>
-                    <PerpsPositionCard
-                      position={perpsPosition}
-                      compact
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-                    />
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.perpsPositionCardContainer}>
-                      <Text variant={TextVariant.HeadingMD}>
-                        {strings('asset_overview.perps_position')}
-                      </Text>
-                    </View>
-                    <PerpsDiscoveryBanner
-                      symbol={marketData.symbol}
-                      maxLeverage={marketData.maxLeverage}
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
-                    />
-                  </>
-                )}
-              </>
-            )}
+          {showPerpsSection && !perpsPosition && marketData && (
+            <PerpsDiscoveryBanner
+              symbol={marketData.symbol}
+              maxLeverage={marketData.maxLeverage}
+              onPress={handlePerpsDiscoveryPress}
+              testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+            />
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>

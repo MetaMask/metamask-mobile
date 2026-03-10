@@ -7,6 +7,7 @@ export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
 export const BUFFER_STEP_DEFAULT = 0.025;
 export const BUFFER_SUBSEQUENT_DEFAULT = 0.05;
+export const PAY_FIAT_ENABLED_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
 
 export interface PreferredToken {
@@ -20,6 +21,21 @@ export interface PreferredTokensConfig {
   overrides: Record<string, PreferredToken[]>;
 }
 
+export interface BlockedTokenEntry {
+  address: string;
+  chainId: string;
+}
+
+export interface BlockedTokensListConfig {
+  chainIds: string[];
+  tokens: BlockedTokenEntry[];
+}
+
+export interface BlockedTokensConfig {
+  default: BlockedTokensListConfig;
+  overrides: Record<string, BlockedTokensListConfig>;
+}
+
 export interface MetaMaskPayFlags {
   attemptsMax: number;
   bufferInitial: number;
@@ -30,6 +46,7 @@ export interface MetaMaskPayFlags {
 
 export interface MetaMaskPayTokensFlags {
   preferredTokens: PreferredTokensConfig;
+  blockedTokens: BlockedTokensConfig;
   minimumRequiredTokenBalance: number;
 }
 
@@ -53,6 +70,10 @@ export interface GasFeeTokenFlags {
       }[];
     };
   };
+}
+
+export interface MetaMaskPayFiatFlags {
+  enabled: boolean;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
@@ -95,6 +116,10 @@ export const selectMetaMaskPayTokensFlags = createSelector(
       | Record<string, Json | PreferredTokensConfig>
       | undefined;
 
+    const rawBlockedTokens = payTokenFlags?.blockedTokens as
+      | BlockedTokensConfig
+      | undefined;
+
     return {
       preferredTokens: {
         default:
@@ -103,6 +128,13 @@ export const selectMetaMaskPayTokensFlags = createSelector(
         overrides:
           ((payTokenFlags?.preferredTokens as PreferredTokensConfig)
             ?.overrides as Record<string, PreferredToken[]>) ?? {},
+      },
+      blockedTokens: {
+        default: {
+          chainIds: rawBlockedTokens?.default?.chainIds ?? [],
+          tokens: rawBlockedTokens?.default?.tokens ?? [],
+        },
+        overrides: rawBlockedTokens?.overrides ?? {},
       },
       minimumRequiredTokenBalance:
         (payTokenFlags?.minimumRequiredTokenBalance as number) ?? 0,
@@ -196,6 +228,19 @@ export const selectGasFeeTokenFlags = createSelector(
 
     return {
       gasFeeTokens,
+    };
+  },
+);
+
+export const selectMetaMaskPayFiatFlags = createSelector(
+  selectRemoteFeatureFlags,
+  (featureFlags): MetaMaskPayFiatFlags => {
+    const raw = featureFlags?.confirmations_pay_fiat as
+      | Record<string, Json>
+      | undefined;
+
+    return {
+      enabled: (raw?.enabled as boolean) ?? PAY_FIAT_ENABLED_DEFAULT,
     };
   },
 );

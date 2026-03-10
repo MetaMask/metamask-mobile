@@ -11,7 +11,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import SectionTitle from '../../components/SectionTitle';
 import ErrorState from '../../components/ErrorState';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
@@ -87,38 +86,25 @@ const PredictionsSection = forwardRef<
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
-    refresh: refreshPositions,
+    refetch: refetchPositions,
   } = usePredictPositionsForHomepage();
 
   const {
     markets,
     isLoading: isLoadingMarkets,
     error: marketsError,
-    refresh: refreshMarkets,
+    refetch: refetchMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const {
-    positions: claimablePositions,
-    isLoading: isLoadingClaimable,
-    refresh: refreshClaimable,
-  } = usePredictPositionsForHomepage(undefined, true);
+  const { totalClaimableValue, isLoading: isLoadingClaimable } =
+    usePredictPositionsForHomepage({ claimable: true });
 
   const handleClaim = useCallback(async () => {
     await claim();
-    await refreshClaimable();
-  }, [claim, refreshClaimable]);
-
-  const totalClaimable = claimablePositions.reduce(
-    (sum, p) => sum + (p.currentValue ?? 0),
-    0,
-  );
+  }, [claim]);
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
-
-  // Use ref so refresh always reads the latest value without stale closures
-  const hasPositionsRef = useRef(hasPositions);
-  hasPositionsRef.current = hasPositions;
 
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
@@ -152,18 +138,9 @@ const PredictionsSection = forwardRef<
     itemCount,
   });
 
-  // Refresh: only refresh positions if user has them, always refresh markets + claimable
   const refresh = useCallback(async () => {
-    if (hasPositionsRef.current) {
-      await Promise.all([
-        refreshPositions(),
-        refreshMarkets(),
-        refreshClaimable(),
-      ]);
-    } else {
-      await Promise.all([refreshMarkets(), refreshClaimable()]);
-    }
-  }, [refreshPositions, refreshMarkets, refreshClaimable]);
+    await Promise.all([refetchPositions(), refetchMarkets()]);
+  }, [refetchPositions, refetchMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -231,10 +208,10 @@ const PredictionsSection = forwardRef<
             )}
             {!isLoadingPositions &&
               !isLoadingClaimable &&
-              totalClaimable > 0 && (
+              totalClaimableValue > 0 && (
                 <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
                   <PredictClaimButton
-                    amount={totalClaimable}
+                    amount={totalClaimableValue}
                     onPress={handleClaim}
                   />
                 </Box>
@@ -255,34 +232,27 @@ const PredictionsSection = forwardRef<
     <View ref={sectionViewRef}>
       <Box gap={3}>
         <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <FadingScrollContainer>
-          {(scrollProps) => (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              snapToOffsets={SNAP_OFFSETS}
-              decelerationRate="fast"
-              {...scrollProps}
-            >
-              {isLoadingMarkets ? (
-                SKELETON_KEYS.map((key) => (
-                  <PredictMarketCardSkeleton key={key} />
-                ))
-              ) : (
-                <>
-                  {markets.map((market) => (
-                    <PredictMarketCard key={market.id} market={market} />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAllPredictions}
-                    twClassName="w-[180px] flex-1"
-                  />
-                </>
-              )}
-            </ScrollView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          snapToOffsets={SNAP_OFFSETS}
+          decelerationRate="fast"
+        >
+          {isLoadingMarkets ? (
+            SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
+          ) : (
+            <>
+              {markets.map((market) => (
+                <PredictMarketCard key={market.id} market={market} />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAllPredictions}
+                twClassName="w-[180px] flex-1"
+              />
+            </>
           )}
-        </FadingScrollContainer>
+        </ScrollView>
       </Box>
     </View>
   );

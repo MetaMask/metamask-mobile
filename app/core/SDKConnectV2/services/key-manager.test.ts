@@ -39,4 +39,16 @@ describe('KeyManager', () => {
     // Verify the round-trip encryption/decryption
     expect(decryptedMessage).toBe(originalMessage);
   });
+
+  it('should accept a valid peer public key', () => {
+    const keyPair = keyManager.generateKeyPair();
+
+    expect(() => keyManager.validatePeerKey(keyPair.publicKey)).not.toThrow();
+  });
+
+  it('should reject an invalid peer public key', () => {
+    const invalidKey = new Uint8Array([1, 2, 3]);
+
+    expect(() => keyManager.validatePeerKey(invalidKey)).toThrow();
+  });
 });

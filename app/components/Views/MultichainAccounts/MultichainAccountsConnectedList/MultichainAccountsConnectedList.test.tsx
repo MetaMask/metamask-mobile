@@ -106,6 +106,9 @@ jest.mock('../../../../util/test/initial-root-state', () => ({
         wallets: {},
       },
     },
+    PreferencesController: {
+      privacyMode: false,
+    },
     RemoteFeatureFlagController: {
       remoteFeatureFlags: {
         enableMultichainAccounts: {

@@ -162,6 +162,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
     priceImpactThreshold: {
       normal: 3.0,
       gasless: 1.5,
+      warning: 0.05,
+      error: 0.25,
     },
     chains: {
       'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
@@ -596,27 +598,32 @@ describe('QuoteDetailsCard', () => {
     });
   });
 
-  it('handles quote info navigation', () => {
-    const { getByLabelText, getByText, getByTestId } = renderScreen(
+  it('navigates to quote selector when rate info button is pressed', () => {
+    const { getByTestId } = renderScreen(
       QuoteDetailsCardTestScreen,
       { name: Routes.BRIDGE.ROOT },
       { state: testState },
     );
 
-    const quoteTooltip = getByLabelText('Rate tooltip');
-    fireEvent.press(quoteTooltip);
+    fireEvent.press(getByTestId('rate-info-button'));
 
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
-      params: {
-        title: strings('bridge.quote_info_title'),
-        tooltip: strings('bridge.quote_info_content'),
-        footerText: undefined,
-        buttonText: undefined,
-      },
-      screen: 'tooltipModal',
-    });
-    expect(getByText('Price impact')).toBeTruthy();
-    expect(getByTestId('price-impact-info-button')).toBeTruthy();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+    );
+  });
+
+  it('navigates to quote selector when rate arrow button is pressed', () => {
+    const { getByTestId } = renderScreen(
+      QuoteDetailsCardTestScreen,
+      { name: Routes.BRIDGE.ROOT },
+      { state: testState },
+    );
+
+    fireEvent.press(getByTestId('rate-arrow-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+    );
   });
 
   it('renders price impact info button for low price impact values', () => {
@@ -686,6 +693,72 @@ describe('QuoteDetailsCard', () => {
     expect(getByText('Price impact')).toBeTruthy();
     expect(getByText('25%')).toBeTruthy();
     expect(getByTestId('price-impact-info-button')).toBeTruthy();
+  });
+
+  describe('minimum received row', () => {
+    it('displays minimum received row when minToTokenAmount is present', () => {
+      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: {
+          ...mockQuotes[0],
+          minToTokenAmount: {
+            amount: '23.50',
+            usd: null,
+            valueInCurrency: null,
+          },
+        },
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '-0.06%',
+          slippage: '0.5%',
+        },
+        shouldShowPriceImpactWarning: false,
+      }));
+
+      const { getByText } = renderScreen(
+        QuoteDetailsCardTestScreen,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(getByText(strings('bridge.minimum_received'))).toBeOnTheScreen();
+      // formatMinimumReceived formats "23.50" followed by the dest token symbol "ETH"
+      expect(getByText(/23\.5 ETH/)).toBeOnTheScreen();
+    });
+
+    it('does not display minimum received row when minToTokenAmount is absent', () => {
+      const mockModule = jest.requireMock('../../hooks/useBridgeQuoteData');
+      mockModule.useBridgeQuoteData.mockImplementationOnce(() => ({
+        quoteFetchError: null,
+        activeQuote: {
+          ...mockQuotes[0],
+          minToTokenAmount: undefined,
+        },
+        destTokenAmount: '24.44',
+        isLoading: false,
+        formattedQuoteData: {
+          networkFee: '0.01',
+          estimatedTime: '1 min',
+          rate: '1 ETH = 24.4 USDC',
+          priceImpact: '-0.06%',
+          slippage: '0.5%',
+        },
+        shouldShowPriceImpactWarning: false,
+      }));
+
+      const { queryByText } = renderScreen(
+        QuoteDetailsCardTestScreen,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(queryByText(strings('bridge.minimum_received'))).toBeNull();
+    });
   });
 
   describe('rewards functionality', () => {
