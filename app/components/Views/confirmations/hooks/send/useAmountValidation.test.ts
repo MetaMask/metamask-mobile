@@ -104,14 +104,11 @@ describe('validatePositiveNumericString', () => {
     expect(validatePositiveNumericString('  ')).toEqual('Invalid value');
   });
 
-  it('returns undefined for a standalone decimal point', () => {
-    expect(validatePositiveNumericString('.')).toEqual(undefined);
-  });
-
-  it('returns undefined for trailing decimal point inputs', () => {
-    expect(validatePositiveNumericString('0.')).toEqual(undefined);
-    expect(validatePositiveNumericString('1.')).toEqual(undefined);
-    expect(validatePositiveNumericString('123.')).toEqual(undefined);
+  it('returns error for standalone decimal point and trailing dots', () => {
+    expect(validatePositiveNumericString('.')).toEqual('Invalid value');
+    expect(validatePositiveNumericString('0.')).toEqual('Invalid value');
+    expect(validatePositiveNumericString('1.')).toEqual('Invalid value');
+    expect(validatePositiveNumericString('123.')).toEqual('Invalid value');
   });
 });
 
@@ -259,6 +256,48 @@ describe('useAmountValidation', () => {
       chainId: '0x5',
       from: MOCK_ADDRESS_1,
       value: '0.5',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: evmSendStateMock,
+    });
+    await waitFor(() => expect(result.current.amountError).toEqual(undefined));
+  });
+
+  it('accepts "." as zero without reporting invalid amount', async () => {
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: { ...EVM_NATIVE_ASSET, rawBalance: '0x5f5e100' },
+      chainId: '0x5',
+      from: MOCK_ADDRESS_1,
+      value: '.',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: evmSendStateMock,
+    });
+    await waitFor(() => expect(result.current.amountError).toEqual(undefined));
+  });
+
+  it('accepts "0." as zero without reporting invalid amount', async () => {
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: { ...EVM_NATIVE_ASSET, rawBalance: '0x5f5e100' },
+      chainId: '0x5',
+      from: MOCK_ADDRESS_1,
+      value: '0.',
+    } as unknown as SendContext.SendContextType);
+
+    const { result } = renderHookWithProvider(() => useAmountValidation(), {
+      state: evmSendStateMock,
+    });
+    await waitFor(() => expect(result.current.amountError).toEqual(undefined));
+  });
+
+  it('accepts trailing dot as valid intermediate input', async () => {
+    jest.spyOn(SendContext, 'useSendContext').mockReturnValue({
+      asset: { ...EVM_NATIVE_ASSET, rawBalance: '0x5f5e100' },
+      chainId: '0x5',
+      from: MOCK_ADDRESS_1,
+      value: '5.',
     } as unknown as SendContext.SendContextType);
 
     const { result } = renderHookWithProvider(() => useAmountValidation(), {

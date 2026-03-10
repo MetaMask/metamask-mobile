@@ -27,44 +27,53 @@ export const useAmountValidation = () => {
     return errorMessage;
   }, []);
 
-  const validateNonEvmAmount = useCallback(async (): Promise<
-    string | undefined
-  > => {
-    if (!isNonEvmSendType) {
-      return undefined;
-    }
-
-    if (rawBalanceBN.isZero()) {
-      return strings('send.insufficient_funds');
-    }
-
-    try {
-      const result = (await validateAmountWithSnap(
-        value || '0',
-      )) as SnapOnAmountInputResult;
-
-      if (result.errors?.length > 0) {
-        const errorMessage = mapSnapErrorCodeIntoTranslation(
-          result.errors[0].code,
-        );
-        return errorMessage;
+  const validateNonEvmAmount = useCallback(
+    async (amount: string): Promise<string | undefined> => {
+      if (!isNonEvmSendType) {
+        return undefined;
       }
-      return undefined;
-    } catch (error) {
-      return strings('send.invalid_value');
-    }
-  }, [value, validateAmountWithSnap, isNonEvmSendType, rawBalanceBN]);
+
+      if (rawBalanceBN.isZero()) {
+        return strings('send.insufficient_funds');
+      }
+
+      try {
+        const result = (await validateAmountWithSnap(
+          amount || '0',
+        )) as SnapOnAmountInputResult;
+
+        if (result.errors?.length > 0) {
+          const errorMessage = mapSnapErrorCodeIntoTranslation(
+            result.errors[0].code,
+          );
+          return errorMessage;
+        }
+        return undefined;
+      } catch (error) {
+        return strings('send.invalid_value');
+      }
+    },
+    [validateAmountWithSnap, isNonEvmSendType, rawBalanceBN],
+  );
 
   const validateAmountAsync = useCallback(async () => {
     if (!value) {
       return setAndReturnError(undefined);
     }
 
+    // Treat "." or trailing dot (e.g., "0.", "1.") as valid intermediate input
+    let normalizedValue = value;
+    if (value === '.') {
+      normalizedValue = '0';
+    } else if (value.endsWith('.')) {
+      normalizedValue = value.slice(0, -1);
+    }
+
     const validations = [
-      () => validatePositiveNumericString(value),
-      () => validateERC1155Balance(asset as AssetType | Nft, value),
-      () => validateTokenBalance(value, rawBalanceBN, decimals ?? 0),
-      validateNonEvmAmount,
+      () => validatePositiveNumericString(normalizedValue),
+      () => validateERC1155Balance(asset as AssetType | Nft, normalizedValue),
+      () => validateTokenBalance(normalizedValue, rawBalanceBN, decimals ?? 0),
+      () => validateNonEvmAmount(normalizedValue),
     ];
 
     for (const validation of validations) {
@@ -86,9 +95,15 @@ export const useAmountValidation = () => {
 
   // This callback is needed for non-EVM validation when nothing is typed into amount
   const validateNonEvmAmountAsync = useCallback(async () => {
-    const error = await validateNonEvmAmount();
+    let normalized = value || '0';
+    if (normalized === '.') {
+      normalized = '0';
+    } else if (normalized.endsWith('.')) {
+      normalized = normalized.slice(0, -1);
+    }
+    const error = await validateNonEvmAmount(normalized);
     return setAndReturnError(error);
-  }, [validateNonEvmAmount, setAndReturnError]);
+  }, [value, validateNonEvmAmount, setAndReturnError]);
 
   useEffect(() => {
     validateAmountAsync();
@@ -131,14 +146,7 @@ export function validateTokenBalance(
 export function validatePositiveNumericString(
   value: string,
 ): string | undefined {
-  // Treat "." or trailing dot (e.g., "0.", "1.") as valid intermediate input
-  let normalized = value;
-  if (value === '.') {
-    normalized = '0';
-  } else if (value.endsWith('.')) {
-    normalized = value.slice(0, -1);
-  }
-  if (!isValidPositiveNumericString(normalized)) {
+  if (!isValidPositiveNumericString(value)) {
     return strings('send.invalid_value');
   }
   return undefined;
