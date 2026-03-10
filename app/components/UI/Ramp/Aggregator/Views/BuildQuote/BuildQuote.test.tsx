@@ -774,6 +774,24 @@ describe('BuildQuote View', () => {
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
       ).toHaveTextContent(`${denomSymbol}2`);
     });
+
+    it('shows and hides the live input cursor based on focus', () => {
+      render(BuildQuote);
+
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).toBeNull();
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).toBeTruthy();
+
+      fireEvent.press(getByRoleButton('Done'));
+      expect(
+        screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
+      ).toBeNull();
+    });
   });
 
   describe('Amount to sell input', () => {
