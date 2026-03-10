@@ -325,9 +325,20 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     prefetchedData: prefetchedSecurityData,
   });
 
-  const isVerified =
-    securityData?.resultType === 'Verified' ||
-    securityData?.resultType === 'Benign';
+  const securityBadge = useMemo(() => {
+    switch (securityData?.resultType) {
+      case 'Verified':
+      case 'Benign':
+        return { icon: IconName.VerifiedFilled, color: IconColor.IconDefault };
+      case 'Warning':
+      case 'Spam':
+        return { icon: IconName.Warning, color: IconColor.WarningDefault };
+      case 'Malicious':
+        return { icon: IconName.Danger, color: IconColor.ErrorDefault };
+      default:
+        return null;
+    }
+  }, [securityData?.resultType]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
@@ -553,11 +564,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 >
                   {token.name || token.symbol}
                 </DSText>
-                {isVerified && (
+                {securityBadge && (
                   <Icon
-                    name={IconName.VerifiedFilled}
+                    name={securityBadge.icon}
                     size={IconSize.Md}
-                    color={IconColor.IconDefault}
+                    color={securityBadge.color}
                   />
                 )}
                 {!token.name && isStockToken(token as BridgeToken) && (
