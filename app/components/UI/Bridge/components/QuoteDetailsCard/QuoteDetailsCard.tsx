@@ -51,6 +51,7 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
+import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 
 if (
@@ -154,17 +155,29 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('bridge.rate')}
-          </Text>
-          <QuoteCountdownTimer />
-          <TouchableOpacity onPress={handleRatePress} testID="rate-info-button">
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </TouchableOpacity>
+          <KeyValueRowLabel
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            }
+            tooltip={{
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            }}
+          />
           <Box twClassName="flex-1 min-w-0">
             <Text
               variant={TextVariant.BodyMd}
@@ -345,39 +358,47 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
         <KeyValueRow
           field={{
+            label: {
+              text: toSentenceCase(strings('bridge.price_impact')),
+              variant: TextVariantLegacy.BodyMD,
+              color: TextColorLegacy.Alternative,
+            },
+            tooltip: {
+              title: strings('bridge.price_impact_info_title'),
+              content: strings('bridge.price_impact_info_description'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
+          }}
+          value={{
             label: (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {toSentenceCase(strings('bridge.price_impact'))}
-                </Text>
                 <TouchableOpacity
                   testID="price-impact-info-button"
                   onPress={handlePriceImpactPress}
                   activeOpacity={0.6}
                 >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
+                  {priceImactViewData.icon && (
+                    <Icon
+                      name={priceImactViewData.icon.name}
+                      size={IconSize.Sm}
+                      color={priceImactViewData.icon.color}
+                      twClassName="mt-[2px]"
+                    />
+                  )}
                 </TouchableOpacity>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={priceImactViewData.textColor}
+                >
+                  {formatPriceImpact(formattedQuoteData.priceImpact)}
+                </Text>
               </Box>
             ),
-          }}
-          value={{
-            icon: priceImactViewData.icon,
-            label: {
-              text: formatPriceImpact(formattedQuoteData.priceImpact),
-              variant: TextVariantLegacy.BodyMD,
-              color: priceImactViewData.textColor,
-            },
           }}
         />
 

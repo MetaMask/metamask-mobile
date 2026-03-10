@@ -42,23 +42,19 @@ export const PriceImpactModal = () => {
     await confirmBridge();
   }, [confirmBridge]);
 
-  const warningIcon = priceImpactViewData.icon;
-
   useModalCloseOnQuoteExpiry();
 
   return (
     <BottomSheet ref={sheetRef}>
       <PriceImpactHeader
-        type={type}
         onClose={handleClose}
-        warningIconName={warningIcon?.name}
-        warningIconColor={warningIcon?.color}
+        iconName={priceImpactViewData.icon?.name}
+        iconColor={priceImpactViewData.icon?.color}
+        content={priceImpactViewData.title}
       />
       <PriceImpactDescription
-        type={type}
-        formattedPriceImpact={
-          warningIcon ? formattedQuoteData?.priceImpact : undefined
-        }
+        formattedPriceImpact={formattedQuoteData?.priceImpact}
+        content={priceImpactViewData.description}
       />
       <PriceImpactFooter
         type={type}
