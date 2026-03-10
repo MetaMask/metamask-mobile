@@ -560,7 +560,7 @@ const SecurityTrustScreen: React.FC = () => {
               fees !== null &&
               fees.transfer === 0 &&
               fees.buy === 0 &&
-              (fees.sell === 0 || fees.sell === null)
+              fees.sell === 0
             }
           />
           <CheckRow
@@ -660,7 +660,7 @@ const SecurityTrustScreen: React.FC = () => {
           {fees !== null &&
             fees.transfer === 0 &&
             fees.buy === 0 &&
-            (fees.sell === 0 || fees.sell === null) && (
+            fees.sell === 0 && (
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}

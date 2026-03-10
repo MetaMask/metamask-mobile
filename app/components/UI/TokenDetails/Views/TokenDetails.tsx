@@ -230,8 +230,6 @@ const TokenDetails: React.FC<{
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
-        title={token.symbol}
-        networkName={networkName ?? ''}
         onBackPress={() => navigation.goBack()}
         onOptionsPress={
           shouldShowMoreOptionsInNavBar && !useNewLayout
@@ -239,6 +237,7 @@ const TokenDetails: React.FC<{
             : undefined
         }
       />
+
       {txLoading ? (
         renderLoader()
       ) : txIsNonEvmAsset ? (

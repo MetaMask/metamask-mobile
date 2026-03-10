@@ -58,20 +58,42 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import type { TokenDetailsRouteParams } from '../constants/constants';
+import {
+  Box,
+  Text as DSText,
+  TextVariant as DSTextVariant,
+  TextColor as DSTextColor,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
+import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
 
@@ -213,7 +235,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradingOpen, isStockToken } = useRWAToken();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
@@ -302,6 +324,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     assetId: caip19AssetId,
     prefetchedData: prefetchedSecurityData,
   });
+
+  const isVerified =
+    securityData?.resultType === 'Verified' ||
+    securityData?.resultType === 'Benign';
+
+  const networkBadgeSource = token.chainId
+    ? NetworkBadgeSource(token.chainId as Hex)
+    : undefined;
 
   const securityTimeAgo = useMemo(
     () =>
@@ -489,6 +519,73 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         renderWarning()
       ) : (
         <View>
+          {/* Token icon + name row */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="py-2 pl-4 pr-2 self-stretch gap-3"
+          >
+            <BadgeWrapper
+              badgePosition={BadgePosition.BottomRight}
+              badgeElement={
+                networkBadgeSource ? (
+                  <Badge
+                    variant={BadgeVariant.Network}
+                    imageSource={networkBadgeSource}
+                  />
+                ) : undefined
+              }
+            >
+              <AssetLogo asset={token} />
+            </BadgeWrapper>
+
+            <Box twClassName="flex-1">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                <DSText
+                  variant={DSTextVariant.HeadingMd}
+                  color={DSTextColor.TextDefault}
+                  numberOfLines={1}
+                  twClassName="shrink"
+                >
+                  {token.name || token.symbol}
+                </DSText>
+                {isVerified && (
+                  <Icon
+                    name={IconName.VerifiedFilled}
+                    size={IconSize.Md}
+                    color={IconColor.IconDefault}
+                  />
+                )}
+                {!token.name && isStockToken(token as BridgeToken) && (
+                  <StockBadge token={token as BridgeToken} />
+                )}
+              </Box>
+              {token.name ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
+                >
+                  <DSText
+                    variant={DSTextVariant.BodyMd}
+                    color={DSTextColor.TextAlternative}
+                    fontWeight={FontWeight.Medium}
+                    numberOfLines={1}
+                  >
+                    {token.ticker || token.symbol}
+                  </DSText>
+                  {isStockToken(token as BridgeToken) && (
+                    <StockBadge token={token as BridgeToken} />
+                  )}
+                </Box>
+              ) : null}
+            </Box>
+          </Box>
+
           <PriceChartProvider>
             <Price
               asset={token}
@@ -507,7 +604,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
-                iconName={IconName.Info}
+                iconName={ComponentLibraryIconName.Info}
                 label={strings('asset_overview.market_closed')}
                 onPress={handleMarketClosedButtonPress}
               />

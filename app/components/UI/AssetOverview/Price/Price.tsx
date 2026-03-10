@@ -97,6 +97,7 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
+        {/* TODO: remove this once we have have the new row confirmed from design */}
         {asset.name ? (
           stockTokenBadge ? (
             <View>
