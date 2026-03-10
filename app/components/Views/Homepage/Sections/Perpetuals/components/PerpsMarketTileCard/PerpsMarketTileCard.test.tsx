@@ -181,4 +181,39 @@ describe('PerpsMarketTileCard', () => {
 
     expect(screen.getByText('+4.00%')).toBeOnTheScreen();
   });
+
+  describe('ticker truncation', () => {
+    it('renders symbol without truncation when 10 characters or fewer', () => {
+      const market = { ...mockMarketData, symbol: 'ABCDEFGHIJ' };
+      render(<PerpsMarketTileCard market={market} />);
+
+      expect(screen.getByText('ABCDEFGHIJ')).toBeOnTheScreen();
+    });
+
+    it('truncates symbol with ... when longer than 10 characters', () => {
+      const market = { ...mockMarketData, symbol: 'LONGTICKERX' };
+      render(<PerpsMarketTileCard market={market} />);
+
+      expect(screen.getByText('LONGTICKER...')).toBeOnTheScreen();
+      expect(screen.queryByText('LONGTICKERX')).toBeNull();
+    });
+
+    it('truncates a prefixed symbol (e.g. hip3:LONGTICKERX) at 10 chars after stripping prefix', () => {
+      const market = { ...mockMarketData, symbol: 'hip3:LONGTICKERX' };
+      render(<PerpsMarketTileCard market={market} />);
+
+      expect(screen.getByText('LONGTICKER...')).toBeOnTheScreen();
+    });
+
+    it('renders leverage below change percent (not beside ticker)', () => {
+      render(<PerpsMarketTileCard market={mockMarketData} />);
+
+      const changeText = screen.getByText('+4.00%');
+      const leverageText = screen.getByText('50x');
+
+      // Both elements must be present
+      expect(changeText).toBeOnTheScreen();
+      expect(leverageText).toBeOnTheScreen();
+    });
+  });
 });

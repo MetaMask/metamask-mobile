@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { truncateText } from '../../../../../../UI/Perps/utils/textUtils';
 import PerpsLeverage from '../../../../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../../../../../../UI/Perps/components/PerpsTokenLogo';
 import SparklineChart from '../SparklineChart';
@@ -20,6 +21,7 @@ import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
 
 const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 180;
+const MAX_TICKER_LENGTH = 8;
 const SPARKLINE_HEIGHT = 80;
 const SPARKLINE_STROKE_WIDTH = 2;
 const TOKEN_LOGO_SIZE = 40;
@@ -103,16 +105,16 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
       <View style={styles.content}>
         <View style={styles.topRow}>
           <View style={styles.symbolSection}>
-            <View style={styles.symbolRow}>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {getPerpsDisplaySymbol(market.symbol)}
-              </Text>
-              <PerpsLeverage maxLeverage={market.maxLeverage} />
-            </View>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {truncateText(
+                getPerpsDisplaySymbol('SOMETHINGVERYLONG'),
+                MAX_TICKER_LENGTH,
+              )}
+            </Text>
 
             <Text
               variant={TextVariant.BodySm}
@@ -122,6 +124,8 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
             >
               {changePercent}
             </Text>
+
+            <PerpsLeverage maxLeverage={market.maxLeverage} />
           </View>
 
           <View style={styles.tokenLogoWrapper}>

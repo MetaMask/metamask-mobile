@@ -1,5 +1,13 @@
 import { LayoutChangeEvent } from 'react-native';
 
+/**
+ * Truncates a string to maxLength characters, appending '...' if truncated.
+ */
+export const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}...`;
+};
+
 // Detect if text contains non-Latin characters
 export const hasNonLatinCharacters = (text: string): boolean => {
   // Check for common non-Latin Unicode ranges

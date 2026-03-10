@@ -30,11 +30,6 @@ const styleSheet = (params: {
       flexDirection: 'column',
       flex: 1,
     },
-    symbolRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-    },
     tokenLogoWrapper: {
       position: 'relative' as const,
     },

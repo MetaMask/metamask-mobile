@@ -1,7 +1,41 @@
 import { LayoutChangeEvent } from 'react-native';
-import { hasNonLatinCharacters, createFontScaleHandler } from './textUtils';
+import {
+  hasNonLatinCharacters,
+  createFontScaleHandler,
+  truncateText,
+} from './textUtils';
 
 describe('textUtils', () => {
+  describe('truncateText', () => {
+    it('returns the original text when length equals maxLength', () => {
+      expect(truncateText('BTCUSD', 6)).toBe('BTCUSD');
+    });
+
+    it('returns the original text when length is less than maxLength', () => {
+      expect(truncateText('BTC', 10)).toBe('BTC');
+    });
+
+    it('truncates and appends ... when text exceeds maxLength', () => {
+      expect(truncateText('LONGTICKERX', 10)).toBe('LONGTICKER...');
+    });
+
+    it('truncates exactly at maxLength boundary', () => {
+      expect(truncateText('12345678901', 10)).toBe('1234567890...');
+    });
+
+    it('handles empty string', () => {
+      expect(truncateText('', 10)).toBe('');
+    });
+
+    it('handles maxLength of 0', () => {
+      expect(truncateText('BTC', 0)).toBe('...');
+    });
+
+    it('returns original when text length exactly matches maxLength', () => {
+      expect(truncateText('ABCDEFGHIJ', 10)).toBe('ABCDEFGHIJ');
+    });
+  });
+
   describe('hasNonLatinCharacters', () => {
     describe('returns false for Latin-only text', () => {
       it('returns false for English text', () => {
