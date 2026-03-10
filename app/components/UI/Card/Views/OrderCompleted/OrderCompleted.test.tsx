@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -21,13 +22,22 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
+      dispatch: mockDispatch,
     }),
+    StackActions: {
+      replace: jest.fn((routeName, params) => ({
+        type: 'REPLACE',
+        payload: { name: routeName, params },
+      })),
+    },
   };
 });
 
+let mockFromUpgrade = false;
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
-    fromUpgrade: false,
+    fromUpgrade: mockFromUpgrade,
   }),
 }));
 
@@ -46,6 +56,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.order_completed.description':
         'Set up your virtual card and add it to your digital wallet to start earning cashback.',
       'card.order_completed.set_up_card_button': 'Set up card',
+      'card.order_completed.back_to_card_button': 'Back to card',
     };
     return map[key] || key;
   },
@@ -104,6 +115,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('OrderCompleted', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFromUpgrade = false;
   });
 
   describe('Render', () => {
@@ -165,12 +177,31 @@ describe('OrderCompleted', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates to Card Home when set up card button is pressed', () => {
+    it('navigates to SpendingLimit via StackActions.replace during onboarding flow', () => {
+      mockFromUpgrade = false;
+      const { StackActions } = jest.requireMock('@react-navigation/native');
+      const { getByTestId } = render(<OrderCompleted />);
+
+      fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
+
+      expect(StackActions.replace).toHaveBeenCalledWith(
+        Routes.CARD.SPENDING_LIMIT,
+        { flow: 'onboarding' },
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'REPLACE' }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates to Card Home when fromUpgrade is true', () => {
+      mockFromUpgrade = true;
       const { getByTestId } = render(<OrderCompleted />);
 
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 });

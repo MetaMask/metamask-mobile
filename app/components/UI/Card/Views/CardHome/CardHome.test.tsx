@@ -5755,4 +5755,213 @@ describe('CardHome Component', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
+
+  describe('Enable Card - ChooseYourCard Redirect', () => {
+    it('navigates to ChooseYourCard when eligible US user presses Enable Card', async () => {
+      // Given: Verified, authenticated US user with shipping address, metal card enabled, no card
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+        isMetalCardCheckoutEnabled: true,
+      });
+
+      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        allTokens: [],
+        cardDetails: null,
+        isLoading: false,
+        error: null,
+        warning: CardStateWarning.NoCard,
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        isCardholder: false,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: {
+            id: 'user-123',
+            addressLine1: '123 Main St',
+            city: 'New York',
+            zip: '10001',
+            usState: 'NY',
+          },
+        },
+        externalWalletDetailsData: null,
+        fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
+        fetchCardDetails: mockFetchCardDetails,
+      });
+
+      // When: user presses Enable Card button
+      render();
+      const enableButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_CARD_BUTTON,
+      );
+      fireEvent.press(enableButton);
+
+      // Then: navigates to ChooseYourCard with onboarding flow
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.CARD.CHOOSE_YOUR_CARD,
+          expect.objectContaining({
+            flow: 'onboarding',
+            shippingAddress: expect.objectContaining({
+              line1: '123 Main St',
+              city: 'New York',
+              zip: '10001',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('navigates to delegation when metal card checkout is disabled', async () => {
+      // Given: Verified US user but metal card checkout is disabled
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+        isMetalCardCheckoutEnabled: false,
+      });
+
+      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        allTokens: [],
+        cardDetails: null,
+        isLoading: false,
+        error: null,
+        warning: CardStateWarning.NeedDelegation,
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        isCardholder: true,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: {
+            id: 'user-123',
+            addressLine1: '123 Main St',
+            city: 'New York',
+            zip: '10001',
+            usState: 'NY',
+          },
+        },
+        fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
+        fetchCardDetails: mockFetchCardDetails,
+      });
+
+      // When: user presses Enable Card button
+      render();
+      const enableButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_ASSETS_BUTTON,
+      );
+      fireEvent.press(enableButton);
+
+      // Then: navigates to SpendingLimit (delegation) instead of ChooseYourCard
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardSpendingLimit',
+          expect.objectContaining({
+            flow: 'manage',
+          }),
+        );
+      });
+    });
+
+    it('navigates to delegation for international user even with metal card enabled', async () => {
+      // Given: Verified international user with metal card checkout enabled
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+        isMetalCardCheckoutEnabled: true,
+      });
+
+      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        allTokens: [],
+        cardDetails: null,
+        isLoading: false,
+        error: null,
+        warning: CardStateWarning.NeedDelegation,
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        isCardholder: true,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: {
+            id: 'user-123',
+            addressLine1: '123 Main St',
+            city: 'London',
+            zip: 'SW1A 1AA',
+          },
+        },
+        fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
+        fetchCardDetails: mockFetchCardDetails,
+      });
+
+      // When: user presses Enable Card button
+      render();
+      const enableButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_ASSETS_BUTTON,
+      );
+      fireEvent.press(enableButton);
+
+      // Then: navigates to SpendingLimit (delegation), not ChooseYourCard
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardSpendingLimit',
+          expect.objectContaining({
+            flow: 'manage',
+          }),
+        );
+      });
+    });
+
+    it('navigates to delegation when US user has no shipping address', async () => {
+      // Given: Verified US user with metal card enabled but no address data
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+        isMetalCardCheckoutEnabled: true,
+      });
+
+      (useLoadCardData as jest.Mock).mockReturnValueOnce({
+        priorityToken: null,
+        allTokens: [],
+        cardDetails: null,
+        isLoading: false,
+        error: null,
+        warning: CardStateWarning.NeedDelegation,
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        isCardholder: true,
+        kycStatus: {
+          verificationState: 'VERIFIED',
+          userId: 'user-123',
+          userDetails: null,
+        },
+        fetchAllData: mockFetchAllData,
+        refetchAllData: mockRefetchAllData,
+        fetchCardDetails: mockFetchCardDetails,
+      });
+
+      // When: user presses Enable Card button
+      render();
+      const enableButton = screen.getByTestId(
+        CardHomeSelectors.ENABLE_ASSETS_BUTTON,
+      );
+      fireEvent.press(enableButton);
+
+      // Then: navigates to delegation since no shipping address is available
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'CardSpendingLimit',
+          expect.objectContaining({
+            flow: 'manage',
+          }),
+        );
+      });
+    });
+  });
 });
