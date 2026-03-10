@@ -15,21 +15,21 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
-import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { strings } from '../../../../../../../../locales/i18n';
+import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
+import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
+import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
+import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
 import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
-} from '../../../../../component-library/components/Texts/Text/Text.types';
-import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
+} from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import RewardsAnimations, {
   RewardAnimationState,
-} from '../../../Rewards/components/RewardPointsAnimation';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
-import { formatPrice } from '../../utils/format';
+} from '../../../../../Rewards/components/RewardPointsAnimation';
+import { usePredictRewards } from '../../../../hooks/usePredictRewards';
+import { formatPrice } from '../../../../utils/format';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;

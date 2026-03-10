@@ -11,20 +11,20 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useTransactionPayToken } from '../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { TokenIcon } from '../../../../Views/confirmations/components/token-icon';
-import { isHardwareAccount } from '../../../../../util/address';
-import { POLYGON_USDCE } from '../../../../Views/confirmations/constants/predict';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import { PREDICT_BALANCE_CHAIN_ID } from '../../constants/transactions';
+} from '../../../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { useTransactionPayToken } from '../../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { TokenIcon } from '../../../../../../Views/confirmations/components/token-icon';
+import { isHardwareAccount } from '../../../../../../../util/address';
+import { POLYGON_USDCE } from '../../../../../../Views/confirmations/constants/predict';
+import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
+import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 
 export function PredictPayWithRow() {
   const navigation = useNavigation();

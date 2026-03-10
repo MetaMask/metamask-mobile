@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { formatPrice } from '../utils/format';
-import { usePredictBalance } from './usePredictBalance';
-import { usePredictPaymentToken } from './usePredictPaymentToken';
-import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/useTransactionPayToken';
+import { formatPrice } from '../../../utils/format';
+import { usePredictBalance } from '../../../hooks/usePredictBalance';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { useTransactionPayToken } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayToken';
 
 export const usePredictBuyAvailableBalance = () => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();

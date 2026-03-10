@@ -13,9 +13,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { Image, TouchableOpacity } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { OrderPreview, PredictMarket, PredictOutcome } from '../../types';
-import { formatCents } from '../../utils/format';
+import { strings } from '../../../../../../../../locales/i18n';
+import { OrderPreview, PredictMarket, PredictOutcome } from '../../../../types';
+import { formatCents } from '../../../../utils/format';
 
 export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;

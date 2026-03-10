@@ -6,9 +6,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { strings } from '../../../../../../locales/i18n';
-import { formatPrice } from '../../utils/format';
-import { MINIMUM_BET } from '../../constants/transactions';
+import { strings } from '../../../../../../../../locales/i18n';
+import { formatPrice } from '../../../../utils/format';
+import { MINIMUM_BET } from '../../../../constants/transactions';
 
 interface PredictBuyMinimumErrorProps {
   isBalanceLoading: boolean;

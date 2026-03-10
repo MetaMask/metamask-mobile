@@ -1,9 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
-import { useTransactionPayTotals } from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { OrderPreview } from '../types';
-import { usePredictPaymentToken } from './usePredictPaymentToken';
-import { usePredictActiveOrder } from './usePredictActiveOrder';
+import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { OrderPreview } from '../../../types';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;

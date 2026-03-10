@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import PredictFeeSummary from './PredictFeeSummary';
-import { usePredictRewards } from '../../hooks/usePredictRewards';
+import { usePredictRewards } from '../../../../hooks/usePredictRewards';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -10,18 +10,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/usePredictRewards', () => ({
+jest.mock('../../../../hooks/usePredictRewards', () => ({
   usePredictRewards: jest.fn(),
 }));
 
-jest.mock('../../utils/format', () => ({
+jest.mock('../../../../utils/format', () => ({
   formatPrice: jest.fn(
     (value: number, options?: { maximumDecimals?: number }) =>
       `$${value.toFixed(options?.maximumDecimals ?? 2)}`,
   ),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
+jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'predict.fee_summary.total': 'Total',
@@ -38,7 +38,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock(
-  '../../../../../component-library/components-temp/KeyValueRow',
+  '../../../../../../../component-library/components-temp/KeyValueRow',
   () => {
     const ReactActual = jest.requireActual('react');
     const { Text, View } = jest.requireActual('react-native');
@@ -66,7 +66,7 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
+  '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount',
   () => {
     const ReactActual = jest.requireActual('react');
     const { Text } = jest.requireActual('react-native');
@@ -75,7 +75,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../../Rewards/components/RewardPointsAnimation', () => {
+jest.mock('../../../../../Rewards/components/RewardPointsAnimation', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   const RewardAnimationState = {

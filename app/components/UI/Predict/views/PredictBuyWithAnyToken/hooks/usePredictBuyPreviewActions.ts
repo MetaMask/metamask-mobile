@@ -4,16 +4,20 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../types/navigation';
+import { PredictNavigationParamList } from '../../../types/navigation';
 import { useCallback, useState } from 'react';
-import { usePredictNavigation } from './usePredictNavigation';
-import { useConfirmActions } from '../../../Views/confirmations/hooks/useConfirmActions';
-import { usePredictPayWithAnyToken } from './usePredictPayWithAnyToken';
-import { PlaceOrderOutcome } from './usePredictPlaceOrder';
-import { ActiveOrderState, OrderPreview, PlaceOrderParams } from '../types';
-import { strings } from '../../../../../locales/i18n';
-import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
-import { usePredictActiveOrder } from './usePredictActiveOrder';
+import { usePredictNavigation } from '../../../hooks/usePredictNavigation';
+import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
+import { usePredictPayWithAnyToken } from '../../../hooks/usePredictPayWithAnyToken';
+import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
+import {
+  ActiveOrderState,
+  OrderPreview,
+  PlaceOrderParams,
+} from '../../../types';
+import { strings } from '../../../../../../../locales/i18n';
+import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
+import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;

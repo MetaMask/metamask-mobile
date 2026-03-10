@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
-import { MINIMUM_BET } from '../constants/transactions';
-import { ActiveOrderState, OrderPreview } from '../types';
+import { MINIMUM_BET } from '../../../constants/transactions';
+import { ActiveOrderState, OrderPreview } from '../../../types';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictActiveOrder } from './usePredictActiveOrder';
+import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
   useTransactionPayTotals,
-} from '../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictPaymentToken } from './usePredictPaymentToken';
+} from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;

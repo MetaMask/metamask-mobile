@@ -9,7 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Linking } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 
 interface PredictBuyBottomContentProps {
   isInputFocused: boolean;

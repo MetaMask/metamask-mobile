@@ -12,10 +12,10 @@ import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
-import { strings } from '../../../../../../locales/i18n';
-import { formatCents } from '../../utils/format';
+} from '../../../../../../../component-library/components/Buttons/Button';
+import ButtonHero from '../../../../../../../component-library/components-temp/Buttons/ButtonHero';
+import { strings } from '../../../../../../../../locales/i18n';
+import { formatCents } from '../../../../utils/format';
 
 interface PredictBuyActionButtonProps {
   isLoading: boolean;

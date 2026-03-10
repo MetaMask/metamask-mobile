@@ -1,11 +1,11 @@
 import BigNumber from 'bignumber.js';
 import { useEffect, useMemo } from 'react';
-import { PREDICT_CURRENCY } from '../../../../Views/confirmations/constants/predict';
-import { useTransactionCustomAmount } from '../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
-import { useTransactionMetadataRequest } from '../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
-import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
-import useClearConfirmationOnBackSwipe from '../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
+import { PREDICT_CURRENCY } from '../../../../../../Views/confirmations/constants/predict';
+import { useTransactionCustomAmount } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionCustomAmount';
+import { useTransactionMetadataRequest } from '../../../../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
+import { useUpdateTokenAmount } from '../../../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
+import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
+import useClearConfirmationOnBackSwipe from '../../../../../../Views/confirmations/hooks/ui/useClearConfirmationOnBackSwipe';
 
 interface PredictPayWithAnyTokenInfoProps {
   depositAmount: number;

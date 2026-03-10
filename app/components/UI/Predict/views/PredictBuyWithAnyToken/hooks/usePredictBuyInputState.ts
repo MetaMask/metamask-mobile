@@ -1,6 +1,6 @@
 import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 
-import { usePredictActiveOrder } from './usePredictActiveOrder';
+import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
   const { activeOrder, updateActiveOrder } = usePredictActiveOrder();

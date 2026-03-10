@@ -2,7 +2,7 @@ import { ParamListBase, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useEffect } from 'react';
 import { BackHandler } from 'react-native';
-import Device from '../../../../util/device';
+import Device from '../../../../../../util/device';
 
 const usePredictBuyBackSwipe = ({ onBack }: { onBack: () => void }) => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();

@@ -9,11 +9,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { strings } from '../../../../../../locales/i18n';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
-import { formatPrice } from '../../utils/format';
-import PredictAmountDisplay from '../PredictAmountDisplay';
-import type { PredictKeypadHandles } from '../PredictKeypad';
+import { strings } from '../../../../../../../../locales/i18n';
+import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
+import { formatPrice } from '../../../../utils/format';
+import PredictAmountDisplay from '../../../../components/PredictAmountDisplay';
+import type { PredictKeypadHandles } from '../../../../components/PredictKeypad';
 
 interface PredictBuyAmountSectionProps {
   currentValueUSDString: string;
