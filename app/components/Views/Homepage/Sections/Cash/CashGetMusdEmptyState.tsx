@@ -81,13 +81,13 @@ const CashGetMusdEmptyState = () => {
         ? mainnetConversionRate / mainnetUsdConversionRate
         : 1;
     const value = Number(Number(oneUsdInUserCurrency).toFixed(2));
-    const result = getIntlNumberFormatter(I18n.locale, {
+    return getIntlNumberFormatter(I18n.locale, {
       style: 'currency',
       currency,
+      currencyDisplay: 'narrowSymbol',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(value);
-    return result.replace('US$', '$');
   }, [currentCurrency, mainnetConversionRate, mainnetUsdConversionRate]);
 
   const canGetMusd = hasConvertibleTokens || isMusdBuyableOnAnyChain;
