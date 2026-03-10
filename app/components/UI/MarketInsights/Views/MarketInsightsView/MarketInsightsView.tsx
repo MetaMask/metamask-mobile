@@ -6,7 +6,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Linking, Pressable, Animated } from 'react-native';
+import {
+  ScrollView,
+  Linking,
+  Pressable,
+  Animated,
+  useColorScheme,
+} from 'react-native';
+import Rive, { Fit, Alignment } from 'rive-react-native';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundAnimationLight = require('../../animations/market-insights-background-light.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const MarketInsightsBackgroundAnimationDark = require('../../animations/market-insights-background-dark.riv');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -64,10 +75,11 @@ import MarketInsightsFeedbackBottomSheet, {
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
+const BACKGROUND_ANIMATION_HEIGHT = 77;
 const SECTION_ANIMATION_DELAYS_MS = {
-  topArticle: 10,
-  closerLook: 80,
-  whatsBeingSaid: 160,
+  topArticle: 50,
+  closerLook: 130,
+  whatsBeingSaid: 210,
 };
 interface AnimatedSectionProps {
   children: React.ReactNode;
@@ -161,6 +173,16 @@ const MarketInsightsView: React.FC = () => {
     caip19Id,
     isMarketInsightsEnabled,
   );
+
+  const isDarkMode = useColorScheme() === 'dark';
+  const backgroundAnimation = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundAnimationDark
+        : MarketInsightsBackgroundAnimationLight,
+    [isDarkMode],
+  );
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
@@ -393,14 +415,29 @@ const MarketInsightsView: React.FC = () => {
 
   return (
     <Box
-      twClassName={`flex-1 bg-default pt-[${insets.top}px]`}
+      twClassName="flex-1 bg-default"
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
-      <MarketInsightsViewHeader onBackPress={handleBackPress} />
+      <Box
+        twClassName={`absolute top-0 left-0 right-0 h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
+      >
+        <Rive
+          source={backgroundAnimation}
+          style={tw.style('w-full h-full')}
+          fit={Fit.Cover}
+          alignment={Alignment.TopCenter}
+          autoplay
+          testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+        />
+      </Box>
+
+      <Box twClassName={`pt-[${insets.top}px]`}>
+        <MarketInsightsViewHeader onBackPress={handleBackPress} />
+      </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style(`pb-4`)}
+        contentContainerStyle={tw.style(`pt-4 pb-4`)}
         showsVerticalScrollIndicator={false}
       >
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
@@ -408,7 +445,7 @@ const MarketInsightsView: React.FC = () => {
             <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
           </Box>
 
-          <Box twClassName="px-4 pb-6">
+          <Box twClassName="px-4 pb-3">
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -481,7 +518,7 @@ const MarketInsightsView: React.FC = () => {
             >
               <Icon
                 name={IconName.ThumbUp}
-                size={IconSize.Md}
+                size={IconSize.Lg}
                 color={IconColor.IconAlternative}
               />
             </Pressable>
@@ -497,7 +534,7 @@ const MarketInsightsView: React.FC = () => {
             >
               <Icon
                 name={IconName.ThumbDown}
-                size={IconSize.Md}
+                size={IconSize.Lg}
                 color={IconColor.IconAlternative}
               />
             </Pressable>
