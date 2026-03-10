@@ -75,35 +75,43 @@ describe('AccountTrackerControllerInit', () => {
     });
   });
 
-  it('isHomepageSectionsV1Enabled returns false when feature flag is off', () => {
-    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
-      '../../../selectors/featureFlagController/homepage',
-    );
-    selectHomepageSectionsV1Enabled.mockReturnValue(false);
+  describe('isHomepageSectionsV1Enabled', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
-    accountTrackerControllerInit(getInitRequestMock());
+    it('returns false when feature flag is off', () => {
+      const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+        '../../../selectors/featureFlagController/homepage',
+      );
+      selectHomepageSectionsV1Enabled.mockReturnValue(false);
 
-    const controllerMock = jest.mocked(AccountTrackerController);
-    const { isHomepageSectionsV1Enabled } = controllerMock.mock.calls[0][0] as {
-      isHomepageSectionsV1Enabled: () => boolean;
-    };
+      accountTrackerControllerInit(getInitRequestMock());
 
-    expect(isHomepageSectionsV1Enabled()).toBe(false);
-  });
+      const controllerMock = jest.mocked(AccountTrackerController);
+      const { isHomepageSectionsV1Enabled } = controllerMock.mock
+        .calls[0][0] as {
+        isHomepageSectionsV1Enabled: () => boolean;
+      };
 
-  it('isHomepageSectionsV1Enabled returns true when feature flag is on', () => {
-    const { selectHomepageSectionsV1Enabled } = jest.requireMock(
-      '../../../selectors/featureFlagController/homepage',
-    );
-    selectHomepageSectionsV1Enabled.mockReturnValue(true);
+      expect(isHomepageSectionsV1Enabled()).toBe(false);
+    });
 
-    accountTrackerControllerInit(getInitRequestMock());
+    it('returns true when feature flag is on', () => {
+      const { selectHomepageSectionsV1Enabled } = jest.requireMock(
+        '../../../selectors/featureFlagController/homepage',
+      );
+      selectHomepageSectionsV1Enabled.mockReturnValue(true);
 
-    const controllerMock = jest.mocked(AccountTrackerController);
-    const { isHomepageSectionsV1Enabled } = controllerMock.mock.calls[0][0] as {
-      isHomepageSectionsV1Enabled: () => boolean;
-    };
+      accountTrackerControllerInit(getInitRequestMock());
 
-    expect(isHomepageSectionsV1Enabled()).toBe(true);
+      const controllerMock = jest.mocked(AccountTrackerController);
+      const { isHomepageSectionsV1Enabled } = controllerMock.mock
+        .calls[0][0] as {
+        isHomepageSectionsV1Enabled: () => boolean;
+      };
+
+      expect(isHomepageSectionsV1Enabled()).toBe(true);
+    });
   });
 });

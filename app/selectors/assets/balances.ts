@@ -52,7 +52,7 @@ import {
   selectInternalAccountsById,
   selectSelectedInternalAccountId,
 } from '../accountsController';
-import { NetworkConfig } from '@metamask/network-enablement-controller';
+import type { NetworkConfig } from '@metamask/network-enablement-controller';
 
 // Narrow controller-state shapes using existing selectors
 const selectAccountTreeStateForBalances = createSelector(
