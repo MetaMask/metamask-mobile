@@ -228,8 +228,12 @@ const PersonalDetails = () => {
       .filter(Boolean)
       .join(' ')
       .replace(/\s+/g, ' ')
+      .normalize('NFC')
       .toLowerCase();
-    const expectedFullName = veriffFullName.replace(/\s+/g, ' ').toLowerCase();
+    const expectedFullName = veriffFullName
+      .replace(/\s+/g, ' ')
+      .normalize('NFC')
+      .toLowerCase();
 
     if (currentFullName !== expectedFullName) {
       return strings(
