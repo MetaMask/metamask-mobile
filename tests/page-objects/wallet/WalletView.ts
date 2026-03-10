@@ -32,17 +32,9 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
-  /** Homepage content container (inside ScrollView); use for scroll gestures when on homepage. */
-  get homepageContainer(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.HOMEPAGE_CONTAINER);
-  }
-
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
   get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
     return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
-  }
-  get walletScrollView(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
   /**
@@ -61,18 +53,6 @@ class WalletView {
     });
     await Gestures.waitAndTap(target, {
       elemDescription: description,
-    });
-  }
-
-  private async scrollToSection(
-    target: DetoxElement,
-    description: string,
-    direction: 'up' | 'down' = 'down',
-  ): Promise<void> {
-    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-      direction,
-      scrollAmount: 200,
-      elemDescription: `Scroll to ${description}`,
     });
   }
 
@@ -543,11 +523,6 @@ class WalletView {
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );
   }
-  get predictClaimBackgroundContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictClaimConfirmationSelectorsIDs.CLAIM_BACKGROUND_CONTAINER,
-    );
-  }
   get predictScrollViewIdentifier() {
     return Matchers.getIdentifier(PredictTabViewSelectorsIDs.SCROLL_VIEW);
   }
@@ -598,31 +573,10 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
   }
 
-  async tapOnDeFiPositionsNew(): Promise<void> {
-    await Gestures.waitAndTap(this.defiPositionsNew, {
-      checkStability: true,
-      elemDescription: 'DeFi Positions New',
-    });
-  }
-
-  async tapOnNewPredictionsSection(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New Predictions Section',
-    });
-  }
-
   async tapOnNewTokensSection(): Promise<void> {
     await Gestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'New Tokens Section',
-    });
-  }
-
-  async tapOnNewNftsSection(): Promise<void> {
-    await Gestures.waitAndTap(this.nftsSectionHeader, {
-      checkStability: true,
-      elemDescription: 'New NFTs Section',
     });
   }
 
@@ -691,10 +645,6 @@ class WalletView {
     await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');
   }
 
-  async scrollToDefiSection(): Promise<void> {
-    await this.scrollToSection(this.defiPositionsNew, 'DeFi section');
-  }
-
   async scrollAndTapPerpsSection(): Promise<void> {
     await this.scrollAndTapSection(
       this.perpsSectionHeader,
@@ -710,28 +660,6 @@ class WalletView {
       'Predictions section',
       direction,
     );
-  }
-
-  async scrollToPredictionsSection(
-    direction: 'up' | 'down' = 'down',
-  ): Promise<void> {
-    await this.scrollToSection(
-      this.predictionsSectionHeader,
-      'Predictions section',
-      direction,
-    );
-  }
-
-  async scrollAndTapPredictionPosition(positionName: string): Promise<void> {
-    const target = Matchers.getElementByText(positionName);
-    await Gestures.swipe(target, 'up', {
-      percentage: 0.5,
-      speed: 'slow',
-      elemDescription: 'Wallet View Prediction Position',
-    });
-    await Gestures.waitAndTap(target, {
-      elemDescription: 'Wallet View Prediction Position',
-    });
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
@@ -1082,20 +1010,9 @@ class WalletView {
     return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
   }
 
-  get newPerpsSection(): DetoxElement {
-    return Matchers.getElementByLabel('Perpetuals');
-  }
-
   async tapOnPerpsTab(): Promise<void> {
     await Gestures.waitAndTap(this.perpsTab, {
       elemDescription: 'Perps Tab Button',
-    });
-  }
-
-  async tapOnNewPerpsSection(): Promise<void> {
-    await Gestures.waitAndTap(this.newPerpsSection, {
-      checkStability: true,
-      elemDescription: 'New Perps Section',
     });
   }
 
