@@ -66,6 +66,13 @@ jest.mock('@react-navigation/compat', () => ({
   },
 }));
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 describe('NavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
