@@ -377,119 +377,133 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           <View
                             testID="import-account-screen"
                           >
-                            <View
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "gap": 16,
-                                    "minHeight": 56,
-                                    "paddingLeft": 8,
-                                    "paddingRight": 8,
-                                  },
-                                  {
-                                    "marginTop": 0,
-                                  },
-                                  undefined,
-                                ]
+                            <RNCSafeAreaView
+                              edges={
+                                {
+                                  "bottom": "off",
+                                  "left": "off",
+                                  "right": "off",
+                                  "top": "additive",
+                                }
                               }
-                              testID="header"
+                              style={
+                                {
+                                  "backgroundColor": "#ffffff",
+                                }
+                              }
                             >
-                              <View>
-                                <View
-                                  onLayout={[Function]}
-                                >
-                                  <View
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": false,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "transparent",
-                                          "borderRadius": 8,
-                                          "height": 32,
-                                          "justifyContent": "center",
-                                          "opacity": 1,
-                                          "width": 32,
-                                        },
-                                        undefined,
-                                        {
-                                          "transform": [
-                                            {
-                                              "scale": 1,
-                                            },
-                                          ],
-                                        },
-                                      ]
-                                    }
-                                    testID="close-button-on-account-screen"
-                                  >
-                                    <SvgMock
-                                      fill="currentColor"
-                                      name="ArrowLeft"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#131416",
-                                            "height": 24,
-                                            "width": 24,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    />
-                                  </View>
-                                </View>
-                              </View>
                               <View
                                 style={
                                   [
                                     {
                                       "alignItems": "center",
-                                      "display": "flex",
-                                      "flexBasis": "0%",
-                                      "flexGrow": 1,
-                                      "flexShrink": 1,
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                      "minHeight": 56,
+                                      "paddingLeft": 8,
+                                      "paddingRight": 8,
                                     },
+                                    false,
                                     undefined,
                                   ]
                                 }
-                              />
-                              <View>
+                                testID="header"
+                              >
+                                <View>
+                                  <View
+                                    onLayout={[Function]}
+                                  >
+                                    <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "transparent",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          },
+                                          undefined,
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
+                                      }
+                                      testID="close-button-on-account-screen"
+                                    >
+                                      <SvgMock
+                                        fill="currentColor"
+                                        name="ArrowLeft"
+                                        style={
+                                          [
+                                            {
+                                              "color": "#131416",
+                                              "height": 24,
+                                              "width": 24,
+                                            },
+                                            undefined,
+                                          ]
+                                        }
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
                                 <View
-                                  onLayout={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "display": "flex",
+                                        "flexBasis": "0%",
+                                        "flexGrow": 1,
+                                        "flexShrink": 1,
+                                      },
+                                      undefined,
+                                    ]
+                                  }
                                 />
+                                <View>
+                                  <View
+                                    onLayout={[Function]}
+                                  />
+                                </View>
                               </View>
-                            </View>
+                            </RNCSafeAreaView>
                             <View
                               style={
                                 [
