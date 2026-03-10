@@ -1,4 +1,8 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Logger from '../../../../util/Logger';
+import { PREDICT_CONSTANTS } from '../constants/errors';
+import { ensureError } from '../utils/predictErrorHandler';
 import { predictQueries } from '../queries';
 import { PriceQuery, Side } from '../types';
 
@@ -24,11 +28,32 @@ export interface UsePredictPricesOptions {
 export function usePredictPrices(options: UsePredictPricesOptions) {
   const { queries = [], enabled = true, pollingInterval } = options;
 
-  return useQuery({
+  const query = useQuery({
     ...predictQueries.prices.options({ queries }),
     enabled: enabled && queries.length > 0,
     refetchInterval: pollingInterval ?? false,
   });
+
+  useEffect(() => {
+    if (!query.error) return;
+    Logger.error(ensureError(query.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictPrices',
+      },
+      context: {
+        name: 'usePredictPrices',
+        data: {
+          method: 'loadPrices',
+          action: 'prices_load',
+          operation: 'data_fetching',
+          queriesCount: queries.length,
+        },
+      },
+    });
+  }, [query.error, queries.length]);
+
+  return query;
 }
 
 export { Side };
