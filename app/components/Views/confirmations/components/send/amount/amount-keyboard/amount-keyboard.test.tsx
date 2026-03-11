@@ -163,7 +163,7 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     expect(
       getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual(lightTheme.colors.border.default);
+    ).toEqual(lightTheme.colors.text.muted);
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
@@ -228,7 +228,7 @@ describe('getBackgroundColor', () => {
   it('return correct color depending on amount value and error', () => {
     expect(getBackgroundColor(mockTheme, false, false)).toEqual(brandColor.grey900);
     expect(getBackgroundColor(mockTheme, true, false)).toEqual(lightTheme.colors.error.default);
-    expect(getBackgroundColor(mockTheme, false, true)).toEqual(lightTheme.colors.border.default);
+    expect(getBackgroundColor(mockTheme, false, true)).toEqual(lightTheme.colors.text.muted);
     expect(getBackgroundColor(mockTheme, true, true)).toEqual(lightTheme.colors.error.default);
   });
 });
