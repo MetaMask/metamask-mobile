@@ -7,6 +7,7 @@ import {
   MockEventsObject,
 } from '../../framework';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
+import { safeGetBodyText } from '../MockServerE2E.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
 // Change this to DEBUG as needed
@@ -252,30 +253,27 @@ export const setupMockPostRequest = async (
       }
 
       // If URL matches, also check if request body matches (ignoring specified fields)
-      try {
-        const requestBodyText = await request.body.getText();
-        const result = processPostRequestBody(requestBodyText, requestBody, {
-          ignoreFields,
-        });
+      // Use safeGetBodyText to handle abort errors gracefully
+      const requestBodyText = await safeGetBodyText(request);
 
-        if (!result.matches) {
-          logger.warn('❌ Request body validation failed for', decodedUrl);
-          logger.debug('Expected:', requestBody);
-          logger.debug('Received:', result.requestBodyJson);
-          logger.debug('Ignored fields:', ignoreFields);
-          logger.debug('Error:', result.error);
-        }
-
-        return result.matches;
-      } catch (error) {
-        // If we can't read the body, log the error and don't match
-        // This prevents incorrect mock selection when body processing fails
-        logger.error(
-          'Failed to read request body during mock matching:',
-          error,
-        );
+      // If body read failed/aborted, don't match this mock
+      if (requestBodyText === undefined) {
         return false;
       }
+
+      const result = processPostRequestBody(requestBodyText, requestBody, {
+        ignoreFields,
+      });
+
+      if (!result.matches) {
+        logger.warn('❌ Request body validation failed for', decodedUrl);
+        logger.debug('Expected:', requestBody);
+        logger.debug('Received:', result.requestBodyJson);
+        logger.debug('Ignored fields:', ignoreFields);
+        logger.debug('Error:', result.error);
+      }
+
+      return result.matches;
     })
     .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
     .thenCallback(async (request) => {
@@ -324,17 +322,35 @@ export const interceptProxyUrl = async (
         }
       }
 
-      const response = await fetch(transformedUrl, {
-        method: request.method,
-        headers,
-        body:
-          request.method === 'POST' ? await request.body.getText() : undefined,
-      });
+      // Use safeGetBodyText to handle abort errors gracefully
+      let bodyText: string | undefined;
+      if (request.method === 'POST') {
+        bodyText = await safeGetBodyText(request);
+        // If body read was aborted, return 499 (client closed request)
+        if (bodyText === undefined) {
+          return { statusCode: 499, body: '' };
+        }
+      }
 
-      return {
-        statusCode: response.status,
-        body: await response.text(),
-      };
+      try {
+        const response = await fetch(transformedUrl, {
+          method: request.method,
+          headers,
+          body: bodyText,
+        });
+
+        return {
+          statusCode: response.status,
+          body: await response.text(),
+        };
+      } catch (error) {
+        // Handle fetch errors (e.g., network issues)
+        logger.error('Error forwarding request:', error);
+        return {
+          statusCode: 502,
+          body: JSON.stringify({ error: 'Failed to forward request' }),
+        };
+      }
     });
 };
 
