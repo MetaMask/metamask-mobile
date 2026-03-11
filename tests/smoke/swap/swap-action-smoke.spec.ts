@@ -53,13 +53,11 @@ describe.skip(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
           .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
