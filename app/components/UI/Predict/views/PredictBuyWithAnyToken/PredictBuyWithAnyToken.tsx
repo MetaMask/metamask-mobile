@@ -50,6 +50,8 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { usePredictOrderTracking } from './hooks/usePredictOrderTracking';
 
+const SHOW_TOKEN_SELECTION = false;
+
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
@@ -258,7 +260,9 @@ const PredictBuyWithAnyToken = () => {
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
           />
-          <PredictPayWithRow disabled={isPlacingOrder} />
+          {SHOW_TOKEN_SELECTION && (
+            <PredictPayWithRow disabled={isPlacingOrder} />
+          )}
         </Box>
       </ScrollView>
       <PredictBuyMinimumError
