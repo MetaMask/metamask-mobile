@@ -3127,6 +3127,8 @@ describe('Rewards selectors', () => {
     termsAndConditions: null,
     excludedRegions: [],
     statusLabel: 'Active',
+    participantCount: 0,
+    details: null,
   };
 
   describe('selectCampaigns', () => {

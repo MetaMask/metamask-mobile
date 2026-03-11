@@ -190,7 +190,7 @@ export type CampaignsState = {
         }[];
         notes?: Json | null;
       };
-    };
+    } | null;
   }[];
   lastFetched: number;
 };
