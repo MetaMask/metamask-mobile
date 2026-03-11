@@ -37,9 +37,9 @@ const logger = createLogger({
  * @param request - The mockttp request object
  * @returns The body text or undefined if reading failed or was aborted
  */
-export const safeGetBodyText = async (
-  request: { body: { getText: () => Promise<string | undefined> } },
-): Promise<string | undefined> => {
+export const safeGetBodyText = async (request: {
+  body: { getText: () => Promise<string | undefined> };
+}): Promise<string | undefined> => {
   try {
     return await request.body.getText();
   } catch (error) {
