@@ -13,7 +13,7 @@ import {
   Animated,
   useColorScheme,
 } from 'react-native';
-import Rive, { Fit, Alignment } from 'rive-react-native';
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const MarketInsightsBackgroundAnimationLight = require('../../animations/market-insights-background-light.riv');
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -187,6 +187,8 @@ const MarketInsightsView: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const hasTrackedViewRef = useRef(false);
+  const backgroundAnimationRef = useRef<RiveRef>(null);
+  const transitionEndedRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
   const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(false);
@@ -332,6 +334,23 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = false;
   }, [caip19Id]);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('transitionEnd' as never, () => {
+      transitionEndedRef.current = true;
+      backgroundAnimationRef.current?.play();
+    });
+    return unsubscribe;
+  }, [navigation]);
+
+  // Fallback: if the report loads after the transition has already ended,
+  // the transitionEnd callback would have fired when the Rive ref was null.
+  // Trigger play here once the report is available and the transition is done.
+  useEffect(() => {
+    if (report && transitionEndedRef.current) {
+      backgroundAnimationRef.current?.play();
+    }
+  }, [report]);
+
   const handleThumbsUpPress = useCallback(() => {
     trackMarketInsightsInteraction('thumbs_up');
     showFeedbackSubmittedToast();
@@ -422,11 +441,12 @@ const MarketInsightsView: React.FC = () => {
         twClassName={`absolute top-0 left-0 right-0 h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
       >
         <Rive
+          ref={backgroundAnimationRef}
           source={backgroundAnimation}
-          style={tw.style('w-full h-full')}
+          style={tw.style('w-full h-full', { transform: [{ scale: 1.15 }] })}
           fit={Fit.Cover}
           alignment={Alignment.TopCenter}
-          autoplay
+          autoplay={false}
           testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
         />
       </Box>
