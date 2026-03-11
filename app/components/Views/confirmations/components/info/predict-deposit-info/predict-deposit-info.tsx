@@ -1,31 +1,13 @@
-import React, { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-import getHeaderCompactStandardNavbarOptions from '../../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import React from 'react';
+import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { strings } from '../../../../../../../locales/i18n';
 import { POLYGON_USDCE, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
-import { useFullScreenConfirmation } from '../../../hooks/ui/useFullScreenConfirmation';
 
 export function PredictDepositInfo() {
-  const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
-  const { isFullScreenConfirmation } = useFullScreenConfirmation();
-
-  useEffect(() => {
-    if (isFullScreenConfirmation) {
-      navigation.setOptions(
-        getHeaderCompactStandardNavbarOptions({
-          title: strings('confirm.title.predict_deposit'),
-          onBack: onReject,
-          includesTopInset: true,
-          twClassName: 'bg-alternative',
-        }),
-      );
-    }
-  }, [isFullScreenConfirmation, navigation, onReject]);
+  useNavbar(strings('confirm.title.predict_deposit'));
 
   useAddToken({
     chainId: CHAIN_IDS.POLYGON,
