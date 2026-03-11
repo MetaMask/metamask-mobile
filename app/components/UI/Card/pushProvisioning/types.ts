@@ -161,6 +161,7 @@ export interface CardDetails {
 export interface UsePushProvisioningOptions {
   cardDetails?: CardDetails | null;
   userAddress?: UserAddress;
+  accountCreatedAt?: string | null;
   onSuccess?: (result: ProvisioningResult) => void;
   onError?: (error: ProvisioningError) => void;
   onCancel?: () => void;

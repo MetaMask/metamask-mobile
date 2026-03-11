@@ -106,6 +106,7 @@ describe('usePushProvisioning', () => {
 
   const defaultOptions = {
     cardDetails: mockCardDetails,
+    accountCreatedAt: '2026-02-01T00:00:00.000Z',
     onSuccess: jest.fn(),
     onError: jest.fn(),
     onCancel: jest.fn(),
@@ -275,6 +276,38 @@ describe('usePushProvisioning', () => {
 
       const { result, unmount } = renderHook(() =>
         usePushProvisioning(defaultOptions),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
+    it('returns false when account was created before Jan 2026', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          accountCreatedAt: '2025-12-15T00:00:00.000Z',
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.canAddToWallet).toBe(false);
+      unmount();
+    });
+
+    it('returns false when accountCreatedAt is null', async () => {
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({
+          ...defaultOptions,
+          accountCreatedAt: null,
+        }),
       );
 
       await waitFor(() => {

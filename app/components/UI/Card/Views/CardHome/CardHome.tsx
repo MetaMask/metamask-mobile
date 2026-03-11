@@ -284,6 +284,7 @@ const CardHome = () => {
   } = usePushProvisioning({
     cardDetails: cardDetailsForProvisioning,
     userAddress: userAddressForProvisioning,
+    accountCreatedAt: kycStatus?.userDetails?.createdAt,
     onSuccess: () => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
