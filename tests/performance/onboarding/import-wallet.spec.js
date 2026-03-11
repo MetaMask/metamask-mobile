@@ -115,7 +115,7 @@ test.describe(PerformanceOnboarding, () => {
         async () => await checkPredictionsModalIsVisible(device),
       );
 
-      await dissmissPredictionsModal(device);
+      await WalletMainScreen.tapOnTokensSection();
       await timer7.measure(async () => {
         await WalletMainScreen.isTokenVisible('SOL');
         await WalletMainScreen.isTokenVisible('BTC');
