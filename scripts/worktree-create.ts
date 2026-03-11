@@ -174,7 +174,7 @@ export async function main(): Promise<void> {
     throw new Error(`${missing} is required when using CLI arguments. Provide both --path and --branch, or run without arguments for interactive mode.`);
   }
 
-  if (hasPath && hasBranch) {
+  if (args.path !== null && args.branch !== null) {
     pathArg = args.path;
     branchArg = args.branch;
     fromRef = args.from;
