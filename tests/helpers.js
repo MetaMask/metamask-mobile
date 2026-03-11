@@ -461,11 +461,62 @@ export default class TestHelpers {
   }
 
   static async removeAndroidReversePort(port) {
-    const command = `adb ${this.getAdbDeviceFlag()} reverse --remove tcp:${port}`;
-    await execAsync(command);
-    logger.warn(
-      `[launch recovery] Removed conflicting adb reverse tcp:${port}. Retrying app launch once.`,
-    );
+    try {
+      const command = `adb ${this.getAdbDeviceFlag()} reverse --remove tcp:${port}`;
+      await execAsync(command);
+      logger.warn(
+        `[launch recovery] Removed conflicting adb reverse tcp:${port}. Retrying app launch once.`,
+      );
+    } catch (removeError) {
+      const msg =
+        removeError instanceof Error
+          ? removeError.message
+          : String(removeError);
+      if (msg.includes('not found')) {
+        logger.warn(
+          `[launch recovery] Port tcp:${port} not in adb reverse table (likely TIME_WAIT or OS-level bind). Will still retry.`,
+        );
+      } else {
+        logger.error(
+          `[launch recovery] Unexpected error removing tcp:${port}: ${msg}`,
+        );
+      }
+    }
+  }
+
+  static async diagnoseEmulatorPort(port) {
+    const deviceFlag = this.getAdbDeviceFlag();
+    try {
+      // Dump socket state inside the emulator to identify what holds the port
+      const hexPort = parseInt(port, 10)
+        .toString(16)
+        .toUpperCase()
+        .padStart(4, '0');
+      const { stdout: tcpState } = await execAsync(
+        `adb ${deviceFlag} shell cat /proc/net/tcp6 2>/dev/null || adb ${deviceFlag} shell cat /proc/net/tcp 2>/dev/null`,
+      );
+      // Filter for the specific port (column 2 = local_address, port is after the colon in hex)
+      const relevantLines = tcpState
+        .split('\n')
+        .filter((line) => line.includes(`:${hexPort}`));
+      if (relevantLines.length > 0) {
+        logger.warn(
+          `[launch diagnostics] Emulator socket state for port ${port} (hex ${hexPort}):\n${relevantLines.join('\n')}`,
+        );
+        // TCP states: 01=ESTABLISHED, 02=SYN_SENT, 06=TIME_WAIT, 0A=LISTEN
+        logger.warn(
+          `[launch diagnostics] TCP state reference: 01=ESTABLISHED, 06=TIME_WAIT, 0A=LISTEN`,
+        );
+      } else {
+        logger.warn(
+          `[launch diagnostics] No socket entries found for port ${port} inside emulator`,
+        );
+      }
+    } catch (diagError) {
+      logger.debug(
+        `[launch diagnostics] Could not read emulator socket state: ${diagError.message}`,
+      );
+    }
   }
 
   static async launchAppWithRecovery(launchOptions) {
@@ -489,6 +540,7 @@ export default class TestHelpers {
       await this.logAndroidReversePorts(
         'launch failure before reverse cleanup',
       );
+      await this.diagnoseEmulatorPort(conflictingPort);
       await this.removeAndroidReversePort(conflictingPort);
       await this.logAndroidReversePorts('after reverse cleanup before retry');
 
