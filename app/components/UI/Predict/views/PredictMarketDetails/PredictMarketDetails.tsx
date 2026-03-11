@@ -441,7 +441,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
 
         {/* Status and chart - scrollable */}
-        <Box twClassName="gap-4">
+        <Box twClassName="gap-4 px-4">
           <PredictMarketDetailsStatus
             winningOutcomeToken={winningOutcomeToken}
             multipleOpenOutcomesPartiallyResolved={
