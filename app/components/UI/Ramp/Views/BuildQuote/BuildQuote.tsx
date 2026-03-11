@@ -6,11 +6,22 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import {
+  buildQuoteWithRedirectUrl,
+  getAggregatorRedirectUrl,
+  getCheckoutContext,
+} from '../../utils/buildQuoteWithRedirectUrl';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+import { openExternalBrowserAndNavigate } from '../../utils/openExternalBrowserCheckout';
+import {
+  createBuildQuoteRoute,
+  createRampsOrderDetailsRoute,
+} from '../../utils/rampsNavigation';
+import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -32,7 +43,9 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { normalizeProviderCode } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
@@ -42,11 +55,11 @@ import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentS
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   isNativeProvider,
+  isCustomAction,
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import Logger from '../../../../../util/Logger';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -64,7 +77,6 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
-
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
@@ -109,44 +121,40 @@ function BuildQuote() {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
-  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
-    useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
-  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
+  const [rampsError, setRampsError] = useState<string | null>(null);
   const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
-      setNativeFlowError(params.nativeFlowError);
+      setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
   }, [params?.nativeFlowError, navigation]);
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsOnBuildQuoteScreen(true);
-      return () => {
-        setIsOnBuildQuoteScreen(false);
-      };
-    }, []),
-  );
 
   const {
     userRegion,
     selectedProvider,
     selectedToken,
-    getWidgetUrl,
+    getBuyWidgetData,
+    addPrecreatedOrder,
     paymentMethodsLoading,
     selectedPaymentMethod,
   } = useRampsController();
 
+  const { addOrder, getOrderFromCallback } = useRampsOrders();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
+
+  /*
+   * Resets the native flow error if the selected provider changes.
+   */
   useEffect(() => {
     if (prevSelectedProviderRef.current !== selectedProvider) {
       prevSelectedProviderRef.current = selectedProvider;
-      setNativeFlowError(null);
+      setRampsError(null);
     }
   }, [selectedProvider]);
 
@@ -161,8 +169,10 @@ function BuildQuote() {
     [selectedProvider, params?.assetId],
   );
 
+  /*
+   * Shows the "token not available modal" if the token is not available for the selected provider.
+   */
   const hasShownTokenUnavailableRef = useRef(false);
-
   useEffect(() => {
     if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
       hasShownTokenUnavailableRef.current = true;
@@ -187,6 +197,10 @@ function BuildQuote() {
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
+  /*
+   * Tracks RAMPS_SCREEN_VIEWED
+   * @returns {void}
+   */
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
@@ -204,6 +218,9 @@ function BuildQuote() {
     }
   }, [rampRoutingDecision, trackEvent, createEventBuilder]);
 
+  /*
+   * Sets the default amount for the user's region.
+   */
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
       const regionDefault = userRegion.country.defaultAmount;
@@ -222,7 +239,6 @@ function BuildQuote() {
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
 
   const quoteFetchEnabled = !!(
-    isOnBuildQuoteScreen &&
     walletAddress &&
     selectedPaymentMethod &&
     selectedProvider &&
@@ -230,6 +246,10 @@ function BuildQuote() {
     debouncedPollingAmount > 0
   );
 
+  /*
+   * Creates the quote fetch parameters for the useRampsQuotes hook,
+   * Fetches only 1 quote for the selected provider and payment method.
+   */
   const quoteFetchParams = useMemo(
     () =>
       selectedToken?.assetId &&
@@ -261,6 +281,9 @@ function BuildQuote() {
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
+  /*
+   * Tracks RAMPS_QUOTE_ERROR
+   */
   const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
     if (
@@ -304,21 +327,8 @@ function BuildQuote() {
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;
-    const { success } = quotesResponse;
-    const providerMatches = (q: (typeof success)[0]) =>
-      q.provider === selectedProvider.id;
-    if (success.length === 1) {
-      return providerMatches(success[0]) ? success[0] : null;
-    }
-    if (success.length > 1) {
-      const match = success.find(
-        (q) =>
-          providerMatches(q) &&
-          q.quote?.paymentMethod === selectedPaymentMethod.id,
-      );
-      return match ?? null;
-    }
-    return null;
+    const [quote] = quotesResponse.success;
+    return quote?.provider === selectedProvider.id ? quote : null;
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -350,38 +360,40 @@ function BuildQuote() {
     navigation.goBack();
   }, [trackEvent, createEventBuilder, navigation]);
 
-  const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
-      if (pressedKey === Keys.Back) {
-        if (!keyboardIsDirty) {
-          setAmount('0');
-          setAmountAsNumber(0);
-        } else {
-          setAmount(value || '0');
-          setAmountAsNumber(valueAsNumber || 0);
-        }
-        setKeyboardIsDirty(true);
-        setUserHasEnteredAmount(true);
-        setNativeFlowError(null);
-        return;
+  const updateAmount = useCallback(
+    (valueOrNumber: string | number, valueAsNumber?: number) => {
+      if (typeof valueOrNumber === 'string') {
+        setAmount(valueOrNumber === '' ? '0' : valueOrNumber);
+        setAmountAsNumber(
+          valueAsNumber != null
+            ? valueAsNumber
+            : parseFloat(valueOrNumber) || 0,
+        );
+      } else {
+        setAmount(String(valueOrNumber));
+        setAmountAsNumber(valueOrNumber);
       }
-
-      setAmount(value || '0');
-      setAmountAsNumber(valueAsNumber || 0);
       setKeyboardIsDirty(true);
       setUserHasEnteredAmount(true);
-      setNativeFlowError(null);
+      setRampsError(null);
     },
-    [keyboardIsDirty],
+    [],
+  );
+
+  const handleKeypadChange = useCallback(
+    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+      if (pressedKey === Keys.Back && !keyboardIsDirty) {
+        updateAmount(0);
+        return;
+      }
+      updateAmount(value, valueAsNumber ?? 0);
+    },
+    [keyboardIsDirty, updateAmount],
   );
 
   const handleQuickAmountPress = useCallback(
     (quickAmount: number) => {
-      setAmount(String(quickAmount));
-      setAmountAsNumber(quickAmount);
-      setKeyboardIsDirty(true);
-      setUserHasEnteredAmount(true);
-      setNativeFlowError(null);
+      updateAmount(quickAmount);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_QUICK_AMOUNT_CLICKED)
           .addProperties({
@@ -393,7 +405,40 @@ function BuildQuote() {
           .build(),
       );
     },
-    [currency, trackEvent, createEventBuilder],
+    [currency, trackEvent, createEventBuilder, updateAmount],
+  );
+
+  const navigateAfterExternalBrowser = useCallback(
+    (
+      opts:
+        | { type: 'buildQuote' }
+        | {
+            type: 'order';
+            orderCode: string;
+            providerCode: string;
+            walletAddress?: string;
+          },
+    ) => {
+      if (opts.type === 'order') {
+        navigation.reset({
+          index: 0,
+          routes: [
+            createRampsOrderDetailsRoute({
+              orderId: opts.orderCode,
+              showCloseButton: true,
+              providerCode: opts.providerCode,
+              walletAddress: opts.walletAddress,
+            }),
+          ],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [createBuildQuoteRoute()],
+        });
+      }
+    },
+    [navigation],
   );
 
   const handlePaymentPillPress = useCallback(() => {
@@ -421,34 +466,230 @@ function BuildQuote() {
     createEventBuilder,
   ]);
 
-  const handleContinuePress = useCallback(async () => {
-    if (!selectedQuote || !selectedProvider) return;
-    setNativeFlowError(null);
+  /**
+   * Handles the continue button press for a native provider such as Transak.
+   * This function checks if the user has an authenticated account and routes the use appropriately.
+   * @returns {Promise<void>}
+   */
+  const handleNativeProviderContinue = useCallback(async () => {
+    setIsContinueLoading(true);
+    try {
+      const hasToken = await transakCheckExistingToken();
 
-    const quoteAmount =
-      selectedQuote.quote?.amountIn ??
-      (selectedQuote as { amountIn?: number }).amountIn;
-    const quotePaymentMethod =
-      selectedQuote.quote?.paymentMethod ??
-      (selectedQuote as { paymentMethod?: string }).paymentMethod;
-
-    // Validate provider matches (prevents proceeding with wrong-provider quote)
-    if (selectedQuote.provider !== selectedProvider.id) return;
-
-    // Validate amount matches
-    if (quoteAmount !== amountAsNumber) {
-      return;
+      if (hasToken) {
+        const quote = await transakGetBuyQuote(
+          currency,
+          selectedToken?.assetId || '',
+          selectedToken?.chainId || '',
+          selectedPaymentMethod?.id || '',
+          String(amountAsNumber),
+        );
+        if (!quote) {
+          throw new Error(strings('deposit.buildQuote.unexpectedError'));
+        }
+        await transakRouteAfterAuth(quote);
+      } else {
+        navigation.navigate(
+          ...createV2VerifyIdentityNavDetails({
+            amount: String(amountAsNumber),
+            currency,
+            assetId: selectedToken?.assetId,
+          }),
+        );
+      }
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          { message: 'Failed to route native provider flow' },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
     }
+  }, [
+    currency,
+    selectedToken?.assetId,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    amountAsNumber,
+    transakCheckExistingToken,
+    transakGetBuyQuote,
+    transakRouteAfterAuth,
+    navigation,
+  ]);
 
-    // Validate payment method context matches
-    if (quotePaymentMethod != null) {
-      if (
-        !selectedPaymentMethod ||
-        selectedPaymentMethod.id !== quotePaymentMethod
-      ) {
+  /**
+   * Handles the continue button press for a "custom action" provider such as PayPal.
+   * This function fetches the widget URL from the provider and routes the user to the widget.
+   * @returns {Promise<void>}
+   */
+  const handleCustomActionContinue = useCallback(async () => {
+    if (!selectedQuote) return;
+    setIsContinueLoading(true);
+    try {
+      const providerCode = normalizeProviderCode(selectedQuote.provider);
+      const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+      const quoteForWidget = buildQuoteWithRedirectUrl(
+        selectedQuote,
+        deeplinkRedirectUrl,
+      );
+      const buyWidget = await getBuyWidgetData(quoteForWidget);
+
+      if (!buyWidget?.url) {
+        setRampsError(
+          reportRampsError(
+            new Error('No widget URL available for custom action provider'),
+            { provider: selectedQuote.provider },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
         return;
       }
+
+      const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
+        selectedToken,
+        walletAddress,
+        buyWidget.orderId,
+      );
+
+      await openExternalBrowserAndNavigate({
+        buyWidgetUrl: buyWidget.url,
+        deeplinkRedirectUrl,
+        effectiveOrderId,
+        effectiveWallet,
+        providerCode,
+        network,
+        addPrecreatedOrder,
+        getOrderFromCallback,
+        addOrder,
+        navigateAfterBrowser: navigateAfterExternalBrowser,
+      });
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          {
+            provider: selectedQuote.provider,
+            message: 'Failed to fetch widget URL for custom action',
+          },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
     }
+  }, [
+    selectedQuote,
+    selectedToken,
+    walletAddress,
+    getBuyWidgetData,
+    addPrecreatedOrder,
+    getOrderFromCallback,
+    addOrder,
+    navigateAfterExternalBrowser,
+  ]);
+
+  /**
+   * Handles the continue button press for an aggregator provider such as Moonpay, Mercuryo, etc.
+   * This function simply fetches the widget URL from the provider and routes the user to the widget.
+   * @returns {Promise<void>}
+   */
+  const handleAggregatorContinue = useCallback(async () => {
+    if (!selectedQuote) return;
+    setIsContinueLoading(true);
+    try {
+      const providerCode = normalizeProviderCode(selectedQuote.provider);
+      const redirectUrl = getAggregatorRedirectUrl(selectedQuote, providerCode);
+      const quoteForWidget = buildQuoteWithRedirectUrl(
+        selectedQuote,
+        redirectUrl,
+      );
+
+      const buyWidget = await getBuyWidgetData(quoteForWidget);
+
+      if (!buyWidget?.url) {
+        setRampsError(
+          reportRampsError(
+            new Error('No widget URL available for aggregator provider'),
+            { provider: selectedQuote.provider },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+        return;
+      }
+
+      const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
+        selectedToken,
+        walletAddress,
+        buyWidget.orderId,
+      );
+      const useExternalBrowser = buyWidget.browser === 'IN_APP_OS_BROWSER';
+
+      if (useExternalBrowser) {
+        const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+        await openExternalBrowserAndNavigate({
+          buyWidgetUrl: buyWidget.url,
+          deeplinkRedirectUrl,
+          effectiveOrderId,
+          effectiveWallet,
+          providerCode,
+          network,
+          addPrecreatedOrder,
+          getOrderFromCallback,
+          addOrder,
+          navigateAfterBrowser: navigateAfterExternalBrowser,
+        });
+        return;
+      }
+
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: buyWidget.url,
+          providerName:
+            selectedProvider?.name || getQuoteProviderName(selectedQuote),
+          userAgent: getQuoteBuyUserAgent(selectedQuote),
+          providerCode,
+          providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+          walletAddress: effectiveWallet || undefined,
+          network,
+          currency,
+          cryptocurrency: selectedToken?.symbol || '',
+          orderId: buyWidget.orderId?.trim() || undefined,
+        }),
+      );
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          {
+            provider: selectedQuote.provider,
+            message: 'Failed to fetch widget URL',
+          },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
+    }
+  }, [
+    selectedQuote,
+    selectedProvider,
+    selectedToken,
+    walletAddress,
+    currency,
+    navigation,
+    getBuyWidgetData,
+    addPrecreatedOrder,
+    getOrderFromCallback,
+    addOrder,
+    navigateAfterExternalBrowser,
+  ]);
+
+  const handleContinuePress = useCallback(async () => {
+    if (!selectedQuote || !selectedProvider) return;
+    setRampsError(null);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
@@ -469,155 +710,32 @@ function BuildQuote() {
     );
 
     if (isNativeProvider(selectedQuote)) {
-      setIsContinueLoading(true);
-      try {
-        const hasToken = await transakCheckExistingToken();
-
-        if (hasToken) {
-          const quote = await transakGetBuyQuote(
-            currency,
-            selectedToken?.assetId || '',
-            selectedToken?.chainId || '',
-            selectedPaymentMethod?.id || '',
-            String(amountAsNumber),
-          );
-          if (!quote) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-          await transakRouteAfterAuth(quote);
-        } else {
-          navigation.navigate(
-            ...createV2VerifyIdentityNavDetails({
-              amount: String(amountAsNumber),
-              currency,
-              assetId: selectedToken?.assetId,
-            }),
-          );
-        }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'Failed to route native provider flow',
-        });
-        setNativeFlowError(
-          parseUserFacingError(
-            error,
-            strings('deposit.buildQuote.unexpectedError'),
-          ),
-        );
-      } finally {
-        setIsContinueLoading(false);
-      }
-      return;
-    }
-
-    setIsContinueLoading(true);
-    try {
-      const fetchedWidgetUrl = await getWidgetUrl(selectedQuote);
-
-      if (fetchedWidgetUrl) {
-        const providerCode = selectedQuote.provider.startsWith('/providers/')
-          ? selectedQuote.provider.split('/')[2] || selectedQuote.provider
-          : selectedQuote.provider;
-        const chainId = selectedToken?.chainId as CaipChainId | undefined;
-        const network = chainId?.includes(':')
-          ? chainId.split(':')[1] || ''
-          : chainId || '';
-
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: fetchedWidgetUrl,
-            providerName:
-              selectedProvider?.name || getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-            providerCode,
-            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-            walletAddress: walletAddress ?? undefined,
-            network,
-            currency,
-            cryptocurrency: selectedToken?.symbol || '',
-          }),
-        );
-      } else {
-        Logger.error(
-          new Error('No widget URL available for aggregator provider'),
-          { provider: selectedQuote.provider },
-        );
-        setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        provider: selectedQuote.provider,
-        message: 'Failed to fetch widget URL',
-      });
-      setNativeFlowError(
-        parseUserFacingError(
-          error,
-          strings('deposit.buildQuote.unexpectedError'),
-        ),
-      );
-    } finally {
-      setIsContinueLoading(false);
+      await handleNativeProviderContinue();
+    } else if (isCustomAction(selectedQuote)) {
+      await handleCustomActionContinue();
+    } else {
+      await handleAggregatorContinue();
     }
   }, [
     selectedQuote,
     selectedProvider,
     selectedToken,
-    walletAddress,
-    currency,
-    navigation,
-    getWidgetUrl,
     amountAsNumber,
-    selectedPaymentMethod,
-    transakCheckExistingToken,
-    transakGetBuyQuote,
-    transakRouteAfterAuth,
+    currency,
+    selectedPaymentMethod?.id,
     rampRoutingDecision,
     userRegion?.regionCode,
     trackEvent,
     createEventBuilder,
+    handleNativeProviderContinue,
+    handleCustomActionContinue,
+    handleAggregatorContinue,
   ]);
 
   const hasAmount = amountAsNumber > 0;
 
-  const quoteMatchesAmount =
-    debouncedPollingAmount === amountAsNumber && debouncedPollingAmount > 0;
-
-  const quoteMatchesCurrentContext = useMemo(() => {
-    if (!selectedQuote || !selectedProvider) return false;
-
-    const quoteAmount =
-      selectedQuote.quote?.amountIn ??
-      (selectedQuote as { amountIn?: number }).amountIn;
-    const quotePaymentMethod =
-      selectedQuote.quote?.paymentMethod ??
-      (selectedQuote as { paymentMethod?: string }).paymentMethod;
-
-    // Provider must match (prevents using a stale quote for a different provider)
-    if (selectedQuote.provider !== selectedProvider.id) return false;
-
-    // Amount must match
-    if (quoteAmount !== amountAsNumber) return false;
-
-    // Payment method context must match
-    if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
-      if (
-        !selectedPaymentMethod ||
-        selectedPaymentMethod.id !== quotePaymentMethod
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }, [selectedQuote, selectedProvider, amountAsNumber, selectedPaymentMethod]);
-
   const canContinue =
-    hasAmount &&
-    !selectedQuoteLoading &&
-    selectedQuote !== null &&
-    quoteMatchesAmount &&
-    quoteMatchesCurrentContext;
+    hasAmount && !selectedQuoteLoading && selectedQuote !== null;
 
   const hasNoQuotes =
     hasAmount &&
@@ -667,7 +785,7 @@ function BuildQuote() {
                   testID={BuildQuoteSelectors.AMOUNT_INPUT}
                   variant={TextVariant.HeadingLG}
                   color={
-                    nativeFlowError || hasNoQuotes || quoteFetchError
+                    rampsError || hasNoQuotes || quoteFetchError
                       ? TextColor.Error
                       : undefined
                   }
@@ -703,9 +821,9 @@ function BuildQuote() {
             <View style={styles.actionSection}>
               {hasAmount ? (
                 <>
-                  {nativeFlowError ? (
+                  {rampsError ? (
                     <TruncatedError
-                      error={nativeFlowError}
+                      error={rampsError}
                       providerName={selectedProvider?.name}
                       providerSupportUrl={
                         selectedProvider?.links?.find(

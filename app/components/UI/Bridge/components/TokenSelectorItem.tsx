@@ -272,7 +272,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Box style={styles.tokenMainInfo} gap={4}>
                 <Text
-                  variant={TextVariant.BodyMDMedium}
+                  variant={TextVariant.BodyMD}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -297,7 +297,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   <View style={styles.skeleton} />
                 ) : (
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMD}
                     color={TextColor.Default}
                     numberOfLines={1}
                     style={styles.rightValue}

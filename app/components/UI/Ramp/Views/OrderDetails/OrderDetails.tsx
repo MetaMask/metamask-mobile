@@ -11,7 +11,11 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -32,10 +36,13 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
+  /** Optional: needed when order is not yet in controller state (e.g. race after PayPal return). */
+  providerCode?: string;
+  /** Optional: needed with providerCode to fetch order from API when not in state. */
+  walletAddress?: string;
 }
 
 export const createRampsOrderDetailsNavDetails =
@@ -67,11 +74,13 @@ const styles = StyleSheet.create({
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
-  const order = getOrderById(params.orderId);
+  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
+  const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);
   const [error, setError] = useState<string | null>(null);
+  const [hydrationAttempted, setHydrationAttempted] = useState(false);
   const theme = useTheme();
   const { colors } = theme;
   const navigation = useNavigation();
@@ -119,10 +128,7 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = (order.provider?.id ?? '').replace(
-        '/providers/',
-        '',
-      );
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -153,7 +159,81 @@ const OrderDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // When order is missing but we have providerCode/wallet (e.g. race after PayPal return),
+  // fetch from API to hydrate controller state.
+  useEffect(() => {
+    if (
+      order ||
+      hydrationAttempted ||
+      !params.providerCode ||
+      !params.walletAddress ||
+      !orderCode
+    ) {
+      return;
+    }
+    setHydrationAttempted(true);
+    setIsLoading(true);
+    const providerCode = normalizeProviderCode(params.providerCode);
+    refreshOrder(providerCode, orderCode, params.walletAddress)
+      .then(() => {
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error
+            ? err.message
+            : strings('ramps_order_details.error_message'),
+        );
+        setIsLoading(false);
+      });
+  }, [
+    order,
+    hydrationAttempted,
+    params.providerCode,
+    params.walletAddress,
+    orderCode,
+    refreshOrder,
+  ]);
+
   if (!order) {
+    if (isLoading) {
+      return (
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <ScreenLayout.Content>
+              <ActivityIndicator />
+            </ScreenLayout.Content>
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      );
+    }
+    if (error && hydrationAttempted) {
+      return (
+        <ScreenLayout>
+          <ScreenLayout.Body>
+            <Box twClassName="flex-1 items-center justify-center px-16 py-16">
+              <Icon
+                name={IconName.Danger}
+                size={IconSize.Xl}
+                twClassName="text-error-default mb-2"
+              />
+              <Text
+                variant={TextVariant.HeadingSm}
+                fontWeight={FontWeight.Bold}
+              >
+                {strings('ramps_order_details.error_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-alternative text-center mb-8"
+              >
+                {error}
+              </Text>
+            </Box>
+          </ScreenLayout.Body>
+        </ScreenLayout>
+      );
+    }
     return <ScreenLayout />;
   }
 

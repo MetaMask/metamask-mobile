@@ -6,6 +6,7 @@ import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import { useRampsOrders } from './useRampsOrders';
 
 const mockAddOrder = jest.fn();
+const mockAddPrecreatedOrder = jest.fn();
 const mockRemoveOrder = jest.fn();
 const mockGetOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
@@ -14,6 +15,8 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       addOrder: (...args: unknown[]) => mockAddOrder(...args),
+      addPrecreatedOrder: (...args: unknown[]) =>
+        mockAddPrecreatedOrder(...args),
       removeOrder: (...args: unknown[]) => mockRemoveOrder(...args),
       getOrder: (...args: unknown[]) => mockGetOrder(...args),
       getOrderFromCallback: (...args: unknown[]) =>
@@ -182,6 +185,29 @@ describe('useRampsOrders', () => {
     expect(returnedOrder).toEqual(callbackOrder);
   });
 
+  it('calls Engine.context.RampsController.addPrecreatedOrder', () => {
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    act(() => {
+      result.current.addPrecreatedOrder({
+        orderId: '/providers/transak/orders/abc-123',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
+    });
+
+    expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+      orderId: '/providers/transak/orders/abc-123',
+      providerCode: 'transak',
+      walletAddress: '0xabc',
+      chainId: '1',
+    });
+  });
+
   it('exposes all expected functions', () => {
     const store = createMockStore();
     const { result } = renderHook(() => useRampsOrders(), {
@@ -190,6 +216,7 @@ describe('useRampsOrders', () => {
 
     expect(typeof result.current.getOrderById).toBe('function');
     expect(typeof result.current.addOrder).toBe('function');
+    expect(typeof result.current.addPrecreatedOrder).toBe('function');
     expect(typeof result.current.removeOrder).toBe('function');
     expect(typeof result.current.refreshOrder).toBe('function');
     expect(typeof result.current.getOrderFromCallback).toBe('function');

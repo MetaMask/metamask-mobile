@@ -12,11 +12,11 @@ const mockGetQuotes = jest.fn().mockResolvedValue({
   customActions: [],
 });
 
-const mockGetWidgetUrl = jest.fn();
+const mockGetBuyWidgetData = jest.fn();
 
 const defaultQuotesReturn = {
   getQuotes: mockGetQuotes,
-  getWidgetUrl: mockGetWidgetUrl,
+  getBuyWidgetData: mockGetBuyWidgetData,
   data: null,
   loading: false,
   error: null,

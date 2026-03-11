@@ -57,12 +57,13 @@ export interface UseRampsControllerResult {
 
   // Quotes
   getQuotes: UseRampsQuotesResult['getQuotes'];
-  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
+  getBuyWidgetData: UseRampsQuotesResult['getBuyWidgetData'];
 
   // Orders
   orders: UseRampsOrdersResult['orders'];
   getOrderById: UseRampsOrdersResult['getOrderById'];
   addOrder: UseRampsOrdersResult['addOrder'];
+  addPrecreatedOrder: UseRampsOrdersResult['addPrecreatedOrder'];
   removeOrder: UseRampsOrdersResult['removeOrder'];
   refreshOrder: UseRampsOrdersResult['refreshOrder'];
   getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
@@ -109,7 +110,7 @@ export interface UseRampsControllerResult {
  *
  *   // Quotes
  *   getQuotes,
- *   getWidgetUrl,
+ *   getBuyWidgetData,
  *
  * } = useRampsController();
  * ```
@@ -147,12 +148,13 @@ export function useRampsController(): UseRampsControllerResult {
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
-  const { getQuotes, getWidgetUrl } = useRampsQuotes();
+  const { getQuotes, getBuyWidgetData } = useRampsQuotes();
 
   const {
     orders,
     getOrderById,
     addOrder,
+    addPrecreatedOrder,
     removeOrder,
     refreshOrder,
     getOrderFromCallback,
@@ -186,11 +188,12 @@ export function useRampsController(): UseRampsControllerResult {
     paymentMethodsError,
 
     getQuotes,
-    getWidgetUrl,
+    getBuyWidgetData,
 
     orders,
     getOrderById,
     addOrder,
+    addPrecreatedOrder,
     removeOrder,
     refreshOrder,
     getOrderFromCallback,

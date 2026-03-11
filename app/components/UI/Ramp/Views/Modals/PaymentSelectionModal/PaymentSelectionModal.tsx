@@ -31,6 +31,7 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
@@ -161,7 +162,9 @@ function PaymentSelectionModal() {
     ({ item: paymentMethod }: { item: PaymentMethod }) => {
       const matchedQuote =
         quotes?.success?.find(
-          (quote) => quote.quote?.paymentMethod === paymentMethod.id,
+          (quote) =>
+            quote.quote?.paymentMethod === paymentMethod.id &&
+            !isCustomAction(quote),
         ) ?? null;
       const hasQuoteError =
         !matchedQuote &&
