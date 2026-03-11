@@ -6,6 +6,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import {
   MUSD_CONVERSION_APY,
   MUSD_TOKEN_ADDRESS,
+  isMusdToken,
 } from '../../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../../UI/Earn/hooks/useMusdConversionEligibility';
@@ -232,7 +233,10 @@ export const usePopularTokens = () => {
       };
     });
     return isCashSectionEnabled
-      ? mapped.filter((t) => t.symbol !== 'mUSD')
+      ? mapped.filter((t) => {
+          const address = t.assetId.split(':').pop();
+          return !isMusdToken(address);
+        })
       : mapped;
   }, [rawTokens, isCashSectionEnabled]);
 
