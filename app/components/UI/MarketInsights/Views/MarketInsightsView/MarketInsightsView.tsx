@@ -342,9 +342,7 @@ const MarketInsightsView: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
-  // Fallback: if the report loads after the transition has already ended,
-  // the transitionEnd callback would have fired when the Rive ref was null.
-  // Trigger play here once the report is available and the transition is done.
+  // Trigger .play here once the report is available and the transition is done.
   useEffect(() => {
     if (report && transitionEndedRef.current) {
       backgroundAnimationRef.current?.play();
@@ -443,7 +441,7 @@ const MarketInsightsView: React.FC = () => {
         <Rive
           ref={backgroundAnimationRef}
           source={backgroundAnimation}
-          style={tw.style('w-full h-full', { transform: [{ scale: 1.15 }] })}
+          style={tw.style('w-full h-full', { transform: [{ scale: 1.1 }] })}
           fit={Fit.Cover}
           alignment={Alignment.TopCenter}
           autoplay={false}
