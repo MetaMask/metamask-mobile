@@ -5,6 +5,12 @@ import { Listr } from 'listr2';
 import path from 'path';
 
 const IS_CI = process.env.CI;
+
+// In CI, pipe stdout/stderr directly to the parent process so logs are visible.
+// execa v8's $ captures output by default; shared options propagate stdio: 'inherit'
+// to every command created from this instance.
+const $$ = IS_CI ? $({ stdio: 'inherit' }) : $;
+
 const IS_OSX = process.platform === 'darwin';
 // iOS builds are enabled by default on macOS only but can be enabled or disabled explicitly
 let BUILD_IOS = IS_OSX;
@@ -128,7 +134,7 @@ const setupIosTask = {
           if (GITHUB_CI) {
             // In GitHub CI, we still need bundler for self-hosted runners
             try {
-              await $`gem install bundler -v 2.5.8`;
+              await $$`gem install bundler -v 2.5.8`;
             } catch (error) {
               // If bundler is already installed, continue
               if (!error.stderr?.includes('already installed')) {
@@ -136,7 +142,7 @@ const setupIosTask = {
               }
             }
           } else {
-            await $`gem install bundler -v 2.5.8`;
+            await $$`gem install bundler -v 2.5.8`;
           }
         },
       },
@@ -145,9 +151,9 @@ const setupIosTask = {
         task: async (_, task) => {
           if (GITHUB_CI) {
             // In GitHub CI, install gems for self-hosted runners
-            await $`yarn gem:bundle:install`;
+            await $$`yarn gem:bundle:install`;
           } else {
-            await $`yarn gem:bundle:install`;
+            await $$`yarn gem:bundle:install`;
           }
         },
       },
@@ -164,7 +170,7 @@ const setupIosTask = {
       tasks.push({
         title: 'Install CocoaPods',
         task: async () => {
-          await $`yarn pod:install`;
+          await $$`yarn pod:install`;
         },
       });
     }
@@ -187,7 +193,7 @@ const buildInpageBridgeTask = {
     }
     // Ensure the build type is passed to the script
     const buildType = process.env.METAMASK_BUILD_TYPE || '';
-    await $({ env: { METAMASK_BUILD_TYPE: buildType } })`./scripts/build-inpage-bridge.sh`;
+    await $$({ env: { METAMASK_BUILD_TYPE: buildType } })`./scripts/build-inpage-bridge.sh`;
   },
 };
 
@@ -200,14 +206,14 @@ const jetifyTask = {
     if (IS_NODE) {
       return task.skip('Skipping jetifying npm packages.');
     }
-    await $`yarn jetify`;
+    await $$`yarn jetify`;
   },
 };
 
 const patchPackageTask = {
   title: 'Patch npm packages',
   task: async () => {
-    await $`yarn patch-package --error-on-fail`;
+    await $$`yarn patch-package --error-on-fail`;
   },
 };
 
@@ -222,7 +228,7 @@ const installFoundryTask = {
         {
           title: 'Install Foundry binary',
           task: async () => {
-            await $`yarn install:foundryup`;
+            await $$`yarn install:foundryup`;
           },
         },
         {
@@ -230,8 +236,8 @@ const installFoundryTask = {
           task: async () => {
             const anvilPath = 'node_modules/.bin/anvil';
             if (!fs.existsSync(anvilPath)) {
-              await $`rm -rf .metamask/cache`;
-              await $`yarn install:foundryup`;
+              await $$`rm -rf .metamask/cache`;
+              await $$`yarn install:foundryup`;
             }
           },
         },
@@ -271,14 +277,14 @@ const updateGitSubmodulesTask = {
     if (IS_NODE) {
       return task.skip('Skipping init git submodules.');
     }
-    await $`git submodule update --init`;
+    await $$`git submodule update --init`;
   },
 };
 
 const runLavamoatAllowScriptsTask = {
   title: 'Run lavamoat allow-scripts',
   task: async () => {
-    await $`yarn allow-scripts`;
+    await $$`yarn allow-scripts`;
   },
 };
 
@@ -291,7 +297,7 @@ const generateTermsOfUseTask = {
           title: 'Download Terms of Use',
           task: async () => {
             try {
-              await $`curl -o ./docs/assets/termsOfUse.html https://legal.consensys.io/plain/terms-of-use/`;
+              await $$`curl -o ./docs/assets/termsOfUse.html https://legal.consensys.io/plain/terms-of-use/`;
             } catch (error) {
               throw new Error('Failed to download Terms of Use');
             }
@@ -337,7 +343,7 @@ const generateTermsOfUseTask = {
 const installHuskyTask = {
   title: 'Install Husky git hooks',
   task: async () => {
-    await $`yarn husky install`;
+    await $$`yarn husky install`;
   },
 };
 
