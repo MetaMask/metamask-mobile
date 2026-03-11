@@ -16,7 +16,7 @@ import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
 import SectionRow from '../../components/SectionRow';
 import { useIsZeroBalanceAccount } from './hooks';
-import { selectSortedAssetsBySelectedAccountGroupForChainIds } from '../../../../../selectors/assets/assets-list';
+import { selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '../../../../../selectors/assets/assets-list';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
@@ -61,7 +61,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isZeroBalanceAccount = useIsZeroBalanceAccount();
     const { popularNetworks: popularChainIds } = useNetworkEnablement();
     const sortedTokenKeys = useSelector((state: RootState) =>
-      selectSortedAssetsBySelectedAccountGroupForChainIds(
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
         state,
         popularChainIds,
       ),

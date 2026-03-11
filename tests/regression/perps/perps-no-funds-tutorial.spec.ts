@@ -7,6 +7,9 @@ import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(
   RegressionTrade('Perps - no funds shows Start Trading and tutorial'),
@@ -24,7 +27,12 @@ describe(
             .build(),
           restartDevice: true,
           // Ensure Hyperliquid icons and Arbitrum RPC are mocked (no live requests)
-          testSpecificMock: PERPS_ARBITRUM_MOCKS,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(mockServer, {
+              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            });
+            await PERPS_ARBITRUM_MOCKS(mockServer);
+          },
         },
         async () => {
           await loginToApp();
@@ -32,8 +40,8 @@ describe(
           // This is needed due to disable animations
           await device.disableSynchronization();
 
-          // Go to Perps tab from Wallet
-          await WalletView.tapOnPerpsTab();
+          // Go to Perps from homepage section (same click path as smoke perps tests)
+          await WalletView.scrollAndTapPerpsSection();
 
           // Start Trading should be present for first-time/no-positions
           await PerpsTabView.tapOnboardingButton();
