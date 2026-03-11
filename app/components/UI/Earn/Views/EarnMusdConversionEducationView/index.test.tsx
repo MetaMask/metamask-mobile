@@ -139,6 +139,21 @@ const mockConversionToken = {
   balance: '1000000',
   logo: undefined,
   isETH: false,
+  fiat: { balance: 50 },
+};
+
+const mockConversionTokenHighBalance = {
+  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: '0x1',
+  aggregators: [],
+  decimals: 6,
+  image: '',
+  name: 'Tether USD',
+  symbol: 'USDT',
+  balance: '5000000',
+  logo: undefined,
+  isETH: false,
+  fiat: { balance: 500 },
 };
 
 describe('EarnMusdConversionEducationView', () => {
@@ -457,7 +472,7 @@ describe('EarnMusdConversionEducationView', () => {
       });
     });
 
-    it('navigates to home when has convertible tokens but no valid payment token and mUSD is not buyable', async () => {
+    it('falls back to first conversion token when getPaymentTokenForSelectedNetwork returns null', async () => {
       mockUseMusdConversionFlowData.mockReturnValue({
         isGeoEligible: true,
         hasConvertibleTokens: true,
@@ -468,7 +483,7 @@ describe('EarnMusdConversionEducationView', () => {
         isPopularNetworksFilterActive: false,
         selectedChainId: null,
         selectedChains: [],
-        conversionTokens: [mockConversionToken],
+        conversionTokens: [mockConversionTokenHighBalance, mockConversionToken],
         isMusdBuyableOnChain: {},
         isMusdBuyableOnAnyChain: false,
       });
@@ -487,6 +502,91 @@ describe('EarnMusdConversionEducationView', () => {
       });
 
       await waitFor(() => {
+        expect(mockInitiateConversion).toHaveBeenCalledWith({
+          preferredPaymentToken: {
+            address: mockConversionTokenHighBalance.address,
+            chainId: mockConversionTokenHighBalance.chainId,
+          },
+          skipEducationCheck: true,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
+        });
+      });
+    });
+
+    it('falls through to buy when first conversion token has no chainId', async () => {
+      const mockGoToBuy = jest.fn();
+      mockUseRampNavigation.mockReturnValue({
+        goToBuy: mockGoToBuy,
+        goToAggregator: mockGoToAggregator,
+        goToSell: jest.fn(),
+        goToDeposit: jest.fn(),
+      });
+
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: true,
+        isEmptyWallet: false,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: true,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [{ ...mockConversionToken, chainId: undefined }],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
+        expect(mockGoToBuy).toHaveBeenCalled();
+      });
+    });
+
+    it('falls through to navigate_home when first token invalid and mUSD not buyable', async () => {
+      mockUseMusdConversionFlowData.mockReturnValue({
+        isGeoEligible: true,
+        hasConvertibleTokens: true,
+        isEmptyWallet: false,
+        getPaymentTokenForSelectedNetwork: jest.fn().mockReturnValue(null),
+        getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
+        isMusdBuyable: false,
+        isPopularNetworksFilterActive: false,
+        selectedChainId: null,
+        selectedChains: [],
+        conversionTokens: [{ ...mockConversionToken, chainId: undefined }],
+        isMusdBuyableOnChain: {},
+        isMusdBuyableOnAnyChain: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnMusdConversionEducationView />,
+        { state: {} },
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(
+            EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+          ),
+        );
+      });
+
+      await waitFor(() => {
+        expect(mockInitiateConversion).not.toHaveBeenCalled();
         expect(mockNavigation.navigate).toHaveBeenCalledWith(
           Routes.WALLET.HOME,
           {
