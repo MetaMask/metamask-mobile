@@ -251,42 +251,31 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      # Fix iOS bundle executable: ensure correct case and execute permissions before upload.
-      # actions/upload-artifact strips execute permissions, so we must chmod +x before zipping.
-      # Xcode on case-insensitive APFS sometimes stores the binary with wrong case (e.g. "metamask"
-      # instead of "MetaMask"), which causes xcrun simctl install to fail on the test runner because
-      # it does a case-sensitive directory enumeration when looking for CFBundleExecutable.
+      # Xcode on case-insensitive APFS can store the bundle executable with wrong case (e.g. "metamask"
+      # vs CFBundleExecutable "MetaMask"), causing xcrun simctl install to fail with a case-sensitive
+      # directory lookup on the test runner. actions/upload-artifact also strips execute permissions.
       - name: Fix iOS bundle executable case and permissions before upload
         run: |
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
           BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
           if [ -z "$BUNDLE_EXEC" ]; then
-            echo "❌ Could not read CFBundleExecutable from Info.plist"
+            echo "Could not read CFBundleExecutable from Info.plist"
             exit 1
           fi
-          echo "CFBundleExecutable: $BUNDLE_EXEC"
 
-          # Find the binary case-insensitively (Xcode may produce lowercase name on case-insensitive APFS)
           ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
           if [ -z "$ACTUAL_PATH" ]; then
-            echo "❌ Bundle executable not found (even case-insensitively): $BUNDLE_EXEC"
-            ls -la "$APP_PATH/"
+            echo "Bundle executable not found: $BUNDLE_EXEC"
             exit 1
           fi
-          ACTUAL_NAME=$(basename "$ACTUAL_PATH")
-          echo "Found on disk: $ACTUAL_NAME"
 
-          # Fix case mismatch with a two-step rename (direct rename fails on case-insensitive APFS)
-          if [ "$ACTUAL_NAME" != "$BUNDLE_EXEC" ]; then
-            echo "⚠️  Case mismatch detected — renaming $ACTUAL_NAME → $BUNDLE_EXEC"
+          # Two-step rename to fix case on case-insensitive APFS (direct rename is a no-op)
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
             mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
             mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
-            echo "✅ Renamed: $ACTUAL_NAME → $BUNDLE_EXEC"
           fi
 
-          # Restore execute permissions (actions/upload-artifact strips them from the ZIP)
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
-          echo "✅ Execute permission set: $(ls -lh "$APP_PATH/$BUNDLE_EXEC")"
         shell: bash
 
       # Upload the iOS .app file that works in simulators
