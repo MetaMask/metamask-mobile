@@ -1313,7 +1313,9 @@ const Wallet = ({
       </View>
       <>
         <AccountGroupBalance />
-
+        <View>
+          <CustomText>OTA update</CustomText>
+        </View>
         <AssetDetailsActions
           displayBuyButton={displayBuyButton}
           displaySwapsButton={displaySwapsButton}
