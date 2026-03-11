@@ -135,7 +135,11 @@
     "a:stop": "scripts/perps/agentic/stop-metro.sh",
     "a:status": "scripts/perps/agentic/app-state.sh status",
     "a:reload": "scripts/perps/agentic/reload-metro.sh",
-    "a:navigate": "scripts/perps/agentic/app-navigate.sh"
+    "a:navigate": "scripts/perps/agentic/app-navigate.sh",
+    "a:ios": "scripts/perps/agentic/start-metro.sh --launch --platform ios",
+    "a:android": "scripts/perps/agentic/start-metro.sh --launch --platform android",
+    "a:setup:ios": "scripts/perps/agentic/preflight.sh --clean --wallet-setup",
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --clean --wallet-setup"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
