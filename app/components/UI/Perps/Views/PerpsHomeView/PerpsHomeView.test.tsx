@@ -348,8 +348,9 @@ jest.mock(
   },
 );
 
+const mockUsePerpsProvider = jest.fn(() => ({ isMultiProviderEnabled: false }));
 jest.mock('../../hooks/usePerpsProvider', () => ({
-  usePerpsProvider: jest.fn(() => ({ isMultiProviderEnabled: false })),
+  usePerpsProvider: () => mockUsePerpsProvider(),
 }));
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
@@ -553,6 +554,7 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockSetTitleSectionHeight.mockClear();
     mockHandleScroll.mockClear();
+    mockUsePerpsProvider.mockReturnValue({ isMultiProviderEnabled: false });
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectPerpsNetwork) return 'mainnet';
@@ -589,13 +591,13 @@ describe('PerpsHomeView', () => {
 
   it('renders HeaderStandardAnimated with perps-home testID', () => {
     const { getByTestId } = render(<PerpsHomeView />);
-    expect(getByTestId('perps-home')).toBeTruthy();
+    expect(getByTestId('perps-home')).toBeOnTheScreen();
   });
 
   it('renders TitleStandard with Perps title', () => {
     const { getByTestId, getByText } = render(<PerpsHomeView />);
-    expect(getByTestId('title-standard')).toBeTruthy();
-    expect(getByText('perps.title')).toBeTruthy();
+    expect(getByTestId('title-standard')).toBeOnTheScreen();
+    expect(getByText('perps.title')).toBeOnTheScreen();
   });
 
   it('renders Testnet titleAccessory when network is testnet', () => {
@@ -605,8 +607,8 @@ describe('PerpsHomeView', () => {
       return false;
     });
     const { getByTestId } = render(<PerpsHomeView />);
-    expect(getByTestId('title-standard-accessory')).toBeTruthy();
-    expect(getByTestId('perps-home-testnet-badge')).toBeTruthy();
+    expect(getByTestId('title-standard-accessory')).toBeOnTheScreen();
+    expect(getByTestId('perps-home-testnet-badge')).toBeOnTheScreen();
   });
 
   it('does not render Testnet accessory when network is mainnet', () => {
@@ -616,7 +618,13 @@ describe('PerpsHomeView', () => {
       return false;
     });
     const { queryByTestId } = render(<PerpsHomeView />);
-    expect(queryByTestId('perps-home-testnet-badge')).toBeNull();
+    expect(queryByTestId('perps-home-testnet-badge')).not.toBeOnTheScreen();
+  });
+
+  it('renders PerpsProviderSelectorBadge when isMultiProviderEnabled is true', () => {
+    mockUsePerpsProvider.mockReturnValue({ isMultiProviderEnabled: true });
+    const { getByTestId } = render(<PerpsHomeView />);
+    expect(getByTestId('perps-home-provider-badge')).toBeOnTheScreen();
   });
 
   it('calls section tracking handleScroll when scroll fires', () => {

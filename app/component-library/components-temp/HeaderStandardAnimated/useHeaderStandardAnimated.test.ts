@@ -4,15 +4,24 @@ import { renderHook, act } from '@testing-library/react-native';
 // Internal dependencies.
 import useHeaderStandardAnimated from './useHeaderStandardAnimated';
 
+const mockRunOnJS = jest.fn(
+  <T extends (...args: unknown[]) => unknown>(fn: T) =>
+    (...args: Parameters<T>) =>
+      fn(...args),
+);
 jest.mock('react-native-reanimated', () => ({
   useSharedValue: jest.fn((initial: number) => ({ value: initial })),
+  runOnJS: (fn: (...args: unknown[]) => unknown) => mockRunOnJS(fn),
   useAnimatedScrollHandler: jest.fn(
     (
       config:
         | { onScroll?: (e: { contentOffset: { y: number } }) => void }
         | ((e: { contentOffset: { y: number } }) => void),
     ) =>
-      (scrollEvent: { contentOffset: { y: number } }) => {
+      (scrollEvent: {
+        contentOffset: { y: number };
+        nativeEvent?: unknown;
+      }) => {
         const handler =
           typeof config === 'function' ? config : config?.onScroll;
         handler?.(scrollEvent);
@@ -98,6 +107,46 @@ describe('useHeaderStandardAnimated', () => {
           );
         });
       }).not.toThrow();
+    });
+
+    it('invokes onScrollJs with nativeEvent when provided and onScroll is called', () => {
+      const onScrollJs = jest.fn();
+      const { result } = renderHook(() =>
+        useHeaderStandardAnimated({ onScrollJs }),
+      );
+
+      const scrollEvent = createScrollEvent(50);
+      act(() => {
+        result.current.onScroll(
+          scrollEvent as unknown as Parameters<
+            ReturnType<typeof useHeaderStandardAnimated>['onScroll']
+          >[0],
+        );
+      });
+
+      expect(mockRunOnJS).toHaveBeenCalledWith(onScrollJs);
+      const jsCallback = mockRunOnJS.mock.results[0]?.value as (arg: {
+        nativeEvent: typeof scrollEvent;
+      }) => void;
+      expect(typeof jsCallback).toBe('function');
+      jsCallback({ nativeEvent: scrollEvent });
+      expect(onScrollJs).toHaveBeenCalledTimes(1);
+      expect(onScrollJs).toHaveBeenCalledWith({ nativeEvent: scrollEvent });
+    });
+
+    it('does not invoke onScrollJs when options.onScrollJs is omitted', () => {
+      const onScrollJs = jest.fn();
+      const { result } = renderHook(() => useHeaderStandardAnimated());
+
+      act(() => {
+        result.current.onScroll(
+          createScrollEvent(50) as unknown as Parameters<
+            ReturnType<typeof useHeaderStandardAnimated>['onScroll']
+          >[0],
+        );
+      });
+
+      expect(onScrollJs).not.toHaveBeenCalled();
     });
   });
 });
