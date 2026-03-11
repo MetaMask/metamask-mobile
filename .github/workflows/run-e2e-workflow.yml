@@ -250,6 +250,7 @@ jobs:
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
       # results in the artifact, causing them to be re-run in attempt N+2.
       - name: Merge previous test results (on re-run)
+        id: merge-previous-results
         if: ${{ !cancelled() && github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
         continue-on-error: true
         run: |
@@ -271,7 +272,7 @@ jobs:
           rm -rf node_modules temp-deps
 
       - name: Rebuild merged JUnit after previous-results merge (on re-run)
-        if: ${{ !cancelled() && github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.merge-previous-results.outcome == 'success' }}
         continue-on-error: true
         run: |
           echo "📊 Rebuilding merged junit.xml after previous-results merge..."
