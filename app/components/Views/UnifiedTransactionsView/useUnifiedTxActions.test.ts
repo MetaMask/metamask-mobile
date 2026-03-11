@@ -109,7 +109,7 @@ describe('useUnifiedTxActions', () => {
 
   interface EngineContextMock {
     TransactionController: { stopTransaction: jest.Mock };
-    ApprovalController: { accept: jest.Mock; reject: jest.Mock };
+    ApprovalController: { acceptRequest: jest.Mock; rejectRequest: jest.Mock };
   }
 
   const engineContext = Engine.context as unknown as EngineContextMock;
