@@ -463,7 +463,7 @@ const PerpsHomeView = () => {
         titleSectionHeight={titleSectionHeightSv}
         title={strings('perps.title')}
         onBack={handleBackPress}
-        backButtonProps={{ testID: PerpsHomeViewSelectorsIDs.BACK_BUTTON }}
+        backButtonProps={{ testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON }}
         endButtonIconProps={[
           {
             iconName: IconName.Search,
