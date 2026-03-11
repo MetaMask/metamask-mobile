@@ -371,7 +371,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
 
   describe('Approval Flow', () => {
     it('clears existing approval requests', async () => {
-      Engine.context.ApprovalController.clear.mockClear();
+      Engine.context.ApprovalController.clearRequests.mockClear();
 
       await wallet_addEthereumChain({
         req: {
@@ -380,7 +380,9 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         ...otherOptions,
       });
 
-      expect(Engine.context.ApprovalController.clear).toBeCalledTimes(1);
+      expect(Engine.context.ApprovalController.clearRequests).toBeCalledTimes(
+        1,
+      );
     });
   });
 
