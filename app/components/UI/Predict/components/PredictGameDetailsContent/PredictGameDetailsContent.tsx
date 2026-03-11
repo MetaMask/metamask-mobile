@@ -29,6 +29,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
+import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
   market,
@@ -114,15 +115,24 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         }
       >
         <Box twClassName="px-4 py-2">
-          <PredictSportScoreboard game={game} testID="game-scoreboard" />
+          <PredictSportScoreboard
+            game={game}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_SCOREBOARD}
+          />
         </Box>
 
         <Box twClassName="mt-4">
-          <PredictGameChart market={market} testID="game-chart" />
+          <PredictGameChart
+            market={market}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_CHART}
+          />
         </Box>
 
         <Box twClassName="px-4 py-2">
-          <PredictPicks market={market} testID="game-picks" />
+          <PredictPicks
+            market={market}
+            testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
+          />
         </Box>
       </ScrollView>
 

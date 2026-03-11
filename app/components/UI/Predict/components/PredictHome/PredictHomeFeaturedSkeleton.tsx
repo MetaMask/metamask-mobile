@@ -5,6 +5,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { PredictHomeFeaturedVariant } from '../../selectors/featureFlags';
 import PredictHomeSkeleton from './PredictHomeSkeleton';
+import {
+  PREDICT_HOME_FEATURED_SKELETON,
+  PREDICT_HOME_FEATURED_SKELETON_TEST_IDS,
+} from './PredictHomeFeaturedSkeleton.testIds';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.8;
@@ -63,7 +67,7 @@ const CarouselSkeleton: React.FC<{ testID: string }> = ({ testID }) => {
 
 const PredictHomeFeaturedSkeleton: React.FC<
   PredictHomeFeaturedSkeletonProps
-> = ({ variant, testID = 'predict-home-featured-skeleton' }) => {
+> = ({ variant, testID = PREDICT_HOME_FEATURED_SKELETON }) => {
   const tw = useTailwind();
 
   return (
@@ -76,9 +80,13 @@ const PredictHomeFeaturedSkeleton: React.FC<
         <Skeleton width={16} height={16} style={tw.style('rounded-full')} />
       </Box>
       {variant === 'list' ? (
-        <PredictHomeSkeleton testID={`${testID}-list`} />
+        <PredictHomeSkeleton
+          testID={`${testID}${PREDICT_HOME_FEATURED_SKELETON_TEST_IDS.LIST}`}
+        />
       ) : (
-        <CarouselSkeleton testID={`${testID}-carousel`} />
+        <CarouselSkeleton
+          testID={`${testID}${PREDICT_HOME_FEATURED_SKELETON_TEST_IDS.CAROUSEL}`}
+        />
       )}
     </Box>
   );

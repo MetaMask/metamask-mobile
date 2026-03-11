@@ -33,6 +33,7 @@ import {
   PREDICT_GTM_WHATS_NEW_MODAL,
   PredictEventValues,
 } from '../../constants/eventNames';
+import { PREDICT_GTM_MODAL_TEST_IDS } from './PredictGTMModal.testIds';
 
 const PredictGTMModal = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -101,7 +102,7 @@ const PredictGTMModal = () => {
   return (
     <Animated.View
       style={[styles.pageContainer, animatedStyle]}
-      testID="predict-gtm-modal-container"
+      testID={PREDICT_GTM_MODAL_TEST_IDS.CONTAINER}
     >
       {/* Background Image - Full Screen */}
       <Image
@@ -134,7 +135,7 @@ const PredictGTMModal = () => {
         <View style={styles.footerContainer}>
           <ButtonBase
             onPress={() => handleGetStarted()}
-            testID="predict-gtm-get-started-button"
+            testID={PREDICT_GTM_MODAL_TEST_IDS.GET_STARTED_BUTTON}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             style={styles.getStartedButton}
@@ -151,7 +152,7 @@ const PredictGTMModal = () => {
           <Button
             variant={ButtonVariants.Secondary}
             onPress={() => handleClose()}
-            testID="predict-gtm-not-now-button"
+            testID={PREDICT_GTM_MODAL_TEST_IDS.NOT_NOW_BUTTON}
             width={ButtonWidthTypes.Full}
             size={ButtonSize.Lg}
             style={styles.notNowButton}

@@ -20,6 +20,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictEntryPointProvider } from '../../contexts';
+import { PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS } from './PredictHomeFeaturedCarousel.testIds';
 
 interface PredictHomeFeaturedCarouselProps {
   testID?: string;
@@ -27,7 +28,7 @@ interface PredictHomeFeaturedCarouselProps {
 
 const PredictHomeFeaturedCarousel: React.FC<
   PredictHomeFeaturedCarouselProps
-> = ({ testID = 'predict-home-featured-carousel' }) => {
+> = ({ testID = PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.CAROUSEL }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const section = SECTIONS_CONFIG.predictions;
@@ -52,7 +53,7 @@ const PredictHomeFeaturedCarousel: React.FC<
   return (
     <Box testID={testID}>
       <TouchableOpacity
-        testID="predict-home-featured-carousel-header"
+        testID={PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.HEADER}
         style={tw.style('flex-row items-center mb-2')}
         onPress={handleHeaderPress}
       >
