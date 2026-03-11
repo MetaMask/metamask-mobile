@@ -13,7 +13,10 @@ import {
   FlatList,
   ListRenderItem,
   View,
+  TouchableOpacity,
+  Animated,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -43,7 +46,7 @@ import CardImage from '../../components/CardImage/CardImage';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { ShippingAddress } from '../ReviewOrder';
 
-export type ChooseYourCardFlow = 'onboarding' | 'upgrade';
+export type ChooseYourCardFlow = 'onboarding' | 'upgrade' | 'home';
 
 export interface ChooseYourCardParams {
   flow?: ChooseYourCardFlow;
@@ -54,7 +57,7 @@ interface CardOption {
   id: CardType;
   name: string;
   price: string;
-  features: string[];
+  features: { label: string; isHighlighted: boolean }[];
 }
 
 const ItemSeparator = ({ width }: { width: number }) => (
@@ -68,10 +71,35 @@ const ChooseYourCard = () => {
   const { width: screenWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [hasUserSwiped, setHasUserSwiped] = useState(false);
+  const arrowAnimValue = useRef(new Animated.Value(0)).current;
 
   const { flow = 'onboarding', shippingAddress } =
     useParams<ChooseYourCardParams>();
   const isUpgradeFlow = flow === 'upgrade';
+
+  // Arrow bounce animation for swipe indicator
+  useEffect(() => {
+    if (activeIndex !== 0 || isUpgradeFlow || hasUserSwiped) return;
+
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(arrowAnimValue, {
+          toValue: 8,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+        Animated.timing(arrowAnimValue, {
+          toValue: 0,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    animation.start();
+
+    return () => animation.stop();
+  }, [activeIndex, isUpgradeFlow, arrowAnimValue, hasUserSwiped]);
 
   const CARD_WIDTH = screenWidth - 64;
   const CARD_SPACING = 16;
@@ -83,9 +111,18 @@ const ChooseYourCard = () => {
         name: strings('card.choose_your_card.virtual_card.name'),
         price: strings('card.choose_your_card.virtual_card.price'),
         features: [
-          strings('card.choose_your_card.virtual_card.feature_1'),
-          strings('card.choose_your_card.virtual_card.feature_2'),
-          strings('card.choose_your_card.virtual_card.feature_3'),
+          {
+            label: strings('card.choose_your_card.virtual_card.feature_1'),
+            isHighlighted: false,
+          },
+          {
+            label: strings('card.choose_your_card.virtual_card.feature_2'),
+            isHighlighted: false,
+          },
+          {
+            label: strings('card.choose_your_card.virtual_card.feature_3'),
+            isHighlighted: false,
+          },
         ],
       },
       {
@@ -93,9 +130,24 @@ const ChooseYourCard = () => {
         name: strings('card.choose_your_card.metal_card.name'),
         price: strings('card.choose_your_card.metal_card.price'),
         features: [
-          strings('card.choose_your_card.metal_card.feature_1'),
-          strings('card.choose_your_card.metal_card.feature_2'),
-          strings('card.choose_your_card.metal_card.feature_3'),
+          {
+            label: strings(
+              'card.choose_your_card.metal_card.everything_in_virtual',
+            ),
+            isHighlighted: false,
+          },
+          {
+            label: strings('card.choose_your_card.metal_card.feature_1'),
+            isHighlighted: true,
+          },
+          {
+            label: strings('card.choose_your_card.metal_card.feature_2'),
+            isHighlighted: true,
+          },
+          {
+            label: strings('card.choose_your_card.metal_card.feature_3'),
+            isHighlighted: true,
+          },
         ],
       },
     ],
@@ -121,7 +173,65 @@ const ChooseYourCard = () => {
     );
   }, [trackEvent, createEventBuilder, flow]);
 
+  const peekTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const peekStoppedRef = useRef(false);
+
+  const stopPeekAnimation = useCallback(() => {
+    peekStoppedRef.current = true;
+    peekTimersRef.current.forEach(clearTimeout);
+    peekTimersRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (isUpgradeFlow || cardOptions.length <= 1) return;
+
+    const peekDistance = (CARD_WIDTH + CARD_SPACING) * 0.15;
+    const BOUNCE_HOLD = 600;
+    const PAUSE_BETWEEN_BOUNCES = 3000;
+    const cycleDuration = BOUNCE_HOLD + PAUSE_BETWEEN_BOUNCES;
+
+    const scheduleBounce = (delay: number) => {
+      peekTimersRef.current.push(
+        setTimeout(() => {
+          if (peekStoppedRef.current) return;
+          flatListRef.current?.scrollToOffset({
+            offset: peekDistance,
+            animated: true,
+          });
+        }, delay),
+      );
+
+      peekTimersRef.current.push(
+        setTimeout(() => {
+          if (peekStoppedRef.current) return;
+          flatListRef.current?.scrollToOffset({
+            offset: 0,
+            animated: true,
+          });
+        }, delay + BOUNCE_HOLD),
+      );
+
+      peekTimersRef.current.push(
+        setTimeout(() => {
+          if (peekStoppedRef.current) return;
+          scheduleBounce(0);
+        }, delay + cycleDuration),
+      );
+    };
+
+    scheduleBounce(800);
+
+    return stopPeekAnimation;
+  }, [
+    isUpgradeFlow,
+    cardOptions.length,
+    CARD_WIDTH,
+    CARD_SPACING,
+    stopPeekAnimation,
+  ]);
+
   const handleContinue = useCallback(() => {
+    stopPeekAnimation();
     const selectedCard = cardOptions[activeIndex];
 
     trackEvent(
@@ -151,17 +261,33 @@ const ChooseYourCard = () => {
     flow,
     shippingAddress,
     isUpgradeFlow,
+    stopPeekAnimation,
   ]);
+
+  const handleScrollToMetal = useCallback(() => {
+    stopPeekAnimation();
+    setHasUserSwiped(true);
+    flatListRef.current?.scrollToIndex({ index: 1, animated: true });
+    setTimeout(() => setActiveIndex(1), 300);
+  }, [stopPeekAnimation]);
 
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const contentOffsetX = event.nativeEvent.contentOffset.x;
       const index = Math.round(contentOffsetX / (CARD_WIDTH + CARD_SPACING));
       if (index !== activeIndex && index >= 0 && index < cardOptions.length) {
+        stopPeekAnimation();
+        setHasUserSwiped(true);
         setActiveIndex(index);
       }
     },
-    [activeIndex, cardOptions.length, CARD_WIDTH, CARD_SPACING],
+    [
+      activeIndex,
+      cardOptions.length,
+      CARD_WIDTH,
+      CARD_SPACING,
+      stopPeekAnimation,
+    ],
   );
 
   const renderCardItem: ListRenderItem<CardOption> = useCallback(
@@ -178,17 +304,17 @@ const ChooseYourCard = () => {
   );
 
   const renderFeatureItem = useCallback(
-    (feature: string, index: number) => (
+    (feature: string, index: number, isHighlighted: boolean) => (
       <Box key={`feature-${index}`} twClassName="flex-row items-start gap-2">
         <Icon
           name={IconName.Check}
           size={IconSize.Lg}
-          color={IconColor.Default}
+          color={isHighlighted ? IconColor.Info : IconColor.Muted}
         />
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Regular}
-          twClassName="text-alternative flex-1"
+          twClassName={`flex-1 ${isHighlighted ? 'text-white' : 'text-alternative'}`}
         >
           {feature}
         </Text>
@@ -235,7 +361,6 @@ const ChooseYourCard = () => {
   );
 
   const selectedCard = cardOptions[activeIndex];
-
   const showPagination = cardOptions.length > 1;
 
   return (
@@ -257,7 +382,7 @@ const ChooseYourCard = () => {
           </Text>
         </Box>
 
-        <Box twClassName="mt-4">
+        <Box twClassName="mt-4 relative">
           <FlatList
             ref={flatListRef}
             data={cardOptions}
@@ -276,6 +401,36 @@ const ChooseYourCard = () => {
             getItemLayout={getItemLayout}
             testID={ChooseYourCardSelectors.CARD_CAROUSEL}
           />
+          {activeIndex === 0 &&
+            !isUpgradeFlow &&
+            !hasUserSwiped &&
+            cardOptions.length > 1 && (
+              <View
+                style={tw.style(
+                  'absolute right-0 top-0 bottom-0 w-16 items-center justify-center',
+                )}
+                pointerEvents="none"
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(36, 65, 232, 0.8)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={tw.style('absolute inset-0')}
+                />
+                <Animated.View
+                  style={[
+                    tw.style('absolute right-2'),
+                    { transform: [{ translateX: arrowAnimValue }] },
+                  ]}
+                >
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Md}
+                    color={IconColor.Default}
+                  />
+                </Animated.View>
+              </View>
+            )}
         </Box>
 
         {showPagination && (
@@ -302,21 +457,59 @@ const ChooseYourCard = () => {
           </Text>
         </Box>
 
-        <Box twClassName="px-4 mt-6 gap-4 flex-1">
+        {selectedCard.id === CardType.METAL && (
+          <Box twClassName="mt-2 w-full items-center justify-center">
+            <Box twClassName="rounded-full bg-primary-muted py-2 px-4 flex-row items-center gap-2">
+              <Icon
+                name={IconName.TrendUp}
+                size={IconSize.Sm}
+                color={IconColor.Info}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                twClassName="text-info-default"
+              >
+                {strings('card.choose_your_card.earn_up_to_badge')}
+              </Text>
+            </Box>
+          </Box>
+        )}
+
+        <Box twClassName="px-4 mt-4 gap-4 flex-1">
           {selectedCard.features.map((feature, index) =>
-            renderFeatureItem(feature, index),
+            renderFeatureItem(feature.label, index, feature.isHighlighted),
           )}
         </Box>
 
-        <Box twClassName="px-4 pb-4">
+        <Box twClassName="px-4 pb-4 gap-2">
           <Button
             variant={ButtonVariants.Primary}
-            label={strings('card.choose_your_card.continue_button')}
+            label={
+              selectedCard.id === CardType.METAL
+                ? strings('card.choose_your_card.upgrade_title')
+                : strings('card.choose_your_card.continue_button')
+            }
             size={ButtonSize.Lg}
             onPress={handleContinue}
             width={ButtonWidthTypes.Full}
             testID={ChooseYourCardSelectors.CONTINUE_BUTTON}
           />
+          {activeIndex === 0 && !isUpgradeFlow && (
+            <TouchableOpacity
+              onPress={handleScrollToMetal}
+              testID={ChooseYourCardSelectors.UPGRADE_TO_METAL_BUTTON}
+              style={tw.style('px-4 py-2 w-full items-center justify-center')}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Regular}
+                twClassName="text-white"
+              >
+                {strings('card.choose_your_card.upgrade_to_metal_label')}
+              </Text>
+            </TouchableOpacity>
+          )}
         </Box>
       </Box>
     </SafeAreaView>

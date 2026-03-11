@@ -976,7 +976,7 @@ const CardHome = () => {
     );
 
     navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
-      flow: 'onboarding',
+      flow: 'home',
       shippingAddress: userShippingAddress,
     });
   }, [navigation, trackEvent, createEventBuilder, userShippingAddress]);

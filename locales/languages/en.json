@@ -6931,7 +6931,7 @@
       "upgrade_title": "Upgrade to Metal",
       "continue_button": "Continue",
       "virtual_card": {
-        "name": "Orange Virtual Card",
+        "name": "Virtual Card",
         "price": "Free",
         "feature_1": "Virtual card for Apple Pay and Google Pay",
         "feature_2": "Pay with crypto (USDC, USDT, WETH, and more)",
@@ -6940,10 +6940,13 @@
       "metal_card": {
         "name": "Metal Card",
         "price": "$199/year",
-        "feature_1": "Engraved metal card and virtual card for Apple Pay and Google Pay",
-        "feature_2": "3% cashback on the first $10,000 spent each year, then 1% after that",
+        "everything_in_virtual": "Everything in virtual, plus:",
+        "feature_1": "Premium engraved metal card",
+        "feature_2": "3% cashback on first $10,000/year",
         "feature_3": "No foreign transaction fees"
-      }
+      },
+      "earn_up_to_badge": "Earn up to $300 in cashback annually",
+      "upgrade_to_metal_label": "Or upgrade to Metal for 3x rewards"
     },
     "review_order": {
       "title": "Review your order",
