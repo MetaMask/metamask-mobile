@@ -3,7 +3,6 @@ import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { Hex, Json } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
-import { snakeCase } from 'lodash';
 import type { DeepSnakeCaseKeys } from './analytics.types';
 
 /**
@@ -24,6 +23,9 @@ export const formatChainIdForAnalytics = (
   return isNonEvmChainId(chainIdStr) ? chainIdStr : toHex(chainId);
 };
 
+const camelToSnakeCase = (str: string): string =>
+  str.replace(/[A-Z]/g, (ch) => `_${ch.toLowerCase()}`);
+
 export const deepSnakeCaseKeys = <T>(obj: T): DeepSnakeCaseKeys<T> => {
   if (Array.isArray(obj)) {
     return obj.map(deepSnakeCaseKeys) as DeepSnakeCaseKeys<T>;
@@ -31,7 +33,7 @@ export const deepSnakeCaseKeys = <T>(obj: T): DeepSnakeCaseKeys<T> => {
   if (obj !== null && typeof obj === 'object') {
     return Object.entries(obj).reduce(
       (acc, [key, value]) => {
-        acc[snakeCase(key)] = deepSnakeCaseKeys(value);
+        acc[camelToSnakeCase(key)] = deepSnakeCaseKeys(value);
         return acc;
       },
       {} as Record<string, unknown>,

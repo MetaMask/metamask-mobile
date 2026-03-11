@@ -1,3 +1,8 @@
+/**
+ * Converts a camelCase string to snake_case at the type level.
+ *
+ * Inserts an underscore before each uppercase letter, then lowercases.
+ */
 type CamelToSnakeCase<S extends string> = S extends `${infer T}${infer U}`
   ? U extends Uncapitalize<U>
     ? `${Lowercase<T>}${CamelToSnakeCase<U>}`
