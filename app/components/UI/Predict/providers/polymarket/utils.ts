@@ -728,15 +728,23 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const moneylineMarket = event.markets?.find((m) => isMoneylineMarket(m));
+      const description =
+        moneylineMarket?.description ??
+        event.markets?.[0]?.description ??
+        event.description;
+
       return {
         id: event.id,
         slug: event.slug,
         providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        // As per Polymarket's team, we should use the first market's description
-        // rather than the event's description. The event's description is not
-        // guaranteed to be accurate. They also do this on their webbsite.
-        description: event.markets?.[0]?.description ?? event.description,
+        description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
