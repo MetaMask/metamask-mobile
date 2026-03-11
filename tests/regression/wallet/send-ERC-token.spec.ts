@@ -3,7 +3,6 @@ import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
 import { loginToApp } from '../../flows/wallet.flow';
-import TransactionConfirmationView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
 import Assertions from '../../framework/Assertions';
@@ -12,12 +11,17 @@ import Matchers from '../../framework/Matchers';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  confirmationFeatureFlags,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { Mockttp } from 'mockttp';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -53,10 +57,10 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         restartDevice: true,
         smartContracts: [SMART_CONTRACTS.HST],
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            Object.assign({}, ...confirmationFeatureFlags),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+            ...Object.assign({}, ...confirmationFeatureFlags),
+          });
         },
       },
       async ({ contractRegistry }) => {
@@ -65,11 +69,11 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         );
 
         await loginToApp();
-        await WalletView.tapImportTokensButton();
-        await ImportTokensView.switchToCustomTab();
-        await ImportTokensView.tapOnNetworkInput();
-        await ImportTokensView.swipeNetworkList();
-        await ImportTokensView.tapNetworkOption('Localhost');
+        await WalletView.tapOnNewTokensSection();
+        await WalletView.tapTokenNetworkFilter();
+        await NetworkListModal.tapOnCustomTab();
+        await NetworkListModal.changeNetworkTo('Local RPC');
+        await WalletView.tapImportTokensButton(); // Disable sync to prevent test hang
         await ImportTokensView.typeTokenAddress(hstAddress);
         await Assertions.expectElementToHaveText(
           ImportTokensView.symbolInput,
@@ -79,22 +83,21 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
             description: 'Symbol field should auto-populate with TST',
           },
         );
-        await ImportTokensView.tapOnNextButton('Import Token');
+
+        await ImportTokensView.tapOnNextButton('Search Token');
         // Tap confirm by id to avoid relying on shared page object
-        await Gestures.waitAndTap(
-          Matchers.getElementByID('bottomsheetfooter-button-subsequent'),
-          { elemDescription: 'Confirm Add Asset Button', timeout: 15000 },
-        );
-        await Assertions.expectElementToBeVisible(
-          WalletView.tokenInWallet('100 TST'),
-        );
-        await WalletView.tapOnToken('100 TST');
-        await Assertions.expectElementToBeVisible(TokenOverview.tokenPrice);
+        await Gestures.waitAndTap(Matchers.getElementByText('Import'), {
+          elemDescription: 'Confirm Add Asset Button',
+          timeout: 15000,
+        });
+        await WalletView.tapOnNewTokensSection();
+        await WalletView.tapOnToken('TST');
         await TokenOverview.tapSendButton();
+        await RedesignedSendView.pressAmountFiveButton();
+        await RedesignedSendView.pressContinueButton();
         await RedesignedSendView.inputRecipientAddress(SEND_ADDRESS);
-        await RedesignedSendView.typeInTransactionAmount('0.000001');
         await RedesignedSendView.pressReviewButton();
-        await TransactionConfirmationView.tapConfirmButton();
+        await FooterActions.tapConfirmButton();
         await Assertions.expectTextDisplayed('Confirmed', {
           timeout: 30000,
           description: 'Transaction status should display Confirmed',
