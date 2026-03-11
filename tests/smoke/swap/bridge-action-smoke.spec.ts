@@ -101,8 +101,19 @@ describe(SmokeTrade('Bridge functionality'), () => {
           description: 'Activity title visible',
         });
         await Assertions.expectElementToBeVisible(
+          ActivitiesView.confirmedLabel,
+          {
+            timeout: 120000,
+            description:
+              'Bridge transaction confirmed after getTxStatus returns COMPLETE',
+          },
+        );
+        await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
-          { description: 'Bridge activity for destination network visible' },
+          {
+            timeout: 30000,
+            description: 'Bridge activity for destination network visible',
+          },
         );
       },
     );
