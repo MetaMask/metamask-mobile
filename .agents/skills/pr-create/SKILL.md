@@ -17,7 +17,7 @@ git rev-parse --verify origin/<branch>
 
 - On `main` --> abort: "Cannot create a PR from main"
 - Dirty working tree --> abort: "Commit all changes before creating a PR"
-- Branch not on origin --> **ask the user** if they want to push. Default answer is **no**. Never push without explicit user consent.
+- Branch not on origin --> use the `AskQuestion` tool to ask whether to push, with options "Yes, push" and "No, abort" (default: **No, abort**). Never push without explicit user consent.
 
 ### 2. Generate a PR description
 
@@ -88,7 +88,7 @@ Tell the user they can paste it in `#metamask-mobile-dev` in the "Mobile PRs tha
 
 ### 5. Offer to add PR to review queue
 
-Ask the user if they want to add the PR to the [PR review queue](https://github.com/orgs/MetaMask/projects/64/views/1) (see `pr-review-queue` skill if available).
+Use the `AskQuestion` tool to ask whether to add the PR to the [PR review queue](https://github.com/orgs/MetaMask/projects/64/views/1), with options "Yes" and "No" (default: **Yes**). If yes, invoke the `pr-review-queue` skill if available.
 
 ## Rules
 
