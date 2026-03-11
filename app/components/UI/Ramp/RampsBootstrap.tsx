@@ -1,4 +1,5 @@
 import useRampsSmartRouting from './hooks/useRampsSmartRouting';
+import useRampsProviders from './hooks/useRampsProviders';
 
 /**
  * Ramps app bootstrap: runs smart routing, controller hydration, and provider
@@ -13,6 +14,7 @@ import useRampsSmartRouting from './hooks/useRampsSmartRouting';
  */
 function RampsBootstrap(): null {
   useRampsSmartRouting();
+  useRampsProviders();
   return null;
 }
 
