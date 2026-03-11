@@ -67,4 +67,7 @@ export const REWARDS_VIEW_SELECTORS = {
   SNAPSHOTS_ACTIVE_SECTION: 'rewards-view-snapshots-active-section',
   SNAPSHOTS_UPCOMING_SECTION: 'rewards-view-snapshots-upcoming-section',
   SNAPSHOTS_PREVIOUS_SECTION: 'rewards-view-snapshots-previous-section',
+  TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
+  TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',
+  TOP_BENEFIT_DETAILS_IMAGE: 'rewards-view-top-benefit-details-image',
 } as const;
