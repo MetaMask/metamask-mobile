@@ -68,6 +68,8 @@ import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Device from '../../../../../util/device';
+import ToastService from '../../../../../core/ToastService';
+import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
@@ -525,18 +527,21 @@ function BuildQuote() {
         (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
       );
       const providerCode = normalizeProviderCode(selectedQuote.provider);
-      // The redirectUrl baked into the quote's buyURL at quote-fetch time is the
-      // HTTPS fake-callback. For providers that open an external OS browser (e.g.
-      // PayPal), we need a deep link instead so the browser redirects back to the
-      // app. We always override the redirectUrl before fetching the widget because
-      // the browser type is only known after the fetch (chicken-and-egg). This is
-      // safe: in-app browser providers ignore the redirectUrl parameter.
       const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+
+      const embeddedWidget = selectedQuote.quote?.buyWidget;
+      const knownUseExternalBrowser =
+        isCustomAction || embeddedWidget?.browser === 'IN_APP_OS_BROWSER';
 
       let quoteForWidget = selectedQuote;
       if (selectedQuote.quote?.buyURL) {
         const buyUrl = new URL(selectedQuote.quote.buyURL);
-        buyUrl.searchParams.set('redirectUrl', deeplinkRedirectUrl);
+        buyUrl.searchParams.set(
+          'redirectUrl',
+          knownUseExternalBrowser
+            ? deeplinkRedirectUrl
+            : getRampCallbackBaseUrl(),
+        );
         quoteForWidget = {
           ...selectedQuote,
           quote: {
@@ -604,6 +609,28 @@ function BuildQuote() {
                     providerCode,
                     walletAddress: effectiveWallet || undefined,
                   },
+                },
+              ],
+            });
+          } else {
+            ToastService.showToast({
+              variant: ToastVariants.Plain,
+              hasNoTimeout: false,
+              labelOptions: [
+                {
+                  label: strings(
+                    'deposit.buildQuote.externalBrowserReturnNoOrderId',
+                  ),
+                  isBold: false,
+                },
+              ],
+            });
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: Routes.RAMP.BUILD_QUOTE,
+                  params: {},
                 },
               ],
             });
