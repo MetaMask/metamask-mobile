@@ -15,7 +15,9 @@ export class TeamsCache {
   private static instance: TeamsCache | null = null;
   private cache: Map<PredictSportsLeague, Map<string, PolymarketApiTeam>> =
     new Map();
+  private fullyLoadedLeagues: Set<PredictSportsLeague> = new Set();
   private loadingPromises: Map<PredictSportsLeague, Promise<void>> = new Map();
+  private teamBatchLoadingPromises: Map<string, Promise<void>> = new Map();
 
   // eslint-disable-next-line no-empty-function
   private constructor() {}
@@ -33,7 +35,7 @@ export class TeamsCache {
   }
 
   async ensureLeagueLoaded(league: PredictSportsLeague): Promise<void> {
-    if (this.cache.has(league)) {
+    if (this.fullyLoadedLeagues.has(league)) {
       return;
     }
 
@@ -42,7 +44,19 @@ export class TeamsCache {
       return existingPromise;
     }
 
-    const loadPromise = this.fetchAndCacheTeams(league);
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const url = `${GAMMA_API_ENDPOINT}/teams?league=${league}`;
+
+    const loadPromise = this.fetchAndCacheFromUrl(
+      league,
+      url,
+      'replace',
+      'TeamsCache.ensureLeagueLoaded',
+    ).then((success) => {
+      if (success) {
+        this.fullyLoadedLeagues.add(league);
+      }
+    });
     this.loadingPromises.set(league, loadPromise);
 
     try {
@@ -54,6 +68,45 @@ export class TeamsCache {
 
   async ensureLeaguesLoaded(leagues: PredictSportsLeague[]): Promise<void> {
     await Promise.all(leagues.map((league) => this.ensureLeagueLoaded(league)));
+  }
+
+  async ensureTeamsLoaded(
+    league: PredictSportsLeague,
+    abbreviations: string[],
+  ): Promise<void> {
+    const uncached = [
+      ...new Set(abbreviations.map((a) => a.toLowerCase())),
+    ].filter((abbr) => !this.getTeam(league, abbr));
+
+    if (uncached.length === 0) {
+      return;
+    }
+
+    const key = `${league}:${uncached.sort((a, b) => a.localeCompare(b)).join(',')}`;
+    const existingPromise = this.teamBatchLoadingPromises.get(key);
+    if (existingPromise) {
+      return existingPromise;
+    }
+
+    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
+    const params = new URLSearchParams({ league });
+    uncached.forEach((abbr) => params.append('abbreviation', abbr));
+    const url = `${GAMMA_API_ENDPOINT}/teams?${params.toString()}`;
+
+    const loadPromise = this.fetchAndCacheFromUrl(
+      league,
+      url,
+      'merge',
+      'TeamsCache.ensureTeamsLoaded',
+      uncached,
+    ).then(() => undefined as void);
+    this.teamBatchLoadingPromises.set(key, loadPromise);
+
+    try {
+      await loadPromise;
+    } finally {
+      this.teamBatchLoadingPromises.delete(key);
+    }
   }
 
   getTeam(
@@ -68,23 +121,39 @@ export class TeamsCache {
   }
 
   isLeagueLoaded(league: PredictSportsLeague): boolean {
-    return this.cache.has(league);
+    return this.fullyLoadedLeagues.has(league);
   }
 
   clear(): void {
     this.cache.clear();
+    this.fullyLoadedLeagues.clear();
     this.loadingPromises.clear();
+    this.teamBatchLoadingPromises.clear();
   }
 
   getTeamCount(league: PredictSportsLeague): number {
     return this.cache.get(league)?.size ?? 0;
   }
 
-  private async fetchAndCacheTeams(league: PredictSportsLeague): Promise<void> {
-    const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-    const url = `${GAMMA_API_ENDPOINT}/teams?league=${league}`;
-
-    DevLogger.log(`[TeamsCache] Fetching teams for league: ${league}`);
+  /**
+   * Shared fetch+cache logic for both full-league and specific-team loading.
+   *
+   * @param league - The league to cache teams under
+   * @param url - The fully-constructed API URL
+   * @param mode - 'replace' creates a fresh league cache; 'merge' adds to existing
+   * @param callerMethod - For error logging context
+   * @param abbreviations - Optional, for error logging on specific-team fetches
+   */
+  private async fetchAndCacheFromUrl(
+    league: PredictSportsLeague,
+    url: string,
+    mode: 'replace' | 'merge',
+    callerMethod: string,
+    abbreviations?: string[],
+  ): Promise<boolean> {
+    DevLogger.log(
+      `[TeamsCache] Fetching teams for league: ${league}${abbreviations ? `, teams: ${abbreviations.join(', ')}` : ''}`,
+    );
 
     try {
       const response = await fetch(url);
@@ -95,11 +164,12 @@ export class TeamsCache {
         Logger.error(new Error(errorMessage), {
           feature: 'predict',
           provider: POLYMARKET_PROVIDER_ID,
-          method: 'TeamsCache.fetchAndCacheTeams',
+          method: callerMethod,
           league,
+          ...(abbreviations && { abbreviations }),
           statusCode: response.status,
         });
-        return;
+        return false;
       }
 
       const teams: PolymarketApiTeam[] = await response.json();
@@ -110,17 +180,22 @@ export class TeamsCache {
         Logger.error(new Error(errorMessage), {
           feature: 'predict',
           provider: POLYMARKET_PROVIDER_ID,
-          method: 'TeamsCache.fetchAndCacheTeams',
+          method: callerMethod,
           league,
+          ...(abbreviations && { abbreviations }),
         });
-        return;
+        return false;
       }
 
-      const leagueCache = new Map<string, PolymarketApiTeam>();
+      const leagueCache =
+        mode === 'merge'
+          ? (this.cache.get(league) ?? new Map<string, PolymarketApiTeam>())
+          : new Map<string, PolymarketApiTeam>();
 
       for (const team of teams) {
         if (team.abbreviation) {
-          team.color = TEAM_COLOR_OVERRIDES[team.abbreviation] ?? team.color;
+          team.color =
+            TEAM_COLOR_OVERRIDES[team.abbreviation.toLowerCase()] ?? team.color;
           leagueCache.set(team.abbreviation.toLowerCase(), team);
         }
       }
@@ -128,8 +203,10 @@ export class TeamsCache {
       this.cache.set(league, leagueCache);
 
       DevLogger.log(
-        `[TeamsCache] Cached ${leagueCache.size} teams for league: ${league}`,
+        `[TeamsCache] Cached ${teams.length} teams for league: ${league}`,
       );
+
+      return true;
     } catch (error) {
       DevLogger.log(
         `[TeamsCache] Error fetching teams for ${league}:`,
@@ -138,9 +215,11 @@ export class TeamsCache {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         feature: 'predict',
         provider: POLYMARKET_PROVIDER_ID,
-        method: 'TeamsCache.fetchAndCacheTeams',
+        method: callerMethod,
         league,
+        ...(abbreviations && { abbreviations }),
       });
+      return false;
     }
   }
 }

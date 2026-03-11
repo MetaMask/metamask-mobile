@@ -1,11 +1,14 @@
 import { Interface } from '@ethersproject/abi';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
   addMMOriginatedTransaction,
   get4ByteCode,
+  getErrorMessage,
+  getSeverity,
   hasTransactionType,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
@@ -251,5 +254,61 @@ describe('isTransactionPayWithdraw', () => {
 
   it('returns false for undefined transaction', () => {
     expect(isTransactionPayWithdraw(undefined)).toBe(false);
+  });
+});
+
+describe('getSeverity', () => {
+  it('returns success for confirmed status', () => {
+    expect(getSeverity(TransactionStatus.confirmed)).toBe('success');
+  });
+
+  it('returns error for failed status', () => {
+    expect(getSeverity(TransactionStatus.failed)).toBe('error');
+  });
+
+  it('returns error for dropped status', () => {
+    expect(getSeverity(TransactionStatus.dropped)).toBe('error');
+  });
+
+  it('returns warning for pending status', () => {
+    expect(getSeverity(TransactionStatus.submitted)).toBe('warning');
+  });
+});
+
+describe('getErrorMessage', () => {
+  it('returns undefined when no error', () => {
+    expect(
+      getErrorMessage({ error: undefined } as unknown as TransactionMeta),
+    ).toBeUndefined();
+  });
+
+  it('returns error message', () => {
+    expect(
+      getErrorMessage({
+        error: { message: 'tx failed' },
+      } as unknown as TransactionMeta),
+    ).toBe('tx failed');
+  });
+
+  it('returns parsed stack message when available', () => {
+    expect(
+      getErrorMessage({
+        error: {
+          message: 'generic',
+          stack: 'Error: {"data":{"message":"nonce too low"}}',
+        },
+      } as unknown as TransactionMeta),
+    ).toBe('nonce too low');
+  });
+
+  it('falls back to error message when stack parsing fails', () => {
+    expect(
+      getErrorMessage({
+        error: {
+          message: 'fallback',
+          stack: 'not valid json',
+        },
+      } as unknown as TransactionMeta),
+    ).toBe('fallback');
   });
 });
