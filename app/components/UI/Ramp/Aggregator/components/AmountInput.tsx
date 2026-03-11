@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, TouchableOpacity, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
@@ -42,6 +48,7 @@ export interface Props {
   highlighted?: boolean;
   loading?: boolean;
   highlightedError?: boolean;
+  tokenSymbol?: string;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onPress?: () => any;
@@ -58,6 +65,7 @@ const AmountInput: React.FC<Props> = ({
   highlighted,
   loading,
   highlightedError,
+  tokenSymbol,
   onPress,
   onCurrencyPress,
 }: Props) => {
@@ -65,12 +73,7 @@ const AmountInput: React.FC<Props> = ({
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
 
   useEffect(() => {
-    const shouldAnimateCursor =
-      highlighted && !loading && process.env.NODE_ENV !== 'test';
-
-    if (!shouldAnimateCursor) {
-      cursorOpacity.stopAnimation();
-      cursorOpacity.setValue(1);
+    if (process.env.NODE_ENV === 'test') {
       return;
     }
 
@@ -78,12 +81,12 @@ const AmountInput: React.FC<Props> = ({
       Animated.sequence([
         Animated.timing(cursorOpacity, {
           duration: 800,
-          easing: () => Easing.bounce(1),
+          easing: Easing.bounce,
           toValue: 0,
           useNativeDriver: true,
         }),
         Animated.timing(cursorOpacity, {
-          easing: () => Easing.bounce(1),
+          easing: Easing.bounce,
           duration: 800,
           toValue: 1,
           useNativeDriver: true,
@@ -95,10 +98,89 @@ const AmountInput: React.FC<Props> = ({
 
     return () => {
       blinkAnimation.stop();
-      cursorOpacity.stopAnimation();
-      cursorOpacity.setValue(0.6);
     };
-  }, [cursorOpacity, highlighted, loading]);
+  }, [cursorOpacity]);
+
+  const textColor = highlightedError ? TextColor.Error : TextColor.Default;
+
+  const renderAmountContent = () => {
+    if (loading) {
+      return <SkeletonText medium />;
+    }
+
+    if (highlighted) {
+      const cursorView = (
+        <Animated.View
+          style={[
+            styles.cursor,
+            {
+              backgroundColor: colors.primary.default,
+              opacity: cursorOpacity,
+            },
+          ]}
+          testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
+        />
+      );
+
+      // For sell: show "12.5 | ETH" with cursor before token symbol
+      if (tokenSymbol) {
+        const amountWithoutSymbol = amount.replace(tokenSymbol, '').trimEnd();
+
+        return (
+          <View style={styles.amountWithCursor}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.amount}
+              variant={TextVariant.BodyMDMedium}
+              color={textColor}
+            >
+              {amountWithoutSymbol}
+            </Text>
+            {cursorView}
+            <Text
+              style={styles.amount}
+              variant={TextVariant.BodyMDMedium}
+              color={textColor}
+            >
+              {' '}
+              {tokenSymbol}
+            </Text>
+          </View>
+        );
+      }
+
+      // For buy: show "$100 |" with cursor after amount
+      return (
+        <View style={styles.amountWithCursor}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            style={styles.amount}
+            variant={TextVariant.BodyMDMedium}
+            color={textColor}
+          >
+            {currencySymbol || ''}
+            {amount}
+          </Text>
+          {cursorView}
+        </View>
+      );
+    }
+
+    return (
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        style={styles.amount}
+        variant={TextVariant.BodyMDMedium}
+        color={textColor}
+      >
+        {currencySymbol || ''}
+        {amount}
+      </Text>
+    );
+  };
 
   return (
     <Box label={label} highlighted={highlighted} compact>
@@ -107,47 +189,12 @@ const AmountInput: React.FC<Props> = ({
           <TouchableOpacity
             accessible
             accessibilityRole="button"
+            accessibilityLabel={`${currencySymbol || ''}${amount}`}
             onPress={onPress}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
             testID={BuildQuoteSelectors.AMOUNT_INPUT}
           >
-            {loading ? (
-              <SkeletonText medium />
-            ) : highlighted ? (
-              <View style={styles.amountWithCursor}>
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  style={styles.amount}
-                  variant={TextVariant.BodyMDMedium}
-                  color={highlightedError ? TextColor.Error : TextColor.Default}
-                >
-                  {currencySymbol || ''}
-                  {amount}
-                </Text>
-                <Animated.View
-                  style={[
-                    styles.cursor,
-                    {
-                      backgroundColor: colors.primary.default,
-                      opacity: cursorOpacity,
-                    },
-                  ]}
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
-                />
-              </View>
-            ) : (
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                style={styles.amount}
-                variant={TextVariant.BodyMDMedium}
-                color={highlightedError ? TextColor.Error : TextColor.Default}
-              >
-                {currencySymbol || ''}
-                {amount}
-              </Text>
-            )}
+            {renderAmountContent()}
           </TouchableOpacity>
         </ListItemColumn>
 

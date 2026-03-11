@@ -88,25 +88,48 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
+              <View
                 style={
                   {
-                    "color": "#ca3542",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 64,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 72,
-                    "textAlign": "center",
+                    "alignItems": "center",
+                    "flexDirection": "row",
                   }
                 }
-                testID="amount-input"
               >
-                $100
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  adjustsFontSizeToFit={true}
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 64,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 72,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="amount-input"
+                >
+                  $
+                  100
+                </Text>
+                <View
+                  collapsable={false}
+                  style={
+                    {
+                      "backgroundColor": "#4459ff",
+                      "height": 48,
+                      "marginBottom": 6,
+                      "marginLeft": 4,
+                      "opacity": 0.6,
+                      "width": 2,
+                    }
+                  }
+                />
+              </View>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}
@@ -1136,25 +1159,48 @@ exports[`BuildQuote matches snapshot 1`] = `
                 }
               }
             >
-              <Text
-                accessibilityRole="text"
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
+              <View
                 style={
                   {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 64,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 72,
-                    "textAlign": "center",
+                    "alignItems": "center",
+                    "flexDirection": "row",
                   }
                 }
-                testID="amount-input"
               >
-                $100
-              </Text>
+                <Text
+                  accessibilityRole="text"
+                  adjustsFontSizeToFit={true}
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 64,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 72,
+                      "textAlign": "center",
+                    }
+                  }
+                  testID="amount-input"
+                >
+                  $
+                  100
+                </Text>
+                <View
+                  collapsable={false}
+                  style={
+                    {
+                      "backgroundColor": "#4459ff",
+                      "height": 48,
+                      "marginBottom": 6,
+                      "marginLeft": 4,
+                      "opacity": 0.6,
+                      "width": 2,
+                    }
+                  }
+                />
+              </View>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={[Function]}

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -104,6 +104,36 @@ function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
+  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
+    const blinkAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cursorOpacity, {
+          duration: 800,
+          easing: Easing.bounce,
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          easing: Easing.bounce,
+          duration: 800,
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    blinkAnimation.start();
+
+    return () => {
+      blinkAnimation.stop();
+    };
+  }, [cursorOpacity]);
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
@@ -185,6 +215,12 @@ function BuildQuote() {
     useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
+  const currencySymbol = useMemo(() => {
+    const formatted = formatCurrency(0, currency, {
+      currencyDisplay: 'narrowSymbol',
+    });
+    return formatted.replace(/[\d.,\s]/g, '');
+  }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
   const hasTrackedScreenViewRef = useRef(false);
@@ -663,22 +699,26 @@ function BuildQuote() {
           <ScreenLayout.Content style={styles.content}>
             <View style={styles.centerGroup}>
               <View style={styles.amountContainer}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.HeadingLG}
-                  color={
-                    nativeFlowError || hasNoQuotes || quoteFetchError
-                      ? TextColor.Error
-                      : undefined
-                  }
-                  style={styles.mainAmount}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {formatCurrency(amountAsNumber, currency, {
-                    currencyDisplay: 'narrowSymbol',
-                  })}
-                </Text>
+                <View style={styles.amountRow}>
+                  <Text
+                    testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                    variant={TextVariant.HeadingLG}
+                    color={
+                      nativeFlowError || hasNoQuotes || quoteFetchError
+                        ? TextColor.Error
+                        : undefined
+                    }
+                    style={styles.mainAmount}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {currencySymbol}
+                    {amount}
+                  </Text>
+                  <Animated.View
+                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                  />
+                </View>
                 <PaymentMethodPill
                   label={
                     selectedPaymentMethod?.name ||
