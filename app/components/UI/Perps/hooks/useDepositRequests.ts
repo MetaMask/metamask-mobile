@@ -118,9 +118,10 @@ export const useDepositRequests = (
         throw new Error('PerpsController not available');
       }
 
-      const provider = controller.getActiveProvider();
+      const provider = controller.getActiveProviderOrNull();
       if (!provider) {
-        throw new Error('No active provider available');
+        setIsLoading(false);
+        return;
       }
 
       // Check if provider has the getUserNonFundingLedgerUpdates method

@@ -89,6 +89,11 @@ import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
+import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
+import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
+import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
+import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
+import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -96,7 +101,12 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { trace, TraceName, TraceOperation } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -146,6 +156,10 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
+    bannerWrapper: {
+      paddingHorizontal: 16,
+      marginTop: 8,
+    } as ViewStyle,
   });
 };
 
@@ -189,6 +203,8 @@ export interface AssetOverviewContentProps {
   // Tron-specific
   isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
+  inLockPeriodBalance?: string;
+  readyForWithdrawalBalance?: string;
   onMarketInsightsDisplayResolved?: (isDisplayed: boolean) => void;
 
   // Security & Trust
@@ -230,6 +246,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   goToSwaps,
   isTronNative,
   stakedTrxAsset,
+  inLockPeriodBalance,
+  readyForWithdrawalBalance,
   onMarketInsightsDisplayResolved,
   prefetchedSecurityData,
 }) => {
@@ -302,6 +320,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     );
 
   const isTokenTrustworthy = isTokenTrustworthyForPerps(token);
+
+  const showPerpsSection =
+    isPerpsEnabled &&
+    hasPerpsMarket &&
+    Boolean(marketData) &&
+    isTokenTrustworthy &&
+    !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const caip19AssetId = useMemo((): CaipAssetType | null => {
@@ -379,22 +404,27 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   } = useMarketInsights(marketInsightsCaip19Id, isMarketInsightsEnabled);
 
   useEffect(() => {
-    if (!onMarketInsightsDisplayResolved) {
-      return;
-    }
     if (!isMarketInsightsEnabled) {
-      onMarketInsightsDisplayResolved(false);
+      onMarketInsightsDisplayResolved?.(false);
       return;
     }
     if (isMarketInsightsLoading) {
       return;
     }
-    onMarketInsightsDisplayResolved(Boolean(marketInsightsReport));
+    if (!marketInsightsReport && marketInsightsCaip19Id) {
+      // No report available — cancel the orphaned trace that was started during render
+      endTrace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+    onMarketInsightsDisplayResolved?.(Boolean(marketInsightsReport));
   }, [
     onMarketInsightsDisplayResolved,
     isMarketInsightsEnabled,
     isMarketInsightsLoading,
     marketInsightsReport,
+    marketInsightsCaip19Id,
   ]);
 
   // Start the entry card trace synchronously during render so it is registered
@@ -413,6 +443,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       id: marketInsightsCaip19Id,
     });
   }
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -678,6 +712,61 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             )
             ///: END:ONLY_INCLUDE_IF
           }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && readyForWithdrawalBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakedBanner amount={readyForWithdrawalBalance} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && inLockPeriodBalance && (
+              <View style={styles.bannerWrapper}>
+                <TronUnstakingBanner amount={inLockPeriodBalance} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronStakingButtons asset={stakedTrxAsset} />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && !stakedTrxAsset && (
+              <View style={styles.bannerWrapper}>
+                <TronStakingCta
+                  asset={token}
+                  aprText={tronApyPercent ?? undefined}
+                />
+              </View>
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {showPerpsSection && perpsPosition && (
+            <View style={styles.perpsPositionCardContainer}>
+              <Text
+                variant={TextVariant.HeadingMD}
+                style={styles.perpsPositionTitle}
+              >
+                {strings('asset_overview.perps_position')}
+              </Text>
+              <PerpsPositionCard
+                position={perpsPosition}
+                compact
+                onPress={handlePerpsDiscoveryPress}
+                testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
+              />
+            </View>
+          )}
           {isMarketInsightsEnabled &&
           marketInsightsReport &&
           marketInsightsCaip19Id ? (
@@ -691,44 +780,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           ) : null}
-          {isPerpsEnabled &&
-            hasPerpsMarket &&
-            marketData &&
-            isTokenTrustworthy &&
-            !isPerpsPositionLoading && (
-              <>
-                {perpsPosition ? (
-                  <View style={styles.perpsPositionCardContainer}>
-                    <Text
-                      variant={TextVariant.HeadingMD}
-                      style={styles.perpsPositionTitle}
-                    >
-                      {strings('asset_overview.perps_position')}
-                    </Text>
-                    <PerpsPositionCard
-                      position={perpsPosition}
-                      compact
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_POSITION_CARD}
-                    />
-                  </View>
-                ) : (
-                  <>
-                    <View style={styles.perpsPositionCardContainer}>
-                      <Text variant={TextVariant.HeadingMD}>
-                        {strings('asset_overview.perps_position')}
-                      </Text>
-                    </View>
-                    <PerpsDiscoveryBanner
-                      symbol={marketData.symbol}
-                      maxLeverage={marketData.maxLeverage}
-                      onPress={handlePerpsDiscoveryPress}
-                      testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
-                    />
-                  </>
-                )}
-              </>
-            )}
+          {showPerpsSection && !perpsPosition && marketData && (
+            <PerpsDiscoveryBanner
+              symbol={marketData.symbol}
+              maxLeverage={marketData.maxLeverage}
+              onPress={handlePerpsDiscoveryPress}
+              testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
+            />
+          )}
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>

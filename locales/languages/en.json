@@ -103,6 +103,10 @@
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_native_post_quote": {
+      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
+      "title": "Insufficient funds for post quote"
+    },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
@@ -2193,6 +2197,7 @@
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
@@ -2271,6 +2276,9 @@
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
           "try_again": "Try again"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2329,7 +2337,8 @@
       "exchange_fee": "Exchange fee",
       "exchange_fee_description": "Fee paid to the exchange or market",
       "total_incl_fees": "incl. fees",
-      "close": "Close"
+      "close": "Close",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -5989,7 +5998,7 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
+    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
@@ -6080,7 +6089,6 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "no_boost": "No boost",
       "your_musd": "Your mUSD",
       "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
@@ -6098,36 +6106,36 @@
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD is here!",
+        "delivered": "mUSD conversion successful",
+        "delivered_description": "Bonus will be claimable within a day.",
         "failed": "mUSD conversion failed"
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
       "powered_by_relay": "Powered by Relay",
       "max": "Max",
       "quick_convert_button": "Convert",
-      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
       "learn_more": "Learn more",
       "tooltip_title": "Earn yield with mUSD",
       "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
       "quick_convert": {
-        "title": "Convert and get {{apy}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "title": "Convert and get {{percentage}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
         "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert max"
         }
       },
-      "percentage_boost": "{{percentage}}% boost",
+      "percentage_bonus": "{{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
@@ -6168,7 +6176,9 @@
       "fee": "Fee",
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
-      }
+      },
+      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -6419,7 +6429,8 @@
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
-      "provider_fee": "Provider fee"
+      "provider_fee": "Provider fee",
+      "sending": "Sending"
     },
     "title": {
       "signature": "Signature request",
@@ -6457,10 +6468,10 @@
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to MUSD."
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees."
+        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -6646,8 +6657,13 @@
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "price_impact_info_title": "Price impact",
-    "price_impact_info_description": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "High price impact",
+    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
+    "proceed": "Proceed",
+    "cancel": "Cancel",
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
@@ -6667,14 +6683,21 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cancel": "Cancel",
     "confirm": "Confirm",
     "exceeding_upper_slippage_warning": "High slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_warning": "Low slippage, this may result in a unfavourable swap",
     "exceeding_lower_slippage_error": "Enter a value greater than {{value}}%",
     "exceeding_upper_slippage_error": "You cannot enter a value greater than {{value}}%",
     "custom": "Custom",
-    "invalid_recipient_address": "Invalid address"
+    "invalid_recipient_address": "Invalid address",
+    "select_quote": "Select Quote",
+    "select_quote_info": "Quotes are sorted by the estimated total cost, which includes the exchange rate and network fee.",
+    "lowest_cost": "Lowest cost",
+    "total_cost": "Total Cost",
+    "got_it": "Got it",
+    "price_impact_warning_title": "High price impact",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
@@ -7311,6 +7334,7 @@
         "order_metal_card_description": "Order your physical Metal Card now",
         "cashback": "Cashback",
         "cashback_description": "Earn 1% back on all spending",
+        "cashback_description_metal": "Earn 3% back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7464,7 +7488,8 @@
   "pay_with_modal": {
     "title": "Select payment method",
     "title_receive": "Select receive token",
-    "no_gas": "No native balance for gas"
+    "no_gas": "No native balance for gas",
+    "not_supported": "Not supported"
   },
   "connection_removed_modal": {
     "title": "Connections removed",
@@ -7701,7 +7726,13 @@
       "add_all_accounts": "Add all accounts",
       "environment_selector": "Environment",
       "environment_cancel": "Cancel",
-      "environment_default": "Default"
+      "environment_default": "Default",
+      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
+      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
+      "off_device_accounts_banner_cta": "View",
+      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
+      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
+      "off_device_accounts_sheet_let_us_know": "Let us know"
     },
     "referred_by_code": {
       "title": "Referral Code",

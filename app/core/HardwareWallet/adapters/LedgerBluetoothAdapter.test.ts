@@ -333,7 +333,7 @@ describe('LedgerBluetoothAdapter', () => {
 
   describe('ensureDeviceReady', () => {
     beforeEach(async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
     });
 
@@ -352,7 +352,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns true when Ethereum app is open and unlocked', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
 
       const result = await adapter.ensureDeviceReady('device-123');
@@ -362,7 +362,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('emits AppOpened event when correct app is detected and unlocked', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
 
       await adapter.ensureDeviceReady('device-123');
@@ -376,7 +376,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false and emits AppNotOpen when wrong app is open', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Bitcoin');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Bitcoin');
 
       const result = await adapter.ensureDeviceReady('device-123');
 
@@ -391,7 +391,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false and emits AppNotOpen when on BOLOS screen', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('BOLOS');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('BOLOS');
 
       const result = await adapter.ensureDeviceReady('device-123');
 
@@ -410,7 +410,7 @@ describe('LedgerBluetoothAdapter', () => {
       (lockedError as { statusCode?: number }).statusCode = 0x6b0c;
       (lockedError as { name?: string }).name = 'TransportStatusError';
       mockGetAddress.mockRejectedValueOnce(lockedError);
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
 
       const result = await adapter.ensureDeviceReady('device-123');
 
@@ -434,7 +434,8 @@ describe('LedgerBluetoothAdapter', () => {
     it('retries on disconnect during check and eventually succeeds', async () => {
       const disconnectError = new Error('Disconnected');
       (disconnectError as { name?: string }).name = 'DisconnectedDevice';
-      (connectLedgerHardware as jest.Mock)
+      jest
+        .mocked(connectLedgerHardware)
         .mockRejectedValueOnce(disconnectError)
         .mockResolvedValueOnce('Ethereum');
       mockGetAddress.mockResolvedValue({ address: '0x1234' });
@@ -445,10 +446,28 @@ describe('LedgerBluetoothAdapter', () => {
       expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
     });
 
+    it.each(['PairingFailed', 'PeerRemovedPairing', 'BleError'])(
+      'retries on transient BLE error "%s" during check and eventually succeeds',
+      async (errorName) => {
+        const bleError = new Error(`BLE failure: ${errorName}`);
+        bleError.name = errorName;
+        jest
+          .mocked(connectLedgerHardware)
+          .mockRejectedValueOnce(bleError)
+          .mockResolvedValueOnce('Ethereum');
+        mockGetAddress.mockResolvedValue({ address: '0x1234' });
+
+        const result = await adapter.ensureDeviceReady('device-123');
+
+        expect(result).toBe(true);
+        expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+      },
+    );
+
     it('throws when non-disconnect error during check', async () => {
-      (connectLedgerHardware as jest.Mock).mockRejectedValueOnce(
-        new Error('Device busy'),
-      );
+      jest
+        .mocked(connectLedgerHardware)
+        .mockRejectedValueOnce(new Error('Device busy'));
 
       await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
         'Device busy',
@@ -456,7 +475,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false and emits AppNotOpen when BOLOS and openEthereumAppOnLedger rejects', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('BOLOS');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('BOLOS');
       const { openEthereumAppOnLedger } = jest.requireMock(
         '../../Ledger/Ledger',
       ) as { openEthereumAppOnLedger: jest.Mock };
@@ -474,7 +493,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false when wrong app open and closeRunningAppOnLedger rejects', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Bitcoin');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Bitcoin');
       const { closeRunningAppOnLedger } = jest.requireMock(
         '../../Ledger/Ledger',
       ) as { closeRunningAppOnLedger: jest.Mock };
@@ -489,7 +508,7 @@ describe('LedgerBluetoothAdapter', () => {
       const lockedError = new Error('Locked');
       (lockedError as { statusCode?: number }).statusCode = 0x6b0c;
       (lockedError as { name?: string }).name = 'TransportStatusError';
-      (connectLedgerHardware as jest.Mock).mockRejectedValueOnce(lockedError);
+      jest.mocked(connectLedgerHardware).mockRejectedValueOnce(lockedError);
 
       await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
         lockedError,
@@ -503,7 +522,7 @@ describe('LedgerBluetoothAdapter', () => {
     });
 
     it('returns false when verification fails with non-disconnect non-locked error', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockRejectedValueOnce(new Error('User cancelled'));
 
       const result = await adapter.ensureDeviceReady('device-123');
@@ -514,8 +533,25 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
+    it.each(['PairingFailed', 'PeerRemovedPairing', 'BleError'])(
+      'retries when verification fails with transient BLE error "%s"',
+      async (errorName) => {
+        const bleError = new Error(`BLE failure: ${errorName}`);
+        bleError.name = errorName;
+        jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
+        mockGetAddress
+          .mockRejectedValueOnce(bleError)
+          .mockResolvedValueOnce({ address: '0x1234' });
+
+        const result = await adapter.ensureDeviceReady('device-123');
+
+        expect(result).toBe(true);
+        expect(connectLedgerHardware).toHaveBeenCalledTimes(2);
+      },
+    );
+
     it('emits DeviceLocked when getAddress fails with Locked device message', async () => {
-      (connectLedgerHardware as jest.Mock).mockResolvedValue('Ethereum');
+      jest.mocked(connectLedgerHardware).mockResolvedValue('Ethereum');
       mockGetAddress.mockRejectedValueOnce(
         Object.assign(new Error('Locked device'), { name: 'Other' }),
       );
@@ -532,7 +568,7 @@ describe('LedgerBluetoothAdapter', () => {
 
     it('throws LedgerTimeoutError when device unresponsive during app check', async () => {
       jest.useFakeTimers();
-      (connectLedgerHardware as jest.Mock).mockImplementation(
+      jest.mocked(connectLedgerHardware).mockImplementation(
         // eslint-disable-next-line no-empty-function
         () => new Promise(() => {}),
       );

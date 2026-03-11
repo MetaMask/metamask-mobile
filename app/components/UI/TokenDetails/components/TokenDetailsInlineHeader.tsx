@@ -57,7 +57,7 @@ export const TokenDetailsInlineHeader = ({
       <ButtonIcon
         style={styles.leftButton}
         onPress={onBackPress}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         testID="back-arrow-button"
       />

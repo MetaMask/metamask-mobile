@@ -118,7 +118,6 @@ import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
-import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1211,11 +1210,6 @@ const MainNavigator = () => {
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}
         options={NotificationsOptInStack.navigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
-        component={TurnOnBackupAndSync}
-        options={TurnOnBackupAndSync.navigationOptions}
       />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"

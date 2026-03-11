@@ -760,28 +760,16 @@ export class MarketDataService {
         },
       });
 
-      // Check if provider supports historical candles via clientService
-      const hyperLiquidProvider = provider as {
-        clientService?: {
-          fetchHistoricalCandles?: (options: {
-            symbol: string;
-            interval: CandlePeriod;
-            limit?: number;
-            endTime?: number;
-          }) => Promise<CandleData>;
-        };
-      };
-      if (!hyperLiquidProvider.clientService?.fetchHistoricalCandles) {
+      if (!provider.fetchHistoricalCandles) {
         throw new Error('Historical candles not supported by provider');
       }
 
-      const result =
-        await hyperLiquidProvider.clientService.fetchHistoricalCandles({
-          symbol,
-          interval,
-          limit,
-          endTime,
-        });
+      const result = await provider.fetchHistoricalCandles({
+        symbol,
+        interval,
+        limit,
+        endTime,
+      });
 
       traceData = { success: true };
       return result;

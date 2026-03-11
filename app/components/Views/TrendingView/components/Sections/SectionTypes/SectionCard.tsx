@@ -12,7 +12,7 @@ const createStyles = (theme: Theme) =>
     cardContainer: {
       borderRadius: 12,
       marginBottom: 20,
-      paddingVertical: 16,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor: theme.colors.background.muted,
       borderWidth: 0,

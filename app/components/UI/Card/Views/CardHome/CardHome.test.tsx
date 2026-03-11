@@ -65,6 +65,14 @@ jest.mock('@expensify/react-native-wallet', () => ({
   AddToWalletButton: () => null,
 }));
 
+const mockRemoveQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: jest.fn(() => ({
+    removeQueries: mockRemoveQueries,
+  })),
+}));
+
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -531,6 +539,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Failed to load PIN. Please try again.',
       'card.password_bottomsheet.description_view_pin':
         'Enter your wallet password to view your card PIN.',
+      'card.card_home.manage_card_options.cashback': 'Cashback',
+      'card.card_home.manage_card_options.cashback_description':
+        'Earn 1% back on all spending',
+      'card.card_home.manage_card_options.cashback_description_metal':
+        'Earn 3% back on all spending',
     };
     return strings[key] || key;
   },
@@ -2624,9 +2637,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
       await waitFor(() => {
@@ -2657,7 +2668,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
@@ -2678,7 +2689,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
     });
 
     it('does nothing when error is not an authentication error', () => {
@@ -2696,7 +2707,7 @@ describe('CardHome Component', () => {
       // Then: should not trigger authentication error handling
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockResetAuthenticatedData).not.toHaveBeenCalled();
-      expect(mockClearAllCache).not.toHaveBeenCalled();
+      expect(mockRemoveQueries).not.toHaveBeenCalled();
       expect(mockNavigationDispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({ type: 'REPLACE' }),
       );
@@ -2748,7 +2759,7 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: should dispatch Redux actions after token removal
+      // Then: should dispatch Redux actions and clear query cache after token removal
       await waitFor(() => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
@@ -2757,9 +2768,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
     });
 
@@ -2866,9 +2875,7 @@ describe('CardHome Component', () => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
         expect(StackActions.replace).toHaveBeenCalledWith(
           Routes.CARD.AUTHENTICATION,
         );
@@ -2888,10 +2895,12 @@ describe('CardHome Component', () => {
       mockDispatch.mockImplementation((action) => {
         if (action.type === 'card/resetAuthenticatedData') {
           callOrder.push('resetAuth');
-        } else if (action.type === 'card/clearAllCache') {
-          callOrder.push('clearCache');
         }
         return action;
+      });
+
+      mockRemoveQueries.mockImplementation(() => {
+        callOrder.push('removeQueries');
       });
 
       mockNavigationDispatch.mockImplementation(() => {
@@ -2911,7 +2920,7 @@ describe('CardHome Component', () => {
         expect(callOrder).toEqual([
           'removeToken',
           'resetAuth',
-          'clearCache',
+          'removeQueries',
           'navigate',
         ]);
       });
@@ -2936,14 +2945,12 @@ describe('CardHome Component', () => {
         expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       });
 
-      // 2. Dispatch Redux actions
+      // 2. Dispatch Redux actions and clear query cache
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ type: 'card/resetAuthenticatedData' }),
         );
-        expect(mockDispatch).toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'card/clearAllCache' }),
-        );
+        expect(mockRemoveQueries).toHaveBeenCalled();
       });
 
       // 3. Navigate to authentication screen (this happens after toast is shown)
@@ -5563,6 +5570,189 @@ describe('CardHome Component', () => {
       const cardDetails = options.cardDetails as { holderName: string };
 
       expect(cardDetails.holderName).toBe('Jane Smith');
+    });
+  });
+
+  describe('Cashback List Item', () => {
+    it('displays cashback item for authenticated international user with VERIFIED KYC', () => {
+      // Given: authenticated international user with verified KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: cashback item is visible
+      expect(
+        screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides cashback item for US users', () => {
+      // Given: authenticated US user with verified KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'us',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: cashback item is not rendered
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides cashback item when user is not authenticated', () => {
+      // Given: unauthenticated user
+      setupMockSelectors({
+        isAuthenticated: false,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: false,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+      });
+
+      // When: component renders
+      render();
+
+      // Then: cashback item is not rendered
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides cashback item when KYC is not verified', () => {
+      // Given: authenticated international user with pending KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'PENDING', userId: 'user-123' },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: cashback item is not rendered
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows standard cashback description for virtual card', () => {
+      // Given: authenticated international user with virtual card
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: standard description is shown
+      expect(
+        screen.getByText('Earn 1% back on all spending'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows metal cashback description for metal card', () => {
+      // Given: authenticated international user with metal card
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.METAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: component renders
+      render();
+
+      // Then: metal description is shown
+      expect(
+        screen.getByText('Earn 3% back on all spending'),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to cashback screen on press', () => {
+      // Given: authenticated international user with verified KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: user taps cashback item
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
+
+      // Then: navigates to cashback route
+      expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('tracks analytics event on press', () => {
+      // Given: authenticated international user with verified KYC
+      setupMockSelectors({
+        isAuthenticated: true,
+        userLocation: 'international',
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        isBaanxLoginEnabled: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        isLoading: false,
+        kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
+      });
+
+      // When: user taps cashback item
+      render();
+      fireEvent.press(screen.getByTestId(CardHomeSelectors.CASHBACK_ITEM));
+
+      // Then: tracks cashback button event
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

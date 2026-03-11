@@ -1,3 +1,4 @@
+const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockCloseToast = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -35,6 +36,16 @@ jest.mock('../../util/metrics', () => ({
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
   },
 }));
+
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      goBack: mockGoBack,
+    }),
+  };
+});
 
 jest.mock('../../../../../util/theme', () => {
   const actual = jest.requireActual('../../../../../util/theme');
@@ -411,6 +422,51 @@ describe('Cashback Component', () => {
           labelOptions: [{ label: 'Withdrawal completed successfully' }],
         }),
       );
+    });
+
+    it('navigates back after successful withdrawal', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'success';
+
+      render();
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('does not navigate back when monitoring fails', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'failed';
+
+      render();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate back when status is idle', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.monitoringStatus = 'idle';
+
+      render();
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('shows failure toast when monitoring fails', () => {
