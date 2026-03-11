@@ -27,6 +27,31 @@ const logger = createLogger({
   name: 'MockServer',
   level: LogLevel.INFO,
 });
+
+/**
+ * Safely reads request body text, catching abort errors.
+ * When a client drops a connection mid-request (e.g., app navigation, AbortController),
+ * mockttp's streamToBuffer rejects with Error('Aborted'). This wrapper catches those
+ * errors and returns undefined instead of letting them bubble up as unhandled rejections.
+ *
+ * @param request - The mockttp request object
+ * @returns The body text or undefined if reading failed or was aborted
+ */
+export const safeGetBodyText = async (request: {
+  body: { getText: () => Promise<string | undefined> };
+}): Promise<string | undefined> => {
+  try {
+    return await request.body.getText();
+  } catch (error) {
+    if (error instanceof Error && error.message === 'Aborted') {
+      logger.debug('Request body read aborted (client disconnected)');
+      return undefined;
+    }
+    logger.warn('Failed to read request body:', error);
+    return undefined;
+  }
+};
+
 interface LiveRequest {
   url: string;
   method: string;
@@ -95,6 +120,12 @@ const translateFallbackPortToActual = (url: string): string => {
 const isUrlAllowed = (url: string): boolean => {
   try {
     if (ALLOWLISTED_URLS.includes(url)) {
+      return true;
+    }
+
+    // Malformed npm: package URIs that leak through the snap proxy
+    // e.g. https://https//npm:@metamask/... or npm:@metamask/...
+    if (/^(?:https?:\/\/.*)?npm[:@]@?metamask\//.test(url)) {
       return true;
     }
 
@@ -362,12 +393,22 @@ export default class MockServerE2E implements Resource {
             }
           }
 
-          return handleDirectFetch(
-            updatedUrl,
-            method,
-            request.headers,
-            method === 'POST' ? requestBodyText : undefined,
-          );
+          try {
+            return await handleDirectFetch(
+              updatedUrl,
+              method,
+              request.headers,
+              method === 'POST' ? requestBodyText : undefined,
+            );
+          } catch (error) {
+            // Client dropped the connection before we could respond (e.g. bridge
+            // controller AbortController fired mid-request). Return a benign
+            // response so mockttp doesn't surface an unhandled rejection.
+            if (error instanceof Error && error.message === 'Aborted') {
+              return { statusCode: 499, body: '' };
+            }
+            throw error;
+          }
         } finally {
           this._activeRequests--;
         }
@@ -410,7 +451,17 @@ export default class MockServerE2E implements Resource {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
           logger.warn(errorMessage);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
           this._server?._liveRequests?.push({
             url: translatedUrl,
@@ -420,16 +471,42 @@ export default class MockServerE2E implements Resource {
         } else if (ALLOWLISTED_URLS.includes(translatedUrl)) {
           logger.warn(`Allowed URL: ${translatedUrl}`);
           if (request.method === 'POST') {
-            logger.warn(`Request Body: ${await request.body.getText()}`);
+            try {
+              logger.warn(`Request Body: ${await request.body.getText()}`);
+            } catch (bodyError) {
+              if (
+                bodyError instanceof Error &&
+                bodyError.message === 'Aborted'
+              ) {
+                return { statusCode: 499, body: '' };
+              }
+              logger.warn('Failed to read request body for logging');
+            }
           }
         }
 
-        return handleDirectFetch(
-          translatedUrl,
-          request.method,
-          request.headers,
-          await request.body.getText(),
-        );
+        try {
+          // Read body safely before passing to handleDirectFetch to catch abort errors
+          const bodyText = await safeGetBodyText(request);
+          // If body read was aborted, return 499 (client closed request)
+          if (request.method === 'POST' && bodyText === undefined) {
+            return { statusCode: 499, body: '' };
+          }
+          return await handleDirectFetch(
+            translatedUrl,
+            request.method,
+            request.headers,
+            bodyText,
+          );
+        } catch (error) {
+          // Client dropped the connection before we could respond (e.g. bridge
+          // controller AbortController fired mid-request). Return a benign
+          // response so mockttp doesn't surface an unhandled rejection.
+          if (error instanceof Error && error.message === 'Aborted') {
+            return { statusCode: 499, body: '' };
+          }
+          throw error;
+        }
       } finally {
         this._activeRequests--;
       }

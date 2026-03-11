@@ -45,7 +45,9 @@ describe('PerpsSectionWithProvider', () => {
   });
 
   it('renders PerpsSection when perps is enabled', () => {
-    renderWithProvider(<PerpsSectionWithProvider />);
+    renderWithProvider(
+      <PerpsSectionWithProvider sectionIndex={0} totalSectionsLoaded={5} />,
+    );
 
     expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
   });
@@ -55,7 +57,9 @@ describe('PerpsSectionWithProvider', () => {
       .requireMock('../../../../UI/Perps')
       .selectPerpsEnabledFlag.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<PerpsSectionWithProvider />);
+    const { toJSON } = renderWithProvider(
+      <PerpsSectionWithProvider sectionIndex={0} totalSectionsLoaded={5} />,
+    );
 
     expect(toJSON()).toBeNull();
   });

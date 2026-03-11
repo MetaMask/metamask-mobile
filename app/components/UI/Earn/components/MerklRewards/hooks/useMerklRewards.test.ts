@@ -1,7 +1,10 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { isEligibleForMerklRewards, useMerklRewards } from './useMerklRewards';
+import {
+  isTokenEligibleForMerklRewards,
+  useMerklRewards,
+} from './useMerklRewards';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 import { TokenI } from '../../../../Tokens/types';
@@ -86,9 +89,9 @@ const mockAsset: TokenI = {
   isNative: false,
 };
 
-describe('isEligibleForMerklRewards', () => {
+describe('isTokenEligibleForMerklRewards', () => {
   it('returns false for native tokens with undefined address', () => {
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       undefined as Hex | undefined,
     );
@@ -97,7 +100,7 @@ describe('isEligibleForMerklRewards', () => {
   });
 
   it('returns false for native tokens with null address', () => {
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       null as Hex | null,
     );
@@ -107,7 +110,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('returns false for unsupported chains', () => {
     const unsupportedChainId = '0x999' as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       unsupportedChainId,
       AGLAMERKL_ADDRESS_MAINNET as Hex,
     );
@@ -118,7 +121,7 @@ describe('isEligibleForMerklRewards', () => {
   it('returns false for non-eligible tokens', () => {
     const nonEligibleAddress =
       '0x1111111111111111111111111111111111111111' as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       nonEligibleAddress,
     );
@@ -128,7 +131,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('returns true for eligible tokens on mainnet', () => {
     const eligibleAddress = AGLAMERKL_ADDRESS_MAINNET as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       eligibleAddress,
     );
@@ -138,7 +141,7 @@ describe('isEligibleForMerklRewards', () => {
 
   it('performs case-insensitive address comparison', () => {
     const upperCaseAddress = AGLAMERKL_ADDRESS_MAINNET.toUpperCase() as Hex;
-    const result = isEligibleForMerklRewards(
+    const result = isTokenEligibleForMerklRewards(
       CHAIN_IDS.MAINNET,
       upperCaseAddress,
     );

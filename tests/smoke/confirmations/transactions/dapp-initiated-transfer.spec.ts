@@ -117,13 +117,11 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x539',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
-            },
+            chainId: '0x539',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Local RPC',
+            ticker: 'ETH',
           })
           .withNetworkEnabledMap({
             eip155: { '0x539': true },
@@ -147,13 +145,24 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
 
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
+        await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+          description: 'Test dapp page title should be visible',
+        });
+        await Assertions.expectElementToBeVisible(TestDApp.sendEIP1559Button, {
+          description: 'Send EIP1559 button should be visible',
+        });
         await TestDApp.tapSendEIP1559Button();
 
         // Check all expected elements are visible
         await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
+          {
+            description: 'Transaction confirmation modal should be visible',
+          },
         );
-        await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
+        await Assertions.expectElementToBeVisible(RowComponents.TokenHero, {
+          description: 'Token hero row should be visible',
+        });
         await Assertions.expectTextDisplayed('0 ETH');
         await Assertions.expectElementToBeVisible(RowComponents.FromTo);
         await Assertions.expectElementToBeVisible(
@@ -169,11 +178,34 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
 
         // Scroll to Advanced Details section on Android
         if (device.getPlatform() === 'android') {
-          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+          await Gestures.swipe(
+            ConfirmationUITypes.ModalConfirmationContainer,
+            'up',
+            {
+              elemDescription: 'Scroll transaction confirmation content',
+            },
+          );
         }
 
         await Assertions.expectElementToBeVisible(
+          RowComponents.SimulationDetails,
+          {
+            description: 'Simulation details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          RowComponents.GasFeesDetails,
+          {
+            description: 'Gas fees details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
+          {
+            description: 'Advanced details row should be visible',
+          },
         );
 
         // Accept confirmation

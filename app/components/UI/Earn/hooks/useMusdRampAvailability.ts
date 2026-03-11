@@ -1,11 +1,15 @@
 import { useCallback, useMemo } from 'react';
 import { Hex } from '@metamask/utils';
 import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_BUYABLE_CHAIN_IDS,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../constants/musd';
-import { useRampTokens } from '../../Ramp/hooks/useRampTokens';
-import { toLowerCaseEquals } from '../../../../util/general';
+import { TokenI } from '../../Tokens/types';
+import {
+  getTokenBuyabilityKey,
+  useTokensBuyability,
+} from '../../Ramp/hooks/useTokenBuyability';
 
 export interface MusdRampAvailability {
   isMusdBuyableOnChain: Record<Hex, boolean>;
@@ -26,34 +30,56 @@ export interface MusdRampAvailability {
  * @returns {MusdRampAvailability} Ramp availability state and helpers
  */
 export const useMusdRampAvailability = (): MusdRampAvailability => {
-  const { allTokens } = useRampTokens();
+  const musdTokensByChain = useMemo(
+    () =>
+      MUSD_BUYABLE_CHAIN_IDS.map((chainId) => {
+        const address = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+        if (!address) {
+          return null;
+        }
+
+        const token: TokenI = {
+          address,
+          chainId,
+          symbol: MUSD_TOKEN.symbol,
+          name: MUSD_TOKEN.name,
+          decimals: MUSD_TOKEN.decimals,
+          image: '',
+          logo: undefined,
+          balance: '0',
+          isETH: false,
+          isNative: false,
+        };
+        return token;
+      }),
+    [],
+  );
+
+  const musdTokens = useMemo(
+    () => musdTokensByChain.filter((token): token is TokenI => token !== null),
+    [musdTokensByChain],
+  );
+
+  const { buyabilityByTokenKey } = useTokensBuyability(musdTokens);
 
   // Check if mUSD is buyable on a specific chain based on ramp availability
   const isMusdBuyableOnChain = useMemo(() => {
-    if (!allTokens) {
-      return {};
-    }
-
     const buyableByChain: Record<Hex, boolean> = {};
-
     MUSD_BUYABLE_CHAIN_IDS.forEach((chainId) => {
-      const musdAssetId = MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId];
-      if (!musdAssetId) {
-        buyableByChain[chainId] = false;
-        return;
+      buyableByChain[chainId] = false;
+    });
+
+    musdTokens.forEach((token) => {
+      if (token.chainId) {
+        const tokenKey = getTokenBuyabilityKey(token);
+        buyableByChain[token.chainId as Hex] = Boolean(
+          buyabilityByTokenKey[tokenKey],
+        );
       }
-
-      const musdToken = allTokens.find(
-        (token) =>
-          toLowerCaseEquals(token.assetId, musdAssetId) &&
-          token.tokenSupported === true,
-      );
-
-      buyableByChain[chainId] = Boolean(musdToken);
     });
 
     return buyableByChain;
-  }, [allTokens]);
+  }, [buyabilityByTokenKey, musdTokens]);
 
   // Check if mUSD is buyable on any chain (for "all networks" view)
   const isMusdBuyableOnAnyChain = useMemo(

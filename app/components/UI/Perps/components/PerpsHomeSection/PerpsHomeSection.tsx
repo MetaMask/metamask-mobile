@@ -1,14 +1,18 @@
 import React, { ReactNode } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  BoxJustifyContent,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -46,7 +50,7 @@ export interface PerpsHomeSectionProps {
    */
   showWhenEmpty?: boolean;
   /**
-   * Optional action handler - when provided, shows ">" chevron and makes header row pressable
+   * Optional action handler - when provided, shows "..." icon and makes header row pressable
    */
   onActionPress?: () => void;
   /**
@@ -71,11 +75,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
     marginTop: 12,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   content: {
     // Content styling handled by children
@@ -126,34 +125,29 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
-  // Title row content (pressable when action is available)
-  const titleRowContent = (
-    <>
-      <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-        {title}
-      </Text>
-      {showAction && (
-        <Icon
-          name={IconName.MoreHorizontal}
-          size={IconSize.Md}
-          color={IconColor.Alternative}
-        />
-      )}
-    </>
-  );
-
   return (
     <View style={styles.section} testID={testID}>
       {/* Section Header */}
       <View style={styles.headerContainer}>
-        {/* Title row - only this is pressable */}
-        {showAction ? (
-          <TouchableOpacity style={styles.titleRow} onPress={onActionPress}>
-            {titleRowContent}
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.titleRow}>{titleRowContent}</View>
-        )}
+        <SectionHeader
+          title={title}
+          justifyContent={showAction ? BoxJustifyContent.Between : undefined}
+          endAccessory={
+            showAction ? (
+              <TouchableOpacity
+                testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+                onPress={onActionPress}
+              >
+                <Icon
+                  name={IconName.MoreHorizontal}
+                  size={IconSize.Md}
+                  color={IconColor.IconAlternative}
+                />
+              </TouchableOpacity>
+            ) : undefined
+          }
+          twClassName="px-0 mb-2"
+        />
 
         {/* Subtitle - NOT pressable */}
         {subtitle && (

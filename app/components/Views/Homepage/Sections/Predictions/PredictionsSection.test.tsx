@@ -6,7 +6,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
-const mockRefreshClaimable = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -32,14 +31,26 @@ jest.mock('./hooks', () => ({
     markets: [],
     isLoading: false,
     error: null,
-    refresh: jest.fn(),
+    refetch: jest.fn(),
   })),
   usePredictPositionsForHomepage: jest.fn(() => ({
     positions: [],
     isLoading: false,
     error: null,
-    refresh: jest.fn(),
+    refetch: jest.fn(),
   })),
+}));
+
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
 }));
 
 const mockUsePredictMarketsForHomepage =
@@ -109,7 +120,6 @@ describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockClaim.mockResolvedValue(undefined);
-    mockRefreshClaimable.mockResolvedValue(undefined);
 
     // Reset mock return value to default (true) to ensure test isolation
     jest
@@ -134,28 +144,32 @@ describe('PredictionsSection', () => {
       ],
       isLoading: false,
       error: null,
-      refresh: jest.fn(),
+      refetch: jest.fn(),
     });
 
-    // Differentiate active vs claimable positions calls by second arg
     mockUsePredictPositionsForHomepage.mockImplementation(
-      (_maxPositions?: number, claimable = false) => ({
+      (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
         positions: [],
         isLoading: false,
         error: null,
-        refresh: claimable ? mockRefreshClaimable : jest.fn(),
+        totalClaimableValue: 0,
+        refetch: jest.fn(),
       }),
     );
   });
 
   it('renders section title when enabled', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('navigates to predictions market list on title press', () => {
-    renderWithProvider(<PredictionsSection />);
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     fireEvent.press(screen.getByText('Predictions'));
 
@@ -169,7 +183,9 @@ describe('PredictionsSection', () => {
       .requireMock('../../../../UI/Predict/selectors/featureFlags')
       .selectPredictEnabledFlag.mockReturnValue(false);
 
-    const { toJSON } = renderWithProvider(<PredictionsSection />);
+    const { toJSON } = renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
 
     expect(toJSON()).toBeNull();
   });
@@ -177,17 +193,22 @@ describe('PredictionsSection', () => {
   describe('when user has positions', () => {
     beforeEach(() => {
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: claimable ? [] : mockActivePositions,
           isLoading: false,
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
     });
 
     it('renders positions when user has them', async () => {
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
@@ -197,15 +218,20 @@ describe('PredictionsSection', () => {
 
     it('shows position skeletons when loading positions', () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: [],
           isLoading: !claimable, // only active positions loading
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText('Test Position 1')).not.toBeOnTheScreen();
     });
@@ -239,10 +265,12 @@ describe('PredictionsSection', () => {
         markets: mockMarkets,
         isLoading: false,
         error: null,
-        refresh: jest.fn(),
+        refetch: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
@@ -254,10 +282,12 @@ describe('PredictionsSection', () => {
         markets: [],
         isLoading: true,
         error: null,
-        refresh: jest.fn(),
+        refetch: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       // Should still show the title
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
@@ -268,10 +298,12 @@ describe('PredictionsSection', () => {
         markets: [],
         isLoading: false,
         error: null,
-        refresh: jest.fn(),
+        refetch: jest.fn(),
       });
 
-      const { toJSON } = renderWithProvider(<PredictionsSection />);
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(toJSON()).toBeNull();
     });
@@ -283,10 +315,12 @@ describe('PredictionsSection', () => {
         markets: [],
         isLoading: false,
         error: 'Network error',
-        refresh: jest.fn(),
+        refetch: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.getByText('Unable to load predictions')).toBeOnTheScreen();
       expect(screen.getByText('Retry')).toBeOnTheScreen();
@@ -297,10 +331,12 @@ describe('PredictionsSection', () => {
         markets: [],
         isLoading: true,
         error: null,
-        refresh: jest.fn(),
+        refetch: jest.fn(),
       });
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(
         screen.queryByText('Unable to load predictions'),
@@ -312,33 +348,42 @@ describe('PredictionsSection', () => {
     beforeEach(() => {
       // Show positions so the positions branch renders
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: claimable ? [] : mockActivePositions,
           isLoading: false,
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
     });
 
     it('does not show claim button when there are no claimable positions', () => {
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
 
     it('shows claim button with total amount when claimable positions exist', async () => {
-      // totalClaimable = 75 + 125 = 200
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: claimable ? mockClaimablePositions : mockActivePositions,
           isLoading: false,
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
@@ -347,45 +392,60 @@ describe('PredictionsSection', () => {
 
     it('does not show claim button while claimable positions are loading', () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: [],
           isLoading: claimable, // claimable fetch still loading
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
 
     it('does not show claim button while active positions are loading', () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: [],
           isLoading: !claimable, // active fetch still loading
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: 0,
+          refetch: jest.fn(),
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       expect(screen.queryByText(/Claim \$/)).not.toBeOnTheScreen();
     });
 
-    it('calls claim and then refreshes claimable positions on press', async () => {
+    it('calls claim on press without manual refresh', async () => {
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        ({
+          claimable = false,
+        }: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: claimable ? mockClaimablePositions : mockActivePositions,
           isLoading: false,
           error: null,
-          refresh: claimable ? mockRefreshClaimable : jest.fn(),
+          totalClaimableValue: claimable ? 200 : 0,
+          refetch: jest.fn(),
         }),
       );
 
-      renderWithProvider(<PredictionsSection />);
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
 
       await waitFor(() => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
@@ -395,72 +455,44 @@ describe('PredictionsSection', () => {
 
       await waitFor(() => {
         expect(mockClaim).toHaveBeenCalledTimes(1);
-        expect(mockRefreshClaimable).toHaveBeenCalledTimes(1);
       });
     });
   });
 
   describe('refresh functionality', () => {
-    it('refreshes markets and claimable when user has no positions', async () => {
-      const mockRefreshActivePositions = jest.fn().mockResolvedValue(undefined);
-      const mockRefreshMarkets = jest.fn().mockResolvedValue(undefined);
+    it('refreshes both positions and markets on pull-to-refresh', async () => {
+      const mockRefetchPositions = jest.fn().mockResolvedValue(undefined);
+      const mockRefetchMarkets = jest.fn().mockResolvedValue(undefined);
 
       mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
+        (_options: { maxPositions?: number; claimable?: boolean } = {}) => ({
           positions: [],
           isLoading: false,
           error: null,
-          refresh: claimable
-            ? mockRefreshClaimable
-            : mockRefreshActivePositions,
+          totalClaimableValue: 0,
+          refetch: mockRefetchPositions,
         }),
       );
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
         error: null,
-        refresh: mockRefreshMarkets,
+        refetch: mockRefetchMarkets,
       });
 
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
-
-      await ref.current?.refresh();
-
-      expect(mockRefreshActivePositions).not.toHaveBeenCalled();
-      expect(mockRefreshMarkets).toHaveBeenCalled();
-      expect(mockRefreshClaimable).toHaveBeenCalled();
-    });
-
-    it('refreshes positions, markets, and claimable when user has positions', async () => {
-      const mockRefreshActivePositions = jest.fn().mockResolvedValue(undefined);
-      const mockRefreshMarkets = jest.fn().mockResolvedValue(undefined);
-
-      mockUsePredictPositionsForHomepage.mockImplementation(
-        (_maxPositions?: number, claimable = false) => ({
-          positions: claimable ? [] : mockActivePositions,
-          isLoading: false,
-          error: null,
-          refresh: claimable
-            ? mockRefreshClaimable
-            : mockRefreshActivePositions,
-        }),
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          ref={ref}
+        />,
       );
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: [],
-        isLoading: false,
-        error: null,
-        refresh: mockRefreshMarkets,
-      });
-
-      const ref = React.createRef<{ refresh: () => Promise<void> }>();
-      renderWithProvider(<PredictionsSection ref={ref} />);
 
       await ref.current?.refresh();
 
-      expect(mockRefreshActivePositions).toHaveBeenCalled();
-      expect(mockRefreshMarkets).toHaveBeenCalled();
-      expect(mockRefreshClaimable).toHaveBeenCalled();
+      expect(mockRefetchPositions).toHaveBeenCalled();
+      expect(mockRefetchMarkets).toHaveBeenCalled();
     });
   });
 });

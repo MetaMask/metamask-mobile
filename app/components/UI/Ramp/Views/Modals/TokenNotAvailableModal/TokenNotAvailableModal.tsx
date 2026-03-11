@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
@@ -49,11 +49,33 @@ function TokenNotAvailableModal() {
   const tokenName = selectedToken?.name ?? '';
   const providerName = selectedProvider?.name ?? '';
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
   const handleChangeToken = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CHANGE_TOKEN_BUTTON_CLICKED)
+        .addProperties({
+          current_provider: selectedProvider?.name,
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.TOKEN_SELECTION);
+      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+        screen: Routes.RAMP.TOKEN_SELECTION,
+      });
     });
-  }, [navigation]);
+  }, [navigation, selectedProvider?.name, trackEvent, createEventBuilder]);
 
   const handleChangeProvider = useCallback(() => {
     trackEvent(
@@ -82,14 +104,33 @@ function TokenNotAvailableModal() {
   ]);
 
   const handleClose = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_CLOSE_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Token Unavailable Modal',
+          ramp_type: 'UNIFIED_BUY_2',
+        })
+        .build(),
+    );
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackEvent, createEventBuilder]);
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
+    },
+    [navigation],
+  );
 
   return (
     <BottomSheet
       ref={sheetRef}
       shouldNavigateBack
-      isInteractable={false}
+      onClose={handleDismiss}
       testID="token-unavailable-for-provider-modal"
     >
       <BottomSheetHeader

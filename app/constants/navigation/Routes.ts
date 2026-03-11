@@ -47,6 +47,7 @@ const Routes = {
       PROVIDER_SELECTION: 'RampProviderSelectionModal',
       ERROR_DETAILS: 'RampErrorDetailsModal',
       PROCESSING_INFO: 'RampProcessingInfoModal',
+      SSN_INFO: 'RampSsnInfoModal',
     },
   },
   DEPOSIT: {
@@ -258,6 +259,7 @@ const Routes = {
     NFTS_FULL_VIEW: 'NftFullView',
     TOKENS_FULL_VIEW: 'TokensFullView',
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
+    RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
   },
   VAULT_RECOVERY: {
@@ -271,6 +273,7 @@ const Routes = {
     ROOT: 'Bridge',
     BRIDGE_VIEW: 'BridgeView',
     TOKEN_SELECTOR: 'BridgeTokenSelector',
+    QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     MODALS: {
       ROOT: 'BridgeModals',
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
@@ -281,6 +284,7 @@ const Routes = {
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
       NETWORK_LIST_MODAL: 'NetworkListModal',
+      PRICE_IMPACT_MODAL: 'PriceImpactModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -453,6 +457,7 @@ const Routes = {
       PASSWORD: 'CardPasswordModal',
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
+      VIEW_PIN: 'CardViewPinModal',
     },
   },
   SEND: {

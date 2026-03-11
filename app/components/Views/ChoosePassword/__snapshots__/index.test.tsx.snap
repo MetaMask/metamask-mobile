@@ -89,7 +89,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#131416",
                   "fontFamily": "Geist-Bold",
                   "fontSize": 32,
                   "letterSpacing": 0,
@@ -103,7 +103,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -126,16 +126,20 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "marginBottom": -4,
-                }
+                [
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  {
+                    "marginBottom": -4,
+                  },
+                ]
               }
-              testID="label"
             >
               Create password
             </Text>
@@ -172,8 +176,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "#b7bbc8",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "#949596",
                   "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -203,7 +207,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#686e7d"
+                  placeholderTextColor="#66676a"
                   returnKeyType="next"
                   secureTextEntry={true}
                   style={
@@ -211,7 +215,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -237,7 +241,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onPress={[Function]}
                 >
                   <SvgMock
-                    color="#686e7d"
+                    color="#66676a"
                     fill="currentColor"
                     height={24}
                     name="Eye"
@@ -256,7 +260,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#686e7d",
+                  "color": "#66676a",
                   "fontFamily": "Geist-Regular",
                   "fontSize": 14,
                   "letterSpacing": 0,
@@ -279,16 +283,20 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             <Text
               accessibilityRole="text"
               style={
-                {
-                  "color": "#121314",
-                  "fontFamily": "Geist-Medium",
-                  "fontSize": 16,
-                  "letterSpacing": 0,
-                  "lineHeight": 24,
-                  "marginBottom": -4,
-                }
+                [
+                  {
+                    "color": "#131416",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "fontWeight": 400,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  },
+                  {
+                    "marginBottom": -4,
+                  },
+                ]
               }
-              testID="label"
             >
               Confirm password
             </Text>
@@ -325,8 +333,8 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#b4b4b528",
+                  "borderColor": "#b4b4b566",
                   "borderRadius": 12,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -357,7 +365,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onChangeText={[Function]}
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
-                  placeholderTextColor="#686e7d"
+                  placeholderTextColor="#66676a"
                   returnKeyType="done"
                   secureTextEntry={true}
                   style={
@@ -365,7 +373,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "fontWeight": "400",
@@ -390,7 +398,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onPress={[Function]}
                 >
                   <SvgMock
-                    color="#686e7d"
+                    color="#66676a"
                     fill="currentColor"
                     height={24}
                     name="Eye"
@@ -410,7 +418,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
             style={
               {
                 "alignItems": "flex-start",
-                "backgroundColor": "#f3f5f9",
+                "backgroundColor": "#f3f3f4",
                 "borderRadius": 8,
                 "flexDirection": "row",
                 "gap": 8,
@@ -440,7 +448,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#b7bbc8",
+                    "borderColor": "#949596",
                     "borderRadius": 4,
                     "borderWidth": 2,
                     "height": 20,
@@ -460,7 +468,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 {
                   "alignItems": "flex-start",
                   "backgroundColor": "transparent",
-                  "color": "#121314",
+                  "color": "#131416",
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "fontFamily": "Geist-Regular",
@@ -480,7 +488,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 14,
                     "letterSpacing": 0,
@@ -492,7 +500,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#686e7d",
+                      "color": "#66676a",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 14,
                       "letterSpacing": 0,
@@ -545,7 +553,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#131416",
                   "borderRadius": 12,
                   "flexDirection": "row",
                   "height": 48,
