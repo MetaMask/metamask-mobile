@@ -1,5 +1,11 @@
 import React, { useCallback, useContext } from 'react';
-import { Pressable, Share } from 'react-native';
+import { Share } from 'react-native';
+import {
+  Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName as IconNameMMDS,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -11,7 +17,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import { Box } from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { PredictShareStatus } from '../../constants/eventNames';
 
@@ -91,19 +96,13 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
   }, [colors.success.default, marketId, marketSlug, toastRef]);
 
   return (
-    <Pressable
+    <ButtonIcon
+      iconName={IconNameMMDS.Share}
+      size={ButtonIconSize.Md}
       onPress={handleSharePress}
-      hitSlop={12}
-      accessibilityRole="button"
       accessibilityLabel={strings('predict.buttons.share')}
       testID={PredictMarketDetailsSelectorsIDs.SHARE_BUTTON}
-    >
-      <Icon
-        name={IconName.Share}
-        size={IconSize.Lg}
-        color={colors.icon.default}
-      />
-    </Pressable>
+    />
   );
 };
 
