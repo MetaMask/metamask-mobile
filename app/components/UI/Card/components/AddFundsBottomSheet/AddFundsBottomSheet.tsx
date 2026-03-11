@@ -15,9 +15,9 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Label,
 } from '@metamask/design-system-react-native';
 import { createStyles } from './AddFundsBottomSheet.styles';
-import Label from '../../../../../component-library/components/Form/Label';
 import { useTheme } from '../../../../../util/theme';
 import { View } from 'react-native';
 import { CardTokenAllowance } from '../../types';

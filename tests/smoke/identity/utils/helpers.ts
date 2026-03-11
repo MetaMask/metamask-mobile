@@ -1,11 +1,14 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   UserStorageMockttpController,
   UserStorageMockttpControllerEvents,
   AsEnum,
 } from './user-storage/userStorageMockttpController';
 import { USER_STORAGE_GROUPS_FEATURE_KEY } from '@metamask/account-tree-controller';
+
+const { getE2EIdentifierFromJwt } = AuthenticationController.Mocks;
 
 export interface UserStorageAccount {
   /**
@@ -38,10 +41,11 @@ export const getSrpIdentifierFromHeaders = (
   headers: Record<string, unknown>,
 ) => {
   const authHeader = headers.authorization;
-  return (
+  const token =
     authHeader?.toString()?.split(' ')[1] ||
-    `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`
-  );
+    `${MOCK_SRP_E2E_IDENTIFIER_BASE_KEY}_1`;
+
+  return getE2EIdentifierFromJwt(token);
 };
 
 export const arrangeTestUtils = (

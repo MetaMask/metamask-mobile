@@ -21,6 +21,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS } from './BackupAndSyncFeaturesToggles.testIds';
 
 export const backupAndSyncFeaturesTogglesSections = [
   {
@@ -29,7 +30,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     iconName: IconName.UserCircle,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.accountSyncing,
     featureReduxSelector: selectIsAccountSyncingEnabled,
-    testID: 'toggle-accountSyncing',
+    testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_ACCOUNT_SYNCING,
   },
   {
     id: 'contacts',
@@ -37,7 +38,7 @@ export const backupAndSyncFeaturesTogglesSections = [
     iconName: IconName.Book,
     backupAndSyncfeatureKey: BACKUPANDSYNC_FEATURES.contactSyncing,
     featureReduxSelector: selectIsContactSyncingEnabled,
-    testID: 'toggle-contactSyncing',
+    testID: BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_CONTACT_SYNCING,
   },
 ];
 

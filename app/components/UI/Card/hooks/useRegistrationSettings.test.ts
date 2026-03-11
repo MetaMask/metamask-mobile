@@ -1,22 +1,34 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { useCardSDK } from '../sdk';
 import useRegistrationSettings from './useRegistrationSettings';
-import { useWrapWithCache } from './useWrapWithCache';
 import { CardSDK } from '../sdk/CardSDK';
 
-// Mock dependencies
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-jest.mock('./useWrapWithCache', () => ({
-  useWrapWithCache: jest.fn(),
+const mockRefetch = jest.fn();
+let mockQueryFn: (() => Promise<unknown>) | undefined;
+let mockQueryReturn: {
+  data: unknown;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: jest.Mock;
+} = {
+  data: undefined,
+  isLoading: false,
+  error: null,
+  refetch: mockRefetch,
+};
+
+jest.mock('@tanstack/react-query', () => ({
+  useQuery: jest.fn().mockImplementation(({ queryFn }) => {
+    mockQueryFn = queryFn;
+    return mockQueryReturn;
+  }),
 }));
 
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseWrapWithCache = useWrapWithCache as jest.MockedFunction<
-  typeof useWrapWithCache
->;
 
 describe('useRegistrationSettings', () => {
   const mockGetRegistrationSettings = jest.fn();
@@ -32,63 +44,49 @@ describe('useRegistrationSettings', () => {
     privacyPolicyUrl: 'https://example.com/privacy',
   };
 
-  const mockCacheReturn = {
-    data: null,
-    isLoading: false,
-    error: null,
-    fetchData: jest.fn(),
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Default mocks
+    mockQueryReturn = {
+      data: undefined,
+      isLoading: false,
+      error: null,
+      refetch: mockRefetch,
+    };
+
     mockUseCardSDK.mockReturnValue({
       ...jest.requireMock('../sdk'),
       sdk: mockSDK,
     });
 
-    mockUseWrapWithCache.mockReturnValue(mockCacheReturn);
     mockGetRegistrationSettings.mockResolvedValue(
       mockRegistrationSettingsResponse,
     );
+
+    mockRefetch.mockResolvedValue({ data: null });
   });
 
   describe('hook initialization', () => {
-    it('should initialize with default location when no location provided', () => {
+    it('initializes with useQuery using correct query key', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
+      );
+
       renderHook(() => useRegistrationSettings());
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        'registration-settings',
-        expect.any(Function),
-        { cacheDuration: 5 * 60 * 1000 },
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['card', 'dashboard', 'registrationSettings'],
+          staleTime: 5 * 60 * 1000,
+        }),
       );
     });
 
-    it('should set cache duration to 5 minutes', () => {
-      renderHook(() => useRegistrationSettings());
-
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Function),
-        { cacheDuration: 5 * 60 * 1000 },
+    it('disables query when SDK is not available', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
       );
-    });
-  });
 
-  describe('fetchRegistrationSettings function', () => {
-    it('should return registration settings data when SDK call succeeds', async () => {
-      renderHook(() => useRegistrationSettings());
-
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-      const fetchResult = await fetchFunction();
-
-      expect(fetchResult).toEqual(mockRegistrationSettingsResponse);
-      expect(mockGetRegistrationSettings).toHaveBeenCalled();
-    });
-
-    it('should throw error when SDK is not available', async () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -96,48 +94,86 @@ describe('useRegistrationSettings', () => {
 
       renderHook(() => useRegistrationSettings());
 
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-
-      await expect(fetchFunction()).rejects.toThrow('Card SDK not available');
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: false,
+        }),
+      );
     });
 
-    it('should propagate SDK errors', async () => {
+    it('enables query when SDK is available', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
+      );
+
+      renderHook(() => useRegistrationSettings());
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabled: true,
+        }),
+      );
+    });
+  });
+
+  describe('queryFn behavior', () => {
+    it('returns registration settings data when SDK call succeeds', async () => {
+      renderHook(() => useRegistrationSettings());
+
+      expect(mockQueryFn).toBeDefined();
+      const fetchResult = await mockQueryFn?.();
+
+      expect(fetchResult).toEqual(mockRegistrationSettingsResponse);
+      expect(mockGetRegistrationSettings).toHaveBeenCalled();
+    });
+
+    it('throws error when SDK is not available', () => {
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+
+      renderHook(() => useRegistrationSettings());
+
+      expect(mockQueryFn).toBeDefined();
+      expect(() => mockQueryFn?.()).toThrow('SDK not initialized');
+    });
+
+    it('propagates SDK errors', async () => {
       const sdkError = new Error('SDK error');
       mockGetRegistrationSettings.mockRejectedValue(sdkError);
 
       renderHook(() => useRegistrationSettings());
 
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-
-      await expect(fetchFunction()).rejects.toThrow('SDK error');
+      expect(mockQueryFn).toBeDefined();
+      await expect(mockQueryFn?.()).rejects.toThrow('SDK error');
     });
   });
 
   describe('return value', () => {
-    it('should return the result from useWrapWithCache', () => {
-      const mockReturn = {
+    it('returns data from useQuery', () => {
+      mockQueryReturn = {
         data: mockRegistrationSettingsResponse,
         isLoading: false,
         error: null,
-        fetchData: jest.fn(),
+        refetch: mockRefetch,
       };
-      mockUseWrapWithCache.mockReturnValue(mockReturn);
 
       const { result } = renderHook(() => useRegistrationSettings());
 
-      expect(result.current).toEqual(mockReturn);
+      expect(result.current.data).toEqual(mockRegistrationSettingsResponse);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(typeof result.current.fetchData).toBe('function');
     });
 
-    it('should return loading state from useWrapWithCache', () => {
-      const mockReturn = {
-        data: null,
+    it('returns loading state from useQuery', () => {
+      mockQueryReturn = {
+        data: undefined,
         isLoading: true,
         error: null,
-        fetchData: jest.fn(),
+        refetch: mockRefetch,
       };
-      mockUseWrapWithCache.mockReturnValue(mockReturn);
 
       const { result } = renderHook(() => useRegistrationSettings());
 
@@ -145,14 +181,13 @@ describe('useRegistrationSettings', () => {
       expect(result.current.data).toBeNull();
     });
 
-    it('should return error state from useWrapWithCache', () => {
-      const mockReturn = {
-        data: null,
+    it('returns error state from useQuery', () => {
+      mockQueryReturn = {
+        data: undefined,
         isLoading: false,
         error: new Error('Registration settings error'),
-        fetchData: jest.fn(),
+        refetch: mockRefetch,
       };
-      mockUseWrapWithCache.mockReturnValue(mockReturn);
 
       const { result } = renderHook(() => useRegistrationSettings());
 
@@ -162,25 +197,38 @@ describe('useRegistrationSettings', () => {
       expect(result.current.data).toBeNull();
     });
 
-    it('should provide fetchData function from useWrapWithCache', () => {
-      const mockFetchData = jest.fn();
-      const mockReturn = {
-        data: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchData,
-      };
-      mockUseWrapWithCache.mockReturnValue(mockReturn);
+    it('provides fetchData function that calls refetch', async () => {
+      mockRefetch.mockResolvedValue({
+        data: mockRegistrationSettingsResponse,
+      });
 
       const { result } = renderHook(() => useRegistrationSettings());
 
-      expect(result.current.fetchData).toBe(mockFetchData);
-      expect(typeof result.current.fetchData).toBe('function');
+      let fetchResult: unknown;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(mockRefetch).toHaveBeenCalled();
+      expect(fetchResult).toEqual(mockRegistrationSettingsResponse);
+    });
+
+    it('returns null from fetchData when refetch returns no data', async () => {
+      mockRefetch.mockResolvedValue({ data: undefined });
+
+      const { result } = renderHook(() => useRegistrationSettings());
+
+      let fetchResult: unknown;
+      await act(async () => {
+        fetchResult = await result.current.fetchData();
+      });
+
+      expect(fetchResult).toBeNull();
     });
   });
 
   describe('edge cases', () => {
-    it('should handle undefined SDK gracefully', async () => {
+    it('handles undefined SDK gracefully', () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),
         sdk: null,
@@ -188,48 +236,46 @@ describe('useRegistrationSettings', () => {
 
       renderHook(() => useRegistrationSettings());
 
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-
-      await expect(fetchFunction()).rejects.toThrow('Card SDK not available');
+      expect(mockQueryFn).toBeDefined();
+      expect(() => mockQueryFn?.()).toThrow('SDK not initialized');
     });
 
-    it('should handle null registration settings response', async () => {
+    it('handles null registration settings response', async () => {
       mockGetRegistrationSettings.mockResolvedValue(null);
 
       renderHook(() => useRegistrationSettings());
 
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-
-      const result = await fetchFunction();
+      expect(mockQueryFn).toBeDefined();
+      const result = await mockQueryFn?.();
 
       expect(result).toBeNull();
     });
 
-    it('should handle empty registration settings response', async () => {
+    it('handles empty registration settings response', async () => {
       const emptyResponse = {};
       mockGetRegistrationSettings.mockResolvedValue(emptyResponse);
 
       renderHook(() => useRegistrationSettings());
 
-      // Get the fetch function from the mock call
-      const fetchFunction = mockUseWrapWithCache.mock.calls[0][1];
-
-      const result = await fetchFunction();
+      expect(mockQueryFn).toBeDefined();
+      const result = await mockQueryFn?.();
 
       expect(result).toEqual(emptyResponse);
     });
   });
 
   describe('caching behavior', () => {
-    it('should use correct cache configuration', () => {
+    it('uses correct staleTime configuration', () => {
+      const { useQuery: mockUseQuery } = jest.requireMock(
+        '@tanstack/react-query',
+      );
+
       renderHook(() => useRegistrationSettings());
 
-      expect(mockUseWrapWithCache).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.any(Function),
-        { cacheDuration: 5 * 60 * 1000 },
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          staleTime: 5 * 60 * 1000,
+        }),
       );
     });
   });
