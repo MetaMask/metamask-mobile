@@ -40,7 +40,7 @@ const ExperienceEnhancerModal = () => {
       bottomSheetRef.current?.onCloseBottomSheet();
 
       addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.OFF,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
@@ -64,7 +64,7 @@ const ExperienceEnhancerModal = () => {
       bottomSheetRef.current?.onCloseBottomSheet();
 
       addTraitsToUser({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)

@@ -40,8 +40,8 @@ const BlockaidSettings = () => {
 
     addTraitsToUser({
       [UserProfileProperty.SECURITY_PROVIDERS]: newSecurityAlertsEnabledState
-        ? ['blockaid']
-        : [],
+        ? 'blockaid'
+        : '',
     });
   };
 

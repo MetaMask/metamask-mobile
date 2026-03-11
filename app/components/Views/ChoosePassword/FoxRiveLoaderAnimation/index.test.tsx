@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { brandColor } from '@metamask/design-tokens';
 
 // Mock useTheme hook
 const mockUseTheme = jest.fn().mockReturnValue({
@@ -68,7 +69,6 @@ jest.mock('./index.styles', () =>
 );
 
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
-import { brandColor } from '@metamask/design-tokens';
 
 describe('FoxRiveLoaderAnimation', () => {
   beforeEach(() => {

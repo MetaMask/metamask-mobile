@@ -162,7 +162,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const addMarketingConsentToTraits = (marketingOptIn: boolean) => {
     analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn,
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: marketingOptIn
+        ? UserProfileProperty.ON
+        : UserProfileProperty.OFF,
     });
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
