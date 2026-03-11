@@ -524,7 +524,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "initializationAttempts": 0,
         "initializationError": null,
         "initializationState": "uninitialized",
-        "isEligible": false,
+        "isEligible": true,
         "isFirstTimeUser": {
           "mainnet": true,
           "testnet": true,
@@ -1391,7 +1391,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "initializationAttempts": 0,
         "initializationError": null,
         "initializationState": "uninitialized",
-        "isEligible": false,
+        "isEligible": true,
         "isFirstTimeUser": {
           "mainnet": true,
           "testnet": true,
