@@ -8,18 +8,52 @@ import {
   PredictTabViewSelectorsIDs,
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
+  PredictClaimConfirmationSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class WalletView {
-  static readonly MAX_SCROLL_ITERATIONS = 8;
+  static readonly MAX_SCROLL_ITERATIONS = 4;
 
   get container(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  }
+
+  /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
+  get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  }
+
+  /**
+   * Progressive scroll for homepage sections:
+   * try tap -> small scroll down -> retry, until the section is tappable.
+   */
+  private async scrollAndTapSection(
+    target: DetoxElement,
+    description: string,
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+      direction,
+      scrollAmount: 200,
+      elemDescription: `Scroll to ${description}`,
+    });
+    await Gestures.waitAndTap(target, {
+      elemDescription: description,
+    });
   }
 
   get earnButton(): DetoxElement {
@@ -100,8 +134,15 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
   }
 
-  get totalBalance(): DetoxElement | DetoxMatcher {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+  get totalBalance(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT,
+        ),
+    });
   }
 
   get accountName(): DetoxElement {
@@ -221,7 +262,7 @@ class WalletView {
     // Wait for the token list to finish loading/reordering before tapping.
     // New tokens appearing asynchronously can shift positions mid-tap.
     await Utilities.waitForElementToStopMoving(elem, {
-      timeout: 5000,
+      timeout: 10000,
       interval: 500,
       stableCount: 6,
     });
@@ -265,7 +306,7 @@ class WalletView {
   async scrollDownOnNFTsTab(): Promise<void> {
     await Gestures.swipe(this.nftTabContainer, 'up', {
       speed: 'slow',
-      percentage: 0.6,
+      percentage: 0.4,
     });
   }
 
@@ -304,7 +345,7 @@ class WalletView {
   async scrollUpOnNFTsTab(): Promise<void> {
     await Gestures.swipe(this.nftTabContainer, 'down', {
       speed: 'slow',
-      percentage: 0.6,
+      percentage: 0.4,
     });
   }
 
@@ -477,6 +518,11 @@ class WalletView {
       PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
     );
   }
+  get predictClaimConfirmButton(): DetoxElement {
+    return Matchers.getElementByID(
+      PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
+    );
+  }
   get predictScrollViewIdentifier() {
     return Matchers.getIdentifier(PredictTabViewSelectorsIDs.SCROLL_VIEW);
   }
@@ -488,7 +534,7 @@ class WalletView {
   }
 
   get predictionsTab(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.PREDICTIONS_TAB);
+    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
   }
 
   get PredictionsTabContainer(): DetoxElement {
@@ -497,6 +543,41 @@ class WalletView {
 
   get availableBalanceLabel(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
+  }
+
+  get defiPositionsNew(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
+  }
+
+  /** Perpetuals section title button on the homepage. */
+  get perpsSectionHeader(): DetoxElement {
+    return Matchers.getElementByLabel(
+      WalletViewSelectorsText.PERPETUALS_SECTION,
+    );
+  }
+
+  /** Predictions section title button on the homepage. */
+  get predictionsSectionHeader(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
+    );
+  }
+
+  /** Tokens section header on the homepage. */
+  get tokensSectionHeader(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
+  }
+
+  /** NFTs section header on the homepage. */
+  get nftsSectionHeader(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
+  }
+
+  async tapOnNewTokensSection(): Promise<void> {
+    await Gestures.waitAndTap(this.tokensSectionHeader, {
+      checkStability: true,
+      elemDescription: 'New Tokens Section',
+    });
   }
 
   async tapOnDeFiTab(): Promise<void> {
@@ -526,22 +607,23 @@ class WalletView {
 
   async tapOnPredictionsPosition(positionName: string): Promise<void> {
     const elem = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(elem, {
-      elemDescription: `tapping Predictions Position: ${positionName}`,
-    });
+    await this.scrollAndTapSection(
+      elem,
+      `Predictions Position: ${positionName}`,
+    );
   }
 
   async scrollDownOnPredictionsTab(): Promise<void> {
     await Gestures.swipe(this.PredictionsTabContainer, 'up', {
       speed: 'slow',
-      percentage: 0.6,
+      percentage: 0.4,
     });
   }
 
   async scrollUpOnPredictionsTab(): Promise<void> {
     await Gestures.swipe(this.PredictionsTabContainer, 'down', {
       speed: 'slow',
-      percentage: 0.6,
+      percentage: 0.4,
     });
   }
 
@@ -559,6 +641,55 @@ class WalletView {
     );
   }
 
+  async scrollAndTapDefiSection(): Promise<void> {
+    await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');
+  }
+
+  async scrollAndTapPerpsSection(): Promise<void> {
+    await this.scrollAndTapSection(
+      this.perpsSectionHeader,
+      'Perpetuals section',
+    );
+  }
+
+  async scrollAndTapPredictionsSection(
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    await this.scrollAndTapSection(
+      this.predictionsSectionHeader,
+      'Predictions section',
+      direction,
+    );
+  }
+
+  async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
+    const target = Matchers.getElementByText(positionName);
+    try {
+      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+        direction: 'down',
+        scrollAmount: 220,
+        timeout: 12000,
+        elemDescription: `Scroll to prediction position: ${positionName}`,
+      });
+    } catch {
+      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+        direction: 'up',
+        scrollAmount: 220,
+        timeout: 12000,
+        elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
+      });
+    }
+
+    await Gestures.waitAndTap(target, {
+      checkStability: true,
+      elemDescription: `Predictions Position: ${positionName}`,
+    });
+  }
+
+  async scrollAndTapNftsSection(): Promise<void> {
+    await this.scrollAndTapSection(this.nftsSectionHeader, 'NFTs section');
+  }
+
   async tapOnAvailableBalance(): Promise<void> {
     await Gestures.waitAndTap(this.availableBalanceLabel, {
       elemDescription: 'tap available balance to expand balance card',
@@ -566,14 +697,119 @@ class WalletView {
   }
 
   async tapClaimButton(): Promise<void> {
+    await Gestures.scrollToElement(
+      this.claimButton,
+      this.walletScrollViewIdentifier,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        elemDescription: 'Scroll to Claim Button',
+      },
+    );
     await Gestures.waitAndTap(this.claimButton, {
       elemDescription: 'Claim Button',
     });
   }
 
+  async tapClaimConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.predictClaimConfirmButton, {
+      elemDescription: 'Claim confirm button',
+    });
+  }
+
+  async waitForBalanceToStabilize(
+    options: {
+      maxWaitTime?: number;
+      pollInterval?: number;
+      sameResultTimeout?: number;
+    } = {},
+  ): Promise<string> {
+    const {
+      maxWaitTime = 60000,
+      pollInterval = 100,
+      sameResultTimeout = 8000,
+    } = options;
+
+    let result = '';
+    await encapsulatedAction({
+      appium: async () => {
+        const startTime = Date.now();
+        const isIOS = await PlatformDetector.isIOS();
+
+        if (isIOS) {
+          // iOS: Element lookups are extremely slow (15-30s each).
+          // Skip stability loop and just wait for a valid balance once.
+          let previousBalance = '';
+          while (Date.now() - startTime < maxWaitTime) {
+            try {
+              const balanceEl = await asPlaywrightElement(this.totalBalance);
+              const rawBalance = await balanceEl.textContent();
+              const balance = (rawBalance || '').trim();
+              previousBalance = balance;
+
+              if (balance && balance !== '' && balance !== '$0.00') {
+                result = balance;
+                return;
+              }
+            } catch {
+              // Element not found yet, retry
+            }
+            await new Promise((r) => setTimeout(r, 1000));
+          }
+          result = previousBalance;
+          return;
+        }
+
+        // Android: Fast element lookups, use stability polling
+        let previousBalance = '';
+        let sameResultStartTime: number | null = null;
+
+        while (true) {
+          if (Date.now() - startTime > maxWaitTime) {
+            result = previousBalance;
+            return;
+          }
+
+          let currentBalance: string;
+          try {
+            const balanceEl = await asPlaywrightElement(this.totalBalance);
+            const rawBalance = await balanceEl.textContent();
+            currentBalance = (rawBalance || '').trim();
+          } catch {
+            await new Promise((r) => setTimeout(r, pollInterval));
+            continue;
+          }
+
+          if (
+            !currentBalance ||
+            currentBalance === '' ||
+            currentBalance === '$0.00'
+          ) {
+            await new Promise((r) => setTimeout(r, pollInterval));
+            continue;
+          }
+
+          if (currentBalance === previousBalance && sameResultStartTime) {
+            const timeSinceSameResult = Date.now() - sameResultStartTime;
+            if (timeSinceSameResult >= sameResultTimeout) {
+              result = currentBalance;
+              return;
+            }
+          } else {
+            sameResultStartTime = Date.now();
+            previousBalance = currentBalance;
+          }
+
+          await new Promise((r) => setTimeout(r, pollInterval));
+        }
+      },
+    });
+    return result;
+  }
+
   // TODO test this
   async getBalanceText(): Promise<string> {
-    const balanceElement = this.totalBalance;
+    const balanceElement = asDetoxElement(this.totalBalance);
     await Assertions.expectElementToBeVisible(balanceElement);
 
     const elem = await balanceElement;

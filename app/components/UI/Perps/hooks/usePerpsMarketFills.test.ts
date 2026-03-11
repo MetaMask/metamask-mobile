@@ -17,6 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getActiveProvider: jest.fn(),
+      getActiveProviderOrNull: jest.fn(),
     },
   },
 }));
@@ -30,9 +31,9 @@ const mockUsePerpsLiveFills = usePerpsLiveFills as jest.MockedFunction<
   typeof usePerpsLiveFills
 >;
 
-const mockGetActiveProvider = Engine.context.PerpsController
-  .getActiveProvider as jest.MockedFunction<
-  typeof Engine.context.PerpsController.getActiveProvider
+const mockGetActiveProviderOrNull = Engine.context.PerpsController
+  .getActiveProviderOrNull as jest.MockedFunction<
+  typeof Engine.context.PerpsController.getActiveProviderOrNull
 >;
 
 // Test data
@@ -89,7 +90,7 @@ describe('usePerpsMarketFills', () => {
       getOrderFills: jest.fn().mockResolvedValue([]),
     };
 
-    mockGetActiveProvider.mockReturnValue(
+    mockGetActiveProviderOrNull.mockReturnValue(
       mockProvider as unknown as ReturnType<
         typeof Engine.context.PerpsController.getActiveProvider
       >,
@@ -411,7 +412,7 @@ describe('usePerpsMarketFills', () => {
 
     it('handles missing provider gracefully', async () => {
       // Arrange
-      mockGetActiveProvider.mockReturnValue(
+      mockGetActiveProviderOrNull.mockReturnValue(
         null as unknown as ReturnType<
           typeof Engine.context.PerpsController.getActiveProvider
         >,

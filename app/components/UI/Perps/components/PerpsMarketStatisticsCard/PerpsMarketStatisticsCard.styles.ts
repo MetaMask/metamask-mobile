@@ -19,14 +19,14 @@ const styleSheet = (params: { theme: Theme }) =>
       backgroundColor: params.theme.colors.background.section,
     },
     statsRowFirst: {
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
     },
     statsRowLast: {
       padding: 12,
       backgroundColor: params.theme.colors.background.section,
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
     },
     fundingRateContainer: {
       flexDirection: 'row',

@@ -14,22 +14,12 @@ import {
   type Fees,
   type SmartTransaction,
 } from '@metamask/smart-transactions-controller';
-import { ApprovalController } from '@metamask/approval-controller';
-import {
-  getShouldStartApprovalRequest,
-  getShouldUpdateApprovalRequest,
-  getTransactionType,
-} from './index';
 import Logger from '../Logger';
-import { v1 as random } from 'uuid';
 import { decimalToHex } from '../conversions';
-import { ApprovalTypes } from '../../core/RPCMethods/RPCMethodMiddleware';
 import { RAMPS_SEND } from '../../components/UI/Ramp/Aggregator/constants';
 import { Messenger } from '@metamask/messenger';
-import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { getTransactionById, isLegacyTransaction } from '../transactions';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import {
   getClientForTransactionMetadata,
   sanitizeOrigin,
@@ -50,7 +40,6 @@ export interface SubmitSmartTransactionRequest {
     AllowedEvents
   >;
   shouldUseSmartTransaction: boolean;
-  approvalController: ApprovalController;
   featureFlags: SmartTransactionsNetworkConfig;
   transactions?: PublishBatchHookTransaction[];
 }
@@ -63,28 +52,16 @@ export const STX_NO_HASH_ERROR =
   'Smart Transaction does not have a transaction hash, there was a problem';
 
 class SmartTransactionHook {
-  #approvalEnded: boolean;
-  #approvalId: string | undefined;
   #chainId: Hex;
   #featureFlags: SmartTransactionsNetworkConfig;
   #shouldUseSmartTransaction: boolean;
   #smartTransactionsController: SmartTransactionsController;
   #transactionController: TransactionController;
-  #approvalController: ApprovalController;
   #transactionMeta: TransactionMeta;
   #signedTransactionInHex?: Hex;
   #txParams: TransactionParams;
   #controllerMessenger: SubmitSmartTransactionRequest['controllerMessenger'];
 
-  #isDapp: boolean;
-  #isSend: boolean;
-  #isInSwapFlow: boolean;
-  #isSwapApproveTx: boolean;
-  #isSwapTransaction: boolean;
-  #isNativeTokenTransferred: boolean;
-
-  #shouldStartApprovalRequest: boolean;
-  #shouldUpdateApprovalRequest: boolean;
   #mobileReturnTxHashAsap: boolean;
   #transactions?: PublishBatchHookTransaction[];
 
@@ -96,17 +73,13 @@ class SmartTransactionHook {
       controllerMessenger,
       transactionController,
       shouldUseSmartTransaction,
-      approvalController,
       featureFlags,
       transactions,
     } = request;
-    this.#approvalId = undefined;
-    this.#approvalEnded = false;
     this.#transactionMeta = transactionMeta;
     this.#signedTransactionInHex = signedTransactionInHex;
     this.#smartTransactionsController = smartTransactionsController;
     this.#transactionController = transactionController;
-    this.#approvalController = approvalController;
     this.#shouldUseSmartTransaction = shouldUseSmartTransaction;
     this.#featureFlags = featureFlags;
     this.#chainId = transactionMeta.chainId;
@@ -115,41 +88,6 @@ class SmartTransactionHook {
     this.#mobileReturnTxHashAsap =
       this.#featureFlags?.mobileReturnTxHashAsap ?? false;
     this.#transactions = transactions;
-
-    const {
-      isDapp,
-      isSend,
-      isInSwapFlow,
-      isSwapApproveTx,
-      isSwapTransaction,
-      isNativeTokenTransferred,
-    } = getTransactionType(this.#transactionMeta, this.#chainId);
-    this.#isDapp = isDapp;
-    this.#isSend = isSend;
-    this.#isInSwapFlow = isInSwapFlow;
-    this.#isSwapApproveTx = isSwapApproveTx;
-    this.#isSwapTransaction = isSwapTransaction;
-    this.#isNativeTokenTransferred = isNativeTokenTransferred;
-
-    const approvalIdForPendingSwapApproveTx =
-      this.#getApprovalIdForPendingSwapApproveTx();
-    if (approvalIdForPendingSwapApproveTx) {
-      this.#approvalId = approvalIdForPendingSwapApproveTx;
-    }
-
-    this.#shouldStartApprovalRequest = getShouldStartApprovalRequest(
-      this.#isDapp,
-      this.#isSend,
-      this.#isSwapApproveTx,
-      Boolean(approvalIdForPendingSwapApproveTx),
-      this.#mobileReturnTxHashAsap,
-    );
-    this.#shouldUpdateApprovalRequest = getShouldUpdateApprovalRequest(
-      this.#isDapp,
-      this.#isSend,
-      this.#isSwapTransaction,
-      this.#mobileReturnTxHashAsap,
-    );
   }
 
   async submit() {
@@ -202,23 +140,6 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-      if (this.#isSwapTransaction || this.#isSwapApproveTx) {
-        this.#updateSwapsTransactions(uuid);
-      }
-
-      if (this.#shouldStartApprovalRequest) {
-        this.#addApprovalRequest({
-          uuid,
-        });
-      }
-
-      if (this.#shouldUpdateApprovalRequest) {
-        this.#addListenerToUpdateStatusPage({
-          uuid,
-        });
-      }
-
       const transactionHash = await this.#getTransactionHash(
         submitTransactionResponse,
         uuid,
@@ -233,10 +154,6 @@ class SmartTransactionHook {
         `${LOG_PREFIX} Error in smart transaction publish hook`,
       );
       throw error;
-    } finally {
-      if (!this.#mobileReturnTxHashAsap) {
-        this.#cleanup();
-      }
     }
   }
 
@@ -280,23 +197,6 @@ class SmartTransactionHook {
         throw new Error('No smart transaction UUID');
       }
 
-      // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-      if (this.#isSwapTransaction || this.#isSwapApproveTx) {
-        this.#updateSwapsTransactions(uuid);
-      }
-
-      if (this.#shouldStartApprovalRequest) {
-        this.#addApprovalRequest({
-          uuid,
-        });
-      }
-
-      if (this.#shouldUpdateApprovalRequest) {
-        this.#addListenerToUpdateStatusPage({
-          uuid,
-        });
-      }
-
       const transactionHash = await this.#getTransactionHash(
         submitTransactionResponse,
         uuid,
@@ -328,10 +228,6 @@ class SmartTransactionHook {
         `${LOG_PREFIX} Error in smart transaction publish batch hook`,
       );
       throw error;
-    } finally {
-      if (!this.#mobileReturnTxHashAsap) {
-        this.#cleanup();
-      }
     }
   }
 
@@ -345,27 +241,6 @@ class SmartTransactionHook {
     } catch (error) {
       return undefined;
     }
-  };
-
-  #getApprovalIdForPendingSwapApproveTx = () => {
-    const pendingApprovalsForSwapApproveTxs = Object.values(
-      this.#approvalController.state.pendingApprovals,
-    ).filter(
-      ({ origin: pendingApprovalOrigin, type, requestState }) =>
-        // MM_FOX_CODE is the origin for MM Legacy Swaps
-        // ORIGIN_METAMASK is the origin for Unified Swaps and Bridge
-        (pendingApprovalOrigin === process.env.MM_FOX_CODE ||
-          pendingApprovalOrigin === ORIGIN_METAMASK) &&
-        type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
-        requestState?.isInSwapFlow &&
-        requestState?.isSwapApproveTx,
-    );
-    const pendingApprovalsForSwapApproveTx =
-      pendingApprovalsForSwapApproveTxs[0];
-
-    return pendingApprovalsForSwapApproveTx && this.#isSwapTransaction
-      ? pendingApprovalsForSwapApproveTx.id
-      : null;
   };
 
   #getTransactionHash = async (
@@ -492,77 +367,6 @@ class SmartTransactionHook {
     });
   };
 
-  #addApprovalRequest = ({ uuid }: { uuid: string }) => {
-    const origin = this.#transactionMeta.origin;
-
-    if (!origin) throw new Error('Origin is required');
-
-    this.#approvalId = random();
-
-    // Do not await on this, since it will not progress any further if so
-    this.#approvalController.addAndShowApprovalRequest({
-      id: this.#approvalId,
-      origin,
-      type: ApprovalTypes.SMART_TRANSACTION_STATUS,
-      // requestState gets passed to app/components/Views/confirmations/components/Approval/TemplateConfirmation/Templates/SmartTransactionStatus.ts
-      // can also be read from approvalController.state.pendingApprovals[approvalId].requestState
-      requestState: {
-        smartTransaction: {
-          status: SmartTransactionStatuses.PENDING,
-          creationTime: Date.now(),
-          uuid,
-        },
-        isDapp: this.#isDapp,
-        isInSwapFlow: this.#isInSwapFlow,
-        isSwapApproveTx: this.#isSwapApproveTx,
-        isSwapTransaction: this.#isSwapTransaction,
-      },
-    });
-
-    Logger.log(LOG_PREFIX, 'Added approval', this.#approvalId);
-  };
-
-  #updateApprovalRequest = async ({
-    smartTransaction,
-  }: {
-    smartTransaction: SmartTransaction;
-  }) => {
-    if (this.#approvalId) {
-      await this.#approvalController.updateRequestState({
-        id: this.#approvalId,
-        requestState: {
-          // TODO: Replace "any" with type
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          smartTransaction: smartTransaction as any,
-          isDapp: this.#isDapp,
-          isInSwapFlow: this.#isInSwapFlow,
-          isSwapApproveTx: this.#isSwapApproveTx,
-          isSwapTransaction: this.#isSwapTransaction,
-        },
-      });
-    }
-  };
-
-  #addListenerToUpdateStatusPage = async ({ uuid }: { uuid: string }) => {
-    this.#controllerMessenger.subscribe(
-      'SmartTransactionsController:smartTransaction',
-      async (smartTransaction: SmartTransaction) => {
-        if (uuid === smartTransaction.uuid) {
-          const { status } = smartTransaction;
-          if (!status || status === SmartTransactionStatuses.PENDING) {
-            return;
-          }
-          if (this.#shouldUpdateApprovalRequest && !this.#approvalEnded) {
-            await this.#updateApprovalRequest({
-              smartTransaction,
-            });
-          }
-          this.#cleanup();
-        }
-      },
-    );
-  };
-
   #waitForTransactionHash = ({
     uuid,
   }: {
@@ -593,25 +397,6 @@ class SmartTransactionHook {
         },
       );
     });
-
-  #cleanup = () => {
-    if (this.#approvalEnded) {
-      return;
-    }
-    this.#approvalEnded = true;
-  };
-
-  #updateSwapsTransactions = (uuid: string) => {
-    // We do this so we can show the Swap data (e.g. ETH to USDC, fiat values) in the app/components/Views/TransactionsView/index.js
-    const swapsTransactions =
-      // @ts-expect-error This is not defined on the type, but is a field added in app/components/UI/Swaps/QuotesView.js
-      this.#transactionController.state.swapsTransactions || {};
-
-    const originalSwapsTransaction =
-      swapsTransactions[this.#transactionMeta.id];
-
-    addSwapsTransaction(uuid, originalSwapsTransaction);
-  };
 }
 
 export const submitSmartTransactionHook = (

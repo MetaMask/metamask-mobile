@@ -65,6 +65,7 @@ export const WalletViewSelectorsIDs = {
     'profile-button-avatar-network-subtitle-icon',
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
+  HOMEPAGE_CONTAINER: 'homepage-container',
   CAROUSEL_CONTAINER: 'carousel-container',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,
@@ -72,11 +73,14 @@ export const WalletViewSelectorsIDs = {
     `carousel-slide-${id}-title`,
   CAROUSEL_SLIDE_CLOSE_BUTTON: (id: string | number): string =>
     `carousel-slide-${id}-close-button`,
+  BACK_BUTTON: 'back-button',
   DEFI_POSITIONS_CONTAINER: 'defi-positions-container',
   DEFI_POSITIONS_NETWORK_FILTER: 'defi-positions-network-filter',
   DEFI_POSITIONS_LIST: 'defi-positions-list',
   DEFI_POSITIONS_SCROLL_VIEW: 'defi-positions-scroll-view',
   DEFI_POSITIONS_DETAILS_CONTAINER: 'defi-positions-details-container',
+  DEFI_POSITION_LIST_ITEM: (protocolName: string): string =>
+    `defi-position-list-item-${protocolName}`,
   WALLET_BUY_BUTTON: 'wallet-buy-button',
   WALLET_SWAP_BUTTON: 'wallet-swap-button',
   WALLET_BRIDGE_BUTTON: 'wallet-bridge-button',
@@ -87,6 +91,9 @@ export const WalletViewSelectorsIDs = {
     'account-group-balance-empty-state-action-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',
+  WALLET_SCROLL_VIEW: 'wallet-scroll-view',
+  HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
+    `homepage-section-title-${sectionName}`,
 } as const;
 
 export const WalletViewSelectorsText = {
@@ -103,6 +110,10 @@ export const WalletViewSelectorsText = {
   DEFI_TAB: enContent.wallet.defi,
   PREDICTIONS_TAB: enContent.wallet.predict,
   AVAILABLE_BALANCE: enContent.predict.available_balance,
+  PERPETUALS_SECTION: enContent.homepage.sections.perpetuals,
+  TOKENS_SECTION: enContent.homepage.sections.tokens,
+  DEFI_SECTION: enContent.homepage.sections.defi,
+  NFTS_SECTION: enContent.homepage.sections.nfts,
   DEFI_EMPTY_STATE_DESCRIPTION:
     enContent.defi_positions.empty_state.description,
   DEFI_EMPTY_STATE_EXPLORE_BUTTON:

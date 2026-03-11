@@ -32,6 +32,7 @@ const mockNavigation = {
   goBack: jest.fn(),
   setOptions: mockSetOptions,
   dangerouslyGetParent: () => ({ pop: mockPop }),
+  isFocused: jest.fn(() => true),
 };
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

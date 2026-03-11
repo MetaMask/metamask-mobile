@@ -24,24 +24,12 @@ const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
-jest.mock('../../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      text: { default: '#000000', alternative: '#000000' },
-      primary: { inverse: '#FFFFFF', default: '#037DD6' },
-      background: { default: '#FFFFFF', alternative: '#F2F4F6' },
-      border: { default: '#BBC0C5', muted: '#D6D9DC' },
-      icon: { default: '#24272A', alternative: '#6A737D' },
-      overlay: { default: '#00000099' },
-      shadow: { default: '#00000026' },
-      error: { default: '#D73A49', muted: '#F97583' },
-      warning: { default: '#F66A0A', muted: '#F8AA4B' },
-      success: { default: '#28A745', muted: '#85E29D' },
-      info: { default: '#037DD6', muted: '#66CAFF' },
-    },
-    themeAppearance: 'light',
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useAppThemeFromContext: jest.fn(() => mockTheme),
+  };
+});
 jest.mock('@react-navigation/native');
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
@@ -96,71 +84,15 @@ jest.mock('../../../Rewards/hooks/useReferralDetails', () => ({
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
 }));
-jest.mock('@metamask/design-tokens', () => ({
-  brandColor: {
-    black: '#000000',
-    white: '#FFFFFF',
-  },
-  darkTheme: {
-    colors: {
-      background: {
-        mutedHover: '#color1',
-      },
-      accent04: {
-        light: '#color2',
-      },
-    },
-  },
-}));
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      safeAreaContainer: {},
-      header: {},
-      closeButton: {},
-      headerTitle: {},
-      carouselWrapper: {},
-      carousel: {},
-      cardContainer: {},
-      backgroundImage: {},
-      heroCardTopRow: {},
-      metamaskLogo: {},
-      heroCardAssetRow: {},
-      assetIcon: {},
-      assetName: {},
-      directionBadge: {},
-      directionBadgeText: {},
-      pnlText: {},
-      pnlPositive: {},
-      pnlNegative: {},
-      priceRowsContainer: {},
-      priceRow: {},
-      priceLabel: {},
-      priceValue: {},
-      qrCodeContainer: {},
-      carouselDotIndicator: {},
-      progressDot: {},
-      progressDotActive: {},
-      footerButtonContainer: {},
-    },
-    theme: {
-      colors: {
-        text: { default: '#000000', alternative: '#000000' },
-        primary: { inverse: '#FFFFFF', default: '#037DD6' },
-        background: { default: '#FFFFFF', alternative: '#F2F4F6' },
-        border: { default: '#BBC0C5', muted: '#D6D9DC' },
-        icon: { default: '#24272A', alternative: '#6A737D' },
-        overlay: { default: '#00000099' },
-        shadow: { default: '#00000026' },
-        error: { default: '#D73A49', muted: '#F97583' },
-        warning: { default: '#F66A0A', muted: '#F8AA4B' },
-        success: { default: '#28A745', muted: '#85E29D' },
-        info: { default: '#037DD6', muted: '#66CAFF' },
-      },
-      themeAppearance: 'light',
-    },
-  })),
-}));
+jest.mock('../../../../../component-library/hooks', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useStyles: jest.fn((styleFn, vars) => ({
+      styles: styleFn({ theme: mockTheme, vars }),
+      theme: mockTheme,
+    })),
+  };
+});
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 jest.mock(
   '../../../Rewards/components/RewardsReferralCodeTag',
