@@ -17,6 +17,7 @@ import {
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../../../Encryptor';
+import { checkMfaEnabled } from '../mpc-controller/utils';
 
 const encryptor = new Encryptor({
   keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -76,7 +77,7 @@ export const keyringControllerInit: ControllerInitFunction<
   additionalKeyrings.push(snapKeyringBuilder);
   ///: END:ONLY_INCLUDE_IF
 
-  if (process.env.MPC_ENABLED) {
+  if (checkMfaEnabled()) {
     const mpcKeyring = mpcKeyringInit();
     additionalKeyrings.push(mpcKeyring);
   }
