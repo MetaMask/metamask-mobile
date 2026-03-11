@@ -1,29 +1,29 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useModalCloseOnQuoteExpiry } from './index';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import Routes from '../../../../../constants/navigation/Routes';
-import { CommonActions } from '@react-navigation/native';
 
 jest.mock('../useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn(),
 }));
 
-const mockDispatch = jest.fn();
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    dispatch: mockDispatch,
+    goBack: mockGoBack,
+    canGoBack: mockCanGoBack,
   }),
 }));
 
 const mockUseBridgeQuoteData = {
-  isExpired: false,
-  willRefresh: false,
+  needsNewQuote: false,
 };
 
 describe('useModalCloseOnQuoteExpiry', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCanGoBack.mockReturnValue(true);
     jest
       .mocked(useBridgeQuoteData)
       .mockReturnValue(
@@ -31,107 +31,90 @@ describe('useModalCloseOnQuoteExpiry', () => {
       );
   });
 
-  it('dispatches a reset to QuoteExpiredModal when quote is expired and will not refresh', () => {
+  it('calls goBack when needsNewQuote is true and can go back', () => {
     // Arrange
     jest.mocked(useBridgeQuoteData).mockReturnValue({
       ...mockUseBridgeQuoteData,
-      isExpired: true,
-      willRefresh: false,
+      needsNewQuote: true,
+    } as ReturnType<typeof useBridgeQuoteData>);
+    mockCanGoBack.mockReturnValue(true);
+
+    // Act
+    renderHookWithProvider(() => useModalCloseOnQuoteExpiry());
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call goBack when needsNewQuote is false', () => {
+    // Arrange
+    jest.mocked(useBridgeQuoteData).mockReturnValue({
+      ...mockUseBridgeQuoteData,
+      needsNewQuote: false,
     } as ReturnType<typeof useBridgeQuoteData>);
 
     // Act
     renderHookWithProvider(() => useModalCloseOnQuoteExpiry());
 
     // Assert
-    expect(mockDispatch).toHaveBeenCalledWith(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL }],
-      }),
-    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch when quote is not expired', () => {
+  it('does not call goBack when needsNewQuote is true but cannot go back', () => {
     // Arrange
     jest.mocked(useBridgeQuoteData).mockReturnValue({
       ...mockUseBridgeQuoteData,
-      isExpired: false,
-      willRefresh: false,
+      needsNewQuote: true,
     } as ReturnType<typeof useBridgeQuoteData>);
+    mockCanGoBack.mockReturnValue(false);
 
     // Act
     renderHookWithProvider(() => useModalCloseOnQuoteExpiry());
 
     // Assert
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch when quote is expired but will refresh', () => {
-    // Arrange
+  it('calls goBack when needsNewQuote transitions from false to true', () => {
+    // Arrange – start with needsNewQuote false
     jest.mocked(useBridgeQuoteData).mockReturnValue({
       ...mockUseBridgeQuoteData,
-      isExpired: true,
-      willRefresh: true,
-    } as ReturnType<typeof useBridgeQuoteData>);
-
-    // Act
-    renderHookWithProvider(() => useModalCloseOnQuoteExpiry());
-
-    // Assert
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('dispatches again when quote transitions from not-expired to expired', () => {
-    // Arrange – start with not expired
-    jest.mocked(useBridgeQuoteData).mockReturnValue({
-      ...mockUseBridgeQuoteData,
-      isExpired: false,
-      willRefresh: false,
+      needsNewQuote: false,
     } as ReturnType<typeof useBridgeQuoteData>);
 
     const { rerender } = renderHookWithProvider(() =>
       useModalCloseOnQuoteExpiry(),
     );
 
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
 
-    // Quote expires
+    // needsNewQuote becomes true
     jest.mocked(useBridgeQuoteData).mockReturnValue({
       ...mockUseBridgeQuoteData,
-      isExpired: true,
-      willRefresh: false,
+      needsNewQuote: true,
     } as ReturnType<typeof useBridgeQuoteData>);
 
     // Act
     rerender({});
 
     // Assert
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL }],
-      }),
-    );
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('dispatches reset with index 0 so QuoteExpiredModal is the only route', () => {
+  it('does not call goBack when needsNewQuote remains false', () => {
     // Arrange
     jest.mocked(useBridgeQuoteData).mockReturnValue({
       ...mockUseBridgeQuoteData,
-      isExpired: true,
-      willRefresh: false,
+      needsNewQuote: false,
     } as ReturnType<typeof useBridgeQuoteData>);
 
-    // Act
-    renderHookWithProvider(() => useModalCloseOnQuoteExpiry());
+    const { rerender } = renderHookWithProvider(() =>
+      useModalCloseOnQuoteExpiry(),
+    );
+
+    rerender({});
 
     // Assert
-    const dispatchedAction = mockDispatch.mock.calls[0][0];
-    expect(dispatchedAction.payload.index).toBe(0);
-    expect(dispatchedAction.payload.routes).toHaveLength(1);
-    expect(dispatchedAction.payload.routes[0].name).toBe(
-      Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });
