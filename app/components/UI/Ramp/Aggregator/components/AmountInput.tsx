@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   },
   cursor: {
     height: 24,
-    marginHorizontal: 5,
+    marginHorizontal: 1,
     width: 1,
   },
   chevron: {
