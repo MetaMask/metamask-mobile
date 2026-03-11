@@ -188,11 +188,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "7.70.0"
-<<<<<<< HEAD
-        versionCode 3607
-=======
-        versionCode 3607
->>>>>>> bc930c006542435449f150968d75f15ce58fb5a2
+        versionCode 3821
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
