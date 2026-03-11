@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme }) => {
       width: 2,
       height: 48,
       marginLeft: 4,
-      marginBottom: 6,
+      marginBottom: 12,
       backgroundColor: theme.colors.primary.default,
     },
     actionSection: {
