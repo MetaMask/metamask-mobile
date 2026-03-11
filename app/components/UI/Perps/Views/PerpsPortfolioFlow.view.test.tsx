@@ -12,6 +12,7 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { cleanup, fireEvent, screen } from '@testing-library/react-native';
+import { PerpsHomeSectionTestIds } from '../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -183,7 +184,9 @@ describe('Portfolio & Account Flow', () => {
       streamOverrides: { positions: [defaultPositionForViews] },
     });
     await screen.findByText(POSITIONS);
-    fireEvent.press(await screen.findByTestId('section-header-action-button'));
+    fireEvent.press(
+      await screen.findByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON),
+    );
     expect(
       await screen.findByTestId('perps-home-close-all-geo-block-tooltip'),
     ).toBeOnTheScreen();

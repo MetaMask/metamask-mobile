@@ -12,6 +12,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 export interface PerpsHomeSectionProps {
   /**
@@ -134,7 +135,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           endAccessory={
             showAction ? (
               <TouchableOpacity
-                testID="section-header-action-button"
+                testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
                 onPress={onActionPress}
               >
                 <Icon

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { View, Text } from 'react-native';
 import PerpsHomeSection from './PerpsHomeSection';
+import { PerpsHomeSectionTestIds } from './PerpsHomeSection.testIds';
 
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
@@ -170,7 +171,7 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      fireEvent.press(getByTestId('section-header-action-button'));
+      fireEvent.press(getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON));
 
       expect(mockOnActionPress).toHaveBeenCalledTimes(1);
     });
@@ -356,7 +357,7 @@ describe('PerpsHomeSection', () => {
         </PerpsHomeSection>,
       );
 
-      const actionButton = getByTestId('section-header-action-button');
+      const actionButton = getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON);
 
       fireEvent.press(actionButton);
       fireEvent.press(actionButton);
@@ -494,7 +495,7 @@ describe('PerpsHomeSection', () => {
       expect(getByText('-$18.47 (2.1%)')).toBeTruthy();
 
       // Action should still work
-      fireEvent.press(getByTestId('section-header-action-button'));
+      fireEvent.press(getByTestId(PerpsHomeSectionTestIds.ACTION_BUTTON));
       expect(mockOnActionPress).toHaveBeenCalledTimes(1);
     });
 
