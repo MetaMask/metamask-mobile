@@ -87,9 +87,12 @@ export const useMusdConversionTokens = () => {
     [filterTokensWithAllowlistAndBlocklist, filterTokensWithMinBalance],
   );
 
-  // Allowed tokens for conversion.
+  // Allowed tokens for conversion, sorted by fiat balance descending.
   const conversionTokens = useMemo(
-    () => filterAllowedTokens(allTokens),
+    () =>
+      filterAllowedTokens(allTokens).sort(
+        (a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
+      ),
     [allTokens, filterAllowedTokens],
   );
 
