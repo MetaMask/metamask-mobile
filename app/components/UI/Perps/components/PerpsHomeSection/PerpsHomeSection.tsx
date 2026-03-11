@@ -133,7 +133,10 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           justifyContent={showAction ? BoxJustifyContent.Between : undefined}
           endAccessory={
             showAction ? (
-              <TouchableOpacity onPress={onActionPress}>
+              <TouchableOpacity
+                testID="section-header-action-button"
+                onPress={onActionPress}
+              >
                 <Icon
                   name={IconName.MoreHorizontal}
                   size={IconSize.Md}
