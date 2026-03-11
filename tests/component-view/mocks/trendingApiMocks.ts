@@ -1,25 +1,17 @@
-/**
- * Mock API responses for trending tokens integration tests
- */
+// eslint-disable-next-line import/no-extraneous-dependencies
+import nock from 'nock';
 
-import { getTrendingTokens } from '@metamask/assets-controllers';
+export const getTrendingTokensMock = jest.fn();
 
-export const getTrendingTokensMock = getTrendingTokens as jest.Mock;
+const TRENDING_API_BASE = 'https://token.api.cx.metamask.io';
+const TRENDING_PATH = '/v3/tokens/trending';
 
 export interface MockTrendingToken {
   assetId: string;
   name: string;
   symbol: string;
-  address?: string;
-  chainId: string;
-  price?: string;
-  priceChange24h?: number;
-  volume24h?: number;
-  liquidity?: number;
-  imageUrl?: string;
   decimals?: number;
-  aggregatedUsdVolume?: number;
-  marketCap?: number;
+  price?: string;
   priceChangePct?: {
     m5?: string;
     m15?: string;
@@ -28,6 +20,8 @@ export interface MockTrendingToken {
     h6?: string;
     h24?: string;
   };
+  aggregatedUsdVolume?: number;
+  marketCap?: number;
 }
 
 export const mockTrendingTokensData: MockTrendingToken[] = [
@@ -35,55 +29,37 @@ export const mockTrendingTokensData: MockTrendingToken[] = [
     assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
     name: 'Ethereum',
     symbol: 'ETH',
-    address: '0x0000000000000000000000000000000000000000',
-    chainId: 'eip155:1',
-    price: '2000.00',
-    priceChange24h: 5.2,
-    volume24h: 15000000000,
-    liquidity: 5000000000,
-    imageUrl: 'https://example.com/eth.png',
     decimals: 18,
-    aggregatedUsdVolume: 15000000000,
-    marketCap: 500000000000,
+    price: '2000.00',
     priceChangePct: {
       h24: '5.2',
     },
+    aggregatedUsdVolume: 15000000000,
+    marketCap: 500000000000,
   },
   {
     assetId: 'eip155:1/erc20:0x1234567890123456789012345678901234567890',
     name: 'Bitcoin',
     symbol: 'BTC',
-    address: '0x1234567890123456789012345678901234567890',
-    chainId: 'eip155:1',
-    price: '45000.00',
-    priceChange24h: -2.5,
-    volume24h: 25000000000,
-    liquidity: 8000000000,
-    imageUrl: 'https://example.com/btc.png',
     decimals: 8,
-    aggregatedUsdVolume: 25000000000,
-    marketCap: 800000000000,
+    price: '45000.00',
     priceChangePct: {
       h24: '-2.5',
     },
+    aggregatedUsdVolume: 25000000000,
+    marketCap: 800000000000,
   },
   {
     assetId: 'eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
     name: 'Uniswap',
     symbol: 'UNI',
-    address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-    chainId: 'eip155:1',
-    price: '8.50',
-    priceChange24h: 12.8,
-    volume24h: 500000000,
-    liquidity: 300000000,
-    imageUrl: 'https://example.com/uni.png',
     decimals: 18,
-    aggregatedUsdVolume: 500000000,
-    marketCap: 5000000000,
+    price: '8.50',
     priceChangePct: {
       h24: '12.8',
     },
+    aggregatedUsdVolume: 500000000,
+    marketCap: 5000000000,
   },
 ];
 
@@ -92,16 +68,8 @@ export const mockBnbChainToken: MockTrendingToken[] = [
     assetId: 'eip155:56/erc20:0xBTC0000000000000000000000000000000000000',
     name: 'Bitcoin BNB',
     symbol: 'BTCB',
-    address: '0xBTC0000000000000000000000000000000000000',
-    chainId: 'eip155:56',
-    price: '44500.00',
-    priceChange24h: -1.8,
-    volume24h: 18000000000,
-    liquidity: 7000000000,
-    imageUrl: 'https://example.com/btcb.png',
     decimals: 18,
-    aggregatedUsdVolume: 18000000000,
-    marketCap: 750000000000,
+    price: '44500.00',
     priceChangePct: {
       h24: '-1.8',
     },
@@ -109,19 +77,35 @@ export const mockBnbChainToken: MockTrendingToken[] = [
 ];
 
 /**
- * Setup mock for getTrendingTokens from @metamask/assets-controllers
- * Call this in beforeEach of your tests
+ * Setup mock for the trending tokens API using nock.
+ * Intercepts GET requests to the trending URL (any query params) and replies with the given data.
+ * Optional customReply(uri) can return different data based on the request URL (e.g. for BNB-only requests).
+ * Call in beforeEach: setupTrendingApiFetchMock(...) or await setupTrendingApiFetchMock(...)
  */
-export const setupTrendingApiFetchMock = (
+export function setupTrendingApiFetchMock(
   responseData: MockTrendingToken[] = mockTrendingTokensData,
-) => {
-  (getTrendingTokens as jest.Mock).mockImplementation(async () => responseData);
-};
+  customReply?: (uri: string) => MockTrendingToken[],
+): void {
+  nock.cleanAll();
+  nock.disableNetConnect();
+
+  const replyBody =
+    customReply !== undefined
+      ? (uri: string) => customReply(uri)
+      : () => responseData;
+
+  nock(TRENDING_API_BASE)
+    .get(TRENDING_PATH)
+    .query(true)
+    .reply(200, (uri) => replyBody(uri))
+    .persist();
+}
 
 /**
- * Clear all mocks
- * Call this in afterEach of your tests
+ * Clear nock interceptors and Jest mocks.
+ * Call this in afterEach of your tests.
  */
-export const clearTrendingApiMocks = () => {
+export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
-};
+  nock.cleanAll();
+}

@@ -620,6 +620,7 @@
     "listr2": "^8.0.2",
     "metro-react-native-babel-preset": "~0.76.9",
     "metro-react-native-babel-transformer": "~0.76.9",
+    "nock": "^14.0.11",
     "nyc": "^15.1.0",
     "openai": "^6.25.0",
     "patch-package": "^6.2.2",
