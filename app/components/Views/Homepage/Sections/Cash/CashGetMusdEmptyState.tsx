@@ -177,7 +177,7 @@ const CashGetMusdEmptyState = () => {
 
   return (
     <Box testID={CashGetMusdEmptyStateSelectors.CONTAINER} twClassName="gap-3">
-      <View style={tw.style('flex-row items-center justify-between')}>
+      <View style={tw.style('flex-row items-center justify-between py-1')}>
         <Pressable
           testID={CashGetMusdEmptyStateSelectors.ROW}
           onPress={handleTokenRowPress}

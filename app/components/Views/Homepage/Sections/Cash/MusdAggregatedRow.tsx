@@ -105,7 +105,7 @@ const MusdAggregatedRow = () => {
   return (
     <Pressable
       style={({ pressed }) =>
-        tw.style('flex-row items-center', pressed && 'opacity-80')
+        tw.style('flex-row items-center py-1', pressed && 'opacity-80')
       }
       testID="cash-section-musd-row"
       onPress={handleTokenRowPress}
