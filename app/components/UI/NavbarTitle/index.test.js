@@ -56,15 +56,6 @@ jest.mock('../../../core/Analytics', () => ({
 }));
 
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: (Component) => {
-    const WithNav = (props) => (
-      <Component {...props} navigation={{ navigate: mockNavigate }} />
-    );
-    WithNav.displayName = `withNavigation(${Component.displayName || Component.name || 'Component'})`;
-    return WithNav;
-  },
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
