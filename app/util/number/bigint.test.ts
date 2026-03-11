@@ -185,6 +185,16 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
       fromTokenMinimalUnit(hexToBigInt('576129d2d21d64a5'), 18, false),
     ).toEqual('6.296359739485676709');
   });
+
+  it('correctly converts string input when isRounding is false', () => {
+    expect(fromTokenMinimalUnit('1337', 6, false)).toEqual('0.001337');
+    expect(fromTokenMinimalUnit('1337', 0, false)).toEqual('1337');
+    expect(fromTokenMinimalUnit('1337', 18, false)).toEqual(
+      '0.000000000000001337',
+    );
+    expect(fromTokenMinimalUnit('1000000000000000000', 18, false)).toEqual('1');
+    expect(fromTokenMinimalUnit('1000000', 6, false)).toEqual('1');
+  });
 });
 
 describe('Number utils :: fromTokenMinimalUnitString', () => {
@@ -429,35 +439,35 @@ describe('Number utils :: localizeLargeNumber', () => {
     };
   });
 
-  it('should localize numbers in the trillions correctly', () => {
+  it('localizes numbers in the trillions correctly', () => {
     const number = 1500000000000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50T');
     expect(i18n.t).toHaveBeenCalledWith('token.trillion_abbreviation');
   });
 
-  it('should localize numbers in the billions correctly', () => {
+  it('localizes numbers in the billions correctly', () => {
     const number = 1500000000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50B');
     expect(i18n.t).toHaveBeenCalledWith('token.billion_abbreviation');
   });
 
-  it('should localize numbers in the millions correctly', () => {
+  it('localizes numbers in the millions correctly', () => {
     const number = 1500000;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('1.50M');
     expect(i18n.t).toHaveBeenCalledWith('token.million_abbreviation');
   });
 
-  it('should format numbers below one million correctly', () => {
+  it('formats numbers below one million correctly', () => {
     const number = 123456.789;
     const result = localizeLargeNumber(i18n, number);
     expect(result).toBe('123456.79');
     expect(i18n.t).not.toHaveBeenCalled();
   });
 
-  it('should handle exact boundary conditions correctly', () => {
+  it('handles exact boundary conditions correctly', () => {
     const trillion = 1000000000000;
     const billion = 1000000000;
     const million = 1000000;
@@ -477,7 +487,7 @@ describe('Number utils :: hexToBigInt', () => {
   it('hexToBigInt', () => {
     expect(Number(hexToBigInt('0x539'))).toBe(1337);
   });
-  it('should handle non string values', () => {
+  it('handles non-string values', () => {
     const newBN = BigInt(1);
     expect(hexToBigInt(newBN)).toBe(newBN);
   });
@@ -511,6 +521,22 @@ describe('Number utils :: weiToFiat', () => {
     expect(weiToFiat(wei, 1, 'usd')).toEqual('$1.00');
     expect(weiToFiat(wei, 0.5, 'usd')).toEqual('$0.50');
     expect(weiToFiat(wei, 0.1, 'usd')).toEqual('$0.10');
+  });
+
+  it('converts number-typed wei correctly instead of returning zero', () => {
+    const weiAsNumber = Number(toWei('1'));
+    expect(weiToFiat(weiAsNumber, 1, 'usd')).toEqual('$1.00');
+    expect(weiToFiat(weiAsNumber, 0.5, 'usd')).toEqual('$0.50');
+  });
+
+  it('returns zero fiat for zero wei', () => {
+    expect(weiToFiat(0n, 1, 'usd')).toEqual('$0.00');
+    expect(weiToFiat(0, 1, 'usd')).toEqual('$0.00');
+  });
+
+  it('returns undefined when conversionRate is falsy', () => {
+    expect(weiToFiat(toWei('1'), null, 'usd')).toBeUndefined();
+    expect(weiToFiat(toWei('1'), 0, 'usd')).toBeUndefined();
   });
 });
 
@@ -555,6 +581,23 @@ describe('Number utils :: fiatNumberToWei', () => {
     expect(fiatNumberToWei('100', 10)).toEqual(ten);
     expect(fiatNumberToWei('1', 10)).toEqual(decimal);
     expect(fiatNumberToWei('1', 3)).toEqual(aThird);
+  });
+
+  it('returns BigInt zero when fiat value is zero', () => {
+    expect(fiatNumberToWei('0', 10)).toEqual(BigInt(0));
+    expect(fiatNumberToWei(0, 10)).toEqual(BigInt(0));
+  });
+
+  it('returns BigInt zero when conversion rate is zero', () => {
+    expect(fiatNumberToWei('100', 0)).toEqual(BigInt(0));
+  });
+
+  it('returns BigInt zero when result would be Infinity', () => {
+    expect(fiatNumberToWei(Infinity, 1)).toEqual(BigInt(0));
+  });
+
+  it('returns BigInt zero when result is NaN', () => {
+    expect(fiatNumberToWei(NaN, 1)).toEqual(BigInt(0));
   });
 });
 
@@ -628,7 +671,7 @@ describe('Number utils :: balanceToFiat', () => {
     expect(balanceToFiat(0.0001, 0.1, 0.1, 'usd')).toEqual('$0.00');
   });
 
-  it('should returns undefined if balanceToFiat conversionRate is undefined', () => {
+  it('returns undefined when conversionRate is undefined', () => {
     expect(balanceToFiat(0.1, undefined, 0.1, 'usd')).toEqual(undefined);
   });
 });
@@ -674,7 +717,7 @@ describe('toHexadecimal', () => {
 });
 
 describe('Number utils :: fastSplit', () => {
-  it('should split ', () => {
+  it('splits on the divider character', () => {
     expect(fastSplit('1650000007.7')).toEqual('1650000007');
     expect(fastSplit('1650000007')).toEqual('1650000007');
     expect(fastSplit('test string', ' ')).toEqual('test');
@@ -682,105 +725,45 @@ describe('Number utils :: fastSplit', () => {
 });
 
 describe('Number utils :: safeNumberToBigInt', () => {
-  it('should safe convert a string type positive decimal number to BN', () => {
-    const result = safeNumberToBigInt('1650000007.7');
-    const expected = BigInt('1650000007');
-    expect(result).toBe(expected);
+  it.each([
+    ['positive decimal string', '1650000007.7', BigInt('1650000007')],
+    ['positive decimal number', 1650000007.7, BigInt('1650000007')],
+    ['positive integer string', '16500', BigInt('16500')],
+    ['positive integer number', 16500, BigInt('16500')],
+    ['negative decimal string', '-1650000007.7', BigInt('-1650000007')],
+    ['negative decimal number', -1650000007.7, BigInt('-1650000007')],
+    ['negative integer string', '-16500', BigInt('-16500')],
+    ['negative integer number', -16500, BigInt('-16500')],
+    ['positive hex without prefix', '75BCD15', BigInt('123456789')],
+    ['positive hex with 0x prefix', '0x75BCD15', BigInt('123456789')],
+    ['negative hex without prefix', '-75BCD15', BigInt('-123456789')],
+    ['negative hex with -0x prefix', '-0x75BCD15', BigInt('-123456789')],
+    ['decimal zero string', '0', BigInt('0')],
+    ['hex zero', '0x0', BigInt('0')],
+    ['invalid hex string', '0xNaN', BigInt('0')],
+    ['NaN', NaN, BigInt('0')],
+  ] as const)('safely converts %s to BigInt', (_label, input, expected) => {
+    expect(safeNumberToBigInt(input as number | string)).toBe(expected);
   });
 
-  it('should safe convert a number type positive decimal number to BN', () => {
-    const result = safeNumberToBigInt(1650000007.7);
-    const expected = BigInt('1650000007');
-    expect(result).toBe(expected);
+  it('preserves full precision for large negative hex values beyond Number.MAX_SAFE_INTEGER', () => {
+    // 0x20000000000001 = 2^53 + 1, which would lose precision via parseInt
+    const largeNegativeHex = '-0x20000000000001';
+    expect(safeNumberToBigInt(largeNegativeHex)).toBe(
+      -BigInt('0x20000000000001'),
+    );
   });
 
-  it('should safe convert a string type positive integer to BN', () => {
-    const result = safeNumberToBigInt('16500');
-    const expected = BigInt('16500');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a number type positive integer to BN', () => {
-    const result = safeNumberToBigInt(16500);
-    const expected = BigInt('16500');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a string type negative decimal number to BN', () => {
-    const result = safeNumberToBigInt('-1650000007.7');
-    const expected = BigInt('-1650000007');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a number type negative decimal number to BN', () => {
-    const result = safeNumberToBigInt(-1650000007.7);
-    const expected = BigInt('-1650000007');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a string type negative integer to BN', () => {
-    const result = safeNumberToBigInt('-16500');
-    const expected = BigInt('-16500');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a number type negative integer to BN', () => {
-    const result = safeNumberToBigInt(-16500);
-    const expected = BigInt('-16500');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a positive hex to BN', () => {
-    const result = safeNumberToBigInt('75BCD15');
-    const expected = BigInt('123456789');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a positive hex with 0x prefix to BN', () => {
-    const result = safeNumberToBigInt('0x75BCD15');
-    const expected = BigInt('123456789');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a negative hex to BN', () => {
-    const result = safeNumberToBigInt('-75BCD15');
-    const expected = BigInt('-123456789');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a negative hex with 0x prefix to BN', () => {
-    const result = safeNumberToBigInt('-0x75BCD15');
-    const expected = BigInt('-123456789');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a decimal zero to BN', () => {
-    const result = safeNumberToBigInt('0');
-    const expected = BigInt('0');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a hex zero to BN', () => {
-    const result = safeNumberToBigInt('0x0');
-    const expected = BigInt('0');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert an invalid hex string to zero', () => {
-    const result = safeNumberToBigInt('0xNaN');
-    const expected = BigInt('0');
-    expect(result).toBe(expected);
-  });
-
-  it('should safe convert a NaN object', () => {
-    const result = safeNumberToBigInt(NaN);
-    const expected = BigInt('0');
-    expect(result).toBe(expected);
+  it('preserves full precision for very large negative hex values', () => {
+    const veryLargeNegativeHex = '-0xffffffffffffffffffffffff';
+    expect(safeNumberToBigInt(veryLargeNegativeHex)).toBe(
+      -BigInt('0xffffffffffffffffffffffff'),
+    );
   });
 });
 
 describe('Number utils :: isNumber', () => {
-  it('should be a valid number ', () => {
+  it('returns true for valid number strings', () => {
     expect(isNumber('1650.7')).toBe(true);
     expect(isNumber('1000')).toBe(true);
     expect(isNumber('0.0001')).toBe(true);
@@ -788,7 +771,7 @@ describe('Number utils :: isNumber', () => {
     expect(isNumber('1')).toBe(true);
   });
 
-  it('should not be a valid number ', () => {
+  it('returns false for invalid number strings', () => {
     expect(isNumber('..7')).toBe(false);
     expect(isNumber('1..1')).toBe(false);
     expect(isNumber('0..')).toBe(false);
@@ -805,7 +788,7 @@ describe('Number utils :: isNumber', () => {
 });
 
 describe('Number utils :: isNumberValue', () => {
-  it('should return true for valid number types', () => {
+  it('returns true for valid number types', () => {
     expect(isNumberValue(1650.7)).toBe(true);
     expect(isNumberValue(1000)).toBe(true);
     expect(isNumberValue(0.0001)).toBe(true);
@@ -814,7 +797,7 @@ describe('Number utils :: isNumberValue', () => {
     expect(isNumberValue(1e-10)).toBe(true);
   });
 
-  it('should be a valid number string types', () => {
+  it('returns true for valid number string types', () => {
     expect(isNumberValue('1650.7')).toBe(true);
     expect(isNumberValue('1000')).toBe(true);
     expect(isNumberValue('.01')).toBe(true);
@@ -825,7 +808,7 @@ describe('Number utils :: isNumberValue', () => {
     expect(isNumberValue('1e-10')).toBe(true);
   });
 
-  it('should not be a valid number ', () => {
+  it('returns false for invalid number values', () => {
     expect(isNumberValue('..7')).toBe(false);
     expect(isNumberValue('1..1')).toBe(false);
     expect(isNumberValue('0..')).toBe(false);
@@ -841,13 +824,13 @@ describe('Number utils :: isNumberValue', () => {
 });
 
 describe('Number utils :: dotAndCommaDecimalFormatter', () => {
-  it('should return the number if it does not contain a dot or comma', () => {
+  it('returns the number unchanged when it contains no dot or comma', () => {
     expect(dotAndCommaDecimalFormatter('1650')).toBe('1650');
   });
-  it('should return the number if it contains a dot', () => {
+  it('returns the number unchanged when it contains a dot', () => {
     expect(dotAndCommaDecimalFormatter('1650.7')).toBe('1650.7');
   });
-  it('should replace the comma with a decimal with a comma if it contains a dot', () => {
+  it('replaces the comma with a decimal when it contains a dot', () => {
     expect(dotAndCommaDecimalFormatter('1650,7')).toBe('1650.7');
   });
 });
@@ -869,7 +852,7 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
     ).toEqual(true);
   });
 
-  it('isNumberScientificNotationWhenString should be false when non number is passed', () => {
+  it('returns false when a non-number is passed to isNumberScientificNotationWhenString', () => {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(isNumberScientificNotationWhenString('1.337e-6' as any)).toEqual(
@@ -943,25 +926,25 @@ describe('Number utils :: isZeroValue', () => {
 });
 
 describe('Number utils :: formatValueToMatchTokenDecimals', () => {
-  it('should return a formatted value if the submitted decimals is 0', () => {
+  it('returns a formatted value when submitted decimals is 0', () => {
     expect(formatValueToMatchTokenDecimals('1.0', 0)).toBe('1');
   });
-  it('should return the value if value is null', () => {
+  it('returns the value unchanged when value is null', () => {
     expect(formatValueToMatchTokenDecimals(null, 18)).toBe(null);
   });
-  it('should return the value if the decimal is undefined', () => {
+  it('returns the value unchanged when decimal is undefined', () => {
     expect(formatValueToMatchTokenDecimals('1', undefined)).toBe('1');
   });
-  it('should return a formatted value if the decimal is null', () => {
+  it('returns the value unchanged when decimal is null', () => {
     expect(formatValueToMatchTokenDecimals('1', null)).toBe('1');
   });
-  it('should return the value if the decimal is not a number', () => {
+  it('returns the value unchanged when decimal is not a number', () => {
     expect(formatValueToMatchTokenDecimals('1', 'a')).toBe('1');
   });
-  it('should return the value if the value decimal is equal to or less than the submitted decimal', () => {
+  it('returns the value unchanged when value decimal count is at or below the submitted decimal', () => {
     expect(formatValueToMatchTokenDecimals('1.2348', 4)).toBe('1.2348');
   });
-  it('should return a formatted value if the value decimal is greater than the submitted decimal', () => {
+  it('truncates the value when value decimal count exceeds the submitted decimal', () => {
     expect(formatValueToMatchTokenDecimals('1.234567', 4)).toBe('1.2346');
   });
 });

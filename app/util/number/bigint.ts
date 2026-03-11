@@ -135,7 +135,11 @@ export function fromTokenMinimalUnit(
   decimals: number,
   isRounding = true,
 ): string {
-  minimalInput = isRounding ? Number(minimalInput) : minimalInput;
+  if (isRounding) {
+    minimalInput = Number(minimalInput);
+  } else if (typeof minimalInput === 'string') {
+    minimalInput = BigInt(minimalInput);
+  }
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBigInt(prefixedInput);
   const negative = minimal < 0n;
@@ -525,11 +529,12 @@ export function weiToFiat(
   currencyCode: CurrencyCode,
 ) {
   if (!conversionRate) return undefined;
-  if (!wei || !isBigInt(wei) || !conversionRate) {
+  const weiBigInt = typeof wei === 'number' ? BigInt(Math.trunc(wei)) : wei;
+  if (!weiBigInt || !conversionRate) {
     return addCurrencySymbol(0, currencyCode);
   }
   const decimalsToShow = (currencyCode === 'usd' && 2) || undefined;
-  const value = weiToFiatNumber(wei, conversionRate, decimalsToShow);
+  const value = weiToFiatNumber(weiBigInt, conversionRate, decimalsToShow);
   return addCurrencySymbol(value, currencyCode);
 }
 
@@ -654,7 +659,7 @@ export function fiatNumberToWei(
     isNaN(floatFiatConverted) ||
     floatFiatConverted === Infinity
   ) {
-    return '0x0';
+    return BigInt(0);
   }
   const base = Math.pow(10, 18);
   let weiNumber: number | string = Math.trunc(base * floatFiatConverted);
@@ -681,10 +686,10 @@ export function safeNumberToBigInt(value: number | string | bigint): bigint {
   } catch {
     try {
       // In case of missing hex prefix it will fail so we try to add it
-      let signedHex: number | string = addHexPrefix(safeValue);
+      const signedHex: string = addHexPrefix(safeValue);
       if (signedHex.startsWith('-0x')) {
-        // For some reason BigInt cannot handle negative -0x string in constructor so we need to convert it to number first
-        signedHex = parseInt(signedHex, 16);
+        // BigInt cannot handle -0x prefix directly; negate the positive conversion to preserve full precision
+        return -BigInt(signedHex.slice(1));
       }
       return BigInt(signedHex);
     } catch {
