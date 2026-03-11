@@ -115,7 +115,7 @@ const AnimatedColumn = memo(
           1) *
         0.5;
       // Final opacity = low resting brightness + slow shimmer + moving sweep.
-      const opacity = Math.min(0.92, 0.08 + noise * 0.14 + falloff * 0.7);
+      const opacity = Math.min(0.75, 0.08 + noise * 0.14 + falloff * 0.4);
 
       return { opacity };
     });
