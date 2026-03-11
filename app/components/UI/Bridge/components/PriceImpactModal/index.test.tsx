@@ -134,10 +134,6 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn(),
 }));
 
-jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
-  useModalCloseOnQuoteExpiry: jest.fn(),
-}));
-
 jest.mock('../../hooks/usePriceImpactViewData', () => ({
   usePriceImpactViewData: jest.fn(),
 }));
@@ -146,7 +142,6 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import { PriceImpactHeader } from './PriceImpactHeader';
 import { PriceImpactDescription } from './PriceImpactDescription';
@@ -162,10 +157,6 @@ const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
 const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
   typeof useBridgeQuoteData
 >;
-const mockUseModalCloseOnQuoteExpiry =
-  useModalCloseOnQuoteExpiry as jest.MockedFunction<
-    typeof useModalCloseOnQuoteExpiry
-  >;
 const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockPriceImpactHeader = PriceImpactHeader as jest.MockedFunction<
@@ -216,20 +207,6 @@ describe('PriceImpactModal', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('useModalCloseOnQuoteExpiry', () => {
-    it('calls useModalCloseOnQuoteExpiry on render', () => {
-      render(<PriceImpactModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
-    });
-
-    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
-      render(<PriceImpactModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('component structure', () => {
