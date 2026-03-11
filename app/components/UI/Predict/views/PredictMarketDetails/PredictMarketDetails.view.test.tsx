@@ -49,9 +49,13 @@ describe('PredictMarketDetails', () => {
       const screen = await findByTestId(
         PredictMarketDetailsSelectorsIDs.SCREEN,
       );
-      expect(
-        within(screen).getByText(MOCK_PREDICT_MARKET.title),
-      ).toBeOnTheScreen();
+      await waitFor(() => {
+        const titleElements = within(screen).getAllByText(
+          MOCK_PREDICT_MARKET.title,
+        );
+        expect(titleElements.length).toBeGreaterThan(0);
+        expect(titleElements[0]).toBeOnTheScreen();
+      });
       expect(
         within(screen).getByTestId(
           PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW,

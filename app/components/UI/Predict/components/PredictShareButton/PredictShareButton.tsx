@@ -100,7 +100,9 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
       iconName={IconNameMMDS.Share}
       size={ButtonIconSize.Md}
       onPress={handleSharePress}
+      accessibilityRole="button"
       accessibilityLabel={strings('predict.buttons.share')}
+      accessible
       testID={PredictMarketDetailsSelectorsIDs.SHARE_BUTTON}
     />
   );
