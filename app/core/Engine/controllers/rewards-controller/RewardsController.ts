@@ -21,7 +21,6 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
   type PointsEstimateHistoryEntry,
@@ -93,9 +92,6 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
-
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Off-device subscription accounts cache threshold
 const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
@@ -173,12 +169,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   offDeviceSubscriptionAccounts: {
     includeInStateLogs: true,
     persist: true,
@@ -224,7 +214,6 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
@@ -324,7 +313,6 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
   #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
@@ -478,7 +466,6 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
     isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
@@ -486,7 +473,6 @@ export class RewardsController extends BaseController<
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
     isCampaignsEnabled?: () => boolean;
   }) {
     super({
@@ -502,7 +488,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
     this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
@@ -596,10 +581,6 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getUnlockedRewards',
       this.getUnlockedRewards.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:getOffDeviceSubscriptionAccounts',
@@ -3292,60 +3273,6 @@ export class RewardsController extends BaseController<
         this.update((state: RewardsControllerState) => {
           state.unlockedRewards[key] = {
             rewards: payload,
-            lastFetched: Date.now(),
-          };
-        });
-      },
-    });
-
-    return result;
-  }
-
-  /**
-   * Get snapshots for a season with caching
-   * @param seasonId - The season ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return [];
-    }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
-    }
-    const result = await wrapWithCache<SnapshotDto[]>({
-      key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
-        return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
-        };
-      },
-      fetchFresh: async () =>
-        this.#withAuthRetry(async () => {
-          Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
-            seasonId,
-          );
-          const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
-            seasonId,
-            subscriptionId,
-          )) as SnapshotDto[];
-          return response || [];
-        }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
             lastFetched: Date.now(),
           };
         });
