@@ -70,7 +70,6 @@ import PredictKeypad, {
 } from '../../components/PredictKeypad';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePredictBalance } from '../../hooks/usePredictBalance';
-import { usePredictDeposit } from '../../hooks/usePredictDeposit';
 import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import { strings } from '../../../../../../locales/i18n';
 import ButtonHero from '../../../../../component-library/components-temp/Buttons/ButtonHero';
@@ -131,7 +130,6 @@ const PredictBuyPreview = () => {
   const { data: balance = 0, isLoading: isBalanceLoading } =
     usePredictBalance();
 
-  const { deposit } = usePredictDeposit();
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
@@ -642,7 +640,6 @@ const PredictBuyPreview = () => {
         setCurrentValue={setCurrentValue}
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
-        onAddFunds={deposit}
       />
       {renderBottomContent()}
       {isFeeBreakdownVisible && (
