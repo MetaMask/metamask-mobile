@@ -4,7 +4,11 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 // External dependencies.
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BoxJustifyContent,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import SectionHeader from './SectionHeader';
@@ -143,6 +147,43 @@ describe('SectionHeader', () => {
       );
 
       expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+    });
+  });
+
+  describe('justifyContent', () => {
+    it('renders title and endAccessory when justifyContent is Between', () => {
+      const { getByText } = render(
+        <SectionHeader
+          title="Your positions"
+          justifyContent={BoxJustifyContent.Between}
+          endAccessory={<Text>···</Text>}
+        />,
+      );
+
+      expect(getByText('Your positions')).toBeOnTheScreen();
+      expect(getByText('···')).toBeOnTheScreen();
+    });
+  });
+
+  describe('endIconColor', () => {
+    it('renders the trailing icon with the default IconAlternative color', () => {
+      const { getByTestId } = render(
+        <SectionHeader title="Tokens" onPress={jest.fn()} />,
+      );
+
+      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('renders the trailing icon with a custom color', () => {
+      const { getByTestId } = render(
+        <SectionHeader
+          title="Perps"
+          onPress={jest.fn()}
+          endIconColor={IconColor.IconDefault}
+        />,
+      );
+
+      expect(getByTestId(BUTTON_ICON_TEST_ID)).toBeOnTheScreen();
     });
   });
 

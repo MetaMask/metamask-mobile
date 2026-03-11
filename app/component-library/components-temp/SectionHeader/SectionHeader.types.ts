@@ -3,7 +3,11 @@ import { ReactNode } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 
 // External dependencies.
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BoxJustifyContent,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 
 /**
  * SectionHeader component props.
@@ -21,16 +25,23 @@ export interface SectionHeaderProps {
    */
   onPress?: () => void;
   /**
+   * Controls how content is distributed along the main axis of the row.
+   * Use BoxJustifyContent.Between to push the endAccessory to the far right
+   * (e.g. "Your positions ···" layout). Defaults to flex-start.
+   */
+  justifyContent?: BoxJustifyContent;
+  /**
    * Icon rendered on the trailing end when onPress is provided.
    * Defaults to IconName.ArrowRight.
    * Follows the end* naming convention from HeaderBase.
    */
   endIconName?: IconName;
   /**
-   * Whether to show the circular background behind the trailing icon.
-   * Defaults to true. Pass false to render the icon without a background.
+   * Color of the trailing icon when onPress is provided.
+   * Defaults to IconColor.IconAlternative.
+   * Follows the end* naming convention from HeaderBase.
    */
-  showEndIconBackground?: boolean;
+  endIconColor?: IconColor;
   /**
    * Optional accessory rendered to the right of the title (e.g., info icon).
    */

@@ -3,6 +3,7 @@ import React from 'react';
 import { Text } from 'react-native';
 
 import {
+  BoxJustifyContent,
   Icon,
   IconName,
   IconSize,
@@ -17,9 +18,6 @@ const SectionHeaderMeta = {
   argTypes: {
     title: {
       control: 'text',
-    },
-    showEndIconBackground: {
-      control: 'boolean',
     },
     twClassName: {
       control: 'text',
@@ -75,12 +73,28 @@ export const WithCustomEndIcon = {
   ),
 };
 
-export const WithoutIconBackground = {
+export const WithCustomEndIconColor = {
   render: () => (
     <SectionHeader
-      title="Perpetuals"
+      title="Perps"
       onPress={() => console.log('View all Perps')}
-      showEndIconBackground={false}
+      endIconColor={IconColor.IconDefault}
+    />
+  ),
+};
+
+export const WithJustifyContentBetween = {
+  render: () => (
+    <SectionHeader
+      title="Your positions"
+      justifyContent={BoxJustifyContent.Between}
+      endAccessory={
+        <Icon
+          name={IconName.MoreVertical}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      }
     />
   ),
 };

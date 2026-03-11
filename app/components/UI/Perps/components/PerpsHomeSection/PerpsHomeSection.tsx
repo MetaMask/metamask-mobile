@@ -1,10 +1,16 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 
 export interface PerpsHomeSectionProps {
@@ -124,8 +130,18 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
       <View style={styles.headerContainer}>
         <SectionHeader
           title={title}
-          onPress={showAction ? onActionPress : undefined}
-          endIconName={IconName.MoreHorizontal}
+          justifyContent={showAction ? BoxJustifyContent.Between : undefined}
+          endAccessory={
+            showAction ? (
+              <TouchableOpacity onPress={onActionPress}>
+                <Icon
+                  name={IconName.MoreHorizontal}
+                  size={IconSize.Sm}
+                  color={IconColor.IconAlternative}
+                />
+              </TouchableOpacity>
+            ) : undefined
+          }
           twClassName="px-0 mb-2"
         />
 

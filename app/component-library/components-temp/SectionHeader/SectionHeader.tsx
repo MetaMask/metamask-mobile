@@ -12,8 +12,8 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
   TextColor,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -46,8 +46,9 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   title,
   onPress,
   endAccessory,
+  justifyContent,
   endIconName = IconName.ArrowRight,
-  showEndIconBackground = true,
+  endIconColor = IconColor.IconAlternative,
   style,
   twClassName,
   testID,
@@ -65,36 +66,31 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+      justifyContent={justifyContent}
+      twClassName="flex-1"
     >
-      {/* Left side: Title + optional endAccessory */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={1}
-      >
-        {typeof title === 'string' ? (
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {title}
-          </Text>
-        ) : (
-          title
-        )}
-        {endAccessory}
-      </Box>
+      {typeof title === 'string' ? (
+        <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+          {title}
+        </Text>
+      ) : (
+        title
+      )}
 
-      {/* Right side: Icon in circle — visual indicator only, touch handled by parent */}
+      {/* Arrow icon: 4px right of title, visual indicator only */}
       {onPress && (
-        <View
-          pointerEvents="none"
-          style={tw.style(
-            'w-8 h-8 rounded-full items-center justify-center',
-            showEndIconBackground && 'bg-background-muted',
-          )}
-        >
-          <ButtonIcon iconName={endIconName} size={ButtonIconSize.Sm} />
+        <View pointerEvents="none" style={tw.style('ml-1')}>
+          <ButtonIcon
+            iconName={endIconName}
+            size={ButtonIconSize.Sm}
+            iconProps={{
+              color: endIconColor,
+            }}
+          />
         </View>
       )}
+
+      {endAccessory}
     </Box>
   );
 
