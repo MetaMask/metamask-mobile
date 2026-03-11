@@ -223,6 +223,9 @@ async function repackIos() {
       );
     }
     logger.success(`Bundle executable verified: ${sourceAppName}`);
+    // Restore execute permissions (may have been lost if the binary came from a cached artifact)
+    fs.chmodSync(executablePath, 0o755);
+    logger.success(`Execute permissions set on: ${sourceAppName}`);
 
     // Remove old app and move repacked app to final location
     fs.rmSync(finalApp, { recursive: true, force: true });

@@ -183,32 +183,43 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Verify downloaded iOS app bundle
+      # Restore execute permissions on the iOS bundle executable.
+      # actions/upload-artifact strips execute bits when creating the artifact ZIP.
+      # Also handles any residual case mismatch as a safety net.
+      - name: Restore iOS bundle executable permissions
         if: ${{ inputs.platform == 'ios' }}
         env:
           BUILD_TYPE: ${{ inputs.build_type }}
           METAMASK_ENV: ${{ inputs.metamask_environment }}
         run: |
           APP_PATH="artifacts/${BUILD_TYPE}-${METAMASK_ENV}-MetaMask.app"
-          echo "=== Artifact directory structure (top level) ==="
-          ls -la "artifacts/" || echo "artifacts/ directory not found"
-          echo ""
-          echo "=== App bundle top-level contents ==="
-          ls -la "$APP_PATH/" || echo "ERROR: $APP_PATH not found"
-          echo ""
-          echo "=== Binary check ==="
-          if [ -f "$APP_PATH/MetaMask" ]; then
-            echo "✅ Binary exists: $(ls -lh "$APP_PATH/MetaMask")"
-            echo "   Type: $(file "$APP_PATH/MetaMask")"
-          elif [ -L "$APP_PATH/MetaMask" ]; then
-            echo "⚠️  Binary is a symlink: $(ls -la "$APP_PATH/MetaMask")"
-            echo "   Points to: $(readlink "$APP_PATH/MetaMask")"
-          else
-            echo "❌ Binary MISSING from $APP_PATH"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "❌ Could not read CFBundleExecutable from Info.plist"
+            ls -la "$APP_PATH/" || echo "App path not found: $APP_PATH"
+            exit 1
           fi
-          echo ""
-          echo "=== CFBundleExecutable in Info.plist ==="
-          /usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null || echo "Could not read CFBundleExecutable"
+          echo "CFBundleExecutable: $BUNDLE_EXEC"
+
+          # Find the binary case-insensitively (safety net for any residual case mismatch)
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "❌ Bundle executable not found: $BUNDLE_EXEC"
+            ls -la "$APP_PATH/"
+            exit 1
+          fi
+          ACTUAL_NAME=$(basename "$ACTUAL_PATH")
+
+          # Fix case if needed (two-step rename for case-insensitive APFS)
+          if [ "$ACTUAL_NAME" != "$BUNDLE_EXEC" ]; then
+            echo "⚠️  Case mismatch: $ACTUAL_NAME → $BUNDLE_EXEC, fixing..."
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          # Restore execute permissions (stripped by actions/upload-artifact)
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+          echo "✅ Ready: $(ls -lh "$APP_PATH/$BUNDLE_EXEC")"
         shell: bash
 
       # On re-run (run_attempt > 1), download previous test results to identify failed tests

@@ -251,26 +251,42 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
-      # Verify app bundle contents before upload (diagnose missing executable)
-      - name: Verify iOS App Bundle Before Upload
+      # Fix iOS bundle executable: ensure correct case and execute permissions before upload.
+      # actions/upload-artifact strips execute permissions, so we must chmod +x before zipping.
+      # Xcode on case-insensitive APFS sometimes stores the binary with wrong case (e.g. "metamask"
+      # instead of "MetaMask"), which causes xcrun simctl install to fail on the test runner because
+      # it does a case-sensitive directory enumeration when looking for CFBundleExecutable.
+      - name: Fix iOS bundle executable case and permissions before upload
         run: |
           APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
-          echo "=== Top-level contents of MetaMask.app ==="
-          ls -la "$APP_PATH/" || echo "ERROR: MetaMask.app directory not found"
-          echo ""
-          echo "=== Binary check ==="
-          if [ -f "$APP_PATH/MetaMask" ]; then
-            echo "✅ Binary exists: $(ls -lh "$APP_PATH/MetaMask")"
-            echo "   Type: $(file "$APP_PATH/MetaMask")"
-          elif [ -L "$APP_PATH/MetaMask" ]; then
-            echo "⚠️  Binary is a symlink: $(ls -la "$APP_PATH/MetaMask")"
-            echo "   Points to: $(readlink "$APP_PATH/MetaMask")"
-          else
-            echo "❌ Binary is MISSING from MetaMask.app"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "❌ Could not read CFBundleExecutable from Info.plist"
+            exit 1
           fi
-          echo ""
-          echo "=== CFBundleExecutable in Info.plist ==="
-          /usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null || echo "Could not read CFBundleExecutable"
+          echo "CFBundleExecutable: $BUNDLE_EXEC"
+
+          # Find the binary case-insensitively (Xcode may produce lowercase name on case-insensitive APFS)
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "❌ Bundle executable not found (even case-insensitively): $BUNDLE_EXEC"
+            ls -la "$APP_PATH/"
+            exit 1
+          fi
+          ACTUAL_NAME=$(basename "$ACTUAL_PATH")
+          echo "Found on disk: $ACTUAL_NAME"
+
+          # Fix case mismatch with a two-step rename (direct rename fails on case-insensitive APFS)
+          if [ "$ACTUAL_NAME" != "$BUNDLE_EXEC" ]; then
+            echo "⚠️  Case mismatch detected — renaming $ACTUAL_NAME → $BUNDLE_EXEC"
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+            echo "✅ Renamed: $ACTUAL_NAME → $BUNDLE_EXEC"
+          fi
+
+          # Restore execute permissions (actions/upload-artifact strips them from the ZIP)
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+          echo "✅ Execute permission set: $(ls -lh "$APP_PATH/$BUNDLE_EXEC")"
         shell: bash
 
       # Upload the iOS .app file that works in simulators
