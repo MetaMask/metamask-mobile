@@ -251,6 +251,28 @@ jobs:
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
+      # Verify app bundle contents before upload (diagnose missing executable)
+      - name: Verify iOS App Bundle Before Upload
+        run: |
+          APP_PATH="ios/build/Build/Products/Release-iphonesimulator/MetaMask.app"
+          echo "=== Top-level contents of MetaMask.app ==="
+          ls -la "$APP_PATH/" || echo "ERROR: MetaMask.app directory not found"
+          echo ""
+          echo "=== Binary check ==="
+          if [ -f "$APP_PATH/MetaMask" ]; then
+            echo "✅ Binary exists: $(ls -lh "$APP_PATH/MetaMask")"
+            echo "   Type: $(file "$APP_PATH/MetaMask")"
+          elif [ -L "$APP_PATH/MetaMask" ]; then
+            echo "⚠️  Binary is a symlink: $(ls -la "$APP_PATH/MetaMask")"
+            echo "   Points to: $(readlink "$APP_PATH/MetaMask")"
+          else
+            echo "❌ Binary is MISSING from MetaMask.app"
+          fi
+          echo ""
+          echo "=== CFBundleExecutable in Info.plist ==="
+          /usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null || echo "Could not read CFBundleExecutable"
+        shell: bash
+
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app

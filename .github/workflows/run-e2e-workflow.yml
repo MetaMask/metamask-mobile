@@ -183,6 +183,34 @@ jobs:
         with:
           path: artifacts/
 
+      - name: Verify downloaded iOS app bundle
+        if: ${{ inputs.platform == 'ios' }}
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENV: ${{ inputs.metamask_environment }}
+        run: |
+          APP_PATH="artifacts/${BUILD_TYPE}-${METAMASK_ENV}-MetaMask.app"
+          echo "=== Artifact directory structure (top level) ==="
+          ls -la "artifacts/" || echo "artifacts/ directory not found"
+          echo ""
+          echo "=== App bundle top-level contents ==="
+          ls -la "$APP_PATH/" || echo "ERROR: $APP_PATH not found"
+          echo ""
+          echo "=== Binary check ==="
+          if [ -f "$APP_PATH/MetaMask" ]; then
+            echo "✅ Binary exists: $(ls -lh "$APP_PATH/MetaMask")"
+            echo "   Type: $(file "$APP_PATH/MetaMask")"
+          elif [ -L "$APP_PATH/MetaMask" ]; then
+            echo "⚠️  Binary is a symlink: $(ls -la "$APP_PATH/MetaMask")"
+            echo "   Points to: $(readlink "$APP_PATH/MetaMask")"
+          else
+            echo "❌ Binary MISSING from $APP_PATH"
+          fi
+          echo ""
+          echo "=== CFBundleExecutable in Info.plist ==="
+          /usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null || echo "Could not read CFBundleExecutable"
+        shell: bash
+
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
         if: ${{ github.run_attempt > 1 }}
