@@ -44,11 +44,11 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Test QuickAction buttons in their rendered order (left to right)
         // to allow progressive right-scrolling through the horizontal list
         const quickActionSections = [
+          TrendingViewSelectorsText.SECTION_SITES,
           TrendingViewSelectorsText.SECTION_TOKENS,
           TrendingViewSelectorsText.SECTION_STOCKS,
           TrendingViewSelectorsText.SECTION_PERPS,
           TrendingViewSelectorsText.SECTION_PREDICTIONS,
-          TrendingViewSelectorsText.SECTION_SITES,
         ];
 
         for (const section of quickActionSections) {
