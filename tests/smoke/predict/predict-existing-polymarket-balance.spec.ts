@@ -8,7 +8,10 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureFlagHomepageSectionsV1Enabled,
+  remoteFeatureFlagPredictEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { POLYMARKET_COMPLETE_MOCKS } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import enContent from '../../../locales/languages/en.json';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
@@ -17,9 +20,9 @@ const EXPECTED_BALANCE_TEXT = '$28.16';
 
 const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
@@ -55,7 +58,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
     );
   });
 
-  it('loads Wallet > Predictions tab and displays balance and positions', async () => {
+  it('loads Wallet > Predictions section and displays balance and positions', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withPolygon().build(),
@@ -65,19 +68,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       async () => {
         await loginToApp();
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet container should be visible',
-        });
-
-        await WalletView.tapOnPredictionsTab();
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-          {
-            description:
-              'Predictions tab content should be visible on Wallet > Predictions',
-          },
-        );
-        await WalletView.tapOnAvailableBalance();
+        await WalletView.scrollAndTapPredictionsSection();
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.balanceCard,
           {
