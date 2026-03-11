@@ -110,7 +110,7 @@ export interface HardwareWalletAdapter {
    * Requests permissions if needed; opens OS Settings when permanently denied.
    *
    * @returns `true` if permissions are granted, `false` if the user was
-   * redirected to Settings (caller should abort and wait for retry).
+   * redirected to Settings.
    */
   ensurePermissions(): Promise<boolean>;
 
