@@ -27,6 +27,5 @@ export const useShouldRenderMaxOption = (
     return true;
   }
 
-  // Keep extension parity: native max is enabled only for gas-included paths.
   return gasIncluded || gasIncluded7702;
 };
