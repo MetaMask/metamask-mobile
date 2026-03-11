@@ -18,9 +18,6 @@ export interface AlertBannerProps {
   inline?: boolean;
 }
 
-/**
- * Picks the single highest-priority general alert to display in the banner.
- */
 function getPriorityGeneralAlert(alerts: Alert[]): Alert | undefined {
   return (
     alerts.find(({ key }) => key === AlertKeys.AddressPoisoning) ??
