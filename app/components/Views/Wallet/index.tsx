@@ -1509,99 +1509,127 @@ const Wallet = ({
     [styles],
   );
 
-  const headerEndAccessory = (
-    <View style={styles.headerEndAccessoryContainer}>
-      <View style={styles.headerActionButtonsContainer}>
-        <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-          <AddressCopy hitSlop={touchAreaSlop} />
-        </View>
-        {shouldDisplayCardButton && (
-          <CardButton onPress={handleCardPress} touchAreaSlop={touchAreaSlop} />
-        )}
-        {!isAccountMenuEnabled && (
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.IconDefault }}
-            onPress={openQRScanner}
-            iconName={MMDSIconName.QrCode}
-            size={ButtonIconSize.Md}
-            testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
-            hitSlop={touchAreaSlop}
-          />
-        )}
-        {isNotificationsFeatureEnabled() && !isAccountMenuEnabled && (
-          <BadgeWrapper
-            position={BadgeWrapperPosition.TopRight}
-            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-            badge={
-              isNotificationEnabled && unreadNotificationCount > 0 ? (
-                <BadgeStatus status={BadgeStatusStatus.Active} />
-              ) : null
-            }
-          >
-            <ButtonIcon
-              iconProps={{ color: MMDSIconColor.IconDefault }}
-              onPress={handleNotificationOnPress}
-              iconName={MMDSIconName.Notification}
-              size={ButtonIconSize.Md}
-              testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-              hitSlop={touchAreaSlop}
-            />
-          </BadgeWrapper>
-        )}
-        {isNotificationsFeatureEnabled() && isAccountMenuEnabled ? (
-          <BadgeWrapper
-            position={BadgeWrapperPosition.TopRight}
-            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-            badge={
-              isNotificationsFeatureEnabled() &&
-              isNotificationEnabled &&
-              unreadNotificationCount > 0 ? (
-                <BadgeStatus status={BadgeStatusStatus.Attention} />
-              ) : null
-            }
-          >
-            <ButtonIcon
-              iconProps={{ color: MMDSIconColor.IconDefault }}
-              onPress={handleHamburgerPress}
-              iconName={MMDSIconName.Menu}
-              size={ButtonIconSize.Md}
-              testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-              hitSlop={touchAreaSlop}
-            />
-          </BadgeWrapper>
-        ) : (
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.IconDefault }}
-            onPress={handleHamburgerPress}
-            iconName={MMDSIconName.Menu}
-            size={ButtonIconSize.Md}
-            testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON}
-            hitSlop={touchAreaSlop}
-          />
-        )}
-      </View>
-    </View>
-  );
-
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
-      <View
-        style={baseStyles.flexGrow}
-        testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
-      >
+      <View style={baseStyles.flexGrow}>
         <SafeAreaView
           style={[
             baseStyles.flexGrow,
             { backgroundColor: colors.background.default },
           ]}
           edges={{ bottom: 'additive' }}
+          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
         >
           {selectedInternalAccount ? (
             <>
               <HeaderRoot
                 includesTopInset
                 testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-                endAccessory={headerEndAccessory}
+                endAccessory={
+                  <View style={styles.headerEndAccessoryContainer}>
+                    <View style={styles.headerActionButtonsContainer}>
+                      <View
+                        testID={
+                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                        }
+                      >
+                        <AddressCopy hitSlop={touchAreaSlop} />
+                      </View>
+                      {shouldDisplayCardButton && (
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                      )}
+                      {!isAccountMenuEnabled && (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={openQRScanner}
+                          iconName={MMDSIconName.QrCode}
+                          size={ButtonIconSize.Md}
+                          testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
+                      {isNotificationsFeatureEnabled() &&
+                        !isAccountMenuEnabled && (
+                          <BadgeWrapper
+                            position={BadgeWrapperPosition.TopRight}
+                            positionAnchorShape={
+                              BadgeWrapperPositionAnchorShape.Circular
+                            }
+                            badge={
+                              isNotificationEnabled &&
+                              unreadNotificationCount > 0 ? (
+                                <BadgeStatus
+                                  status={BadgeStatusStatus.Active}
+                                />
+                              ) : null
+                            }
+                          >
+                            <ButtonIcon
+                              iconProps={{
+                                color: MMDSIconColor.IconDefault,
+                              }}
+                              onPress={handleNotificationOnPress}
+                              iconName={MMDSIconName.Notification}
+                              size={ButtonIconSize.Md}
+                              testID={
+                                WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                              }
+                              hitSlop={touchAreaSlop}
+                            />
+                          </BadgeWrapper>
+                        )}
+                      {isNotificationsFeatureEnabled() &&
+                      isAccountMenuEnabled ? (
+                        <BadgeWrapper
+                          position={BadgeWrapperPosition.TopRight}
+                          positionAnchorShape={
+                            BadgeWrapperPositionAnchorShape.Circular
+                          }
+                          badge={
+                            isNotificationsFeatureEnabled() &&
+                            isNotificationEnabled &&
+                            unreadNotificationCount > 0 ? (
+                              <BadgeStatus
+                                status={BadgeStatusStatus.Attention}
+                              />
+                            ) : null
+                          }
+                        >
+                          <ButtonIcon
+                            iconProps={{
+                              color: MMDSIconColor.IconDefault,
+                            }}
+                            onPress={handleHamburgerPress}
+                            iconName={MMDSIconName.Menu}
+                            size={ButtonIconSize.Md}
+                            testID={
+                              WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                            }
+                            hitSlop={touchAreaSlop}
+                          />
+                        </BadgeWrapper>
+                      ) : (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleHamburgerPress}
+                          iconName={MMDSIconName.Menu}
+                          size={ButtonIconSize.Md}
+                          testID={
+                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                          }
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
+                    </View>
+                  </View>
+                }
                 twClassName="pl-1 pr-3"
               >
                 <PickerAccount
