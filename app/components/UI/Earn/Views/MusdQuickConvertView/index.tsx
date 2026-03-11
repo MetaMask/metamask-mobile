@@ -114,12 +114,14 @@ const MusdQuickConvertView = () => {
   );
 
   useEffect(() => {
+    if (!isQuickConvertEnabled) return;
+
     trackEvent(
       createEventBuilder(
         MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
       ).build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, isQuickConvertEnabled, trackEvent]);
 
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(

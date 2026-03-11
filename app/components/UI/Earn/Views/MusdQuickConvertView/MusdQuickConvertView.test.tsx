@@ -586,6 +586,18 @@ describe('MusdQuickConvertView', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
+    it('does not track MUSD_QUICK_CONVERT_SCREEN_VIEWED when feature flag is disabled', () => {
+      mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(false);
+
+      renderWithProvider(<MusdQuickConvertView />, {
+        state: initialRootState,
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+      );
+    });
+
     it('tracks MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED event when Max button is pressed', async () => {
       const token = createMockToken();
       mockUseMusdConversionTokens.mockReturnValue({
