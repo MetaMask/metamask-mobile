@@ -11,6 +11,7 @@ import {
   useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -38,8 +39,14 @@ export const usePredictBuyConditions = ({
   const requiredTokens = useTransactionPayRequiredTokens();
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
+  const { isDepositPending } = usePredictDeposit();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
+
+  const isBalancePulsing = useMemo(
+    () => isDepositPending && isPredictBalanceSelected,
+    [isDepositPending, isPredictBalanceSelected],
+  );
 
   const isBelowMinimum = useMemo(
     () => currentValue > 0 && currentValue < MINIMUM_BET,
@@ -157,5 +164,6 @@ export const usePredictBuyConditions = ({
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
+    isBalancePulsing,
   };
 };

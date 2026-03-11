@@ -53,6 +53,9 @@ export type PlaceOrderOutcome =
       status: 'deposit_required';
     }
   | {
+      status: 'deposit_in_progress';
+    }
+  | {
       status: 'order_not_filled';
     }
   | {
@@ -78,7 +81,7 @@ export function usePredictPlaceOrder(
   const { toastRef } = useContext(ToastContext);
   const queryClient = useQueryClient();
   const { data: balance = 0, refetch: refetchBalance } = usePredictBalance();
-  const { deposit } = usePredictDeposit();
+  const { deposit, isDepositPending } = usePredictDeposit();
 
   const showCashedOutToast = useCallback(
     (amount: string) => {
@@ -173,6 +176,26 @@ export function usePredictPlaceOrder(
 
       // Check if user has sufficient balance for the bet amount
       if (side === Side.BUY && latestBalance < totalAmount) {
+        if (isDepositPending) {
+          toastRef?.current?.showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Loading,
+            labelOptions: [
+              {
+                label: strings('predict.deposit.in_progress'),
+                isBold: true,
+              },
+              { label: '\n', isBold: false },
+              {
+                label: strings('predict.deposit.in_progress_description'),
+                isBold: false,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return { status: 'deposit_in_progress' };
+        }
+
         await deposit({
           amountUsd: totalAmount,
           analyticsProperties: {
@@ -269,11 +292,13 @@ export function usePredictPlaceOrder(
     },
     [
       balance,
-      deposit,
-      controllerPlaceOrder,
       refetchBalance,
-      queryClient,
+      isDepositPending,
+      deposit,
+      toastRef,
+      controllerPlaceOrder,
       onComplete,
+      queryClient,
       showOrderPlacedToast,
       showCashedOutToast,
       onError,

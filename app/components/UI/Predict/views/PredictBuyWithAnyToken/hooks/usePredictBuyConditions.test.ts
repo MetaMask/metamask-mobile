@@ -7,16 +7,18 @@ let mockActiveOrder: { state?: string } | null = null;
 let mockPayTotals: Record<string, unknown> | null = null;
 let mockIsPayTotalsLoading = false;
 let mockIsPayQuoteLoading = false;
-let mockQuotes: {
-  request?: { sourceTokenAddress?: string; sourceChainId?: string };
-}[] | null = null;
-let mockRequiredTokens: { address: string; chainId: string }[] | null =
-  null;
+let mockQuotes:
+  | {
+      request?: { sourceTokenAddress?: string; sourceChainId?: string };
+    }[]
+  | null = null;
+let mockRequiredTokens: { address: string; chainId: string }[] | null = null;
 let mockIsPredictBalanceSelected = true;
 let mockSelectedPaymentToken: {
   address?: string;
   chainId?: string;
 } | null = null;
+let mockIsDepositPending = false;
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
@@ -34,6 +36,13 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
     selectedPaymentToken: mockSelectedPaymentToken,
+  }),
+}));
+
+jest.mock('../../../hooks/usePredictDeposit', () => ({
+  usePredictDeposit: () => ({
+    deposit: jest.fn(),
+    isDepositPending: mockIsDepositPending,
   }),
 }));
 
@@ -69,6 +78,7 @@ describe('usePredictBuyConditions', () => {
     mockRequiredTokens = null;
     mockIsPredictBalanceSelected = true;
     mockSelectedPaymentToken = null;
+    mockIsDepositPending = false;
   });
 
   describe('isBelowMinimum', () => {
@@ -366,6 +376,52 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isPayFeesLoading).toBe(false);
+    });
+  });
+
+  describe('isBalancePulsing', () => {
+    it('returns true when deposit is pending and predict balance is selected', () => {
+      mockIsDepositPending = true;
+      mockIsPredictBalanceSelected = true;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isBalancePulsing).toBe(true);
+    });
+
+    it('returns false when deposit is pending but predict balance is not selected', () => {
+      mockIsDepositPending = true;
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isBalancePulsing).toBe(false);
+    });
+
+    it('returns false when predict balance is selected but no deposit is pending', () => {
+      mockIsDepositPending = false;
+      mockIsPredictBalanceSelected = true;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isBalancePulsing).toBe(false);
+    });
+
+    it('returns false when neither condition is met', () => {
+      mockIsDepositPending = false;
+      mockIsPredictBalanceSelected = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isBalancePulsing).toBe(false);
     });
   });
 

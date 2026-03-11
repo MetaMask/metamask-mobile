@@ -192,7 +192,9 @@ export const usePredictBuyActions = ({
     });
     if (
       orderResult.status === 'error' ||
-      orderResult.status === 'order_not_filled'
+      orderResult.status === 'order_not_filled' ||
+      orderResult.status === 'deposit_required' ||
+      orderResult.status === 'deposit_in_progress'
     ) {
       setIsConfirming(false);
       updateActiveOrder({ state: ActiveOrderState.PREVIEW });

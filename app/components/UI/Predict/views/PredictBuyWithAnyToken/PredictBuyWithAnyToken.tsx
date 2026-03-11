@@ -170,6 +170,7 @@ const PredictBuyWithAnyToken = () => {
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
+    isBalancePulsing,
   } = usePredictBuyConditions({
     currentValue,
     preview,
@@ -252,6 +253,7 @@ const PredictBuyWithAnyToken = () => {
             keypadRef={keypadRef}
             isInputFocused={isInputFocused}
             isBalanceLoading={isBalanceLoading}
+            isBalancePulsing={isBalancePulsing}
             availableBalanceDisplay={availableBalance}
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}

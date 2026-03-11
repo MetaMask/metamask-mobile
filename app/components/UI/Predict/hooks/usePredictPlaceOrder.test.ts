@@ -4,7 +4,10 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { type OrderPreview, Result, Side } from '../types';
-import { usePredictPlaceOrder } from './usePredictPlaceOrder';
+import {
+  usePredictPlaceOrder,
+  PlaceOrderOutcome,
+} from './usePredictPlaceOrder';
 import { usePredictTrading } from './usePredictTrading';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -604,6 +607,52 @@ describe('usePredictPlaceOrder', () => {
 
       expect(mockDeposit).not.toHaveBeenCalled();
       expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows toast and returns deposit_in_progress when deposit is already pending', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+      } as never);
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        isDepositPending: true,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      let outcome: PlaceOrderOutcome | undefined;
+      await act(async () => {
+        outcome = await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(outcome).toEqual({ status: 'deposit_in_progress' });
+      expect(mockDeposit).not.toHaveBeenCalled();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+      expect(mockToastRef.current?.showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Loading,
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('does not set loading state when deposit is already pending', async () => {
+      mockUsePredictBalance.mockReturnValue({
+        data: INSUFFICIENT_BALANCE,
+      } as never);
+      mockUsePredictDeposit.mockReturnValue({
+        deposit: mockDeposit,
+        isDepositPending: true,
+      });
+
+      const { result } = renderHook(() => usePredictPlaceOrder());
+
+      await act(async () => {
+        await result.current.placeOrder(mockOrderParams);
+      });
+
+      expect(result.current.isLoading).toBe(false);
     });
 
     it('uses refreshed balance to avoid unnecessary deposit retries', async () => {

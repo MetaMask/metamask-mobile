@@ -8,7 +8,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Animated } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
 import { formatPrice } from '../../../../utils/format';
@@ -20,6 +21,7 @@ interface PredictBuyAmountSectionProps {
   keypadRef: React.RefObject<PredictKeypadHandles>;
   isInputFocused: boolean;
   isBalanceLoading: boolean;
+  isBalancePulsing: boolean;
   availableBalanceDisplay: string;
   toWin: number;
   isShowingToWinSkeleton: boolean;
@@ -30,11 +32,36 @@ const PredictBuyAmountSection = ({
   keypadRef,
   isInputFocused,
   isBalanceLoading,
+  isBalancePulsing,
   availableBalanceDisplay,
   toWin,
   isShowingToWinSkeleton,
 }: PredictBuyAmountSectionProps) => {
   const tw = useTailwind();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (isBalancePulsing) {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 0.3,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      animation.start();
+      return () => animation.stop();
+    }
+    pulseAnim.setValue(1);
+    return undefined;
+  }, [isBalancePulsing, pulseAnim]);
 
   return (
     <>
@@ -50,10 +77,16 @@ const PredictBuyAmountSection = ({
         {isBalanceLoading ? (
           <Skeleton width={120} height={20} />
         ) : (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {`${strings('predict.order.available')}: `}
-            {availableBalanceDisplay}
-          </Text>
+          <Animated.View style={{ opacity: pulseAnim }}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {`${strings('predict.order.available')}: `}
+              {availableBalanceDisplay}
+            </Text>
+          </Animated.View>
         )}
       </Box>
       <Box

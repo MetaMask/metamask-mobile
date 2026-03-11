@@ -1,7 +1,11 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { usePredictBuyActions } from './usePredictBuyPreviewActions';
-import { ActiveOrderState, OrderPreview , PlaceOrderParams } from '../../../types';
+import {
+  ActiveOrderState,
+  OrderPreview,
+  PlaceOrderParams,
+} from '../../../types';
 import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 
@@ -406,6 +410,40 @@ describe('usePredictBuyActions', () => {
         handleErrors: false,
       });
       expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('resets state to PREVIEW on deposit_required', async () => {
+      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockPlaceOrder.mockResolvedValue({ status: 'deposit_required' });
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
+        state: ActiveOrderState.PREVIEW,
+      });
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
+    });
+
+    it('resets state to PREVIEW on deposit_in_progress', async () => {
+      mockRouteParams = { ...defaultRouteParams, isConfirmation: false };
+      mockPlaceOrder.mockResolvedValue({ status: 'deposit_in_progress' });
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockUpdateActiveOrder).toHaveBeenCalledWith({
+        state: ActiveOrderState.PREVIEW,
+      });
+      expect(mockSetIsConfirming).toHaveBeenCalledWith(false);
     });
 
     it('throws error when no preview available', async () => {
