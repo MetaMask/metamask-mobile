@@ -117,6 +117,52 @@ describe('TokenInputArea', () => {
     expect(mockOnBlur).toHaveBeenCalled();
   });
 
+  it('applies source selection and forwards selection change', () => {
+    const mockOnSelectionChange = jest.fn();
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          selection={{ start: 2, end: 2 }}
+          onSelectionChange={mockOnSelectionChange}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    const input = getByTestId('token-input-input');
+    expect(input.props.selection).toEqual({ start: 2, end: 2 });
+
+    fireEvent(input, 'selectionChange', {
+      nativeEvent: { selection: { start: 1, end: 1 } },
+    });
+
+    expect(mockOnSelectionChange).toHaveBeenCalled();
+  });
+
+  it('keeps destination selection pinned to start', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Destination}
+          selection={{ start: 3, end: 3 }}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    const input = getByTestId('token-input-input');
+    expect(input.props.selection).toEqual({ start: 0, end: 0 });
+  });
+
   it('displays max button for source token with balance and calls onMaxPress when clicked', () => {
     // Arrange
     const mockToken: BridgeToken = {

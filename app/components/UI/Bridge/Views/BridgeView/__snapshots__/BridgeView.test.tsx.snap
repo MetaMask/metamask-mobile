@@ -410,6 +410,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         onPressIn={[Function]}
+                                        onSelectionChange={[Function]}
                                         placeholder="0"
                                         placeholderTextColor="#66676a"
                                         showSoftInputOnFocus={false}
@@ -2223,6 +2224,7 @@ exports[`BridgeView renders 1`] = `
                                         onBlur={[Function]}
                                         onFocus={[Function]}
                                         onPressIn={[Function]}
+                                        onSelectionChange={[Function]}
                                         placeholder="0"
                                         placeholderTextColor="#66676a"
                                         showSoftInputOnFocus={false}
