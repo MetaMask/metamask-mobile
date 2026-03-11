@@ -706,7 +706,6 @@ function BuildQuote() {
     // Provider must match (prevents using a stale quote for a different provider)
     if (selectedQuote.provider !== selectedProvider.id) return false;
 
-    // Amount must match (normalize: API may return amountIn as string)
     if (quoteAmount !== amountAsNumber) return false;
 
     // Payment method context must match

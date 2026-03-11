@@ -263,6 +263,21 @@ describe('Checkout', () => {
       expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
     });
 
+    it('calls addPrecreatedOrder when network is empty (unusual chain ID format)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/custom/orders/order-unusual-chain',
+        network: '',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: '/providers/custom/orders/order-unusual-chain',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: undefined,
+      });
+    });
+
     it('calls addPrecreatedOrder only once when deps change but orderId stays the same (dedup)', () => {
       const Stack = createStackNavigator();
       const screenElement = (
