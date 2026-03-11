@@ -75,11 +75,14 @@ describe('AlertBanner', () => {
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({});
   });
 
-  it('renders correctly when there are general alerts', () => {
+  it('renders only the highest-priority general alert, not all of them', () => {
     const { getByText, queryByText } = render(<AlertBanner />);
 
+    // Alert 1 is first in the sorted list and wins priority
     expect(getByText('Alert 1')).toBeDefined();
-    expect(getByText('Alert 2')).toBeDefined();
+    // Alert 2 is suppressed — only one general alert shown
+    expect(queryByText('Alert 2')).toBeNull();
+    // Field alerts are not included by default
     expect(queryByText('Alert 3')).toBeNull();
     expect(queryByText('Alert 4')).toBeNull();
     expect(queryByText('Alert 5')).toBeNull();
@@ -108,11 +111,13 @@ describe('AlertBanner', () => {
     );
   });
 
-  it('renders field alerts if includeFields set', () => {
-    const { getByText } = render(<AlertBanner includeFields />);
+  it('renders field alerts alongside the single general alert when includeFields is set', () => {
+    const { getByText, queryByText } = render(<AlertBanner includeFields />);
 
     expect(getByText('Alert 1')).toBeDefined();
-    expect(getByText('Alert 2')).toBeDefined();
+    // Alert 2 is still suppressed — priority rule applies to general alerts
+    expect(queryByText('Alert 2')).toBeNull();
+    // Field alerts are all included
     expect(getByText('Alert 3')).toBeDefined();
     expect(getByText('Alert 4')).toBeDefined();
     expect(getByText('Alert 5')).toBeDefined();
@@ -156,5 +161,94 @@ describe('AlertBanner', () => {
     expect(getByText('Alert 3')).toBeDefined();
     expect(queryByText('Alert 4')).toBeNull();
     expect(queryByText('Alert 5')).toBeNull();
+  });
+
+  it('prioritizes address poisoning over blockaid and other alerts', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      generalAlerts: [
+        {
+          key: AlertKeys.Blockaid,
+          title: 'Request may not be safe',
+          message: 'Blockaid failed to verify this request',
+          severity: Severity.Info,
+        },
+        {
+          key: AlertKeys.AddressPoisoning,
+          title: 'Address poisoning detected',
+          message: 'Compare the entered and known-safe addresses',
+          severity: Severity.Danger,
+        },
+        {
+          key: AlertKeys.GasEstimateFailed,
+          title: 'Gas estimate failed',
+          message: 'Gas estimate could not be determined',
+          severity: Severity.Warning,
+        },
+      ],
+      fieldAlerts: [],
+    });
+
+    const { getByText, queryByText } = render(<AlertBanner />);
+
+    expect(getByText('Address poisoning detected')).toBeDefined();
+    expect(queryByText('Request may not be safe')).toBeNull();
+    expect(queryByText('Gas estimate failed')).toBeNull();
+  });
+
+  it('prioritizes blockaid malicious/failed over other alerts when no address poisoning', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      generalAlerts: [
+        {
+          key: AlertKeys.InsufficientBalance,
+          title: 'Insufficient balance',
+          message: 'Not enough balance to cover this transaction',
+          severity: Severity.Danger,
+        },
+        {
+          key: AlertKeys.Blockaid,
+          title: 'Request may not be safe',
+          message: 'Blockaid failed to verify this request',
+          severity: Severity.Info,
+        },
+        {
+          key: AlertKeys.FirstTimeInteraction,
+          title: 'First time interaction',
+          message: 'This is your first interaction with this address',
+          severity: Severity.Warning,
+        },
+      ],
+      fieldAlerts: [],
+    });
+
+    const { getByText, queryByText } = render(<AlertBanner />);
+
+    expect(getByText('Request may not be safe')).toBeDefined();
+    expect(queryByText('Insufficient balance')).toBeNull();
+    expect(queryByText('First time interaction')).toBeNull();
+  });
+
+  it('falls back to first alert when no address poisoning or blockaid malicious', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      generalAlerts: [
+        {
+          key: AlertKeys.InsufficientBalance,
+          title: 'Insufficient balance',
+          message: 'Not enough balance',
+          severity: Severity.Danger,
+        },
+        {
+          key: AlertKeys.FirstTimeInteraction,
+          title: 'First time interaction',
+          message: 'First interaction with this address',
+          severity: Severity.Warning,
+        },
+      ],
+      fieldAlerts: [],
+    });
+
+    const { getByText, queryByText } = render(<AlertBanner />);
+
+    expect(getByText('Insufficient balance')).toBeDefined();
+    expect(queryByText('First time interaction')).toBeNull();
   });
 });

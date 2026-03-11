@@ -4,17 +4,32 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
-import { Severity } from '../../types/alerts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
+import { Alert, Severity } from '../../types/alerts';
 import { hasTransactionType } from '../../utils/transaction';
+
 export interface AlertBannerProps {
   blockingOnly?: boolean;
   excludeKeys?: AlertKeys[];
   ignoreTypes?: TransactionType[];
   includeFields?: boolean;
   inline?: boolean;
+}
+
+/**
+ * Picks the single highest-priority general alert to display in the banner.
+ */
+function getPriorityGeneralAlert(alerts: Alert[]): Alert | undefined {
+  return (
+    alerts.find(({ key }) => key === AlertKeys.AddressPoisoning) ??
+    alerts.find(
+      ({ key, severity }) =>
+        key === AlertKeys.Blockaid && severity !== Severity.Warning,
+    ) ??
+    alerts[0]
+  );
 }
 
 const AlertBanner = ({
@@ -42,12 +57,13 @@ const AlertBanner = ({
     alerts = alerts.filter((a) => !excludeKeys.includes(a.key as AlertKeys));
   }
 
-  // When a danger-level alert is present, suppress lower-severity banners
-  // to avoid cluttering the screen with redundant warnings.
-  const hasDangerAlert = alerts.some((a) => a.severity === Severity.Danger);
-  if (hasDangerAlert) {
-    alerts = alerts.filter((a) => a.severity === Severity.Danger);
-  }
+  // Always show exactly one general alert (highest priority) plus any field alerts.
+  const filteredGeneralAlerts = alerts.filter((a) => !a.field);
+  const filteredFieldAlerts = alerts.filter((a) => a.field);
+  const priorityAlert = getPriorityGeneralAlert(filteredGeneralAlerts);
+  alerts = priorityAlert
+    ? [priorityAlert, ...filteredFieldAlerts]
+    : filteredFieldAlerts;
 
   if (
     alerts.length === 0 ||
@@ -56,7 +72,6 @@ const AlertBanner = ({
     return null;
   }
 
-  // Temporary loop throw all general alerts until design team establishes a design for multiple general alerts
   return (
     <>
       {alerts.map((selectedAlert, index) => (
