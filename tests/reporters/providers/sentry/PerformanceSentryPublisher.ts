@@ -12,6 +12,7 @@ const ENV_SENTRY_ENABLED = 'E2E_PERFORMANCE_SENTRY_ENABLED';
 const ENV_SENTRY_SAMPLE_RATE = 'E2E_PERFORMANCE_SENTRY_SAMPLE_RATE';
 const ENV_SENTRY_ENVIRONMENT = 'E2E_PERFORMANCE_SENTRY_ENVIRONMENT';
 const ENV_SENTRY_RELEASE = 'E2E_PERFORMANCE_SENTRY_RELEASE';
+const ENV_SENTRY_BUILD_VARIANT = 'E2E_PERFORMANCE_BUILD_VARIANT';
 const MAX_MEASUREMENT_KEY_LENGTH = 64;
 const RESERVED_MEASUREMENT_KEYS = [
   'scenario_total_time_ms',
@@ -73,6 +74,14 @@ function normalizeSpanStatus(status?: string): string {
     default:
       return 'unknown_error';
   }
+}
+
+function normalizeBuildVariant(variant?: string): 'rc' | 'exp' | 'unknown' {
+  if (variant === 'rc' || variant === 'exp') {
+    return variant;
+  }
+
+  return 'unknown';
 }
 
 function sanitizeMeasurementKey(name: string): string {
@@ -308,6 +317,9 @@ export async function publishPerformanceScenarioToSentry(
       test_status: options.status || 'unknown',
       retry: String(options.retry ?? 0),
       worker_index: String(options.workerIndex ?? 0),
+      build_variant: normalizeBuildVariant(
+        getEnvValue(ENV_SENTRY_BUILD_VARIANT),
+      ),
     },
     measurements,
     spans,

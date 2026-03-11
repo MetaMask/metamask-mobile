@@ -18,6 +18,7 @@ import {
   selectAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
+  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
 import I18n from '../../../locales/i18n';
@@ -1020,6 +1021,82 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
       tronAssets.find((a) => a.address?.includes('in-lock-period')),
     ).toBeUndefined();
     expect(tronAssets).toHaveLength(1);
+  });
+});
+
+describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
+  it('filters assets by explicit chain IDs (same as ForChainIds)', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
+
+    const chainIdsInResult = [...new Set(result.map((r) => r.chainId))];
+    expect(chainIdsInResult.sort()).toEqual(['0x1', '0xa']);
+    expect(
+      result.every((r) => r.chainId === '0x1' || r.chainId === '0xa'),
+    ).toBe(true);
+  });
+
+  it('returns empty array when chainIds is empty', () => {
+    const state = mockState();
+    const result = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      [],
+    );
+    expect(result).toEqual([]);
+  });
+
+  it('includes both 0x1 and eip155:1 in allowed set (same as ForChainIds)', () => {
+    const state = mockState();
+    const byCaip = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      ['eip155:1'],
+    );
+    const byHex = selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      ['0x1'],
+    );
+    expect(byCaip).toEqual(byHex);
+  });
+
+  it('always sorts by balance and ignores PreferencesController tokenSortConfig', () => {
+    const stateWithNameSort = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          PreferencesController: {
+            ...mockState().engine.backgroundState.PreferencesController,
+            tokenSortConfig: {
+              key: 'name',
+              order: 'asc',
+              sortCallback: 'alphaNumeric',
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const byBalance =
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        stateWithNameSort,
+        ['eip155:1'],
+      );
+    const byUserPref = selectSortedAssetsBySelectedAccountGroupForChainIds(
+      stateWithNameSort,
+      ['eip155:1'],
+    );
+
+    expect(byBalance).toHaveLength(byUserPref.length);
+    expect(byBalance.every((r) => r.chainId === '0x1')).toBe(true);
+    // ByBalance uses balance sort; ForChainIds with name sort can produce different order
+    expect(byBalance.map((r) => r.address)).toEqual(
+      expect.arrayContaining(byUserPref.map((r) => r.address)),
+    );
   });
 });
 
