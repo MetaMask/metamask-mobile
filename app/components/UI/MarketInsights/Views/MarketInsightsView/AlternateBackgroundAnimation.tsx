@@ -7,7 +7,6 @@ import Animated, {
   useAnimatedProps,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -30,9 +29,9 @@ const SILHOUETTE_RADIUS_Y = COMP_HEIGHT * 0.42;
 
 const SWEEP_START_X = -COMP_WIDTH * 0.6;
 const SWEEP_END_X = COMP_WIDTH * 1.65;
-const SWEEP_SETTLE_X = COMP_WIDTH * 0.49;
 const SWEEP_FALLOFF_HALF_WIDTH = 100;
 const LOOP_DURATION_MS = 1600;
+const NOISE_CYCLES_PER_LOOP = 2;
 
 interface Dot {
   x: number;
@@ -94,7 +93,11 @@ const AnimatedColumn = memo(
       const distance = Math.abs(colX - sweepX.value);
       const falloff = Math.max(0, 1 - distance / SWEEP_FALLOFF_HALF_WIDTH);
       const noise =
-        (Math.sin(tick.value * Math.PI * 2 * 1.6 + colX * 0.09) + 1) * 0.5;
+        (Math.sin(
+          tick.value * Math.PI * 2 * NOISE_CYCLES_PER_LOOP + colX * 0.09,
+        ) +
+          1) *
+        0.5;
       const opacity = Math.min(0.92, 0.08 + noise * 0.14 + falloff * 0.7);
 
       return { opacity };
@@ -129,22 +132,10 @@ const AlternateBackgroundAnimation = ({
   const tick = useSharedValue(0);
 
   useEffect(() => {
-    sweepX.value = withRepeat(
-      withSequence(
-        withTiming(SWEEP_END_X, {
-          duration: 1000,
-          easing: Easing.bezier(0.25, 0, 0.55, 1),
-        }),
-        withTiming(SWEEP_START_X, { duration: 0 }),
-        withTiming(SWEEP_SETTLE_X, {
-          duration: 560,
-          easing: Easing.bezier(0.2, 0, 0.75, 1),
-        }),
-        withTiming(SWEEP_START_X, { duration: 40 }),
-      ),
-      -1,
-      false,
-    );
+    sweepX.value = withTiming(SWEEP_END_X, {
+      duration: LOOP_DURATION_MS,
+      easing: Easing.linear,
+    });
 
     return () => {
       cancelAnimation(sweepX);
@@ -153,13 +144,10 @@ const AlternateBackgroundAnimation = ({
 
   useEffect(() => {
     tick.value = withRepeat(
-      withSequence(
-        withTiming(1, {
-          duration: LOOP_DURATION_MS,
-          easing: Easing.linear,
-        }),
-        withTiming(0, { duration: 0 }),
-      ),
+      withTiming(1, {
+        duration: LOOP_DURATION_MS,
+        easing: Easing.linear,
+      }),
       -1,
       false,
     );
