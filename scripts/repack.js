@@ -171,9 +171,13 @@ async function repackIos() {
     logger.info('🚀 Starting iOS E2E App repack process...');
     logger.info(`Source App: ${sourceApp}`);
 
-    // Verify source app exists
+    // Verify source app exists and has a bundle executable
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`App not found: ${sourceApp}`);
+    }
+    const sourceInfoPlist = path.join(sourceApp, 'Info.plist');
+    if (!fs.existsSync(sourceInfoPlist)) {
+      throw new Error(`Source app is missing Info.plist: ${sourceApp}`);
     }
 
     // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
@@ -201,10 +205,24 @@ async function repackIos() {
       env: process.env,
     });
 
-    // Verify and move repacked app
+    // Verify repacked app exists and contains a bundle executable
     if (!fs.existsSync(repackedApp)) {
       throw new Error(`Repacked app not found: ${repackedApp}`);
     }
+    // Verify the bundle executable is present.
+    // Info.plist is in binary format after repack, so we derive the executable name
+    // from the source app directory name (e.g. MetaMask.app -> MetaMask).
+    const sourceAppName = path.basename(sourceApp, '.app');
+    const executablePath = path.join(repackedApp, sourceAppName);
+    if (!fs.existsSync(executablePath)) {
+      throw new Error(
+        `Repacked app is missing its bundle executable at "${executablePath}". ` +
+        `@expo/repack-app may have dropped the binary (possible symlink handling issue). ` +
+        `Aborting to prevent uploading a broken artifact — bust IOS_APP_CACHE_VERSION ` +
+        `in build-ios-e2e.yml to force a full rebuild.`
+      );
+    }
+    logger.success(`Bundle executable verified: ${sourceAppName}`);
 
     // Remove old app and move repacked app to final location
     fs.rmSync(finalApp, { recursive: true, force: true });

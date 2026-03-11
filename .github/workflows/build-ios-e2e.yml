@@ -155,21 +155,26 @@ jobs:
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
         # This action automatically updates the cache at the end of the workflow
+        # IOS_APP_CACHE_VERSION: bump this to bust the ios-app cache and force a full rebuild
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        env:
+          IOS_APP_CACHE_VERSION: 2
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-${{ github.ref_name }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-${{ github.ref_name }}-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       - name: Restore iOS app matching fingerprint from main cache
         if: ${{ steps.cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        env:
+          IOS_APP_CACHE_VERSION: 2
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
-          key: ios-app-main-${{ steps.generate-fingerprint.outputs.fingerprint }}
+          key: ios-app-main-v${{ env.IOS_APP_CACHE_VERSION }}-${{ steps.generate-fingerprint.outputs.fingerprint }}
 
       # Build the iOS E2E app for simulator
       - name: Build iOS E2E App
