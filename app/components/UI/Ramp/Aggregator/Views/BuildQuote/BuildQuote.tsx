@@ -19,7 +19,7 @@ import {
   AvatarTokenSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import HeaderRoot from '../../../../../../component-library/components-temp/HeaderRoot';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -444,6 +444,18 @@ const BuildQuote = () => {
     navigation.navigate(...createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
+  const handleBackPress = useCallback(() => {
+    handleCancelPress();
+    // Prefer pop to match previous navigation behavior
+    // @ts-expect-error - react-navigation typing in tests includes pop
+    if (typeof navigation.pop === 'function') {
+      // @ts-expect-error - see above
+      navigation.pop();
+    } else if (typeof navigation.goBack === 'function') {
+      navigation.goBack();
+    }
+  }, [handleCancelPress, navigation]);
+
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -862,7 +874,30 @@ const BuildQuote = () => {
   }
 
   return (
-    <ScreenLayout>
+    <>
+      <HeaderCompactStandard
+        title={strings(
+          isBuy ? 'fiat_on_ramp_aggregator.buy' : 'fiat_on_ramp_aggregator.sell',
+        )}
+        includesTopInset
+        testID="header"
+        backButtonProps={
+          showBack
+            ? {
+                testID: 'deposit-back-navbar-button',
+                onPress: handleBackPress,
+              }
+            : undefined
+        }
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleConfigurationPress,
+            testID: 'deposit-configuration-menu-button',
+          },
+        ]}
+      />
+      <ScreenLayout>
       <ScreenLayout.Body>
         <Pressable
           onPress={handleKeypadDone}
@@ -1132,6 +1167,7 @@ const BuildQuote = () => {
         </ScreenLayout.Content>
       </Animated.View>
     </ScreenLayout>
+    </>
   );
 };
 
