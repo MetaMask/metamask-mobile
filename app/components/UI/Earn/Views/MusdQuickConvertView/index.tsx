@@ -31,7 +31,12 @@ import MusdBalanceCard from './components/MusdBalanceCard';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import Logger from '../../../../../util/Logger';
 import { useMusdBalance } from '../../hooks/useMusdBalance';
-import { trace, endTrace, TraceName, TraceOperation } from '../../../../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 
 export const MusdQuickConvertViewTestIds = {
   CONTAINER: 'musd-quick-convert-view-container',
@@ -336,8 +341,9 @@ const MusdQuickConvertView = () => {
                 <MusdBalanceCard
                   chainId={chainId as Hex}
                   balance={
-                    musdBalanceData.fiatBalanceFormattedByChain[chainId as Hex] ??
-                    musdBalanceData.tokenBalanceByChain[chainId as Hex]
+                    musdBalanceData.fiatBalanceFormattedByChain[
+                      chainId as Hex
+                    ] ?? musdBalanceData.tokenBalanceByChain[chainId as Hex]
                   }
                 />
               </View>

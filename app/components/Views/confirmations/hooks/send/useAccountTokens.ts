@@ -36,9 +36,7 @@ export function useAccountTokens({
     const filteredAssets = chainIds
       ? Object.entries(assets)
           .filter(([chainId]) =>
-            chainIds.some(
-              (id) => id.toLowerCase() === chainId.toLowerCase(),
-            ),
+            chainIds.some((id) => id.toLowerCase() === chainId.toLowerCase()),
           )
           .flatMap(([, chainAssets]) => chainAssets)
       : Object.values(assets).flat();
