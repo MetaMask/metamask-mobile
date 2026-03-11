@@ -34,7 +34,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Text, {
   TextColor,
   TextVariant,

@@ -259,7 +259,7 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: jest.fn(({ testID, width, height }) => (

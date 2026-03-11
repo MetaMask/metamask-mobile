@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 export interface PerpsRowSkeletonProps {
