@@ -351,6 +351,11 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent(titleSectionWrapper, 'layout', {
         nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
       });
+
+      expect(titleSectionWrapper).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
+      ).toBeOnTheScreen();
     });
 
     it('opens fullscreen chart modal and close button is pressable', async () => {

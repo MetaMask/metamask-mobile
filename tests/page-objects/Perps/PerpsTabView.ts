@@ -84,7 +84,6 @@ class PerpsTabView {
   }
 
   async getBalance(): Promise<number> {
-    // Prefer explicit value elements; fallback to balance button for accessibility labels
     const isMarketValueVisible = await Utilities.isElementVisible(
       this.marketBalanceValue,
       1500,
@@ -93,12 +92,24 @@ class PerpsTabView {
       this.balanceValue,
       1000,
     );
+    const isBalanceButtonVisible = await Utilities.isElementVisible(
+      this.balanceButton,
+      1000,
+    );
+
+    if (
+      !isMarketValueVisible &&
+      !isLegacyValueVisible &&
+      !isBalanceButtonVisible
+    ) {
+      return 0;
+    }
 
     const targetElement: DetoxElement = isMarketValueVisible
       ? this.marketBalanceValue
       : isLegacyValueVisible
         ? this.balanceValue
-        : this.balanceButton; // final fallback to button
+        : this.balanceButton;
 
     const attributes = await (
       (await targetElement) as IndexableNativeElement
@@ -109,7 +120,6 @@ class PerpsTabView {
       (attributes as { text?: string; label?: string; value?: string }).value ||
       '0';
 
-    // Extract numeric value from balance text (remove currency symbols, commas, etc.)
     const numericValue = balanceText.replace(/[^0-9.-]/g, '');
     return parseFloat(numericValue) || 0;
   }
