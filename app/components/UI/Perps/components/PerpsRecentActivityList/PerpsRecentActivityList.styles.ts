@@ -8,7 +8,8 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       marginBottom: 16,
-      paddingBottom: 16,
+      paddingTop: 8,
+      paddingBottom: 24,
     },
     header: {
       flexDirection: 'row',
@@ -28,16 +29,19 @@ const styleSheet = (params: { theme: Theme }) => {
     activityItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: 12,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
       backgroundColor: colors.background.section,
     },
     activityItemFirst: {
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 12,
+      borderTopRightRadius: 12,
+      paddingTop: 16,
     },
     activityItemLast: {
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
+      borderBottomLeftRadius: 12,
+      borderBottomRightRadius: 12,
+      paddingBottom: 16,
     },
     leftSection: {
       flexDirection: 'row',

@@ -159,7 +159,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.Gnosis)
+          .withNetworkController(CustomNetworks.Gnosis.providerConfig)
           .build(),
         restartDevice: true,
       },

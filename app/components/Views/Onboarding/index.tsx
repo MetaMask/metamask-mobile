@@ -416,16 +416,6 @@ const Onboarding = () => {
         const accountType = getSocialAccountType(provider, result.existingUser);
         dispatch(setAccountType(accountType));
 
-        if (result.existingUser) {
-          track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-            account_type: accountType,
-          });
-        } else {
-          track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-            account_type: accountType,
-          });
-        }
-
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
           account_type: accountType,
         });
@@ -505,17 +495,23 @@ const Onboarding = () => {
   );
 
   const handleOAuthLoginError = useCallback(
-    (error: Error): void => {
-      // If user has already consented to analytics, report error using regular Sentry
+    (error: OAuthError, provider: string, isFallback: boolean): void => {
+      const platform = Platform.OS;
+      const errorCode = String(error.code);
+
       if (metrics.isEnabled()) {
         captureException(error, {
           tags: {
             view: 'Onboarding',
             context: 'OAuth login failed - user consented to analytics',
+            oauth_platform: platform,
+            oauth_provider: provider,
+            oauth_error_code: errorCode,
+            oauth_is_fallback: String(isFallback),
           },
+          fingerprint: ['oauth-login-error', platform, provider, errorCode],
         });
       } else {
-        // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
         setState((prevState) => ({
           ...prevState,
           loading: false,
@@ -553,7 +549,10 @@ const Onboarding = () => {
           error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
           // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
           // required provider dependencies. Fallback to browser-based OAuth.
-          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies ||
+          (error.code === OAuthErrorType.UnknownError &&
+            Platform.OS === 'android' &&
+            socialConnectionType === 'google')
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -594,7 +593,11 @@ const Onboarding = () => {
               }
               // Handle both OAuthError and unexpected errors from browser fallback
               if (fallbackError instanceof OAuthError) {
-                handleOAuthLoginError(fallbackError);
+                handleOAuthLoginError(
+                  fallbackError,
+                  socialConnectionType,
+                  true,
+                );
               } else {
                 // Wrap unexpected errors as OAuthError to ensure they're properly handled
                 const wrappedError = new OAuthError(
@@ -603,7 +606,7 @@ const Onboarding = () => {
                     : 'Browser fallback failed with unknown error',
                   OAuthErrorType.UnknownError,
                 );
-                handleOAuthLoginError(wrappedError);
+                handleOAuthLoginError(wrappedError, socialConnectionType, true);
               }
               return;
             }
@@ -611,7 +614,7 @@ const Onboarding = () => {
           return;
         }
         // unexpected oauth login error
-        handleOAuthLoginError(error);
+        handleOAuthLoginError(error, socialConnectionType, false);
         return;
       }
 
@@ -700,13 +703,14 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
+      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: `${AccountType.Metamask}_${provider}`,
+          account_type: accountType,
         });
       } else {
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: `${AccountType.Imported}_${provider}`,
+          account_type: accountType,
         });
       }
 
