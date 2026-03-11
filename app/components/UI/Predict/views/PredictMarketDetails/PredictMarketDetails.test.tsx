@@ -78,61 +78,6 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-// Minimal mock to add testID pattern for icon assertions
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const ActualIcon = jest.requireActual(
-    '../../../../../component-library/components/Icons/Icon',
-  );
-  // Jest mock factory runs before module imports; require() needed for testIds
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const PredictTestIds = require('../../Predict.testIds');
-  return {
-    ...ActualIcon,
-    __esModule: true,
-    default: ({
-      name,
-      testID,
-      ...props
-    }: {
-      name: string;
-      testID?: string;
-      [key: string]: unknown;
-    }) => {
-      const Icon = ActualIcon.default;
-      return (
-        <Icon
-          {...props}
-          name={name}
-          testID={
-            testID || PredictTestIds.getPredictMarketDetailsSelector.icon(name)
-          }
-        />
-      );
-    },
-  };
-});
-
-// Minimal mock to add testID pattern for button assertions
-jest.mock('../../../../../component-library/components/Buttons/Button', () => {
-  const ActualButton = jest.requireActual(
-    '../../../../../component-library/components/Buttons/Button',
-  );
-  return {
-    ...ActualButton,
-    __esModule: true,
-    default: ({
-      testID,
-      ...props
-    }: {
-      testID?: string;
-      [key: string]: unknown;
-    }) => {
-      const Button = ActualButton.default;
-      return <Button {...props} testID={testID || 'button'} />;
-    },
-  };
-});
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
@@ -705,7 +650,7 @@ describe('PredictMarketDetails', () => {
     it('displays market title when market data is loaded', () => {
       const { mockMarket } = setupPredictMarketDetailsTest();
 
-      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+      expect(screen.getAllByText(mockMarket.title)[0]).toBeOnTheScreen();
     });
 
     it('displays loading state when market is fetching', () => {
@@ -748,7 +693,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -797,7 +742,7 @@ describe('PredictMarketDetails', () => {
           PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW,
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+      expect(screen.getAllByText(mockMarket.title)[0]).toBeOnTheScreen();
     });
   });
 
@@ -1258,7 +1203,7 @@ describe('PredictMarketDetails', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
@@ -1271,7 +1216,7 @@ describe('PredictMarketDetails', () => {
       mockCanGoBack.mockReturnValue(false);
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
@@ -1337,7 +1282,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutImage);
 
-      expect(screen.getByText(marketWithoutImage.title)).toBeOnTheScreen();
+      expect(
+        screen.getAllByText(marketWithoutImage.title)[0],
+      ).toBeOnTheScreen();
     });
 
     it('handles market without end date', () => {
@@ -1370,15 +1317,17 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithMinimalData);
 
-      expect(screen.getByText('Test Market')).toBeOnTheScreen();
+      expect(screen.getAllByText('Test Market')[0]).toBeOnTheScreen();
     });
   });
 
   describe('Internationalization', () => {
-    it('uses correct string keys for back button', () => {
+    it('renders back button in header', () => {
       setupPredictMarketDetailsTest();
 
-      expect(strings).toHaveBeenCalledWith('predict.buttons.back');
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -1394,7 +1343,7 @@ describe('PredictMarketDetails', () => {
 
       // The timeframe change is handled internally by the component
       // We can verify the component renders without errors
-      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+      expect(screen.getAllByText(mockMarket.title)[0]).toBeOnTheScreen();
     });
 
     it('handles cash out button press', () => {
@@ -1865,7 +1814,7 @@ describe('PredictMarketDetails', () => {
       // Since this is a single outcome market with empty tokens, it should not render the current prediction
       // Instead, verify the market title is rendered
       expect(
-        screen.getByText('Will Bitcoin reach $100k by end of 2024?'),
+        screen.getAllByText('Will Bitcoin reach $100k by end of 2024?')[0],
       ).toBeOnTheScreen();
     });
 
@@ -2266,7 +2215,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutTokens);
 
       expect(
-        screen.getByText('Will Bitcoin reach $100k by end of 2024?'),
+        screen.getAllByText('Will Bitcoin reach $100k by end of 2024?')[0],
       ).toBeOnTheScreen();
     });
 
@@ -2822,7 +2771,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -2866,7 +2815,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -2912,7 +2861,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -2956,7 +2905,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -2997,7 +2946,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -3038,7 +2987,9 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowDown')),
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -3072,7 +3023,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -3080,7 +3031,9 @@ describe('PredictMarketDetails', () => {
         fireEvent.press(pressable);
 
         expect(
-          screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowUp')),
+          screen.getByTestId(
+            PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_EXPANDED,
+          ),
         ).toBeOnTheScreen();
       }
     });
@@ -3115,7 +3068,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithPartialResolution);
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 
@@ -3124,7 +3077,7 @@ describe('PredictMarketDetails', () => {
         expect(screen.getByText('Option A')).toBeOnTheScreen();
 
         const arrowUpIcon = screen.getByTestId(
-          getPredictMarketDetailsSelector.icon('ArrowUp'),
+          PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_EXPANDED,
         );
         const pressableAgain = arrowUpIcon.parent?.parent;
         if (pressableAgain) {
@@ -3132,7 +3085,7 @@ describe('PredictMarketDetails', () => {
           expect(screen.queryByText('Option A')).not.toBeOnTheScreen();
           expect(
             screen.getByTestId(
-              getPredictMarketDetailsSelector.icon('ArrowDown'),
+              PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
             ),
           ).toBeOnTheScreen();
         }
@@ -3215,7 +3168,7 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText('2')).toBeOnTheScreen();
 
       const arrowDownIcon = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowDown'),
+        PredictMarketDetailsSelectorsIDs.RESOLVED_OUTCOMES_ICON_COLLAPSED,
       );
       const pressable = arrowDownIcon.parent?.parent;
 

@@ -118,11 +118,16 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_CONTENT_SKELETON_LINE_1: 'predict-details-content-skeleton-line-1',
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
+
+  // Resolved outcomes section (expand/collapse)
+  RESOLVED_OUTCOMES_ICON_COLLAPSED:
+    'predict-market-details-resolved-outcomes-icon-collapsed',
+  RESOLVED_OUTCOMES_ICON_EXPANDED:
+    'predict-market-details-resolved-outcomes-icon-expanded',
 } as const;
 
 export const getPredictMarketDetailsSelector = {
   tabBarTab: (index: number) => `predict-market-details-tab-bar-tab-${index}`,
-  icon: (name: string) => `icon-${name}`,
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
