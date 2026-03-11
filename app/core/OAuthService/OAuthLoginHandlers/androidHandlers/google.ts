@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import {
   LoginHandlerIdTokenResult,
   AuthConnection,
@@ -28,6 +29,8 @@ import Logger from '../../../../util/Logger';
  * If you modify these patterns or add new ones, ensure the check order in login()
  * handles overlapping matches correctly.
  */
+const ACM_MIN_API_LEVEL = 28;
+
 const ACM_ERRORS_REGEX = {
   CANCEL: /user\s+cancel|cancelled|16:\s*\[.*\]\s*cancel/i,
   NO_CREDENTIAL: /no credential/i,
@@ -102,7 +105,14 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
-        if (ACM_ERRORS_REGEX.CANCEL.test(error.message)) {
+        const isLegacyFlow =
+          typeof Platform.Version === 'number' &&
+          Platform.Version < ACM_MIN_API_LEVEL;
+
+        if (
+          ACM_ERRORS_REGEX.CANCEL.test(error.message) ||
+          (isLegacyFlow && ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message))
+        ) {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
@@ -117,7 +127,6 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
         } else if (
           ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(error.message)
         ) {
-          // Credential provider not available. Fallback to browser-based OAuth.
           throw new OAuthError(
             'handleGoogleLogin: Credential provider not available',
             OAuthErrorType.GoogleLoginNoProviderDependencies,

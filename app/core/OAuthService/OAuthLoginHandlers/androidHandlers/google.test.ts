@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { AuthConnection } from '../../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../../error';
 import { AndroidGoogleLoginHandler } from './google';
@@ -50,6 +51,95 @@ describe('AndroidGoogleLoginHandler', () => {
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.GoogleLoginNoProviderDependencies,
       });
+    });
+  });
+
+  describe('legacy flow', () => {
+    const originalVersion = Platform.Version;
+
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'Version', {
+        value: 27,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'Version', {
+        value: originalVersion,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('treats "no credential" as UserCancelled on API < 28', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('Legacy sign-in returned no credential'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not retry on "no credential" error on API < 28', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('Legacy sign-in returned no credential'),
+      );
+
+      try {
+        await handler.login();
+      } catch {
+        // expected
+      }
+
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+    });
+
+    it('still handles explicit cancel on API < 28', async () => {
+      mockSignInWithGoogle.mockRejectedValue(new Error('User cancelled'));
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+  });
+
+  describe('ACM flow', () => {
+    beforeEach(() => {
+      Object.defineProperty(Platform, 'Version', {
+        value: 34,
+        writable: true,
+        configurable: true,
+      });
+    });
+
+    it('retries on "no credential" error on API >= 28', async () => {
+      mockSignInWithGoogle.mockRejectedValueOnce(
+        new Error('e1 error Mo.m: No credential available'),
+      );
+      mockSignInWithGoogle.mockResolvedValueOnce({
+        type: 'google-signin',
+        idToken: 'test-id-token',
+      });
+
+      const result = await handler.login();
+
+      expect(result.idToken).toBe('test-id-token');
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
+    });
+
+    it('throws GoogleLoginNoCredential after retry exhausted on API >= 28', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('e1 error Mo.m: No credential available'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginNoCredential,
+      });
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
     });
   });
 
