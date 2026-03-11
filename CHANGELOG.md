@@ -20,16 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added watchlist tokens to the top of the Perpetuals trending carousel on the homepage with a star badge indicator (#26763)
 - Added a bottom fade overlay to the homepage wallet view indicating scrollable content (#26470)
 - Sets Infura RPC for HyperEVM with Quicknode failover (#25367)
-- Added new toast-style notifications for buy order status updates (processing, completed, failed, cancelled) behind the (#26670)
-  Unified Buy V2 feature flag
+- Added new toast-style notifications for buy order status updates (processing, completed, failed, cancelled) behind the Unified Buy V2 feature flag (#26670)
 - Added blue claim button to the homepage Predictions section for users with claimable winnings (#26650)
 
 ### Changed
 
 - Updated mUSD conversion flow copy to replace boost with bonus (#26453)
 - Removed showing OTA modal when users are on onboarding screen (#26839)
-- Inlined perps "Add funds" flow in the pay-with token filter so the Pay With modal no longer depends on a deposit callback (#26543)
-  from the parent
+- Inlined perps "Add funds" flow in the pay-with token filter so the Pay With modal no longer depends on a deposit callback from the parent (#26543)
 - Improved keyboard UX for buy feature (#26776)
 - Improved Ramps buy flow by preventing auto-lock during checkout (#26723)
 - Updated prediction market card design with smaller cards, plain-text percentages, and consistent heights (#26795)
@@ -50,26 +48,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing NFT detection on homepage focus, restoring auto-detection when the user navigates to the homepage (#26919)
 - Fixed cashback option visibility for US users on Card home screen and updated cashback description for Metal Card holders (#26993)
 - Fixed camera permission "allow once" not showing the camera popup on Android (#26415)
-- Fixed a bug where the Receive address in EVM token details showed a Non-EVM address after switching from a Non-EVM (#26965)
-  network
+- Fixed a bug where the Receive address in EVM token details showed a Non-EVM address after switching from a Non-EVM network (#26965)
 - Fixed a bug where some swap deeplink token icons did not load because ERC-20 icon URLs used checksummed addresses (#26914)
 - Fixed perps ROE percentage display to show 2 decimal places for improved precision (#26600)
-- Fixed token price display on the token details page to show up to 4 decimal places for precision, and subscript notation (#26894)
-  for very small prices, consistent with the trending token list
+- Fixed token price display on the token details page to show up to 4 decimal places for precision, and subscript notation for very small prices, consistent with the trending token list (#26894)
 - Fixed Perps section on homepage showing a full-screen error instead of the compact inline error state (#26831)
-- Fixed Buy token selection screen showing "No tokens match" with an empty list on first app load after install or update; (#26852)
-  screen now shows loading until tokens are ready
+- Fixed Buy token selection screen showing "No tokens match" with an empty list on first app load after install or update; screen now shows loading until tokens are ready (#26852)
 - Fixed date of birth formatting on Card onboarding so the displayed date matches the user's selected date in all timezones (#26893)
 - Fixed Unified Buy Build Quote header to use correct typography and icon sizing per design spec (#26713)
-- Fixed Google login crash on Android devices without credential provider dependencies by falling back to browser-based (#26677)
-  authentication
+- Fixed Google login crash on Android devices without credential provider dependencies by falling back to browser-based authentication (#26677)
 - Fixed saving network details for custom networks (e.g. added from Popular list) when the Save button had no effect (#27053)
 - Fixed off-center "Buy/Get mUSD" button for primary mUSD conversion CTA (#27015)
-- Fixed network details screen showing a delete (trash) icon for networks that cannot be removed (e.g. Ethereum mainnet, (#26983)
-  Linea, Goerli, testnets)
+- Fixed network details screen showing a delete (trash) icon for networks that cannot be removed (e.g. Ethereum mainnet, Linea, Goerli, testnets) (#26983)
 - Fixed token hiding not working on the redesigned homepage (#26649)
-- Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after (#25952)
-  token selection
+- Fixed an issue that could cause repeated Bridge RPC balance calls and improved how quickly source balances appear after token selection (#25952)
 
 ## [7.68.0]
 
