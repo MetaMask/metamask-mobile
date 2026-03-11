@@ -1,9 +1,12 @@
 import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
+import type { BuyWidget } from '@metamask/ramps-controller';
 import BuildQuote, { createBuildQuoteNavDetails } from './BuildQuote';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import type { Quote } from '../../types';
+import type { AddPrecreatedOrderParams } from '../../hooks/useRampsOrders';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -37,8 +40,8 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
   useTokenNetworkInfo: () => jest.fn(() => ({ networkName: 'Ethereum' })),
 }));
 
-const mockGetBuyWidgetData = jest.fn();
-const mockAddPrecreatedOrder = jest.fn();
+const mockGetBuyWidgetData = jest.fn<Promise<BuyWidget | null>, [Quote]>();
+const mockAddPrecreatedOrder = jest.fn<void, [AddPrecreatedOrderParams]>();
 
 const rampsControllerState = {
   userRegion: {
@@ -603,7 +606,7 @@ describe('BuildQuote', () => {
     };
     quotesState.data = { success: [customActionQuote] };
     quotesState.loading = false;
-    mockGetBuyWidgetData.mockResolvedValue({ url: undefined });
+    mockGetBuyWidgetData.mockResolvedValue(null);
 
     const { getByTestId } = render();
     const continueBtn = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
