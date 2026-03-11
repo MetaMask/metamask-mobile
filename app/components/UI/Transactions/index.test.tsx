@@ -1789,7 +1789,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(typeof mockUpdateIncomingTransactions).toBe('function');
   });
 
-  it('should test getItemLayout with embeddedInScrollView true (effective header height 0)', () => {
+  it('returns offset 0 when embeddedInScrollView is true', () => {
     instance.props = {
       ...defaultTestProps,
       embeddedInScrollView: true,
@@ -1805,7 +1805,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(layout2.index).toBe(2);
   });
 
-  it('should test getItemLayout with embeddedInScrollView false uses headerHeight', () => {
+  it('returns headerHeight as offset when embeddedInScrollView is false', () => {
     instance.props = {
       ...defaultTestProps,
       embeddedInScrollView: false,
@@ -1818,7 +1818,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(layout.index).toBe(0);
   });
 
-  it('should test renderList with embeddedInScrollView true', () => {
+  it('renders list when embeddedInScrollView is true', () => {
     instance.context = {
       colors: {
         background: { default: '#fff' },
