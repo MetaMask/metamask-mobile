@@ -23,6 +23,7 @@ import {
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  ActiveOrderState,
   type OrderPreview,
   PredictBalance,
   PredictClaimStatus,
@@ -3539,6 +3540,62 @@ describe('PredictController', () => {
 
         // Verify new transaction is set with new batch ID
         expect(controller.state.pendingDeposits[address]).toBe(newBatchId);
+      });
+    });
+  });
+
+  describe('activeOrder and selectedPaymentToken management', () => {
+    it('setActiveOrder updates state with provided order', () => {
+      withController(({ controller }) => {
+        const order: PredictControllerState['activeOrder'] = {
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        };
+
+        controller.setActiveOrder(order);
+
+        expect(controller.state.activeOrder).toEqual(order);
+      });
+    });
+
+    it('clearActiveOrder sets activeOrder to null', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.clearActiveOrder();
+
+        expect(controller.state.activeOrder).toBeNull();
+      });
+    });
+
+    it('setSelectedPaymentToken updates state with provided token', () => {
+      withController(({ controller }) => {
+        const token: PredictControllerState['selectedPaymentToken'] = {
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        };
+
+        controller.setSelectedPaymentToken(token);
+
+        expect(controller.state.selectedPaymentToken).toEqual(token);
+      });
+    });
+
+    it('setSelectedPaymentToken clears token when called with null', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.setSelectedPaymentToken(null);
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
   });

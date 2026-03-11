@@ -17,6 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
       calculateCashOutAmounts: jest.fn(),
       getBalance: jest.fn(),
       deposit: jest.fn(),
+      payWithAnyTokenConfirmation: jest.fn(),
     },
   },
 }));
@@ -226,6 +227,42 @@ describe('usePredictTrading', () => {
     });
   });
 
+  describe('payWithAnyTokenConfirmation', () => {
+    it('calls PredictController.payWithAnyTokenConfirmation and returns result', async () => {
+      const mockResult = {
+        success: true,
+        response: { batchId: 'batch-123' },
+      };
+
+      (
+        Engine.context.PredictController
+          .payWithAnyTokenConfirmation as jest.Mock
+      ).mockResolvedValue(mockResult);
+
+      const { result } = renderHook(() => usePredictTrading());
+
+      const response = await result.current.payWithAnyTokenConfirmation();
+
+      expect(
+        Engine.context.PredictController.payWithAnyTokenConfirmation,
+      ).toHaveBeenCalled();
+      expect(response).toEqual(mockResult);
+    });
+
+    it('throws error when PredictController.payWithAnyTokenConfirmation fails', async () => {
+      const mockError = new Error('Failed to pay with any token');
+      (
+        Engine.context.PredictController
+          .payWithAnyTokenConfirmation as jest.Mock
+      ).mockRejectedValue(mockError);
+      const { result } = renderHook(() => usePredictTrading());
+
+      await expect(
+        result.current.payWithAnyTokenConfirmation(),
+      ).rejects.toThrow('Failed to pay with any token');
+    });
+  });
+
   describe('hook stability', () => {
     it('returns stable function references', () => {
       const { result, rerender } = renderHook(() => usePredictTrading());
@@ -234,6 +271,8 @@ describe('usePredictTrading', () => {
       const initialClaim = result.current.claim;
       const initialGetBalance = result.current.getBalance;
       const initialPreviewOrder = result.current.previewOrder;
+      const initialPayWithAnyTokenConfirmation =
+        result.current.payWithAnyTokenConfirmation;
 
       rerender({});
 
@@ -241,6 +280,9 @@ describe('usePredictTrading', () => {
       expect(result.current.claim).toBe(initialClaim);
       expect(result.current.getBalance).toBe(initialGetBalance);
       expect(result.current.previewOrder).toBe(initialPreviewOrder);
+      expect(result.current.payWithAnyTokenConfirmation).toBe(
+        initialPayWithAnyTokenConfirmation,
+      );
     });
   });
 });
