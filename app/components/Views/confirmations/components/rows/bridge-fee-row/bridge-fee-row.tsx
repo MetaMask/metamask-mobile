@@ -70,6 +70,11 @@ function TransactionFeeRow({
     return formatFiat(
       new BigNumber(totals.fees.metaMask.usd ?? 0)
         .plus(totals.fees.provider.usd)
+        .plus(
+          // this cast is temporary until we release core and update TPC version in mobile
+          (totals.fees as unknown as { fiatProvider?: { usd: number } })
+            ?.fiatProvider?.usd ?? 0,
+        )
         .plus(totals.fees.sourceNetwork.estimate.usd)
         .plus(totals.fees.targetNetwork.usd),
     );
@@ -168,7 +173,14 @@ function FeesTooltip({
   }, [totals, formatFiat]);
 
   const providerFeeUsd = useMemo(
-    () => formatFiat(new BigNumber(totals.fees.provider.usd)),
+    () =>
+      formatFiat(
+        new BigNumber(totals.fees.provider.usd).plus(
+          // this cast is temporary until we release core and update TPC version in mobile
+          (totals.fees as unknown as { fiatProvider?: { usd: number } })
+            ?.fiatProvider?.usd ?? 0,
+        ),
+      ),
     [totals, formatFiat],
   );
 

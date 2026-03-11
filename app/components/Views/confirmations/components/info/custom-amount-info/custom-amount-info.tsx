@@ -29,6 +29,7 @@ import {
 } from '../../transactions/custom-amount';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
@@ -55,6 +56,7 @@ import Button, {
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
+import Engine from '../../../../../../core/Engine';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
@@ -103,6 +105,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
     const { hasTokens } = useTransactionPayAvailableTokens();
+    const fiatPayment = useTransactionPayFiatPayment();
+    const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+    const transactionMeta = useTransactionMetadataRequest();
+    const transactionId = transactionMeta?.id;
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
 
@@ -124,11 +130,27 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(() => {
-      updateTokenAmount();
+      if (selectedFiatPaymentMethodId && transactionId) {
+        Engine.context.TransactionPayController.updateFiatPayment({
+          transactionId,
+          callback: (fp) => {
+            fp.amountFiat = amountFiat;
+          },
+        });
+      } else {
+        updateTokenAmount();
+      }
+
       EngineService.flushState();
       setIsKeyboardVisible(false);
       onAmountSubmit?.();
-    }, [onAmountSubmit, updateTokenAmount]);
+    }, [
+      amountFiat,
+      onAmountSubmit,
+      selectedFiatPaymentMethodId,
+      transactionId,
+      updateTokenAmount,
+    ]);
 
     const handleAmountPress = useCallback(() => {
       setIsKeyboardVisible(true);
@@ -184,6 +206,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
+              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
