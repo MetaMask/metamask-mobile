@@ -51,6 +51,7 @@ import { ToastRef } from '../../../../component-library/components/Toast/Toast.t
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
+import BenefitsSummary from "../components/Benefits/BenefitsSummary.tsx";
 
 const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -386,7 +387,6 @@ const RewardsDashboard: React.FC = () => {
             />
           </Box>
         </Box>
-
         {showPreviousSeasonSummary ? (
           <PreviousSeasonSummary />
         ) : (
@@ -399,6 +399,7 @@ const RewardsDashboard: React.FC = () => {
             <TabsList {...tabsListProps}>{tabComponents}</TabsList>
           </>
         )}
+        <BenefitsSummary/>
       </Box>
       <Toast ref={toastRef} />
     </ErrorBoundary>
