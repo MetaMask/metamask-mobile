@@ -17,6 +17,7 @@ const QUOTE_FLAG = `(?:'([\\w.-]+)'|"([\\w.-]+)"|` + '`([\\w.-]+)`' + `)`;
 const BRACKET_STRING_PATTERNS: RegExp[] = [
   new RegExp(`remoteFeatureFlags(?:\\?\\.)?\\[\\s*${QUOTE_FLAG}\\s*\\]`, 'g'),
   new RegExp(`selectRemoteFeatureFlags\\(${ARGS}\\)(?:\\?\\.)?\\[\\s*${QUOTE_FLAG}\\s*\\]`, 'g'),
+  new RegExp(`hasProperty\\(\\s*remoteFeatureFlags\\s*,\\s*${QUOTE_FLAG}\\s*\\)`, 'g'),
 ];
 
 const FLAG_ACCESS_PATTERNS: RegExp[] = [
@@ -35,6 +36,7 @@ const DESTRUCTURING_PATTERNS: RegExp[] = [
 const CONSTANT_BRACKET_PATTERNS: RegExp[] = [
   /remoteFeatureFlags(?:\?\.)?\[([A-Za-z_]\w*(?:\.\w+)?)\]/g,
   new RegExp(`selectRemoteFeatureFlags\\(${ARGS}\\)(?:\\?\\.)?\\[([A-Za-z_]\\w*(?:\\.\\w+)?)\\]`, 'g'),
+  /hasProperty\(\s*remoteFeatureFlags\s*,\s*([A-Za-z_]\w*(?:\.\w+)?)\s*\)/g,
 ];
 
 const KNOWN_FLAG_CONSTANTS = buildKnownFlagConstants();
