@@ -76,10 +76,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
-    // useEffect(() => {
-    //   console.log('sortedTokenKeys ........', sortedTokenKeys);
-    // }, []);
-
     const {
       removeTokenState,
       showRemoveMenu,
