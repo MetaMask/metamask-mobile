@@ -27,10 +27,6 @@ export interface ButtonBaseProps extends TouchableOpacityProps {
    */
   startIconName?: IconProps['name'];
   /**
-   * Optional prop for the size of the start icon.
-   */
-  startIconSize?: IconProps['size'];
-  /**
    * Optional prop for the icon name of the icon that will be displayed after the label.
    */
   endIconName?: IconProps['name'];

@@ -30,7 +30,6 @@ const ButtonBase = ({
   labelColor = DEFAULT_BUTTONBASE_LABEL_COLOR,
   labelTextVariant = DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
   startIconName,
-  startIconSize,
   endIconName,
   size = DEFAULT_BUTTONBASE_SIZE,
   onPress,
@@ -60,7 +59,7 @@ const ButtonBase = ({
         <Icon
           color={labelColor.toString()}
           name={startIconName}
-          size={startIconSize ?? DEFAULT_BUTTONBASE_ICON_SIZE}
+          size={DEFAULT_BUTTONBASE_ICON_SIZE}
           style={styles.startIcon}
         />
       )}
