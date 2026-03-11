@@ -9,7 +9,6 @@ import Assertions from '../../framework/Assertions';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -22,7 +21,6 @@ const EXPECTED_BALANCE_TEXT = '$28.16';
 const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     carouselBanners: false,
   });

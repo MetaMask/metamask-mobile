@@ -7,10 +7,7 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-} from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { defiPositionsWithData } from '../../../api-mocking/mock-responses/defi-api-mocks';
 import DefiView from '../../../page-objects/wallet/DefiView';
 import DefiPositionView from '../../../page-objects/wallet/DefiPositionView';
@@ -24,7 +21,6 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
           });
 
           const { urlEndpoint, response } = defiPositionsWithData;

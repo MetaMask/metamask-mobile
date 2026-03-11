@@ -8,7 +8,6 @@ import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import Assertions from '../../framework/Assertions';
 import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -46,7 +45,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     carouselBanners: false,
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);

@@ -10,7 +10,6 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -30,7 +29,6 @@ const setupGeoBlockedBase = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     carouselBanners: false,
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);

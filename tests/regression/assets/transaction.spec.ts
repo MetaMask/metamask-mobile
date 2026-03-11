@@ -15,7 +15,6 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   confirmationFeatureFlags,
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../framework/types';
@@ -59,7 +58,6 @@ describe(RegressionAssets('Transaction'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
             ...Object.assign({}, ...confirmationFeatureFlags),
           });
         },

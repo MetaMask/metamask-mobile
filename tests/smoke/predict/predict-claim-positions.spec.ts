@@ -5,7 +5,6 @@ import { loginToApp } from '../../flows/wallet.flow';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
   remoteFeatureFlagHomepageSectionsV1Enabled,
@@ -57,7 +56,6 @@ Test Scenario: Claim winning positions
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,

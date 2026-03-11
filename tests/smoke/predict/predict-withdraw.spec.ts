@@ -4,7 +4,6 @@ import { SmokeTrade } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 
 import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
@@ -23,7 +22,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    ...remoteFeatureFlagHomepageRedesignV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag

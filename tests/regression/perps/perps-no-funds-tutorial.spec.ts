@@ -9,10 +9,7 @@ import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  remoteFeatureFlagHomepageRedesignV1Enabled,
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(
   RegressionTrade('Perps - no funds shows Start Trading and tutorial'),
@@ -33,7 +30,6 @@ describe(
           testSpecificMock: async (mockServer: Mockttp) => {
             await setupRemoteFeatureFlagsMock(mockServer, {
               ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-              ...remoteFeatureFlagHomepageRedesignV1Enabled(),
             });
             await PERPS_ARBITRUM_MOCKS(mockServer);
           },

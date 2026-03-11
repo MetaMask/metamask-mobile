@@ -13,7 +13,6 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   confirmationFeatureFlags,
-  remoteFeatureFlagHomepageRedesignV1Enabled,
   remoteFeatureFlagHomepageSectionsV1Enabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
@@ -60,7 +59,6 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            ...remoteFeatureFlagHomepageRedesignV1Enabled(),
             ...Object.assign({}, ...confirmationFeatureFlags),
           });
         },
