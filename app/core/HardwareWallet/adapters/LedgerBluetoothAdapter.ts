@@ -563,15 +563,20 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
   async #closeTransport(): Promise<void> {
     const transport = this.#transport;
+    const deviceId = this.#deviceId;
     if (transport) {
       this.#transport = null;
       try {
-        // TransportBLE.close() queues a delayed disconnect (5s timeout).
-        // Force an immediate BLE disconnection so in-flight signing is
-        // aborted without delay.
-        await TransportBLE.disconnectDevice(transport.id);
+        if (deviceId) {
+          // TransportBLE.close() queues a delayed disconnect (5s timeout).
+          // Force an immediate BLE disconnection so in-flight signing is
+          // aborted without delay.
+          await TransportBLE.disconnectDevice(deviceId);
+        } else {
+          await transport.close();
+        }
       } catch {
-        // Ignore close errors
+        // Ignore close errors — device may already be disconnected
       }
     }
   }

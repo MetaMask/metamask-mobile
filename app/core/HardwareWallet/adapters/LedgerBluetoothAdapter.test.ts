@@ -183,7 +183,9 @@ describe('LedgerBluetoothAdapter', () => {
       await adapter.connect('device-123');
       await adapter.connect('device-456');
 
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
+        'device-123',
+      );
       expect(mockedTransportBLE.open).toHaveBeenCalledTimes(2);
     });
 
@@ -273,7 +275,9 @@ describe('LedgerBluetoothAdapter', () => {
       await adapter.connect('device-123');
       await adapter.disconnect();
 
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
+        'device-123',
+      );
       expect(adapter.isConnected()).toBe(false);
       expect(adapter.getConnectedDeviceId()).toBeNull();
     });
@@ -940,7 +944,9 @@ describe('LedgerBluetoothAdapter', () => {
       await adapter.connect('device-123');
       adapter.destroy();
 
-      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
+        'device-123',
+      );
     });
 
     it('prevents further operations', async () => {
