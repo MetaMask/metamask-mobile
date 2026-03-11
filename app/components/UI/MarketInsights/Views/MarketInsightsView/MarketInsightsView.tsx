@@ -12,12 +12,12 @@ import {
   Pressable,
   Animated,
   useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
-import Rive, { Fit, Alignment } from 'rive-react-native';
+import AlternateBackgroundAnimation from './AlternateBackgroundAnimation';
+// import Rive, { Fit, Alignment } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundAnimationLight = require('../../animations/market-insights-background-light.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const MarketInsightsBackgroundAnimationDark = require('../../animations/market-insights-background-dark.riv');
+// const MarketInsightsBackgroundAnimationLight = require('../../animations/market-insights-background-light.riv');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -76,6 +76,7 @@ const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
 const BACKGROUND_ANIMATION_HEIGHT = 77;
+const BACKGROUND_REVEAL_DURATION_MS = 650;
 const SECTION_ANIMATION_DELAYS_MS = {
   topArticle: 50,
   closerLook: 130,
@@ -156,6 +157,7 @@ const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const route =
     useRoute<RouteProp<{ params: MarketInsightsRouteParams }, 'params'>>();
@@ -175,18 +177,12 @@ const MarketInsightsView: React.FC = () => {
   );
 
   const isDarkMode = useColorScheme() === 'dark';
-  const backgroundAnimation = useMemo(
-    () =>
-      isDarkMode
-        ? MarketInsightsBackgroundAnimationDark
-        : MarketInsightsBackgroundAnimationLight,
-    [isDarkMode],
-  );
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
   const hasTrackedViewRef = useRef(false);
+  const backgroundRevealWidth = useRef(new Animated.Value(0)).current;
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
   const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(false);
@@ -385,6 +381,22 @@ const MarketInsightsView: React.FC = () => {
   );
 
   useEffect(() => {
+    backgroundRevealWidth.setValue(0);
+
+    const revealAnimation = Animated.timing(backgroundRevealWidth, {
+      toValue: screenWidth,
+      duration: BACKGROUND_REVEAL_DURATION_MS,
+      useNativeDriver: false,
+    });
+
+    revealAnimation.start();
+
+    return () => {
+      revealAnimation.stop();
+    };
+  }, [backgroundRevealWidth, screenWidth]);
+
+  useEffect(() => {
     if (!report || hasTrackedViewRef.current) {
       return;
     }
@@ -419,16 +431,30 @@ const MarketInsightsView: React.FC = () => {
       testID={MarketInsightsSelectorsIDs.VIEW_CONTAINER}
     >
       <Box
-        twClassName={`absolute top-0 left-0 right-0 h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
+        twClassName={`absolute top-0 left-0 right-0 overflow-hidden h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
       >
+        <Animated.View
+          style={tw.style('h-full', {
+            width: backgroundRevealWidth,
+            overflow: 'hidden',
+          })}
+        >
+          {isDarkMode ? (
+            <AlternateBackgroundAnimation
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          ) : null}
+        </Animated.View>
+        {/*
         <Rive
-          source={backgroundAnimation}
+          source={MarketInsightsBackgroundAnimationLight}
           style={tw.style('w-full h-full')}
           fit={Fit.Cover}
           alignment={Alignment.TopCenter}
           autoplay
           testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
         />
+        */}
       </Box>
 
       <Box twClassName={`pt-[${insets.top}px]`}>
