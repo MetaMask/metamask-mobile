@@ -1527,14 +1527,16 @@ class AuthenticationService {
     const { authType, password, fallbackToPassword } = options;
     // Password found or provided. Validate and update the auth preference.
     try {
+      Alert.alert('updateAuthPreference begin');
       const passwordToUse = await this.reauthenticate(password);
-
+      Alert.alert('updateAuthPreference end');
       // storePassword handles all storage flag management internally
       await this.storePassword(
         passwordToUse.password,
         authType,
         fallbackToPassword,
       );
+      Alert.alert('storePassword end');
     } catch (e) {
       const errorWithMessage = e as { message: string };
 
@@ -1581,6 +1583,7 @@ class AuthenticationService {
     if (!passwordToVerify) {
       try {
         const credentials = await this.getPassword();
+        Alert.alert('getPassword end');
         if (credentials) {
           passwordToVerify = credentials.password;
         }
@@ -1605,7 +1608,9 @@ class AuthenticationService {
       }
     }
 
+    Alert.alert('verifyPassword begin');
     await KeyringController.verifyPassword(passwordToVerify);
+    Alert.alert('verifyPassword end');
     return { password: passwordToVerify };
   };
 
