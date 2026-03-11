@@ -136,7 +136,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
               <TouchableOpacity onPress={onActionPress}>
                 <Icon
                   name={IconName.MoreHorizontal}
-                  size={IconSize.Sm}
+                  size={IconSize.Md}
                   color={IconColor.IconAlternative}
                 />
               </TouchableOpacity>

@@ -53,7 +53,7 @@ describe('SectionHeader', () => {
     it('does not render trailing icon when onPress is not provided', () => {
       const { queryByTestId } = render(<SectionHeader title="Tokens" />);
 
-      expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+      expect(queryByTestId(BUTTON_ICON_TEST_ID)).not.toBeOnTheScreen();
     });
 
     it('renders trailing icon when onPress is provided', () => {
@@ -146,7 +146,7 @@ describe('SectionHeader', () => {
         <SectionHeader title="NFTs" endIconName={IconName.Arrow2Right} />,
       );
 
-      expect(queryByTestId(BUTTON_ICON_TEST_ID)).toBeNull();
+      expect(queryByTestId(BUTTON_ICON_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 
