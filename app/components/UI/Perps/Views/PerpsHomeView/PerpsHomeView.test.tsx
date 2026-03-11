@@ -272,12 +272,15 @@ jest.mock('react-native-reanimated', () =>
 const mockSetTitleSectionHeight = jest.fn();
 jest.mock(
   '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated',
-  () => () => ({
-    scrollY: { value: 0 },
-    titleSectionHeightSv: { value: 0 },
-    setTitleSectionHeight: mockSetTitleSectionHeight,
-    onScroll: jest.fn(),
-  }),
+  () => (options?: { onScrollJs?: (ev: { nativeEvent: unknown }) => void }) => {
+    const onScrollJs = options?.onScrollJs;
+    return {
+      scrollY: { value: 0 },
+      titleSectionHeightSv: { value: 0 },
+      setTitleSectionHeight: mockSetTitleSectionHeight,
+      onScroll: (ev: { nativeEvent: unknown }) => onScrollJs?.(ev),
+    };
+  },
 );
 
 jest.mock(

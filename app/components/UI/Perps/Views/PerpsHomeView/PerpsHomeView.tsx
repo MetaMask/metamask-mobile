@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, Platform, type NativeScrollEvent } from 'react-native';
+import { View, Modal, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import Animated from 'react-native-reanimated';
 import {
@@ -128,19 +128,11 @@ const PerpsHomeView = () => {
     scrollY: scrollYSv,
     titleSectionHeightSv,
     setTitleSectionHeight,
-  } = useHeaderStandardAnimated();
+    onScroll,
+  } = useHeaderStandardAnimated({ onScrollJs: handleScroll });
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
-
-  const handleScrollWithHeader = useCallback(
-    (ev: { nativeEvent: NativeScrollEvent }) => {
-      // SharedValue from useHeaderStandardAnimated is designed for .value mutation (Reanimated)
-      scrollYSv.value = ev.nativeEvent.contentOffset.y;
-      handleScroll(ev);
-    },
-    [handleScroll, scrollYSv],
-  );
 
   const titleAccessory = useMemo(() => {
     if (isMultiProviderEnabled) {
@@ -485,7 +477,7 @@ const PerpsHomeView = () => {
         style={styles.scrollView}
         contentContainerStyle={scrollViewContentStyle}
         showsVerticalScrollIndicator={false}
-        onScroll={handleScrollWithHeader}
+        onScroll={onScroll}
         scrollEventThrottle={16}
       >
         <Box
@@ -653,26 +645,31 @@ const PerpsHomeView = () => {
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
-        <Modal visible transparent animationType="none" statusBarTranslucent>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={closeEligibilityModal}
-            contentKey={'geo_block'}
-            testID={'perps-home-geo-block-tooltip'}
-          />
-        </Modal>
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={closeEligibilityModal}
+              contentKey={'geo_block'}
+              testID={'perps-home-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
       )}
 
       {/* Close All / Cancel All Geo-Block Modal */}
       {isCloseAllGeoBlockVisible && (
-        <Modal visible transparent animationType="none" statusBarTranslucent>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={() => setIsCloseAllGeoBlockVisible(false)}
-            contentKey={'geo_block'}
-            testID={'perps-home-close-all-geo-block-tooltip'}
-          />
-        </Modal>
+        // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <PerpsBottomSheetTooltip
+              isVisible
+              onClose={() => setIsCloseAllGeoBlockVisible(false)}
+              contentKey={'geo_block'}
+              testID={'perps-home-close-all-geo-block-tooltip'}
+            />
+          </Modal>
+        </View>
       )}
     </SafeAreaView>
   );

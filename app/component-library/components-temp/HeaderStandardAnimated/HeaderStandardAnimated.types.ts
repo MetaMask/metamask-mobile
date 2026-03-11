@@ -1,8 +1,17 @@
 // External dependencies.
+import type { NativeScrollEvent } from 'react-native';
 import { SharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 
 // Internal dependencies.
 import { HeaderCompactStandardProps } from '../HeaderCompactStandard/HeaderCompactStandard.types';
+
+/**
+ * Optional JS callback for scroll events. Called via runOnJS from the worklet
+ * so UI-thread scrollY update remains lag-free.
+ */
+export type HeaderStandardAnimatedScrollJsCallback = (event: {
+  nativeEvent: NativeScrollEvent;
+}) => void;
 
 /**
  * HeaderStandardAnimated component props.
@@ -21,6 +30,17 @@ export interface HeaderStandardAnimatedProps
    * When scrollY >= titleSectionHeight, the compact center title is shown.
    */
   titleSectionHeight: SharedValue<number>;
+}
+
+/**
+ * Options for useHeaderStandardAnimated.
+ */
+export interface UseHeaderStandardAnimatedOptions {
+  /**
+   * Optional JS-thread callback invoked on scroll (via runOnJS).
+   * Use for analytics/tracking; scrollY is still updated on the UI thread.
+   */
+  onScrollJs?: HeaderStandardAnimatedScrollJsCallback;
 }
 
 /**

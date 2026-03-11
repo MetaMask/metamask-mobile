@@ -3,10 +3,14 @@ import { useCallback } from 'react';
 import {
   useSharedValue,
   useAnimatedScrollHandler,
+  runOnJS,
 } from 'react-native-reanimated';
 
 // Internal dependencies.
-import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types';
+import type {
+  UseHeaderStandardAnimatedOptions,
+  UseHeaderStandardAnimatedReturn,
+} from './HeaderStandardAnimated.types';
 
 /**
  * Hook for managing HeaderStandardAnimated scroll-linked animations.
@@ -36,7 +40,10 @@ import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types'
  * </Box>
  * ```
  */
-const useHeaderStandardAnimated = (): UseHeaderStandardAnimatedReturn => {
+const useHeaderStandardAnimated = (
+  options?: UseHeaderStandardAnimatedOptions,
+): UseHeaderStandardAnimatedReturn => {
+  const { onScrollJs } = options ?? {};
   const scrollYValue = useSharedValue(0);
   const titleSectionHeightSv = useSharedValue(0);
 
@@ -47,11 +54,17 @@ const useHeaderStandardAnimated = (): UseHeaderStandardAnimatedReturn => {
     [titleSectionHeightSv],
   );
 
-  const onScroll = useAnimatedScrollHandler({
-    onScroll: (scrollEvent) => {
-      scrollYValue.value = scrollEvent.contentOffset.y;
+  const onScroll = useAnimatedScrollHandler(
+    {
+      onScroll: (scrollEvent) => {
+        scrollYValue.value = scrollEvent.contentOffset.y;
+        if (onScrollJs) {
+          runOnJS(onScrollJs)({ nativeEvent: scrollEvent });
+        }
+      },
     },
-  });
+    [onScrollJs],
+  );
 
   return {
     scrollY: scrollYValue,
