@@ -3,7 +3,6 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -14,8 +13,6 @@ import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../../component-library/components/Banners/Banner';
-import Accordion from '../../../../../../component-library/components/Accordions/Accordion/Accordion';
-import { AccordionHeaderHorizontalAlignment } from '../../../../../../component-library/components/Accordions/Accordion';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
@@ -29,7 +26,7 @@ import { useToAddressValidation } from '../../../hooks/send/useToAddressValidati
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
-import { DiffHighlightedAddress } from '../diff-highlighted-address/diff-highlighted-address';
+import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
@@ -203,35 +200,16 @@ export const Recipient = () => {
                   variant={BannerVariant.Alert}
                   severity={BannerAlertSeverity.Error}
                   style={styles.banner}
-                  title={strings('send.address_poisoning_warning_title')}
+                  title={strings('alert_system.address_poisoning.title')}
                   description={strings(
-                    'send.address_poisoning_warning_message',
+                    'alert_system.address_poisoning.message',
                   )}
                 >
-                  <Accordion
-                    title={strings('send.compare_addresses')}
-                    isExpanded={false}
-                    horizontalAlignment={
-                      AccordionHeaderHorizontalAlignment.Start
-                    }
-                  >
-                    <Box twClassName="mt-2 gap-2">
-                      <DiffHighlightedAddress
-                        address={to}
-                        diffIndices={poisoningMatch.diffIndices}
-                        label={strings('send.entered_malicious')}
-                        dotTwColor="bg-error-default"
-                      />
-                      <DiffHighlightedAddress
-                        address={poisoningMatch.knownAddress}
-                        diffIndices={poisoningMatch.diffIndices}
-                        label={strings('send.known_safe')}
-                        dotTwColor="bg-success-default"
-                        highlightTwColor="bg-success-muted"
-                        diffTextColor={TextColor.SuccessDefault}
-                      />
-                    </Box>
-                  </Accordion>
+                  <AddressPoisoningAlertContent
+                    address={to}
+                    knownAddress={poisoningMatch.knownAddress}
+                    diffIndices={poisoningMatch.diffIndices}
+                  />
                 </Banner>
               )}
               {toAddressWarning && (
