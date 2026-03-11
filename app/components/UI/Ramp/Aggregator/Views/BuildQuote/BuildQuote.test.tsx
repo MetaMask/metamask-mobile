@@ -785,7 +785,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       expect(
         screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
 
       fireEvent.press(getByRoleButton('Done'));
       expect(
