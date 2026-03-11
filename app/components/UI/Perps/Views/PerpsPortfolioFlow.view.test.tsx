@@ -182,8 +182,8 @@ describe('Portfolio & Account Flow', () => {
       },
       streamOverrides: { positions: [defaultPositionForViews] },
     });
-    const positionsTitle = await screen.findByText(POSITIONS);
-    fireEvent.press(positionsTitle);
+    await screen.findByText(POSITIONS);
+    fireEvent.press(await screen.findByTestId('section-header-action-button'));
     expect(
       await screen.findByTestId('perps-home-close-all-geo-block-tooltip'),
     ).toBeOnTheScreen();
