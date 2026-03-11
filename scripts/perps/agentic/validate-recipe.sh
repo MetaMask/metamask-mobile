@@ -1,11 +1,17 @@
 #!/bin/bash
-# validate-recipe.sh — Execute a PR recipe JSON against the running app via CDP.
+# validate-recipe.sh — Execute a PR recipe against the running app via CDP.
 #
 # Usage:
-#   validate-recipe.sh <recipe-json-path>                  # Run all steps
-#   validate-recipe.sh <recipe-json-path> --dry-run        # Print steps without executing
-#   validate-recipe.sh <recipe-json-path> --step <id>      # Run single step by id
-#   validate-recipe.sh <recipe-json-path> --skip-manual    # Skip manual steps non-interactively
+#   validate-recipe.sh <recipe-folder-or-json>             # Run all steps
+#   validate-recipe.sh <recipe-folder-or-json> --dry-run   # Print steps without executing
+#   validate-recipe.sh <recipe-folder-or-json> --step <id> # Run single step by id
+#   validate-recipe.sh <recipe-folder-or-json> --skip-manual
+#
+# Input can be:
+#   - A folder (e.g. ~/dev/metamask/mobile-recipes/27323/) — reads recipe.json inside
+#   - A .json file path (backward compat)
+#
+# When folder mode: screenshots are saved directly into the recipe folder.
 #
 # Exit codes: 0 = all passed, 1 = one or more failed
 # Requires:   node, Metro running on WATCHER_PORT, CDP-compatible app
@@ -46,7 +52,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe.json> [--dry-run] [--step <id>] [--skip-manual]"; exit 1; }
+[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe-folder-or-json> [--dry-run] [--step <id>] [--skip-manual]"; exit 1; }
+
+# Resolve folder → recipe.json; track RECIPE_DIR for artifact output
+RECIPE_DIR=""
+if [ -d "$RECIPE" ]; then
+  RECIPE_DIR="$RECIPE"
+  RECIPE="$RECIPE_DIR/recipe.json"
+elif [ -f "$RECIPE" ]; then
+  # If it's a recipe.json inside a folder, use that folder
+  if [ "$(basename "$RECIPE")" = "recipe.json" ]; then
+    RECIPE_DIR="$(dirname "$RECIPE")"
+  fi
+fi
 [ ! -f "$RECIPE" ] && { echo "ERROR: Recipe not found: $RECIPE"; exit 1; }
 
 # Metro log: start-metro.sh writes to .agent/metro.log by default
@@ -86,6 +104,7 @@ check_assert() {
   node -e "
 const raw=process.argv[1],spec=JSON.parse(process.argv[2]);
 let val;try{val=JSON.parse(raw);}catch(e){val=raw;}
+if(typeof val==='string'){try{val=JSON.parse(val);}catch(e){}}
 const f=spec.field||'';
 if(f){for(const p of f.split('.')){if(val&&typeof val==='object')val=Array.isArray(val)&&/^\d+$/.test(p)?val[+p]:val[p];else{val=undefined;break;}}}
 const op=spec.operator||'',exp=spec.value;
@@ -176,9 +195,15 @@ while IFS= read -r sj; do
       FN=$(node -p "JSON.parse(process.argv[1]).filename||'screenshot'" "$sj")
       echo "  -> screenshot.sh $FN"
       if [ "$DRY" = false ]; then
-        mkdir -p artifacts/recipe-screenshots
         SPATH=$(bash "$SD/screenshot.sh" "$FN" 2>/dev/null) || true
-        [ -n "${SPATH:-}" ] && cp "$SPATH" artifacts/recipe-screenshots/ 2>/dev/null || true
+        if [ -n "${SPATH:-}" ]; then
+          if [ -n "$RECIPE_DIR" ]; then
+            cp "$SPATH" "$RECIPE_DIR/" 2>/dev/null && echo "  -> Saved to $RECIPE_DIR/$(basename "$SPATH")" || true
+          else
+            mkdir -p .agent/artifacts/recipe-screenshots
+            cp "$SPATH" .agent/artifacts/recipe-screenshots/ 2>/dev/null || true
+          fi
+        fi
       fi
       ;;
     wait)

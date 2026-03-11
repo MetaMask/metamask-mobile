@@ -30,7 +30,7 @@ How AI agents and developers verify code changes against a running MetaMask Mobi
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Agent / Developer                            │
 │                                                                 │
-│  Code changes ─────→ validate-recipe.sh <recipe.json>          │
+│  Code changes ─────→ validate-recipe.sh <recipe-folder>        │
 │                              │                                  │
 │            ┌─────────────────┼──────────────────┐               │
 │            ▼                 ▼                   ▼               │
@@ -83,10 +83,11 @@ interactive-start.sh                      # interactive REPL session
 ### Validation
 
 ```bash
-validate-recipe.sh <recipe.json>              # run all steps
-validate-recipe.sh <recipe.json> --dry-run    # print without executing
-validate-recipe.sh <recipe.json> --step <id>  # single step
-validate-recipe.sh <recipe.json> --skip-manual
+validate-recipe.sh ~/dev/metamask/mobile-recipes/27323/  # folder mode (preferred)
+validate-recipe.sh <recipe.json>                         # file mode (backward compat)
+validate-recipe.sh <path> --dry-run                      # print without executing
+validate-recipe.sh <path> --step <id>                    # single step
+validate-recipe.sh <path> --skip-manual
 ```
 
 ## CDP Eval Semantics
@@ -99,7 +100,18 @@ All expressions must be **ES5** — no arrow functions, `const`/`let`, or templa
 
 ## Recipe Format
 
-PR recipes at `~/dev/metamask/mobile-recipes/<pr>.json`:
+PR recipes at `~/dev/metamask/mobile-recipes/<pr>/recipe.json`:
+
+```
+mobile-recipes/
+  27323/
+    recipe.json        # recipe definition
+    before.png         # screenshot before fix
+    after.png          # screenshot after fix
+    before.mp4         # video before fix
+    after.mp4          # video after fix
+    summary.md         # root cause, fix, results
+```
 
 ```json
 {
