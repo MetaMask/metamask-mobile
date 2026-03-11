@@ -261,6 +261,10 @@ export const useDeviceConnectionFlow = ({
       adapter.resetFlowState();
     }
 
+    if (adapter && !(await adapter.ensurePermissions())) {
+      return;
+    }
+
     if (adapter && (await checkTransportEnabledOrShowError(adapter))) {
       return;
     }
