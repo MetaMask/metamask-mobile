@@ -85,7 +85,7 @@ const mockTransactionPayController = {
 };
 
 const mockApprovalController = {
-  reject: jest.fn(),
+  rejectRequest: jest.fn(),
 };
 
 const mockFetchGasFeeEstimates = jest.fn().mockResolvedValue(undefined);

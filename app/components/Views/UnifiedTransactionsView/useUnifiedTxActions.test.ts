@@ -85,8 +85,8 @@ jest.mock('../../../core/Engine', () => ({
       stopTransaction: jest.fn(),
     },
     ApprovalController: {
-      accept: jest.fn(),
-      reject: jest.fn(),
+      acceptRequest: jest.fn(),
+      rejectRequest: jest.fn(),
     },
     GasFeeController: {
       startPolling: jest.fn(),
