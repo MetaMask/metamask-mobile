@@ -14,7 +14,7 @@ import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selec
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
-import CashAnnualizedCopy from './CashAnnualizedCopy';
+
 import CashGetMusdEmptyState from './CashGetMusdEmptyState';
 import Logger from '../../../../../util/Logger';
 
@@ -74,14 +74,9 @@ const CashSection = ({
             <CashGetMusdEmptyState />
           </SectionRow>
         ) : (
-          <>
-            <SectionRow>
-              <CashAnnualizedCopy />
-            </SectionRow>
-            <SectionRow>
-              <MusdAggregatedRow />
-            </SectionRow>
-          </>
+          <SectionRow>
+            <MusdAggregatedRow />
+          </SectionRow>
         )}
       </Box>
     </View>

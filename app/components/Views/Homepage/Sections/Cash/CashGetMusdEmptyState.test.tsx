@@ -73,16 +73,11 @@ describe('CashGetMusdEmptyState', () => {
     mockUseMusdConversionFlowData.isMusdBuyableOnAnyChain = true;
   });
 
-  it('renders annualized copy and Get mUSD button', () => {
+  it('renders container and Get mUSD button', () => {
     renderWithProvider(<CashGetMusdEmptyState />);
 
     expect(
       screen.getByTestId(CashGetMusdEmptyStateSelectors.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        'Get 3% annualized bonus on your stablecoins when you convert to mUSD.',
-      ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Get mUSD')).toBeOnTheScreen();
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();

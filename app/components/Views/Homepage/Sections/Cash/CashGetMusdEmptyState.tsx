@@ -43,7 +43,6 @@ import {
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { CashGetMusdEmptyStateSelectors } from './CashGetMusdEmptyState.testIds';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
-import CashAnnualizedCopy from './CashAnnualizedCopy';
 
 /**
  * Empty state for the Cash (mUSD) full view when the user has no mUSD.
@@ -178,9 +177,7 @@ const CashGetMusdEmptyState = () => {
 
   return (
     <Box testID={CashGetMusdEmptyStateSelectors.CONTAINER} twClassName="gap-3">
-      <CashAnnualizedCopy twClassName="px-0" />
-
-      <View style={tw.style('flex-row items-center justify-between py-2')}>
+      <View style={tw.style('flex-row items-center justify-between')}>
         <Pressable
           testID={CashGetMusdEmptyStateSelectors.ROW}
           onPress={handleTokenRowPress}

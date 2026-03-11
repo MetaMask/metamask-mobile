@@ -62,11 +62,6 @@ jest.mock('./CashGetMusdEmptyState', () => {
       ReactActual.createElement(
         View,
         { testID: 'cash-get-musd-empty-state' },
-        ReactActual.createElement(
-          Text,
-          null,
-          'Get 3% annualized bonus on your stablecoins when you convert to mUSD.',
-        ),
         ReactActual.createElement(Text, null, 'Get mUSD'),
       ),
   };
@@ -126,18 +121,6 @@ describe('CashSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
     );
-  });
-
-  it('shows annualized copy', () => {
-    renderWithProvider(
-      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(
-      screen.getByText(
-        'Get 3% annualized bonus on your stablecoins when you convert to mUSD.',
-      ),
-    ).toBeOnTheScreen();
   });
 
   it('shows Get mUSD empty state when user has no mUSD balance', () => {
