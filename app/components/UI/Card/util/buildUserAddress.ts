@@ -37,8 +37,15 @@ export function buildProvisioningUserAddress(
     return undefined;
   }
 
-  const { addressLine1, addressLine2, city, usState, zip, phoneNumber } =
-    userDetails;
+  const {
+    addressLine1,
+    addressLine2,
+    city,
+    usState,
+    zip,
+    phoneNumber,
+    phoneCountryCode,
+  } = userDetails;
 
   // Require at least address line 1, city, and zip
   if (!addressLine1 || !city || !zip) {
@@ -53,8 +60,40 @@ export function buildProvisioningUserAddress(
     administrativeArea: usState ?? '',
     postalCode: zip,
     countryCode: 'US',
-    phoneNumber: phoneNumber ?? '',
+    phoneNumber: formatE164PhoneNumber(phoneCountryCode, phoneNumber),
   };
+}
+
+/**
+ * Format a phone number in E.164 format for the Google Tap and Pay SDK.
+ *
+ * The API returns phoneNumber and phoneCountryCode as separate fields
+ * (e.g. "2345678901" and "+1"), but Google's UserAddress.setPhoneNumber()
+ * requires E.164 format (e.g. "+12345678901").
+ */
+function formatE164PhoneNumber(
+  countryCode: string | null | undefined,
+  phoneNumber: string | null | undefined,
+): string {
+  if (!phoneNumber) {
+    return '';
+  }
+
+  const digits = phoneNumber.replace(/\D/g, '');
+  if (!digits) {
+    return '';
+  }
+
+  if (!countryCode) {
+    return `+${digits}`;
+  }
+
+  const codeDigits = countryCode.replace(/\D/g, '');
+  if (!codeDigits) {
+    return `+${digits}`;
+  }
+
+  return `+${codeDigits}${digits}`;
 }
 
 /**
@@ -107,14 +146,23 @@ export function buildShippingAddress(
 }
 
 /**
- * Sanitize a name part by trimming whitespace and removing non-alphanumeric characters.
- * This matches the regex used by Galileo for card ordering.
+ * Sanitize a name part for card provisioning.
+ *
+ * Uses Unicode NFD normalization to decompose accented characters into
+ * base letter + combining mark, then strips the marks. This preserves
+ * base letters (e.g. "José" → "Jose", "Müller" → "Muller") instead of
+ * dropping them entirely. The final ASCII filter ensures only characters
+ * accepted by Galileo remain.
  *
  * @param name - The name string to sanitize
  * @returns Sanitized name containing only alphanumeric characters and spaces
  */
 function sanitizeName(name: string): string {
-  return name.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+  return name
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9 ]/g, '');
 }
 
 /**
