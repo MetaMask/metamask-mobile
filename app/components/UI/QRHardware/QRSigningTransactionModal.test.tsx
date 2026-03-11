@@ -171,11 +171,11 @@ describe('QRSigningTransactionModal', () => {
 
     await successCallback();
 
-    expect(Engine.context.ApprovalController.accept).toHaveBeenCalledWith(
-      mockTransactionId,
-      undefined,
-      { waitForResult: true },
-    );
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith(mockTransactionId, undefined, {
+      waitForResult: true,
+    });
 
     expect(mockOnConfirmationComplete).toHaveBeenCalledWith(true);
   });

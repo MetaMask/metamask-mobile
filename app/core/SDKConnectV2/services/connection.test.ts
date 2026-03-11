@@ -275,10 +275,12 @@ describe('Connection', () => {
         await onClientMessageCallback(walletCreateSessionPayload);
 
         expect(NavigationService.navigation?.goBack).toHaveBeenCalledTimes(1);
-        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledTimes(
-          1,
-        );
-        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledWith(
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).toHaveBeenCalledWith(
           providerErrors.userRejectedRequest({
             data: {
               cause: 'rejectAllApprovals',
@@ -314,7 +316,9 @@ describe('Connection', () => {
         await onClientMessageCallback(walletCreateSessionPayload);
 
         expect(NavigationService.navigation?.goBack).not.toHaveBeenCalled();
-        expect(Engine.context.ApprovalController.clear).not.toHaveBeenCalled();
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).not.toHaveBeenCalled();
         expect(mockBridgeInstance.send).toHaveBeenCalledWith(
           walletCreateSessionPayload,
         );

@@ -626,7 +626,7 @@ describe('Transactions', () => {
     });
 
     it('should test Engine context methods', () => {
-      expect(Engine.context.ApprovalController.accept).toBeDefined();
+      expect(Engine.context.ApprovalController.acceptRequest).toBeDefined();
       expect(
         Engine.context.TransactionController.stopTransaction,
       ).toBeDefined();
