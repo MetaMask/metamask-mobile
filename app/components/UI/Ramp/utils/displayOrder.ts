@@ -77,6 +77,7 @@ export function rampsOrderToDisplayOrder(order: RampsOrder): DisplayOrder {
 const HIDDEN_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
 ]);
 
 export function mergeDisplayOrders(

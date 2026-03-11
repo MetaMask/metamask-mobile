@@ -3,17 +3,11 @@ import { render } from '@testing-library/react-native';
 import RampsBootstrap from './RampsBootstrap';
 
 const mockUseRampsSmartRouting = jest.fn();
-const mockUseHydrateRampsController = jest.fn();
 const mockUseRampsProviders = jest.fn();
 
 jest.mock('./hooks/useRampsSmartRouting', () => ({
   __esModule: true,
   default: (...args: unknown[]) => mockUseRampsSmartRouting(...args),
-}));
-
-jest.mock('./hooks/useHydrateRampsController', () => ({
-  __esModule: true,
-  default: (...args: unknown[]) => mockUseHydrateRampsController(...args),
 }));
 
 jest.mock('./hooks/useRampsProviders', () => ({
@@ -30,12 +24,6 @@ describe('RampsBootstrap', () => {
     render(<RampsBootstrap />);
 
     expect(mockUseRampsSmartRouting).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls useHydrateRampsController on mount', () => {
-    render(<RampsBootstrap />);
-
-    expect(mockUseHydrateRampsController).toHaveBeenCalledTimes(1);
   });
 
   it('calls useRampsProviders on mount', () => {

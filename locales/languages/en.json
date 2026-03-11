@@ -704,7 +704,6 @@
       "payWith": "Pay with",
       "unexpectedError": "An unexpected error occurred.",
       "quoteFetchError": "Failed to fetch quote.",
-      "externalBrowserReturnNoOrderId": "Your order may have completed. Check your Activity tab for updates.",
       "kycFormsFetchError": "Failed to fetch KYC forms.",
       "title": "Buy",
       "limitExceeded": "This deposit would exceed your {{period}} limit. Your deposit including fees must be {{remaining}} or less.",

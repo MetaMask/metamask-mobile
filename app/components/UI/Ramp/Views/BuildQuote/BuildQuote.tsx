@@ -5,12 +5,23 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, View } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import {
+  buildQuoteWithRedirectUrl,
+  getAggregatorRedirectUrl,
+  getCheckoutContext,
+} from '../../utils/buildQuoteWithRedirectUrl';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
+import { openExternalBrowserAndNavigate } from '../../utils/openExternalBrowserCheckout';
+import {
+  createBuildQuoteRoute,
+  createRampsOrderDetailsRoute,
+} from '../../utils/rampsNavigation';
+import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
@@ -33,8 +44,8 @@ import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { normalizeProviderCode } from '@metamask/ramps-controller';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import { useRampsController } from '../../hooks/useRampsController';
+import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
@@ -44,11 +55,11 @@ import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentS
 import { createCheckoutNavDetails } from '../Checkout';
 import {
   isNativeProvider,
+  isCustomAction,
   getQuoteProviderName,
   getQuoteBuyUserAgent,
 } from '../../types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
-import Logger from '../../../../../util/Logger';
 import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -66,10 +77,6 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
-import InAppBrowser from 'react-native-inappbrowser-reborn';
-import Device from '../../../../../util/device';
-import ToastService from '../../../../../core/ToastService';
-import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
@@ -114,27 +121,19 @@ function BuildQuote() {
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
   const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
-  const [isOnBuildQuoteScreen, setIsOnBuildQuoteScreen] =
-    useState<boolean>(true);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
-  const [nativeFlowError, setNativeFlowError] = useState<string | null>(null);
+  const [rampsError, setRampsError] = useState<string | null>(null);
   const params = useParams<BuildQuoteParams>();
 
+  /*
+   * Sets the native flow error if the native flow error is set.
+   */
   useEffect(() => {
     if (params?.nativeFlowError) {
-      setNativeFlowError(params.nativeFlowError);
+      setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
   }, [params?.nativeFlowError, navigation]);
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsOnBuildQuoteScreen(true);
-      return () => {
-        setIsOnBuildQuoteScreen(false);
-      };
-    }, []),
-  );
 
   const {
     userRegion,
@@ -146,13 +145,19 @@ function BuildQuote() {
     selectedPaymentMethod,
   } = useRampsController();
 
+  const { addOrder, getOrderFromCallback } = useRampsOrders();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const prevSelectedProviderRef = useRef(selectedProvider);
+
+  /*
+   * Resets the native flow error if the selected provider changes.
+   */
   useEffect(() => {
     if (prevSelectedProviderRef.current !== selectedProvider) {
       prevSelectedProviderRef.current = selectedProvider;
-      setNativeFlowError(null);
+      setRampsError(null);
     }
   }, [selectedProvider]);
 
@@ -167,8 +172,10 @@ function BuildQuote() {
     [selectedProvider, params?.assetId],
   );
 
+  /*
+   * Shows the "token not available modal" if the token is not available for the selected provider.
+   */
   const hasShownTokenUnavailableRef = useRef(false);
-
   useEffect(() => {
     if (isTokenUnavailable && !hasShownTokenUnavailableRef.current) {
       hasShownTokenUnavailableRef.current = true;
@@ -193,6 +200,10 @@ function BuildQuote() {
   const currency = userRegion?.country?.currency || 'USD';
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
+  /*
+   * Tracks RAMPS_SCREEN_VIEWED
+   * @returns {void}
+   */
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
     if (hasTrackedScreenViewRef.current) return;
@@ -210,6 +221,9 @@ function BuildQuote() {
     }
   }, [rampRoutingDecision, trackEvent, createEventBuilder]);
 
+  /*
+   * Sets the default amount for the user's region.
+   */
   useEffect(() => {
     if (!userHasEnteredAmount && userRegion?.country?.defaultAmount != null) {
       const regionDefault = userRegion.country.defaultAmount;
@@ -228,7 +242,6 @@ function BuildQuote() {
   const debouncedPollingAmount = useDebouncedValue(amountAsNumber, 500);
 
   const quoteFetchEnabled = !!(
-    isOnBuildQuoteScreen &&
     walletAddress &&
     selectedPaymentMethod &&
     selectedProvider &&
@@ -236,6 +249,10 @@ function BuildQuote() {
     debouncedPollingAmount > 0
   );
 
+  /*
+   * Creates the quote fetch parameters for the useRampsQuotes hook,
+   * Fetches only 1 quote for the selected provider and payment method.
+   */
   const quoteFetchParams = useMemo(
     () =>
       selectedToken?.assetId &&
@@ -267,6 +284,9 @@ function BuildQuote() {
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
 
+  /*
+   * Tracks RAMPS_QUOTE_ERROR
+   */
   const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
     if (
@@ -310,21 +330,8 @@ function BuildQuote() {
   const selectedQuote = useMemo(() => {
     if (!quotesResponse?.success || !selectedProvider || !selectedPaymentMethod)
       return null;
-    const { success } = quotesResponse;
-    const providerMatches = (q: (typeof success)[0]) =>
-      q.provider === selectedProvider.id;
-    let result: (typeof success)[0] | null = null;
-    if (success.length === 1) {
-      result = providerMatches(success[0]) ? success[0] : null;
-    } else if (success.length > 1) {
-      const match = success.find(
-        (q) =>
-          providerMatches(q) &&
-          q.quote?.paymentMethod === selectedPaymentMethod.id,
-      );
-      result = match ?? null;
-    }
-    return result;
+    const [quote] = quotesResponse.success;
+    return quote?.provider === selectedProvider.id ? quote : null;
   }, [quotesResponse, selectedProvider, selectedPaymentMethod]);
 
   const networkInfo = useMemo(() => {
@@ -356,38 +363,28 @@ function BuildQuote() {
     navigation.goBack();
   }, [trackEvent, createEventBuilder, navigation]);
 
+  const updateAmount = useCallback((value: number) => {
+    setAmount(String(value));
+    setAmountAsNumber(value);
+    setKeyboardIsDirty(true);
+    setUserHasEnteredAmount(true);
+    setRampsError(null);
+  }, []);
+
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber, pressedKey }: KeypadChangeData) => {
+    ({ valueAsNumber, pressedKey }: KeypadChangeData) => {
       if (pressedKey === Keys.Back) {
-        if (!keyboardIsDirty) {
-          setAmount('0');
-          setAmountAsNumber(0);
-        } else {
-          setAmount(value || '0');
-          setAmountAsNumber(valueAsNumber || 0);
-        }
-        setKeyboardIsDirty(true);
-        setUserHasEnteredAmount(true);
-        setNativeFlowError(null);
+        updateAmount(!keyboardIsDirty ? 0 : valueAsNumber || 0);
         return;
       }
-
-      setAmount(value || '0');
-      setAmountAsNumber(valueAsNumber || 0);
-      setKeyboardIsDirty(true);
-      setUserHasEnteredAmount(true);
-      setNativeFlowError(null);
+      updateAmount(valueAsNumber || 0);
     },
-    [keyboardIsDirty],
+    [keyboardIsDirty, updateAmount],
   );
 
   const handleQuickAmountPress = useCallback(
     (quickAmount: number) => {
-      setAmount(String(quickAmount));
-      setAmountAsNumber(quickAmount);
-      setKeyboardIsDirty(true);
-      setUserHasEnteredAmount(true);
-      setNativeFlowError(null);
+      updateAmount(quickAmount);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.RAMPS_QUICK_AMOUNT_CLICKED)
           .addProperties({
@@ -399,7 +396,40 @@ function BuildQuote() {
           .build(),
       );
     },
-    [currency, trackEvent, createEventBuilder],
+    [currency, trackEvent, createEventBuilder, updateAmount],
+  );
+
+  const navigateAfterExternalBrowser = useCallback(
+    (
+      opts:
+        | { type: 'buildQuote' }
+        | {
+            type: 'order';
+            orderCode: string;
+            providerCode: string;
+            walletAddress?: string;
+          },
+    ) => {
+      if (opts.type === 'order') {
+        navigation.reset({
+          index: 0,
+          routes: [
+            createRampsOrderDetailsRoute({
+              orderId: opts.orderCode,
+              showCloseButton: true,
+              providerCode: opts.providerCode,
+              walletAddress: opts.walletAddress,
+            }),
+          ],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [createBuildQuoteRoute()],
+        });
+      }
+    },
+    [navigation],
   );
 
   const handlePaymentPillPress = useCallback(() => {
@@ -427,39 +457,230 @@ function BuildQuote() {
     createEventBuilder,
   ]);
 
-  const handleContinuePress = useCallback(async () => {
-    if (!selectedQuote || !selectedProvider) {
-      return;
+  /**
+   * Handles the continue button press for a native provider such as Transak.
+   * This function checks if the user has an authenticated account and routes the use appropriately.
+   * @returns {Promise<void>}
+   */
+  const handleNativeProviderContinue = useCallback(async () => {
+    setIsContinueLoading(true);
+    try {
+      const hasToken = await transakCheckExistingToken();
+
+      if (hasToken) {
+        const quote = await transakGetBuyQuote(
+          currency,
+          selectedToken?.assetId || '',
+          selectedToken?.chainId || '',
+          selectedPaymentMethod?.id || '',
+          String(amountAsNumber),
+        );
+        if (!quote) {
+          throw new Error(strings('deposit.buildQuote.unexpectedError'));
+        }
+        await transakRouteAfterAuth(quote);
+      } else {
+        navigation.navigate(
+          ...createV2VerifyIdentityNavDetails({
+            amount: String(amountAsNumber),
+            currency,
+            assetId: selectedToken?.assetId,
+          }),
+        );
+      }
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          { message: 'Failed to route native provider flow' },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
     }
-    setNativeFlowError(null);
+  }, [
+    currency,
+    selectedToken?.assetId,
+    selectedToken?.chainId,
+    selectedPaymentMethod?.id,
+    amountAsNumber,
+    transakCheckExistingToken,
+    transakGetBuyQuote,
+    transakRouteAfterAuth,
+    navigation,
+  ]);
 
-    const quoteAmountRaw =
-      selectedQuote.quote?.amountIn ??
-      (selectedQuote as { amountIn?: number }).amountIn;
-    const quoteAmount =
-      typeof quoteAmountRaw === 'string'
-        ? Number(quoteAmountRaw)
-        : quoteAmountRaw;
-    const quotePaymentMethod =
-      selectedQuote.quote?.paymentMethod ??
-      (selectedQuote as { paymentMethod?: string }).paymentMethod;
+  /**
+   * Handles the continue button press for a "custom action" provider such as PayPal.
+   * This function fetches the widget URL from the provider and routes the user to the widget.
+   * @returns {Promise<void>}
+   */
+  const handleCustomActionContinue = useCallback(async () => {
+    if (!selectedQuote) return;
+    setIsContinueLoading(true);
+    try {
+      const providerCode = normalizeProviderCode(selectedQuote.provider);
+      const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+      const quoteForWidget = buildQuoteWithRedirectUrl(
+        selectedQuote,
+        deeplinkRedirectUrl,
+      );
+      const buyWidget = await getBuyWidgetData(quoteForWidget);
 
-    if (selectedQuote.provider !== selectedProvider.id) {
-      return;
-    }
-
-    if (quoteAmount !== amountAsNumber) {
-      return;
-    }
-
-    if (quotePaymentMethod != null) {
-      if (
-        !selectedPaymentMethod ||
-        selectedPaymentMethod.id !== quotePaymentMethod
-      ) {
+      if (!buyWidget?.url) {
+        setRampsError(
+          reportRampsError(
+            new Error('No widget URL available for custom action provider'),
+            { provider: selectedQuote.provider },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
         return;
       }
+
+      const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
+        selectedToken,
+        walletAddress,
+        buyWidget.orderId,
+      );
+
+      await openExternalBrowserAndNavigate({
+        buyWidgetUrl: buyWidget.url,
+        deeplinkRedirectUrl,
+        effectiveOrderId,
+        effectiveWallet,
+        providerCode,
+        network,
+        addPrecreatedOrder,
+        getOrderFromCallback,
+        addOrder,
+        navigateAfterBrowser: navigateAfterExternalBrowser,
+      });
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          {
+            provider: selectedQuote.provider,
+            message: 'Failed to fetch widget URL for custom action',
+          },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
     }
+  }, [
+    selectedQuote,
+    selectedToken,
+    walletAddress,
+    getBuyWidgetData,
+    addPrecreatedOrder,
+    getOrderFromCallback,
+    addOrder,
+    navigateAfterExternalBrowser,
+  ]);
+
+  /**
+   * Handles the continue button press for an aggregator provider such as Moonpay, Mercuryo, etc.
+   * This function simply fetches the widget URL from the provider and routes the user to the widget.
+   * @returns {Promise<void>}
+   */
+  const handleAggregatorContinue = useCallback(async () => {
+    if (!selectedQuote) return;
+    setIsContinueLoading(true);
+    try {
+      const providerCode = normalizeProviderCode(selectedQuote.provider);
+      const redirectUrl = getAggregatorRedirectUrl(selectedQuote, providerCode);
+      const quoteForWidget = buildQuoteWithRedirectUrl(
+        selectedQuote,
+        redirectUrl,
+      );
+
+      const buyWidget = await getBuyWidgetData(quoteForWidget);
+
+      if (!buyWidget?.url) {
+        setRampsError(
+          reportRampsError(
+            new Error('No widget URL available for aggregator provider'),
+            { provider: selectedQuote.provider },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+        return;
+      }
+
+      const { network, effectiveWallet, effectiveOrderId } = getCheckoutContext(
+        selectedToken,
+        walletAddress,
+        buyWidget.orderId,
+      );
+      const useExternalBrowser = buyWidget.browser === 'IN_APP_OS_BROWSER';
+
+      if (useExternalBrowser) {
+        const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
+        await openExternalBrowserAndNavigate({
+          buyWidgetUrl: buyWidget.url,
+          deeplinkRedirectUrl,
+          effectiveOrderId,
+          effectiveWallet,
+          providerCode,
+          network,
+          addPrecreatedOrder,
+          getOrderFromCallback,
+          addOrder,
+          navigateAfterBrowser: navigateAfterExternalBrowser,
+        });
+        return;
+      }
+
+      navigation.navigate(
+        ...createCheckoutNavDetails({
+          url: buyWidget.url,
+          providerName:
+            selectedProvider?.name || getQuoteProviderName(selectedQuote),
+          userAgent: getQuoteBuyUserAgent(selectedQuote),
+          providerCode,
+          providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+          walletAddress: effectiveWallet || undefined,
+          network,
+          currency,
+          cryptocurrency: selectedToken?.symbol || '',
+          orderId: buyWidget.orderId?.trim() || undefined,
+        }),
+      );
+    } catch (error) {
+      setRampsError(
+        reportRampsError(
+          error,
+          {
+            provider: selectedQuote.provider,
+            message: 'Failed to fetch widget URL',
+          },
+          strings('deposit.buildQuote.unexpectedError'),
+        ),
+      );
+    } finally {
+      setIsContinueLoading(false);
+    }
+  }, [
+    selectedQuote,
+    selectedProvider,
+    selectedToken,
+    walletAddress,
+    currency,
+    navigation,
+    getBuyWidgetData,
+    addPrecreatedOrder,
+    getOrderFromCallback,
+    addOrder,
+    navigateAfterExternalBrowser,
+  ]);
+
+  const handleContinuePress = useCallback(async () => {
+    if (!selectedQuote || !selectedProvider) return;
+    setRampsError(null);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_CONTINUE_BUTTON_CLICKED)
@@ -480,253 +701,34 @@ function BuildQuote() {
     );
 
     if (isNativeProvider(selectedQuote)) {
-      setIsContinueLoading(true);
-      try {
-        const hasToken = await transakCheckExistingToken();
-
-        if (hasToken) {
-          const quote = await transakGetBuyQuote(
-            currency,
-            selectedToken?.assetId || '',
-            selectedToken?.chainId || '',
-            selectedPaymentMethod?.id || '',
-            String(amountAsNumber),
-          );
-          if (!quote) {
-            throw new Error(strings('deposit.buildQuote.unexpectedError'));
-          }
-          await transakRouteAfterAuth(quote);
-        } else {
-          navigation.navigate(
-            ...createV2VerifyIdentityNavDetails({
-              amount: String(amountAsNumber),
-              currency,
-              assetId: selectedToken?.assetId,
-            }),
-          );
-        }
-      } catch (error) {
-        Logger.error(error as Error, {
-          message: 'Failed to route native provider flow',
-        });
-        setNativeFlowError(
-          parseUserFacingError(
-            error,
-            strings('deposit.buildQuote.unexpectedError'),
-          ),
-        );
-      } finally {
-        setIsContinueLoading(false);
-      }
-      return;
-    }
-
-    setIsContinueLoading(true);
-    try {
-      const isCustomAction = Boolean(
-        (selectedQuote.quote as { isCustomAction?: boolean })?.isCustomAction,
-      );
-      const providerCode = normalizeProviderCode(selectedQuote.provider);
-      const deeplinkRedirectUrl = `metamask://on-ramp/providers/${providerCode}`;
-
-      const embeddedWidget = selectedQuote.quote?.buyWidget;
-      const knownUseExternalBrowser =
-        isCustomAction || embeddedWidget?.browser === 'IN_APP_OS_BROWSER';
-
-      let quoteForWidget = selectedQuote;
-      if (selectedQuote.quote?.buyURL) {
-        const buyUrl = new URL(selectedQuote.quote.buyURL);
-        buyUrl.searchParams.set(
-          'redirectUrl',
-          knownUseExternalBrowser
-            ? deeplinkRedirectUrl
-            : getRampCallbackBaseUrl(),
-        );
-        quoteForWidget = {
-          ...selectedQuote,
-          quote: {
-            ...selectedQuote.quote,
-            buyURL: buyUrl.toString(),
-          },
-        };
-      }
-
-      const buyWidget = await getBuyWidgetData(quoteForWidget);
-
-      if (buyWidget?.url) {
-        const chainId = selectedToken?.chainId as CaipChainId | undefined;
-        const network = chainId?.includes(':')
-          ? chainId.split(':')[1] || ''
-          : chainId || '';
-        const effectiveWallet = walletAddress ?? '';
-
-        const useExternalBrowser =
-          isCustomAction || buyWidget.browser === 'IN_APP_OS_BROWSER';
-
-        if (useExternalBrowser) {
-          const effectiveOrderId = buyWidget.orderId?.trim() || null;
-
-          if (effectiveOrderId && effectiveWallet) {
-            addPrecreatedOrder({
-              orderId: effectiveOrderId,
-              providerCode,
-              walletAddress: effectiveWallet,
-              chainId: network || undefined,
-            });
-          }
-
-          const isAndroid = Device.isAndroid();
-          const inAppBrowserAvailable =
-            !isAndroid && (await InAppBrowser.isAvailable());
-
-          if (isAndroid || !inAppBrowserAvailable) {
-            await Linking.openURL(buyWidget.url);
-          } else {
-            try {
-              await InAppBrowser.openAuth(buyWidget.url, deeplinkRedirectUrl);
-            } finally {
-              InAppBrowser.closeAuth();
-            }
-          }
-
-          if (effectiveOrderId) {
-            const orderCode = extractOrderCode(effectiveOrderId);
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: Routes.RAMP.RAMPS_ORDER_DETAILS,
-                  params: {
-                    orderId: orderCode,
-                    showCloseButton: true,
-                    providerCode,
-                    walletAddress: effectiveWallet || undefined,
-                  },
-                },
-              ],
-            });
-          } else {
-            ToastService.showToast({
-              variant: ToastVariants.Plain,
-              hasNoTimeout: false,
-              labelOptions: [
-                {
-                  label: strings(
-                    'deposit.buildQuote.externalBrowserReturnNoOrderId',
-                  ),
-                  isBold: false,
-                },
-              ],
-            });
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: Routes.RAMP.BUILD_QUOTE,
-                  params: {},
-                },
-              ],
-            });
-          }
-          return;
-        }
-
-        navigation.navigate(
-          ...createCheckoutNavDetails({
-            url: buyWidget.url,
-            providerName:
-              selectedProvider?.name || getQuoteProviderName(selectedQuote),
-            userAgent: getQuoteBuyUserAgent(selectedQuote),
-            providerCode,
-            providerType: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-            walletAddress: effectiveWallet || undefined,
-            network,
-            currency,
-            cryptocurrency: selectedToken?.symbol || '',
-            orderId: buyWidget.orderId?.trim() || undefined,
-          }),
-        );
-      } else {
-        Logger.error(
-          new Error('No widget URL available for aggregator provider'),
-          { provider: selectedQuote.provider },
-        );
-        setNativeFlowError(strings('deposit.buildQuote.unexpectedError'));
-      }
-    } catch (error) {
-      Logger.error(error as Error, {
-        provider: selectedQuote.provider,
-        message: 'Failed to fetch widget URL',
-      });
-      setNativeFlowError(
-        parseUserFacingError(
-          error,
-          strings('deposit.buildQuote.unexpectedError'),
-        ),
-      );
-    } finally {
-      setIsContinueLoading(false);
+      await handleNativeProviderContinue();
+    } else if (isCustomAction(selectedQuote)) {
+      await handleCustomActionContinue();
+    } else {
+      await handleAggregatorContinue();
     }
   }, [
     selectedQuote,
     selectedProvider,
     selectedToken,
-    walletAddress,
-    currency,
-    navigation,
-    getBuyWidgetData,
-    addPrecreatedOrder,
     amountAsNumber,
-    selectedPaymentMethod,
-    transakCheckExistingToken,
-    transakGetBuyQuote,
-    transakRouteAfterAuth,
+    currency,
+    selectedPaymentMethod?.id,
     rampRoutingDecision,
     userRegion?.regionCode,
     trackEvent,
     createEventBuilder,
+    handleNativeProviderContinue,
+    handleCustomActionContinue,
+    handleAggregatorContinue,
   ]);
 
   const hasAmount = amountAsNumber > 0;
 
-  const quoteMatchesCurrentContext = useMemo(() => {
-    if (!selectedQuote || !selectedProvider) return false;
-
-    const quoteAmountRaw =
-      selectedQuote.quote?.amountIn ??
-      (selectedQuote as { amountIn?: number }).amountIn;
-    const quoteAmount =
-      typeof quoteAmountRaw === 'string'
-        ? Number(quoteAmountRaw)
-        : quoteAmountRaw;
-    const quotePaymentMethod =
-      selectedQuote.quote?.paymentMethod ??
-      (selectedQuote as { paymentMethod?: string }).paymentMethod;
-
-    // Provider must match (prevents using a stale quote for a different provider)
-    if (selectedQuote.provider !== selectedProvider.id) return false;
-
-    if (quoteAmount !== amountAsNumber) return false;
-
-    // Payment method context must match
-    if (quotePaymentMethod != null) {
-      // Quote requires a payment method - must have one selected and it must match
-      if (
-        !selectedPaymentMethod ||
-        selectedPaymentMethod.id !== quotePaymentMethod
-      ) {
-        return false;
-      }
-    }
-
-    return true;
-  }, [selectedQuote, selectedProvider, amountAsNumber, selectedPaymentMethod]);
-
+  // No strict quote-vs-context matching: provider handles fresh quote, payment method, etc.
+  // Bugbot will catch if a stale/mismatched quote causes issues.
   const canContinue =
-    hasAmount &&
-    !selectedQuoteLoading &&
-    selectedQuote !== null &&
-    quoteMatchesCurrentContext;
+    hasAmount && !selectedQuoteLoading && selectedQuote !== null;
 
   const hasNoQuotes =
     hasAmount &&
@@ -776,7 +778,7 @@ function BuildQuote() {
                   testID={BuildQuoteSelectors.AMOUNT_INPUT}
                   variant={TextVariant.HeadingLG}
                   color={
-                    nativeFlowError || hasNoQuotes || quoteFetchError
+                    rampsError || hasNoQuotes || quoteFetchError
                       ? TextColor.Error
                       : undefined
                   }
@@ -812,9 +814,9 @@ function BuildQuote() {
             <View style={styles.actionSection}>
               {hasAmount ? (
                 <>
-                  {nativeFlowError ? (
+                  {rampsError ? (
                     <TruncatedError
-                      error={nativeFlowError}
+                      error={rampsError}
                       providerName={selectedProvider?.name}
                       providerSupportUrl={
                         selectedProvider?.links?.find(
