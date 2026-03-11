@@ -35,6 +35,7 @@ jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
   __esModule: true,
   default: {
     open: jest.fn(),
+    disconnectDevice: jest.fn().mockResolvedValue(undefined),
     observeState: jest.fn((observer) => {
       capturedBleStateObserver = observer;
       // Immediately trigger with PoweredOn state for most tests
@@ -66,6 +67,31 @@ jest.mock('../../Ledger/Ledger', () => ({
   closeRunningAppOnLedger: jest.fn(),
 }));
 
+const mockRequestMultiple = jest.fn();
+const mockRequest = jest.fn();
+jest.mock('react-native-permissions', () => ({
+  requestMultiple: (...args: unknown[]) => mockRequestMultiple(...args),
+  request: (...args: unknown[]) => mockRequest(...args),
+  PERMISSIONS: {
+    ANDROID: {
+      BLUETOOTH_CONNECT: 'android.permission.BLUETOOTH_CONNECT',
+      BLUETOOTH_SCAN: 'android.permission.BLUETOOTH_SCAN',
+      ACCESS_FINE_LOCATION: 'android.permission.ACCESS_FINE_LOCATION',
+    },
+  },
+  RESULTS: {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    BLOCKED: 'blocked',
+  },
+}));
+
+const mockGetSystemVersion = jest.fn().mockReturnValue('13');
+jest.mock('react-native-device-info', () => ({
+  getSystemVersion: () => mockGetSystemVersion(),
+}));
+
+import { Linking, Platform } from 'react-native';
 import { LedgerBluetoothAdapter } from './LedgerBluetoothAdapter';
 import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
@@ -157,8 +183,7 @@ describe('LedgerBluetoothAdapter', () => {
       await adapter.connect('device-123');
       await adapter.connect('device-456');
 
-      // Should close first connection and open new one
-      expect(mockTransportInstance.close).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
       expect(mockedTransportBLE.open).toHaveBeenCalledTimes(2);
     });
 
@@ -248,7 +273,7 @@ describe('LedgerBluetoothAdapter', () => {
       await adapter.connect('device-123');
       await adapter.disconnect();
 
-      expect(mockTransportInstance.close).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
       expect(adapter.isConnected()).toBe(false);
       expect(adapter.getConnectedDeviceId()).toBeNull();
     });
@@ -842,12 +867,80 @@ describe('LedgerBluetoothAdapter', () => {
     });
   });
 
+  describe('ensurePermissions', () => {
+    const originalOS = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalOS;
+    });
+
+    it('returns true on iOS without requesting permissions', async () => {
+      Platform.OS = 'ios';
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(true);
+      expect(mockRequestMultiple).not.toHaveBeenCalled();
+      expect(mockRequest).not.toHaveBeenCalled();
+    });
+
+    it('returns true on Android 12+ when BLE permissions are granted', async () => {
+      Platform.OS = 'android';
+      mockGetSystemVersion.mockReturnValue('12');
+      mockRequestMultiple.mockResolvedValue({
+        'android.permission.BLUETOOTH_CONNECT': 'granted',
+        'android.permission.BLUETOOTH_SCAN': 'granted',
+      });
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(true);
+    });
+
+    it('opens settings on Android 12+ when BLE permissions are denied', async () => {
+      Platform.OS = 'android';
+      mockGetSystemVersion.mockReturnValue('13');
+      mockRequestMultiple.mockResolvedValue({
+        'android.permission.BLUETOOTH_CONNECT': 'denied',
+        'android.permission.BLUETOOTH_SCAN': 'granted',
+      });
+      jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(false);
+      expect(Linking.openSettings).toHaveBeenCalled();
+    });
+
+    it('returns true on older Android when location permission is granted', async () => {
+      Platform.OS = 'android';
+      mockGetSystemVersion.mockReturnValue('11');
+      mockRequest.mockResolvedValue('granted');
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(true);
+    });
+
+    it('opens settings on older Android when location permission is denied', async () => {
+      Platform.OS = 'android';
+      mockGetSystemVersion.mockReturnValue('10');
+      mockRequest.mockResolvedValue('blocked');
+      jest.spyOn(Linking, 'openSettings').mockResolvedValue(undefined);
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(false);
+      expect(Linking.openSettings).toHaveBeenCalled();
+    });
+  });
+
   describe('destroy', () => {
     it('closes transport and marks as destroyed', async () => {
       await adapter.connect('device-123');
       adapter.destroy();
 
-      expect(mockTransportInstance.close).toHaveBeenCalled();
+      expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalled();
     });
 
     it('prevents further operations', async () => {
