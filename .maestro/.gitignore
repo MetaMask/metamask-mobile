@@ -1,6 +1,11 @@
 # Ignore diff files generated during visual regression testing
 baselines/diff/
 
+# Visual regression comparison directories (generated locally)
+after-nav/
+diffs/
+flows-temp/
+
 # Ignore temporary test artifacts
 *.tmp
 *.log

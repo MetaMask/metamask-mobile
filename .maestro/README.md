@@ -204,6 +204,95 @@ Use `optional: true` for elements that may not always be visible:
 4. **Document prerequisites**: Note any required app state
 5. **Use sub-flows**: Extract common steps (like login) into reusable flows
 
+## Comparing Visual Changes Between PRs
+
+When you need to assess the visual impact of a significant change (like a navigation migration), use the comparison workflow:
+
+### Prerequisites
+
+1. **ImageMagick** for diff generation:
+
+   ```bash
+   brew install imagemagick
+   ```
+
+2. **Baseline screenshots** must exist in `.maestro/baselines/ios/`
+
+### Quick Start
+
+```bash
+# Capture screenshots with your changes
+.maestro/scripts/compare-visual-regression.sh capture
+
+# Generate diff images
+.maestro/scripts/generate-diffs.sh
+
+# View results
+open .maestro/diffs/
+cat .maestro/diffs/summary.md
+```
+
+### Available Commands
+
+| Script                         | Command   | Description                              |
+| ------------------------------ | --------- | ---------------------------------------- |
+| `compare-visual-regression.sh` | `capture` | Capture screenshots to `after-nav/`      |
+| `compare-visual-regression.sh` | `diff`    | Only generate diff images                |
+| `compare-visual-regression.sh` | `full`    | Capture + generate diffs (default)       |
+| `compare-visual-regression.sh` | `sync`    | Merge navigation changes + full workflow |
+| `generate-diffs.sh`            | -         | Generate diff images with options        |
+
+### Diff Output
+
+The comparison generates:
+
+- `*-diff.png` - Changed pixels highlighted in red
+- `*-comparison.png` - Side-by-side: baseline | after | diff
+- `*-report.txt` - Per-screen change metrics
+- `summary.md` - Overall summary with statistics
+
+### Directory Structure
+
+```
+.maestro/
+├── baselines/ios/     # Original baselines (committed)
+├── after-nav/ios/     # Screenshots after changes (gitignored)
+├── diffs/ios/         # Generated diffs (gitignored)
+└── scripts/
+    ├── compare-visual-regression.sh
+    └── generate-diffs.sh
+```
+
+### Interpreting Results
+
+| Change % | Interpretation                                  |
+| -------- | ----------------------------------------------- |
+| < 1%     | Minor rendering differences, usually acceptable |
+| 1-5%     | Small UI changes, review recommended            |
+| > 5%     | Significant changes, detailed review required   |
+
+### Example Workflow for PR Review
+
+```bash
+# 1. Create comparison branch from your feature PR
+git checkout feat/your-feature
+git checkout -b chore/visual-regression-your-feature
+
+# 2. Merge visual regression framework
+git merge origin/chore/add-maestro-visual-regression-tests --no-edit
+
+# 3. Build and run app
+yarn setup:expo && yarn watch:clean &
+yarn start:ios
+
+# 4. Run comparison
+.maestro/scripts/compare-visual-regression.sh full
+
+# 5. Review diffs and document in your PR
+```
+
+For detailed guidance, see the Cursor skill at `.cursor/skills/visual-regression-compare/SKILL.md`.
+
 ## References
 
 - [Maestro Documentation](https://docs.maestro.dev/)
