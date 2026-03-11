@@ -1,0 +1,100 @@
+# Maestro Flow: Advanced Settings
+# Captures baseline screenshots for advanced settings
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Close developer menu - swipe down then tap X
+- extendedWaitUntil:
+    visible:
+      text: "metamask"
+    timeout: 15000
+    optional: true
+- swipe:
+    start: "50%,50%"
+    end: "50%,95%"
+- tapOn:
+    point: "96%,47%"
+
+# Wait for app
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Handle Polymarket promo
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Open hamburger menu
+- tapOn:
+    point: "97%,12%"
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 10000
+
+# Tap Settings
+- tapOn:
+    text: "Settings"
+    index: 0
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Tap Advanced
+- tapOn:
+    text: "Advanced"
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+- takeScreenshot: .maestro/baselines/ios/settings/advanced
+
+# Scroll to see more
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- takeScreenshot: .maestro/baselines/ios/settings/advanced-scrolled
+
+# Scroll more
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- takeScreenshot: .maestro/baselines/ios/settings/advanced-bottom

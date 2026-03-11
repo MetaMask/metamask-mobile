@@ -1,0 +1,134 @@
+# Maestro Flow: Explore/Browser Tab
+# Captures baseline screenshots for the Explore tab functionality
+# NOTE: The Explore tab currently shows a featured token detail view,
+# NOT the TrendingView with "Trending tokens" section and filters.
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for developer menu modal
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 15000
+    optional: true
+
+# Close developer menu - tap outside modal
+- tapOn:
+    point: "50%,30%"
+
+# Wait for app
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Handle Polymarket promo
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Screenshot wallet home
+- takeScreenshot: .maestro/baselines/ios/explore/wallet-home
+
+# Tap Explore in bottom nav
+- tapOn:
+    point: "35%,95%"
+
+# Wait for Explore screen to load
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 5000
+
+# Screenshot the Explore tab (shows featured token detail)
+- takeScreenshot: .maestro/baselines/ios/explore/explore-home
+
+# Scroll down to see token details section
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+    duration: 500
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+- takeScreenshot: .maestro/baselines/ios/explore/explore-scrolled
+
+# Tap on the Receive button
+- tapOn:
+    text: "Receive"
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+- takeScreenshot: .maestro/baselines/ios/explore/receive-screen
+
+# Dismiss the receive modal - tap outside the modal (top area)
+- tapOn:
+    point: "50%,10%"
+
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1500
+
+# Screenshot to see where we are
+- takeScreenshot: .maestro/baselines/ios/explore/after-modal-dismiss
+
+# Press back button to exit token detail.
+- tapOn:
+    point: "8%,11%"
+
+# Now we should be on Explore home with search bar - tap compass/tab button
+- tapOn:
+    point: "93%,16%"
+
+# Wait for webview to load (can't assert on webview text content)
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+- takeScreenshot: .maestro/baselines/ios/explore/explore-webview
+
+
+

@@ -1,0 +1,92 @@
+# Maestro Flow: Settings Main Screen
+# Captures baseline screenshots for the main settings screen
+# Prerequisite: Wallet must be set up
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client "Continue" button if visible
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Continue"
+    commands:
+      - tapOn:
+          text: "Continue"
+
+# Handle developer menu modal if visible - tap outside to dismiss
+- tapOn:
+    point: "50%,30%"
+    optional: true
+
+# Wait for UI to settle
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login screen if visible (has Unlock button)
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 5000
+    optional: true
+
+# If login screen, tap password field and enter password
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Open hamburger menu (top right corner - three lines icon)
+- tapOn:
+    point: "97%,12%"
+
+# Wait for menu to open and take screenshot
+- extendedWaitUntil:
+    visible:
+      text: "Settings"
+    timeout: 10000
+- takeScreenshot: .maestro/baselines/ios/settings/menu
+
+# Tap Settings row in menu
+- tapOn:
+    text: "Settings"
+    index: 0
+
+# Wait a moment for settings to load then take screenshot
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+- takeScreenshot: .maestro/baselines/ios/settings/main
+
+# Scroll to see more options
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- takeScreenshot: .maestro/baselines/ios/settings/main-scrolled
+
+# Scroll more to see bottom options
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- takeScreenshot: .maestro/baselines/ios/settings/main-bottom

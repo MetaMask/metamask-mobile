@@ -1,0 +1,103 @@
+# Maestro Flow: Trade - Predictions
+# Captures baseline screenshots for prediction markets
+appId: io.metamask.MetaMask
+---
+- launchApp:
+    clearState: false
+
+# Handle Expo Dev Client
+- extendedWaitUntil:
+    visible:
+      text: "http://localhost:8081"
+    timeout: 5000
+    optional: true
+- tapOn:
+    text: "http://localhost:8081"
+    optional: true
+
+# Wait for developer menu modal
+- extendedWaitUntil:
+    visible:
+      text: "Continue"
+    timeout: 15000
+    optional: true
+
+# Close developer menu - tap outside modal
+- tapOn:
+    point: "50%,30%"
+
+# Wait for app
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Handle login
+- extendedWaitUntil:
+    visible:
+      text: "Unlock"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible:
+        text: "Unlock"
+    commands:
+      - tapOn:
+          point: "50%,53%"
+      - inputText: "Test12345!"
+      - tapOn:
+          text: "Unlock"
+
+# Handle Polymarket promo
+- tapOn:
+    text: "Not now"
+    optional: true
+
+# Wait for wallet home
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+
+# Tap Trade in bottom nav (center)
+- tapOn:
+    point: "50%,95%"
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Tap Predictions option (third item in Trade menu)
+- tapOn:
+    point: "50%,73%"
+
+# Wait for Predictions screen to load
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+- takeScreenshot: .maestro/baselines/ios/trade/predictions-screen
+
+# Scroll to see more predictions
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+- takeScreenshot: .maestro/baselines/ios/trade/predictions-scrolled
+
+# Scroll more
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 1000
+- takeScreenshot: .maestro/baselines/ios/trade/predictions-bottom
+
+# Go back to home
+- back
