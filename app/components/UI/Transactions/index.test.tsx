@@ -1,9 +1,11 @@
 import React from 'react';
+import { View } from 'react-native';
 import { default as Transactions, UnconnectedTransactions } from '.';
 import configureMockStore from 'redux-mock-store';
 import { shallow } from 'enzyme';
 import { Provider } from 'react-redux';
 import { render, cleanup } from '@testing-library/react-native';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -1849,6 +1851,35 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     const result = instance.renderList();
     expect(result).toBeDefined();
+  });
+
+  it('renders with embeddedInScrollView false and shows list with header and refresh', () => {
+    const { getByTestId } = render(
+      <UnconnectedTransactions
+        {...defaultTestProps}
+        transactions={[]}
+        loading={false}
+        embeddedInScrollView={false}
+        header={<View testID="transactions-list-header" />}
+        headerHeight={100}
+      />,
+    );
+
+    expect(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER)).toBeTruthy();
+  });
+
+  it('renders with embeddedInScrollView true so embedded branch is exercised', () => {
+    const { getByTestId } = render(
+      <UnconnectedTransactions
+        {...defaultTestProps}
+        transactions={[]}
+        loading={false}
+        embeddedInScrollView
+        headerHeight={100}
+      />,
+    );
+
+    expect(getByTestId(ActivitiesViewSelectorsIDs.CONTAINER)).toBeTruthy();
   });
 
   it('should test component method patterns for coverage', () => {

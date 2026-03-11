@@ -16,13 +16,6 @@ jest.mock('../PriceChart/PriceChart', () => ({
   default: jest.fn().mockImplementation(() => null),
 }));
 
-jest.mock('../../Bridge/hooks/useRWAToken', () => ({
-  useRWAToken: () => ({
-    isStockToken: jest.fn().mockReturnValue(false),
-    isTokenTradingOpen: jest.fn().mockResolvedValue(true),
-  }),
-}));
-
 const mockPrices: TokenPrice[] = [
   ['1736761237983', 100],
   ['1736761237986', 105],

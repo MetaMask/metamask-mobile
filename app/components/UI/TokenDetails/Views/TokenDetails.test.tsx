@@ -574,5 +574,33 @@ describe('TokenDetails', () => {
 
       expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(120);
     });
+
+    it('uses symbol as header title when token name is empty', () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        name: '',
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('header-title')).toHaveTextContent('DAI');
+      expect(getByTestId('header-subtitle')).toHaveTextContent('DAI');
+      expect(getByTestId('title-subpage-title')).toHaveTextContent('DAI');
+      expect(getByTestId('title-subpage-bottom-label')).toHaveTextContent(
+        'DAI',
+      );
+    });
+
+    it('renders native token avatar branch when token is native', () => {
+      mockRouteParams.mockReturnValue({
+        ...defaultRouteParams,
+        isETH: true,
+        isNative: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('token-details-title-section')).toBeOnTheScreen();
+    });
   });
 });

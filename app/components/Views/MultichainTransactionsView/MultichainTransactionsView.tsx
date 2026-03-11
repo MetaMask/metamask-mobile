@@ -195,7 +195,7 @@ const MultichainTransactionsView = ({
               style={baseStyles.flexGrow}
               contentContainerStyle={style.listContentContainer}
               refreshControl={
-                enableRefresh ? (
+                enableRefresh && !embeddedInScrollView ? (
                   <RefreshControl
                     refreshing={refreshing}
                     onRefresh={onRefresh}
