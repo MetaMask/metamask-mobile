@@ -268,14 +268,12 @@ function PaymentSelectionModal() {
               <Text
                 variant={TextVariant.BodySM}
                 color={
-                  paymentMethodsLoading || paymentMethodsError
+                  paymentMethodsError
                     ? TextColor.Alternative
                     : TextColor.Primary
                 }
                 onPress={
-                  paymentMethodsLoading || paymentMethodsError
-                    ? undefined
-                    : handleChangeProviderPress
+                  paymentMethodsError ? undefined : handleChangeProviderPress
                 }
               >
                 {strings('fiat_on_ramp.change_provider')}

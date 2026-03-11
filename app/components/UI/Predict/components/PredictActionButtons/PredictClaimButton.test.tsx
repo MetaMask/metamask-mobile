@@ -11,6 +11,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'predict.claim_winnings_text') {
       return 'Claim winnings';
     }
+    if (key === 'predict.claiming_text') {
+      return 'Claiming...';
+    }
     return key;
   }),
 }));
@@ -75,6 +78,30 @@ describe('PredictClaimButton', () => {
 
       expect(screen.getByText('Claim $11.00')).toBeOnTheScreen();
     });
+
+    it('renders loading state with claiming text when isLoading is true', () => {
+      // Arrange
+      const props = createDefaultProps({ amount: 25.5, isLoading: true });
+
+      // Act
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      // Assert
+      expect(screen.getByText('Claiming...')).toBeOnTheScreen();
+      expect(screen.queryByText('Claim $25.50')).not.toBeOnTheScreen();
+    });
+
+    it('renders SensitiveText when isHidden is true and amount is provided', () => {
+      // Arrange
+      const props = createDefaultProps({ amount: 25.5, isHidden: true });
+
+      // Act
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      // Assert
+      expect(screen.getByText('•••••••••')).toBeOnTheScreen();
+      expect(screen.queryByText('Claim $25.50')).not.toBeOnTheScreen();
+    });
   });
 
   describe('without amount (Button Secondary variant)', () => {
@@ -123,6 +150,18 @@ describe('PredictClaimButton', () => {
 
       expect(mockOnPress).not.toHaveBeenCalled();
     });
+
+    it('renders loading state with claiming text when isLoading is true', () => {
+      // Arrange
+      const props = createDefaultProps({ amount: undefined, isLoading: true });
+
+      // Act
+      renderWithProvider(<PredictClaimButton {...props} />);
+
+      // Assert
+      expect(screen.getByText('Claiming...')).toBeOnTheScreen();
+      expect(screen.queryByText('Claim winnings')).not.toBeOnTheScreen();
+    });
   });
 
   describe('common behavior', () => {
@@ -163,6 +202,22 @@ describe('PredictClaimButton', () => {
       renderWithProvider(<PredictClaimButton {...props} />);
       fireEvent.press(screen.getByTestId('claim-button'));
 
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+
+    it('disables button when isLoading is true', () => {
+      // Arrange
+      const mockOnPress = jest.fn();
+      const props = createDefaultProps({
+        onPress: mockOnPress,
+        isLoading: true,
+      });
+
+      // Act
+      renderWithProvider(<PredictClaimButton {...props} />);
+      fireEvent.press(screen.getByTestId('claim-button'));
+
+      // Assert
       expect(mockOnPress).not.toHaveBeenCalled();
     });
   });

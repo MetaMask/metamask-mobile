@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
@@ -13,11 +14,13 @@ import PredictionsSection from './Sections/Predictions';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import { SectionRefreshHandle } from './types';
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -35,6 +38,18 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+
+  const { enableAllPopularNetworks } = useNetworkEnablement();
+
+  // useFocusEffect (not useEffect) so we run every time the user focuses this screen
+  // (e.g. switches to Wallet tab or returns from a section). With useEffect we would
+  // only run on first mount, so "all popular networks" would not be re-applied when
+  // they come back to the homepage.
+  useFocusEffect(
+    useCallback(() => {
+      enableAllPopularNetworks();
+    }, [enableAllPopularNetworks]),
+  );
 
   /**
    * Compute the ordered list of enabled sections. Tokens and NFTs are always
@@ -75,7 +90,12 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   return (
-    <Box gap={12} marginBottom={8} testID="homepage-container">
+    <Box
+      gap={10}
+      marginBottom={8}
+      marginTop={4}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+    >
       <TokensSection
         ref={tokensSectionRef}
         sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}

@@ -99,6 +99,8 @@ export interface UseTokenActionsResult {
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Whether the user has any tokens with positive balance that can be used as a swap source */
+  hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
@@ -437,7 +439,11 @@ export const useTokenActions = ({
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+    goToSwaps(
+      buySourceToken,
+      currentTokenAsBridgeToken,
+      strings('asset_overview.buy_button'),
+    );
   }, [
     goToSwaps,
     goToBuy,
@@ -450,7 +456,11 @@ export const useTokenActions = ({
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, undefined);
+    goToSwaps(
+      currentTokenAsBridgeToken,
+      undefined,
+      strings('asset_overview.sell_button'),
+    );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {
@@ -460,6 +470,7 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
 };

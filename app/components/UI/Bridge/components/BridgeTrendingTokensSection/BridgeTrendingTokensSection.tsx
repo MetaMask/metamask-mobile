@@ -27,12 +27,12 @@ import { useTokenListFilters } from '../../../Trending/hooks/useTokenListFilters
 import { useTrendingRequest } from '../../../Trending/hooks/useTrendingRequest/useTrendingRequest';
 import { sortTrendingTokens } from '../../../Trending/utils/sortTrendingTokens';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { CaipChainId } from '@metamask/utils';
 import { FilterButton } from '../../../Trending/components/FilterBar/FilterBar';
+import { BridgeTrendingTokensSectionTestIds } from './BridgeTrendingTokensSection.testIds';
 
 const TOKEN_CHUNK_SIZE = 12;
 
@@ -142,7 +142,7 @@ const BridgeTrendingTokensSection = ({
     <>
       <Box
         twClassName="mt-4 px-4 pb-4"
-        testID={BridgeViewSelectorsIDs.TRENDING_TOKENS_SECTION}
+        testID={BridgeTrendingTokensSectionTestIds.SECTION}
       >
         <Text
           variant={TextVariant.HeadingLg}
@@ -156,19 +156,19 @@ const BridgeTrendingTokensSection = ({
           twClassName="gap-2 mb-3 w-full"
         >
           <FilterButton
-            testID={BridgeViewSelectorsIDs.TRENDING_PRICE_FILTER}
+            testID={BridgeTrendingTokensSectionTestIds.PRICE_FILTER}
             onPress={() => setActiveBottomSheet('price_change')}
             label={priceChangeButtonText}
             twClassName="flex-1"
           />
           <FilterButton
-            testID={BridgeViewSelectorsIDs.TRENDING_NETWORK_FILTER}
+            testID={BridgeTrendingTokensSectionTestIds.NETWORK_FILTER}
             onPress={() => setActiveBottomSheet('network')}
             label={selectedNetworkName}
             twClassName="flex-1"
           />
           <FilterButton
-            testID={BridgeViewSelectorsIDs.TRENDING_TIME_FILTER}
+            testID={BridgeTrendingTokensSectionTestIds.TIME_FILTER}
             onPress={() => setActiveBottomSheet('time')}
             label={selectedTimeOption}
             twClassName="w-[72px] shrink-0"
@@ -192,7 +192,7 @@ const BridgeTrendingTokensSection = ({
               ))}
         {!isLoading && hasMore ? (
           <Pressable
-            testID={BridgeViewSelectorsIDs.TRENDING_SHOW_MORE}
+            testID={BridgeTrendingTokensSectionTestIds.SHOW_MORE}
             onPress={loadNextChunk}
             style={({ pressed }) =>
               tw.style('mt-3 py-2 self-center', pressed && 'opacity-70')

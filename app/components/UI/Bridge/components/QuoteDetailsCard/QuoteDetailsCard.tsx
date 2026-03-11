@@ -26,6 +26,7 @@ import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
@@ -43,7 +44,7 @@ import TagColored, {
 import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGasSponsoredBanner';
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
-import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TextVariant as TextVariantLegacy,
   TextColor as TextColorLegacy,
@@ -51,6 +52,9 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
+import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
+import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
+import AppConstants from '../../../../../core/AppConstants';
 
 if (
   Platform.OS === 'android' &&
@@ -63,6 +67,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
 }) => {
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const tw = useTailwind();
   const theme = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(theme);
@@ -87,6 +93,13 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     isQuoteLoading,
   });
 
+  const priceImpactIsSafe =
+    !activeQuote?.quote.priceData?.priceImpact ||
+    Number(activeQuote.quote.priceData.priceImpact) <=
+      // @ts-expect-error TODO: remove comment after changes to core are published.
+      (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
+        AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
+
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -109,7 +122,15 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     });
   };
 
+  const handleRatePress = () => {
+    navigation.navigate(Routes.BRIDGE.QUOTE_SELECTOR_VIEW);
+  };
+
   const handlePriceImpactPress = () => {
+    if (priceImpactIsSafe) {
+      return;
+    }
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
@@ -126,11 +147,11 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     activeQuote?.minToTokenAmount?.amount || '0',
   );
 
-  const priceImactViewData = useMemo(
-    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
-    [formattedQuoteData?.priceImpact],
+  const priceImpactViewData = usePriceImpactViewData(
+    activeQuote?.quote.priceData?.priceImpact,
   );
 
+  // Early return for invalid states
   if (
     !sourceToken?.chainId ||
     !destToken?.chainId ||
@@ -143,9 +164,13 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   return (
     <Box>
       <Box style={styles.container}>
-        <KeyValueRow
-          field={{
-            label: (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={1}
+        >
+          <KeyValueRowLabel
+            label={
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
@@ -159,28 +184,42 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 </Text>
                 <QuoteCountdownTimer />
               </Box>
-            ),
-            tooltip: {
+            }
+            tooltip={{
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
               size: TooltipSizes.Sm,
               iconName: IconNameLegacy.Info,
-            },
-          }}
-          value={{
-            label: (
+            }}
+          />
+          <TouchableOpacity
+            style={tw`flex-1 items-end`}
+            onPress={handleRatePress}
+            testID="rate-arrow-button"
+            activeOpacity={0.6}
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
+                style={tw`text-right`}
                 numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
+                ellipsizeMode="tail"
               >
-                {formattedQuoteData.rate}
+                {formattedQuoteData?.rate}
               </Text>
-            ),
-          }}
-        />
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
+          </TouchableOpacity>
+        </Box>
         {shouldShowGasSponsored ? (
           <KeyValueRow
             field={{
@@ -338,39 +377,47 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
         <KeyValueRow
           field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {toSentenceCase(strings('bridge.price_impact'))}
-                </Text>
-                <TouchableOpacity
-                  testID="price-impact-info-button"
-                  onPress={handlePriceImpactPress}
-                  activeOpacity={0.6}
-                >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </TouchableOpacity>
-              </Box>
-            ),
+            label: {
+              text: toSentenceCase(strings('bridge.price_impact')),
+              variant: TextVariantLegacy.BodyMD,
+              color: TextColorLegacy.Alternative,
+            },
+            tooltip: {
+              title: strings('bridge.price_impact_info_title'),
+              content: strings('bridge.price_impact_info_description'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
           }}
           value={{
-            icon: priceImactViewData.icon,
-            label: {
-              text: formatPriceImpact(formattedQuoteData.priceImpact),
-              variant: TextVariantLegacy.BodyMD,
-              color: priceImactViewData.textColor,
-            },
+            label: (
+              <TouchableOpacity
+                testID="price-impact-info-button"
+                onPress={handlePriceImpactPress}
+                activeOpacity={priceImpactIsSafe ? 1 : 0.6}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  {priceImpactViewData.icon && (
+                    <Icon
+                      name={priceImpactViewData.icon.name}
+                      size={IconSize.Sm}
+                      color={priceImpactViewData.icon.color}
+                      twClassName="mt-[2px]"
+                    />
+                  )}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={priceImpactViewData.textColor}
+                  >
+                    {formatPriceImpact(formattedQuoteData.priceImpact)}
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+            ),
           }}
         />
 

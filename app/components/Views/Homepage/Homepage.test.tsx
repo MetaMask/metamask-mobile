@@ -106,6 +106,27 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
 }));
 
+jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({
+  usePredictPositions: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+
 jest.mock(
   '../../../selectors/featureFlagController/assetsDefiPositions',
   () => ({
@@ -126,6 +147,26 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     PREDICT: 'predict',
     NFTS: 'nfts',
   },
+}));
+
+const mockEnableAllPopularNetworks = jest.fn();
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworksByNamespace: {},
+    enabledNetworksForCurrentNamespace: {},
+    enabledNetworksForAllNamespaces: {},
+    networkEnablementController: {},
+    enableNetwork: jest.fn(),
+    disableNetwork: jest.fn(),
+    enableAllPopularNetworks: mockEnableAllPopularNetworks,
+    popularEvmNetworks: [],
+    popularMultichainNetworks: [],
+    popularNetworks: [],
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
+    tryEnableEvmNetwork: jest.fn(),
+  }),
 }));
 
 // State with preferences needed for NFT section rendering
@@ -156,6 +197,12 @@ describe('Homepage', () => {
         '../../../selectors/featureFlagController/assetsDefiPositions',
       )
       .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
+  });
+
+  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
   });
 
   it('renders NFTs section title', () => {
