@@ -160,7 +160,7 @@ const InfoAlert: React.FC<Props> = ({
           {Boolean(subtitle) && (
             <View style={styles.row}>
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}
                 twClassName="text-center"
               >
@@ -176,7 +176,7 @@ const InfoAlert: React.FC<Props> = ({
               }
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
                 color={TextColor.PrimaryDefault}
                 twClassName="underline text-center"
               >
@@ -193,7 +193,7 @@ const InfoAlert: React.FC<Props> = ({
               }
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
                 color={TextColor.PrimaryDefault}
                 twClassName="underline text-center"
               >
@@ -208,7 +208,7 @@ const InfoAlert: React.FC<Props> = ({
               }
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
                 color={TextColor.PrimaryDefault}
                 twClassName="underline text-center"
               >
@@ -223,7 +223,7 @@ const InfoAlert: React.FC<Props> = ({
               }
             >
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodyXs}
                 color={TextColor.PrimaryDefault}
                 twClassName="underline text-center"
               >

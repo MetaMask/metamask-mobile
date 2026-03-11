@@ -91,12 +91,12 @@ const RegionAlert: React.FC<Props> = ({
           </Text>
           <Text color={TextColor.TextDefault}>{subtitle}</Text>
           <View style={styles.row}>
-            <Text variant={TextVariant.BodySm}>{body}</Text>
+            <Text variant={TextVariant.BodyXs}>{body}</Text>
           </View>
           <TouchableOpacity onPress={handleSupportLinkPress}>
             <Text
               color={TextColor.PrimaryDefault}
-              variant={TextVariant.BodySm}
+              variant={TextVariant.BodyXs}
               style={styles.link}
               twClassName="underline"
             >
