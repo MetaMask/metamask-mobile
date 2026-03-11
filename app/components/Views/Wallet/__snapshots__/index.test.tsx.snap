@@ -603,7 +603,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={39}
+                              handlerTag={35}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -622,7 +622,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -1368,7 +1368,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={41}
+                              handlerTag={37}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1387,7 +1387,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -2152,7 +2152,7 @@ exports[`Wallet should render correctly 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -2917,7 +2917,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
@@ -3682,7 +3682,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                   }
                                 >
                                   View: Wallet
-TypeError: Cannot read properties of undefined (reading 'isNftFetchingProgress')
+TypeError: Cannot read properties of undefined (reading 'key')
                                 </Text>
                               </View>
                             </RCTScrollView>
