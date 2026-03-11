@@ -290,6 +290,9 @@ describe('PredictController', () => {
       mocks.getNetworkState ??
         jest.fn().mockReturnValue({
           selectedNetworkClientId: 'mainnet',
+          networkConfigurationsByChainId: {
+            '0x89': { chainId: '0x89', name: 'Polygon' },
+          },
         }),
     );
 
@@ -330,6 +333,16 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerActionHandler(
+      'NetworkController:addNetwork',
+      jest.fn().mockReturnValue(undefined),
+    );
+
+    rootMessenger.registerActionHandler(
+      'NetworkEnablementController:enableNetwork',
+      jest.fn(),
+    );
+
     const messenger = new Messenger<
       'PredictController',
       AllPredictControllerMessengerActions,
@@ -351,6 +364,8 @@ describe('PredictController', () => {
         'KeyringController:signTypedMessage',
         'KeyringController:signPersonalMessage',
         'RemoteFeatureFlagController:getState',
+        'NetworkController:addNetwork',
+        'NetworkEnablementController:enableNetwork',
       ],
       events: [
         'TransactionController:transactionSubmitted',
@@ -3029,6 +3044,9 @@ describe('PredictController', () => {
           mocks: {
             getNetworkState: jest.fn().mockReturnValue({
               selectedNetworkClientId: mockNetworkClientId,
+              networkConfigurationsByChainId: {
+                '0x89': { chainId: '0x89', name: 'Polygon' },
+              },
             }),
             findNetworkClientIdByChainId: jest
               .fn()
