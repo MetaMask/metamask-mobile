@@ -137,6 +137,9 @@ const mockTokenMarketDataByChainId: Record<
       pricePercentChange7d: 0.019578202262256407,
       tokenAddress: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
       totalVolume: 54440.464606773865,
+      assetId: 'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F',
+      chainId: '0x1',
+      id: 'dai',
     },
   },
 };
