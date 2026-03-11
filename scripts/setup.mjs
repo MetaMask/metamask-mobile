@@ -347,6 +347,15 @@ const installHuskyTask = {
   },
 };
 
+// TODO: REMOVE — temporary task to verify stdio:inherit is piping subprocess
+// output through to CI logs. Delete this task before merging.
+const ciLoggingVerificationTask = {
+  title: '[CI TEST] Verify verbose logging — intentional failure',
+  task: async () => {
+    await $$`sh ${['-c', 'echo "STDOUT: execa output is visible in CI logs" && echo "STDERR: error stream too" >&2 && exit 1']}`;
+  },
+};
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -355,6 +364,7 @@ const prepareDependenciesTask = {
   task: (_, task) =>
     task.newListr(
       [
+        ciLoggingVerificationTask,
         copyAndSourceEnvVarsTask,
         updateGitSubmodulesTask,
         // Inpage bridge must generate before node modules are altered
