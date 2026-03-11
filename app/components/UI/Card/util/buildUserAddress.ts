@@ -37,8 +37,15 @@ export function buildProvisioningUserAddress(
     return undefined;
   }
 
-  const { addressLine1, addressLine2, city, usState, zip, phoneNumber } =
-    userDetails;
+  const {
+    addressLine1,
+    addressLine2,
+    city,
+    usState,
+    zip,
+    phoneNumber,
+    phoneCountryCode,
+  } = userDetails;
 
   // Require at least address line 1, city, and zip
   if (!addressLine1 || !city || !zip) {
@@ -53,8 +60,40 @@ export function buildProvisioningUserAddress(
     administrativeArea: usState ?? '',
     postalCode: zip,
     countryCode: 'US',
-    phoneNumber: phoneNumber ?? '',
+    phoneNumber: formatE164PhoneNumber(phoneCountryCode, phoneNumber),
   };
+}
+
+/**
+ * Format a phone number in E.164 format for the Google Tap and Pay SDK.
+ *
+ * The API returns phoneNumber and phoneCountryCode as separate fields
+ * (e.g. "2345678901" and "+1"), but Google's UserAddress.setPhoneNumber()
+ * requires E.164 format (e.g. "+12345678901").
+ */
+function formatE164PhoneNumber(
+  countryCode: string | null | undefined,
+  phoneNumber: string | null | undefined,
+): string {
+  if (!phoneNumber) {
+    return '';
+  }
+
+  const digits = phoneNumber.replace(/\D/g, '');
+  if (!digits) {
+    return '';
+  }
+
+  if (!countryCode) {
+    return `+${digits}`;
+  }
+
+  const codeDigits = countryCode.replace(/\D/g, '');
+  if (!codeDigits) {
+    return `+${digits}`;
+  }
+
+  return `+${codeDigits}${digits}`;
 }
 
 /**

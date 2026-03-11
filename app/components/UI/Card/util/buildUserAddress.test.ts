@@ -16,6 +16,7 @@ describe('buildUserAddress utilities', () => {
     usState: 'NY',
     zip: '10001',
     phoneNumber: '5551234567',
+    phoneCountryCode: '+1',
     mailingAddressLine1: '456 Mailing Ave',
     mailingAddressLine2: 'Suite 100',
     mailingCity: 'Mailing City',
@@ -52,7 +53,7 @@ describe('buildUserAddress utilities', () => {
       ).toBeUndefined();
     });
 
-    it('builds UserAddress from physical address fields only', () => {
+    it('builds UserAddress with E.164 phone number', () => {
       const result = buildProvisioningUserAddress(
         mockFullUserDetails,
         'John Doe',
@@ -66,8 +67,33 @@ describe('buildUserAddress utilities', () => {
         administrativeArea: 'NY',
         postalCode: '10001',
         countryCode: 'US',
-        phoneNumber: '5551234567',
+        phoneNumber: '+15551234567',
       });
+    });
+
+    it('formats phone number with + prefix when country code is missing', () => {
+      const result = buildProvisioningUserAddress(
+        {
+          ...mockFullUserDetails,
+          phoneCountryCode: undefined,
+        },
+        'John Doe',
+      );
+
+      expect(result?.phoneNumber).toBe('+5551234567');
+    });
+
+    it('strips non-digit characters from phone number and country code', () => {
+      const result = buildProvisioningUserAddress(
+        {
+          ...mockFullUserDetails,
+          phoneCountryCode: '+1',
+          phoneNumber: '(555) 123-4567',
+        },
+        'John Doe',
+      );
+
+      expect(result?.phoneNumber).toBe('+15551234567');
     });
 
     it('handles missing optional fields with defaults', () => {
