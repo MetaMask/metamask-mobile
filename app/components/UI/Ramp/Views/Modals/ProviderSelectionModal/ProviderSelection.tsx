@@ -324,7 +324,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             message={
               showQuotes
                 ? strings('fiat_on_ramp.no_quotes_available')
-                : strings('fiat_on_ramp.no_providers_available')
+                : strings('fiat_on_ramp_aggregator.no_providers_available')
             }
             severity={BannerAlertSeverity.Error}
           />
