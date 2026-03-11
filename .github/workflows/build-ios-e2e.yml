@@ -31,6 +31,9 @@ jobs:
       app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
     env:
+      # Bump these to bust the respective caches and force a full rebuild
+      XCODE_CACHE_VERSION: 1
+      IOS_APP_CACHE_VERSION: 2
       RCT_NO_LAUNCH_PACKAGER: 1
       XCODE_BUILD_SETTINGS: 'COMPILER_INDEX_STORE_ENABLE=NO'
       GITHUB_CI: 'true' # This ensures it's available during pod install
@@ -76,8 +79,6 @@ jobs:
         id: xcode-restore-cache
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -89,8 +90,6 @@ jobs:
         id: xcode-restore-cache-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          XCODE_CACHE_VERSION: 1
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -155,10 +154,7 @@ jobs:
       - name: Restore iOS app matching fingerprint from branch cache
         id: cache-restore
         # This action automatically updates the cache at the end of the workflow
-        # IOS_APP_CACHE_VERSION: bump this to bust the ios-app cache and force a full rebuild
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          IOS_APP_CACHE_VERSION: 2
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -169,8 +165,6 @@ jobs:
         id: cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        env:
-          IOS_APP_CACHE_VERSION: 2
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
