@@ -69,7 +69,11 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
+import {
+  Label,
+  FontWeight,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
@@ -661,8 +665,8 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.password')}
@@ -712,8 +716,8 @@ const ChoosePassword = () => {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.label}
                   >
                     {strings('choose_password.confirm_password')}

@@ -46,7 +46,7 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIds: (
+  selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance: (
     state: unknown,
     chainIds: string[],
   ) => mockSortedTokenKeys(state, chainIds),
@@ -407,7 +407,7 @@ describe('TokensSection', () => {
     });
   });
 
-  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIds)', () => {
+  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     const popularChainIds = ['eip155:1', '0xa'];
     mockPopularNetworks = popularChainIds;

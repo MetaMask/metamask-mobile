@@ -149,6 +149,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   },
 }));
 
+const mockEnableAllPopularNetworks = jest.fn();
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -158,7 +159,7 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     networkEnablementController: {},
     enableNetwork: jest.fn(),
     disableNetwork: jest.fn(),
-    enableAllPopularNetworks: jest.fn(),
+    enableAllPopularNetworks: mockEnableAllPopularNetworks,
     popularEvmNetworks: [],
     popularMultichainNetworks: [],
     popularNetworks: [],
@@ -196,6 +197,12 @@ describe('Homepage', () => {
         '../../../selectors/featureFlagController/assetsDefiPositions',
       )
       .selectAssetsDefiPositionsEnabled.mockReturnValue(true);
+  });
+
+  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
   });
 
   it('renders NFTs section title', () => {
