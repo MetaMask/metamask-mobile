@@ -637,7 +637,11 @@ describe('BuildQuote', () => {
 
   it('sets default amount from user region', () => {
     rampsControllerState.userRegion = {
-      country: { currency: 'EUR', defaultAmount: 250, quickAmounts: [100, 250] },
+      country: {
+        currency: 'EUR',
+        defaultAmount: 250,
+        quickAmounts: [100, 250],
+      },
       regionCode: 'DE',
     };
 
@@ -745,7 +749,9 @@ describe('BuildQuote', () => {
 
     const { getByTestId } = render();
     const errorDetails = getByTestId('truncated-error-details');
-    expect(errorDetails.props.children).toContain('fiat_on_ramp.no_quotes_error');
+    expect(errorDetails.props.children).toContain(
+      'fiat_on_ramp.no_quotes_error',
+    );
   });
 
   it('tracks RAMPS_SCREEN_VIEWED event on mount', () => {
