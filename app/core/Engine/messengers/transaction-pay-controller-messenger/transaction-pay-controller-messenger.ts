@@ -24,6 +24,8 @@ export function getTransactionPayControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'AccountTrackerController:getState',
+      'AppMetadataController:getState',
+      'AssetsController:getStateForTransactionPay',
       'BridgeController:fetchQuotes',
       'BridgeStatusController:submitTx',
       'CurrencyRateController:getState',

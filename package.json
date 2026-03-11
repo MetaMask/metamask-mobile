@@ -180,7 +180,9 @@
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
     "@metamask/bridge-controller@npm:^67.1.1": "patch:@metamask/bridge-controller@npm%3A67.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-67.2.0-32d3aafe1f.patch",
-    "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch"
+    "@metamask/bridge-status-controller@npm:^67.0.1": "patch:@metamask/bridge-status-controller@npm%3A67.0.1#~/.yarn/patches/@metamask-bridge-status-controller-npm-67.0.1-d8a41d9c02.patch",
+    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@2.3.0-preview-61aec42b1",
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@16.4.1-preview-61aec42b1"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -205,7 +207,7 @@
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^8.0.0",
-    "@metamask/assets-controller": "^2.0.0",
+    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@2.3.0-preview-61aec42b1",
     "@metamask/assets-controllers": "^100.2.0",
     "@metamask/base-controller": "^9.0.0",
     "@metamask/bitcoin-wallet-snap": "^1.10.0",
@@ -302,7 +304,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^62.19.0",
-    "@metamask/transaction-pay-controller": "^16.4.0",
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@16.4.1-preview-61aec42b1",
     "@metamask/tron-wallet-snap": "1.22.1",
     "@metamask/utils": "^11.8.1",
     "@myx-trade/sdk": "^0.1.265",
