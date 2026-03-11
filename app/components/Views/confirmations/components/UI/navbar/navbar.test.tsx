@@ -63,7 +63,7 @@ describe('getNavbar', () => {
       });
 
       expect(result.headerStyle.backgroundColor).toBe(
-        mockTheme.colors.background.alternative,
+        mockTheme.colors.background.default,
       );
     });
   });
@@ -131,7 +131,7 @@ describe('getNavbar', () => {
       });
 
       expect(result.headerStyle.backgroundColor).toBe(
-        mockTheme.colors.background.alternative,
+        mockTheme.colors.background.default,
       );
       expect(result.headerStyle.borderBottomWidth).toBe(2);
     });
