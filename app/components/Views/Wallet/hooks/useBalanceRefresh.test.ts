@@ -157,13 +157,7 @@ describe('useBalanceRefresh', () => {
 
       expect(
         Engine.context.NftDetectionController.detectNfts,
-      ).toHaveBeenCalledWith(
-        ['0x1', '0x89'],
-        expect.objectContaining({
-          firstPageOnly: true,
-          signal: expect.any(AbortSignal),
-        }),
-      );
+      ).toHaveBeenCalledWith(['0x1', '0x89'], { firstPageOnly: true });
     });
 
     it('does not call detectNfts when sections v1 is disabled', async () => {

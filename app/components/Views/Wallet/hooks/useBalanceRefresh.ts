@@ -75,7 +75,6 @@ export const useBalanceRefresh = () => {
       .filter((id): id is string => Boolean(id));
 
     try {
-      const nftAbortController = new AbortController();
       await Promise.race([
         Promise.allSettled([
           AccountTrackerController.refresh(networkClientIds),
@@ -90,16 +89,15 @@ export const useBalanceRefresh = () => {
             ? [
                 NftDetectionController.detectNfts(evmChainIdsForRefresh, {
                   firstPageOnly: true,
-                  signal: nftAbortController.signal,
                 }),
               ]
             : []),
         ]),
         new Promise((_, reject) =>
-          setTimeout(() => {
-            nftAbortController.abort();
-            reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE));
-          }, REFRESH_TIMEOUT_MS),
+          setTimeout(
+            () => reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE)),
+            REFRESH_TIMEOUT_MS,
+          ),
         ),
       ]);
     } catch (error) {
