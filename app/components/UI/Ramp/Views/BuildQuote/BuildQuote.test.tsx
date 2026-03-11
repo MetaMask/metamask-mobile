@@ -43,7 +43,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
 const mockGetBuyWidgetData = jest.fn<Promise<BuyWidget | null>, [Quote]>();
 const mockAddPrecreatedOrder = jest.fn<void, [AddPrecreatedOrderParams]>();
 
-const rampsControllerState = {
+const rampsControllerState: any = {
   userRegion: {
     country: { currency: 'USD', quickAmounts: [50, 100, 200] },
     regionCode: 'US',
@@ -636,5 +636,288 @@ describe('BuildQuote', () => {
 
     const { toJSON } = render();
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('sets default amount from user region', () => {
+    rampsControllerState.userRegion = {
+      country: {
+        currency: 'EUR',
+        defaultAmount: 250,
+        quickAmounts: [100, 250],
+      },
+      regionCode: 'DE',
+    };
+
+    const { getByTestId } = render();
+    expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+      '$250',
+    );
+
+    rampsControllerState.userRegion = {
+      country: { currency: 'USD', quickAmounts: [50, 100, 200] },
+      regionCode: 'US',
+    };
+  });
+
+  it('routes authenticated native provider to quote result', async () => {
+    rampsControllerState.userRegion = {
+      country: { currency: 'USD', quickAmounts: [50, 100, 200] },
+      regionCode: 'US',
+    };
+    rampsControllerState.selectedProvider = {
+      id: 'transak',
+      name: 'Transak',
+      links: [],
+    };
+    rampsControllerState.selectedToken = {
+      assetId: 'eip155:1',
+      chainId: 'eip155:1',
+      symbol: 'ETH',
+    };
+
+    const nativeQuote = {
+      provider: 'transak',
+      providerInfo: { id: 'transak', name: 'Transak', type: 'native' },
+      quote: { buyURL: 'https://transak.com/buy' },
+    };
+    quotesState.data = { success: [nativeQuote] };
+    quotesState.loading = false;
+    mockTransakCheckExistingToken.mockResolvedValue(true);
+    mockTransakGetBuyQuote.mockResolvedValue({ orderId: 'tk-order' });
+    mockTransakRouteAfterAuth.mockResolvedValue(undefined);
+
+    const { getByTestId } = render();
+    const continueBtn = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(continueBtn);
+    });
+
+    expect(mockTransakCheckExistingToken).toHaveBeenCalled();
+    expect(mockTransakGetBuyQuote).toHaveBeenCalledWith(
+      'USD',
+      'eip155:1',
+      'eip155:1',
+      'card',
+      '100',
+    );
+    expect(mockTransakRouteAfterAuth).toHaveBeenCalledWith({
+      orderId: 'tk-order',
+    });
+  });
+
+  it('shows error when native provider getBuyQuote returns null', async () => {
+    const nativeQuote = {
+      provider: 'transak',
+      providerInfo: { id: 'transak', name: 'Transak', type: 'native' },
+      quote: { buyURL: 'https://transak.com/buy' },
+    };
+    quotesState.data = { success: [nativeQuote] };
+    quotesState.loading = false;
+    mockTransakCheckExistingToken.mockResolvedValue(true);
+    mockTransakGetBuyQuote.mockResolvedValue(null);
+
+    rampsControllerState.selectedProvider = {
+      id: 'transak',
+      name: 'Transak',
+      links: [],
+    };
+
+    const { getByTestId } = render();
+    const continueBtn = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(continueBtn);
+    });
+
+    expect(getByTestId('truncated-error')).toBeOnTheScreen();
+  });
+
+  it('displays no quotes error when quote fetch succeeds but no matching quote', () => {
+    quotesState.data = {
+      success: [
+        {
+          provider: 'moonpay',
+          providerInfo: { id: 'moonpay', name: 'MoonPay', type: 'aggregator' },
+          quote: {},
+        },
+      ],
+    };
+    quotesState.loading = false;
+    rampsControllerState.selectedProvider = {
+      id: 'paypal',
+      name: 'PayPal',
+      links: [],
+    };
+
+    const { getByTestId } = render();
+    const errorDetails = getByTestId('truncated-error-details');
+    expect(errorDetails.props.children).toContain(
+      'fiat_on_ramp.no_quotes_error',
+    );
+  });
+
+  it('tracks RAMPS_SCREEN_VIEWED event on mount', () => {
+    render();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+        ramp_routing: 'AGGREGATOR',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_QUICK_AMOUNT_CLICKED event', () => {
+    rampsControllerState.userRegion = {
+      country: { currency: 'USD', quickAmounts: [50, 100, 200] },
+      regionCode: 'US',
+    };
+    rampsControllerState.selectedProvider = {
+      id: 'paypal',
+      name: 'PayPal',
+      links: [{ name: 'Support', url: 'https://support.paypal.com' }],
+    };
+
+    mockTrackEvent.mockClear();
+    const { getByTestId } = render();
+    fireEvent.press(getByTestId('keypad-back-trigger'));
+    fireEvent.press(getByTestId('quick-amount-50'));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 50,
+        currency_source: 'USD',
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_BACK_BUTTON_CLICKED event', () => {
+    mockTrackEvent.mockClear();
+    const { getByTestId } = render();
+    fireEvent.press(getByTestId('build-quote-back-button'));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_SETTINGS_CLICKED event', () => {
+    mockTrackEvent.mockClear();
+    const { getByTestId } = render();
+    fireEvent.press(getByTestId('build-quote-settings-button'));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_PAYMENT_METHOD_SELECTOR_CLICKED event', () => {
+    mockTrackEvent.mockClear();
+    const { getByTestId } = render();
+    fireEvent.press(getByTestId('payment-method-pill'));
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        current_payment_method: 'card',
+        location: 'Amount Input',
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
+  });
+
+  it('tracks RAMPS_QUOTE_ERROR event when quote fetch fails', () => {
+    mockTrackEvent.mockClear();
+    quotesState.error = new Error('Quote service unavailable');
+    quotesState.data = { success: [] };
+
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 100,
+        currency_source: 'USD',
+        currency_destination: 'eip155:1',
+        payment_method_id: 'card',
+        chain_id: 'eip155:1',
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
+  });
+
+  it('handles widget provider error gracefully', async () => {
+    const aggregatorQuote = {
+      provider: 'moonpay',
+      providerInfo: { id: 'moonpay', name: 'MoonPay', type: 'aggregator' },
+      quote: { buyURL: 'https://moonpay.com/buy' },
+    };
+    quotesState.data = { success: [aggregatorQuote] };
+    quotesState.loading = false;
+    mockGetBuyWidgetData.mockRejectedValue(new Error('Widget API failed'));
+
+    rampsControllerState.selectedProvider = {
+      id: 'moonpay',
+      name: 'MoonPay',
+      links: [],
+    };
+
+    const { getByTestId } = render();
+    const continueBtn = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(continueBtn);
+    });
+
+    expect(getByTestId('truncated-error')).toBeOnTheScreen();
+  });
+
+  it('handles native provider error gracefully', async () => {
+    const nativeQuote = {
+      provider: 'transak',
+      providerInfo: { id: 'transak', name: 'Transak', type: 'native' },
+      quote: { buyURL: 'https://transak.com/buy' },
+    };
+    quotesState.data = { success: [nativeQuote] };
+    quotesState.loading = false;
+    mockTransakCheckExistingToken.mockRejectedValue(
+      new Error('Auth check failed'),
+    );
+
+    rampsControllerState.selectedProvider = {
+      id: 'transak',
+      name: 'Transak',
+      links: [],
+    };
+
+    const { getByTestId } = render();
+    const continueBtn = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(continueBtn);
+    });
+
+    expect(getByTestId('truncated-error')).toBeOnTheScreen();
+  });
+
+  it('updates amount when keypad back is pressed on dirty keyboard', () => {
+    const { getByTestId } = render();
+
+    fireEvent.press(getByTestId('keypad-trigger'));
+    expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+      '$150',
+    );
+
+    fireEvent.press(getByTestId('keypad-back-trigger'));
+    expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+      '$0',
+    );
   });
 });
