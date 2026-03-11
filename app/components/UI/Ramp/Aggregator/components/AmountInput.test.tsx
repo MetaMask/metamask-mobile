@@ -98,7 +98,7 @@ describe('AmountInput', () => {
 
     expect(
       screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

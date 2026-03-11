@@ -187,11 +187,15 @@ function BuildQuote() {
     useTransakRouting();
 
   const currency = userRegion?.country?.currency || 'USD';
-  const currencySymbol = useMemo(() => {
-    const formatted = formatCurrency(0, currency, {
+  const { currencyPrefix, currencySuffix } = useMemo(() => {
+    const formatted = formatCurrency(1, currency, {
       currencyDisplay: 'narrowSymbol',
     });
-    return formatted.replace(/[\d.,\s]/g, '');
+    const match = formatted.match(/^([^\d]*?)1([^\d]*?)$/);
+    return {
+      currencyPrefix: match?.[1] ?? '',
+      currencySuffix: match?.[2] ?? '',
+    };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
 
@@ -684,8 +688,9 @@ function BuildQuote() {
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
-                    {currencySymbol}
+                    {currencyPrefix}
                     {amount}
+                    {currencySuffix}
                   </Text>
                   <Animated.View
                     style={[styles.cursor, { opacity: cursorOpacity }]}

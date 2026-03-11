@@ -7,12 +7,13 @@ const INITIAL_OPACITY = 0.6;
 /**
  * Returns an animated opacity value that blinks between 0 and 1.
  * Used for the cosmetic input cursor on Ramp amount screens.
+ * @param enabled - When false, the animation is stopped. Defaults to true.
  */
-export function useBlinkingCursor(): Animated.Value {
+export function useBlinkingCursor(enabled = true): Animated.Value {
   const cursorOpacity = useRef(new Animated.Value(INITIAL_OPACITY)).current;
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === 'test' || !enabled) {
       return;
     }
 
@@ -38,7 +39,7 @@ export function useBlinkingCursor(): Animated.Value {
     return () => {
       blinkAnimation.stop();
     };
-  }, [cursorOpacity]);
+  }, [cursorOpacity, enabled]);
 
   return cursorOpacity;
 }

@@ -780,7 +780,7 @@ describe('BuildQuote View', () => {
 
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
       expect(
@@ -790,7 +790,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton('Done'));
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -871,7 +871,7 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`${initialAmount} ${symbol}`));
       expect(
         screen.queryByText('This amount is higher than your balance'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('updates the amount input with quick amount buttons', async () => {

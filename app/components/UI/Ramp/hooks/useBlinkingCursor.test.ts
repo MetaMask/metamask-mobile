@@ -14,4 +14,9 @@ describe('useBlinkingCursor', () => {
     rerender({});
     expect(result.current).toBe(first);
   });
+
+  it('returns an Animated.Value when enabled is false', () => {
+    const { result } = renderHook(() => useBlinkingCursor(false));
+    expect(result.current).toBeInstanceOf(Animated.Value);
+  });
 });

@@ -65,7 +65,7 @@ const AmountInput: React.FC<Props> = ({
   onCurrencyPress,
 }: Props) => {
   const { colors } = useTheme();
-  const cursorOpacity = useBlinkingCursor();
+  const cursorOpacity = useBlinkingCursor(highlighted);
 
   const textColor = highlightedError ? TextColor.Error : TextColor.Default;
 
