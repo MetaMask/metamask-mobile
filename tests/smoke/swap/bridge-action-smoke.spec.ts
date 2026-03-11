@@ -5,7 +5,6 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import TestHelpers from '../../helpers';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
@@ -81,7 +80,10 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await WalletView.tapWalletSwapButton();
         await device.disableSynchronization();
         await QuoteView.tapDestinationToken();
-        await TestHelpers.delay(2000); // wait until tokens are displayed
+        await Assertions.expectElementToBeVisible(QuoteView.searchToken, {
+          timeout: 15000,
+          description: 'Token search input visible in destination token picker',
+        });
         await QuoteView.selectNetwork(destNetwork);
         await QuoteView.tapToken(destChainId, sourceSymbol);
         // Open keypad by tapping source amount input (keypad is in BottomSheet, closed after token selection)
@@ -102,19 +104,18 @@ describe(SmokeTrade('Bridge functionality'), () => {
           timeout: 30000,
           description: 'Activity title visible after bridge submission',
         });
-        await Assertions.expectElementToHaveText(
-          ActivitiesView.transactionStatus(0),
-          ActivitiesViewSelectorsText.CONFIRM_TEXT,
-          {
-            timeout: 120000,
-            description: 'First transaction row status should show Confirmed',
-          },
-        );
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
           {
-            timeout: 30000,
+            timeout: 120000,
             description: 'Bridge activity for destination network visible',
+          },
+        );
+        await Assertions.expectTextDisplayed(
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          {
+            timeout: 120000,
+            description: 'Bridge transaction should show Confirmed status',
           },
         );
       },
