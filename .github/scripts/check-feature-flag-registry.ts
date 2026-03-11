@@ -112,8 +112,7 @@ async function main(): Promise<void> {
           continue;
         }
         allReferences.push(...extractFlagReferences(line, filePath));
-        const openIdx = line.lastIndexOf('/*');
-        if (openIdx !== -1 && line.indexOf('*/', openIdx + 2) === -1) inBlock = true;
+        if (opensBlockComment(line)) inBlock = true;
       }
       for (let i = 0; i < chunk.length - 1; i++) {
         const j2 = `${stripInlineComments(chunk[i]).trimEnd()}${stripInlineComments(chunk[i + 1]).trimStart()}`;
@@ -403,6 +402,25 @@ function extractDestructuredIdentifiers(content: string): string[] {
     if (m) ids.push(m[1]);
   }
   return ids;
+}
+
+function opensBlockComment(line: string): boolean {
+  let inSingle = false, inDouble = false, inTemplate = false, escaped = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\' && (inSingle || inDouble || inTemplate)) { escaped = true; continue; }
+    if (ch === "'" && !inDouble && !inTemplate) { inSingle = !inSingle; continue; }
+    if (ch === '"' && !inSingle && !inTemplate) { inDouble = !inDouble; continue; }
+    if (ch === '`' && !inSingle && !inDouble) { inTemplate = !inTemplate; continue; }
+    if (!inSingle && !inDouble && !inTemplate && ch === '/' && line[i + 1] === '/') return false;
+    if (!inSingle && !inDouble && !inTemplate && ch === '/' && line[i + 1] === '*') {
+      const closeIdx = line.indexOf('*/', i + 2);
+      if (closeIdx === -1) return true;
+      i = closeIdx + 1;
+    }
+  }
+  return false;
 }
 
 function isStaticConstant(expr: string): boolean {
