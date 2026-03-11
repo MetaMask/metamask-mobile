@@ -80,8 +80,7 @@ jest.mock('react-native-safe-area-context', () => {
     }: {
       children: React.ReactNode;
       testID?: string;
-    }) =>
-      ReactActual.createElement(View, { ...props, testID }, children),
+    }) => ReactActual.createElement(View, { ...props, testID }, children),
   };
 });
 
