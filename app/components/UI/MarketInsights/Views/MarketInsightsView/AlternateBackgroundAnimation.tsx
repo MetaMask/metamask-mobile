@@ -1,6 +1,7 @@
-import React, { memo, useEffect, useState } from 'react';
-import Svg, { Path } from 'react-native-svg';
+import React, { memo, useEffect, useMemo } from 'react';
+import Svg, { G, Path, Rect } from 'react-native-svg';
 import Animated, {
+  cancelAnimation,
   Easing,
   type SharedValue,
   useAnimatedProps,
@@ -10,99 +11,111 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-const VIEWBOX_WIDTH = 1920;
-const VIEWBOX_HEIGHT = 1080;
-const BACKGROUND_SCALE = 1.15;
-const SCALED_VIEWBOX_WIDTH = VIEWBOX_WIDTH / BACKGROUND_SCALE;
-const SCALED_VIEWBOX_HEIGHT = VIEWBOX_HEIGHT / BACKGROUND_SCALE;
-const VIEWBOX_X = (VIEWBOX_WIDTH - SCALED_VIEWBOX_WIDTH) / 2;
-const VIEWBOX_Y = 0;
-const PULSE_PEAK_BOOST = 0.7;
+const AnimatedG = Animated.createAnimatedComponent(G);
+
+const COMP_WIDTH = 393;
+const COMP_HEIGHT = 170;
 const STAR_PATH =
   'M20.5 0 C22.8 8.8 24.8 16.2 27.1 17.3 C29.6 18.4 37.2 18.5 41 20.5 C37.2 22.5 29.6 22.6 27.1 23.7 C24.8 24.8 22.8 32.2 20.5 41 C18.2 32.2 16.2 24.8 13.9 23.7 C11.4 22.6 3.8 22.5 0 20.5 C3.8 18.5 11.4 18.4 13.9 17.3 C16.2 16.2 18.2 8.8 20.5 0Z';
-const STAR_FILL = 'rgb(170, 170, 170)';
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+const STAR_VIEWBOX_SIZE = 41;
 
-const GRID_STEP = 45;
-const GRID_X_START = -28;
-const GRID_X_END = 1907;
-const GRID_Y_START = 2;
-const GRID_Y_END = 1037;
+const CELL_SIZE = 13;
+const DOT_RADIUS = 4.1;
+const DOT_DIAMETER = DOT_RADIUS * 2;
+const STAR_SCALE = DOT_DIAMETER / STAR_VIEWBOX_SIZE;
+const SILHOUETTE_CENTER_X = COMP_WIDTH * 0.5;
+const SILHOUETTE_CENTER_Y = COMP_HEIGHT * 0.5;
+const SILHOUETTE_RADIUS_X = COMP_WIDTH * 0.44;
+const SILHOUETTE_RADIUS_Y = COMP_HEIGHT * 0.42;
 
-const STAR_POSITIONS: readonly (readonly [number, number])[] = (() => {
-  const positions: [number, number][] = [];
-  for (let y = GRID_Y_START; y <= GRID_Y_END; y += GRID_STEP) {
-    for (let x = GRID_X_START; x <= GRID_X_END; x += GRID_STEP) {
-      positions.push([x, y]);
-    }
-  }
-  return positions;
-})();
+const SWEEP_START_X = -COMP_WIDTH * 0.6;
+const SWEEP_END_X = COMP_WIDTH * 1.65;
+const SWEEP_SETTLE_X = COMP_WIDTH * 0.49;
+const SWEEP_FALLOFF_HALF_WIDTH = 100;
+const LOOP_DURATION_MS = 1600;
 
-const BASE_OPACITY_MIN = 0.005;
-const BASE_OPACITY_RANGE = 0.1;
-const MORPH_CYCLE_MS = 30000;
-
-interface StarProps {
+interface Dot {
   x: number;
   y: number;
-  time: SharedValue<number>;
-  pulseToken: number;
 }
 
-const Star = memo(({ x, y, time, pulseToken }: StarProps) => {
-  const pulseProgress = useSharedValue(0);
+interface Column {
+  colX: number;
+  dots: Dot[];
+}
 
-  useEffect(() => {
-    if (pulseToken === 0) {
-      return;
+interface AnimatedColumnProps {
+  colX: number;
+  dots: Dot[];
+  sweepX: SharedValue<number>;
+  tick: SharedValue<number>;
+}
+
+/**
+ * Approximates the missing Low_Poly_01 silhouette as an ellipse so the
+ * reference column sweep animation can ship without the source polygon file.
+ */
+function buildColumns(): Column[] {
+  const columns: Column[] = [];
+
+  for (
+    let gridX = CELL_SIZE / 2;
+    gridX <= COMP_WIDTH + CELL_SIZE;
+    gridX += CELL_SIZE
+  ) {
+    const dots: Dot[] = [];
+
+    for (
+      let gridY = CELL_SIZE / 2;
+      gridY <= COMP_HEIGHT + CELL_SIZE;
+      gridY += CELL_SIZE
+    ) {
+      const normalizedX = (gridX - SILHOUETTE_CENTER_X) / SILHOUETTE_RADIUS_X;
+      const normalizedY = (gridY - SILHOUETTE_CENTER_Y) / SILHOUETTE_RADIUS_Y;
+
+      if (normalizedX * normalizedX + normalizedY * normalizedY <= 1) {
+        dots.push({ x: gridX, y: gridY });
+      }
     }
 
-    pulseProgress.value = 0;
-    pulseProgress.value = withSequence(
-      withTiming(1, {
-        duration: 380,
-        easing: Easing.out(Easing.quad),
-      }),
-      withTiming(0, {
-        duration: 700,
-        easing: Easing.inOut(Easing.quad),
-      }),
+    if (dots.length > 0) {
+      columns.push({ colX: gridX, dots });
+    }
+  }
+
+  return columns;
+}
+
+const AnimatedColumn = memo(
+  ({ colX, dots, sweepX, tick }: AnimatedColumnProps) => {
+    const animatedProps = useAnimatedProps(() => {
+      'worklet';
+
+      const distance = Math.abs(colX - sweepX.value);
+      const falloff = Math.max(0, 1 - distance / SWEEP_FALLOFF_HALF_WIDTH);
+      const noise =
+        (Math.sin(tick.value * Math.PI * 2 * 1.6 + colX * 0.09) + 1) * 0.5;
+      const opacity = Math.min(0.92, 0.08 + noise * 0.14 + falloff * 0.7);
+
+      return { opacity };
+    });
+
+    return (
+      <AnimatedG animatedProps={animatedProps}>
+        {dots.map((dot) => (
+          <Path
+            key={`${dot.x}-${dot.y}`}
+            d={STAR_PATH}
+            fill="rgb(255, 255, 255)"
+            transform={`translate(${dot.x - DOT_RADIUS} ${dot.y - DOT_RADIUS}) scale(${STAR_SCALE})`}
+          />
+        ))}
+      </AnimatedG>
     );
-  }, [pulseProgress, pulseToken]);
+  },
+);
 
-  const animatedProps = useAnimatedProps(() => {
-    'worklet';
-    const t = time.value;
-    const nx = x / VIEWBOX_WIDTH;
-    const ny = y / VIEWBOX_HEIGHT;
-
-    const wave1 = Math.sin(nx * 6 + t) * Math.cos(ny * 4 + t * 0.7);
-    const wave2 = Math.sin(nx * 3 - t * 0.5 + ny * 5);
-    const wave3 = Math.cos(nx * 8 + ny * 3 + t * 1.3);
-
-    const combined = (wave1 + wave2 + wave3) / 3;
-    const baseOpacity = BASE_OPACITY_MIN + (combined + 1) * BASE_OPACITY_RANGE;
-
-    return {
-      opacity: Math.min(
-        baseOpacity + pulseProgress.value * PULSE_PEAK_BOOST,
-        1,
-      ),
-    };
-  });
-
-  return (
-    <AnimatedPath
-      animatedProps={animatedProps}
-      d={STAR_PATH}
-      fill={STAR_FILL}
-      transform={`translate(${x} ${y})`}
-    />
-  );
-});
-
-Star.displayName = 'Star';
+AnimatedColumn.displayName = 'AnimatedColumn';
 
 interface AlternateBackgroundAnimationProps {
   testID?: string;
@@ -111,72 +124,75 @@ interface AlternateBackgroundAnimationProps {
 const AlternateBackgroundAnimation = ({
   testID,
 }: AlternateBackgroundAnimationProps) => {
-  const time = useSharedValue(0);
+  const columns = useMemo(() => buildColumns(), []);
+  const sweepX = useSharedValue(SWEEP_START_X);
+  const tick = useSharedValue(0);
 
   useEffect(() => {
-    time.value = withRepeat(
-      withTiming(Math.PI * 2, {
-        duration: MORPH_CYCLE_MS,
-        easing: Easing.linear,
-      }),
+    sweepX.value = withRepeat(
+      withSequence(
+        withTiming(SWEEP_END_X, {
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0, 0.55, 1),
+        }),
+        withTiming(SWEEP_START_X, { duration: 0 }),
+        withTiming(SWEEP_SETTLE_X, {
+          duration: 560,
+          easing: Easing.bezier(0.2, 0, 0.75, 1),
+        }),
+        withTiming(SWEEP_START_X, { duration: 40 }),
+      ),
       -1,
       false,
     );
-  }, [time]);
-
-  const [pulseTokens, setPulseTokens] = useState<number[]>(() =>
-    Array.from({ length: STAR_POSITIONS.length }, () => 0),
-  );
-
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    let isMounted = true;
-
-    const scheduleNextFrame = () => {
-      const nextDelay = 360 + Math.floor(Math.random() * 900);
-      timeoutId = setTimeout(() => {
-        if (!isMounted) return;
-
-        setPulseTokens((previousPulseTokens) => {
-          const nextPulseTokens = [...previousPulseTokens];
-          const starsToPulse = 2 + Math.floor(Math.random() * 7);
-
-          for (let i = 0; i < starsToPulse; i += 1) {
-            const starIndex = Math.floor(Math.random() * STAR_POSITIONS.length);
-            nextPulseTokens[starIndex] += 1;
-          }
-
-          return nextPulseTokens;
-        });
-
-        scheduleNextFrame();
-      }, nextDelay);
-    };
-
-    scheduleNextFrame();
 
     return () => {
-      isMounted = false;
-      clearTimeout(timeoutId);
+      cancelAnimation(sweepX);
     };
-  }, []);
+  }, [sweepX]);
+
+  useEffect(() => {
+    tick.value = withRepeat(
+      withSequence(
+        withTiming(1, {
+          duration: LOOP_DURATION_MS,
+          easing: Easing.linear,
+        }),
+        withTiming(0, { duration: 0 }),
+      ),
+      -1,
+      false,
+    );
+
+    return () => {
+      cancelAnimation(tick);
+    };
+  }, [tick]);
 
   return (
     <Svg
       width="100%"
       height="100%"
-      viewBox={`${VIEWBOX_X} ${VIEWBOX_Y} ${SCALED_VIEWBOX_WIDTH} ${SCALED_VIEWBOX_HEIGHT}`}
+      viewBox={`0 0 ${COMP_WIDTH} ${COMP_HEIGHT}`}
       fill="none"
       preserveAspectRatio="xMidYMin slice"
       testID={testID}
     >
-      {STAR_POSITIONS.map(([x, y], index) => (
-        <Star
-          key={`${x}-${y}`}
-          x={x}
-          y={y}
-          time={time}
-          pulseToken={pulseTokens[index]}
+      <Rect
+        x={0}
+        y={0}
+        width={COMP_WIDTH}
+        height={COMP_HEIGHT}
+        fill="rgb(0, 0, 0)"
+      />
+
+      {columns.map(({ colX, dots }) => (
+        <AnimatedColumn
+          key={colX}
+          colX={colX}
+          dots={dots}
+          sweepX={sweepX}
+          tick={tick}
         />
       ))}
     </Svg>
