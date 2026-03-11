@@ -7,6 +7,8 @@ import IonicIcon from 'react-native-vector-icons/Ionicons';
 import Box from './Box';
 import {
   Text,
+  TextButton,
+  TextButtonSize,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -170,68 +172,50 @@ const InfoAlert: React.FC<Props> = ({
           )}
           <View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
           {Boolean(providerWebsite) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderHomepageLinkPress(providerWebsite as string)
               }
+              twClassName="text-center"
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-                twClassName="underline text-center"
-              >
-                {providerWebsite}
-              </Text>
-            </TouchableOpacity>
+              {providerWebsite as string}
+            </TextButton>
           )}
           {Boolean(providerPrivacyPolicy) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderPrivacyPolicyLinkPress(
                   providerPrivacyPolicy as string,
                 )
               }
+              twClassName="text-center"
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-                twClassName="underline text-center"
-              >
-                {strings('app_information.privacy_policy')}
-              </Text>
-            </TouchableOpacity>
+              {strings('app_information.privacy_policy')}
+            </TextButton>
           )}
           {Boolean(providerTermsOfService) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleTermsOfServiceLinkPress(providerTermsOfService as string)
               }
+              twClassName="text-center"
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-                twClassName="underline text-center"
-              >
-                {strings('fiat_on_ramp_aggregator.terms_of_service')}
-              </Text>
-            </TouchableOpacity>
+              {strings('fiat_on_ramp_aggregator.terms_of_service')}
+            </TextButton>
           )}
           {Boolean(providerSupport) && (
-            <TouchableOpacity
+            <TextButton
+              size={TextButtonSize.BodySm}
               onPress={() =>
                 handleProviderSupportLinkPress(providerSupport as string)
               }
+              twClassName="text-center"
             >
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-                twClassName="underline text-center"
-              >
-                {providerName +
-                  ' ' +
-                  strings('fiat_on_ramp_aggregator.order_details.support')}
-              </Text>
-            </TouchableOpacity>
+              {`${providerName} ${strings('fiat_on_ramp_aggregator.order_details.support')}`}
+            </TextButton>
           )}
         </View>
       </Box>

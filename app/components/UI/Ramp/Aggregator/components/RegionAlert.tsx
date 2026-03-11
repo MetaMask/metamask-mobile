@@ -3,6 +3,8 @@ import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
 import {
   Text,
+  TextButton,
+  TextButtonSize,
   TextVariant,
   TextColor,
   FontWeight,
@@ -93,16 +95,13 @@ const RegionAlert: React.FC<Props> = ({
           <View style={styles.row}>
             <Text variant={TextVariant.BodySm}>{body}</Text>
           </View>
-          <TouchableOpacity onPress={handleSupportLinkPress}>
-            <Text
-              color={TextColor.PrimaryDefault}
-              variant={TextVariant.BodySm}
-              style={styles.link}
-              twClassName="underline"
-            >
-              {link}
-            </Text>
-          </TouchableOpacity>
+          <TextButton
+            size={TextButtonSize.BodySm}
+            onPress={handleSupportLinkPress}
+            style={styles.link}
+          >
+            {link as string}
+          </TextButton>
         </View>
       </Box>
     </Modal>
