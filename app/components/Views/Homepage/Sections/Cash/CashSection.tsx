@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -68,7 +68,7 @@ const CashSection = ({
   return (
     <View ref={sectionViewRef}>
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewCashTokens} />
+        <SectionHeader title={title} onPress={handleViewCashTokens} />
         {!hasMusdBalanceOnAnyChain ? (
           <SectionRow>
             <CashGetMusdEmptyState />
