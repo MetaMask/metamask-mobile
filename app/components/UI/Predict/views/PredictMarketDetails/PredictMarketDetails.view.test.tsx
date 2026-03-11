@@ -37,7 +37,6 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows complete market data in the details screen after getMarket resolves', async () => {
-      // Arrange
       const getMarketSpy = jest.spyOn(
         Engine.context.PredictController,
         'getMarket',
@@ -47,13 +46,16 @@ describe('PredictMarketDetails', () => {
         initialParams: { marketId: 'market-btc-1' },
       });
 
-      // Assert — all significant fields of the loaded market are visible on screen.
-      // The async resolution of getMarket is the event under test (not a render scenario).
       const screen = await findByTestId(
         PredictMarketDetailsSelectorsIDs.SCREEN,
       );
       expect(
         within(screen).getByText(MOCK_PREDICT_MARKET.title),
+      ).toBeOnTheScreen();
+      expect(
+        within(screen).getByTestId(
+          PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW,
+        ),
       ).toBeOnTheScreen();
       expect(await findByText(/Yes.*¢/)).toBeOnTheScreen();
       expect(await findByText(/No.*¢/)).toBeOnTheScreen();

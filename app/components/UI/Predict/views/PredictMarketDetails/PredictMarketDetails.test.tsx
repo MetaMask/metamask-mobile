@@ -713,10 +713,12 @@ describe('PredictMarketDetails', () => {
         { market: { isFetching: true, market: null } },
       );
 
-      // Check that skeleton loaders appear
+      expect(
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          PredictMarketDetailsSelectorsIDs.DETAILS_HEADER_SKELETON_BACK_BUTTON,
+          PredictMarketDetailsSelectorsIDs.TITLE_SECTION_SKELETON,
         ),
       ).toBeOnTheScreen();
       expect(
@@ -768,7 +770,7 @@ describe('PredictMarketDetails', () => {
       );
     });
 
-    it('hides share button when market is not loaded (shows skeleton)', () => {
+    it('shows share button and title section skeleton when market is loading', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
@@ -776,13 +778,24 @@ describe('PredictMarketDetails', () => {
       );
 
       expect(
-        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          PredictMarketDetailsSelectorsIDs.DETAILS_HEADER_SKELETON_BACK_BUTTON,
+          PredictMarketDetailsSelectorsIDs.TITLE_SECTION_SKELETON,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('renders scrollable content and market title in scroll area when loaded', () => {
+      const { mockMarket } = setupPredictMarketDetailsTest();
+
+      expect(
+        screen.getByTestId(
+          PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
   });
 

@@ -51,6 +51,7 @@ const HeaderStandardAnimated: React.FC<HeaderStandardAnimatedProps> = ({
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Bold}
         {...titleProps}
+        twClassName={`text-center ${titleProps?.twClassName ?? ''}`.trim()}
       >
         {title}
       </Text>

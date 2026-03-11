@@ -5,18 +5,19 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+  InteractionManager,
+  Image as RNImage,
+  RefreshControl,
+} from 'react-native';
+import Animated from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { estimateLineCount } from '../../utils/format';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import Engine from '../../../../../core/Engine';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -39,8 +40,12 @@ import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
+import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated';
+import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
+import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage/TitleSubpage';
+import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
-import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
+import PredictShareButton from '../../components/PredictShareButton/PredictShareButton';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
 import PredictMarketDetailsActions from './components/PredictMarketDetailsActions';
 import PredictMarketDetailsTabContent from './components/PredictMarketDetailsTabContent';
@@ -64,8 +69,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const tw = useTailwind();
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
-  const insets = useSafeAreaInsets();
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const {
+    scrollY: scrollYAnimated,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const { marketId, entryPoint, title, image } = route.params || {};
@@ -100,13 +110,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     if (isMarketFetching && !market) {
       return [];
     }
-    return [1];
+    return [2];
   }, [isMarketFetching, market]);
 
-  const titleLineCount = useMemo(
-    () => estimateLineCount(title ?? market?.title),
-    [title, market?.title],
-  );
+  const displayTitle = title ?? market?.title ?? '';
 
   // active positions
   const {
@@ -354,26 +361,34 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     );
   }
 
+  const predictionsImageUri = image ?? market?.image;
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default', isFeeExemption ? 'pb-6' : '')}
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
-      <Box twClassName="px-3 gap-4">
-        <PredictMarketDetailsHeader
-          isLoading={isMarketFetching && !market}
-          market={market}
-          title={title}
-          image={image}
-          titleLineCount={titleLineCount}
-          insetsTop={insets.top}
-          onBackPress={handleBackPress}
-        />
-      </Box>
-
-      <ScrollView
+      <HeaderStandardAnimated
+        scrollY={scrollYAnimated}
+        titleSectionHeight={titleSectionHeightSv}
+        title={displayTitle}
+        onBack={handleBackPress}
+        backButtonProps={{
+          testID: PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
+        }}
+        endAccessory={
+          <PredictShareButton
+            marketId={market?.id ?? marketId}
+            marketSlug={market?.slug}
+          />
+        }
+        includesTopInset
+      />
+      <Animated.ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         stickyHeaderIndices={stickyHeaderIndices}
         showsVerticalScrollIndicator={false}
         style={tw.style('flex-1')}
@@ -386,8 +401,48 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           />
         }
       >
-        {/* Header content - scrollable */}
-        <Box twClassName="px-3 gap-4">
+        <Box
+          onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
+          twClassName="px-4 pb-4"
+        >
+          {isMarketFetching && !market ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="gap-3"
+              testID={PredictMarketDetailsSelectorsIDs.TITLE_SECTION_SKELETON}
+            >
+              <Skeleton width={40} height={40} style={tw.style('rounded-lg')} />
+              <Skeleton
+                width="60%"
+                height={20}
+                style={tw.style('rounded-md flex-1')}
+              />
+            </Box>
+          ) : (
+            <TitleSubpage
+              title={displayTitle}
+              startAccessory={
+                predictionsImageUri ? (
+                  <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">
+                    <RNImage
+                      source={{ uri: predictionsImageUri }}
+                      style={tw.style('w-full h-full')}
+                      resizeMode="cover"
+                    />
+                  </Box>
+                ) : (
+                  <Box twClassName="w-10 h-10 rounded-lg bg-muted" />
+                )
+              }
+              twClassName="flex-1"
+            />
+          )}
+        </Box>
+
+        {/* Status and chart - scrollable */}
+        <Box twClassName="gap-4">
+          -{' '}
           <PredictMarketDetailsStatus
             winningOutcomeToken={winningOutcomeToken}
             multipleOpenOutcomesPartiallyResolved={
@@ -410,7 +465,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
         {/* Show content skeleton while initial market data is fetching */}
         {isMarketFetching && !market ? (
-          <Box twClassName="px-3">
+          <Box twClassName="px-4">
             <PredictDetailsContentSkeleton />
           </Box>
         ) : (
@@ -448,9 +503,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
             onResolvedExpandedToggle={setIsResolvedExpanded}
           />
         )}
-      </ScrollView>
+      </Animated.ScrollView>
 
-      <Box twClassName="px-3 bg-default border-t border-muted">
+      <Box twClassName="px-4 bg-default border-t border-muted">
         <PredictMarketDetailsActions
           isClaimablePositionsLoading={isClaimablePositionsLoading}
           hasPositivePnl={hasPositivePnl}
