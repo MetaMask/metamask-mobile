@@ -21,43 +21,67 @@ import type {
   SeasonMetadataDto,
   LineaTokenRewardDto,
   SnapshotDto,
+  CampaignDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import {
+  canChangeRewardsEnvUrl,
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
+} from '../utils/rewards-api-url';
 import type { CaipAccountId } from '@metamask/utils';
 import AppConstants from '../../../../AppConstants';
-import { successfulFetch } from '@metamask/controller-utils';
 
 // Mock dependencies
 jest.mock('../utils/multi-subscription-token-vault');
 jest.mock('../../../../AppConstants', () => ({
   REWARDS_API_URL: {
-    DEV: 'https://api.rewards.test',
-    UAT: 'https://api.rewards.test',
-    PRD: 'https://api.rewards.test',
+    DEV: 'https://dev.rewards.test',
+    UAT: 'https://uat.rewards.test',
+    PRD: 'https://prd.rewards.test',
   },
-  IS_DEV: false, // Default to PROD, will be overridden in tests
+  IS_DEV: false,
 }));
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.50.1'),
 }));
-jest.mock('@metamask/controller-utils', () => ({
-  successfulFetch: jest.fn(),
+jest.mock('../utils/rewards-api-url', () => ({
+  ...jest.requireActual('../utils/rewards-api-url'),
+  canChangeRewardsEnvUrl: jest.fn(),
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv: jest.fn(),
 }));
 
 const mockGetSubscriptionToken = getSubscriptionToken as jest.MockedFunction<
   typeof getSubscriptionToken
 >;
-const mockSuccessfulFetch = successfulFetch as jest.MockedFunction<
-  typeof successfulFetch
+const mockCanChangeRewardsEnv = canChangeRewardsEnvUrl as jest.MockedFunction<
+  typeof canChangeRewardsEnvUrl
 >;
+const mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv =
+  getDefaultRewardsApiBaseUrlForMetaMaskEnv as jest.MockedFunction<
+    typeof getDefaultRewardsApiBaseUrlForMetaMaskEnv
+  >;
 
 describe('RewardsDataService', () => {
+  const originalEnv = process.env;
   let mockMessenger: jest.Mocked<RewardsDataServiceMessenger>;
   let mockFetch: jest.MockedFunction<typeof fetch>;
   let service: RewardsDataService;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...originalEnv };
+    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
+
+    // Allow env overrides by default (canChange = true).
+    // getRewardsEnvUrl reads canChange from the tuple, so the second element
+    // must be true here.  Tests that want the guard to block override both
+    // mocks individually.
+    mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+      AppConstants.REWARDS_API_URL.UAT,
+      true,
+    ]);
+    // canChangeRewardsEnvUrl is still called independently by setRewardsEnvUrl.
+    mockCanChangeRewardsEnv.mockReturnValue(true);
 
     mockMessenger = {
       registerActionHandler: jest.fn(),
@@ -76,6 +100,10 @@ describe('RewardsDataService', () => {
       appType: 'mobile',
       locale: 'en-US',
     });
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe('initialization', () => {
@@ -110,10 +138,6 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
-        expect.any(Function),
-      );
-      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:fetchGeoLocation',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -156,6 +180,90 @@ describe('RewardsDataService', () => {
         'RewardsDataService:getSeasonOneLineaRewardTokens',
         expect.any(Function),
       );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:canChangeRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:setRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getDefaultRewardsEnvUrl',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:validateBonusCode',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:applyBonusCode',
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe('setRewardsEnvUrl', () => {
+    it('stores the override URL when the build allows env changes', () => {
+      // mockCanChangeRewardsEnv is already set to return true in beforeEach
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
+
+    it('is a no-op when the build does not allow env changes', () => {
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      // override was not stored; guard returns defaultUrl (PRD)
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+    });
+
+    it('getRewardsEnvUrl reflects the stored override', () => {
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.PRD);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
+  });
+
+  describe('getRewardsEnvUrl', () => {
+    it('returns UAT URL by default when no override is set', () => {
+      // No override stored; mock returns [UAT, true] → defaultUrl is UAT
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.UAT);
+    });
+
+    it('returns override URL when build allows env changes', () => {
+      // getDefaultRewardsApiBaseUrlForMetaMaskEnv returns [UAT, true] by default (beforeEach)
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.DEV);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.DEV);
+    });
+
+    it('locks to default URL and ignores override when build does not allow changes', () => {
+      // Simulate a PRD build where env changes are not permitted
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      service.setRewardsEnvUrl(AppConstants.REWARDS_API_URL.UAT);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
+    });
+
+    it('returns default PRD URL with no override when build does not allow changes', () => {
+      mockGetDefaultRewardsApiBaseUrlForMetaMaskEnv.mockReturnValue([
+        AppConstants.REWARDS_API_URL.PRD,
+        false,
+      ]);
+      mockCanChangeRewardsEnv.mockReturnValue(false);
+      expect(service.getRewardsEnvUrl()).toBe(AppConstants.REWARDS_API_URL.PRD);
     });
   });
 
@@ -189,7 +297,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockSubscriptionResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/subscriptions/mobile-join',
+        'https://uat.rewards.test/wr/subscriptions/mobile-join',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockJoinRequest),
@@ -340,7 +448,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockLoginResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
+        'https://uat.rewards.test/auth/mobile-login',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockLoginRequest),
@@ -454,7 +562,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockPointsEventsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events',
+        'https://uat.rewards.test/seasons/current/points-events',
         {
           credentials: 'omit',
           method: 'GET',
@@ -490,7 +598,7 @@ describe('RewardsDataService', () => {
       expect(result.has_more).toBe(false);
       expect(result.cursor).toBeNull();
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events?cursor=cursor-abc123',
+        'https://uat.rewards.test/seasons/current/points-events?cursor=cursor-abc123',
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -513,7 +621,7 @@ describe('RewardsDataService', () => {
       await service.getPointsEvents(requestWithSpecialCursor);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events?cursor=cursor%2Fwith%2Bspecial%3Dchars',
+        'https://uat.rewards.test/seasons/current/points-events?cursor=cursor%2Fwith%2Bspecial%3Dchars',
         expect.any(Object),
       );
     });
@@ -534,7 +642,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockPointsEventsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events?type=SWAP',
+        'https://uat.rewards.test/seasons/current/points-events?type=SWAP',
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -559,7 +667,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockPointsEventsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events?cursor=cursor-abc123&type=PREDICT',
+        'https://uat.rewards.test/seasons/current/points-events?cursor=cursor-abc123&type=PREDICT',
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -582,7 +690,7 @@ describe('RewardsDataService', () => {
       await service.getPointsEvents(requestWithType);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events?type=SIGN_UP_BONUS',
+        'https://uat.rewards.test/seasons/current/points-events?type=SIGN_UP_BONUS',
         expect.any(Object),
       );
     });
@@ -692,7 +800,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(new Date('2024-01-01T10:00:00Z'));
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/current/points-events/last-updated',
+        'https://uat.rewards.test/seasons/current/points-events/last-updated',
         {
           credentials: 'omit',
           method: 'GET',
@@ -864,7 +972,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockEstimateResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/points-estimation',
+        'https://uat.rewards.test/points-estimation',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockEstimateRequest),
@@ -904,7 +1012,7 @@ describe('RewardsDataService', () => {
         discountBips: 550,
       });
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://api.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
+        `https://uat.rewards.test/public/rewards/perps-fee-discount/${testAddress}`,
         expect.objectContaining({
           method: 'GET',
         }),
@@ -1020,6 +1128,121 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('centralized 403 detection in makeRequest', () => {
+    it('throws AuthorizationFailedError for any endpoint returning 403', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getActivePointsBoosts('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+    });
+
+    it('throws AuthorizationFailedError with status in message', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getActivePointsBoosts('season-1', 'sub-1'),
+      ).rejects.toThrow('Authorization failed: 403');
+    });
+
+    it('does not throw AuthorizationFailedError for non-403 errors', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.getReferralDetails('season-1', 'sub-1'),
+      ).rejects.toThrow('Get referral details failed: 401');
+    });
+
+    it('throws AuthorizationFailedError for 403 on different endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+      } as unknown as Response;
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(
+        service.getUnlockedRewards('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(
+        service.getSnapshots('season-1', 'sub-1'),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+
+      mockFetch.mockResolvedValue(mockResponse);
+      await expect(service.optOut('sub-1')).rejects.toBeInstanceOf(
+        AuthorizationFailedError,
+      );
+    });
+
+    it('does not throw AuthorizationFailedError for 403 on unauthenticated endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        json: jest.fn().mockResolvedValue({ message: 'Forbidden' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
+      ).rejects.toThrow('Points estimation failed: 403');
+      await expect(
+        service.estimatePoints({
+          activityType: 'SWAP',
+          account: 'eip155:1:0x123',
+          activityContext: {
+            swapContext: {
+              srcAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '1000000000000000000',
+              },
+              destAsset: {
+                id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                amount: '4500000000',
+              },
+              feeAsset: {
+                id: 'eip155:1/slip44:60',
+                amount: '5000000000000000',
+              },
+            },
+          },
+        }),
+      ).rejects.not.toBeInstanceOf(AuthorizationFailedError);
+    });
+  });
+
   const mockSeasonStateResponse: SeasonStateDto = {
     balance: 1000,
     currentTierId: 'tier-gold',
@@ -1051,7 +1274,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockSeasonStateResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.DEV}/seasons/${mockSeasonId}/state`,
+        `${AppConstants.REWARDS_API_URL.UAT}/seasons/${mockSeasonId}/state`,
         {
           credentials: 'omit',
           method: 'GET',
@@ -1106,10 +1329,10 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get season state failed: 404');
     });
 
-    it('throws AuthorizationFailedError when rewards authorization fails', async () => {
+    it('throws AuthorizationFailedError when server returns 403', async () => {
       const mockResponse = {
         ok: false,
-        status: 401,
+        status: 403,
         json: jest.fn().mockResolvedValue({
           message: 'Rewards authorization failed',
         }),
@@ -1126,25 +1349,7 @@ describe('RewardsDataService', () => {
       expect(caughtError).toBeInstanceOf(AuthorizationFailedError);
       const authError = caughtError as AuthorizationFailedError;
       expect(authError.name).toBe('AuthorizationFailedError');
-      expect(authError.message).toBe(
-        'Rewards authorization failed. Please login and try again.',
-      );
-    });
-
-    it('detects authorization failure when message contains the phrase', async () => {
-      const mockResponse = {
-        ok: false,
-        status: 403,
-        json: jest.fn().mockResolvedValue({
-          message:
-            'Some other error: Rewards authorization failed due to expiry',
-        }),
-      } as unknown as Response;
-      mockFetch.mockResolvedValue(mockResponse);
-
-      await expect(
-        service.getSeasonStatus(mockSeasonId, mockSubscriptionId),
-      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+      expect(authError.message).toBe('Authorization failed: 403');
     });
 
     it('throws SeasonNotFoundError when season is not found', async () => {
@@ -1270,7 +1475,7 @@ describe('RewardsDataService', () => {
         minFutureDate.getTime(),
       );
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.DEV}/public/seasons/status`,
+        `${AppConstants.REWARDS_API_URL.UAT}/public/seasons/status`,
         {
           credentials: 'omit',
           method: 'GET',
@@ -1587,7 +1792,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockSeasonMetadataResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${AppConstants.REWARDS_API_URL.DEV}/public/seasons/${mockSeasonId}/meta`,
+        `${AppConstants.REWARDS_API_URL.UAT}/public/seasons/${mockSeasonId}/meta`,
         {
           credentials: 'omit',
           method: 'GET',
@@ -1675,7 +1880,7 @@ describe('RewardsDataService', () => {
 
       expect(result).toEqual(mockReferralDetailsResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://api.rewards.test/seasons/${mockSeasonId}/referral-details`,
+        `https://uat.rewards.test/seasons/${mockSeasonId}/referral-details`,
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -1807,7 +2012,7 @@ describe('RewardsDataService', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
+        'https://uat.rewards.test/auth/mobile-login',
         expect.objectContaining({
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
@@ -1836,7 +2041,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
+        'https://uat.rewards.test/auth/mobile-login',
         expect.objectContaining({
           headers: expect.objectContaining({
             'Accept-Language': 'en-US',
@@ -1869,7 +2074,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
+        'https://uat.rewards.test/auth/mobile-login',
         expect.objectContaining({
           headers: expect.objectContaining({
             'Accept-Language': 'es-ES',
@@ -1902,7 +2107,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-login',
+        'https://uat.rewards.test/auth/mobile-login',
         expect.objectContaining({
           headers: expect.not.objectContaining({
             'Accept-Language': expect.any(String),
@@ -1950,7 +2155,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-optin',
+        'https://uat.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockOptinRequest),
@@ -1985,7 +2190,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-optin',
+        'https://uat.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockSolanaOptinRequest),
@@ -2026,7 +2231,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockOptinResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/mobile-optin',
+        'https://uat.rewards.test/auth/mobile-optin',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(requestWithoutReferral),
@@ -2171,7 +2376,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/logout',
+        'https://uat.rewards.test/auth/logout',
         expect.objectContaining({
           method: 'POST',
           credentials: 'omit',
@@ -2196,7 +2401,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/logout',
+        'https://uat.rewards.test/auth/logout',
         expect.objectContaining({
           method: 'POST',
           headers: expect.not.objectContaining({
@@ -2247,122 +2452,13 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/auth/logout',
+        'https://uat.rewards.test/auth/logout',
         expect.objectContaining({
           headers: expect.not.objectContaining({
             'rewards-access-token': expect.any(String),
           }),
         }),
       );
-    });
-  });
-
-  describe('fetchGeoLocation', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('should successfully fetch geolocation using PROD URL', async () => {
-      // Arrange
-      const mockLocation = 'US';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should always use PROD geolocation URL regardless of environment', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
-      // Always uses PROD URL, not DEV
-      expect(mockSuccessfulFetch).toHaveBeenCalledWith(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-    });
-
-    it('should return UNKNOWN when geolocation request fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: false,
-        status: 500,
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when network error occurs', async () => {
-      // Arrange
-      mockSuccessfulFetch.mockRejectedValue(new Error('Network error'));
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return UNKNOWN when response text parsing fails', async () => {
-      // Arrange
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockRejectedValue(new Error('Parse error')),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe('UNKNOWN');
-    });
-
-    it('should return location string from response', async () => {
-      // Arrange
-      const mockLocation = 'UK';
-      const mockResponse = {
-        ok: true,
-        text: jest.fn().mockResolvedValue(mockLocation),
-      };
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockSuccessfulFetch.mockResolvedValue(mockResponse as any);
-
-      // Act
-      const result = await service.fetchGeoLocation();
-
-      // Assert
-      expect(result).toBe(mockLocation);
     });
   });
 
@@ -2384,7 +2480,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockValidationResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/referral/validate?code=ABC123',
+        'https://uat.rewards.test/referral/validate?code=ABC123',
         expect.objectContaining({
           method: 'GET',
           credentials: 'omit',
@@ -2432,7 +2528,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockValidationResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/referral/validate?code=A%2BB%2FC%3D',
+        'https://uat.rewards.test/referral/validate?code=A%2BB%2FC%3D',
         expect.any(Object),
       );
     });
@@ -2477,6 +2573,140 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('validateBonusCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully validate a bonus code', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/subscriptions/bonus-code?code=BONUS123',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should return invalid response for invalid codes', async () => {
+      // Arrange
+      const bonusCode = 'INVALID';
+      const mockValidationResponse = { valid: false };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(result.valid).toBe(false);
+    });
+
+    it('should properly encode special characters in bonus code', async () => {
+      // Arrange
+      const bonusCode = 'A+B/C=';
+      const mockValidationResponse = { valid: true };
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockValidationResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateBonusCode(
+        bonusCode,
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(result).toEqual(mockValidationResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/subscriptions/bonus-code?code=A%2BB%2FC%3D',
+        expect.any(Object),
+      );
+    });
+
+    it('should handle validation errors', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const mockResponse = {
+        ok: false,
+        status: 400,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow(
+        'Failed to validate bonus code. Please try again shortly.',
+      );
+    });
+
+    it('should handle network errors during validation', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle timeout errors during validation', async () => {
+      // Arrange
+      const bonusCode = 'BONUS123';
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act & Assert
+      await expect(
+        service.validateBonusCode(bonusCode, mockSubscriptionId),
+      ).rejects.toThrow('Request timeout after 10000ms');
+    });
+  });
+
   describe('getOptInStatus', () => {
     const mockOptInStatusRequest = {
       addresses: ['0x123456789', '0x987654321', '0xabcdefabc'],
@@ -2501,7 +2731,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(result).toEqual(mockOptInStatusResponse);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/public/rewards/ois',
+        'https://uat.rewards.test/public/rewards/ois',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockOptInStatusRequest),
@@ -2775,7 +3005,7 @@ describe('RewardsDataService', () => {
         // Assert
         expect(mockGetSubscriptionToken).toHaveBeenCalledWith(subscriptionId);
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://api.rewards.test/seasons/season-123/active-boosts',
+          'https://uat.rewards.test/seasons/season-123/active-boosts',
           expect.objectContaining({
             method: 'GET',
             headers: expect.objectContaining({
@@ -2897,7 +3127,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/rewards?seasonId=season-123',
+        'https://uat.rewards.test/rewards?seasonId=season-123',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -2983,7 +3213,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/rewards?seasonId=current',
+        'https://uat.rewards.test/rewards?seasonId=current',
         expect.any(Object),
       );
     });
@@ -3033,7 +3263,7 @@ describe('RewardsDataService', () => {
       expect(result).toEqual(mockOptOutResponse);
       expect(result.success).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/subscriptions/opt-out',
+        'https://uat.rewards.test/wr/subscriptions/opt-out',
         expect.objectContaining({
           method: 'POST',
           credentials: 'omit',
@@ -3255,7 +3485,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/seasons/winter-2024/active-boosts',
+        'https://uat.rewards.test/seasons/winter-2024/active-boosts',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -3294,7 +3524,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        'https://uat.rewards.test/wr/rewards/reward-123/claim',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(undefined),
@@ -3329,7 +3559,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        'https://uat.rewards.test/wr/rewards/reward-123/claim',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(mockDto),
@@ -3358,7 +3588,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/rewards/reward-123/claim',
+        'https://uat.rewards.test/wr/rewards/reward-123/claim',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify(emptyDto),
@@ -3454,7 +3684,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/rewards/special-reward-789/claim',
+        'https://uat.rewards.test/wr/rewards/special-reward-789/claim',
         expect.objectContaining({
           method: 'POST',
         }),
@@ -3519,7 +3749,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/rewards/season-1/linea-tokens',
+        'https://uat.rewards.test/rewards/season-1/linea-tokens',
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -3693,7 +3923,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.rewards.test/wr/subscriptions/apply-referral',
+        'https://uat.rewards.test/wr/subscriptions/apply-referral',
         expect.objectContaining({
           method: 'POST',
           body: JSON.stringify({ referralCode: mockReferralCode }),
@@ -3847,6 +4077,149 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('applyBonusCode', () => {
+    const mockSubscriptionId = 'test-subscription-123';
+    const mockToken = 'test-access-token';
+    const mockBonusCode = 'BNS123';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('should successfully apply bonus code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyBonusCode(
+        { bonusCode: mockBonusCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/wr/subscriptions/apply-bonus-code',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ bonusCode: mockBonusCode }),
+          headers: expect.objectContaining({
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+            'rewards-access-token': mockToken,
+          }),
+          credentials: 'omit',
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should throw error for invalid bonus code', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({ message: 'Invalid bonus code' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Invalid bonus code');
+    });
+
+    it('should throw error with server message for other errors', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Internal server error' }),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Internal server error');
+    });
+
+    it('should throw error with status code when no error message', async () => {
+      // Arrange
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Apply bonus code failed: 500');
+    });
+
+    it('should throw error when fetch fails', async () => {
+      // Arrange
+      const fetchError = new Error('Network error');
+      mockFetch.mockRejectedValue(fetchError);
+
+      // Act & Assert
+      await expect(
+        service.applyBonusCode(
+          { bonusCode: mockBonusCode },
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Network error');
+    });
+
+    it('should handle missing subscription token gracefully', async () => {
+      // Arrange
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: false,
+        token: undefined,
+      });
+      const mockResponse = {
+        ok: true,
+        status: 204,
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      await service.applyBonusCode(
+        { bonusCode: mockBonusCode },
+        mockSubscriptionId,
+      );
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          headers: expect.not.objectContaining({
+            'rewards-access-token': expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
   describe('getSnapshots', () => {
     const mockSeasonId = 'season-123';
     const mockSubscriptionId = 'sub-456';
@@ -3911,7 +4284,7 @@ describe('RewardsDataService', () => {
       // Assert
       expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://api.rewards.test/v1/seasons/${mockSeasonId}/snapshots`,
+        `https://uat.rewards.test/v1/seasons/${mockSeasonId}/snapshots`,
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -3997,7 +4370,7 @@ describe('RewardsDataService', () => {
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://api.rewards.test/v1/seasons/${differentSeasonId}/snapshots`,
+        `https://uat.rewards.test/v1/seasons/${differentSeasonId}/snapshots`,
         expect.any(Object),
       );
     });
@@ -4016,6 +4389,265 @@ describe('RewardsDataService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('getSubscriptionAccounts', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockAccountsResponse = [
+      'eip155:1:0xabc1234567890abcdef1234567890abcdef12345',
+      'eip155:137:0xdef9876543210fedcba9876543210fedcba98765',
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockAccountsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('should successfully return subscription accounts', async () => {
+      // Act
+      const result = await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual(mockAccountsResponse);
+      expect(result).toHaveLength(2);
+    });
+
+    it('should call the correct endpoint with subscription auth', async () => {
+      // Act
+      await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/subscriptions/accounts',
+        expect.objectContaining({
+          method: 'GET',
+          credentials: 'omit',
+          headers: expect.objectContaining({
+            'Content-Type': 'application/json',
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+    });
+
+    it('should throw AuthorizationFailedError on 401 response', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: jest.fn().mockResolvedValue({ message: 'Unauthorized' }),
+      } as unknown as Response);
+
+      // Act & Assert
+      await expect(
+        service.getSubscriptionAccounts(mockSubscriptionId),
+      ).rejects.toBeInstanceOf(AuthorizationFailedError);
+    });
+
+    it('should throw a generic Error on other non-OK responses', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: jest.fn().mockResolvedValue({ message: 'Server error' }),
+      } as unknown as Response);
+
+      // Act & Assert
+      await expect(
+        service.getSubscriptionAccounts(mockSubscriptionId),
+      ).rejects.toThrow('Get subscription accounts failed: 500');
+    });
+
+    it('should return an empty array when the backend returns no accounts', async () => {
+      // Arrange
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue([]),
+      } as unknown as Response);
+
+      // Act
+      const result = await service.getSubscriptionAccounts(mockSubscriptionId);
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getCampaigns', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockToken = 'test-bearer-token';
+
+    const mockCampaignsResponse: CampaignDto[] = [
+      {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        type: 'ONDO_HOLDING' as CampaignDto['type'],
+        name: 'ONDO Holding Campaign',
+        startDate: '2025-01-01T00:00:00.000Z',
+        endDate: '2027-01-01T00:00:00.000Z',
+        termsAndConditions: null,
+        excludedRegions: [],
+        statusLabel: 'Active',
+      },
+    ];
+
+    beforeEach(() => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockCampaignsResponse),
+      } as unknown as Response;
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+    });
+
+    it('fetches campaigns with correct auth headers', async () => {
+      const result = await service.getCampaigns(mockSubscriptionId);
+
+      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(mockSubscriptionId);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/campaigns',
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+            'Content-Type': 'application/json',
+          }),
+          credentials: 'omit',
+        }),
+      );
+      expect(result).toEqual(mockCampaignsResponse);
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('ONDO Holding Campaign');
+    });
+
+    it('returns empty array when API returns no campaigns', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue([]),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getCampaigns(mockSubscriptionId);
+
+      expect(result).toEqual([]);
+    });
+
+    it('throws when response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 401,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
+        'Get campaigns failed: 401',
+      );
+    });
+  });
+
+  describe('optInToCampaign', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: true };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with POST and returns status', async () => {
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/wr/campaigns/${mockCampaignId}/opt-in`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+
+      await expect(
+        service.optInToCampaign(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow('Opt-in to campaign failed: 409');
+    });
+  });
+
+  describe('getCampaignParticipantStatus', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockStatusResponse = { optedIn: false };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockStatusResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with GET and returns status', async () => {
+      const result = await service.getCampaignParticipantStatus(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/campaigns/${mockCampaignId}/status`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockStatusResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getCampaignParticipantStatus(
+          mockSubscriptionId,
+          mockCampaignId,
+        ),
+      ).rejects.toThrow('Get campaign participant status failed: 404');
     });
   });
 });

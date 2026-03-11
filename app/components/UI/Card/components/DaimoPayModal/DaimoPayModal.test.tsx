@@ -5,6 +5,7 @@ import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
+import { cardQueries } from '../../queries';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -31,6 +32,11 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
+}));
+
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     payId: 'test-pay-id-123',
@@ -54,8 +60,10 @@ jest.mock('../../sdk', () => ({
   }),
 }));
 
+const mockReduxDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
+  useDispatch: () => mockReduxDispatch,
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -111,10 +119,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-    color: jest.fn(() => '#000'),
-  }),
+  useTailwind: () => {
+    const { mockTheme } = jest.requireActual('../../../../../util/theme');
+    return {
+      style: jest.fn(() => ({})),
+      color: jest.fn(() => mockTheme.colors.text.default),
+    };
+  },
 }));
 
 jest.mock('../../../../../core/EntryScriptWeb3', () => ({
@@ -154,6 +165,10 @@ jest.mock('../../../../../core/Permissions', () => ({
 
 jest.mock('../../../../../selectors/snaps/permissionController', () => ({
   selectPermissionControllerState: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../../core/redux/slices/card', () => ({
+  selectIsDaimoDemo: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -260,6 +275,16 @@ describe('DaimoPayModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
+
     mockOnMessage = null;
     mockOnError = null;
     mockOnShouldStartLoadWithRequest = null;
@@ -467,6 +492,38 @@ describe('DaimoPayModal', () => {
 
       // In demo mode, paymentCompleted should trigger navigation immediately
       expect(mockDispatch).toHaveBeenCalled();
+    });
+
+    it('clears card-details cache on payment success', async () => {
+      mockGetDaimoEnvironment.mockReturnValue('demo');
+
+      render(<DaimoPayModal />);
+
+      await waitFor(() => {
+        expect(mockOnMessage).not.toBeNull();
+      });
+
+      await act(async () => {
+        if (mockOnMessage) {
+          mockOnMessage({
+            nativeEvent: {
+              data: JSON.stringify({
+                source: 'daimo-pay',
+                version: 1,
+                type: 'paymentCompleted',
+                payload: {
+                  txHash: '0x123',
+                  chainId: 59144,
+                },
+              }),
+            },
+          });
+        }
+      });
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardQueries.dashboard.keys.cardDetails(),
+      });
     });
 
     it('does not navigate on paymentCompleted in production mode - lets polling handle navigation', async () => {

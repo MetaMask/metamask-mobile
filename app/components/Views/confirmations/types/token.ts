@@ -32,39 +32,47 @@ export interface AssetType extends TokenI {
 export interface HighlightedActionButton {
   buttonLabel: string;
   onPress: () => void;
+  isDisabled?: boolean;
 }
 
-export interface HighlightedAssetListItem {
-  type: 'highlighted_asset';
+export type HighlightedItemPosition = 'in_asset_list' | 'outside_of_asset_list';
+
+export interface HighlightedItem {
+  /** Controls where the row is rendered in the asset picker UI. */
+  position: HighlightedItemPosition;
+  /** Either an IconName string or a remote icon URI. */
   icon: string;
+  /** Payment method type identifier used to render a PaymentMethodIcon. Takes precedence over `icon` when set. */
+  paymentType?: string;
+  /** Primary label shown for the highlighted row. */
   name: string;
+  /** Secondary label shown under the primary name. */
   name_description: string;
-  fiat: string;
-  fiat_description: string;
+  /** Callback fired when the row itself is pressed. */
   action: () => void;
+  /** Optional action buttons shown on the right side of the row. */
+  actions?: HighlightedActionButton[];
+  /** Right-side fiat value shown when no action buttons are rendered. */
+  fiat?: string;
+  /** Right-side fiat subtitle shown below the fiat value. */
+  fiat_description?: string;
+  /** Selected state used to apply pressed/selected background styling. */
   isSelected?: boolean;
+  /** Loading state that shows a spinner and hides action buttons. */
+  isLoading?: boolean;
 }
 
-export interface HighlightedActionListItem {
-  type: 'highlighted_action';
-  icon: string;
-  name: string;
-  name_description: string;
-  actions: HighlightedActionButton[];
-}
+export type TokenListItem = AssetType | HighlightedItem;
 
-export type TokenListItem =
-  | AssetType
-  | HighlightedAssetListItem
-  | HighlightedActionListItem;
-
-export const isHighlightedAssetListItem = (
+export const isHighlightedItemInAssetList = (
   item: TokenListItem,
-): item is HighlightedAssetListItem => item.type === 'highlighted_asset';
+): item is HighlightedItem =>
+  'position' in item && item.position === 'in_asset_list';
 
-export const isHighlightedActionListItem = (
+export const isHighlightedItemOutsideAssetList = (
   item: TokenListItem,
-): item is HighlightedActionListItem => item.type === 'highlighted_action';
+): item is HighlightedItem =>
+  'position' in item && item.position === 'outside_of_asset_list';
 
 export interface Nft {
   address: string;

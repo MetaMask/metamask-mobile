@@ -12,6 +12,7 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { isEqual } from 'lodash';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Logger from '../../../../../util/Logger';
@@ -37,6 +38,7 @@ import { getPermittedEvmAddressesByHostname } from '../../../../../core/Permissi
 import { selectPermissionControllerState } from '../../../../../selectors/snaps/permissionController';
 import type { RootState } from '../../../../../reducers';
 import { selectIsDaimoDemo } from '../../../../../core/redux/slices/card';
+import { cardQueries } from '../../queries';
 import { getDaimoEnvironment } from '../../util/getDaimoEnvironment';
 
 const POLLING_INTERVAL_MS = 5000;
@@ -75,6 +77,7 @@ const DaimoPayModal: React.FC = () => {
   const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
 
   const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { payId, fromUpgrade, orderId } = useParams<DaimoPayModalParams>();
   const tw = useTailwind();
@@ -166,6 +169,10 @@ const DaimoPayModal: React.FC = () => {
         pollingIntervalRef.current = null;
       }
 
+      queryClient.invalidateQueries({
+        queryKey: cardQueries.dashboard.keys.cardDetails(),
+      });
+
       const parentNavigator = navigation.dangerouslyGetParent();
       if (parentNavigator) {
         parentNavigator.dispatch(
@@ -203,7 +210,7 @@ const DaimoPayModal: React.FC = () => {
         );
       }
     },
-    [trackEvent, createEventBuilder, navigation, fromUpgrade],
+    [trackEvent, createEventBuilder, navigation, fromUpgrade, queryClient],
   );
 
   const handlePaymentBounced = useCallback(
@@ -617,7 +624,7 @@ const DaimoPayModal: React.FC = () => {
 
   return (
     <View
-      style={[baseStyles.absoluteFill, tw.style('bg-transparent')]}
+      style={[baseStyles.absoluteFill, tw.style('bg-black/40')]}
       testID={DaimoPayModalSelectors.CONTAINER}
     >
       <WebView

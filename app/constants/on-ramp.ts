@@ -8,6 +8,8 @@ export enum FIAT_ORDER_PROVIDERS {
   // The key for fiat on-ramp aggregator
   AGGREGATOR = 'AGGREGATOR',
   DEPOSIT = 'DEPOSIT',
+  // The key for V2 unified ramps orders
+  RAMPS_V2 = 'RAMPS_V2',
 }
 
 export enum FIAT_ORDER_STATES {

@@ -4,6 +4,7 @@
 
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
+import { safeGetBodyText } from '../../MockServerE2E.ts';
 import {
   POLYMARKET_CURRENT_POSITIONS_RESPONSE,
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
@@ -437,7 +438,10 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback(async (request) => {
-      const bodyText = await request.body.getText();
+      const bodyText = await safeGetBodyText(request);
+      if (bodyText === undefined) {
+        return { statusCode: 499, body: '' };
+      }
       const body = bodyText ? JSON.parse(bodyText) : [];
 
       // Extract unique token IDs from the request
@@ -510,6 +514,23 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
         statusCode: 200,
         json: pricesResponse,
       };
+    });
+};
+
+export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = new URL(request.url).searchParams.get('url');
+      return Boolean(
+        url &&
+          url.includes('clob.polymarket.com/fee-rate') &&
+          url.includes('token_id='),
+      );
+    })
+    .asPriority(PRIORITY.BASE)
+    .thenReply(200, JSON.stringify({ base_fee: 0 }), {
+      'content-type': 'application/json',
     });
 };
 
@@ -770,7 +791,10 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
     })
     .asPriority(PRIORITY.BASE)
     .thenCallback(async (request) => {
-      const bodyText = await request.body.getText();
+      const bodyText = await safeGetBodyText(request);
+      if (bodyText === undefined) {
+        return { statusCode: 499, body: '' };
+      }
       const body = bodyText ? JSON.parse(bodyText) : undefined;
 
       // Return appropriate mock response based on the call
@@ -1231,7 +1255,10 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
     })
     .asPriority(PRIORITY.BALANCE_REFRESH_PROXY) // Higher priority (1005) to catch balance refresh calls before base mocks
     .thenCallback(async (request) => {
-      const bodyText = await request.body.getText();
+      const bodyText = await safeGetBodyText(request);
+      if (bodyText === undefined) {
+        return { statusCode: 499, body: '' };
+      }
       const body = bodyText ? JSON.parse(bodyText) : undefined;
 
       // Return the current global balance (not a captured value)
@@ -1287,7 +1314,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
           order.taker === '0x0000000000000000000000000000000000000000' &&
           order.expiration === '0' &&
           order.nonce === '0' &&
-          order.feeRateBps === '0' &&
+          typeof order.feeRateBps === 'string' &&
           order.side === 'SELL' &&
           order.signatureType === 2 &&
           typeof order.salt === 'number' &&
@@ -1909,5 +1936,6 @@ export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
   await POLYMARKET_EVENT_DETAILS_MOCKS(mockServer);
   await POLYMARKET_ORDER_BOOK_MOCKS(mockServer);
   await POLYMARKET_PRICES_MOCKS(mockServer); // Mock for CLOB prices API
+  await POLYMARKET_FEE_RATE_MOCKS(mockServer);
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
 };

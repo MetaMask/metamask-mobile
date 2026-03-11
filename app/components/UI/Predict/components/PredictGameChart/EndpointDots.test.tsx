@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import EndpointDots from './EndpointDots';
 import { GameChartSeries } from './PredictGameChart.types';
-import { brandColor } from '@metamask/design-tokens';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-svg', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -34,13 +34,12 @@ jest.mock('react-native-svg', () => {
   };
 });
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: { default: '#000000' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 const mockXFunction = (index: number) => index * 10 + 50;
 const mockYFunction = (value: number) => 200 - value * 2;
@@ -48,7 +47,7 @@ const mockYFunction = (value: number) => 200 - value * 2;
 const mockNonEmptySeries: GameChartSeries[] = [
   {
     label: 'Team A',
-    color: '#FF0000',
+    color: TEST_HEX_COLORS.PURE_RED,
     data: [
       { timestamp: 1704067200000, value: 50 },
       { timestamp: 1704070800000, value: 55 },
@@ -57,7 +56,7 @@ const mockNonEmptySeries: GameChartSeries[] = [
   },
   {
     label: 'Team B',
-    color: '#0000FF',
+    color: TEST_HEX_COLORS.PURE_BLUE,
     data: [
       { timestamp: 1704067200000, value: 50 },
       { timestamp: 1704070800000, value: 45 },
@@ -152,7 +151,7 @@ describe('EndpointDots', () => {
 
     it('handles series with empty data array', () => {
       const emptyDataSeries: GameChartSeries[] = [
-        { label: 'Empty', color: brandColor.black, data: [] },
+        { label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] },
       ];
 
       const { queryAllByTestId } = render(
@@ -178,7 +177,7 @@ describe('EndpointDots', () => {
       const differentLengthSeries: GameChartSeries[] = [
         {
           label: 'Primary',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [
             { timestamp: 1704067200000, value: 50 },
             { timestamp: 1704070800000, value: 55 },
@@ -189,7 +188,7 @@ describe('EndpointDots', () => {
         },
         {
           label: 'Overlay',
-          color: '#0000FF',
+          color: TEST_HEX_COLORS.PURE_BLUE,
           data: [
             { timestamp: 1704067200000, value: 50 },
             { timestamp: 1704070800000, value: 45 },
@@ -227,12 +226,12 @@ describe('EndpointDots', () => {
       const closeValuesSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [{ timestamp: 1704067200000, value: 50 }],
         },
         {
           label: 'Team B',
-          color: '#0000FF',
+          color: TEST_HEX_COLORS.PURE_BLUE,
           data: [{ timestamp: 1704067200000, value: 51 }],
         },
       ];
@@ -249,12 +248,12 @@ describe('EndpointDots', () => {
       const farApartSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [{ timestamp: 1704067200000, value: 20 }],
         },
         {
           label: 'Team B',
-          color: '#0000FF',
+          color: TEST_HEX_COLORS.PURE_BLUE,
           data: [{ timestamp: 1704067200000, value: 80 }],
         },
       ];
@@ -271,12 +270,12 @@ describe('EndpointDots', () => {
       const firstAboveSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [{ timestamp: 1704067200000, value: 71 }],
         },
         {
           label: 'Team B',
-          color: '#0000FF',
+          color: TEST_HEX_COLORS.PURE_BLUE,
           data: [{ timestamp: 1704067200000, value: 70 }],
         },
       ];
@@ -292,12 +291,12 @@ describe('EndpointDots', () => {
       const firstBelowSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [{ timestamp: 1704067200000, value: 30 }],
         },
         {
           label: 'Team B',
-          color: '#0000FF',
+          color: TEST_HEX_COLORS.PURE_BLUE,
           data: [{ timestamp: 1704067200000, value: 31 }],
         },
       ];
@@ -315,7 +314,7 @@ describe('EndpointDots', () => {
       const decimalSeries: GameChartSeries[] = [
         {
           label: 'Team A',
-          color: '#FF0000',
+          color: TEST_HEX_COLORS.PURE_RED,
           data: [{ timestamp: 1704067200000, value: 55.7 }],
         },
       ];

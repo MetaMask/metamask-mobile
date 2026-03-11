@@ -27,6 +27,9 @@ import rewardsReducer, {
   setSnapshots,
   setSnapshotsLoading,
   setSnapshotsError,
+  setCampaigns,
+  setCampaignsLoading,
+  setCampaignsError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -43,6 +46,8 @@ import {
   RewardClaimStatus,
   PointsEventDto,
   SnapshotDto,
+  CampaignDto,
+  CampaignType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2132,6 +2137,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const action = resetRewardsState();
 
@@ -2235,6 +2243,9 @@ describe('rewardsReducer', () => {
         snapshots: null,
         snapshotsLoading: false,
         snapshotsError: false,
+        campaigns: [],
+        campaignsLoading: false,
+        campaignsError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4772,5 +4783,157 @@ describe('setSnapshotsError', () => {
     action = setSnapshotsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.snapshotsError).toBe(true);
+  });
+});
+
+const mockCampaign: CampaignDto = {
+  id: 'campaign-1',
+  type: 'ONDO_HOLDING' as CampaignType,
+  name: 'ONDO Holding Campaign',
+  startDate: '2025-01-01T00:00:00.000Z',
+  endDate: '2027-01-01T00:00:00.000Z',
+  termsAndConditions: null,
+  excludedRegions: [],
+  statusLabel: 'Active',
+};
+
+describe('setCampaigns', () => {
+  it('should set campaigns array', () => {
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should replace existing campaigns with new ones', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+    };
+    const newCampaign: CampaignDto = {
+      ...mockCampaign,
+      id: 'campaign-2',
+      name: 'New Campaign',
+    };
+    const action = setCampaigns([newCampaign]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toHaveLength(1);
+    expect(state.campaigns[0].id).toBe('campaign-2');
+  });
+
+  it('should set campaigns to empty array', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+    };
+    const action = setCampaigns([]);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaigns).toEqual([]);
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should reset campaignsError when setting campaigns', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+    };
+    const action = setCampaigns([mockCampaign]);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaigns).toEqual([mockCampaign]);
+    expect(state.campaignsError).toBe(false);
+  });
+});
+
+describe('setCampaignsLoading', () => {
+  it('should set campaignsLoading to true when no campaigns exist', () => {
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsLoading).toBe(true);
+  });
+
+  it('should not set loading to true when campaigns already exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: false,
+    };
+    const action = setCampaignsLoading(true);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false when loading is true', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      campaignsLoading: true,
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+
+  it('should set campaignsLoading to false even when campaigns exist', () => {
+    const stateWithCampaigns: RewardsState = {
+      ...initialState,
+      campaigns: [mockCampaign],
+      campaignsLoading: true,
+    };
+    const action = setCampaignsLoading(false);
+
+    const state = rewardsReducer(stateWithCampaigns, action);
+
+    expect(state.campaignsLoading).toBe(false);
+  });
+});
+
+describe('setCampaignsError', () => {
+  it('should set campaignsError to true', () => {
+    const action = setCampaignsError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.campaignsError).toBe(true);
+  });
+
+  it('should set campaignsError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.campaignsError).toBe(false);
+  });
+
+  it('should toggle error state correctly', () => {
+    let currentState = initialState;
+
+    let action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
+
+    action = setCampaignsError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(false);
+
+    action = setCampaignsError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.campaignsError).toBe(true);
   });
 });

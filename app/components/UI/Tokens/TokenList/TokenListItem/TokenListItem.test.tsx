@@ -21,13 +21,12 @@ import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTo
 import { useMusdConversionEligibility } from '../../../Earn/hooks/useMusdConversionEligibility';
 import {
   selectIsMusdConversionFlowEnabledFlag,
-  selectMerklCampaignClaimingEnabledFlag,
+  selectMusdQuickConvertEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../Earn/selectors/featureFlags';
-import { isEligibleForMerklRewards } from '../../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
-import { lightTheme } from '@metamask/design-tokens';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -91,11 +90,11 @@ jest.mock('../../../Earn/hooks/useEarnTokens', () => ({
   default: () => ({ getEarnToken: mockGetEarnToken }),
 }));
 
-const mockInitiateConversion = jest.fn();
+const mockInitiateCustomConversion = jest.fn().mockResolvedValue(undefined);
 let mockHasSeenConversionEducationScreen = true;
 jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
   useMusdConversion: () => ({
-    initiateConversion: mockInitiateConversion,
+    initiateCustomConversion: mockInitiateCustomConversion,
     error: null,
     hasSeenConversionEducationScreen: mockHasSeenConversionEducationScreen,
   }),
@@ -154,34 +153,16 @@ jest.mock('../../../Stake/hooks/useStakingChain', () => ({
 }));
 
 const mockClaimRewards = jest.fn();
-const mockUseMerklClaim = jest.fn((_asset?: unknown) => ({
-  claimRewards: mockClaimRewards,
-  isClaiming: false,
-  error: null,
-}));
-jest.mock('../../../Earn/components/MerklRewards/hooks/useMerklClaim', () => ({
-  useMerklClaim: (...args: [unknown]) => mockUseMerklClaim(...args),
-}));
-
-const mockUsePendingMerklClaim = jest.fn(() => ({
-  hasPendingClaim: false,
-}));
-jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/usePendingMerklClaim',
-  () => ({
-    usePendingMerklClaim: () => mockUsePendingMerklClaim(),
-  }),
-);
-
-const mockUseMerklRewards = jest.fn((_opts?: unknown) => ({
+const mockUseMerklBonusClaim = jest.fn((_asset?: unknown) => ({
   claimableReward: null as string | null,
-  isLoading: false,
+  hasPendingClaim: false,
+  isClaiming: false,
+  claimRewards: mockClaimRewards,
 }));
 jest.mock(
-  '../../../Earn/components/MerklRewards/hooks/useMerklRewards',
+  '../../../Earn/components/MerklRewards/hooks/useMerklBonusClaim',
   () => ({
-    useMerklRewards: (...args: [unknown]) => mockUseMerklRewards(...args),
-    isEligibleForMerklRewards: jest.fn(() => false),
+    useMerklBonusClaim: (...args: [unknown]) => mockUseMerklBonusClaim(...args),
   }),
 );
 
@@ -189,8 +170,8 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingEnabledFlag: jest.fn(() => true),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
   selectMusdConversionPaymentTokensAllowlist: jest.fn(() => ({})),
-  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockSelectIsMusdConversionFlowEnabledFlag =
@@ -201,6 +182,11 @@ const mockSelectIsMusdConversionFlowEnabledFlag =
 const mockSelectStablecoinLendingEnabledFlag =
   selectStablecoinLendingEnabledFlag as jest.MockedFunction<
     typeof selectStablecoinLendingEnabledFlag
+  >;
+
+const mockSelectMusdQuickConvertEnabledFlag =
+  selectMusdQuickConvertEnabledFlag as jest.MockedFunction<
+    typeof selectMusdQuickConvertEnabledFlag
   >;
 
 jest.mock('../../util/deriveBalanceFromAssetMarketDetails', () => ({
@@ -324,14 +310,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset?: TokenI;
     pricePercentChange1d?: number;
     isMusdConversionEnabled?: boolean;
+    isQuickConvertEnabled?: boolean;
     isTokenWithCta?: boolean;
     isGeoEligible?: boolean;
     isStockToken?: boolean;
     isStablecoinLendingEnabled?: boolean;
     earnToken?: Record<string, unknown> | null;
-    isMerklCampaignClaimingEnabled?: boolean;
     claimableReward?: string | null;
-    isMerklEligible?: boolean;
     hasPendingClaim?: boolean;
     isClaiming?: boolean;
   }
@@ -340,14 +325,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     asset,
     pricePercentChange1d = 5.67,
     isMusdConversionEnabled = false,
+    isQuickConvertEnabled = false,
     isTokenWithCta = false,
     isGeoEligible = true,
     isStockToken = false,
     isStablecoinLendingEnabled = false,
     earnToken,
-    isMerklCampaignClaimingEnabled = false,
     claimableReward = null,
-    isMerklEligible = false,
     hasPendingClaim = false,
     isClaiming = false,
   }: PrepareMocksOptions = {}) {
@@ -358,17 +342,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStablecoinLendingEnabled,
     );
 
-    // Merkl claim mocks
-    mockUseMerklRewards.mockReturnValue({
+    mockUseMerklBonusClaim.mockReturnValue({
       claimableReward,
-      isLoading: false,
-    });
-    (isEligibleForMerklRewards as jest.Mock).mockReturnValue(isMerklEligible);
-    mockUsePendingMerklClaim.mockReturnValue({ hasPendingClaim });
-    mockUseMerklClaim.mockReturnValue({
-      claimRewards: mockClaimRewards,
+      hasPendingClaim,
       isClaiming,
-      error: null,
+      claimRewards: mockClaimRewards,
     });
 
     // Stock token mocks
@@ -394,6 +372,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     // mUSD conversion mocks
     mockSelectIsMusdConversionFlowEnabledFlag.mockReturnValue(
       isMusdConversionEnabled,
+    );
+    mockSelectMusdQuickConvertEnabledFlag.mockReturnValue(
+      isQuickConvertEnabled,
     );
     mockUseMusdConversionTokens.mockReturnValue({
       isConversionToken: jest.fn().mockReturnValue(false),
@@ -424,8 +405,8 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           return isStablecoinLendingEnabled;
         }
 
-        if (selector === selectMerklCampaignClaimingEnabledFlag) {
-          return isMerklCampaignClaimingEnabled;
+        if (selector === selectMusdQuickConvertEnabledFlag) {
+          return isQuickConvertEnabled;
         }
 
         const selectorString = selector.toString();
@@ -489,6 +470,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -517,13 +499,14 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
 
       expect(percentageText.props.children).toBe('+5.67%');
-      expect(percentageText.props.style.color).toBe(lightTheme.colors.success.default);
+      expect(percentageText.props.style.color).toBe('#457a39');
     });
 
     it('covers Number.isFinite check preventing Infinity', () => {
@@ -544,6 +527,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -568,6 +552,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -592,6 +577,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -617,6 +603,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -660,6 +647,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -680,6 +668,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -707,6 +696,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -729,6 +719,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -736,7 +727,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(queryByText('Convert to mUSD')).toBeNull();
     });
 
-    it('calls initiateConversion with correct parameters when secondary balance is pressed', async () => {
+    it('calls initiateCustomConversion with correct parameters when secondary balance is pressed', async () => {
       prepareMocks({
         asset: usdcAsset,
         isMusdConversionEnabled: true,
@@ -749,6 +740,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -757,12 +749,13 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       });
 
       await waitFor(() => {
-        expect(mockInitiateConversion).toHaveBeenCalledWith({
+        expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
           preferredPaymentToken: {
             address: toHex('0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'),
             chainId: toHex('0x1'),
           },
           navigationStack: Routes.EARN.ROOT,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
       });
     });
@@ -788,6 +781,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -848,6 +842,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -874,6 +869,68 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         location: 'token_list_item',
         redirects_to: 'custom_amount_screen',
+        cta_type: 'musd_conversion_secondary_cta',
+        cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+        network_chain_id: usdcAsset.chainId,
+        network_name: 'Ethereum Mainnet',
+        asset_symbol: usdcAsset.symbol,
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
+    });
+
+    it('tracks mUSD conversion CTA clicked event with quick convert redirect when education screen has been seen and quick convert is enabled', async () => {
+      // Arrange
+      mockHasSeenConversionEducationScreen = true;
+      prepareMocks({
+        asset: usdcAsset,
+        isMusdConversionEnabled: true,
+        isQuickConvertEnabled: true,
+        isTokenWithCta: true,
+      });
+
+      const convertAssetKey: FlashListAssetKey = {
+        address: usdcAsset.address,
+        chainId: usdcAsset.chainId,
+        isStaked: false,
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <TokenListItem
+          assetKey={convertAssetKey}
+          showRemoveMenu={jest.fn()}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
+        />,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      mockBuild.mockClear();
+
+      // Act
+      await act(async () => {
+        fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
+      });
+
+      // Assert
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      const { MetaMetricsEvents } = jest.requireActual(
+        '../../../../hooks/useMetrics',
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        location: 'token_list_item',
+        redirects_to: 'quick_convert_home_screen',
         cta_type: 'musd_conversion_secondary_cta',
         cta_text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
           percentage: MUSD_CONVERSION_APY,
@@ -917,6 +974,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -936,6 +994,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -955,6 +1014,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -978,6 +1038,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -996,6 +1057,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1017,6 +1079,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1042,6 +1105,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1073,6 +1137,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1100,6 +1165,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1137,6 +1203,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1164,6 +1231,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={mockShowRemoveMenu}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1180,7 +1248,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   });
 
   describe('Merkl Claim Bonus', () => {
-    // Use an address that isEligibleForMerklRewards would accept
+    // Use an address that isTokenEligibleForMerklRewards would accept
     const claimableAsset = {
       ...defaultAsset,
       address: '0x8d652c6d4A8F3Db96Cd866C1a9220B1447F29898',
@@ -1193,14 +1261,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       isStaked: false,
     };
 
-    it('shows "Claim bonus" CTA when all conditions are met', () => {
+    it('shows "Claim bonus" CTA when claimableReward exists and no pending claim', () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-        hasPendingClaim: false,
-        isClaiming: false,
       });
 
       const { getByText } = renderWithProvider(
@@ -1209,21 +1273,18 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
       expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
     });
 
-    it('hides "Claim bonus" CTA when hasPendingClaim is true', () => {
+    it('hides "Claim bonus" CTA when claimableReward is null', () => {
       prepareMocks({
         asset: claimableAsset,
         pricePercentChange1d: 2.0,
-        isMerklCampaignClaimingEnabled: true,
-        claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-        hasPendingClaim: true,
-        isClaiming: false,
+        claimableReward: null,
       });
 
       const { queryByText, getByText } = renderWithProvider(
@@ -1232,10 +1293,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
-      // Should fall through to percentage display instead
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
       expect(getByText('+2.00%')).toBeOnTheScreen();
     });
@@ -1243,19 +1304,22 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('calls claimRewards when "Claim bonus" CTA is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <TokenListItem
           assetKey={assetKey}
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
+
+      await waitFor(() => {
+        expect(getByText(strings('earn.claim_bonus'))).toBeOnTheScreen();
+      });
 
       await act(async () => {
         fireEvent.press(getByTestId(SECONDARY_BALANCE_BUTTON_TEST_ID));
@@ -1267,9 +1331,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     it('tracks mUSD Claim Bonus Button Clicked event when claim bonus is pressed', async () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
       });
 
       const { getByTestId } = renderWithProvider(
@@ -1278,6 +1340,7 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
@@ -1312,12 +1375,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
-    it('shows ActivityIndicator instead of text when isClaiming is true', () => {
+    it('shows Spinner instead of text when isClaiming is true', () => {
       prepareMocks({
         asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
         claimableReward: '1000000000000000000',
-        isMerklEligible: true,
         isClaiming: true,
       });
 
@@ -1327,68 +1388,21 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
-      // "Claim bonus" text should not be rendered
       expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
 
-      // Spinner should be rendered
       const { Spinner } = jest.requireActual(
         '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs',
       );
       expect(UNSAFE_getByType(Spinner)).toBeTruthy();
     });
 
-    it('hides "Claim bonus" when merkl campaign claiming is disabled', () => {
+    it('passes asset to useMerklBonusClaim hook', () => {
       prepareMocks({
         asset: claimableAsset,
-        pricePercentChange1d: 1.5,
-        isMerklCampaignClaimingEnabled: false,
-        claimableReward: '1000000000000000000',
-        isMerklEligible: true,
-      });
-
-      const { queryByText, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-      expect(getByText('+1.50%')).toBeOnTheScreen();
-    });
-
-    it('hides "Claim bonus" when there is no claimable reward', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        pricePercentChange1d: 3.0,
-        isMerklCampaignClaimingEnabled: true,
-        claimableReward: null,
-        isMerklEligible: true,
-      });
-
-      const { queryByText, getByText } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByText(strings('earn.claim_bonus'))).toBeNull();
-      expect(getByText('+3.00%')).toBeOnTheScreen();
-    });
-
-    it('passes asset to useMerklClaim hook via MerklClaimHandler', () => {
-      prepareMocks({
-        asset: claimableAsset,
-        isMerklCampaignClaimingEnabled: true,
-        isMerklEligible: true,
       });
 
       renderWithProvider(
@@ -1397,34 +1411,11 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
           showRemoveMenu={jest.fn()}
           setShowScamWarningModal={jest.fn()}
           privacyMode={false}
+          shouldShowTokenListItemCta={mockShouldShowTokenListItemCta}
         />,
       );
 
-      expect(mockUseMerklClaim).toHaveBeenCalledWith(claimableAsset);
-    });
-
-    it('does not mount MerklClaimHandler when asset is not eligible', () => {
-      prepareMocks({
-        asset: undefined,
-        isMerklEligible: false,
-      });
-
-      const emptyAssetKey: FlashListAssetKey = {
-        address: '0x999',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      renderWithProvider(
-        <TokenListItem
-          assetKey={emptyAssetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(mockUseMerklClaim).not.toHaveBeenCalled();
+      expect(mockUseMerklBonusClaim).toHaveBeenCalledWith(claimableAsset);
     });
   });
 });

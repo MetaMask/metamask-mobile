@@ -5,28 +5,22 @@ import React, {
   useEffect,
   useImperativeHandle,
   useMemo,
+  useRef,
 } from 'react';
 import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import { InteractionManager, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
-import { TokenI } from './types';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { strings } from '../../../../locales/i18n';
-import {
-  refreshTokens,
-  removeEvmToken,
-  removeNonEvmToken,
-  goToAddEvmToken,
-} from './util';
+import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -36,18 +30,13 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
+import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
 import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
-
-interface TokenListNavigationParamList {
-  AddAsset: { assetType: string };
-  [key: string]: undefined | object;
-}
 
 interface TokensProps {
   /**
@@ -58,10 +47,7 @@ interface TokensProps {
 
 const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   ({ isFullView = false }, ref) => {
-    const navigation =
-      useNavigation<
-        StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>
-      >();
+    const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
@@ -72,14 +58,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
-    const [removeTokenState, setRemoveTokenState] = useState<
-      { isVisible: true; token: TokenI } | { isVisible: false }
-    >({ isVisible: false });
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-
-    const selectInternalAccountByScope = useSelector(
-      selectSelectedInternalAccountByScope,
-    );
 
     const selectedSolanaAccount =
       useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
@@ -95,8 +74,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
-    const [showScamWarningModal, setShowScamWarningModal] = useState(false);
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
+    const hasTrackedScreenViewRef = useRef(false);
 
     // Memoize selector computation for better performance
     const sortedTokenKeys = useSelector(
@@ -123,9 +102,36 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       }
     }, [sortedTokenKeys, hasInitialLoad]);
 
-    const showRemoveMenu = useCallback((token: TokenI) => {
-      setRemoveTokenState({ isVisible: true, token });
-    }, []);
+    useEffect(() => {
+      if (!isFullView || !hasInitialLoad || hasTrackedScreenViewRef.current)
+        return;
+      hasTrackedScreenViewRef.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.POSITION_SCREEN_VIEWED)
+          .addProperties({
+            item_count: sortedTokenKeys.length,
+            location: 'homepage',
+            is_empty: sortedTokenKeys.length === 0,
+            screen_type: 'tokens',
+          })
+          .build(),
+      );
+    }, [
+      isFullView,
+      hasInitialLoad,
+      sortedTokenKeys.length,
+      trackEvent,
+      createEventBuilder,
+    ]);
+
+    const {
+      removeTokenState,
+      showRemoveMenu,
+      removeToken,
+      handleClose: handleCloseRemoveTokenBottomSheet,
+      showScamWarningModal,
+      setShowScamWarningModal,
+    } = useRemoveToken();
 
     const onRefresh = useCallback(async () => {
       setRefreshing(true);
@@ -157,40 +163,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       refresh: onRefresh,
     }));
 
-    const removeToken = useCallback(async () => {
-      if (!removeTokenState.isVisible) return;
-
-      const tokenToRemove = removeTokenState.token;
-
-      // Reset state immediately to prevent issues if onClose fires first
-      setRemoveTokenState({ isVisible: false });
-
-      if (tokenToRemove?.chainId !== undefined) {
-        if (isNonEvmChainId(tokenToRemove.chainId)) {
-          await removeNonEvmToken({
-            tokenAddress: tokenToRemove.address,
-            tokenChainId: tokenToRemove.chainId,
-            selectInternalAccountByScope,
-          });
-        } else {
-          await removeEvmToken({
-            tokenToRemove,
-            currentChainId,
-            trackEvent,
-            strings,
-            getDecimalChainId,
-            createEventBuilder,
-          });
-        }
-      }
-    }, [
-      removeTokenState,
-      currentChainId,
-      trackEvent,
-      createEventBuilder,
-      selectInternalAccountByScope,
-    ]);
-
     const goToAddToken = useCallback(() => {
       goToAddEvmToken({
         navigation,
@@ -201,13 +173,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       });
     }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-    const handleCloseRemoveTokenBottomSheet = useCallback(() => {
-      setRemoveTokenState({ isVisible: false });
-    }, []);
-
-    const handleScamWarningModal = useCallback(() => {
-      setShowScamWarningModal((prev) => !prev);
-    }, []);
+    const handleScamWarningModal = useCallback(
+      (chainId: string | null) => {
+        setShowScamWarningModal(chainId);
+      },
+      [setShowScamWarningModal],
+    );
 
     const maxItems = useMemo(() => {
       if (isFullView) {

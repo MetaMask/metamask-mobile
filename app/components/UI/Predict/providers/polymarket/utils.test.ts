@@ -52,6 +52,7 @@ import {
   getMarketsFromPolymarketApi,
   getParsedMarketsFromPolymarketApi,
   getOrderBook,
+  getFeeRateBps,
   getOrderTypedData,
   getPolymarketEndpoints,
   getPredictPositionStatus,
@@ -553,6 +554,45 @@ describe('polymarket utils', () => {
     });
   });
 
+  describe('getFeeRateBps', () => {
+    it('returns fee rate from CLOB fee-rate endpoint', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ base_fee: 30 }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('30');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://clob.polymarket.com/fee-rate?token_id=test-token',
+        { method: 'GET' },
+      );
+    });
+
+    it('returns zero fee rate when fee-rate endpoint responds with error', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 404,
+        json: jest
+          .fn()
+          .mockResolvedValue({ error: 'fee rate not found for market' }),
+      });
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
+    });
+
+    it('returns zero fee rate when fee-rate endpoint throws', async () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      const result = await getFeeRateBps({ tokenId: 'test-token' });
+
+      expect(result).toBe('0');
+    });
+  });
+
   describe('generateSalt', () => {
     it('generate a valid hex salt', () => {
       const salt = generateSalt();
@@ -936,6 +976,81 @@ describe('polymarket utils', () => {
         },
       );
     });
+
+    it('includes executor in request body when provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        executor: '0x1111111111111111111111111111111111111111',
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.executor).toBe(
+        '0x1111111111111111111111111111111111111111',
+      );
+    });
+
+    it('supports Permit2 fee authorization payload in request body', async () => {
+      const feeAuthorization = {
+        type: 'safe-permit2' as const,
+        authorization: {
+          permit: {
+            permitted: {
+              token: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              amount: '1000000',
+            },
+            nonce: '0',
+            deadline: '1700000000',
+          },
+          spender: '0x1111111111111111111111111111111111111111',
+          signature: '0xabc',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
+
+    it('includes allowancesTx in request body when provided', async () => {
+      const allowancesTx = { to: '0xSafeAddress', data: '0xallowanceData' };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        allowancesTx,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.allowancesTx).toEqual(allowancesTx);
+    });
+
+    it('omits allowancesTx from request body when not provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).not.toHaveProperty('allowancesTx');
+    });
   });
 
   describe('parsePolymarketEvents', () => {
@@ -954,7 +1069,8 @@ describe('polymarket utils', () => {
         {
           conditionId: 'market-1',
           question: 'Will it rain?',
-          description: 'Weather prediction',
+          // Event description matches markets' descriptions (as per Polymarket's team)
+          description: 'A test event',
           icon: 'https://example.com/market-icon.png',
           image: 'https://example.com/market-image.png',
           groupItemTitle: 'Weather',
@@ -998,7 +1114,7 @@ describe('polymarket utils', () => {
             providerId: POLYMARKET_PROVIDER_ID,
             marketId: 'event-1',
             title: 'Will it rain?',
-            description: 'Weather prediction',
+            description: 'A test event',
             image: 'https://example.com/market-icon.png',
             groupItemTitle: 'Weather',
             status: 'open',
@@ -2746,6 +2862,8 @@ describe('polymarket utils', () => {
       expect(fees.metamaskFee).toBe(expectedMetamaskFee);
       expect(fees.totalFeePercentage).toBe(totalFeePercentage);
       expect(fees.collector).toBe(feeCollection.collector);
+      expect(fees.executors).toEqual(feeCollection.executors ?? []);
+      expect(fees.permit2Enabled).toBe(feeCollection.permit2Enabled ?? false);
     });
 
     it('calculates fees correctly for various amounts', async () => {
@@ -2822,6 +2940,8 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
     });
 
     it('waives fees for markets in waiveList', async () => {
@@ -2852,6 +2972,27 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
+    });
+
+    it('returns executors and permit2Enabled from feeCollection config', async () => {
+      const params = {
+        feeCollection: {
+          ...feeCollection,
+          executors: ['0x1111111111111111111111111111111111111111'],
+          permit2Enabled: true,
+        },
+        marketId: 'market-1',
+        userBetAmount: 100,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual([
+        '0x1111111111111111111111111111111111111111',
+      ]);
+      expect(fees.permit2Enabled).toBe(true);
     });
   });
 
@@ -3253,7 +3394,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 30 }),
       });
 
       const result = await previewOrder({
@@ -3269,6 +3410,7 @@ describe('polymarket utils', () => {
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.maxAmountSpent).toBeGreaterThan(0);
       expect(result.slippage).toBeDefined();
+      expect(result.feeRateBps).toBe('30');
     });
 
     it('previews SELL order successfully', async () => {
@@ -3291,7 +3433,7 @@ describe('polymarket utils', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ tags: [] }),
+        json: async () => ({ base_fee: 15 }),
       });
 
       const result = await previewOrder({
@@ -3306,6 +3448,7 @@ describe('polymarket utils', () => {
       expect(result.marketId).toBe('market-1');
       expect(result.sharePrice).toBeGreaterThan(0);
       expect(result.fees).toBeUndefined();
+      expect(result.feeRateBps).toBe('15');
     });
 
     it('throws error when orderbook is not available', async () => {

@@ -39,7 +39,9 @@ const expectedEventNames = [
   expectedEvents.UnifiedSwapBridgeCompleted,
 ];
 
-describe(SmokeTrade('Swap from Actions'), (): void => {
+// Disabling this test as we've been experiencing issues with the test setup
+// See: https://github.com/MetaMask/metamask-mobile/actions/runs/22703717413/job/65827036980
+describe.skip(SmokeTrade('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(180000);
   });
@@ -51,13 +53,11 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
           .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
@@ -190,11 +190,13 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
     );
     await softAssert.checkAndCollect(
       async () =>
-        await Assertions.checkIfArrayHasLength(
+        // if the UI re-renders, it'll fetch extra quotes, so we need to check
+        // for at least 3 events
+        await Assertions.checkIfArrayHasMinLength(
           unifiedSwapBridgeQuotesRequested,
           3,
         ),
-      'Unified SwapBridge Quotes Requested: Should have 3 events',
+      'Unified SwapBridge Quotes Requested: Should have at least 3 events',
     );
     for (const event of unifiedSwapBridgeQuotesRequested) {
       await softAssert.checkAndCollect(

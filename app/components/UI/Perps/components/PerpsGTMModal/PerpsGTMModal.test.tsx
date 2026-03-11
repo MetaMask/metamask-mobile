@@ -8,26 +8,13 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { brandColor } from '@metamask/design-tokens';
 
-const mockTheme = {
-  colors: {
-    background: {
-      default: brandColor.white,
-      alternative: '#f2f4f6',
-    },
-    text: {
-      default: '#24272a',
-    },
-    shadow: {
-      default: brandColor.black,
-    },
-  },
-};
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({ theme: mockTheme }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,

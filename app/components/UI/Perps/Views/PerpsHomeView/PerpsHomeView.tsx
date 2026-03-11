@@ -15,7 +15,6 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import {
@@ -45,6 +44,7 @@ import {
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
 import PerpsWatchlistMarkets from '../../components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -74,13 +74,14 @@ import PerpsNavigationCard, {
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Feature flag for feedback button
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -232,10 +233,7 @@ const PerpsHomeView = () => {
         })
         .build(),
     );
-    // Navigate to MarketListView with search enabled and 'all' category
-    // When user closes search, they should see all markets (not a specific category)
     perpsNavigation.navigateToMarketList({
-      defaultSearchVisible: true,
       defaultMarketTypeFilter: 'all',
       source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
       fromHome: true,
@@ -432,9 +430,9 @@ const PerpsHomeView = () => {
         {/* Positions Section */}
         <PerpsHomeSection
           title={strings('perps.home.positions')}
-          subtitle={positionsSubtitle}
+          subtitle={privacyMode ? undefined : positionsSubtitle}
           subtitleColor={positionsSubtitleColor}
-          subtitleSuffix={positionsSubtitleSuffix}
+          subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
           subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
           isLoading={isLoading.positions}
           isEmpty={positions.length === 0}

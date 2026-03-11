@@ -1,31 +1,29 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import {
-  type TransakBuyQuote,
-  TransakOrderIdTransformer,
-} from '@metamask/ramps-controller';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
-import { depositOrderToFiatOrder } from '../Deposit/orderProcessor';
-import useHandleNewOrder from '../Deposit/hooks/useHandleNewOrder';
 import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
+import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
 import useAnalytics from './useAnalytics';
+import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTransakController } from './useTransakController';
 import { useRampsUserRegion } from './useRampsUserRegion';
 import { useRampsPaymentMethods } from './useRampsPaymentMethods';
-import { getTransakEnvironment } from '../../../../core/Engine/controllers/ramps-controller/transak-service-init';
 import { selectTokens } from '../../../../selectors/rampsController';
 import useRampAccountAddress from './useRampAccountAddress';
+import { isHttpUnauthorized } from '../utils/isHttpUnauthorized';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
+import { useRampsOrders } from './useRampsOrders';
 
 interface RampStackParamList {
   RampVerifyIdentity: { quote: TransakBuyQuote };
@@ -46,7 +44,7 @@ interface RampStackParamList {
     url: string;
     providerName: string;
     userAgent?: string;
-    onNavigationStateChange?: (navState: { url: string }) => void;
+    callbackKey?: string;
   };
   [key: string]: object | undefined;
 }
@@ -64,9 +62,10 @@ interface UseTransakRoutingConfig {
 
 export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   const navigation = useNavigation<StackNavigationProp<RampStackParamList>>();
-  const handleNewOrder = useHandleNewOrder();
   const { themeAppearance, colors } = useTheme();
   const trackEvent = useAnalytics();
+  const processingOrderIdRef = useRef<string | null>(null);
+  const { addOrder, refreshOrder } = useRampsOrders();
 
   const {
     logoutFromProvider,
@@ -89,7 +88,6 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     selectedToken?.chainId as CaipChainId,
   );
 
-  const transakEnvironment = getTransakEnvironment();
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
 
@@ -217,7 +215,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     ({ orderId }: { orderId: string }) => {
       navigation.reset({
         index: 0,
-        routes: [{ name: Routes.RAMP.ORDER_PROCESSING, params: { orderId } }],
+        routes: [
+          {
+            name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+            params: { orderId, showCloseButton: true },
+          },
+        ],
       });
     },
     [navigation],
@@ -249,87 +252,98 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
   const handleNavigationStateChange = useCallback(
     async ({ url }: { url: string }) => {
-      if (url.startsWith(REDIRECTION_URL)) {
-        try {
-          const urlObj = new URL(url);
-          const orderId = urlObj.searchParams.get('orderId');
+      if (!url.startsWith(REDIRECTION_URL)) return;
 
-          if (orderId) {
-            try {
-              const transformedOrderId =
-                TransakOrderIdTransformer.transakOrderIdToDepositOrderId(
-                  orderId,
-                  transakEnvironment,
-                );
+      let orderId: string | null = null;
+      try {
+        const urlObj = new URL(url);
+        orderId = urlObj.searchParams.get('orderId');
+      } catch (e) {
+        Logger.error(
+          e as Error,
+          'useTransakRouting: Error parsing redirect URL',
+        );
+        return;
+      }
 
-              const order = await getOrder(orderId, walletAddress || '');
+      if (!orderId || processingOrderIdRef.current === orderId) return;
+      processingOrderIdRef.current = orderId;
 
-              if (!order) {
-                throw new Error('Missing order');
-              }
+      try {
+        const depositOrder = await getOrder(orderId, walletAddress || '');
 
-              const processedOrder = {
-                ...depositOrderToFiatOrder(
-                  order as Parameters<typeof depositOrderToFiatOrder>[0],
-                ),
-                account: walletAddress || order.walletAddress,
-              };
-
-              await handleNewOrder(processedOrder);
-
-              navigateToOrderProcessingCallback({
-                orderId: transformedOrderId,
-              });
-
-              trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-                ramp_type: 'DEPOSIT',
-                amount_source: Number(order.fiatAmount),
-                amount_destination: Number(order.cryptoAmount),
-                exchange_rate: Number(order.exchangeRate),
-                gas_fee: order.networkFees ? Number(order.networkFees) : 0,
-                processing_fee: order.partnerFees
-                  ? Number(order.partnerFees)
-                  : 0,
-                total_fee: Number(order.totalFeesFiat),
-                payment_method_id: order.paymentMethod.id,
-                country: regionIsoCode,
-                chain_id: order.network?.chainId || '',
-                currency_destination: order.cryptoCurrency.assetId || '',
-                currency_destination_symbol: order.cryptoCurrency.symbol,
-                currency_destination_network: order.network?.name || '',
-                currency_source: order.fiatCurrency,
-              });
-            } catch (error) {
-              throw new Error(
-                parseUserFacingError(
-                  error,
-                  strings('deposit.buildQuote.unexpectedError'),
-                ),
-              );
-            }
-          }
-        } catch (e) {
-          console.error('Error extracting orderId from URL:', e);
+        if (!depositOrder) {
+          throw new Error('Missing order');
         }
+
+        const providerCode = (
+          depositOrder.provider || 'transak-native'
+        ).replace('/providers/', '');
+        const rampsOrder = await refreshOrder(
+          providerCode,
+          depositOrder.providerOrderId,
+          walletAddress || depositOrder.walletAddress,
+        );
+
+        addOrder({
+          ...rampsOrder,
+          paymentDetails: depositOrder.paymentDetails,
+        });
+
+        showV2OrderToast({
+          orderId: rampsOrder.providerOrderId,
+          cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+          cryptoAmount: rampsOrder.cryptoAmount,
+          status: rampsOrder.status,
+        });
+
+        navigateToOrderProcessingCallback({
+          orderId: rampsOrder.providerOrderId,
+        });
+
+        trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
+          ramp_type: 'DEPOSIT',
+          amount_source: Number(rampsOrder.fiatAmount),
+          amount_destination: Number(rampsOrder.cryptoAmount),
+          exchange_rate: Number(rampsOrder.exchangeRate),
+          gas_fee: rampsOrder.networkFees ? Number(rampsOrder.networkFees) : 0,
+          processing_fee: rampsOrder.partnerFees
+            ? Number(rampsOrder.partnerFees)
+            : 0,
+          total_fee: Number(rampsOrder.totalFeesFiat),
+          payment_method_id: rampsOrder.paymentMethod?.id || '',
+          country: regionIsoCode,
+          chain_id: rampsOrder.network?.chainId || '',
+          currency_destination: rampsOrder.cryptoCurrency?.assetId || '',
+          currency_destination_symbol: rampsOrder.cryptoCurrency?.symbol || '',
+          currency_destination_network: rampsOrder.network?.name || '',
+          currency_source: rampsOrder.fiatCurrency?.symbol || '',
+        });
+      } catch (error) {
+        processingOrderIdRef.current = null;
+        Logger.error(error as Error, {
+          message: 'useTransakRouting: Failed to process order after checkout',
+        });
       }
     },
     [
       getOrder,
       walletAddress,
-      handleNewOrder,
+      addOrder,
+      refreshOrder,
       navigateToOrderProcessingCallback,
       regionIsoCode,
       trackEvent,
-      transakEnvironment,
     ],
   );
 
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl }: { paymentUrl: string }) => {
+      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
-        onNavigationStateChange: handleNavigationStateChange,
+        callbackKey,
       });
       navigation.reset({
         index: 1,
@@ -404,26 +418,38 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               await checkUserLimits(quote, requirements.kycType);
 
               if (selectedPaymentMethod?.isManualBankTransfer) {
-                const order = await transakCreateOrder(
+                const depositOrder = await transakCreateOrder(
                   quote.quoteId,
                   walletAddress || '',
                   selectedPaymentMethod.id,
                 );
-                if (!order) {
+                if (!depositOrder) {
                   throw new Error('Missing order');
                 }
 
-                const processedOrder = {
-                  ...depositOrderToFiatOrder(
-                    order as Parameters<typeof depositOrderToFiatOrder>[0],
-                  ),
-                  account: walletAddress || order.walletAddress,
-                };
+                const providerCode = (
+                  depositOrder.provider || 'transak-native'
+                ).replace('/providers/', '');
+                const rampsOrder = await refreshOrder(
+                  providerCode,
+                  depositOrder.providerOrderId,
+                  walletAddress || depositOrder.walletAddress,
+                );
 
-                await handleNewOrder(processedOrder);
+                addOrder({
+                  ...rampsOrder,
+                  paymentDetails: depositOrder.paymentDetails,
+                });
+
+                showV2OrderToast({
+                  orderId: rampsOrder.providerOrderId,
+                  cryptocurrency: rampsOrder.cryptoCurrency?.symbol ?? '',
+                  cryptoAmount: rampsOrder.cryptoAmount,
+                  status: rampsOrder.status,
+                });
 
                 navigateToBankDetailsCallback({
-                  orderId: order.id,
+                  orderId: rampsOrder.providerOrderId,
                   shouldUpdate: false,
                 });
               } else {
@@ -526,8 +552,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
       } catch (error) {
-        const httpError = error as { status?: number };
-        if (httpError.status === 401) {
+        if (isHttpUnauthorized(error)) {
           await logoutFromProvider(false);
           navigation.navigate(Routes.RAMP.ENTER_EMAIL);
           return;
@@ -543,7 +568,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       regionIsoCode,
       selectedPaymentMethod?.isManualBankTransfer,
       selectedPaymentMethod?.id,
-      handleNewOrder,
+      addOrder,
+      refreshOrder,
       navigateToBankDetailsCallback,
       navigateToWebviewModalCallback,
       navigateToKycProcessingCallback,

@@ -3,9 +3,9 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { Copyable } from '@metamask/snaps-sdk/jsx';
+import { mockTheme } from '../../../../util/theme';
 import { renderInterface } from '../testUtils';
 import { copyable } from './copyable';
-import { brandColor } from '@metamask/design-tokens';
 
 // Mock the ClipboardManager
 jest.mock('../../../../core/ClipboardManager', () => ({
@@ -43,14 +43,6 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 describe('SnapUICopyable', () => {
   // Tests for the factory function
   describe('copyable factory function', () => {
-    // Create a mock theme object
-    const mockTheme = {
-      colors: {
-        text: { default: brandColor.black },
-        background: { default: brandColor.white },
-      },
-    };
-
     // Create base params that match UIComponentParams interface
     const baseParams = {
       map: {},

@@ -3,8 +3,11 @@ import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';
+
+// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
@@ -30,6 +33,8 @@ export default {
   BRIDGE: {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
+    PRICE_IMPACT_WARNING_THRESHOLD: 0.05,
+    PRICE_IMPACT_ERROR_THRESHOLD: 0.25,
     // Check app/components/UI/Bridge/types.ts
     // for interface definition.
     SLIPPAGE_CONFIG: {
@@ -90,6 +95,7 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -207,9 +213,10 @@ export default {
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
-  TERMINAL_API_URL:
-    process.env.TERMINAL_API_URL ||
-    'https://terminal.dev-api.cx.metamask.io/api/v1',
+  DIGEST_API_URL:
+    process.env.DIGEST_API_URL ||
+    'https://digest.dev-api.cx.metamask.io/api/v1',
+  // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',

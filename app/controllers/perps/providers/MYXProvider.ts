@@ -1,20 +1,29 @@
 /**
  * MYXProvider
  *
- * Stage 1 provider implementation for MYX protocol.
- * Implements the PerpsProvider interface with read-only operations.
- * Trading functionality will be added in Stage 3.
+ * Provider implementation for MYX protocol.
+ * Implements the PerpsProvider interface with read-only and authenticated read operations.
+ * Trading write operations will be added in Phase 2.
  *
  * Key differences from HyperLiquid:
  * - Uses USDT collateral on BNB chain (vs USDC on Arbitrum)
  * - Multi-Pool Model: multiple pools can exist per symbol
- * - Uses REST polling for prices (WebSocket deferred to Stage 3)
+ * - Uses REST polling for prices (WebSocket deferred to Phase 4)
  */
 
 import type { CaipAccountId } from '@metamask/utils';
+import type { KlineResolution } from '@myx-trade/sdk';
 
+import { calculateCandleCount } from '../constants/chartConfig';
+import {
+  MYX_MAX_LEVERAGE,
+  MYX_FEE_RATE,
+  MYX_PROTOCOL_FEE_RATE,
+} from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import type { PerpsControllerMessenger } from '../PerpsController';
 import { MYXClientService } from '../services/MYXClientService';
+import { MYXWalletService } from '../services/MYXWalletService';
 import { WebSocketConnectionState } from '../types';
 import type {
   AccountState,
@@ -67,20 +76,37 @@ import type {
   SubscribePositionsParams,
   SubscribePricesParams,
   ToggleTestnetResult,
+  UpdateMarginParams,
   UpdatePositionTPSLParams,
   UserHistoryItem,
   WithdrawParams,
   WithdrawResult,
   RawLedgerUpdate,
 } from '../types';
-import type { MYXPoolSymbol, MYXTicker } from '../types/myx-types';
+import { MYXOrderStatusEnum } from '../types/myx-types';
+import type {
+  MYXAuthConfig,
+  MYXKlineDataResponse,
+  MYXPoolSymbol,
+  MYXTicker,
+} from '../types/myx-types';
+import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
   adaptPriceFromMYX,
+  adaptPositionFromMYX,
+  adaptOrderFromMYX,
+  adaptOrderFillFromMYX,
+  adaptAccountStateFromMYX,
+  adaptCandleFromMYX,
+  adaptCandleFromMYXWebSocket,
+  adaptFundingFromMYX,
+  adaptUserHistoryFromMYX,
   filterMYXExclusiveMarkets,
   buildPoolSymbolMap,
+  toMYXKlineResolution,
 } from '../utils/myxAdapter';
 
 // ============================================================================
@@ -89,7 +115,7 @@ import {
 
 const MYX_NOT_SUPPORTED_ERROR = 'MYX trading not yet supported';
 const MYX_BLOCK_EXPLORER_URL = 'https://bscscan.com';
-const MYX_TESTNET_EXPLORER_URL = 'https://testnet.bscscan.com';
+const MYX_TESTNET_EXPLORER_URL = 'https://sepolia.arbiscan.io';
 
 // ============================================================================
 // MYXProvider
@@ -98,8 +124,8 @@ const MYX_TESTNET_EXPLORER_URL = 'https://testnet.bscscan.com';
 /**
  * MYX provider implementation
  *
- * Stage 1: Read-only operations (markets, prices)
- * Trading operations return errors until Stage 3.
+ * Authenticated read operations for positions, orders, account state.
+ * Trading write operations return errors until Phase 2.
  */
 export class MYXProvider implements PerpsProvider {
   readonly protocolId = 'myx';
@@ -109,6 +135,12 @@ export class MYXProvider implements PerpsProvider {
 
   // Client service
   readonly #clientService: MYXClientService;
+
+  // Wallet service (requires messenger for signing)
+  #walletService: MYXWalletService | null = null;
+
+  // Messenger for wallet operations
+  readonly #messenger: PerpsControllerMessenger | null;
 
   // Configuration
   readonly #isTestnet: boolean;
@@ -121,21 +153,29 @@ export class MYXProvider implements PerpsProvider {
   // Ticker cache for price data
   readonly #tickersCache: Map<string, MYXTicker> = new Map();
 
+  // Auth dedup promise
+  #authPromise: Promise<void> | null = null;
+
   constructor(options: {
     isTestnet?: boolean;
     platformDependencies: PerpsPlatformDependencies;
+    messenger?: PerpsControllerMessenger;
+    myxAuthConfig?: MYXAuthConfig;
   }) {
     this.#deps = options.platformDependencies;
-    this.#isTestnet = options.isTestnet ?? true; // Force testnet in Stage 1
+    this.#isTestnet = options.isTestnet ?? true;
+    this.#messenger = options.messenger ?? null;
 
-    // Initialize client service
+    // Initialize client service with auth config
     this.#clientService = new MYXClientService(this.#deps, {
       isTestnet: this.#isTestnet,
+      authConfig: options.myxAuthConfig,
     });
 
     this.#deps.debugLogger.log('[MYXProvider] Constructor complete', {
       protocolId: this.protocolId,
       isTestnet: this.#isTestnet,
+      hasMessenger: Boolean(this.#messenger),
     });
   }
 
@@ -231,21 +271,127 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async isReadyToTrade(): Promise<ReadyToTradeResult> {
-    // Stage 1: Trading not supported
-    return {
-      ready: false,
-      error: 'MYX trading not yet supported',
-      walletConnected: false,
-      networkSupported: this.#isTestnet,
-    };
+    if (!this.#messenger) {
+      return {
+        ready: false,
+        error: 'MYX provider requires messenger for wallet operations',
+        walletConnected: false,
+        networkSupported: true,
+      };
+    }
+
+    try {
+      await this.#ensureAuthenticated();
+      return {
+        ready: true,
+        walletConnected: true,
+        networkSupported: true,
+        authenticatedAddress:
+          this.#clientService.getAuthenticatedAddress() ?? undefined,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.isReadyToTrade',
+      );
+      return {
+        ready: false,
+        error: wrappedError.message,
+        walletConnected: false,
+        networkSupported: true,
+      };
+    }
+  }
+
+  /**
+   * Ensure the MYX client is authenticated.
+   * Lazy auth: creates signer + walletClient on first call, then calls clientService.authenticate().
+   * Uses promise dedup to prevent concurrent auth attempts.
+   */
+  async #ensureAuthenticated(): Promise<void> {
+    // Always resolve the current address first so we can check per-address auth
+    const currentAddress = this.#getCurrentAddress();
+
+    if (this.#clientService.isAuthenticatedForAddress(currentAddress)) {
+      return;
+    }
+
+    if (this.#authPromise) {
+      await this.#authPromise;
+      // Re-check: the in-flight auth may have been for a different address
+      if (this.#clientService.isAuthenticatedForAddress(currentAddress)) {
+        return;
+      }
+      // Otherwise fall through to start a new auth for the current address
+    }
+
+    this.#authPromise = this.#doEnsureAuthenticated();
+    try {
+      await this.#authPromise;
+    } finally {
+      this.#authPromise = null;
+    }
+  }
+
+  /**
+   * Get the current user address, creating the wallet service if needed.
+   *
+   * @returns The current user wallet address.
+   */
+  #getCurrentAddress(): string {
+    if (!this.#messenger) {
+      throw new Error(
+        'MYX provider requires messenger for authenticated operations',
+      );
+    }
+
+    if (!this.#walletService) {
+      this.#walletService = new MYXWalletService(this.#deps, this.#messenger, {
+        isTestnet: this.#isTestnet,
+      });
+    }
+
+    return this.#walletService.getUserAddress();
+  }
+
+  async #doEnsureAuthenticated(): Promise<void> {
+    if (!this.#messenger) {
+      throw new Error(
+        'MYX provider requires messenger for authenticated operations',
+      );
+    }
+
+    // Create wallet service if not yet created
+    if (!this.#walletService) {
+      this.#walletService = new MYXWalletService(this.#deps, this.#messenger, {
+        isTestnet: this.#isTestnet,
+      });
+    }
+
+    const signer = this.#walletService.createEthersSigner();
+    const walletClient = this.#walletService.createWalletClient();
+    const address = this.#walletService.getUserAddress();
+
+    await this.#clientService.authenticate(signer, walletClient, address);
+  }
+
+  /**
+   * Get the wallet service, throwing if not initialized.
+   * Call #ensureAuthenticated() before calling this.
+   *
+   * @returns The initialized MYXWalletService instance.
+   */
+  #getWalletService(): MYXWalletService {
+    if (!this.#walletService) {
+      throw new Error('MYX wallet service not initialized');
+    }
+    return this.#walletService;
   }
 
   // ============================================================================
   // Market Data Operations (Stage 1 - Fully Implemented)
   // ============================================================================
 
-  // TODO: Align error handling - read operations should return empty defaults
-  // instead of throwing, matching HyperLiquid pattern
   async getMarkets(_params?: GetMarketsParams): Promise<MarketInfo[]> {
     try {
       // Delegate cache freshness to MYXClientService
@@ -260,7 +406,7 @@ export class MYXProvider implements PerpsProvider {
         wrappedError,
         this.#getErrorContext('getMarkets'),
       );
-      throw wrappedError;
+      return [];
     }
   }
 
@@ -282,25 +428,29 @@ export class MYXProvider implements PerpsProvider {
         this.#tickersCache.set(ticker.poolId, ticker);
       }
 
-      // Transform to PerpsMarketData
-      return this.#poolsCache.map((pool) => {
-        const ticker = tickerMap.get(pool.poolId);
-        return adaptMarketDataFromMYX(
-          pool,
-          ticker,
-          this.#deps.marketDataFormatters,
+      // Transform to PerpsMarketData, only include pools with ticker data
+      return this.#poolsCache
+        .filter((pool) => tickerMap.has(pool.poolId))
+        .map((pool) =>
+          adaptMarketDataFromMYX(
+            pool,
+            tickerMap.get(pool.poolId),
+            this.#deps.marketDataFormatters,
+          ),
         );
-      });
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
         'MYXProvider.getMarketDataWithPrices',
       );
-      this.#deps.logger.error(
-        wrappedError,
-        this.#getErrorContext('getMarketDataWithPrices'),
+      this.#deps.debugLogger.log(
+        '[MYXProvider] getMarketDataWithPrices failed',
+        {
+          error: String(wrappedError),
+          ...this.#getErrorContext('getMarketDataWithPrices'),
+        },
       );
-      throw wrappedError;
+      return [];
     }
   }
 
@@ -446,11 +596,7 @@ export class MYXProvider implements PerpsProvider {
     };
   }
 
-  async updateMargin(_params: {
-    symbol: string;
-    amount: string;
-    isAdd: boolean;
-  }): Promise<MarginResult> {
+  async updateMargin(_params: UpdateMarginParams): Promise<MarginResult> {
     return {
       success: false,
       error: MYX_NOT_SUPPORTED_ERROR,
@@ -465,50 +611,190 @@ export class MYXProvider implements PerpsProvider {
   }
 
   // ============================================================================
-  // Account Operations (Stage 1 - Empty Returns)
+  // Account Operations (Authenticated Reads)
   // ============================================================================
 
   async getPositions(_params?: GetPositionsParams): Promise<Position[]> {
-    // Stage 1: No position tracking
-    return [];
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const result = await this.#clientService.listPositions(address);
+
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      // Filter out zero-size positions
+      return result.data
+        .filter((pos) => pos.size && pos.size !== '0')
+        .map((pos) => adaptPositionFromMYX(pos, this.#poolSymbolMap));
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
+      this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getPositions'),
+      });
+      return [];
+    }
   }
 
   async getAccountState(
     _params?: GetAccountStateParams,
   ): Promise<AccountState> {
-    // Stage 1: Empty account state
-    return {
-      availableBalance: '0',
-      totalBalance: '0',
-      marginUsed: '0',
-      unrealizedPnl: '0',
-      returnOnEquity: '0',
-    };
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const chainId = this.#clientService.getChainId();
+
+      // Fetch wallet balance
+      let walletBalance: string | undefined;
+      try {
+        const balanceResult =
+          await this.#clientService.getWalletQuoteTokenBalance(
+            chainId,
+            address,
+          );
+        walletBalance = String(balanceResult.data ?? '0');
+      } catch {
+        // Non-fatal: wallet balance is supplementary
+        walletBalance = '0';
+      }
+
+      // Try to get account info from first pool
+      let accountInfo: Record<string, unknown> | undefined;
+      if (this.#poolsCache.length > 0) {
+        try {
+          const infoResult = await this.#clientService.getAccountInfo(
+            chainId,
+            address,
+            this.#poolsCache[0].poolId,
+          );
+          accountInfo = infoResult.data;
+        } catch {
+          // Non-fatal: we'll return what we have
+        }
+      }
+
+      return adaptAccountStateFromMYX(accountInfo, walletBalance);
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.getAccountState',
+      );
+      this.#deps.debugLogger.log('[MYXProvider] getAccountState failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getAccountState'),
+      });
+      return {
+        availableBalance: '0',
+        totalBalance: '0',
+        marginUsed: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      };
+    }
   }
 
   async getOrders(_params?: GetOrdersParams): Promise<Order[]> {
-    // Stage 1: No order tracking
-    return [];
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const result = await this.#clientService.getOrderHistory(
+        { limit: 50 },
+        address,
+      );
+
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      return result.data.map((order) =>
+        adaptOrderFromMYX(order, this.#poolSymbolMap),
+      );
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.getOrders');
+      this.#deps.debugLogger.log('[MYXProvider] getOrders failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getOrders'),
+      });
+      return [];
+    }
   }
 
   async getOpenOrders(_params?: GetOrdersParams): Promise<Order[]> {
-    // Stage 1: No order tracking
-    return [];
+    try {
+      const allOrders = await this.getOrders();
+      return allOrders.filter((order) => order.status === 'open');
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.getOpenOrders',
+      );
+      this.#deps.debugLogger.log('[MYXProvider] getOpenOrders failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getOpenOrders'),
+      });
+      return [];
+    }
   }
 
   async getOrderFills(_params?: GetOrderFillsParams): Promise<OrderFill[]> {
-    // Stage 1: No fill tracking
-    return [];
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const result = await this.#clientService.getOrderHistory(
+        { limit: 50 },
+        address,
+      );
+
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      // Only return filled orders
+      return result.data
+        .filter((order) => order.orderStatus === MYXOrderStatusEnum.Successful)
+        .map((order) => adaptOrderFillFromMYX(order, this.#poolSymbolMap));
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.getOrderFills',
+      );
+      this.#deps.debugLogger.log('[MYXProvider] getOrderFills failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getOrderFills'),
+      });
+      return [];
+    }
   }
 
   async getOrFetchFills(_params?: GetOrFetchFillsParams): Promise<OrderFill[]> {
-    // Stage 1: No fill tracking
-    return [];
+    // No WS cache for MYX yet - always fetch via REST
+    return this.getOrderFills(_params);
   }
 
   async getFunding(_params?: GetFundingParams): Promise<Funding[]> {
-    // Stage 1: No funding tracking
-    return [];
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const result = await this.#clientService.getTradeFlow(
+        { limit: 50 },
+        address,
+      );
+
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      return adaptFundingFromMYX(result.data, this.#poolSymbolMap);
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.getFunding');
+      this.#deps.debugLogger.log('[MYXProvider] getFunding failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getFunding'),
+      });
+      return [];
+    }
   }
 
   async getHistoricalPortfolio(
@@ -533,7 +819,30 @@ export class MYXProvider implements PerpsProvider {
     startTime?: number;
     endTime?: number;
   }): Promise<UserHistoryItem[]> {
-    return [];
+    try {
+      await this.#ensureAuthenticated();
+      const address = this.#getWalletService().getUserAddress();
+      const result = await this.#clientService.getTradeFlow(
+        { limit: 50 },
+        address,
+      );
+
+      if (!result.data || !Array.isArray(result.data)) {
+        return [];
+      }
+
+      return adaptUserHistoryFromMYX(result.data);
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.getUserHistory',
+      );
+      this.#deps.debugLogger.log('[MYXProvider] getUserHistory failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('getUserHistory'),
+      });
+      return [];
+    }
   }
 
   // ============================================================================
@@ -581,16 +890,15 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async getMaxLeverage(_asset: string): Promise<number> {
-    return 100; // MYX default max leverage
+    return MYX_MAX_LEVERAGE;
   }
 
   async calculateFees(
     _params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
-    // MYX fee structure (placeholder values)
     return {
-      feeRate: 0.0005, // 0.05% total fee rate
-      protocolFeeRate: 0.0005, // Protocol taker fee
+      feeRate: MYX_FEE_RATE,
+      protocolFeeRate: MYX_PROTOCOL_FEE_RATE,
     };
   }
 
@@ -651,19 +959,145 @@ export class MYXProvider implements PerpsProvider {
   }
 
   subscribeToCandles(params: SubscribeCandlesParams): () => void {
-    // Stage 1: No candle data - immediately call back with empty candles
-    // (matches HyperLiquid pattern which calls callback after initial fetch)
-    setTimeout(
-      () =>
-        params.callback({
-          symbol: params.symbol,
-          interval: params.interval,
-          candles: [],
-        }),
-      0,
+    const { symbol, interval, duration, callback, onError } = params;
+    let cancelled = false;
+    let wsCallback: ((data: MYXKlineDataResponse) => void) | null = null;
+    let globalId: number | null = null;
+    let currentCandleData: CandleData | null = null;
+
+    // Map CandlePeriod to MYX KlineResolution
+    const myxInterval = toMYXKlineResolution(interval);
+
+    // Resolve symbol → poolId (same pattern as subscribeToPrices)
+    const pool = this.#poolsCache.find(
+      (item) => (item.baseSymbol || item.poolId) === symbol,
     );
+
+    if (!pool) {
+      this.#deps.debugLogger.log(
+        '[MYXProvider] subscribeToCandles: No pool found for symbol',
+        { symbol },
+      );
+      setTimeout(() => callback({ symbol, interval, candles: [] }), 0);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Calculate limit from duration
+    const limit = duration ? calculateCandleCount(duration, interval) : 100;
+
+    this.#deps.debugLogger.log('[MYXProvider] subscribeToCandles', {
+      symbol,
+      interval,
+      myxInterval,
+      limit,
+      poolId: pool.poolId,
+    });
+
+    const initAndSubscribe = async (): Promise<void> => {
+      // Phase 1: REST fetch historical candles
+      const klineData = await this.#clientService.getKlineData({
+        poolId: pool.poolId,
+        interval: myxInterval as KlineResolution,
+        limit,
+      });
+
+      if (cancelled) {
+        return;
+      }
+
+      currentCandleData = {
+        symbol,
+        interval,
+        candles: klineData.map(adaptCandleFromMYX),
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider] Historical candles received', {
+        symbol,
+        count: currentCandleData.candles.length,
+      });
+
+      callback(currentCandleData);
+
+      // Phase 2: WS live updates (independent — failure does NOT erase REST data)
+      try {
+        globalId = await this.#clientService.getGlobalId(pool.poolId);
+
+        if (cancelled) {
+          return;
+        }
+
+        wsCallback = (data: MYXKlineDataResponse): void => {
+          if (cancelled || !currentCandleData) {
+            return;
+          }
+
+          const newCandle = adaptCandleFromMYXWebSocket(data.data);
+          const { candles } = currentCandleData;
+          const lastCandle = candles[candles.length - 1];
+
+          if (lastCandle && lastCandle.time === newCandle.time) {
+            // Same timestamp: update existing candle (live tick)
+            currentCandleData = {
+              ...currentCandleData,
+              candles: [...candles.slice(0, -1), newCandle],
+            };
+          } else {
+            // New timestamp: append new candle
+            currentCandleData = {
+              ...currentCandleData,
+              candles: [...candles, newCandle],
+            };
+          }
+
+          callback(currentCandleData);
+        };
+
+        this.#clientService.subscribeToKline(
+          globalId,
+          myxInterval as KlineResolution,
+          wsCallback,
+        );
+
+        this.#deps.debugLogger.log(
+          '[MYXProvider] WS kline subscription active',
+          { symbol, globalId },
+        );
+      } catch (wsError) {
+        this.#deps.debugLogger.log(
+          '[MYXProvider] WS kline failed, REST data preserved',
+          { symbol, error: String(wsError) },
+        );
+      }
+    };
+
+    initAndSubscribe().catch((error: unknown) => {
+      if (cancelled) {
+        return;
+      }
+      const wrappedError = ensureError(error, 'MYXProvider.subscribeToCandles');
+      this.#deps.debugLogger.log('[MYXProvider] subscribeToCandles failed', {
+        error: String(wrappedError),
+        ...this.#getErrorContext('subscribeToCandles', { symbol, interval }),
+      });
+      if (onError) {
+        onError(wrappedError);
+      }
+      // Emit empty candles so the UI isn't stuck loading.
+      // Use setTimeout to avoid promise/no-callback-in-promise lint rule.
+      setTimeout(() => callback({ symbol, interval, candles: [] }), 0);
+    });
+
     return () => {
-      /* noop */
+      cancelled = true;
+      if (wsCallback && globalId !== null) {
+        this.#clientService.unsubscribeFromKline(
+          globalId,
+          myxInterval as KlineResolution,
+          wsCallback,
+        );
+      }
     };
   }
 

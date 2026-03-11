@@ -7,10 +7,8 @@ import {
   type RampsToken,
   type TokensResponse,
   type ResourceState,
-  type Quote,
-  type QuotesResponse,
-  type BuyWidget,
   type TransakState,
+  type RampsOrder,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 
@@ -92,23 +90,11 @@ export const selectPaymentMethods = createSelector(
 );
 
 /**
- * Selects the quotes resource state (data, selected, isLoading, error).
+ * Selects V2 orders from RampsController state.
  */
-export const selectQuotes = createSelector(
+export const selectRampsOrders = createSelector(
   selectRampsControllerState,
-  (rampsControllerState): ResourceState<QuotesResponse | null, Quote | null> =>
-    rampsControllerState?.quotes ??
-    createDefaultResourceState<QuotesResponse | null, Quote | null>(null, null),
-);
-
-/**
- * Selects the widget URL resource state (data, isLoading, error).
- */
-export const selectWidgetUrl = createSelector(
-  selectRampsControllerState,
-  (rampsControllerState): ResourceState<BuyWidget | null> =>
-    rampsControllerState?.widgetUrl ??
-    createDefaultResourceState<BuyWidget | null>(null),
+  (rampsControllerState): RampsOrder[] => rampsControllerState?.orders ?? [],
 );
 
 /**

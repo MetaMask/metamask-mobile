@@ -9,7 +9,10 @@ import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUp
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager, Platform } from 'react-native';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { ReactTestInstance } from 'react-test-renderer';
 import { brandColor } from '@metamask/design-tokens';
 
@@ -73,17 +76,13 @@ jest
 const mockMath = Object.create(global.Math);
 mockMath.random = () => 0.5;
 
-// mock useMetrics
+// mock useAnalytics
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
-jest.mock('../../../components/hooks/useMetrics', () => {
-  const actual = jest.requireActual('../../../components/hooks/useMetrics');
-  return {
-    ...actual,
-    useMetrics: () => ({
-      isEnabled: mockMetricsIsEnabled,
-    }),
-  };
-});
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    isEnabled: mockMetricsIsEnabled,
+  }),
+}));
 
 describe('ManualBackupStep2', () => {
   const mockWords = [
@@ -420,6 +419,7 @@ describe('ManualBackupStep2', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('OptinMetrics', {
         onContinue: expect.any(Function),
+        accountType: AccountType.Metamask,
       });
     });
 

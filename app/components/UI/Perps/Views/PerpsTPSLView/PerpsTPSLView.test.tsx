@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
-import { brandColor } from '@metamask/design-tokens';
 
 // Mock dependencies
 jest.mock('react-native-reanimated', () =>
@@ -49,6 +48,9 @@ const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
 }));
+const { mockTheme: baseMockTheme } = jest.requireActual(
+  '../../../../../util/theme',
+);
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
@@ -132,16 +134,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('PerpsTPSLView', () => {
-  const mockTheme = {
-    colors: {
-      background: { alternative: '#f0f0f0' },
-      text: { default: brandColor.black, muted: '#666', alternative: '#888' },
-      border: { muted: '#e1e1e1' },
-      primary: { default: '#0376c9' },
-      error: { default: '#d73847' },
-    },
-  };
-
   const defaultMockReturn = {
     formState: {
       takeProfitPrice: '',
@@ -201,7 +193,7 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(mockTheme);
+    mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
   });

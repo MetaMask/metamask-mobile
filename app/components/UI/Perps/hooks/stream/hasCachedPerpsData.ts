@@ -1,5 +1,5 @@
 import Engine from '../../../../../core/Engine';
-import { findEvmAccount } from '@metamask/perps-controller';
+import type { Position, Order, AccountState } from '@metamask/perps-controller';
 
 type CacheField =
   | 'cachedPositions'
@@ -7,38 +7,25 @@ type CacheField =
   | 'cachedAccountState'
   | 'cachedMarketData';
 
-const USER_DATA_FIELDS: CacheField[] = [
-  'cachedPositions',
-  'cachedOrders',
-  'cachedAccountState',
-];
+/**
+ * Read per-provider market data from the controller's getCachedMarketDataForActiveProvider helper.
+ */
+function getMarketDataFromController(): unknown[] | null {
+  const controller = Engine.context.PerpsController;
+  return controller?.getCachedMarketDataForActiveProvider?.() ?? null;
+}
 
 /**
- * Maximum age (ms) of controller-preloaded user data before it's considered stale.
- * Intentionally shorter than the controller's 5-minute refresh cycle — WebSocket
- * streams should take over within seconds, making REST preload cache irrelevant.
+ * Read per-provider user data from the controller's getCachedUserDataForActiveProvider helper.
+ * Returns positions, orders, and accountState for the active provider with TTL + address validation.
  */
-export const USER_DATA_CACHE_STALE_MS = 60_000;
-
-/**
- * Check if the controller's cached data belongs to the currently selected
- * EVM account.  Market data is not account-specific, so it always passes.
- */
-export function isCacheForCurrentAccount(controller: {
-  state?: { cachedUserDataAddress?: string | null };
-}): boolean {
-  const cachedAddr = controller?.state?.cachedUserDataAddress;
-  if (!cachedAddr) return true; // No address recorded = trust the cache
-  try {
-    const { AccountTreeController } = Engine.context;
-    const accounts =
-      AccountTreeController.getAccountsFromSelectedAccountGroup();
-    const evmAccount = findEvmAccount(accounts);
-    if (!evmAccount?.address) return true; // Can't determine current account
-    return cachedAddr.toLowerCase() === evmAccount.address.toLowerCase();
-  } catch {
-    return true; // Error getting account = trust cache
-  }
+function getUserDataFromController(): {
+  positions: Position[];
+  orders: Order[];
+  accountState: AccountState | null;
+} | null {
+  const controller = Engine.context.PerpsController;
+  return controller?.getCachedUserDataForActiveProvider?.() ?? null;
 }
 
 /**
@@ -50,17 +37,24 @@ export function isCacheForCurrentAccount(controller: {
  * (startMarketDataPreload), not by the hooks.
  */
 export function hasPreloadedData(cacheField: CacheField): boolean {
-  const controller = Engine.context.PerpsController;
-  const preloaded = controller?.state?.[cacheField];
-  // null/undefined = not loaded yet, [] = loaded with no data (valid cache)
-  if (preloaded == null) return false;
-  if (USER_DATA_FIELDS.includes(cacheField)) {
-    const timestamp = controller?.state?.cachedUserDataTimestamp;
-    if (!timestamp || Date.now() - timestamp >= USER_DATA_CACHE_STALE_MS)
-      return false;
-    if (!isCacheForCurrentAccount(controller)) return false;
+  if (cacheField === 'cachedMarketData') {
+    const marketData = getMarketDataFromController();
+    return marketData != null;
   }
-  return true;
+
+  const userData = getUserDataFromController();
+  if (!userData) return false;
+
+  if (cacheField === 'cachedPositions') {
+    return true; // positions is always an array (possibly empty = valid cache)
+  }
+  if (cacheField === 'cachedOrders') {
+    return true; // orders is always an array (possibly empty = valid cache)
+  }
+  if (cacheField === 'cachedAccountState') {
+    return userData.accountState != null;
+  }
+  return false;
 }
 
 /**
@@ -72,14 +66,21 @@ export function hasPreloadedData(cacheField: CacheField): boolean {
  * (startMarketDataPreload), not by the hooks.
  */
 export function getPreloadedData<T>(cacheField: CacheField): T | null {
-  const controller = Engine.context.PerpsController;
-  const preloaded = (controller?.state?.[cacheField] as T) ?? null;
-  if (preloaded == null) return null;
-  if (USER_DATA_FIELDS.includes(cacheField)) {
-    const timestamp = controller?.state?.cachedUserDataTimestamp;
-    if (!timestamp || Date.now() - timestamp >= USER_DATA_CACHE_STALE_MS)
-      return null;
-    if (!isCacheForCurrentAccount(controller)) return null;
+  if (cacheField === 'cachedMarketData') {
+    return (getMarketDataFromController() as T) ?? null;
   }
-  return preloaded;
+
+  const userData = getUserDataFromController();
+  if (!userData) return null;
+
+  if (cacheField === 'cachedPositions') {
+    return userData.positions as T;
+  }
+  if (cacheField === 'cachedOrders') {
+    return userData.orders as T;
+  }
+  if (cacheField === 'cachedAccountState') {
+    return (userData.accountState as T) ?? null;
+  }
+  return null;
 }

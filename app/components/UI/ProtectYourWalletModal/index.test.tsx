@@ -21,7 +21,7 @@ const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -39,27 +39,33 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Mock useMetrics hook which is used by withMetricsAwareness HOC
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
     isEnabled: mockMetricsIsEnabled,
   }),
-  withMetricsAwareness:
-    (Component: React.ComponentType) => (props: Record<string, unknown>) => (
-      <Component
-        {...props}
-        {...({
-          metrics: {
-            trackEvent: mockTrackEvent,
-            createEventBuilder: mockCreateEventBuilder,
-            isEnabled: mockMetricsIsEnabled,
-          },
-        } as Record<string, unknown>)}
-      />
-    ),
 }));
+
+jest.mock(
+  '../../../components/hooks/useAnalytics/withAnalyticsAwareness',
+  () => ({
+    withAnalyticsAwareness:
+      (Component: React.ComponentType) => (props: Record<string, unknown>) => (
+        <Component
+          {...props}
+          {...({
+            analytics: {
+              trackEvent: mockTrackEvent,
+              createEventBuilder: mockCreateEventBuilder,
+              isEnabled: mockMetricsIsEnabled,
+            },
+          } as Record<string, unknown>)}
+        />
+      ),
+  }),
+);
 
 const mockStore = configureMockStore();
 

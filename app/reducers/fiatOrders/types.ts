@@ -10,6 +10,7 @@ import {
   DepositPaymentMethod,
   DepositRegion,
 } from '@consensys/native-ramps-sdk';
+import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   addAuthenticationUrl,
   addFiatCustomIdData,
@@ -34,7 +35,6 @@ import {
   updateOnRampNetworks,
   setFiatSellTxHash,
   removeFiatSellTxHash,
-  setDetectedGeolocation,
   setRampRoutingDecision,
 } from '.';
 import {
@@ -69,7 +69,7 @@ export interface FiatOrder {
   errorCount?: number; // Number of errors
   lastTimeFetched?: number; // Last time fetched
   forceUpdate?: boolean; // Force update when processing
-  data: Order | WyreOrder | DepositOrder; // Original provider data
+  data: Order | WyreOrder | DepositOrder | RampsOrder; // Original provider data
 }
 
 export interface CustomIdData {
@@ -105,7 +105,6 @@ export interface FiatOrdersState {
   getStartedDeposit: boolean;
   authenticationUrls: string[];
   activationKeys: ActivationKey[];
-  detectedGeolocation?: string;
   rampRoutingDecision: UnifiedRampRoutingType | null;
 }
 
@@ -135,7 +134,6 @@ export const ACTIONS = {
   FIAT_UPDATE_NETWORKS: 'FIAT_UPDATE_NETWORKS',
   FIAT_SET_SELL_TX_HASH: 'FIAT_SET_SELL_TX_HASH',
   FIAT_REMOVE_SELL_TX_HASH: 'FIAT_REMOVE_SELL_TX_HASH',
-  FIAT_SET_DETECTED_GEOLOCATION: 'FIAT_SET_DETECTED_GEOLOCATION',
   FIAT_SET_RAMP_ROUTING_DECISION: 'FIAT_SET_RAMP_ROUTING_DECISION',
 } as const;
 
@@ -163,7 +161,6 @@ export type Action =
   | ReturnType<typeof updateOnRampNetworks>
   | ReturnType<typeof setFiatSellTxHash>
   | ReturnType<typeof removeFiatSellTxHash>
-  | ReturnType<typeof setDetectedGeolocation>
   | ReturnType<typeof setRampRoutingDecision>;
 
 export type Region = Country & State;

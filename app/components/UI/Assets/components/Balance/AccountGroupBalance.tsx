@@ -1,4 +1,10 @@
-import React, { useCallback, useState, useRef, useEffect } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
@@ -9,8 +15,12 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
-import { selectHomepageRedesignV1Enabled } from '../../../../../selectors/featureFlagController/homepage';
+import {
+  selectHomepageRedesignV1Enabled,
+  selectHomepageSectionsV1Enabled,
+} from '../../../../../selectors/featureFlagController/homepage';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
+import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import SensitiveText, {
   SensitiveTextLength,
@@ -33,14 +43,41 @@ const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
+  const isHomepageSectionsV1Enabled = useSelector(
+    selectHomepageSectionsV1Enabled,
+  );
+  const { popularNetworks } = useNetworkEnablement();
+
+  // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
+  // FF on: balance for all popular networks; FF off: balance for enabled networks only (selector uses state when undefined).
+  const popularChainIdsKey = (popularNetworks ?? []).join(',');
+  const chainIdsForBalance = useMemo(
+    () =>
+      isHomepageSectionsV1Enabled ? [...(popularNetworks ?? [])] : undefined,
+    // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isHomepageSectionsV1Enabled, popularChainIdsKey],
+  );
+
+  const groupBalanceSelector = useMemo(
+    () => selectBalanceBySelectedAccountGroup(chainIdsForBalance),
+    [chainIdsForBalance],
+  );
+  const balanceChange1dSelector = useMemo(
+    () => selectBalanceChangeBySelectedAccountGroup('1d', chainIdsForBalance),
+    [chainIdsForBalance],
+  );
   const privacyMode = useSelector(selectPrivacyMode);
-  const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
+  const groupBalance = useSelector(groupBalanceSelector) as {
+    groupId: string;
+    totalBalanceInUserCurrency: number;
+    userCurrency: string;
+    walletId: string;
+  } | null;
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
   );
-  const balanceChange1d = useSelector(
-    selectBalanceChangeBySelectedAccountGroup('1d'),
-  );
+  const balanceChange1d = useSelector(balanceChange1dSelector);
   const isHomepageRedesignV1Enabled = useSelector(
     selectHomepageRedesignV1Enabled,
   );
@@ -129,10 +166,11 @@ const AccountGroupBalance = () => {
   // Check if current network is a testnet
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
 
-  // Show empty state on accounts with an aggregated mainnet balance of zero
+  // Show empty state on accounts with an aggregated mainnet balance of zero (redesign + sections v1)
   const shouldShowEmptyState =
     hasZeroAccountGroupBalance &&
     isHomepageRedesignV1Enabled &&
+    isHomepageSectionsV1Enabled &&
     !isCurrentNetworkTestnet;
 
   // Show skeleton while loading: either no groupBalance OR balance not fetched yet

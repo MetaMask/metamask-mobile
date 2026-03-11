@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from '@metamask/utils';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { View, Image, useColorScheme, Linking } from 'react-native';
 import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
@@ -39,6 +39,10 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
+import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
+import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
+import { toChecksumAddress } from '../../../../../util/address';
+import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -64,7 +68,9 @@ interface EarnMusdConversionEducationViewRouteParams {
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
-  const { initiateConversion } = useMusdConversion();
+  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
+
+  const { initiateCustomConversion } = useMusdConversion();
   const { goToBuy } = useRampNavigation();
 
   const { preferredPaymentToken, isDeeplink } =
@@ -77,6 +83,7 @@ const EarnMusdConversionEducationView = () => {
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     isMusdBuyable,
+    conversionTokens,
   } = useMusdConversionFlowData();
 
   const { styles } = useStyles(styleSheet, {});
@@ -102,7 +109,18 @@ const EarnMusdConversionEducationView = () => {
 
     // Try conversion flow if user has convertible tokens
     if (hasConvertibleTokens) {
-      const paymentToken = getPaymentTokenForSelectedNetwork();
+      const fallbackToken = conversionTokens[0];
+      const fallbackChainIdHex = fallbackToken?.chainId
+        ? safeFormatChainIdToHex(fallbackToken.chainId)
+        : null;
+      const paymentToken =
+        getPaymentTokenForSelectedNetwork() ??
+        (fallbackToken?.address && fallbackChainIdHex?.startsWith('0x')
+          ? {
+              address: toChecksumAddress(fallbackToken.address) as Hex,
+              chainId: fallbackChainIdHex as Hex,
+            }
+          : null);
       if (paymentToken) {
         return {
           action: 'convert' as const,
@@ -127,6 +145,7 @@ const EarnMusdConversionEducationView = () => {
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     isMusdBuyable,
+    conversionTokens,
   ]);
 
   const primaryButtonText = useMemo(() => {
@@ -168,7 +187,9 @@ const EarnMusdConversionEducationView = () => {
   }, [submitScreenViewedEvent]);
 
   const submitContinuePressedEvent = useCallback(() => {
-    let redirectsTo = EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+    let redirectsTo = isQuickConvertEnabled
+      ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
+      : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     if (deeplinkState?.action === 'navigate_home') {
       redirectsTo = EVENT_LOCATIONS.HOME_SCREEN;
     } else if (deeplinkState?.action === 'buy') {
@@ -188,15 +209,17 @@ const EarnMusdConversionEducationView = () => {
         .build(),
     );
   }, [
+    isQuickConvertEnabled,
+    EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
+    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
+    EVENT_LOCATIONS.HOME_SCREEN,
+    EVENT_LOCATIONS.BUY_SCREEN,
+    deeplinkState?.action,
     trackEvent,
     createEventBuilder,
-    EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN,
-    EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
-    EVENT_LOCATIONS.BUY_SCREEN,
-    EVENT_LOCATIONS.HOME_SCREEN,
     BUTTON_TYPES.PRIMARY,
     primaryButtonText,
-    deeplinkState,
   ]);
 
   const submitGoBackPressedEvent = () => {
@@ -244,9 +267,11 @@ const EarnMusdConversionEducationView = () => {
         }
 
         if (deeplinkState.action === 'convert') {
-          await initiateConversion({
+          await initiateCustomConversion({
             preferredPaymentToken: deeplinkState.paymentToken,
             skipEducationCheck: true,
+            navigationOverride:
+              MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
           });
           return;
         }
@@ -254,9 +279,10 @@ const EarnMusdConversionEducationView = () => {
 
       // Proceed to conversion flow if we have the required params (normal flow)
       if (!isDeeplink && preferredPaymentToken) {
-        await initiateConversion({
+        await initiateCustomConversion({
           preferredPaymentToken,
           skipEducationCheck: true,
+          navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
         });
         return;
       }
@@ -273,7 +299,7 @@ const EarnMusdConversionEducationView = () => {
     }
   }, [
     dispatch,
-    initiateConversion,
+    initiateCustomConversion,
     preferredPaymentToken,
     submitContinuePressedEvent,
     deeplinkState,

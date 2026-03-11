@@ -2,7 +2,7 @@ import { renderInterface } from '../testUtils';
 import { Input, Box, Form } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
 import { TEXTFIELD_TEST_ID } from '../../../../component-library/components/Form/TextField/TextField.constants';
-import { lightTheme } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../util/theme';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
   controllerMessenger: {
@@ -16,8 +16,8 @@ jest.mock('../../../../core/Engine/Engine', () => ({
 }));
 
 describe('SnapUIInput', () => {
-  const clearBorderColor = '#b7bbc866';
-  const focusedBorderColor = lightTheme.colors.border.default;
+  const clearBorderColor = mockTheme.colors.border.muted;
+  const focusedBorderColor = mockTheme.colors.border.default;
 
   beforeEach(() => {
     jest.resetAllMocks();

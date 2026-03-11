@@ -54,16 +54,13 @@ import Label from '../../../component-library/components/Form/Label';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { AppThemeKey } from '../../../util/theme/models';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   createTrackFunction,
   handleSkipBackup,
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
-import type {
-  ManualBackupStep1NavigationProp,
-  ManualBackupStep1RouteProp,
-} from './ManualBackupStep1.types';
+import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
 
 import darkBlurImage from '../../../images/dark-blur.png';
 import lightBlurImage from '../../../images/blur.png';
@@ -73,7 +70,7 @@ import lightBlurImage from '../../../images/blur.png';
  * the backup seed phrase flow
  */
 const ManualBackupStep1 = () => {
-  const navigation = useNavigation<ManualBackupStep1NavigationProp>();
+  const navigation = useNavigation();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
 
@@ -95,7 +92,7 @@ const ManualBackupStep1 = () => {
   const [hasFunds, setHasFunds] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
@@ -420,6 +417,7 @@ const ManualBackupStep1 = () => {
                     <Text
                       variant={TextVariant.BodyMD}
                       color={TextColor.Alternative}
+                      maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
@@ -431,10 +429,7 @@ const ManualBackupStep1 = () => {
                       numberOfLines={1}
                       style={styles.word}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
-                      adjustsFontSizeToFit
-                      allowFontScaling
-                      minimumFontScale={0.1}
-                      maxFontSizeMultiplier={0}
+                      maxFontSizeMultiplier={1}
                     >
                       {item}
                     </Text>

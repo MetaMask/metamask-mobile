@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, Linking, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -13,7 +13,6 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type {
   MarketInsightsArticle,
@@ -24,7 +23,11 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import { getFaviconUrl } from '../utils/marketInsightsFormatting';
+import {
+  formatRelativeTime,
+  getFaviconUrl,
+  getNormalizedHandle,
+} from '../utils/marketInsightsFormatting';
 
 interface MarketInsightsTrendSourcesBottomSheetProps {
   isVisible: boolean;
@@ -32,11 +35,19 @@ interface MarketInsightsTrendSourcesBottomSheetProps {
   trendTitle: string;
   articles: MarketInsightsArticle[];
   tweets?: MarketInsightsTweet[];
+  onSourcePress?: (url: string) => void;
 }
 
 const MarketInsightsTrendSourcesBottomSheet: React.FC<
   MarketInsightsTrendSourcesBottomSheetProps
-> = ({ isVisible, onClose, trendTitle, articles, tweets = [] }) => {
+> = ({
+  isVisible,
+  onClose,
+  trendTitle,
+  articles,
+  tweets = [],
+  onSourcePress,
+}) => {
   const tw = useTailwind();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -49,9 +60,12 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
     }
   }, [isVisible]);
 
-  const handleSourcePress = useCallback((url: string) => {
-    Linking.openURL(url);
-  }, []);
+  const handleSourcePress = useCallback(
+    (url: string) => {
+      onSourcePress?.(url);
+    },
+    [onSourcePress],
+  );
 
   return (
     <BottomSheet
@@ -81,34 +95,76 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
             onPress={() => handleSourcePress(article.url)}
             style={({ pressed }) =>
               tw.style(
-                'flex-row items-center py-3 border-b border-muted',
+                'flex-row items-start py-3 border-b border-muted',
                 pressed && 'opacity-70',
               )
             }
           >
-            <Box twClassName="w-8 h-8 rounded-full overflow-hidden mr-3">
-              <Image
-                source={{ uri: getFaviconUrl(article.source) }}
-                style={tw.style('w-8 h-8 rounded-full')}
-              />
-            </Box>
             <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {article.source}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                numberOfLines={2}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                twClassName="pr-1"
               >
-                {article.title}
-              </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  twClassName="flex-1 pr-2"
+                >
+                  {article.title}
+                </Text>
+                <Box paddingTop={1}>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="pt-1"
+              >
+                <Box twClassName="w-4 h-4 rounded-full overflow-hidden mr-2">
+                  <Image
+                    source={{
+                      uri: getFaviconUrl(article.url || article.source),
+                    }}
+                    style={tw.style('w-4 h-4 rounded-full')}
+                  />
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {article.source}
+                  </Text>
+                  {article.date ? (
+                    <>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {'•'}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(article.date, { nowLabel: 'now' })}
+                      </Text>
+                    </>
+                  ) : null}
+                </Box>
+              </Box>
             </Box>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
           </Pressable>
         ))}
 
@@ -118,40 +174,76 @@ const MarketInsightsTrendSourcesBottomSheet: React.FC<
             onPress={() => handleSourcePress(tweet.url)}
             style={({ pressed }) =>
               tw.style(
-                'flex-row items-center py-3 border-b border-muted',
+                'flex-row items-start py-3 border-b border-muted',
                 pressed && 'opacity-70',
               )
             }
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="w-8 h-8 rounded-full bg-muted mr-3"
-            >
-              <Icon
-                name={IconName.X}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
             <Box twClassName="flex-1">
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                @{tweet.author}
-              </Text>
-              <Text
-                variant={TextVariant.BodyXs}
-                color={TextColor.TextAlternative}
-                numberOfLines={2}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                twClassName="pr-1"
               >
-                {tweet.contentSummary}
-              </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  numberOfLines={2}
+                  twClassName="flex-1 pr-2"
+                >
+                  {tweet.contentSummary}
+                </Text>
+                <Box paddingTop={1}>
+                  <Icon
+                    name={IconName.Export}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="pt-1"
+              >
+                <Box twClassName="w-6 h-6 rounded-full items-center justify-center bg-muted mr-2">
+                  <Icon
+                    name={IconName.X}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
+                  >
+                    {getNormalizedHandle(tweet.author)}
+                  </Text>
+                  {tweet.date ? (
+                    <>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {'•'}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {formatRelativeTime(tweet.date, { nowLabel: 'now' })}
+                      </Text>
+                    </>
+                  ) : null}
+                </Box>
+              </Box>
             </Box>
-            <Icon
-              name={IconName.Export}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
           </Pressable>
         ))}
       </ScrollView>

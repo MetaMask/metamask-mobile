@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
-import { brandColor } from '@metamask/design-tokens';
+import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
 jest.mock('react-native-svg-charts', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -59,20 +59,16 @@ jest.mock('d3-shape', () => ({
   curveStepAfter: 'step-after-curve',
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      background: { default: '#FFFFFF' },
-      border: { muted: '#E0E0E0' },
-      text: { muted: '#9CA3AF', default: '#1A1A1A', alternative: '#6B7280' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 const mockAwayTeamData: GameChartSeries = {
   label: 'SEA',
-  color: '#002244',
+  color: TEST_HEX_COLORS.TEAM_SEA,
   data: [
     { timestamp: 1000, value: 50 },
     { timestamp: 2000, value: 55 },
@@ -83,7 +79,7 @@ const mockAwayTeamData: GameChartSeries = {
 
 const mockHomeTeamData: GameChartSeries = {
   label: 'DEN',
-  color: '#FB4F14',
+  color: TEST_HEX_COLORS.TEAM_DEN,
   data: [
     { timestamp: 1000, value: 50 },
     { timestamp: 2000, value: 45 },
@@ -135,7 +131,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when data has empty series', () => {
       const emptySeriesData: GameChartSeries[] = [
-        { label: 'Empty', color: brandColor.black, data: [] },
+        { label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] },
       ];
       const { getByText } = renderWithProvider(
         <PredictGameChartContent data={emptySeriesData} testID="chart" />,
@@ -248,7 +244,11 @@ describe('PredictGameChartContent (Chart UI)', () => {
     it('limits series to maximum of 2', () => {
       const threeSeries: GameChartSeries[] = [
         ...mockDualSeriesData,
-        { label: 'Extra', color: brandColor.black, data: [{ timestamp: 1, value: 50 }] },
+        {
+          label: 'Extra',
+          color: TEST_HEX_COLORS.PURE_BLACK,
+          data: [{ timestamp: 1, value: 50 }],
+        },
       ];
 
       const { getAllByTestId } = renderWithProvider(
@@ -341,7 +341,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const extremeData: GameChartSeries[] = [
         {
           label: 'Extreme',
-          color: brandColor.black,
+          color: TEST_HEX_COLORS.PURE_BLACK,
           data: [
             { timestamp: 1, value: 5 },
             { timestamp: 2, value: 95 },
@@ -360,7 +360,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
     it('renders empty state when series has no data points', () => {
       const emptyData: GameChartSeries[] = [
-        { label: 'Empty', color: brandColor.black, data: [] },
+        { label: 'Empty', color: TEST_HEX_COLORS.PURE_BLACK, data: [] },
       ];
 
       const { getByText } = renderWithProvider(
@@ -386,7 +386,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const sameValueData: GameChartSeries[] = [
         {
           label: 'SEA',
-          color: '#002244',
+          color: TEST_HEX_COLORS.TEAM_SEA,
           data: [
             { timestamp: 1, value: 50 },
             { timestamp: 2, value: 50 },
@@ -395,7 +395,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
-          color: '#FB4F14',
+          color: TEST_HEX_COLORS.TEAM_DEN,
           data: [
             { timestamp: 1, value: 50 },
             { timestamp: 2, value: 50 },
@@ -462,7 +462,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const largeDataset: GameChartSeries[] = [
         {
           label: 'SEA',
-          color: '#002244',
+          color: TEST_HEX_COLORS.TEAM_SEA,
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
             value: 30 + (i % 10) * 4, // Deterministic: cycles 30, 34, 38... 66, 30, 34...
@@ -470,7 +470,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
-          color: '#FB4F14',
+          color: TEST_HEX_COLORS.TEAM_DEN,
           data: Array.from({ length: 100 }, (_, i) => ({
             timestamp: i * 1000,
             value: 70 - (i % 10) * 4, // Deterministic: cycles 70, 66, 62... 34, 70, 66...
@@ -489,7 +489,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
       const inverseData: GameChartSeries[] = [
         {
           label: 'SEA',
-          color: '#002244',
+          color: TEST_HEX_COLORS.TEAM_SEA,
           data: [
             { timestamp: 1, value: 70 },
             { timestamp: 2, value: 60 },
@@ -498,7 +498,7 @@ describe('PredictGameChartContent (Chart UI)', () => {
         },
         {
           label: 'DEN',
-          color: '#FB4F14',
+          color: TEST_HEX_COLORS.TEAM_DEN,
           data: [
             { timestamp: 1, value: 30 },
             { timestamp: 2, value: 40 },

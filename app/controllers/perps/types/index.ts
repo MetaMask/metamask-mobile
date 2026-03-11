@@ -5,7 +5,7 @@ import type {
   Hex,
 } from '@metamask/utils';
 
-import type { CandleData } from './perps-types';
+import type { CandleData, OrderType } from './perps-types';
 import type { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 /**
@@ -72,9 +72,6 @@ export type TradeConfiguration = {
   };
 };
 
-// Order type enumeration
-export type OrderType = 'market' | 'limit';
-
 // Market asset type classification (reusable across components)
 export type MarketType = 'crypto' | 'equity' | 'commodity' | 'forex';
 
@@ -126,6 +123,9 @@ export type TrackingData = {
   tradeWithToken?: boolean;
   mmPayTokenSelected?: string; // Token symbol when tradeWithToken is true
   mmPayNetworkSelected?: string; // chainId when tradeWithToken is true
+
+  // A/B test context to attribute trade events to specific experiments
+  abTests?: Record<string, string>;
 };
 
 // TP/SL-specific tracking data for analytics events
@@ -307,6 +307,7 @@ export type ReadyToTradeResult = {
   error?: string;
   walletConnected?: boolean;
   networkSupported?: boolean;
+  authenticatedAddress?: string;
 };
 
 export type DisconnectResult = {
@@ -589,6 +590,23 @@ export type PerpsControllerConfig = {
    * The fallback is set by default if defined and replaced with remote feature flag once available.
    */
   fallbackHip3BlocklistMarkets?: string[];
+
+  /**
+   * MYX provider credentials.
+   * Passed from the init file where `process.env.X` is babel-transformed at build time.
+   */
+  myxAppIdTestnet?: string;
+  myxApiSecretTestnet?: string;
+  myxBrokerAddressTestnet?: string;
+  myxAppIdMainnet?: string;
+  myxApiSecretMainnet?: string;
+  myxBrokerAddressMainnet?: string;
+
+  /**
+   * Whether MYX provider is enabled via local env var (MM_PERPS_MYX_PROVIDER_ENABLED).
+   * Must match the UI selector logic so the controller and UI agree on MYX availability.
+   */
+  myxProviderEnabled?: boolean;
 };
 
 export type PriceUpdate = {
@@ -634,6 +652,7 @@ export type OrderFill = {
 // Parameter interfaces - all fully optional for better UX
 export type CheckEligibilityParams = {
   blockedRegions: string[]; // List of blocked region codes (e.g., ['US', 'CN'])
+  geoLocation: string; // User's geolocation from GeolocationController
 };
 
 export type GetPositionsParams = {
@@ -879,6 +898,9 @@ export type Order = {
   detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
   isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
   reduceOnly?: boolean; // Whether this is a reduce-only order
+  isPositionTpsl?: boolean; // Whether this TP/SL is associated with the full position
+  parentOrderId?: string; // Parent order ID for display-only synthetic TP/SL rows
+  isSynthetic?: boolean; // Whether this order is synthetic (display-only, cancelable only when linked to a real child order ID)
   triggerPrice?: string; // Trigger condition price for trigger orders (e.g., TP/SL trigger level)
   providerId?: PerpsProviderType; // Multi-provider: which provider this order is on (injected by aggregator)
 };
@@ -886,7 +908,7 @@ export type Order = {
 export type Funding = {
   symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
   amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
-  rate: string; // Funding rate applied
+  rate?: string; // Funding rate applied (undefined when not available from provider)
   timestamp: number; // Funding payment timestamp
   transactionHash?: string; // Optional transaction hash
 };
@@ -1042,6 +1064,17 @@ export type PerpsProvider = {
    * @returns Array of DEX names (empty string '' represents main DEX)
    */
   getAvailableDexs?(params?: GetAvailableDexsParams): Promise<string[]>;
+
+  /**
+   * Fetch historical OHLCV candle data for a symbol.
+   * Optional: only providers that support historical candles need to implement this.
+   */
+  fetchHistoricalCandles?(options: {
+    symbol: string;
+    interval: CandlePeriod;
+    limit?: number;
+    endTime?: number;
+  }): Promise<CandleData>;
 };
 
 // ============================================================================
@@ -1269,7 +1302,7 @@ export type PerpsTraceValue = string | number | boolean;
  */
 export type PerpsAnalyticsProperties = Record<
   string,
-  string | number | boolean | null | undefined
+  string | number | boolean | Record<string, string> | null | undefined
 >;
 
 /**
@@ -1371,21 +1404,56 @@ export type PerpsTracer = {
 };
 
 // ============================================================================
-// Rewards Interface
+// Minimal local types for cross-controller DI (no external controller imports)
 // ============================================================================
 
 /**
- * Rewards controller operations required by Perps.
- * Provides fee discount capabilities for MetaMask rewards program.
+ * Minimal typed-message params passed to keyring for EIP-712 signing.
+ * Structurally matches KeyringController's TypedMessageParams.
  */
-export type PerpsRewardsOperations = {
-  /**
-   * Get fee discount for an account.
-   * Returns discount in basis points (e.g., 6500 = 65% discount)
-   */
-  getFeeDiscount(
-    caipAccountId: `${string}:${string}:${string}`,
-  ): Promise<number>;
+export type PerpsTypedMessageParams = {
+  from: string;
+  data: unknown;
+};
+
+/**
+ * Minimal transaction params passed to TransactionController.addTransaction.
+ * Only the fields PerpsController actually sets.
+ */
+export type PerpsTransactionParams = {
+  from: string;
+  to?: string;
+  value?: string;
+  data?: string;
+  gas?: string;
+};
+
+/**
+ * Options passed to TransactionController.addTransaction.
+ */
+export type PerpsAddTransactionOptions = {
+  networkClientId: string;
+  origin?: string;
+  type?: string;
+  skipInitialGasEstimate?: boolean;
+};
+
+/**
+ * Minimal account shape read from AccountTreeController.
+ * Only the fields PerpsController and its services actually use.
+ */
+export type PerpsInternalAccount = {
+  address: string;
+  type: string;
+  id: string;
+};
+
+/**
+ * Minimal remote feature flag state shape.
+ * Only the remoteFeatureFlags record is needed by PerpsController.
+ */
+export type PerpsRemoteFeatureFlagState = {
+  remoteFeatureFlags: Record<string, unknown>;
 };
 
 /**
@@ -1394,10 +1462,11 @@ export type PerpsRewardsOperations = {
  * Architecture:
  * - Observability: logger, debugLogger, metrics, performance, tracer
  * - Platform: streamManager (mobile/extension specific)
- * - Rewards: fee discount operations
  * - Cache: cache invalidation for standalone queries
+ * - Rewards: delegated rewards interaction (DI — no RewardsController in Core yet)
  *
- * Controller access uses messenger pattern (messenger.call()).
+ * Cross-controller communication uses the messenger pattern (messenger.call).
+ * Only rewards remains as DI because RewardsController is not yet in Core.
  */
 export type PerpsPlatformDependencies = {
   // === Observability (stateless utilities) ===
@@ -1409,9 +1478,6 @@ export type PerpsPlatformDependencies = {
 
   // === Platform Services (mobile/extension specific) ===
   streamManager: PerpsStreamManager;
-
-  // === Rewards (no standard messenger action in core) ===
-  rewards: PerpsRewardsOperations;
 
   // === Feature Flags (platform-specific version gating) ===
   featureFlags: {
@@ -1431,6 +1497,17 @@ export type PerpsPlatformDependencies = {
 
   // === Cache Invalidation (for standalone query caches) ===
   cacheInvalidator: PerpsCacheInvalidator;
+
+  // === Rewards (DI — no RewardsController in Core yet) ===
+  rewards: {
+    /**
+     * Get fee discount for an account from the RewardsController.
+     * Returns discount in basis points (e.g., 6500 = 65% discount)
+     */
+    getPerpsDiscountForAccount(
+      caipAccountId: `${string}:${string}:${string}`,
+    ): Promise<number>;
+  };
 };
 
 /**

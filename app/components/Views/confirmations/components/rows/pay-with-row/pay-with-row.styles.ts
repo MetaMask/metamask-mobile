@@ -5,7 +5,7 @@ const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       borderRadius: 9999,
-      backgroundColor: params.theme.colors.background.default,
+      backgroundColor: params.theme.colors.background.muted,
       paddingVertical: 8,
       paddingLeft: 9,
       paddingRight: 16,

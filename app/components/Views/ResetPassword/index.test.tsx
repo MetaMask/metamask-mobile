@@ -1,6 +1,12 @@
 import React from 'react';
 import ResetPassword from './';
-import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  render,
+  act,
+  fireEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import configureMockStore from 'redux-mock-store';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { Provider } from 'react-redux';
@@ -102,14 +108,12 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
   alert: jest.fn(),
 }));
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
 const mockTrackEvent = jest.fn();
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({
-    isEnabled: mockMetricsIsEnabled,
-    trackEvent: mockTrackEvent,
-    updateDataRecordingFlag: jest.fn(),
-  }),
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+    isEnabled: jest.fn().mockReturnValue(true),
+  },
 }));
 
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
@@ -276,6 +280,79 @@ describe('ResetPassword', () => {
     });
 
     expect(component.toJSON()).toMatchSnapshot();
+  });
+
+  it('renders inline header with Change password title', async () => {
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(
+      component.getByText(strings('password_reset.change_password')),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls navigation.goBack when header back button is pressed', async () => {
+    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    const header = component.getByTestId('header');
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call navigation.goBack when header back button is pressed during loading', async () => {
+    mockNavigation.goBack.mockClear();
+    jest
+      .mocked(recreateVaultsWithNewPassword)
+      .mockImplementationOnce(() => new Promise<void>(() => undefined));
+
+    const component = await renderConfirmPasswordView(false);
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+    });
+
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
+
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(
+        component.getByText(strings('reset_password.changing_password')),
+      ).toBeOnTheScreen();
+    });
+
+    const header = component.getByTestId('header');
+    const backButton = within(header).getByTestId('button-icon');
+    fireEvent.press(backButton);
+
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
   });
 
   it('renders the current password view initially', async () => {

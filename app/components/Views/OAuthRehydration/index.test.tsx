@@ -31,6 +31,7 @@ const mockLockApp = jest.fn();
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
+const mockRequestBiometricsAccessControlForIOS = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -42,6 +43,8 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     reauthenticate: mockReauthenticate,
     revealSRP: mockRevealSRP,
     revealPrivateKey: mockRevealPrivateKey,
+    requestBiometricsAccessControlForIOS:
+      mockRequestBiometricsAccessControlForIOS,
   }),
 }));
 
@@ -71,13 +74,16 @@ jest.mock('../../../util/errorHandling', () => ({
     error.toString().toLowerCase().includes(message.toLowerCase()),
 }));
 
-// Mock useMetrics
 const mockIsEnabled = jest.fn().mockReturnValue(true);
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     isEnabled: () => mockIsEnabled(),
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+      build: jest.fn(),
+    })),
   }),
-  withMetricsAwareness: <T,>(component: T): T => component,
 }));
 
 // Mock usePromptSeedlessRelogin
@@ -159,6 +165,9 @@ describe('OAuthRehydration', () => {
     mockComponentAuthenticationType.mockResolvedValue({
       currentAuthType: 'password',
     });
+    mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+      AUTHENTICATION_TYPE.PASSWORD,
+    );
     mockUseNetInfo.mockReturnValue({
       isConnected: true,
       isInternetReachable: true,
@@ -187,6 +196,9 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
+      expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
     });
 
     it('tracks rehydration analytics on successful login', async () => {

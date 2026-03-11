@@ -2,8 +2,13 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { CaipAccountId, CaipAssetType } from '@metamask/utils';
+import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+
+/**
+ * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
+ */
+export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
 
 export interface LoginResponseDto {
   sessionId: string;
@@ -73,6 +78,102 @@ export interface ApplyReferralDto {
    */
   referralCode: string;
 }
+
+export interface ApplyBonusCodeDto {
+  /**
+   * The bonus code to apply
+   * @example 'BNS123'
+   */
+  bonusCode: string;
+}
+
+/**
+ * Campaign type enum matching the backend CampaignType
+ */
+export enum CampaignType {
+  ONDO_HOLDING = 'ONDO_HOLDING',
+}
+
+/**
+ * DTO for campaign data from the backend
+ */
+export interface CampaignDto {
+  /**
+   * The unique identifier of the campaign
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  id: string;
+
+  /**
+   * The type of campaign
+   * @example CampaignType.ONDO_HOLDING
+   */
+  type: CampaignType;
+
+  /**
+   * The name of the campaign
+   * @example 'ONDO Holding Campaign'
+   */
+  name: string;
+
+  /**
+   * The start date of the campaign
+   * @example '2024-01-01T00:00:00.000Z'
+   */
+  startDate: string;
+
+  /**
+   * The end date of the campaign
+   * @example '2024-12-31T23:59:59.999Z'
+   */
+  endDate: string;
+
+  /**
+   * Terms and conditions content from Contentful (may be null)
+   */
+  termsAndConditions: Json | null;
+
+  /**
+   * Regions excluded from this campaign
+   * @example ['US', 'GB']
+   */
+  excludedRegions: string[];
+
+  /**
+   * Status label for the campaign
+   * @example 'Active'
+   */
+  statusLabel: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignsState = {
+  campaigns: {
+    id: string;
+    type: CampaignType;
+    name: string;
+    startDate: string;
+    endDate: string;
+    termsAndConditions: Json | null;
+    excludedRegions: string[];
+    statusLabel: string;
+  }[];
+  lastFetched: number;
+};
+
+/**
+ * Response DTO for campaign participant status from the backend
+ */
+export interface CampaignParticipantStatusDto {
+  /** Whether the subscription has opted into the campaign */
+  optedIn: boolean;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignParticipantStatusState = {
+  optedIn: boolean;
+  lastFetched: number;
+};
 
 /**
  * DTO for snapshot data from the backend
@@ -443,6 +544,17 @@ export interface MusdDepositEventPayload {
 }
 
 /**
+ * Bonus code event payload
+ */
+export interface BonusCodeEventPayload {
+  /**
+   * Bonus code
+   * @example 'BNS123'
+   */
+  code: string;
+}
+
+/**
  * Base points event interface
  */
 interface BasePointsEventDto {
@@ -516,6 +628,7 @@ export type PointsEventDto = BasePointsEventDto &
         type: 'REFERRAL' | 'SIGN_UP_BONUS' | 'LOYALTY_BONUS' | 'ONE_TIME_BONUS';
         payload: null;
       }
+    | { type: 'BONUS_CODE'; payload: BonusCodeEventPayload | null }
     | { type: string; payload: Record<string, string> | null }
   );
 
@@ -808,6 +921,12 @@ export type UnlockedRewardsState = {
       data: RewardClaimData;
     };
   }[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OffDeviceSubscriptionAccountsState = {
+  accounts: string[];
   lastFetched: number;
 };
 
@@ -1168,6 +1287,13 @@ export type RewardsControllerState = {
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
   snapshots: { [seasonId: string]: SnapshotsState };
+  offDeviceSubscriptionAccounts: {
+    [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
+  };
+  campaigns: { [subscriptionId: string]: CampaignsState };
+  campaignParticipantStatus: {
+    [compositeId: string]: CampaignParticipantStatusState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -1175,6 +1301,8 @@ export type RewardsControllerState = {
    * Uses PointsEstimateHistoryEntryState (plain strings) to satisfy StateConstraint.
    */
   pointsEstimateHistory: PointsEstimateHistoryEntryState[];
+  /** Manually selected rewards API URL override; null means use the build default */
+  rewardsEnvUrl: string | null;
 };
 
 /**
@@ -1230,6 +1358,20 @@ export interface RewardsControllerPointsEventsUpdatedEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating any cached
+ * participant status so hooks can refetch fresh data.
+ */
+export interface RewardsControllerCampaignOptedInEvent {
+  type: 'RewardsController:campaignOptedIn';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1237,7 +1379,8 @@ export type RewardsControllerEvents =
   | RewardsControllerAccountLinkedEvent
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
-  | RewardsControllerPointsEventsUpdatedEvent;
+  | RewardsControllerPointsEventsUpdatedEvent
+  | RewardsControllerCampaignOptedInEvent;
 
 /**
  * Patch type for state changes
@@ -1410,6 +1553,14 @@ export interface RewardsControllerValidateReferralCodeAction {
 }
 
 /**
+ * Action for validating bonus codes
+ */
+export interface RewardsControllerValidateBonusCodeAction {
+  type: 'RewardsController:validateBonusCode';
+  handler: (code: string, subscriptionId: string) => Promise<boolean>;
+}
+
+/**
  * Action for checking if an account supports opt-in
  */
 export interface RewardsControllerIsOptInSupportedAction {
@@ -1490,11 +1641,49 @@ export interface RewardsControllerGetUnlockedRewardsAction {
 }
 
 /**
+ * Action for getting campaigns
+ */
+export interface RewardsControllerGetCampaignsAction {
+  type: 'RewardsController:getCampaigns';
+  handler: (subscriptionId: string) => Promise<CampaignDto[]>;
+}
+
+/**
+ * Action for opting into a campaign
+ */
+export interface RewardsControllerOptInToCampaignAction {
+  type: 'RewardsController:optInToCampaign';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
+ * Action for getting the campaign participant status
+ */
+export interface RewardsControllerGetCampaignParticipantStatusAction {
+  type: 'RewardsController:getCampaignParticipantStatus';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignParticipantStatusDto>;
+}
+
+/**
  * Action for getting snapshots for a season
  */
 export interface RewardsControllerGetSnapshotsAction {
   type: 'RewardsController:getSnapshots';
   handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+}
+
+/**
+ * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
+ */
+export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
+  type: 'RewardsController:getOffDeviceSubscriptionAccounts';
+  handler: (subscriptionId: string) => Promise<string[]>;
 }
 
 /**
@@ -1525,12 +1714,40 @@ export interface RewardsControllerResetAllAction {
   handler: () => Promise<void>;
 }
 
+export interface RewardsControllerGetRewardsEnvUrlAction {
+  type: 'RewardsController:getRewardsEnvUrl';
+  handler: () => string;
+}
+
+export interface RewardsControllerCanChangeRewardsEnvUrlAction {
+  type: 'RewardsController:canChangeRewardsEnvUrl';
+  handler: () => boolean;
+}
+
+export interface RewardsControllerSetRewardsEnvUrlAction {
+  type: 'RewardsController:setRewardsEnvUrl';
+  handler: (url: string) => Promise<void>;
+}
+
+export interface RewardsControllerGetDefaultRewardsEnvUrlAction {
+  type: 'RewardsController:getDefaultRewardsEnvUrl';
+  handler: () => string;
+}
+
 /**
  * Action for applying a referral code to an existing subscription
  */
 export interface RewardsControllerApplyReferralCodeAction {
   type: 'RewardsController:applyReferralCode';
   handler: (referralCode: string, subscriptionId: string) => Promise<void>;
+}
+
+/**
+ * Action for applying a bonus code to an existing subscription
+ */
+export interface RewardsControllerApplyBonusCodeAction {
+  type: 'RewardsController:applyBonusCode';
+  handler: (bonusCode: string, subscriptionId: string) => Promise<void>;
 }
 
 /**
@@ -1552,6 +1769,7 @@ export type RewardsControllerActions =
   | RewardsControllerLogoutAction
   | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateReferralCodeAction
+  | RewardsControllerValidateBonusCodeAction
   | RewardsControllerIsOptInSupportedAction
   | RewardsControllerGetActualSubscriptionIdAction
   | RewardsControllerGetFirstSubscriptionIdAction
@@ -1561,11 +1779,20 @@ export type RewardsControllerActions =
   | RewardsControllerOptOutAction
   | RewardsControllerGetActivePointsBoostsAction
   | RewardsControllerGetUnlockedRewardsAction
+  | RewardsControllerGetCampaignsAction
+  | RewardsControllerOptInToCampaignAction
+  | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
   | RewardsControllerResetAllAction
-  | RewardsControllerApplyReferralCodeAction;
+  | RewardsControllerApplyReferralCodeAction
+  | RewardsControllerGetRewardsEnvUrlAction
+  | RewardsControllerCanChangeRewardsEnvUrlAction
+  | RewardsControllerSetRewardsEnvUrlAction
+  | RewardsControllerGetDefaultRewardsEnvUrlAction
+  | RewardsControllerApplyBonusCodeAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

@@ -11,6 +11,7 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { strings } from '../../../../../../../locales/i18n';
 
 const SKELETON_TOKEN_WIDTH = 80;
 const SKELETON_FIAT_WIDTH = 60;
@@ -31,6 +32,7 @@ export interface QuoteDisplayProps {
   fiatAmount: string | null;
   isLoading?: boolean;
   showWarningIcon?: boolean;
+  quoteUnavailable?: boolean;
 }
 
 const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
@@ -38,6 +40,7 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
   fiatAmount,
   isLoading = false,
   showWarningIcon = false,
+  quoteUnavailable = false,
 }) => {
   if (isLoading) {
     return (
@@ -65,6 +68,16 @@ const QuoteDisplay: React.FC<QuoteDisplayProps> = ({
           size={IconSize.Sm}
           color={IconColor.Warning}
         />
+      </Box>
+    );
+  }
+
+  if (quoteUnavailable) {
+    return (
+      <Box twClassName="items-end justify-center">
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('fiat_on_ramp.quote_unavailable')}
+        </Text>
       </Box>
     );
   }

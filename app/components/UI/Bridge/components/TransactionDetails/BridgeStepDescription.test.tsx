@@ -13,7 +13,7 @@ import {
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { fontStyles } from '../../../../../styles/common';
-import { brandColor } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../../util/theme';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
@@ -143,7 +143,10 @@ describe('BridgeStepDescription', () => {
     );
 
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey500);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.alternative,
+    );
   });
 
   it('should render bridge action with COMPLETE status text', () => {
@@ -156,7 +159,10 @@ describe('BridgeStepDescription', () => {
 
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey900);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.default,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.normal.fontFamily,
@@ -174,7 +180,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey900);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.default,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.normal.fontFamily,
@@ -193,7 +202,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/10:00 AM/)).toBeTruthy();
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey900);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.default,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.normal.fontFamily,
@@ -214,7 +226,10 @@ describe('BridgeStepDescription', () => {
     );
 
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey900);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.default,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.medium.fontFamily,
@@ -235,7 +250,10 @@ describe('BridgeStepDescription', () => {
     );
 
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey900);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.default,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.medium.fontFamily,
@@ -284,7 +302,10 @@ describe('BridgeStepDescription', () => {
     expect(getByText(/ETH/)).toBeTruthy();
     expect(getByText(/USDC/)).toBeTruthy();
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey500);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.alternative,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.normal.fontFamily,
@@ -298,7 +319,10 @@ describe('BridgeStepDescription', () => {
 
     expect(getByText(/ETH/)).toBeTruthy();
     const textElement = getByText(/ETH/);
-    expect(textElement.props.style).toHaveProperty('color', brandColor.grey500);
+    expect(textElement.props.style).toHaveProperty(
+      'color',
+      mockTheme.colors.text.alternative,
+    );
     expect(textElement.props.style).toHaveProperty(
       'fontFamily',
       fontStyles.normal.fontFamily,

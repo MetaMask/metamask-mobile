@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
-
 import { mockTheme } from '../../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
@@ -22,7 +21,6 @@ import { useSendActions } from '../../../../hooks/send/useSendActions';
 import * as AmountValidation from '../../../../hooks/send/useAmountValidation';
 import { getBackgroundColor } from './amount-keyboard.styles';
 import { AmountKeyboard } from './amount-keyboard';
-import { lightTheme, brandColor } from '@metamask/design-tokens';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -163,7 +161,7 @@ describe('Amount', () => {
     const { getByRole } = renderComponent(undefined, '');
     expect(
       getByRole('button', { name: 'Next' }).props.style.backgroundColor,
-    ).toEqual(lightTheme.colors.text.muted);
+    ).toEqual(mockTheme.colors.text.muted);
   });
 
   it('call updateValue with MaxMode true when Max button is pressed', () => {
@@ -226,9 +224,17 @@ describe('Amount', () => {
 
 describe('getBackgroundColor', () => {
   it('return correct color depending on amount value and error', () => {
-    expect(getBackgroundColor(mockTheme, false, false)).toEqual(brandColor.grey900);
-    expect(getBackgroundColor(mockTheme, true, false)).toEqual(lightTheme.colors.error.default);
-    expect(getBackgroundColor(mockTheme, false, true)).toEqual(lightTheme.colors.text.muted);
-    expect(getBackgroundColor(mockTheme, true, true)).toEqual(lightTheme.colors.error.default);
+    expect(getBackgroundColor(mockTheme, false, false)).toEqual(
+      mockTheme.colors.text.default,
+    );
+    expect(getBackgroundColor(mockTheme, true, false)).toEqual(
+      mockTheme.colors.error.default,
+    );
+    expect(getBackgroundColor(mockTheme, false, true)).toEqual(
+      mockTheme.colors.text.muted,
+    );
+    expect(getBackgroundColor(mockTheme, true, true)).toEqual(
+      mockTheme.colors.error.default,
+    );
   });
 });
