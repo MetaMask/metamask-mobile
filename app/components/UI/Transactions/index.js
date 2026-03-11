@@ -193,6 +193,11 @@ class Transactions extends PureComponent {
      * Location context for analytics tracking (home or asset_details)
      */
     location: PropTypes.string,
+    /**
+     * When true, the list is embedded in a parent ScrollView (e.g. TokenDetails).
+     * Disables list scrolling and omits ListHeaderComponent (header is rendered above by parent).
+     */
+    embeddedInScrollView: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -700,6 +705,7 @@ class Transactions extends PureComponent {
       confirmedTransactions,
       header,
       isSigningQRObject,
+      embeddedInScrollView,
     } = this.props;
     const { cancelConfirmDisabled, speedUpConfirmDisabled } = this.state;
     const { colors } = this.context || mockTheme;
@@ -738,7 +744,7 @@ class Transactions extends PureComponent {
               initialNumToRender={10}
               maxToRenderPerBatch={2}
               onEndReachedThreshold={0.5}
-              ListHeaderComponent={header}
+              ListHeaderComponent={embeddedInScrollView ? null : header}
               ListFooterComponent={
                 filteredTransactions.length > 0
                   ? this.footer
@@ -748,7 +754,9 @@ class Transactions extends PureComponent {
               style={baseStyles.flexGrow}
               scrollIndicatorInsets={{ right: 1 }}
               onScroll={this.onScroll}
-              scrollEnabled={!isChartBeingTouched}
+              scrollEnabled={
+                embeddedInScrollView ? false : !isChartBeingTouched
+              }
             />
           )}
         </PriceChartContext.Consumer>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, userEvent } from '@testing-library/react-native';
 import Price from './Price';
-import { TokenI } from '../../Tokens/types';
 import {
   TimePeriod,
   TokenPrice,
@@ -24,28 +23,12 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   }),
 }));
 
-const mockAsset: TokenI = {
-  name: 'Ethereum',
-  ticker: 'ETH',
-  symbol: 'Ethereum',
-  address: '0x0',
-  aggregators: [],
-  decimals: 18,
-  image: '',
-  balance: '100',
-  balanceFiat: '$100',
-  logo: '',
-  isETH: true,
-  isNative: true,
-};
-
 const mockPrices: TokenPrice[] = [
   ['1736761237983', 100],
   ['1736761237986', 105],
 ];
 
 const mockProps: {
-  asset: TokenI;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
@@ -54,7 +37,6 @@ const mockProps: {
   isLoading: boolean;
   timePeriod: TimePeriod;
 } = {
-  asset: mockAsset,
   prices: mockPrices,
   priceDiff: 5,
   currentPrice: 105,
@@ -65,51 +47,6 @@ const mockProps: {
 };
 
 describe('Price Component', () => {
-  describe('Header', () => {
-    it('renders header correctly when asset name and symbol are provided', () => {
-      const props = {
-        ...mockProps,
-        asset: {
-          ...mockProps.asset,
-          ticker: '',
-        },
-      };
-
-      const { getByText } = render(<Price {...props} />);
-
-      // Name and symbol are rendered together when ticker is not provided
-      // Format: "name (symbol)"
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
-      ).toBeTruthy();
-    });
-
-    it('renders header correctly when name not provided and symbol is provided', () => {
-      const props = {
-        ...mockProps,
-        asset: {
-          ...mockProps.asset,
-          name: '',
-          ticker: '',
-        },
-      };
-
-      const { getByText } = render(<Price {...props} />);
-
-      expect(getByText(`${mockProps.asset.symbol}`)).toBeTruthy();
-    });
-
-    it('renders header correctly when name and ticker are provided', () => {
-      const { getByText } = render(<Price {...mockProps} />);
-
-      // Name and ticker are rendered together
-      // Format: "name (ticker)"
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
-      ).toBeTruthy();
-    });
-  });
-
   it('shows loading state when isLoading is true', () => {
     const { getByTestId } = render(
       <Price {...{ ...mockProps, isLoading: true }} />,

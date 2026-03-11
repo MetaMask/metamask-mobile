@@ -480,7 +480,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         <View>
           <PriceChartProvider>
             <Price
-              asset={token}
               prices={prices}
               priceDiff={priceDiff}
               currentCurrency={currentCurrency}

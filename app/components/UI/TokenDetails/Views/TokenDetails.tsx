@@ -1,7 +1,12 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import Animated from 'react-native-reanimated';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -18,8 +23,20 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { isMainnetByChainId } from '../../../../util/networks';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
-import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import HeaderStandardAnimated from '../../../../component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated';
+import useHeaderStandardAnimated from '../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
+import TitleSubpage from '../../../../component-library/components-temp/TitleSubpage';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import Badge from '../../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import NetworkAssetLogo from '../../NetworkAssetLogo';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import AssetOverviewContent from '../components/AssetOverviewContent';
+import { Hex } from '@metamask/utils';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenActions } from '../hooks/useTokenActions';
@@ -67,6 +84,12 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
       paddingTop: 16,
+    },
+    ethLogo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      overflow: 'hidden',
     },
   });
 };
@@ -185,44 +208,95 @@ const TokenDetails: React.FC<{
     ? isNetworkRampNativeTokenSupported(chainIdForRamp, rampNetworks)
     : isNetworkRampSupported(chainIdForRamp, rampNetworks);
 
-  const renderHeader = () => (
-    <>
-      <AssetOverviewContent
-        token={token}
-        balance={balance}
-        mainBalance={fiatBalance ?? ''}
-        secondaryBalance={tokenFormattedBalance}
-        currentPrice={currentPrice}
-        priceDiff={priceDiff}
-        comparePrice={comparePrice}
-        prices={prices}
-        isLoading={isLoading}
-        timePeriod={timePeriod}
-        setTimePeriod={setTimePeriod}
-        chartNavigationButtons={chartNavigationButtons}
-        isPerpsEnabled={isPerpsEnabled}
-        displayBuyButton={isRampAvailable}
-        displaySwapsButton={displaySwapsButton}
-        currentCurrency={currentCurrency}
-        onBuy={onBuy}
-        onSend={onSend}
-        onReceive={onReceive}
-        goToSwaps={goToSwaps}
-        onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
-        isTronNative={isTronNative}
-        stakedTrxAsset={stakedTrxAsset}
-        inLockPeriodBalance={inLockPeriodBalance}
-        readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
-      />
-      <ActivityHeader
-        asset={{
-          ...token,
-          hasBalanceError: token.hasBalanceError ?? false,
-        }}
-      />
-    </>
+  const { scrollY, onScroll, setTitleSectionHeight, titleSectionHeightSv } =
+    useHeaderStandardAnimated();
+
+  const headerTitle = token.name || token.symbol;
+  const headerSubtitle = token.symbol;
+
+  const titleSectionStartAccessory = useMemo(() => {
+    const avatar =
+      (token.isNative ?? token.isETH) ? (
+        <NetworkAssetLogo
+          chainId={token.chainId as Hex}
+          style={styles.ethLogo}
+          ticker={token.ticker ?? token.symbol}
+          big={false}
+          biggest={false}
+          testID={token.name}
+        />
+      ) : (
+        <AvatarToken
+          name={token.symbol}
+          imageSource={{ uri: token.image }}
+          size={AvatarSize.Lg}
+        />
+      );
+    return (
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={NetworkBadgeSource(token.chainId as Hex)}
+            name={networkConfigurationByChainId?.name}
+          />
+        }
+      >
+        {avatar}
+      </BadgeWrapper>
+    );
+  }, [
+    token.chainId,
+    token.image,
+    token.isNative,
+    token.isETH,
+    token.name,
+    token.symbol,
+    token.ticker,
+    networkConfigurationByChainId?.name,
+    styles.ethLogo,
+  ]);
+
+  const assetOverviewContent = (
+    <AssetOverviewContent
+      token={token}
+      balance={balance}
+      mainBalance={fiatBalance ?? ''}
+      secondaryBalance={tokenFormattedBalance}
+      currentPrice={currentPrice}
+      priceDiff={priceDiff}
+      comparePrice={comparePrice}
+      prices={prices}
+      isLoading={isLoading}
+      timePeriod={timePeriod}
+      setTimePeriod={setTimePeriod}
+      chartNavigationButtons={chartNavigationButtons}
+      isPerpsEnabled={isPerpsEnabled}
+      displayBuyButton={isRampAvailable}
+      displaySwapsButton={displaySwapsButton}
+      currentCurrency={currentCurrency}
+      onBuy={onBuy}
+      onSend={onSend}
+      onReceive={onReceive}
+      goToSwaps={goToSwaps}
+      onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      isTronNative={isTronNative}
+      stakedTrxAsset={stakedTrxAsset}
+      inLockPeriodBalance={inLockPeriodBalance}
+      readyForWithdrawalBalance={readyForWithdrawalBalance}
+      ///: END:ONLY_INCLUDE_IF
+    />
+  );
+
+  const activityHeader = (
+    <ActivityHeader
+      asset={{
+        ...token,
+        hasBalanceError: token.hasBalanceError ?? false,
+      }}
+    />
   );
 
   const renderLoader = () => (
@@ -230,49 +304,77 @@ const TokenDetails: React.FC<{
       <ActivityIndicator style={styles.loader} size="small" />
     </View>
   );
+
   return (
-    <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        title={token.symbol}
-        networkName={networkName ?? ''}
-        onBackPress={() => navigation.goBack()}
-        onOptionsPress={
+    <SafeAreaView
+      style={styles.wrapper}
+      edges={['top']}
+      testID="token-details-safe-area"
+    >
+      <HeaderStandardAnimated
+        scrollY={scrollY}
+        titleSectionHeight={titleSectionHeightSv}
+        title={headerTitle}
+        subtitle={headerSubtitle}
+        onBack={() => navigation.goBack()}
+        endButtonIconProps={
           shouldShowMoreOptionsInNavBar && !useNewLayout
-            ? openAssetOptions
+            ? [{ iconName: IconName.MoreVertical, onPress: openAssetOptions }]
             : undefined
         }
       />
       {txLoading ? (
         renderLoader()
-      ) : txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
-        />
       ) : (
-        <Transactions
-          header={renderHeader()}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          location={TransactionDetailLocation.AssetDetails}
-        />
+        <Animated.ScrollView
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          style={styles.wrapper}
+        >
+          <Box
+            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
+            twClassName="px-4"
+          >
+            <TitleSubpage
+              title={headerTitle}
+              bottomLabel={headerSubtitle}
+              startAccessory={titleSectionStartAccessory}
+            />
+          </Box>
+          {assetOverviewContent}
+          {activityHeader}
+          {txIsNonEvmAsset ? (
+            <MultichainTransactionsView
+              embeddedInScrollView
+              transactions={transactions}
+              navigation={navigation}
+              selectedAddress={selectedAddress}
+              chainId={token.chainId as SupportedCaipChainId}
+              enableRefresh
+              showDisclaimer
+              location={TransactionDetailLocation.AssetDetails}
+            />
+          ) : (
+            <Transactions
+              embeddedInScrollView
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              location={TransactionDetailLocation.AssetDetails}
+            />
+          )}
+        </Animated.ScrollView>
       )}
       {networkModal}
       {useNewLayout &&
@@ -306,7 +408,7 @@ const TokenDetails: React.FC<{
             buttonsAlignment={ButtonsAlignment.Horizontal}
           />
         )}
-    </View>
+    </SafeAreaView>
   );
 };
 

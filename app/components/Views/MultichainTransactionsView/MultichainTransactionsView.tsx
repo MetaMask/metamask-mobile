@@ -70,6 +70,11 @@ interface MultichainTransactionsViewProps {
    * Location context for analytics tracking (home or asset_details)
    */
   location?: TransactionDetailLocation;
+  /**
+   * When true, the list is embedded in a parent ScrollView (e.g. TokenDetails).
+   * Disables list scrolling and omits ListHeaderComponent (header is rendered above by parent).
+   */
+  embeddedInScrollView?: boolean;
 }
 
 const MultichainTransactionsView = ({
@@ -83,6 +88,7 @@ const MultichainTransactionsView = ({
   showDisclaimer = false,
   onScroll,
   location,
+  embeddedInScrollView = false,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -183,7 +189,7 @@ const MultichainTransactionsView = ({
               data={txList}
               renderItem={renderTransactionItem}
               keyExtractor={(item) => item.id}
-              ListHeaderComponent={header}
+              ListHeaderComponent={embeddedInScrollView ? null : header}
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
               style={baseStyles.flexGrow}
@@ -199,7 +205,9 @@ const MultichainTransactionsView = ({
                 ) : undefined
               }
               onScroll={onScroll}
-              scrollEnabled={!isChartBeingTouched}
+              scrollEnabled={
+                embeddedInScrollView ? false : !isChartBeingTouched
+              }
             />
           )}
         </PriceChartContext.Consumer>
