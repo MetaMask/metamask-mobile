@@ -102,9 +102,7 @@ class TabBarModal {
       await driver.pause(3000);
       await Gestures.longPress(actionButton, 500);
     } else {
-      const actionButton = await this.actionButton;
-      await appwrightExpect(actionButton).toBeVisible();
-      await AppwrightGestures.tap(actionButton); // Use static tap method with retry logic
+      await AppwrightGestures.tap(await this.actionButton);
     }
   }
 

@@ -52,8 +52,9 @@ test.describe(PerformancePredict, () => {
         { ios: 2300, android: 2600 },
         device,
       );
+
+      await WalletActionModal.tapPredictButton();
       await timer1.measure(async () => {
-        await WalletActionModal.tapPredictButton();
         await PredictMarketListScreen.isContainerDisplayed();
       });
 
@@ -63,8 +64,9 @@ test.describe(PerformancePredict, () => {
         { ios: 7000, android: 12000 },
         device,
       );
+
+      await PredictMarketListScreen.tapAddFundsButton();
       await timer2.measure(async () => {
-        await PredictMarketListScreen.tapAddFundsButton();
         await PredictDepositScreen.isAmountInputVisible();
       });
 
@@ -74,8 +76,9 @@ test.describe(PerformancePredict, () => {
         { ios: 4500, android: 2900 },
         device,
       );
+
+      await PredictDepositScreen.tapPayWith();
       await timer3.measure(async () => {
-        await PredictDepositScreen.tapPayWith();
         // Wait for asset selection modal to appear
         await PredictDepositScreen.isSelectPaymentVisible();
       });
@@ -86,13 +89,11 @@ test.describe(PerformancePredict, () => {
         { ios: 15000, android: 12000 },
         device,
       );
-      await timer4.measure(async () => {
-        // Search for USDC and select the first visible option
-        await PredictDepositScreen.searchToken('USDC');
-        await PredictDepositScreen.tapEthereumFilter();
-        await PredictDepositScreen.tapFirstUsdc('USDC');
-        await PredictDepositScreen.fillUsdAmount('1');
-      });
+
+      await PredictDepositScreen.searchToken('USDC');
+      await PredictDepositScreen.tapEthereumFilter();
+      await PredictDepositScreen.tapFirstUsdc('USDC');
+      await PredictDepositScreen.fillUsdAmount('1');
 
       // Timer 5: Proceed to confirmation screen
       const timer5 = new TimerHelper(
@@ -100,8 +101,9 @@ test.describe(PerformancePredict, () => {
         { ios: 4800, android: 9000 },
         device,
       );
+
+      await PredictDepositScreen.tapContinue();
       await timer5.measure(async () => {
-        await PredictDepositScreen.tapContinue();
         await PredictConfirmationScreen.verifyDepositAmount('1');
         await PredictConfirmationScreen.verifyFeesDisplayed();
       });

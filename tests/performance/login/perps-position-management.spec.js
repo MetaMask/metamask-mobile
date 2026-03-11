@@ -103,8 +103,12 @@ test.describe(PerformancePreps, () => {
         console.log(
           '⚠️ Position already open, closing it before continuing with the test...',
         );
-        await PerpsPositionDetailsView.closePositionWithRetry();
-        console.log('✅ Existing position closed successfully');
+        try {
+          await PerpsPositionDetailsView.closePositionWithRetry();
+          console.log('✅ Existing position closed successfully');
+        } catch (error) {
+          console.error('❌ Error closing existing position:', error);
+        }
       }
 
       await PerpsMarketDetailsView.tapLongButton();
@@ -120,7 +124,12 @@ test.describe(PerformancePreps, () => {
         async () => await PerpsPositionDetailsView.isPositionOpen(),
       );
 
-      await PerpsPositionDetailsView.closePositionWithRetry();
+      try {
+        await PerpsPositionDetailsView.closePositionWithRetry();
+        console.log('✅ Position closed successfully');
+      } catch (error) {
+        console.error('❌ Error closing position:', error);
+      }
 
       performanceTracker.addTimers(
         selectPerpsMainScreenTimer,

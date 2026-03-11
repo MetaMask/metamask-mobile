@@ -35,7 +35,7 @@ class PerpsPositionDetailsView {
 
   async isPositionOpen() {
     const closePositionButton = await this.closePositionButton;
-    return await closePositionButton.isVisible();
+    return await closePositionButton.isVisible({ timeout: 5000 });
   }
 
   async closePositionWithRetry() {
