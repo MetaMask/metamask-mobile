@@ -373,7 +373,7 @@ exports[`BackupAndSyncSettings renders correctly 1`] = `
                 },
               ]
             }
-            testID="toggle-contactSyncing"
+            testID="toggle-accountSyncing"
             thumbTintColor="#ffffff"
             tintColor="#b4b4b566"
             value={true}
