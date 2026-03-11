@@ -15,7 +15,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
 import { usePredictPositions } from '../../hooks/usePredictPositions';

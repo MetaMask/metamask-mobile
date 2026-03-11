@@ -10,7 +10,7 @@ import React from 'react';
 import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 interface PredictPickItemProps {
   position: PredictPosition;

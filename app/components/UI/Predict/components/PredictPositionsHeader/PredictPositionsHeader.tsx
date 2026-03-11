@@ -50,7 +50,7 @@ import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
 import { getEvmAccountFromSelectedAccountGroup } from '../../utils/accounts';
