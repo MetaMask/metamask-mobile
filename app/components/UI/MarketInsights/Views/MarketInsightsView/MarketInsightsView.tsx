@@ -13,6 +13,7 @@ import {
   Animated,
   useColorScheme,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import AlternateBackgroundAnimation from './AlternateBackgroundAnimation';
 // import Rive, { Fit, Alignment } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
@@ -67,6 +68,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
 import { useAppThemeFromContext } from '../../../../../util/theme';
+import { colorWithOpacity } from '../../../../../util/colors/colorWithOpacity';
 import MarketInsightsFeedbackBottomSheet, {
   MarketInsightsFeedbackReason,
 } from '../../components/MarketInsightsFeedbackBottomSheet';
@@ -75,6 +77,8 @@ const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
 const BACKGROUND_ANIMATION_HEIGHT = 77;
+const BACKGROUND_FADE_HEIGHT = 36;
+const SCROLL_CONTENT_FADE_HEIGHT = 32;
 const SECTION_ANIMATION_DELAYS_MS = {
   topArticle: 50,
   closerLook: 130,
@@ -418,6 +422,18 @@ const MarketInsightsView: React.FC = () => {
             testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
           />
         ) : null}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            colorWithOpacity(theme.colors.background.default, 0),
+            theme.colors.background.default,
+          ]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={tw.style(
+            `absolute bottom-0 left-0 right-0 h-[${BACKGROUND_FADE_HEIGHT}px]`,
+          )}
+        />
         {/*
         <Rive
           source={MarketInsightsBackgroundAnimationLight}
@@ -434,119 +450,134 @@ const MarketInsightsView: React.FC = () => {
         <MarketInsightsViewHeader onBackPress={handleBackPress} />
       </Box>
 
-      <ScrollView
-        style={tw.style('flex-1')}
-        contentContainerStyle={tw.style(`pt-4 pb-4`)}
-        showsVerticalScrollIndicator={false}
-      >
-        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
-          <Box twClassName="px-4 pt-4 pb-3">
-            <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
-          </Box>
+      <Box twClassName="flex-1">
+        <ScrollView
+          style={tw.style('flex-1 bg-default')}
+          contentContainerStyle={tw.style(`pt-4 pb-4`)}
+          showsVerticalScrollIndicator={false}
+        >
+          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
+            <Box twClassName="px-4 pt-4 pb-3">
+              <Text variant={TextVariant.HeadingMd}>{report.headline}</Text>
+            </Box>
 
-          <Box twClassName="px-4 pb-3">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {report.summary}
-            </Text>
-          </Box>
-        </AnimatedSection>
-
-        <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
-          {/* "A closer look" section */}
-          <Box twClassName="pb-6">
-            {report.trends.map((trend, index) => (
-              <MarketInsightsTrendItem
-                key={`trend-${index}`}
-                trend={trend}
-                onPress={() => handleTrendPress(trend)}
-                testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
-              />
-            ))}
-          </Box>
-        </AnimatedSection>
-
-        {/* "What's being said" section */}
-        {allTweets.length > 0 && (
-          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
-            <Box twClassName="h-4 border-t border-muted" />
-            <Box twClassName="pb-6">
-              <Box twClassName="px-4 py-4">
-                <Text
-                  variant={TextVariant.HeadingMd}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('market_insights.whats_being_said')}
-                </Text>
-              </Box>
-
-              <Box twClassName="px-4" gap={3}>
-                {allTweets.map((tweet, index) => (
-                  <MarketInsightsTweetCard
-                    key={`tweet-${index}`}
-                    tweet={tweet}
-                    onPress={() => handleTweetPress(tweet.url)}
-                    testID={`${MarketInsightsSelectorsIDs.TWEET_CARD}-${index}`}
-                  />
-                ))}
-              </Box>
+            <Box twClassName="px-4 pb-3">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {report.summary}
+              </Text>
             </Box>
           </AnimatedSection>
-        )}
 
-        <Box
-          alignItems={BoxAlignItems.Center}
-          twClassName="border-t border-muted px-4 pt-4"
-          testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
-        >
+          <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.closerLook}>
+            {/* "A closer look" section */}
+            <Box twClassName="pb-6">
+              {report.trends.map((trend, index) => (
+                <MarketInsightsTrendItem
+                  key={`trend-${index}`}
+                  trend={trend}
+                  onPress={() => handleTrendPress(trend)}
+                  testID={`${MarketInsightsSelectorsIDs.TREND_ITEM}-${index}`}
+                />
+              ))}
+            </Box>
+          </AnimatedSection>
+
+          {/* "What's being said" section */}
+          {allTweets.length > 0 && (
+            <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.whatsBeingSaid}>
+              <Box twClassName="h-4 border-t border-muted" />
+              <Box twClassName="pb-6">
+                <Box twClassName="px-4 py-4">
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    fontWeight={FontWeight.Bold}
+                  >
+                    {strings('market_insights.whats_being_said')}
+                  </Text>
+                </Box>
+
+                <Box twClassName="px-4" gap={3}>
+                  {allTweets.map((tweet, index) => (
+                    <MarketInsightsTweetCard
+                      key={`tweet-${index}`}
+                      tweet={tweet}
+                      onPress={() => handleTweetPress(tweet.url)}
+                      testID={`${MarketInsightsSelectorsIDs.TWEET_CARD}-${index}`}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </AnimatedSection>
+          )}
+
           <Box
-            flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
+            twClassName="border-t border-muted px-4 pt-4"
+            testID={MarketInsightsSelectorsIDs.SOURCES_FOOTER}
           >
-            <Pressable
-              onPress={handleThumbsUpPress}
-              style={({ pressed }) =>
-                tw.style(
-                  'h-12 w-12 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-              testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
             >
-              <Icon
-                name={IconName.ThumbUp}
-                size={IconSize.Lg}
-                color={IconColor.IconAlternative}
-              />
-            </Pressable>
-            <Pressable
-              onPress={handleThumbsDownPress}
-              style={({ pressed }) =>
-                tw.style(
-                  'h-12 w-12 items-center justify-center',
-                  pressed && 'opacity-70',
-                )
-              }
-              testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+              <Pressable
+                onPress={handleThumbsUpPress}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-12 w-12 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
+                }
+                testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
+              >
+                <Icon
+                  name={IconName.ThumbUp}
+                  size={IconSize.Lg}
+                  color={IconColor.IconAlternative}
+                />
+              </Pressable>
+              <Pressable
+                onPress={handleThumbsDownPress}
+                style={({ pressed }) =>
+                  tw.style(
+                    'h-12 w-12 items-center justify-center',
+                    pressed && 'opacity-70',
+                  )
+                }
+                testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
+              >
+                <Icon
+                  name={IconName.ThumbDown}
+                  size={IconSize.Lg}
+                  color={IconColor.IconAlternative}
+                />
+              </Pressable>
+            </Box>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="pt-1"
             >
-              <Icon
-                name={IconName.ThumbDown}
-                size={IconSize.Lg}
-                color={IconColor.IconAlternative}
-              />
-            </Pressable>
+              {strings('market_insights.helpful_prompt')}
+            </Text>
           </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="pt-1"
-          >
-            {strings('market_insights.helpful_prompt')}
-          </Text>
-        </Box>
-      </ScrollView>
+        </ScrollView>
+
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            theme.colors.background.default,
+            colorWithOpacity(theme.colors.background.default, 0),
+          ]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={tw.style(
+            `absolute top-0 left-0 right-0 h-[${SCROLL_CONTENT_FADE_HEIGHT}px]`,
+          )}
+        />
+      </Box>
 
       <Box
         twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}

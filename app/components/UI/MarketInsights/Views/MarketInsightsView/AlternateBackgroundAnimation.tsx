@@ -1,5 +1,5 @@
 import React, { memo, useEffect, useMemo } from 'react';
-import Svg, { G, Path, Rect } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -186,16 +186,6 @@ const AlternateBackgroundAnimation = ({
       preserveAspectRatio="xMidYMin slice"
       testID={testID}
     >
-      {/* Static black card background. All visible motion comes from opacity
-          changes applied to the star columns above it. */}
-      <Rect
-        x={0}
-        y={0}
-        width={COMP_WIDTH}
-        height={COMP_HEIGHT}
-        fill="rgb(0, 0, 0)"
-      />
-
       {/* Each AnimatedColumn shares one opacity value, which keeps the effect
           cheaper than animating every star independently. */}
       {columns.map(({ colX, dots }) => (
