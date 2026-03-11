@@ -90,7 +90,10 @@ const AmountInput: React.FC<Props> = ({
 
       // For sell: show "12.5 | ETH" with cursor before token symbol
       if (tokenSymbol) {
-        const amountWithoutSymbol = amount.replace(tokenSymbol, '').trimEnd();
+        const suffix = ` ${tokenSymbol}`;
+        const amountWithoutSymbol = amount.endsWith(suffix)
+          ? amount.slice(0, -suffix.length)
+          : amount.replace(tokenSymbol, '').trimEnd();
 
         return (
           <View style={styles.amountWithCursor}>
