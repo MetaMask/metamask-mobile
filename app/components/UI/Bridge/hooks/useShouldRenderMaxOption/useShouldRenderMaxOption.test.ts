@@ -47,11 +47,19 @@ const nativeToken: BridgeToken = {
 const setSelectorValues = ({
   gasIncluded = false,
   gasIncluded7702 = false,
+  stxEnabled = true,
 }: {
   gasIncluded?: boolean;
   gasIncluded7702?: boolean;
+  stxEnabled?: boolean;
 } = {}) => {
-  mockUseSelector.mockImplementation(() => ({ gasIncluded, gasIncluded7702 }));
+  let selectorCallCount = 0;
+  mockUseSelector.mockImplementation(() => {
+    selectorCallCount += 1;
+    return selectorCallCount % 2 === 1
+      ? { gasIncluded, gasIncluded7702 }
+      : stxEnabled;
+  });
 };
 
 describe('useShouldRenderMaxOption', () => {
@@ -90,7 +98,7 @@ describe('useShouldRenderMaxOption', () => {
   });
 
   it('returns true for native token when gasIncluded is enabled', () => {
-    setSelectorValues({ gasIncluded: true });
+    setSelectorValues({ gasIncluded: true, stxEnabled: true });
     mockUseTokenAddress.mockReturnValue(nativeToken.address);
     mockIsNativeAddress.mockReturnValue(true);
 
@@ -105,6 +113,7 @@ describe('useShouldRenderMaxOption', () => {
     setSelectorValues({
       gasIncluded: false,
       gasIncluded7702: true,
+      stxEnabled: false,
     });
     mockUseTokenAddress.mockReturnValue(nativeToken.address);
     mockIsNativeAddress.mockReturnValue(true);
@@ -120,6 +129,7 @@ describe('useShouldRenderMaxOption', () => {
     setSelectorValues({
       gasIncluded: false,
       gasIncluded7702: false,
+      stxEnabled: true,
     });
     mockUseTokenAddress.mockReturnValue(nativeToken.address);
     mockIsNativeAddress.mockReturnValue(true);
@@ -131,25 +141,11 @@ describe('useShouldRenderMaxOption', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns false for sponsored native quote when gasIncluded paths are disabled', () => {
+  it('returns true for sponsored native quote when stx is enabled', () => {
     setSelectorValues({
       gasIncluded: false,
       gasIncluded7702: false,
-    });
-    mockUseTokenAddress.mockReturnValue(nativeToken.address);
-    mockIsNativeAddress.mockReturnValue(true);
-
-    const { result } = renderHook(() =>
-      useShouldRenderMaxOption(nativeToken, '1.25', true),
-    );
-
-    expect(result.current).toBe(false);
-  });
-
-  it('returns true for sponsored native quote when 7702 path is enabled', () => {
-    setSelectorValues({
-      gasIncluded: false,
-      gasIncluded7702: true,
+      stxEnabled: true,
     });
     mockUseTokenAddress.mockReturnValue(nativeToken.address);
     mockIsNativeAddress.mockReturnValue(true);
@@ -161,6 +157,22 @@ describe('useShouldRenderMaxOption', () => {
     expect(result.current).toBe(true);
   });
 
+  it('returns false for sponsored native quote when stx is disabled', () => {
+    setSelectorValues({
+      gasIncluded: false,
+      gasIncluded7702: false,
+      stxEnabled: false,
+    });
+    mockUseTokenAddress.mockReturnValue(nativeToken.address);
+    mockIsNativeAddress.mockReturnValue(true);
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(nativeToken, '1.25', true),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
   it('returns false for non-EVM native token when no gas-included path is enabled', () => {
     const solanaToken: BridgeToken = {
       ...nativeToken,
@@ -170,6 +182,7 @@ describe('useShouldRenderMaxOption', () => {
     setSelectorValues({
       gasIncluded: false,
       gasIncluded7702: false,
+      stxEnabled: false,
     });
     mockUseTokenAddress.mockReturnValue(solanaToken.address);
     mockIsNativeAddress.mockReturnValue(true);
