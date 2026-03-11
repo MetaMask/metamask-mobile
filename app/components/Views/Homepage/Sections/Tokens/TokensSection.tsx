@@ -41,6 +41,9 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useMusdCtaVisibility } from '../../../../UI/Earn/hooks/useMusdCtaVisibility';
+import { isMusdToken } from '../../../../UI/Earn/constants/musd';
+import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -117,21 +120,37 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       }
     }, [selectedAccountId]);
 
+    const isMusdConversionFlowEnabled = useSelector(
+      selectIsMusdConversionFlowEnabledFlag,
+    );
+    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
+    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+
     const title = strings('homepage.sections.tokens');
 
+    // Only exclude mUSD when Cash section is enabled (then mUSD is shown there). Otherwise include all.
     const displayTokenKeys = useMemo(
-      () => sortedTokenKeys.slice(0, MAX_TOKENS_DISPLAYED),
-      [sortedTokenKeys],
+      () =>
+        sortedTokenKeys
+          .filter((key) =>
+            isCashSectionEnabled ? !isMusdToken(key.address) : true,
+          )
+          .slice(0, MAX_TOKENS_DISPLAYED),
+      [sortedTokenKeys, isCashSectionEnabled],
     );
 
     // Show error when an explicit refresh failed, or when balance data has loaded
     // and the account has balance but the selector returned no tokens (controllers
     // failed to load data). The accountGroupBalance null-check prevents a false
     // positive on cold start or for legitimately empty token lists.
+    // When Cash section is enabled, displayTokenKeys can be empty because we filter
+    // out mUSD (shown in Cash section); do not treat "balance but no non-mUSD tokens"
+    // as an error.
     const hasBalanceButNoTokens =
       accountGroupBalance != null &&
       accountGroupBalance.totalBalanceInUserCurrency > 0 &&
-      displayTokenKeys.length === 0;
+      displayTokenKeys.length === 0 &&
+      (!isCashSectionEnabled || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
     const refresh = useCallback(async () => {

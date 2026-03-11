@@ -34,6 +34,7 @@ const mockAdapterInstance = {
   destroy: jest.fn(),
   startDeviceDiscovery: jest.fn(),
   stopDeviceDiscovery: jest.fn(),
+  ensurePermissions: jest.fn().mockResolvedValue(true),
   isTransportAvailable: jest.fn().mockReturnValue(true),
   onTransportStateChange: jest
     .fn()
