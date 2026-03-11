@@ -821,6 +821,8 @@ const Onboarding = () => {
             testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
             isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            twClassName={`min-h-${Device.isMediumDevice() ? '10' : '12'} h-auto py-3`}
+            textProps={{ numberOfLines: 0 }}
           >
             {strings('onboarding.start_exploring_now')}
           </Button>
@@ -831,6 +833,8 @@ const Onboarding = () => {
             testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
             isFullWidth
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            twClassName={`min-h-${Device.isMediumDevice() ? '10' : '12'} h-auto py-3`}
+            textProps={{ numberOfLines: 0 }}
             style={tw.style({
               backgroundColor: importedColors.applePayBlack,
               borderColor: 'transparent',

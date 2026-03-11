@@ -198,6 +198,8 @@ const OnboardingSheet = (props: OnboardingSheetProps) => {
             testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
             isFullWidth
             size={ButtonSize.Lg}
+            twClassName="min-h-12 h-auto py-3"
+            textProps={{ numberOfLines: 0 }}
           >
             {createWallet
               ? strings('onboarding.continue_with_srp')
