@@ -306,7 +306,7 @@ describe('ExploreSearchResults', () => {
       });
       mockUseExploreSearch.mockReturnValue({
         data: {
-          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitc===oin' }],
+          tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
           predictions: [],
           stocks: [],
