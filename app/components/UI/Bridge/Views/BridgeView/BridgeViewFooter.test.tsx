@@ -279,7 +279,6 @@ describe('BridgeViewFooter', () => {
           ...mockUseBridgeQuoteData,
           activeQuote: {
             ...mockQuoteWithMetadata,
-            // @ts-expect-error controller types are not up to date yet
             quote: { feeData: { metabridge: { quoteBpsFee: 87.5 } } },
           },
         }));
@@ -305,7 +304,6 @@ describe('BridgeViewFooter', () => {
           isLoading: false,
           activeQuote: {
             ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            // @ts-expect-error controller types are not up to date yet
             quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
           } as unknown as QuoteResponse,
         }));
