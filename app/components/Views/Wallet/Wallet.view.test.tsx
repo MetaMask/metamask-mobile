@@ -107,29 +107,40 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('header address copy and account picker are present and address copy can be pressed', () => {
-    const { getByTestId } = renderWalletView({
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: true,
-            },
-            RewardsController: {
-              activeAccount: null,
-            },
+  const defaultWalletOverrides = {
+    overrides: {
+      settings: {
+        basicFunctionalityEnabled: true,
+      },
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+          },
+          RewardsController: {
+            activeAccount: null,
           },
         },
-      } as unknown as Record<string, unknown>,
-    });
+      },
+    } as unknown as Record<string, unknown>,
+  };
+
+  it('displays navbar address copy button', () => {
+    const { getByTestId } = renderWalletView(defaultWalletOverrides);
 
     expect(
       getByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('displays account picker in header', () => {
+    const { getByTestId } = renderWalletView(defaultWalletOverrides);
+
     expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+  });
+
+  it('address copy button is pressable', () => {
+    const { getByTestId } = renderWalletView(defaultWalletOverrides);
 
     fireEvent.press(
       getByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
