@@ -124,6 +124,9 @@ export const PredictMarketDetailsSelectorsIDs = {
     'predict-market-details-resolved-outcomes-icon-collapsed',
   RESOLVED_OUTCOMES_ICON_EXPANDED:
     'predict-market-details-resolved-outcomes-icon-expanded',
+
+  // Action buttons (Yes/No for single outcome markets)
+  ACTION_BUTTON: 'predict-market-details-action-button',
 } as const;
 
 export const getPredictMarketDetailsSelector = {

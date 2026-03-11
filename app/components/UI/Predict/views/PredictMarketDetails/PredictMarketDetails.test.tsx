@@ -620,7 +620,7 @@ const getActionButtonText = (button: ReactTestInstance) =>
 
 const getActionButtons = () =>
   screen
-    .getAllByTestId('button')
+    .getAllByTestId(PredictMarketDetailsSelectorsIDs.ACTION_BUTTON)
     .filter((button) => getActionButtonText(button).includes('¢'));
 
 const findActionButtonByPrice = (price: number) =>
