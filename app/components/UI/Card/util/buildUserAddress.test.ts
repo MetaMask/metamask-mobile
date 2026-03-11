@@ -188,7 +188,7 @@ describe('buildUserAddress utilities', () => {
           firstName: 'José',
           lastName: "O'Brien",
         }),
-      ).toBe('Jos OBrien');
+      ).toBe('Jose OBrien');
     });
 
     it('sanitizes accented characters and keeps alphanumeric', () => {
@@ -198,7 +198,7 @@ describe('buildUserAddress utilities', () => {
           firstName: 'Müller',
           lastName: 'Straße',
         }),
-      ).toBe('Mller Strae');
+      ).toBe('Muller Strae');
     });
 
     it('trims whitespace before sanitizing', () => {

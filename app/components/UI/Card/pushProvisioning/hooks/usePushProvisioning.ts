@@ -19,6 +19,7 @@ import {
 } from '../types';
 import { createPushProvisioningService, ProvisioningOptions } from '../service';
 import { getCardProvider, getWalletProvider } from '../providers';
+import { isAccountEligibleForProvisioning } from '../constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { CardActions } from '../../util/metrics';
@@ -62,7 +63,14 @@ import { strings } from '../../../../../../locales/i18n';
 export function usePushProvisioning(
   options: UsePushProvisioningOptions,
 ): UsePushProvisioningReturn {
-  const { cardDetails, userAddress, onSuccess, onError, onCancel } = options;
+  const {
+    cardDetails,
+    userAddress,
+    accountCreatedAt,
+    onSuccess,
+    onError,
+    onCancel,
+  } = options;
 
   const [status, setStatus] = useState<ProvisioningStatus>('idle');
   const [error, setError] = useState<ProvisioningError | null>(null);
@@ -433,12 +441,15 @@ export function usePushProvisioning(
   // Check if card is eligible (status must be 'ACTIVE')
   const isCardEligible = cardDetails?.status === 'ACTIVE';
 
+  const isAccountEligible = isAccountEligibleForProvisioning(accountCreatedAt);
+
   const canAddToWallet =
     isPushProvisioningFeatureEnabled &&
     isAuthenticated &&
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
+    isAccountEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&

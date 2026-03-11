@@ -146,14 +146,23 @@ export function buildShippingAddress(
 }
 
 /**
- * Sanitize a name part by trimming whitespace and removing non-alphanumeric characters.
- * This matches the regex used by Galileo for card ordering.
+ * Sanitize a name part for card provisioning.
+ *
+ * Uses Unicode NFD normalization to decompose accented characters into
+ * base letter + combining mark, then strips the marks. This preserves
+ * base letters (e.g. "José" → "Jose", "Müller" → "Muller") instead of
+ * dropping them entirely. The final ASCII filter ensures only characters
+ * accepted by Galileo remain.
  *
  * @param name - The name string to sanitize
  * @returns Sanitized name containing only alphanumeric characters and spaces
  */
 function sanitizeName(name: string): string {
-  return name.trim().replace(/[^a-zA-Z0-9 ]/g, '');
+  return name
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9 ]/g, '');
 }
 
 /**
