@@ -339,7 +339,7 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
     expression: kickoff,
     returnByValue: true,
     awaitPromise: false,
-  });
+  }, timeoutMs);
 
   // If the IIFE itself failed to evaluate (syntax error, etc.), bail early
   if (kickoffResult.exceptionDetails) {
@@ -372,7 +372,7 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
         expression: `(function() { return globalThis['${key}']; })()`,
         returnByValue: true,
         awaitPromise: false,
-      });
+      }, timeoutMs);
       const val = check.result?.value;
       if (val && val.status === 'resolved') {
         return val.value;

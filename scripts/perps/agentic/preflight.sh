@@ -5,15 +5,19 @@
 # infrastructure. The agent gets a warm environment: Metro running, app launched, CDP live,
 # wallet configured.
 #
+# Supports both iOS (simulator) and Android (emulator/device). Platform is auto-detected
+# from .js.env or can be forced with --platform ios|android.
+#
 # Full clean flow (--clean):
-#   yarn setup → build app natively → boot sim → launch → CDP → setup-wallet
+#   yarn setup → build → install → start-metro → CDP → wallet
 #
 # Usage:
 #   scripts/perps/agentic/preflight.sh [OPTIONS]
 #
 # Options:
-#   --rebuild          Force rebuild with yarn build:ios:main:dev (skip if app exists)
-#   --clean            Full clean env: yarn setup + rm ios/build + erase sim + rebuild (implies --rebuild)
+#   --platform <p>     Force platform: ios or android (default: auto-detect from .js.env)
+#   --rebuild          Force rebuild (skip if app exists)
+#   --clean            Full clean env: yarn setup + clean build artifacts + rebuild
 #   --no-launch        Start Metro only, skip app launch
 #   --check-only       Exit 0 if environment ready, exit 1 if not (no changes)
 #   --wallet-setup     Run setup-wallet.sh after CDP is ready (reads .agent/wallet-fixture.json)
@@ -25,11 +29,10 @@
 #   1 — environment not ready (with reason)
 #
 # Developer setup:
-#   1. Add SIM_UDID and WATCHER_PORT to .js.env
-#   2. Create .agent/wallet-fixture.json (see setup-wallet.sh --help)
-#   3. Run: scripts/perps/agentic/preflight.sh --clean --wallet-setup
-#
-# Sources WATCHER_PORT and SIM_UDID from .js.env (default port: 8081).
+#   iOS:     Add SIM_UDID, IOS_SIMULATOR, WATCHER_PORT to .js.env
+#   Android: Add ANDROID_DEVICE, WATCHER_PORT to .js.env
+#   Then:    cp scripts/perps/agentic/wallet-fixture.example.json .agent/wallet-fixture.json
+#   Run:     scripts/perps/agentic/preflight.sh --clean --wallet-setup
 
 set -euo pipefail
 
@@ -37,10 +40,9 @@ cd "$(dirname "$0")/../../.."
 [ -f .js.env ] && source .js.env
 
 PORT="${WATCHER_PORT:-8081}"
-BUNDLE_ID="io.metamask.MetaMask"
 SCRIPTS="scripts/perps/agentic"
 LOGFILE=".agent/metro.log"
-CDP_TIMEOUT=30
+CDP_TIMEOUT=90
 CDP_RETRY=0
 
 # Flags
@@ -51,113 +53,341 @@ CHECK_ONLY=false
 DO_WALLET_SETUP=false
 WALLET_FIXTURE="${WALLET_FIXTURE:-.agent/wallet-fixture.json}"
 WALLET_PW="${MM_WALLET_PASSWORD:-}"
+FORCE_PLATFORM=""
 
-for arg in "$@"; do
-  case "$arg" in
-    --rebuild)        DO_REBUILD=true ;;
-    --clean)          DO_CLEAN=true; DO_REBUILD=true ;;
-    --no-launch)      DO_LAUNCH=false ;;
-    --check-only)     CHECK_ONLY=true ;;
-    --wallet-setup)   DO_WALLET_SETUP=true ;;
-    --wallet-fixture) shift; WALLET_FIXTURE="$1" ;;
-    --wallet)         shift; WALLET_PW="$1" ;;
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --platform)       FORCE_PLATFORM="$2"; shift 2 ;;
+    --rebuild)        DO_REBUILD=true; shift ;;
+    --clean)          DO_CLEAN=true; DO_REBUILD=true; shift ;;
+    --no-launch)      DO_LAUNCH=false; shift ;;
+    --check-only)     CHECK_ONLY=true; DO_LAUNCH=false; shift ;;
+    --wallet-setup)   DO_WALLET_SETUP=true; shift ;;
+    --wallet-fixture) WALLET_FIXTURE="$2"; shift 2 ;;
+    --wallet)         WALLET_PW="$2"; shift 2 ;;
+    *)                shift ;;
   esac
 done
 
-# ── Colors ──────────────────────────────────────────────────────────────
-GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; NC='\033[0m'
-ok()   { echo -e "${GREEN}✓${NC} $*"; }
-warn() { echo -e "${YELLOW}⚠${NC} $*"; }
-fail() { echo -e "${RED}✗${NC} $*"; exit 1; }
+# ── Platform detection ─────────────────────────────────────────────
+detect_platform() {
+  if [ -n "$FORCE_PLATFORM" ]; then echo "$FORCE_PLATFORM"; return; fi
+  if [ -n "${PLATFORM:-}" ]; then echo "$PLATFORM"; return; fi
+  if [ -n "${SIM_UDID:-}" ] || [ -n "${IOS_SIMULATOR:-}" ]; then echo "ios"; return; fi
+  if [ -n "${ANDROID_DEVICE:-}" ]; then echo "android"; return; fi
+  if [ "$(uname)" = "Darwin" ]; then echo "ios"; else echo "android"; fi
+}
+PLAT=$(detect_platform)
 
-echo "=== MetaMask Mobile Preflight (port $PORT) ==="
+# ── Platform-specific vars ─────────────────────────────────────────
+if [ "$PLAT" = "ios" ]; then
+  BUNDLE_ID="io.metamask.MetaMask"
+  SIM_TARGET="${SIM_UDID:-booted}"
+else
+  PACKAGE_ID="io.metamask"
+  # Auto-resolve device serial: use first connected USB device, or first device
+  ADB_TARGET=$(adb devices 2>/dev/null | awk '/\tdevice$/{print $1; exit}' || true)
+  ADB_CMD="adb"
+  [ -n "$ADB_TARGET" ] && ADB_CMD="adb -s $ADB_TARGET"
+fi
 
-# ── Step 1: Full clean (optional) ─────────────────────────────────────
+# ── Colors & helpers ─────────────────────────────────────────────────
+GREEN='\033[0;32m'; RED='\033[0;31m'; YELLOW='\033[0;33m'; BLUE='\033[0;34m'; BOLD='\033[1m'; DIM='\033[2m'; NC='\033[0m'
+ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
+warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
+fail() { echo -e "  ${RED}✗${NC} $*"; exit 1; }
+
+# Timing
+PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
+STEP_START=$PREFLIGHT_START
+STEP_TIMES=""
+
+elapsed_since() { echo $(( $(python3 -c "import time; print(int(time.time()))") - $1 )); }
+
+# Compute total steps based on flags
+TOTAL_STEPS=4  # device + app + metro + cdp
+$DO_CLEAN && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+($DO_WALLET_SETUP || [ -n "$WALLET_PW" ]) && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+CURRENT_STEP=0
+CURRENT_STEP_NAME=""
+
+step() {
+  if [ -n "$CURRENT_STEP_NAME" ]; then
+    STEP_ELAPSED=$(elapsed_since $STEP_START)
+    STEP_TIMES="${STEP_TIMES}  ${CURRENT_STEP_NAME}: ${STEP_ELAPSED}s\n"
+  fi
+  STEP_START=$(python3 -c "import time; print(int(time.time()))")
+  CURRENT_STEP=$((CURRENT_STEP + 1))
+  CURRENT_STEP_NAME="$1"
+  echo ""
+  echo -e "${BLUE}${BOLD}[$CURRENT_STEP/$TOTAL_STEPS]${NC} ${BOLD}$1${NC}"
+  if [ -n "${2:-}" ]; then
+    echo -e "  ${DIM}$2${NC}"
+  fi
+}
+
+# ── Header ───────────────────────────────────────────────────────────
+echo ""
+echo -e "${BOLD}=== MetaMask Mobile Preflight ===${NC}"
+echo -e "  Port: $PORT | Platform: $PLAT"
 if $DO_CLEAN; then
-  echo "→ Full clean environment..."
-  echo "  Running yarn setup (install deps + patches)..."
+  echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → build → Metro → CDP → wallet)"
+elif $DO_REBUILD; then
+  echo -e "  Mode: ${YELLOW}rebuild${NC} (build → Metro → CDP)"
+elif $CHECK_ONLY; then
+  echo -e "  Mode: check-only"
+else
+  echo -e "  Mode: default (Metro → CDP)"
+fi
+
+# ── Step: yarn setup (clean only) ────────────────────────────────────
+if $DO_CLEAN; then
+  if [ "$PLAT" = "ios" ]; then
+    step "Installing dependencies" "rm ios/build → yarn setup (install deps + patches + pods)"
+    echo "  Cleaning iOS build artifacts..."
+    rm -rf ios/build
+  else
+    step "Installing dependencies" "clean android build → yarn setup (install deps + patches)"
+    echo "  Cleaning Android build artifacts..."
+    rm -rf android/app/build
+  fi
   yarn setup 2>&1 | tail -3
   ok "yarn setup complete"
 fi
 
-# ── Step 2: Simulator booted? ─────────────────────────────────────────
-echo "→ Checking simulator..."
-BOOTED=$(xcrun simctl list devices | grep "Booted" | head -1 || true)
-if [ -z "$BOOTED" ]; then
-  $CHECK_ONLY && fail "No booted simulator"
-  SIM_UDID="${SIM_UDID:-}"
-  if [ -n "$SIM_UDID" ]; then
-    echo "  Booting $SIM_UDID..."
-    xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
-    sleep 3
-    ok "Simulator booted"
+# ══════════════════════════════════════════════════════════════════════
+# ── iOS Steps ────────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
+if [ "$PLAT" = "ios" ]; then
+
+  # ── Step: Simulator ──────────────────────────────────────────────
+  step "Checking simulator" "Looking for a booted iOS simulator"
+  BOOTED=$(xcrun simctl list devices | grep "Booted" | head -1 || true)
+  if [ -z "$BOOTED" ]; then
+    $CHECK_ONLY && fail "No booted simulator"
+    SIM_UDID="${SIM_UDID:-}"
+    if [ -n "$SIM_UDID" ]; then
+      echo "  Booting $SIM_UDID..."
+      xcrun simctl boot "$SIM_UDID" 2>/dev/null || true
+      sleep 3
+      ok "Simulator booted"
+    else
+      fail "No booted simulator and SIM_UDID not set in .js.env"
+    fi
   else
-    fail "No booted simulator and SIM_UDID not set in .js.env"
+    ok "Simulator booted: $(echo "$BOOTED" | sed 's/(Booted).*//' | xargs)"
   fi
+
+  # ── Step: App build / install ────────────────────────────────────
+  step "Checking app" "Looking for $BUNDLE_ID on simulator"
+  APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
+  if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
+    $CHECK_ONLY && fail "App not installed (run with --rebuild)"
+    echo ""
+    echo -e "  ${YELLOW}Building + installing app${NC}"
+    echo -e "  ${DIM}expo run:ios --no-bundler${NC}"
+    echo ""
+
+    echo "  Running pod install via bundler..."
+    (cd ios && bundle exec pod install --repo-update --ansi 2>&1 | tail -3) || warn "pod install had issues"
+
+    EXPO_CMD="yarn expo run:ios --no-install --no-bundler --port $PORT --configuration Debug --scheme MetaMask"
+    [ -n "${IOS_SIMULATOR:-}" ] && EXPO_CMD="$EXPO_CMD --device $IOS_SIMULATOR"
+
+    set +e
+    eval "$EXPO_CMD" 2>&1 | while IFS= read -r line; do
+      case "$line" in
+        *"Build Succeeded"*) echo -e "  ${GREEN}→${NC} $line" ;;
+        *"error:"*)          echo -e "  ${RED}→${NC} $line" ;;
+        *"failed"*)          echo -e "  ${RED}→${NC} $line" ;;
+        *"Something went wrong"*) echo -e "  ${RED}→${NC} $line" ;;
+      esac
+    done
+    set -e
+
+    APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path "*/MetaMask-*/Build/Products/Debug-iphonesimulator/MetaMask.app" -maxdepth 5 2>/dev/null | head -1)
+    if [ -z "$APP_PATH" ]; then
+      fail "Build artifact not found in DerivedData"
+    fi
+
+    if $DO_CLEAN || $DO_WALLET_SETUP; then
+      echo "  Wiping app data (uninstall + reinstall)..."
+      xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
+    fi
+
+    echo "  Installing app on simulator..."
+    xcrun simctl install "$SIM_TARGET" "$APP_PATH"
+
+    APP_NOW=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
+    if [ "$APP_NOW" -eq 0 ]; then
+      fail "simctl install succeeded but app not found"
+    fi
+    ok "App built and installed"
+  else
+    ok "App already installed"
+  fi
+
+# ══════════════════════════════════════════════════════════════════════
+# ── Android Steps ────────────────────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
 else
-  ok "Simulator booted: $(echo "$BOOTED" | sed 's/(Booted).*//' | xargs)"
+
+  # ── Step: Emulator / device ──────────────────────────────────────
+  step "Checking device" "Looking for an Android emulator or device"
+  # Verify device is actually reachable (not just listed — adb can show stale entries)
+  DEVICE_ONLINE=0
+  if [ -n "$ADB_TARGET" ] && $ADB_CMD shell echo ok >/dev/null 2>&1; then
+    DEVICE_ONLINE=1
+  fi
+  if [ "$DEVICE_ONLINE" -eq 0 ]; then
+    $CHECK_ONLY && fail "No Android device/emulator connected"
+    if [ -n "${ANDROID_DEVICE:-}" ]; then
+      echo "  Launching emulator: $ANDROID_DEVICE..."
+      emulator -avd "$ANDROID_DEVICE" -no-snapshot-load -no-audio -no-window &
+      # Wait for device to come online
+      for i in $(seq 1 60); do
+        if $ADB_CMD devices 2>/dev/null | grep -qw "device"; then break; fi
+        sleep 2
+        [ "$i" -eq 60 ] && fail "Emulator did not come online after 120s"
+      done
+      # Wait for boot to complete
+      for i in $(seq 1 30); do
+        BOOT=$($ADB_CMD shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)
+        [ "$BOOT" = "1" ] && break
+        sleep 2
+      done
+      # Re-resolve now that emulator is up
+      ADB_TARGET=$(adb devices 2>/dev/null | awk '/\tdevice$/{print $1; exit}' || true)
+      ADB_CMD="adb -s $ADB_TARGET"
+      ok "Emulator booted: $ANDROID_DEVICE"
+    else
+      fail "No device connected and ANDROID_DEVICE not set in .js.env"
+    fi
+  else
+    DEVICE_NAME=$($ADB_CMD devices -l 2>/dev/null | grep "device " | head -1 | sed 's/.*model:\([^ ]*\).*/\1/' || echo "unknown")
+    ok "Device connected: $DEVICE_NAME"
+  fi
+
+  # Set up adb reverse so device can reach Metro on host
+  $ADB_CMD reverse tcp:$PORT tcp:$PORT 2>/dev/null || warn "adb reverse failed — device may not reach Metro"
+  ok "adb reverse tcp:$PORT → host"
+
+  # ── Step: App build / install ────────────────────────────────────
+  step "Checking app" "Looking for $PACKAGE_ID on device"
+  APP_INSTALLED=$($ADB_CMD shell pm list packages 2>/dev/null | grep -c "$PACKAGE_ID" || true)
+  if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
+    $CHECK_ONLY && fail "App not installed (run with --rebuild)"
+
+    # Uninstall first for a clean slate (avoids stale data / vault)
+    if ($DO_CLEAN || $DO_WALLET_SETUP) && [ "$APP_INSTALLED" -gt 0 ]; then
+      echo "  Uninstalling previous app..."
+      $ADB_CMD uninstall "$PACKAGE_ID" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo -e "  ${YELLOW}Building + installing app${NC}"
+    echo -e "  ${DIM}gradle assembleProdDebug (arm64-v8a only for speed)${NC}"
+    echo ""
+
+    # Prebuild: copy assets required by the Android build
+    yes | cp -rf app/core/InpageBridgeWeb3.js android/app/src/main/assets/. 2>/dev/null || true
+    yes | cp -rf ./app/fonts/Metamask.ttf ./android/app/src/main/assets/fonts/Metamask.ttf 2>/dev/null || true
+    if [ -n "${GOOGLE_SERVICES_B64_ANDROID:-}" ]; then
+      echo -n "$GOOGLE_SERVICES_B64_ANDROID" | base64 -d > ./android/app/google-services.json
+    fi
+
+    BUILD_LOG=".agent/android-build.log"
+    set +e
+    (cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a) 2>&1 | tee "$BUILD_LOG" | while IFS= read -r line; do
+      case "$line" in
+        *"BUILD SUCCESSFUL"*) echo -e "  ${GREEN}→${NC} $line" ;;
+        *"BUILD FAILED"*)     echo -e "  ${RED}→${NC} $line" ;;
+        *"error:"*)           echo -e "  ${RED}→${NC} $line" ;;
+        *"FAILURE"*)          echo -e "  ${RED}→${NC} $line" ;;
+      esac
+    done
+    set -e
+
+    # Find the APK and install via adb
+    APK_PATH=$(find android/app/build/outputs/apk -name "*.apk" -path "*/debug/*" 2>/dev/null | head -1)
+    if [ -z "$APK_PATH" ]; then
+      fail "Build did not produce an APK — check $BUILD_LOG"
+    fi
+    echo "  Installing $APK_PATH..."
+    $ADB_CMD install -r "$APK_PATH" 2>/dev/null || fail "APK install failed"
+
+    # Verify app is installed
+    if ! $ADB_CMD shell pm list packages 2>/dev/null | grep -q "$PACKAGE_ID"; then
+      fail "Build completed but app not found on device"
+    fi
+    ok "App built and installed"
+  else
+    ok "App already installed"
+  fi
 fi
 
-# ── Step 3: App installed? (or rebuild) ───────────────────────────────
-echo "→ Checking app installation..."
-APP_INSTALLED=$(xcrun simctl listapps booted 2>/dev/null | grep -c "$BUNDLE_ID" || true)
-if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
-  $CHECK_ONLY && fail "App not installed (run with --rebuild)"
-  if $DO_CLEAN; then
-    echo "  Cleaning iOS build artifacts..."
-    rm -rf ios/build
-    xcrun simctl erase booted 2>/dev/null || true
-    warn "Simulator erased — wallet-setup will configure accounts from scratch"
-    DO_WALLET_SETUP=true  # force wallet setup after clean install
-  fi
-  echo "  Building app natively (yarn build:ios:main:dev — ~15-20 min)..."
-  yarn build:ios:main:dev 2>&1 | tail -5
-  ok "App built and installed"
-else
-  ok "App already installed"
-fi
+# ══════════════════════════════════════════════════════════════════════
+# ── Shared steps (both platforms) ────────────────────────────────────
+# ══════════════════════════════════════════════════════════════════════
 
-# ── Step 4: Metro running? ────────────────────────────────────────────
-echo "→ Starting Metro on port $PORT..."
-bash "$SCRIPTS/start-metro.sh" $($DO_LAUNCH && echo "--launch" || echo "")
+# ── Step: Metro ─────────────────────────────────────────────────────
+step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"
+bash "$SCRIPTS/start-metro.sh" --platform "$PLAT" $($DO_LAUNCH && echo "--launch" || echo "")
 ok "Metro running on port $PORT"
 
-# ── Step 5: CDP reachable? ────────────────────────────────────────────
-echo "→ Waiting for CDP connection..."
+# ── Step: CDP ───────────────────────────────────────────────────────
+step "Connecting CDP" "Waiting for app to expose debug target"
 while [ $CDP_RETRY -lt $CDP_TIMEOUT ]; do
-  if node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | grep -q "connected\|ready\|ok" 2>/dev/null; then
+  if node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | grep -q '"route"' 2>/dev/null; then
     ok "CDP connected"
     break
   fi
   sleep 1
   CDP_RETRY=$((CDP_RETRY + 1))
-  [ $CDP_RETRY -eq 5 ] && warn "  CDP not yet ready, waiting... (app may still be loading)"
+  [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
+  [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
 [ $CDP_RETRY -ge $CDP_TIMEOUT ] && fail "CDP did not become available after ${CDP_TIMEOUT}s"
 
-# ── Step 6: Wallet setup ──────────────────────────────────────────────
+# Verify CDP is connected to the right platform
+CDP_PLATFORM=$(node "$SCRIPTS/cdp-bridge.js" status 2>/dev/null | jq -r '.platform // empty' || true)
+if [ -n "$CDP_PLATFORM" ] && [ "$CDP_PLATFORM" != "$PLAT" ]; then
+  fail "CDP connected to $CDP_PLATFORM app but expected $PLAT — launch the $PLAT app first"
+fi
+
+# Brief stabilization
+sleep 2
+
+# ── Step: Wallet ────────────────────────────────────────────────────
 if $DO_WALLET_SETUP; then
-  echo "→ Setting up wallet from fixture..."
+  step "Setting up wallet" "Configuring from $WALLET_FIXTURE"
   FIXTURE_FLAG=""
   [ "$WALLET_FIXTURE" != ".agent/wallet-fixture.json" ] && FIXTURE_FLAG="--fixture $WALLET_FIXTURE"
   if [ -f "$WALLET_FIXTURE" ] || [ -n "$FIXTURE_FLAG" ]; then
-    bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG && ok "Wallet configured from fixture" || warn "Wallet setup failed — check fixture file"
+    bash "$SCRIPTS/setup-wallet.sh" $FIXTURE_FLAG && ok "Wallet configured" || warn "Wallet setup failed — check fixture file"
   else
-    warn "No wallet fixture found at $WALLET_FIXTURE — skipping (create .agent/wallet-fixture.json to enable)"
+    warn "No fixture at $WALLET_FIXTURE"
+    echo -e "  ${DIM}cp scripts/perps/agentic/wallet-fixture.example.json .agent/wallet-fixture.json${NC}"
   fi
 elif [ -n "$WALLET_PW" ]; then
-  echo "→ Unlocking wallet..."
+  step "Unlocking wallet" "Using provided password"
   node "$SCRIPTS/cdp-bridge.js" unlock "$WALLET_PW" 2>/dev/null && ok "Wallet unlocked" || warn "Could not unlock wallet"
-else
-  warn "Skipping wallet setup (use --wallet-setup or --wallet <pw>)"
 fi
 
 # ── Done ─────────────────────────────────────────────────────────────
+if [ -n "$CURRENT_STEP_NAME" ]; then
+  STEP_ELAPSED=$(elapsed_since $STEP_START)
+  STEP_TIMES="${STEP_TIMES}  ${CURRENT_STEP_NAME}: ${STEP_ELAPSED}s\n"
+fi
+TOTAL_ELAPSED=$(elapsed_since $PREFLIGHT_START)
+
 echo ""
-echo -e "${GREEN}✅ Preflight complete — environment ready on port $PORT${NC}"
-echo "   Metro:    http://localhost:$PORT/status"
-echo "   Logs:     tail -f $LOGFILE"
-echo "   CDP:      node $SCRIPTS/cdp-bridge.js status"
+echo -e "${GREEN}${BOLD}=== Preflight complete ===${NC} ${DIM}(${TOTAL_ELAPSED}s total)${NC}"
 echo ""
-echo "   Full clean next time:  preflight.sh --clean --wallet-setup"
-echo "   Quick check:           preflight.sh --check-only"
+echo -e "  Platform ${DIM}$PLAT${NC}"
+echo -e "  Metro    ${DIM}http://localhost:$PORT/status${NC}"
+echo -e "  Logs     ${DIM}tail -f $LOGFILE${NC}"
+echo -e "  CDP      ${DIM}node $SCRIPTS/cdp-bridge.js status${NC}"
+echo ""
+echo -e "${DIM}Timing:${NC}"
+echo -e "$STEP_TIMES"

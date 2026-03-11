@@ -2,7 +2,28 @@ import { NavigationContainerRef } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
+import { persistor } from '../../store';
 import Engine from '../Engine';
+import {
+  passwordSet,
+  setExistingUser,
+  logIn,
+  seedphraseBackedUp,
+} from '../../actions/user';
+import { setCompletedOnboarding } from '../../actions/onboarding';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { AccountImportStrategy } from '@metamask/keyring-controller';
+import StorageWrapper from '../../store/storage-wrapper';
+import {
+  PERPS_GTM_MODAL_SHOWN,
+  PREDICT_GTM_MODAL_SHOWN,
+  REWARDS_GTM_MODAL_SHOWN,
+} from '../../constants/storage';
+import { analytics } from '../../util/analytics/analytics';
+import { setDataCollectionForMarketing } from '../../actions/security';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import NavigationService from '../NavigationService';
+import Routes from '../../constants/navigation/Routes';
 
 // ─── Fiber tree types ───────────────────────────────────────────────────────
 
@@ -67,6 +88,22 @@ interface AgenticBridge {
     address: string;
     name: string;
   };
+  setupWallet: (fixture: {
+    password: string;
+    accounts: {
+      type: 'mnemonic' | 'privateKey';
+      value: string;
+      name?: string;
+    }[];
+    settings?: {
+      metametrics?: boolean;
+      skipGtmModals?: boolean;
+    };
+  }) => Promise<{
+    ok: boolean;
+    error?: string;
+    accounts?: { address: string; name: string }[];
+  }>;
 }
 
 declare global {
@@ -286,10 +323,101 @@ const AgenticService = {
           name: target.metadata.name,
         };
       },
+      setupWallet: async (fixture) => {
+        try {
+          const {
+            MultichainAccountService,
+            KeyringController,
+            AccountsController,
+          } = Engine.context;
+          const store = ReduxService.store;
+          const settings = fixture.settings ?? {};
+
+          // 1. Create wallet from the first mnemonic (same path as onboarding UI)
+          const mnemonicAccount = fixture.accounts.find(
+            (a) => a.type === 'mnemonic',
+          );
+          if (mnemonicAccount) {
+            const mnemonic = mnemonicPhraseToBytes(mnemonicAccount.value);
+            await MultichainAccountService.createMultichainAccountWallet({
+              type: 'restore',
+              password: fixture.password,
+              mnemonic,
+            });
+          } else {
+            await MultichainAccountService.createMultichainAccountWallet({
+              type: 'create',
+              password: fixture.password,
+            });
+          }
+
+          // 2. Initialize services (same as Authentication.dispatchLogin)
+          await AccountTreeInitService.initializeAccountTree();
+          await MultichainAccountService.init();
+
+          // 3. Import private key accounts
+          for (const account of fixture.accounts) {
+            if (account.type !== 'privateKey') continue;
+            try {
+              await KeyringController.importAccountWithStrategy(
+                AccountImportStrategy.privateKey,
+                [account.value],
+              );
+            } catch (e) {
+              Logger.log(
+                `[AgenticService] Failed to import key: ${(e as Error).message}`,
+              );
+            }
+          }
+
+          // 4. Dispatch all onboarding/auth flags
+          store.dispatch(passwordSet());
+          store.dispatch(seedphraseBackedUp());
+          store.dispatch(setCompletedOnboarding(true));
+          store.dispatch(setExistingUser(true));
+          store.dispatch(logIn());
+
+          // 5. Suppress post-onboarding modals if requested
+          if (settings.skipGtmModals !== false) {
+            await Promise.all([
+              StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true'),
+              StorageWrapper.setItem(PREDICT_GTM_MODAL_SHOWN, 'true'),
+              StorageWrapper.setItem(REWARDS_GTM_MODAL_SHOWN, 'true'),
+            ]);
+            // Suppress ExperienceEnhancer (marketing consent) modal
+            store.dispatch(setDataCollectionForMarketing(false));
+          }
+
+          // 6. Configure MetaMetrics if specified
+          if (settings.metametrics === false) {
+            await analytics.optOut();
+          } else if (settings.metametrics === true) {
+            await analytics.optIn();
+          }
+
+          // 7. Navigate to wallet (same as Authentication.unlockWallet)
+          NavigationService.navigation?.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+
+          // 8. Collect all ETH accounts for the summary
+          const allAccs = Object.values(
+            AccountsController.state.internalAccounts.accounts,
+          ) as { address: string; metadata: { name: string } }[];
+          const ethAccs = allAccs
+            .filter((a) => a.address?.startsWith('0x'))
+            .map((a) => ({ address: a.address, name: a.metadata.name }));
+
+          return { ok: true, accounts: ethAccs };
+        } catch (e) {
+          return { ok: false, error: String((e as Error).message || e) };
+        }
+      },
     };
 
     try {
       (globalThis as { store?: unknown }).store = ReduxService.store;
+      (globalThis as { persistor?: unknown }).persistor = persistor;
     } catch {
       // ReduxService.store may not be initialized yet; skip.
     }
