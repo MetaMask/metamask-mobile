@@ -33,6 +33,7 @@ import { useDepositRouting } from '../../hooks/useDepositRouting';
 import { KycStatus } from '../../constants';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
+import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
@@ -208,7 +209,7 @@ const KycProcessing = () => {
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
-              testID="activity-indicator"
+              testID={KYC_PROCESSING_TEST_IDS.ACTIVITY_INDICATOR}
             />
 
             <Text variant={TextVariant.BodyMDBold} style={styles.heading}>

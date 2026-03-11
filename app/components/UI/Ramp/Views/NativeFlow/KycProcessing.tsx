@@ -32,6 +32,7 @@ import type {
   TransakUserDetails,
 } from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
 
 interface V2KycProcessingParams {
   quote: TransakBuyQuote;
@@ -248,7 +249,7 @@ const V2KycProcessing = () => {
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
-              testID="activity-indicator"
+              testID={KYC_PROCESSING_TEST_IDS.ACTIVITY_INDICATOR}
             />
             <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
               {strings('deposit.kyc_processing.heading')}

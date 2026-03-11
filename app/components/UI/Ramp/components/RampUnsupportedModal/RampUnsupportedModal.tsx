@@ -17,6 +17,7 @@ import Button, {
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { RAMP_UNSUPPORTED_MODAL_TEST_IDS } from './RampUnsupportedModal.testIds';
 
 export const createRampUnsupportedModalNavigationDetails =
   createNavigationDetails(
@@ -36,11 +37,13 @@ function RampUnsupportedModal() {
       ref={sheetRef}
       shouldNavigateBack
       isInteractable={false}
-      testID="ramp-unsupported-modal"
+      testID={RAMP_UNSUPPORTED_MODAL_TEST_IDS.MODAL}
     >
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: 'bottomsheetheader-close-button' }}
+        closeButtonProps={{
+          testID: RAMP_UNSUPPORTED_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       >
         <Text variant={TextVariant.HeadingMD}>
           {strings('fiat_on_ramp_aggregator.unsupported_region_modal.title')}

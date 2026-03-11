@@ -38,6 +38,7 @@ import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
 import { createCheckoutNavDetails } from '../Checkout';
 import {
@@ -648,12 +649,12 @@ function BuildQuote() {
             : undefined
         }
         onBack={handleBackPress}
-        backButtonProps={{ testID: 'build-quote-back-button' }}
+        backButtonProps={{ testID: BUILD_QUOTE_TEST_IDS.BACK_BUTTON }}
         endButtonIconProps={[
           {
             iconName: IconName.Setting,
             onPress: handleSettingsPress,
-            testID: 'build-quote-settings-button',
+            testID: BUILD_QUOTE_TEST_IDS.SETTINGS_BUTTON,
           },
         ]}
         includesTopInset
