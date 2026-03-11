@@ -115,11 +115,9 @@ const MusdQuickConvertView = () => {
 
   useEffect(() => {
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED)
-        .addProperties({
-          location: EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-        })
-        .build(),
+      createEventBuilder(
+        MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
+      ).build(),
     );
   }, [createEventBuilder, trackEvent]);
 

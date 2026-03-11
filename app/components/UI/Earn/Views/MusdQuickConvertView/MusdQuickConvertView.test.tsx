@@ -156,6 +156,7 @@ describe('MusdQuickConvertView', () => {
     mockAddProperties.mockImplementation(() => ({ build: mockBuild }));
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: mockAddProperties,
+      build: mockBuild,
     }));
 
     mockUseNavigation.mockReturnValue({
@@ -582,10 +583,6 @@ describe('MusdQuickConvertView', () => {
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.MUSD_QUICK_CONVERT_SCREEN_VIEWED,
       );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        location:
-          MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN,
-      });
       expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'mock-built-event' });
     });
 
