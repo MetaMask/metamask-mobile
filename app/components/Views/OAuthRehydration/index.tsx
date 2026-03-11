@@ -81,7 +81,11 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
-import Label from '../../../component-library/components/Form/Label';
+import {
+  Label,
+  FontWeight,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
@@ -703,8 +707,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.field}>
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
+                  fontWeight={FontWeight.Medium}
+                  color={DSTextColor.TextDefault}
                   style={styles.label}
                 >
                   {strings('login.password')}
