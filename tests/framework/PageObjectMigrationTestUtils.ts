@@ -3,6 +3,30 @@ import { EncapsulatedElement } from './EncapsulatedElement';
 import Matchers from './Matchers';
 import PlaywrightMatchers from './PlaywrightMatchers';
 
+function findPageObjectsWithEncapsulated(dir: string): string[] {
+  const fs = jest.requireActual<typeof import('fs')>('fs');
+  const path = jest.requireActual<typeof import('path')>('path');
+  const results: string[] = [];
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      results.push(...findPageObjectsWithEncapsulated(fullPath));
+      continue;
+    }
+
+    if (!entry.name.endsWith('.ts') || entry.name.includes('.test.')) continue;
+
+    const source = fs.readFileSync(fullPath, 'utf8');
+    if (source.includes('encapsulated(')) {
+      results.push(fullPath);
+    }
+  }
+
+  return results;
+}
+
 function getEncapsulatedGetterNames(pageObject: object): string[] {
   FrameworkDetector.reset();
   FrameworkDetector.setFramework(TestFramework.DETOX);
@@ -43,29 +67,19 @@ function noDetoxMatcherWasCalled(): void {
   expect(Matchers.getElementByText).not.toHaveBeenCalled();
 }
 
-export function describePageObjectMigration(
+function describeGetters(
   pageObjectName: string,
   pageObject: object,
+  getterNames: string[],
 ): void {
-  const getterNames = getEncapsulatedGetterNames(pageObject);
-
   describe(`${pageObjectName}`, () => {
-    if (getterNames.length === 0) {
-      it('has no migrated getters', () => {
-        expect(true).toBe(true);
-      });
-      return;
-    }
-
     describe('Detox context', () => {
       beforeEach(() => {
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.DETOX);
       });
 
-      afterEach(() => {
-        FrameworkDetector.reset();
-      });
+      afterEach(() => FrameworkDetector.reset());
 
       for (const name of getterNames) {
         it(`${name} calls the Detox locator`, async () => {
@@ -134,4 +148,32 @@ export function describePageObjectMigration(
       }
     });
   });
+}
+
+export function describePageObjectMigration(
+  pageObjectName: string,
+  pageObject: object,
+): void {
+  const getterNames = getEncapsulatedGetterNames(pageObject);
+
+  if (getterNames.length === 0) return;
+
+  describeGetters(pageObjectName, pageObject, getterNames);
+}
+
+export function discoverAndDescribeMigratedPageObjects(
+  pageObjectsDir: string,
+): void {
+  const files = findPageObjectsWithEncapsulated(pageObjectsDir);
+
+  const path = jest.requireActual<typeof import('path')>('path');
+
+  for (const filePath of files) {
+    const mod = jest.requireActual<{ default?: object }>(filePath);
+    const pageObject = mod.default;
+    if (!pageObject || typeof pageObject !== 'object') continue;
+
+    const name = path.basename(filePath, '.ts');
+    describePageObjectMigration(name, pageObject);
+  }
 }

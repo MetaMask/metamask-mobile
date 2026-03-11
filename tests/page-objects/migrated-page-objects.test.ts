@@ -36,16 +36,12 @@ jest.mock('../framework/UnifiedGestures.ts', () => ({
   default: { waitAndTap: jest.fn(), typeText: jest.fn() },
 }));
 
-import { describePageObjectMigration } from '../framework/PageObjectMigrationTestUtils';
-import LoginView from './wallet/LoginView';
-import WalletView from './wallet/WalletView';
+import { discoverAndDescribeMigratedPageObjects } from '../framework/PageObjectMigrationTestUtils';
 
 describe('Migrated page objects', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // Add a page object here once any of its getters are migrated to encapsulated()
-  describePageObjectMigration('LoginView', LoginView);
-  describePageObjectMigration('WalletView', WalletView);
+  discoverAndDescribeMigratedPageObjects(__dirname);
 });
