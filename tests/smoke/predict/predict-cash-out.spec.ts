@@ -67,9 +67,6 @@ describe(SmokePredictions('Predictions'), () => {
         await device.disableSynchronization();
         await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
-        // Set up cash out mocks before tapping cash out
-        // POLYMARKET_POST_CASH_OUT_MOCKS handles both the transaction API and balance refresh
-        await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 
         await PredictDetailsPage.tapCashOutButton();
@@ -81,9 +78,11 @@ describe(SmokePredictions('Predictions'), () => {
 
         await PredictCashOutPage.tapCashOutButton();
 
-        // Update USDC balance mock AFTER the cash-out completes.
-        // Must happen after the optimistic update in PredictController to
-        // avoid double-counting (see POLYMARKET_POST_CASH_OUT_MOCKS).
+        // Register position-removal and balance-update mocks only AFTER the
+        // cash-out confirmation tap. Registering them earlier causes a race
+        // condition: a background refetch can pick up the "position removed"
+        // response while the Cash Out button is still needed, making it vanish.
+        await POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS(mockServer);
         await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'cash-out');
 
         await PredictDetailsPage.tapBackButton();

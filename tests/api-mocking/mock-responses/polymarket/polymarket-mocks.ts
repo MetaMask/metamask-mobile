@@ -70,6 +70,17 @@ let currentBlockNumber = 0x1000000; // Start at block 16777216
 const celticsOrderSubmitted = new Set<string>();
 
 /**
+ * Resets all mutable global state to defaults.
+ * Must be called at the start of each test's mock setup (via POLYMARKET_COMPLETE_MOCKS)
+ * because all spec files in a Detox run share the same Jest worker process.
+ */
+function resetGlobalMockState() {
+  currentUSDCBalance = MOCK_RPC_RESPONSES.USDC_BALANCE_RESULT;
+  currentBlockNumber = 0x1000000;
+  celticsOrderSubmitted.clear();
+}
+
+/**
  * Mock Priority System
  * Higher numbers = checked first (higher priority)
  *
@@ -1982,6 +1993,8 @@ export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
+  resetGlobalMockState();
+
   // Explicit geoblock mock: test-specific rules are registered first and take precedence.
   // Avoids relying on default _events when the request reaches the server, and ensures
   // eligible response even if the generic handler ordering ever changes.
