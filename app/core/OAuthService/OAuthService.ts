@@ -28,6 +28,7 @@ import { Platform } from 'react-native';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
+  SeedlessOnboardingUserCancelledLoginRegex,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
@@ -245,12 +246,15 @@ export class OAuthService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingOAuthProviderLoginError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        // trace only if error is not a user cancelled error
+        if (!SeedlessOnboardingUserCancelledLoginRegex.test(errorMessage)) {
+          trace({
+            name: TraceName.OnboardingOAuthProviderLoginError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+        }
 
         this.#trackSocialLoginFailure({
           authConnection: loginHandler.authConnection,

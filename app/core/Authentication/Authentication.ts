@@ -57,6 +57,7 @@ import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboa
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
+  SeedlessOnboardingIncorrectPasswordRegex,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
 import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
@@ -1177,14 +1178,17 @@ class AuthenticationService {
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';
 
-        trace({
-          name: TraceName.OnboardingFetchSrpsError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({
-          name: TraceName.OnboardingFetchSrpsError,
-        });
+        // trace only if error is not an incorrect password error
+        if (!SeedlessOnboardingIncorrectPasswordRegex.test(errorMessage)) {
+          trace({
+            name: TraceName.OnboardingFetchSrpsError,
+            op: TraceOperation.OnboardingError,
+            tags: { errorMessage },
+          });
+          endTrace({
+            name: TraceName.OnboardingFetchSrpsError,
+          });
+        }
 
         throw error;
       } finally {

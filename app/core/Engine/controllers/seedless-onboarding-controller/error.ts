@@ -38,3 +38,10 @@ export class SeedlessOnboardingControllerError extends Error {
     this.code = code;
   }
 }
+
+// regex to match SeedlessOnboardingController error messages
+export const SeedlessOnboardingControllerErrorRegex =
+  /SeedlessOnboardingController - /i;
+export const SeedlessOnboardingIncorrectPasswordRegex =
+  /SeedlessOnboardingController - Incorrect password/i;
+export const SeedlessOnboardingUserCancelledLoginRegex = /User cancel/i;
