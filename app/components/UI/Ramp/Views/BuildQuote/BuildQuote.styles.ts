@@ -30,7 +30,7 @@ const styleSheet = (params: { theme: Theme }) => {
     cursor: {
       width: 2,
       height: 48,
-      marginLeft: 4,
+      marginHorizontal: 1,
       marginBottom: 12,
       backgroundColor: theme.colors.primary.default,
     },

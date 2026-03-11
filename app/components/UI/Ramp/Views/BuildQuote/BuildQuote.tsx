@@ -191,10 +191,11 @@ function BuildQuote() {
     const formatted = formatCurrency(1, currency, {
       currencyDisplay: 'narrowSymbol',
     });
-    const match = formatted.match(/^([^\d]*?)1([^\d]*?)$/);
+    // Match: prefix (non-digit chars), digits/separators, suffix (non-digit chars)
+    const match = formatted.match(/^([^\d]*?)[\d.,]+\s*([^\d\s].*)?$/);
     return {
       currencyPrefix: match?.[1] ?? '',
-      currencySuffix: match?.[2] ?? '',
+      currencySuffix: match?.[2]?.trim() ?? '',
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -690,11 +691,23 @@ function BuildQuote() {
                   >
                     {currencyPrefix}
                     {amount}
-                    {currencySuffix}
                   </Text>
                   <Animated.View
                     style={[styles.cursor, { opacity: cursorOpacity }]}
                   />
+                  {currencySuffix ? (
+                    <Text
+                      variant={TextVariant.HeadingLG}
+                      color={
+                        nativeFlowError || hasNoQuotes || quoteFetchError
+                          ? TextColor.Error
+                          : undefined
+                      }
+                      style={styles.mainAmount}
+                    >
+                      {currencySuffix}
+                    </Text>
+                  ) : null}
                 </View>
                 <PaymentMethodPill
                   label={
