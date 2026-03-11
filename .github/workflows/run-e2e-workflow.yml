@@ -48,6 +48,11 @@ on:
         required: false
         type: string
         default: ''
+      artifact_name_prefix:
+        description: 'Optional prefix added to uploaded test artifacts'
+        required: false
+        type: string
+        default: 'main-'
 
 jobs:
   test-e2e-mobile:
@@ -220,7 +225,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-${{ inputs.test-suite-name }}-junit-results
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
           path: ./previous-test-results/
 
       - name: Debug - List downloaded test results (on re-run)
@@ -275,6 +280,7 @@ jobs:
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
       # results in the artifact, causing them to be re-run in attempt N+2.
       - name: Merge previous test results (on re-run)
+        id: merge-previous-results
         if: ${{ !cancelled() && github.run_attempt > 1 && steps.download-previous-results.outcome == 'success' }}
         continue-on-error: true
         run: |
@@ -295,11 +301,28 @@ jobs:
           # Clean up temporary node_modules
           rm -rf node_modules temp-deps
 
+      - name: Rebuild merged JUnit after previous-results merge (on re-run)
+        if: ${{ !cancelled() && steps.merge-previous-results.outcome == 'success' }}
+        continue-on-error: true
+        run: |
+          echo "📊 Rebuilding merged junit.xml after previous-results merge..."
+
+          mkdir -p temp-deps && cd temp-deps
+          npm init -y > /dev/null 2>&1
+          npm install xml2js@0.6.2 --no-audit --no-fund --silent
+
+          cp -r node_modules ${{ github.workspace }}/
+          cd ${{ github.workspace }}
+
+          node .github/scripts/e2e-merge-detox-junit-reports.mjs
+
+          rm -rf node_modules temp-deps
+
       - name: Upload JUnit XML results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-e2e-${{ inputs.test-suite-name }}-junit-results
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-junit-results
           path: tests/reports/
           retention-days: 7
 
@@ -307,6 +330,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-e2e-${{ inputs.test-suite-name }}-screenshots
+          name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots
           path: tests/artifacts/
           retention-days: 7
