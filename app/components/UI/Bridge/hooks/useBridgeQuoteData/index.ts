@@ -229,6 +229,13 @@ export const useBridgeQuoteData = ({
     !bestQuote && quotesLastFetched && !isLoading,
   );
 
+  // The quote expired and no fetch is in progress — offer to get a new one.
+  // Also treat the edge-case where a fetch IS running but there is no active
+  // quote to fall back on — the user would otherwise be stuck on a spinner
+  // with no way to retry ("escape hatch").
+  const needsNewQuote =
+    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
+
   const shouldShowPriceImpactWarning = Boolean(
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
@@ -319,5 +326,6 @@ export const useBridgeQuoteData = ({
     blockaidError,
     shouldShowPriceImpactWarning,
     validQuotes,
+    needsNewQuote,
   };
 };
