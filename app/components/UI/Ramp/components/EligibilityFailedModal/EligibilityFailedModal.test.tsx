@@ -65,7 +65,9 @@ describe('EligibilityFailedModal', () => {
 
     fireEvent.press(contactSupportButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io?utm_source=mobile_app',
+    );
   });
 
   it('closes the modal when the close button is pressed', () => {

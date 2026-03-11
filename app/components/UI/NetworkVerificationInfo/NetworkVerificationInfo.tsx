@@ -100,7 +100,7 @@ const NetworkVerificationInfo = ({
 
   const goToLearnMore = () => {
     Linking.openURL(
-      'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/',
+      'https://support.metamask.io/networks-and-sidechains/managing-networks/verifying-custom-network-information/?utm_source=mobile_app',
     );
   };
 

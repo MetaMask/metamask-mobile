@@ -467,7 +467,7 @@ const ChoosePassword = () => {
 
   const learnMore = useCallback(() => {
     const learnMoreUrl =
-      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+      'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/?utm_source=mobile_app';
 
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',

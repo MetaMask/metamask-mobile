@@ -240,7 +240,7 @@ const OptinMetrics = () => {
   const openLearnMore = useCallback(
     () =>
       onPressLink({
-        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/',
+        url: 'https://support.metamask.io/configure/privacy/how-to-manage-your-metametrics-settings/?utm_source=mobile_app',
         title: 'How to manage your MetaMetrics settings',
       }),
     [onPressLink],

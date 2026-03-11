@@ -1,5 +1,5 @@
 export const POOLED_STAKING_FAQ_URL =
-  'https://support.metamask.io/metamask-portfolio/move-crypto/stake/staking-pool/';
+  'https://support.metamask.io/metamask-portfolio/move-crypto/stake/staking-pool/?utm_source=mobile_app';
 
 export const DEFAULT_VAULT_APY_AVERAGES = {
   oneDay: '0',

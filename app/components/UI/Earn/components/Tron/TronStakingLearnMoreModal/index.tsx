@@ -21,7 +21,7 @@ import {
 } from '../../../../Stake/components/LearnMoreModal';
 
 const TRON_STAKING_FAQ_URL =
-  'https://support.metamask.io/metamask-portfolio/move-crypto/stake/';
+  'https://support.metamask.io/metamask-portfolio/move-crypto/stake/?utm_source=mobile_app';
 
 const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});

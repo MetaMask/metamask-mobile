@@ -71,7 +71,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const SRP_GUIDE_SOCIAL_LOGIN_URL =
-    'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts';
+    'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/?utm_source=mobile_app#metamask-secret-recovery-phrase-dos-and-donts';
 
   const LEARN_MORE_URL = isSocialLogin
     ? SRP_GUIDE_SOCIAL_LOGIN_URL

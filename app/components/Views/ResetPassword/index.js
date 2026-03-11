@@ -662,8 +662,8 @@ class ResetPassword extends PureComponent {
       screen: 'SimpleWebview',
       params: {
         url: this.props.isSeedlessOnboardingLoginFlow
-          ? 'https://support.metamask.io/configure/wallet/passwords-and-metamask/'
-          : 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+          ? 'https://support.metamask.io/configure/wallet/passwords-and-metamask/?utm_source=mobile_app'
+          : 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/?utm_source=mobile_app',
         title: 'support.metamask.io',
       },
     });
@@ -820,7 +820,7 @@ class ResetPassword extends PureComponent {
     this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
+        url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/?utm_source=mobile_app',
         title: 'support.metamask.io',
       },
     });

@@ -124,7 +124,7 @@ describe('SRPQuiz', () => {
     fireEvent.press(learnMoreButton);
 
     expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts',
+      'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/?utm_source=mobile_app#metamask-secret-recovery-phrase-dos-and-donts',
     );
   });
 });

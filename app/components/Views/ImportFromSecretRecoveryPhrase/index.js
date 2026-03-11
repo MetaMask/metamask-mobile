@@ -567,7 +567,7 @@ const ImportFromSecretRecoveryPhrase = ({
     navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/?utm_source=mobile_app',
         title: 'support.metamask.io',
       },
     });

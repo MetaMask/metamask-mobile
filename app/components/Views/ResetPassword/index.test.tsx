@@ -513,7 +513,7 @@ describe('ResetPassword', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/?utm_source=mobile_app',
         title: 'support.metamask.io',
       },
     });
@@ -538,7 +538,7 @@ describe('ResetPassword', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
+        url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/?utm_source=mobile_app',
         title: 'support.metamask.io',
       },
     });

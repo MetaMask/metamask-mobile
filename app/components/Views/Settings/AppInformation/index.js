@@ -154,7 +154,7 @@ class AppInformation extends PureComponent {
   };
 
   onSupportCenter = () => {
-    const url = 'https://support.metamask.io';
+    const url = 'https://support.metamask.io?utm_source=mobile_app';
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
@@ -164,7 +164,7 @@ class AppInformation extends PureComponent {
   };
 
   onContactUs = () => {
-    const url = 'https://support.metamask.io';
+    const url = 'https://support.metamask.io?utm_source=mobile_app';
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
