@@ -173,9 +173,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       });
     }, [navigation, trackEvent, createEventBuilder, currentChainId]);
 
-    const handleScamWarningModal = useCallback(() => {
-      setShowScamWarningModal((prev) => !prev);
-    }, [setShowScamWarningModal]);
+    const handleScamWarningModal = useCallback(
+      (chainId: string | null) => {
+        setShowScamWarningModal(chainId);
+      },
+      [setShowScamWarningModal],
+    );
 
     const maxItems = useMemo(() => {
       if (isFullView) {

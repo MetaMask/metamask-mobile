@@ -19,8 +19,9 @@ import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from './usePerpsPaymentToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { usePerpsTrading } from './usePerpsTrading';
+import { useNavigation } from '@react-navigation/native';
+import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
@@ -46,27 +47,38 @@ export function usePerpsBalanceTokenFilter(): (
   const formatFiat = useFiatFormatter({ currency: 'usd' });
 
   const { depositWithConfirmation } = usePerpsTrading();
-  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-  const { navigateToConfirmation } = useConfirmNavigation();
 
   const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.perpsDepositAndOrder,
   ]);
 
+  const { onReject: handleReject } = useApprovalRequest();
+  const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  const navigation = useNavigation();
+
   const handlePerpsDepositPress = useCallback(() => {
     ensureArbitrumNetworkExists()
       .then(() => {
-        navigateToConfirmation({ stack: Routes.PERPS.ROOT });
+        handleReject();
         return depositWithConfirmation();
       })
-      .catch((_err) => {
+      .then(() => {
+        navigation.navigate(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          {
+            showPerpsHeader: true,
+          },
+        );
+      })
+      .catch(() => {
         // Deposit flow handles errors (e.g. user rejection or missing network).
-        // ensureArbitrumNetworkExists errors are logged inside the hook itself.
       });
   }, [
-    ensureArbitrumNetworkExists,
-    navigateToConfirmation,
+    navigation,
     depositWithConfirmation,
+    handleReject,
+    ensureArbitrumNetworkExists,
   ]);
 
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =

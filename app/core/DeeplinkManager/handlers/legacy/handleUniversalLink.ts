@@ -57,6 +57,7 @@ import Logger from '../../../../util/Logger';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
@@ -216,6 +217,7 @@ async function handleUniversalLink({
 
   const isSupportedDomain =
     urlObj.hostname === MM_UNIVERSAL_LINK_HOST ||
+    urlObj.hostname === MM_UNIVERSAL_LINK_HOST_ALTERNATE ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_HOST ||
     urlObj.hostname === MM_IO_UNIVERSAL_LINK_TEST_HOST;
 

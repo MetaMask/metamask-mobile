@@ -2197,6 +2197,7 @@
     "available_balance": "Available balance",
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
@@ -2275,6 +2276,9 @@
           "title": "Something went wrong",
           "description": "Failed to proceed with claim",
           "try_again": "Try again"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Exchange fee",
       "exchange_fee_description": "Fee paid to the exchange or market",
       "total_incl_fees": "incl. fees",
-      "close": "Close"
+      "close": "Close",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -6094,7 +6099,8 @@
       "errors": {
         "insufficient_balance": "You don't have enough resource balance to do this action."
       },
-      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking."
+      "trx_unstaking_in_progress": "Unstaking {{amount}} TRX in progress. It takes 14 days for unstaking.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Stake ETH",
     "unstake_eth": "Unstake ETH",
@@ -6345,7 +6351,8 @@
       "metamask_fee": "MetaMask fee",
       "network_fee": "Network fee",
       "bridge_fee": "Bridge provider fee",
-      "provider_fee": "Provider fee"
+      "provider_fee": "Provider fee",
+      "sending": "Sending"
     },
     "title": {
       "signature": "Signature request",
@@ -6572,9 +6579,9 @@
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
     "price_impact_info_title": "Price impact",
-    "price_impact_info_description": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
     "price_impact_high": "High price impact",
     "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
     "proceed": "Proceed",
@@ -6609,7 +6616,10 @@
     "select_quote_info": "Quotes are sorted by the estimated total cost, which includes the exchange rate and network fee.",
     "lowest_cost": "Lowest cost",
     "total_cost": "Total Cost",
-     "got_it": "Got it"
+    "got_it": "Got it",
+    "price_impact_warning_title": "High price impact",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",

@@ -81,7 +81,10 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   TraceName,
@@ -490,6 +493,7 @@ const ImportFromSecretRecoveryPhrase = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
+            accountType: AccountType.Imported,
           });
         }
       } catch (error) {
