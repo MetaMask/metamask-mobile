@@ -52,9 +52,11 @@ describe('PredictMarketDetails', () => {
       const screen = await findByTestId(
         PredictMarketDetailsSelectorsIDs.SCREEN,
       );
-      expect(
-        within(screen).getByText(MOCK_PREDICT_MARKET.title),
-      ).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          within(screen).getByText(MOCK_PREDICT_MARKET.title),
+        ).toBeOnTheScreen();
+      });
       expect(await findByText(/Yes.*¢/)).toBeOnTheScreen();
       expect(await findByText(/No.*¢/)).toBeOnTheScreen();
 

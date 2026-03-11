@@ -90,12 +90,6 @@ jest.mock('../../../util/hideKeyFromUrl', () =>
   jest.fn((url: string) => url.replace(/\/[a-zA-Z0-9]{32,}$/, '')),
 );
 
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsRemoteFeatureEnabled: jest.fn(),
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1: 'v1',
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2: 'v2',
-}));
-
 jest.mock('@metamask/utils', () => ({
   KnownCaipNamespace: { Eip155: 'eip155' },
   parseCaipChainId: jest.fn(),

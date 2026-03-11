@@ -7,6 +7,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
+  remoteFeatureFlagHomepageSectionsV1Enabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -15,10 +16,10 @@ import {
   POLYMARKET_TRANSACTION_SENTINEL_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
+  POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import PredictActivityDetails from '../../page-objects/Transactions/predictionsActivityDetails';
@@ -32,6 +33,7 @@ import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mockin
 import Utilities from '../../framework/Utilities';
 import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
+import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
 
 /*
 Test Scenario: Claim winning positions
@@ -53,14 +55,21 @@ Test Scenario: Claim winning positions
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
-    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
+};
+
+const PredictionMarketFeatureForMarketDetails = async (mockServer: Mockttp) => {
+  await PredictionMarketFeature(mockServer);
+  await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true, {
+    showWinningsAsActive: true,
+  });
 };
 
 /**
@@ -98,7 +107,7 @@ const positions = {
 };
 
 describe(SmokePredictions('Claim winnings:'), () => {
-  it('claim winnings via predictions tab', async () => {
+  it('claim winnings via predictions section', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -115,30 +124,15 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
-        await WalletView.tapOnPredictionsTab();
-
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-        );
-
-        // Claim button is rendered only after positions API returns and Redux has won positions
-        await Assertions.expectElementToBeVisible(WalletView.claimButton, {
-          description:
-            'Claim button should be visible (positions loaded with winnings)',
-        });
+        //await WalletView.scrollAndTapPredictionsSection();
         await WalletView.tapClaimButton();
+
+        await postClaimMocks(mockServer);
+
         await Assertions.expectElementToBeVisible(PredictClaimPage.container);
 
         await PredictClaimPage.tapClaimConfirmButton();
 
-        await postClaimMocks(mockServer);
-
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await device.enableSynchronization();
-
-        await Assertions.expectElementToNotBeVisible(WalletView.claimButton, {
-          description: 'Claim button should not be visible',
-        });
         await verifyResolvedPositionsRemoved();
 
         await TabBarComponent.tapActivity();
@@ -162,7 +156,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
         }
 
         await TabBarComponent.tapWallet();
-
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description:
+            'Wallet screen should be visible after returning from activity',
+        });
+        await WalletView.scrollAndTapPredictionsSection('up');
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events
@@ -210,7 +208,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
       {
         fixture: new FixtureBuilder().withPolygon().build(),
         restartDevice: true,
-        testSpecificMock: PredictionMarketFeature,
+        testSpecificMock: PredictionMarketFeatureForMarketDetails,
       },
       async ({ mockServer }) => {
         await PredictHelpers.setPortugalLocation();
@@ -219,39 +217,23 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
-        await WalletView.tapOnPredictionsTab();
-
-        await Assertions.expectElementToBeVisible(
-          WalletView.PredictionsTabContainer,
-          {
-            description: 'Predictions tab container should be visible',
-          },
-        );
-
-        await Assertions.expectElementToBeVisible(WalletView.claimButton, {
-          description:
-            'Claim button should be visible (positions loaded with winnings)',
-        });
-
-        await WalletView.scrollToPosition(positions.Lost);
-
-        await WalletView.tapPredictPosition(positions.Lost);
+        await WalletView.scrollAndTapPredictionsPosition(positions.Open);
 
         await Assertions.expectElementToNotBeVisible(
           PredictDetailsPage.claimButton,
           {
             description:
-              'Claim button should not be visible on a lost position',
+              'Claim button should not be visible on a non-claimable position',
           },
         );
         await PredictDetailsPage.tapBackButton();
 
-        await Utilities.waitForElementToStopMoving(
-          WalletView.PredictionsTabContainer,
-        );
+        // Switch mock so winning positions return redeemable: true.
+        // By this point, React Query's 5s staleTime has elapsed, so the
+        // positions query will refetch when market details re-enables it.
+        await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
-        await WalletView.scrollToPosition(positions.Won);
-        await WalletView.tapPredictPosition(positions.Won);
+        await WalletView.scrollAndTapPredictionsPosition(positions.Won);
 
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.container,
@@ -261,8 +243,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
         );
 
         await PredictDetailsPage.tapClaimWinningsButton();
-
-        await PredictClaimPage.tapClaimConfirmButton();
+        await WalletView.tapClaimConfirmButton();
 
         await postClaimMocks(mockServer);
         await device.enableSynchronization();
@@ -289,8 +270,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await verifyResolvedPositionsRemoved();
 
-        await WalletView.scrollToPosition(positions.Open, 'up');
-
+        await WalletView.scrollAndTapPredictionsSection('up');
         await Assertions.expectTextDisplayed('$48.16');
       },
     );
