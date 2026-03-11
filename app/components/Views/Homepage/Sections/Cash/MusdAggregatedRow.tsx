@@ -134,7 +134,7 @@ const MusdAggregatedRow = () => {
               {MUSD_TOKEN.name}
             </Text>
             <SensitiveText
-              variant={CLTextVariant.BodyMDMedium}
+              variant={CLTextVariant.BodyMDBold}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
@@ -146,15 +146,6 @@ const MusdAggregatedRow = () => {
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
           >
-            <SensitiveText
-              variant={CLTextVariant.BodySMMedium}
-              color={CLTextColor.Alternative}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-              numberOfLines={1}
-            >
-              {tokenBalanceDisplay}
-            </SensitiveText>
             {isClaiming ? (
               <AnimatedSpinner size={SpinnerSize.SM} />
             ) : hasClaimableBonus ? (
@@ -181,6 +172,15 @@ const MusdAggregatedRow = () => {
                 })}
               </Text>
             )}
+            <SensitiveText
+              variant={CLTextVariant.BodySMMedium}
+              color={CLTextColor.Alternative}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+              numberOfLines={1}
+            >
+              {tokenBalanceDisplay}
+            </SensitiveText>
           </Box>
         </Box>
       </Box>

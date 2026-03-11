@@ -20,6 +20,8 @@ jest.mock('../../../../../../selectors/currencyRateController', () => ({
 jest.mock('../../../../../UI/Earn/constants/musd', () => ({
   MUSD_CONVERSION_APY: 3,
   MUSD_TOKEN_ADDRESS: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  isMusdToken: (address?: string) =>
+    address?.toLowerCase() === '0xaca92e438df0b2401ff60da7e4337b687a2435da',
 }));
 
 // Mock locales to avoid deep import chain issues
