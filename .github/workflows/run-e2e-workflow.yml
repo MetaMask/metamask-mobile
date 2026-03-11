@@ -183,6 +183,36 @@ jobs:
         with:
           path: artifacts/
 
+      # actions/upload-artifact strips execute permissions from the ZIP.
+      # Also fixes any residual case mismatch as a safety net.
+      - name: Restore iOS bundle executable permissions
+        if: ${{ inputs.platform == 'ios' }}
+        env:
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENV: ${{ inputs.metamask_environment }}
+        run: |
+          APP_PATH="artifacts/${BUILD_TYPE}-${METAMASK_ENV}-MetaMask.app"
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
+            exit 1
+          fi
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          # Two-step rename to fix case on case-insensitive APFS (direct rename is a no-op)
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+        shell: bash
+
       # On re-run (run_attempt > 1), download previous test results to identify failed tests
       - name: Download previous test results (on re-run)
         if: ${{ github.run_attempt > 1 }}
