@@ -5,7 +5,13 @@ import PredictBuyPreviewHeader, {
   PredictBuyPreviewHeaderBack,
 } from './PredictBuyPreviewHeader';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import type { PredictMarket, PredictOutcome } from '../../../../types';
+import {
+  Side,
+  Recurrence,
+  type PredictMarket,
+  type PredictOutcome,
+  type OrderPreview,
+} from '../../../../types';
 
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
@@ -41,20 +47,35 @@ describe('PredictBuyPreviewHeader', () => {
     liquidity: 1000,
     volume: 5000,
     slug: 'bitcoin-100k',
+    providerId: 'provider-1',
+    description: 'Test market',
+    image: 'https://example.com/market.png',
+    status: 'open',
+    recurrence: Recurrence.NONE,
     outcomes: [
       {
         id: 'outcome-1',
         title: 'Yes',
         image: 'https://example.com/yes.png',
         tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
-        groupItemTitle: undefined,
+        groupItemTitle: '',
+        providerId: 'provider-1',
+        marketId: 'market-123',
+        description: '',
+        status: 'open',
+        volume: 0,
       },
       {
         id: 'outcome-2',
         title: 'No',
         image: 'https://example.com/no.png',
         tokens: [{ id: 'token-2', title: 'No', price: 0.35 }],
-        groupItemTitle: undefined,
+        groupItemTitle: '',
+        providerId: 'provider-1',
+        marketId: 'market-123',
+        description: '',
+        status: 'open',
+        volume: 0,
       },
     ],
     ...overrides,
@@ -70,7 +91,30 @@ describe('PredictBuyPreviewHeader', () => {
       { id: 'token-1', title: 'Yes', price: 0.65 },
       { id: 'token-2', title: 'Yes (alt)', price: 0.6 },
     ],
-    groupItemTitle: undefined,
+    groupItemTitle: '',
+    providerId: 'provider-1',
+    marketId: 'market-123',
+    description: 'Test outcome',
+    status: 'open',
+    volume: 0,
+    ...overrides,
+  });
+
+  const createMockOrderPreview = (
+    overrides?: Partial<OrderPreview>,
+  ): OrderPreview => ({
+    marketId: 'market-123',
+    outcomeId: 'outcome-1',
+    outcomeTokenId: 'token-1',
+    timestamp: Date.now(),
+    side: Side.BUY,
+    sharePrice: 0.65,
+    maxAmountSpent: 100,
+    minAmountReceived: 0,
+    slippage: 0.01,
+    tickSize: 0.01,
+    minOrderSize: 1,
+    negRisk: false,
     ...overrides,
   });
 
@@ -174,10 +218,10 @@ describe('PredictBuyPreviewHeader', () => {
           { id: 'token-2', title: 'Yes (alt)', price: 0.6 },
         ],
       });
-      const preview = {
+      const preview = createMockOrderPreview({
         outcomeTokenId: 'token-2',
         sharePrice: 0.6,
-      };
+      });
 
       renderWithProvider(
         <PredictBuyPreviewHeaderTitle
@@ -198,10 +242,10 @@ describe('PredictBuyPreviewHeader', () => {
           { id: 'token-2', title: 'Yes (alt)', price: 0.6 },
         ],
       });
-      const preview = {
+      const preview = createMockOrderPreview({
         outcomeTokenId: 'token-nonexistent',
         sharePrice: 0.65,
-      };
+      });
 
       renderWithProvider(
         <PredictBuyPreviewHeaderTitle
@@ -219,10 +263,10 @@ describe('PredictBuyPreviewHeader', () => {
       const outcome = createMockOutcome({
         tokens: [{ id: 'token-1', title: 'Yes', price: 0.65 }],
       });
-      const preview = {
+      const preview = createMockOrderPreview({
         outcomeTokenId: 'token-1',
         sharePrice: 0.75,
-      };
+      });
 
       renderWithProvider(
         <PredictBuyPreviewHeaderTitle

@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { usePredictPaymentToken } from './usePredictPaymentToken';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import Engine from '../../../../core/Engine';
+import type { AssetType } from '../../../Views/confirmations/types/token';
 
 let mockSelectedPaymentToken: {
   address: string;
@@ -13,6 +14,19 @@ let mockSelectedPaymentToken: {
 let mockTransactionMeta: { id: string } | null = null;
 let mockPayToken: { address: Hex; chainId: Hex } | null = null;
 const mockSetPayToken = jest.fn();
+
+const createMockAsset = (overrides?: Partial<AssetType>): AssetType => ({
+  address: '0x1234',
+  chainId: '0x1',
+  decimals: 18,
+  image: 'https://example.com/token.png',
+  name: 'Test Token',
+  symbol: 'TEST',
+  balance: '1000',
+  logo: undefined,
+  isETH: false,
+  ...overrides,
+});
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -153,10 +167,11 @@ describe('usePredictPaymentToken', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
 
       act(() => {
-        result.current.onPaymentTokenChange({
-          address: PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
-          chainId: '0x1',
-        });
+        result.current.onPaymentTokenChange(
+          createMockAsset({
+            address: PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
+          }),
+        );
       });
 
       expect(
@@ -166,11 +181,11 @@ describe('usePredictPaymentToken', () => {
 
     it('calls setSelectedPaymentToken with token data when token is valid', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
-      const token = {
+      const token = createMockAsset({
         address: '0xabcd',
         chainId: '0x1',
         symbol: 'TEST',
-      };
+      });
 
       act(() => {
         result.current.onPaymentTokenChange(token);
@@ -188,10 +203,10 @@ describe('usePredictPaymentToken', () => {
     it('calls setPayToken when transactionMeta.id exists', () => {
       mockTransactionMeta = { id: 'tx-123' };
       const { result } = renderHook(() => usePredictPaymentToken());
-      const token = {
+      const token = createMockAsset({
         address: '0xabcd',
         chainId: '0x1',
-      };
+      });
 
       act(() => {
         result.current.onPaymentTokenChange(token);
@@ -206,10 +221,10 @@ describe('usePredictPaymentToken', () => {
     it('does not call setPayToken when transactionMeta is null', () => {
       mockTransactionMeta = null;
       const { result } = renderHook(() => usePredictPaymentToken());
-      const token = {
+      const token = createMockAsset({
         address: '0xabcd',
         chainId: '0x1',
-      };
+      });
 
       act(() => {
         result.current.onPaymentTokenChange(token);
@@ -221,10 +236,10 @@ describe('usePredictPaymentToken', () => {
     it('does not call setPayToken when transactionMeta.id is missing', () => {
       mockTransactionMeta = { id: '' };
       const { result } = renderHook(() => usePredictPaymentToken());
-      const token = {
+      const token = createMockAsset({
         address: '0xabcd',
         chainId: '0x1',
-      };
+      });
 
       act(() => {
         result.current.onPaymentTokenChange(token);
@@ -235,9 +250,11 @@ describe('usePredictPaymentToken', () => {
 
     it('handles token with missing chainId', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
-      const token = {
+      const token = createMockAsset({
         address: '0xabcd',
-      };
+        chainId: undefined,
+        symbol: undefined,
+      });
 
       act(() => {
         result.current.onPaymentTokenChange(token);

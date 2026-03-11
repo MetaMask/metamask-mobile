@@ -1,5 +1,9 @@
 import { parseAnalyticsProperties } from './analytics';
-import type { PredictMarket, PredictOutcomeToken } from '../types';
+import {
+  Recurrence,
+  type PredictMarket,
+  type PredictOutcomeToken,
+} from '../types';
 import type { PredictEntryPoint } from '../types/navigation';
 
 jest.mock('../constants/eventNames', () => ({
@@ -28,22 +32,50 @@ describe('parseAnalyticsProperties', () => {
     liquidity: 1000,
     volume: 5000,
     slug: 'test-market',
+    providerId: 'provider-1',
+    description: 'Test market description',
+    image: 'https://example.com/market.png',
+    status: 'open',
+    recurrence: Recurrence.NONE,
     outcomes: [
       {
         id: 'outcome-1',
         title: 'Yes',
         image: 'image-url',
         tokens: [],
-        groupItemTitle: undefined,
+        groupItemTitle: '',
+        providerId: 'provider-1',
+        marketId: 'market-123',
+        description: '',
+        status: 'open',
+        volume: 0,
       },
     ],
     game: {
       id: 'game-123',
       startTime: '2024-01-01T00:00:00Z',
-      league: 'NFL',
-      status: 'live',
+      league: 'nfl',
+      status: 'ongoing',
       period: '2',
       elapsed: '10:30',
+      endTime: undefined,
+      score: null,
+      homeTeam: {
+        id: 'team-1',
+        name: 'Home Team',
+        logo: 'https://example.com/home.png',
+        abbreviation: 'HT',
+        color: 'color-default',
+        alias: 'Home',
+      },
+      awayTeam: {
+        id: 'team-2',
+        name: 'Away Team',
+        logo: 'https://example.com/away.png',
+        abbreviation: 'AT',
+        color: 'color-inverse',
+        alias: 'Away',
+      },
     },
     ...overrides,
   });
@@ -80,8 +112,8 @@ describe('parseAnalyticsProperties', () => {
         marketSlug: 'test-market',
         gameId: 'game-123',
         gameStartTime: '2024-01-01T00:00:00Z',
-        gameLeague: 'NFL',
-        gameStatus: 'live',
+        gameLeague: 'nfl',
+        gameStatus: 'ongoing',
         gamePeriod: '2',
         gameClock: '10:30',
       });
@@ -173,7 +205,12 @@ describe('parseAnalyticsProperties', () => {
             title: 'Yes',
             image: 'image-url',
             tokens: [],
-            groupItemTitle: undefined,
+            groupItemTitle: '',
+            providerId: 'provider-1',
+            marketId: 'market-123',
+            description: '',
+            status: 'open',
+            volume: 0,
           },
         ],
       });
@@ -196,21 +233,36 @@ describe('parseAnalyticsProperties', () => {
             title: 'Yes',
             image: 'image-url',
             tokens: [],
-            groupItemTitle: undefined,
+            groupItemTitle: '',
+            providerId: 'provider-1',
+            marketId: 'market-123',
+            description: '',
+            status: 'open',
+            volume: 0,
           },
           {
             id: 'outcome-2',
             title: 'No',
             image: 'image-url',
             tokens: [],
-            groupItemTitle: undefined,
+            groupItemTitle: '',
+            providerId: 'provider-1',
+            marketId: 'market-123',
+            description: '',
+            status: 'open',
+            volume: 0,
           },
           {
             id: 'outcome-3',
             title: 'Maybe',
             image: 'image-url',
             tokens: [],
-            groupItemTitle: undefined,
+            groupItemTitle: '',
+            providerId: 'provider-1',
+            marketId: 'market-123',
+            description: '',
+            status: 'open',
+            volume: 0,
           },
         ],
       });
@@ -260,10 +312,28 @@ describe('parseAnalyticsProperties', () => {
         game: {
           id: 'game-456',
           startTime: '2024-02-15T18:00:00Z',
-          league: 'NBA',
+          league: 'nba',
           status: 'scheduled',
           period: '1',
           elapsed: '5:45',
+          endTime: undefined,
+          score: null,
+          homeTeam: {
+            id: 'team-1',
+            name: 'Home Team',
+            logo: 'https://example.com/home.png',
+            abbreviation: 'HT',
+            color: 'color-default',
+            alias: 'Home',
+          },
+          awayTeam: {
+            id: 'team-2',
+            name: 'Away Team',
+            logo: 'https://example.com/away.png',
+            abbreviation: 'AT',
+            color: 'color-inverse',
+            alias: 'Away',
+          },
         },
       });
       const outcomeToken = createMockOutcomeToken();
@@ -276,7 +346,7 @@ describe('parseAnalyticsProperties', () => {
 
       expect(result.gameId).toBe('game-456');
       expect(result.gameStartTime).toBe('2024-02-15T18:00:00Z');
-      expect(result.gameLeague).toBe('NBA');
+      expect(result.gameLeague).toBe('nba');
       expect(result.gameStatus).toBe('scheduled');
       expect(result.gamePeriod).toBe('1');
       expect(result.gameClock).toBe('5:45');
