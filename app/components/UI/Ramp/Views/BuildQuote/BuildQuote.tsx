@@ -125,9 +125,6 @@ function BuildQuote() {
   const [rampsError, setRampsError] = useState<string | null>(null);
   const params = useParams<BuildQuoteParams>();
 
-  /*
-   * Sets the native flow error if the native flow error is set.
-   */
   useEffect(() => {
     if (params?.nativeFlowError) {
       setRampsError(params.nativeFlowError);
@@ -725,8 +722,6 @@ function BuildQuote() {
 
   const hasAmount = amountAsNumber > 0;
 
-  // No strict quote-vs-context matching: provider handles fresh quote, payment method, etc.
-  // Bugbot will catch if a stale/mismatched quote causes issues.
   const canContinue =
     hasAmount && !selectedQuoteLoading && selectedQuote !== null;
 

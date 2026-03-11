@@ -1,6 +1,7 @@
 import { Linking } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Device from '../../../../util/device';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { openExternalBrowserAndNavigate } from './openExternalBrowserCheckout';
 
 jest.mock('../../../../util/device', () => ({
@@ -48,7 +49,7 @@ describe('openExternalBrowserAndNavigate', () => {
       });
       (params.getOrderFromCallback as jest.Mock).mockResolvedValue({
         providerOrderId: 'ord-1',
-        status: 'PENDING',
+        status: RampsOrderStatus.Pending,
       });
 
       await openExternalBrowserAndNavigate(params);
@@ -98,7 +99,7 @@ describe('openExternalBrowserAndNavigate', () => {
       });
       (params.getOrderFromCallback as jest.Mock).mockResolvedValue({
         providerOrderId: 'ord-1',
-        status: 'PRECREATED',
+        status: RampsOrderStatus.Precreated,
       });
 
       await openExternalBrowserAndNavigate(params);
@@ -117,7 +118,7 @@ describe('openExternalBrowserAndNavigate', () => {
       });
       (params.getOrderFromCallback as jest.Mock).mockResolvedValue({
         providerOrderId: 'ord-1',
-        status: 'IdExpired',
+        status: RampsOrderStatus.IdExpired,
       });
 
       await openExternalBrowserAndNavigate(params);
@@ -131,7 +132,7 @@ describe('openExternalBrowserAndNavigate', () => {
       const params = createParams();
       const order = {
         providerOrderId: 'ord-1',
-        status: 'PENDING',
+        status: RampsOrderStatus.Pending,
       };
       (InAppBrowser.openAuth as jest.Mock).mockResolvedValue({
         type: 'success',

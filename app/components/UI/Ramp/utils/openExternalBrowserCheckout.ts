@@ -2,13 +2,16 @@ import { Linking } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Device from '../../../../util/device';
 import { extractOrderCode } from './extractOrderCode';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 
-/** Order statuses that indicate the user bailed (did not complete the purchase). */
-const BAILED_ORDER_STATUSES = ['PRECREATED', 'IdExpired', 'Unknown'];
+const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  RampsOrderStatus.Precreated,
+  RampsOrderStatus.IdExpired,
+  RampsOrderStatus.Unknown,
+]);
 
-function isBailedOrderStatus(status: string | undefined): boolean {
-  return status != null && BAILED_ORDER_STATUSES.includes(status);
+function isBailedOrderStatus(status: RampsOrderStatus | undefined): boolean {
+  return status != null && BAILED_ORDER_STATUSES.has(status);
 }
 
 export interface OpenExternalBrowserParams {
