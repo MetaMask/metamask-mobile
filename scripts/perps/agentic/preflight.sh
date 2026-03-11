@@ -97,6 +97,40 @@ ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
 warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 fail() { echo -e "  ${RED}✗${NC} $*"; exit 1; }
 
+# ── Early fixture validation (fail fast before long pipeline) ────────
+if $DO_WALLET_SETUP; then
+  if [ ! -f "$WALLET_FIXTURE" ]; then
+    echo -e "${RED}ERROR:${NC} Wallet fixture not found: $WALLET_FIXTURE"
+    echo -e "  Copy the example and fill in your values:"
+    echo -e "  ${DIM}cp scripts/perps/agentic/wallet-fixture.example.json .agent/wallet-fixture.json${NC}"
+    exit 1
+  fi
+  if ! jq empty "$WALLET_FIXTURE" 2>/dev/null; then
+    echo -e "${RED}ERROR:${NC} Invalid JSON in $WALLET_FIXTURE"
+    exit 1
+  fi
+  FIX_PW=$(jq -r '.password // empty' "$WALLET_FIXTURE")
+  if [ -z "$FIX_PW" ]; then
+    echo -e "${RED}ERROR:${NC} Fixture missing 'password' field: $WALLET_FIXTURE"
+    exit 1
+  fi
+  FIX_ACCT_COUNT=$(jq -r '.accounts | length // 0' "$WALLET_FIXTURE" 2>/dev/null || echo 0)
+  for i in $(seq 0 $((FIX_ACCT_COUNT - 1))); do
+    FIX_TYPE=$(jq -r ".accounts[$i].type // empty" "$WALLET_FIXTURE")
+    FIX_VAL=$(jq -r ".accounts[$i].value // empty" "$WALLET_FIXTURE")
+    if [ -z "$FIX_TYPE" ] || { [ "$FIX_TYPE" != "mnemonic" ] && [ "$FIX_TYPE" != "privateKey" ]; }; then
+      echo -e "${RED}ERROR:${NC} accounts[$i].type must be 'mnemonic' or 'privateKey' (got '${FIX_TYPE:-empty}')"
+      echo -e "  See: scripts/perps/agentic/wallet-fixture.example.json"
+      exit 1
+    fi
+    if [ -z "$FIX_VAL" ]; then
+      echo -e "${RED}ERROR:${NC} accounts[$i].value is empty"
+      exit 1
+    fi
+  done
+  ok "Fixture validated: $WALLET_FIXTURE (password + ${FIX_ACCT_COUNT} accounts)"
+fi
+
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
 STEP_START=$PREFLIGHT_START

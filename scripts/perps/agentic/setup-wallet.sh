@@ -60,13 +60,18 @@ if jq -e '.import' "$FIXTURE_PATH" >/dev/null 2>&1 && ! jq -e '.accounts' "$FIXT
   exit 1
 fi
 
-ACCOUNT_COUNT=$(jq -r '.accounts | length // 0' "$FIXTURE_PATH")
+ACCOUNT_COUNT=$(jq -r '.accounts | length // 0' "$FIXTURE_PATH" 2>/dev/null || echo 0)
 for i in $(seq 0 $((ACCOUNT_COUNT - 1))); do
   ACC_TYPE=$(jq -r ".accounts[$i].type // empty" "$FIXTURE_PATH")
   ACC_VALUE=$(jq -r ".accounts[$i].value // empty" "$FIXTURE_PATH")
-  [ -z "$ACC_TYPE" ] || { [ "$ACC_TYPE" != "mnemonic" ] && [ "$ACC_TYPE" != "privateKey" ]; } && { echo "ERROR: accounts[$i] bad type"; exit 1; }
-  [ -z "$ACC_VALUE" ] && { echo "ERROR: accounts[$i] missing value"; exit 1; }
+  if [ -z "$ACC_TYPE" ] || { [ "$ACC_TYPE" != "mnemonic" ] && [ "$ACC_TYPE" != "privateKey" ]; }; then
+    echo "ERROR: accounts[$i].type must be 'mnemonic' or 'privateKey' (got '${ACC_TYPE:-empty}')"
+    echo "  See: scripts/perps/agentic/wallet-fixture.example.json"
+    exit 1
+  fi
+  [ -z "$ACC_VALUE" ] && { echo "ERROR: accounts[$i].value is empty"; exit 1; }
 done
+echo "Fixture OK: password + ${ACCOUNT_COUNT} account(s)"
 
 ESCAPED_PW=$(echo "$PASSWORD" | sed "s/'/\\\\\\\\'/g")
 
