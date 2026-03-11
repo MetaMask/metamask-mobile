@@ -320,7 +320,13 @@ const NetworkMultiSelectList = ({
               isSelected,
             )}
           >
-            {renderRightAccessory?.(caipChainId, name)}
+            {showButtonIcon ? (
+              renderRightAccessory?.(caipChainId, name)
+            ) : (
+              <Box paddingRight={8}>
+                {renderRightAccessory?.(caipChainId, name)}
+              </Box>
+            )}
           </Cell>
         </View>
       );

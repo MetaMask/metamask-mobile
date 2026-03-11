@@ -1,7 +1,7 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
-import { whenEngineReady } from '../Analytics/whenEngineReady';
+import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 
 import {
   HandleOAuthLoginResult,

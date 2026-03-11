@@ -47,7 +47,7 @@ jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: jest.fn(),
 }));
 
-jest.mock('../Analytics/whenEngineReady', () => ({
+jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
