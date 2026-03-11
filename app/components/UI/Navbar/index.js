@@ -1651,38 +1651,6 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
   };
 }
 
-export function getPerpsMarketDetailsNavbar(navigation, title) {
-  const innerStyles = StyleSheet.create({
-    perpsMarketDetailsTitle: {
-      fontWeight: '700',
-      textAlign: 'center',
-      flex: 1,
-    },
-  });
-  // Always navigate back to markets page for consistent navigation
-  const leftAction = () => navigation.navigate(Routes.PERPS.PERPS_HOME);
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        style={innerStyles.perpsMarketDetailsTitle}
-        variant={TextVariant.HeadingMD}
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <ButtonIcon
-        iconName={IconName.Arrow2Left}
-        onPress={leftAction}
-        size={ButtonIconSize.Md}
-      />
-    ),
-  };
-}
-
 /**
  * Function that returns navigation options for deposit flow screens
  *
