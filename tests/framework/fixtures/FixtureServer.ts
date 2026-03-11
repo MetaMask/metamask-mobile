@@ -2,6 +2,7 @@ import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder.ts';
+import type { Fixture } from './types.ts';
 import { createLogger } from '../logger.ts';
 import { Resource, ServerStatus } from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
@@ -238,7 +239,7 @@ class FixtureServer implements Resource {
   }
   // Load JSON state into the server
   loadJsonState(
-    rawState: FixtureBuilder,
+    rawState: Fixture | FixtureBuilder,
     contractRegistry: ContractRegistry | null,
   ) {
     logger.debug('Loading JSON state...');
