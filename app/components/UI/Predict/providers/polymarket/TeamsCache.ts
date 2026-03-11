@@ -82,7 +82,7 @@ export class TeamsCache {
       return;
     }
 
-    const key = `${league}:${uncached.sort().join(',')}`;
+    const key = `${league}:${uncached.sort((a, b) => a.localeCompare(b)).join(',')}`;
     const existingPromise = this.teamBatchLoadingPromises.get(key);
     if (existingPromise) {
       return existingPromise;
