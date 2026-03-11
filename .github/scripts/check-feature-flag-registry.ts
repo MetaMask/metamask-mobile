@@ -102,8 +102,18 @@ async function main(): Promise<void> {
       continue;
     }
     for (const chunk of chunks) {
+      let inBlock = false;
       for (const line of chunk) {
+        if (inBlock) {
+          const endIdx = line.indexOf('*/');
+          if (endIdx === -1) continue;
+          inBlock = false;
+          allReferences.push(...extractFlagReferences(line.slice(endIdx + 2), filePath));
+          continue;
+        }
         allReferences.push(...extractFlagReferences(line, filePath));
+        const openIdx = line.lastIndexOf('/*');
+        if (openIdx !== -1 && line.indexOf('*/', openIdx + 2) === -1) inBlock = true;
       }
       for (let i = 0; i < chunk.length - 1; i++) {
         const j2 = `${stripInlineComments(chunk[i]).trimEnd()}${stripInlineComments(chunk[i + 1]).trimStart()}`;
@@ -249,9 +259,10 @@ function findOrphanedFlags(flagNames: string[]): string[] {
   const orphaned: string[] = [];
   for (const flag of flagNames) {
     if (!/^[\w.-]+$/.test(flag)) continue;
+    const escaped = flag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     try {
       const result = execFileSync(
-        'git', ['grep', '-lFw', flag, '--', ...SCAN_DIRECTORIES],
+        'git', ['grep', '-Pl', `\\b${escaped}\\b`, '--', ...SCAN_DIRECTORIES],
         { encoding: 'utf-8', stdio: 'pipe', cwd: REPO_ROOT },
       ).trim();
       const files = result.split('\n').filter((f) => f && !f.startsWith(REGISTRY_DIR));
