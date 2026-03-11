@@ -728,12 +728,14 @@ class Transactions extends PureComponent {
               extraData={this.state}
               keyExtractor={this.keyExtractor}
               refreshControl={
-                <RefreshControl
-                  colors={[colors.primary.default]}
-                  tintColor={colors.icon.default}
-                  refreshing={this.state.refreshing}
-                  onRefresh={this.onRefresh}
-                />
+                embeddedInScrollView ? undefined : (
+                  <RefreshControl
+                    colors={[colors.primary.default]}
+                    tintColor={colors.icon.default}
+                    refreshing={this.state.refreshing}
+                    onRefresh={this.onRefresh}
+                  />
+                )
               }
               renderItem={this.renderItem}
               initialNumToRender={10}
