@@ -195,6 +195,13 @@ export function CancelSpeedupModal({
     }
   }, [isVisible, tx?.id, isCancel, gasFeeEstimates, tx]);
 
+  // Dismiss gas modal when parent cancel/speed up modal closes.
+  useEffect(() => {
+    if (!isVisible) {
+      setGasModalVisible(false);
+    }
+  }, [isVisible]);
+
   const openGasModal = useCallback(() => {
     setGasModalVisible(true);
   }, []);
