@@ -1,5 +1,9 @@
+import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
-import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { createStackNavigator } from '@react-navigation/stack';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../../../util/test/renderWithProvider';
 import Checkout from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_PROVIDERS } from '../../../../../constants/on-ramp';
@@ -237,6 +241,51 @@ describe('Checkout', () => {
         walletAddress: '0xabc',
         chainId: '1',
       });
+    });
+
+    it('does not call addPrecreatedOrder when hasCallbackFlow is false (missing providerCode)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        providerCode: undefined,
+        orderId: '/providers/transak/orders/xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not call addPrecreatedOrder when hasCallbackFlow is false (missing walletAddress)', () => {
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        walletAddress: undefined,
+        orderId: '/providers/transak/orders/xyz',
+      });
+      render();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+    });
+
+    it('calls addPrecreatedOrder only once when deps change but orderId stays the same (dedup)', () => {
+      const Stack = createStackNavigator();
+      const screenElement = (
+        <Stack.Navigator>
+          <Stack.Screen name={Routes.RAMP.CHECKOUT} component={Checkout} />
+        </Stack.Navigator>
+      );
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/dedup-order-xyz',
+        network: '1',
+      });
+      const { rerender } = renderWithProvider(screenElement);
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledTimes(1);
+
+      mockUseParams.mockReturnValue({
+        ...V2_PARAMS,
+        orderId: '/providers/transak/orders/dedup-order-xyz',
+        network: '2',
+      });
+      rerender(screenElement);
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledTimes(1);
     });
 
     it('ignores navigation state changes to non-callback URLs', async () => {

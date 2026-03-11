@@ -448,7 +448,7 @@ function BuildQuote() {
       return;
     }
 
-    if (quoteAmount !== amountAsNumber || Number.isNaN(quoteAmount)) {
+    if (quoteAmount !== amountAsNumber) {
       return;
     }
 
@@ -583,14 +583,7 @@ function BuildQuote() {
             await Linking.openURL(buyWidget.url);
           } else {
             try {
-              const result = await InAppBrowser.openAuth(
-                buyWidget.url,
-                deeplinkRedirectUrl,
-              );
-
-              if (result.type !== 'success' || !result.url) {
-                return;
-              }
+              await InAppBrowser.openAuth(buyWidget.url, deeplinkRedirectUrl);
             } finally {
               InAppBrowser.closeAuth();
             }
@@ -714,8 +707,7 @@ function BuildQuote() {
     if (selectedQuote.provider !== selectedProvider.id) return false;
 
     // Amount must match (normalize: API may return amountIn as string)
-    if (quoteAmount !== amountAsNumber || Number.isNaN(quoteAmount))
-      return false;
+    if (quoteAmount !== amountAsNumber) return false;
 
     // Payment method context must match
     if (quotePaymentMethod != null) {

@@ -75,7 +75,7 @@ const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
   const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
-  const order = getOrderById(params.orderId ?? '');
+  const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);

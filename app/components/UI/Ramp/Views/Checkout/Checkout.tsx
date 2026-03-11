@@ -110,6 +110,7 @@ const Checkout = () => {
 
   const initialUriRef = useRef(uri);
   const callbackKeyRef = useRef(callbackKey);
+  const registeredOrderIdsRef = useRef<Set<string>>(new Set());
   const hasCallbackFlow = Boolean(providerCode && walletAddress);
 
   useEffect(() => {
@@ -172,8 +173,14 @@ const Checkout = () => {
     // and we can register. hasCallbackFlow being false means we lack the data
     // required for addPrecreatedOrder anyway.
     const canRegister =
-      effectiveOrderId && providerCode && walletAddress && network;
+      hasCallbackFlow &&
+      effectiveOrderId &&
+      providerCode &&
+      walletAddress &&
+      network;
     if (!canRegister) return;
+    if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
+    registeredOrderIdsRef.current.add(effectiveOrderId);
     addPrecreatedOrder({
       orderId: effectiveOrderId,
       providerCode: normalizeProviderCode(providerCode),
@@ -181,6 +188,7 @@ const Checkout = () => {
       chainId: network || undefined,
     });
   }, [
+    hasCallbackFlow,
     effectiveOrderId,
     walletAddress,
     network,
