@@ -45,7 +45,7 @@ CI validates that all 7 section titles are present **exactly** as written below 
 
 ## Output
 
-Write the result to `.agent/[branch-name].PR-desc.md`. Create the `.agent/` directory if it does not exist.
+Write the result to `.agent/[branch-name].PR-desc.md`. Create the `.agent/` directory if it does not exist. Sanitize the branch name first by replacing `/` with `-` so names like `feat/MCWP-392` become `feat-MCWP-392` (avoids creating nested directories).
 
 Structure:
 
