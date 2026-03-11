@@ -577,7 +577,7 @@ describe('UrlAutocomplete', () => {
 
       // Assert
       expect(
-        await screen.findByTestId('trending-search-footer-google-link', {
+        await screen.findByTestId('trending-search-footer-search-link', {
           includeHiddenElements: true,
         }),
       ).toHaveTextContent('Search for "MetaMask Test Dapp" on Brave');
