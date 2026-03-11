@@ -23,9 +23,6 @@ import Logger from '../../../../util/Logger';
  * 3. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
  * 4. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
  * 5. NO_PROVIDER_DEPENDENCIES - credential provider not available (e.g., missing Google Play Services)
- *
- * If you modify these patterns or add new ones, ensure the check order in login()
- * handles overlapping matches correctly.
  */
 const ACM_ERRORS_REGEX = {
   CANCEL: /user\s+cancel|cancelled|16:\s*\[.*\]\s*cancel/i,
