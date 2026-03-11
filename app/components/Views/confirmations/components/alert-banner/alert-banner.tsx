@@ -4,6 +4,7 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
+import { Severity } from '../../types/alerts';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { AlertKeys } from '../../constants/alerts';
@@ -39,6 +40,13 @@ const AlertBanner = ({
 
   if (excludeKeys) {
     alerts = alerts.filter((a) => !excludeKeys.includes(a.key as AlertKeys));
+  }
+
+  // When a danger-level alert is present, suppress lower-severity banners
+  // to avoid cluttering the screen with redundant warnings.
+  const hasDangerAlert = alerts.some((a) => a.severity === Severity.Danger);
+  if (hasDangerAlert) {
+    alerts = alerts.filter((a) => a.severity === Severity.Danger);
   }
 
   if (

@@ -115,6 +115,11 @@
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
+    "address_poisoning": {
+      "title": "Address poisoning detected",
+      "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
+      "badge": "Poisoned"
+    },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"

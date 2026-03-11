@@ -28,7 +28,7 @@ const styleSheet = (params: {
       paddingHorizontal: vars.disableSafeArea === true ? 0 : 16,
     },
     scrollViewContent: {
-      flex: vars.isFullScreenConfirmation ? 1 : undefined,
+      flexGrow: vars.isFullScreenConfirmation ? 1 : undefined,
     },
     spinnerContainer: {
       backgroundColor: theme.colors.background.alternative,
