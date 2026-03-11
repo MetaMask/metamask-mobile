@@ -19,7 +19,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
-import SectionTitle from '../../components/SectionTitle';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -243,7 +243,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return (
         <View ref={sectionViewRef}>
           <Box gap={3}>
-            <SectionTitle title={title} onPress={handleViewAllPerps} />
+            <SectionHeader title={title} onPress={handleViewAllPerps} />
             <ErrorState
               title={strings('homepage.error.unable_to_load', {
                 section: title.toLowerCase(),
@@ -258,7 +258,7 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     return (
       <View ref={sectionViewRef}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPerps} />
+          <SectionHeader title={title} onPress={handleViewAllPerps} />
           {showSkeleton || pendingTrending ? (
             <SectionRow>
               <PerpsPositionSkeleton />

@@ -40,6 +40,11 @@ on:
         type: string
         default: test
         description: 'Sentry DSN target: test or real'
+      build_variant:
+        required: false
+        type: string
+        default: rc
+        description: 'Build variant for app artifacts (rc or exp)'
     secrets:
       BROWSERSTACK_USERNAME:
         required: true
@@ -163,6 +168,12 @@ jobs:
           SENTRY_REAL_DSN="${{ secrets.MM_SENTRY_DSN }}"
           SELECTED_SENTRY_DSN=""
           SENTRY_ENVIRONMENT="github-actions-performance-e2e"
+          BUILD_VARIANT="${{ inputs.build_variant }}"
+
+          if [[ "$BUILD_VARIANT" != "rc" && "$BUILD_VARIANT" != "exp" ]]; then
+            echo "❌ Invalid build_variant '$BUILD_VARIANT'. Expected 'rc' or 'exp'."
+            exit 1
+          fi
 
           # Validate that we have a BrowserStack URL
           if [ -z "${{ inputs.browserstack_app_url }}" ]; then
@@ -210,6 +221,7 @@ jobs:
             echo "E2E_PERFORMANCE_SENTRY_DSN=$SELECTED_SENTRY_DSN"
             echo "E2E_PERFORMANCE_SENTRY_ENVIRONMENT=$SENTRY_ENVIRONMENT"
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
+            echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
 
