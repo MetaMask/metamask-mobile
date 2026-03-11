@@ -12,7 +12,7 @@ const REGISTRY_FILE = 'tests/feature-flags/feature-flag-registry.ts';
 const SCANNABLE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const SCAN_DIRECTORIES = ['app/', 'shared/', 'tests/'];
 const ARGS = '[^)]*(?:\\([^)]*\\)[^)]*)*';
-const QUOTE_FLAG = `(?:'(\\w+)'|"(\\w+)"|` + '`(\\w+)`' + `)`;
+const QUOTE_FLAG = `(?:'([\\w.-]+)'|"([\\w.-]+)"|` + '`([\\w.-]+)`' + `)`;
 
 const BRACKET_STRING_PATTERNS: RegExp[] = [
   new RegExp(`remoteFeatureFlags(?:\\?\\.)?\\[\\s*${QUOTE_FLAG}\\s*\\]`, 'g'),
