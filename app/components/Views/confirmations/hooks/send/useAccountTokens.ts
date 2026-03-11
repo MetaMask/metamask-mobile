@@ -19,9 +19,11 @@ const selectEmptyCache = () => EMPTY_CACHE;
 export function useAccountTokens({
   includeNoBalance = false,
   includeAllTokens = false,
+  chainIds,
 }: {
   includeNoBalance?: boolean;
   includeAllTokens?: boolean;
+  chainIds?: Hex[];
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
@@ -30,7 +32,18 @@ export function useAccountTokens({
   );
 
   return useMemo(() => {
-    const flatAssets = Object.values(assets).flat();
+    // Filter by chains early if specified to avoid processing irrelevant tokens
+    const filteredAssets = chainIds
+      ? Object.entries(assets)
+          .filter(([chainId]) =>
+            chainIds.some(
+              (id) => id.toLowerCase() === chainId.toLowerCase(),
+            ),
+          )
+          .flatMap(([, chainAssets]) => chainAssets)
+      : Object.values(assets).flat();
+
+    const flatAssets = filteredAssets;
 
     const assetsWithBalance = flatAssets.filter((asset) => {
       if (includeNoBalance) {
@@ -119,6 +132,7 @@ export function useAccountTokens({
     includeAllTokens,
     fiatCurrency,
     tokensChainsCache,
+    chainIds,
   ]) as unknown as AssetType[];
 }
 

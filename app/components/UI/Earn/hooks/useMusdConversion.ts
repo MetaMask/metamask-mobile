@@ -294,7 +294,11 @@ export const useMusdConversion = () => {
               },
             );
 
-            await GasFeeController.fetchGasFeeEstimates({ networkClientId });
+            // Fetch gas estimates and update payment token concurrently for better performance
+            // Gas estimates fetch happens in background while we set the payment token
+            const gasEstimatesPromise = GasFeeController.fetchGasFeeEstimates({
+              networkClientId,
+            });
 
             // Set payment token - this triggers automatic Relay quote fetching
             TransactionPayController.updatePaymentToken({
@@ -302,6 +306,9 @@ export const useMusdConversion = () => {
               tokenAddress,
               chainId: tokenChainId,
             });
+
+            // Ensure gas estimates complete before proceeding
+            await gasEstimatesPromise;
 
             EngineService.flushState();
 
@@ -334,8 +341,8 @@ export const useMusdConversion = () => {
             throw postCreationConfigError;
           }
 
-          // Navigate to modal stack AFTER transaction is created
-          // This ensures approvalRequest exists when the confirmation screen renders
+          // Navigate to modal stack AFTER transaction is configured
+          // This ensures the transaction is properly set up before showing the confirmation screen
           navigation.navigate(Routes.EARN.MODALS.ROOT, {
             screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
             params: {

@@ -38,7 +38,16 @@ export const useMusdConversionTokens = () => {
     selectMusdConversionMinAssetBalanceRequired,
   );
 
-  const allTokens = useAccountTokens({ includeNoBalance: false });
+  // Only fetch tokens for chains where mUSD is supported to improve performance
+  const supportedChainIds = useMemo(
+    () => Object.keys(MUSD_TOKEN_ADDRESS_BY_CHAIN) as Hex[],
+    [],
+  );
+
+  const allTokens = useAccountTokens({
+    includeNoBalance: false,
+    chainIds: supportedChainIds,
+  });
 
   const filterTokensWithMinBalance = useCallback(
     (token: AssetType) => {
