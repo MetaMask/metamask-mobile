@@ -1,10 +1,7 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useCallback, useContext } from 'react';
-import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import Logger from '../../../../util/Logger';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -16,7 +13,10 @@ import {
   PredictBuyPreviewParams,
   PredictNavigationParamList,
 } from '../types/navigation';
-import { ensureError } from '../utils/predictErrorHandler';
+import {
+  createDepositErrorToast,
+  ensureError,
+} from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { OrderPreview } from '../types';
 
@@ -66,29 +66,9 @@ export function usePredictPayWithAnyToken(): UsePredictPayWithAnyTokenResult {
       });
 
       navigation.goBack();
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('predict.deposit.error_title'), isBold: true },
-          { label: '\n', isBold: false },
-          {
-            label: strings('predict.deposit.error_description'),
-            isBold: false,
-          },
-        ],
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
-      });
+      toastRef?.current?.showToast(createDepositErrorToast(theme));
     },
-    [
-      navigation,
-      theme.colors.accent04.normal,
-      theme.colors.error.default,
-      toastRef,
-    ],
+    [navigation, theme, toastRef],
   );
 
   const triggerPayWithAnyToken = useCallback(
