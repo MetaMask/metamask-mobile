@@ -134,6 +134,33 @@ jest.mock(
   }),
 );
 
+jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+  selectPooledStakingEnabledFlag: jest.fn(() => false),
+  selectStablecoinLendingEnabledFlag: jest.fn(() => false),
+  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
+  selectMusdConversionCTATokens: jest.fn(() => ({})),
+  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
+  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
+  selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
+const mockUseMusdConversionTokens = jest.fn(() => ({
+  tokens: [],
+  filterAllowedTokens: (tokens: unknown[]) => tokens,
+  isConversionToken: () => false,
+  isMusdSupportedOnChain: () => false,
+  hasConvertibleTokensByChainId: () => false,
+}));
+jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
+}));
+
 // Mock useHomeViewedEvent to avoid analytics side-effects in
 // Homepage-level tests — section-level analytics are covered by the hook tests.
 const mockUseHomeViewedEvent = jest.fn();
@@ -141,6 +168,7 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: (...args: unknown[]) => mockUseHomeViewedEvent(...args),
   HomeSectionNames: {
+    CASH: 'cash',
     TOKENS: 'tokens',
     PERPS: 'perps',
     DEFI: 'defi',
@@ -316,6 +344,29 @@ describe('Homepage', () => {
       expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
       expect(callBySectionName('nfts')?.sectionIndex).toBe(1);
       expect(callBySectionName('tokens')?.totalSectionsLoaded).toBe(2);
+    });
+  });
+
+  describe('section indices — Cash section enabled', () => {
+    beforeEach(() => {
+      jest
+        .requireMock('../../UI/Earn/selectors/featureFlags')
+        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+    });
+
+    it('passes sectionIndex 0 to Cash and shifts others when Cash is enabled', () => {
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = mockUseHomeViewedEvent.mock.calls;
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('cash')?.sectionIndex).toBe(0);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
+      expect(callBySectionName('nfts')?.sectionIndex).toBe(5);
+      expect(callBySectionName('cash')?.totalSectionsLoaded).toBe(6);
     });
   });
 });
