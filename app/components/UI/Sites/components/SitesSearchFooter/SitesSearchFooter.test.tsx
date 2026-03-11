@@ -41,17 +41,17 @@ describe('SitesSearchFooter', () => {
     it('returns null when searchQuery is empty', () => {
       const { queryByTestId } = render(<SitesSearchFooter searchQuery="" />);
 
-      expect(queryByTestId('trending-search-footer-google-link')).toBeNull();
+      expect(queryByTestId('trending-search-footer-search-link')).toBeNull();
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
     });
 
-    it('renders Google search link when query is provided', () => {
+    it('renders search engine link when query is provided', () => {
       const { getByTestId } = render(
         <SitesSearchFooter searchQuery="ethereum" />,
       );
 
       expect(
-        getByTestId('trending-search-footer-google-link'),
+        getByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
     });
 
@@ -62,7 +62,7 @@ describe('SitesSearchFooter', () => {
 
       expect(getByTestId('trending-search-footer-url-link')).toBeOnTheScreen();
       expect(
-        getByTestId('trending-search-footer-google-link'),
+        getByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
     });
 
@@ -73,7 +73,7 @@ describe('SitesSearchFooter', () => {
 
       expect(queryByTestId('trending-search-footer-url-link')).toBeNull();
       expect(
-        getByTestId('trending-search-footer-google-link'),
+        getByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
     });
   });
@@ -166,7 +166,7 @@ describe('SitesSearchFooter', () => {
         <SitesSearchFooter searchQuery="ethereum" />,
       );
 
-      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+      fireEvent.press(getByTestId('trending-search-footer-search-link'));
 
       assertBrowserNavigation('https://search.brave.com/search?q=ethereum');
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -177,7 +177,7 @@ describe('SitesSearchFooter', () => {
         <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
       );
 
-      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+      fireEvent.press(getByTestId('trending-search-footer-search-link'));
 
       assertBrowserNavigation(
         'https://search.brave.com/search?q=ethereum%20%26%20bitcoin',
@@ -191,7 +191,7 @@ describe('SitesSearchFooter', () => {
         <SitesSearchFooter searchQuery="ethereum" />,
       );
 
-      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+      fireEvent.press(getByTestId('trending-search-footer-search-link'));
 
       assertBrowserNavigation('https://duckduckgo.com/?q=ethereum');
       expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
@@ -204,7 +204,7 @@ describe('SitesSearchFooter', () => {
         <SitesSearchFooter searchQuery="ethereum & bitcoin" />,
       );
 
-      fireEvent.press(getByTestId('trending-search-footer-google-link'));
+      fireEvent.press(getByTestId('trending-search-footer-search-link'));
 
       assertBrowserNavigation(
         'https://duckduckgo.com/?q=ethereum%20%26%20bitcoin',
@@ -250,7 +250,7 @@ describe('SitesSearchFooter', () => {
 
       // Component trims or handles spaces, but doesn't return null
       expect(
-        queryByTestId('trending-search-footer-google-link'),
+        queryByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
     });
 
@@ -276,7 +276,7 @@ describe('SitesSearchFooter', () => {
       );
 
       expect(
-        getByTestId('trending-search-footer-google-link'),
+        getByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
     });
 
@@ -286,7 +286,7 @@ describe('SitesSearchFooter', () => {
       );
 
       expect(
-        getByTestId('trending-search-footer-google-link'),
+        getByTestId('trending-search-footer-search-link'),
       ).toBeOnTheScreen();
       expect(getByText('ethereum 🚀')).toBeOnTheScreen();
     });

@@ -113,7 +113,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
         onPress={() => handlePress(searchUrl)}
-        testID="trending-search-footer-google-link"
+        testID="trending-search-footer-search-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
           <Text
