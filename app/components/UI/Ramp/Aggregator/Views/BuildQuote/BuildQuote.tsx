@@ -17,7 +17,9 @@ import BN4 from 'bnjs4';
 import {
   AvatarToken,
   AvatarTokenSize,
+  IconName,
 } from '@metamask/design-system-react-native';
+import HeaderRoot from '../../../../../../component-library/components-temp/HeaderRoot';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -51,7 +53,6 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -444,29 +445,8 @@ const BuildQuote = () => {
   }, [navigation]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: isBuy
-            ? strings('fiat_on_ramp_aggregator.amount_to_buy')
-            : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: showBack ?? false,
-          showConfiguration: isBuy,
-          onConfigurationPress: handleConfigurationPress,
-        },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [
-    navigation,
-    theme,
-    handleCancelPress,
-    showBack,
-    isBuy,
-    handleConfigurationPress,
-  ]);
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   /**
    * * Keypad style, handlers and effects
