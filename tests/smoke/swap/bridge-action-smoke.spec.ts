@@ -8,12 +8,12 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import { SmokeTrade } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 enum eventsToCheck {
   BRIDGE_BUTTON_CLICKED = 'Bridge Button Clicked',
@@ -38,6 +38,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const sourceSymbol: string = 'ETH';
     const chainId = '0x1';
     const destChainId = '0x2105';
+    const FIRST_ROW: number = 0;
 
     await withFixtures(
       {
@@ -107,11 +108,12 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await Assertions.expectElementToBeVisible(
           ActivitiesView.bridgeActivityTitle(destNetwork),
           {
-            timeout: 120000,
             description: 'Bridge activity for destination network visible',
           },
         );
-        await Assertions.expectTextDisplayed(
+
+        await Assertions.expectElementToHaveText(
+          ActivitiesView.transactionStatus(FIRST_ROW),
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
           {
             timeout: 120000,
