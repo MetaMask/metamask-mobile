@@ -6,7 +6,8 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     wrapper: {
-      minHeight: 100,
+      paddingTop: 12,
+      paddingBottom: 16,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -20,13 +21,13 @@ const styleSheet = (params: { theme: Theme }) => {
       borderRadius: 32,
     },
     skeletonBorderRadiusMedium: {
-      borderRadius: 6,
+      borderRadius: 4,
       marginTop: 16,
     },
     skeletonBorderRadiusSmall: {
       borderRadius: 4,
       marginTop: 8,
-      marginBottom: 14,
+      marginBottom: 12,
     },
   });
 };

@@ -27,7 +27,6 @@ import {
   WITHDRAWAL_CONSTANTS,
 } from '../constants/perpsConfig';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../constants/transactionsHistoryConfig';
-import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import {
   HyperLiquidClientService,
@@ -106,6 +105,7 @@ import type {
   FrontendOrder,
   SpotMetaResponse,
 } from '../types/hyperliquid-types';
+import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { ExtendedAssetMeta, ExtendedPerpDex } from '../types/perps-types';
 import { aggregateAccountStates } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
@@ -314,11 +314,6 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   #cachedAllPerpDexs: ({ name: string } | null)[] | null = null;
 
-  // True once DEX discovery has succeeded with real data (not a fallback).
-  // When false, #ensureReadyPromise is reset after each init so the next
-  // caller retries DEX discovery instead of reusing a degraded mapping.
-  #dexDiscoveryComplete = false;
-
   // Pending promise to deduplicate concurrent getValidatedDexs() calls
   #pendingValidatedDexsPromise: Promise<(string | null)[]> | null = null;
 
@@ -338,6 +333,8 @@ export class HyperLiquidProvider implements PerpsProvider {
   // Promise-based lock to prevent race conditions in concurrent initialization
   #initializationPromise: Promise<void> | null = null;
 
+  readonly #messenger: PerpsControllerMessengerBase;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -345,10 +342,11 @@ export class HyperLiquidProvider implements PerpsProvider {
     blocklistMarkets?: string[];
     useDexAbstraction?: boolean;
     platformDependencies: PerpsPlatformDependencies;
-    messenger: PerpsControllerMessenger;
+    messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
   }) {
     this.#deps = options.platformDependencies;
+    this.#messenger = options.messenger;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -359,14 +357,16 @@ export class HyperLiquidProvider implements PerpsProvider {
     // Attempt native balance abstraction, fallback to programmatic transfer if unsupported
     this.#useDexAbstraction = options.useDexAbstraction ?? true;
 
-    // Initialize services with injected platform dependencies and messenger
+    // Initialize services with injected platform dependencies
     this.#clientService = new HyperLiquidClientService(this.#deps, {
       isTestnet,
     });
     this.#walletService = new HyperLiquidWalletService(
       this.#deps,
-      options.messenger,
-      { isTestnet },
+      this.#messenger,
+      {
+        isTestnet,
+      },
     );
     this.#subscriptionService = new HyperLiquidSubscriptionService(
       this.#clientService,
@@ -695,8 +695,8 @@ export class HyperLiquidProvider implements PerpsProvider {
       // Verify clients are properly initialized
       this.#clientService.ensureInitialized();
 
-      // Build asset mapping on first call, or retry if DEX discovery previously failed
-      if (this.#symbolToAssetId.size === 0 || !this.#dexDiscoveryComplete) {
+      // Build asset mapping on first call only (flags are immutable)
+      if (this.#symbolToAssetId.size === 0) {
         this.#deps.debugLogger.log(
           'HyperLiquidProvider: Building asset mapping',
           {
@@ -714,15 +714,8 @@ export class HyperLiquidProvider implements PerpsProvider {
     })();
 
     // Await initialization - keep the promise so subsequent calls resolve immediately
-    // The promise is only reset in disconnect() for clean reconnection,
-    // or when DEX discovery was degraded so the next caller retries.
+    // The promise is only reset in disconnect() for clean reconnection
     await this.#ensureReadyPromise;
-    if (!this.#dexDiscoveryComplete) {
-      // DEX discovery failed transiently — reset so next call retries.
-      // Trading still works (main DEX mapping is populated), but HIP-3 markets
-      // will be re-discovered on the next #ensureReady() call.
-      this.#ensureReadyPromise = null;
-    }
     this.#deps.debugLogger.log('[ensureReady] Initialization complete');
   }
 
@@ -1045,9 +1038,13 @@ export class HyperLiquidProvider implements PerpsProvider {
         ensureError(error, 'HyperLiquidProvider.fetchValidatedDexsInternal'),
         this.#getErrorContext('getValidatedDexs.perpDexs'),
       );
-      // Do not cache — transient error, allow retry on next call
-      return [null];
+      this.#cachedAllPerpDexs = [null];
+      this.#cachedValidatedDexs = [null];
+      return this.#cachedValidatedDexs;
     }
+
+    // Cache for buildAssetMapping() to avoid duplicate call
+    this.#cachedAllPerpDexs = allDexs;
 
     // Validate API response
     if (!allDexs || !Array.isArray(allDexs)) {
@@ -1055,12 +1052,10 @@ export class HyperLiquidProvider implements PerpsProvider {
         'HyperLiquidProvider: Failed to fetch DEX list (invalid response), falling back to main DEX only',
         { allDexs },
       );
-      // Do not cache — may be transient, allow retry on next call
-      return [null];
+      this.#cachedAllPerpDexs = [null];
+      this.#cachedValidatedDexs = [null];
+      return this.#cachedValidatedDexs;
     }
-
-    // Cache for buildAssetMapping() to avoid duplicate call
-    this.#cachedAllPerpDexs = allDexs;
 
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
     const availableHip3Dexs: string[] = [];
@@ -1249,7 +1244,9 @@ export class HyperLiquidProvider implements PerpsProvider {
 
     // Cache miss or skipCache=true - fetch from API
     const infoClient = this.#clientService.getInfoClient();
-    const meta = await infoClient.meta({ dex: dexKey });
+    // Pass dex only for HIP-3 DEXs; omit for main DEX (empty string).
+    // Testnet API returns null when dex="" is explicitly sent.
+    const meta = await infoClient.meta(dexKey ? { dex: dexKey } : undefined);
 
     // Defensive validation before caching
     if (!meta?.universe || !Array.isArray(meta.universe)) {
@@ -1943,24 +1940,16 @@ export class HyperLiquidProvider implements PerpsProvider {
     let dexsToMap: (string | null)[];
     try {
       dexsToMap = await this.#getValidatedDexs();
-      // Mark DEX discovery as complete only when we got real data (not a fallback).
-      // #cachedValidatedDexs is null when #fetchValidatedDexsInternal returned [null]
-      // without caching (transient failure) — in that case we stay incomplete so
-      // #ensureReady resets its promise and retries on the next call.
-      if (this.#cachedValidatedDexs !== null) {
-        this.#dexDiscoveryComplete = true;
-      }
     } catch (dexError) {
       // If getValidatedDexs fails, fall back to main DEX only to keep the provider
       // functional. Without this, a transient perpDexs() failure would permanently
       // brick #ensureReady via the cached rejected promise.
-      // Do not set #cachedAllPerpDexs or #cachedValidatedDexs here — leave them null
-      // so #getValidatedDexs retries on the next call (same as #fetchValidatedDexsInternal).
       this.#deps.debugLogger.log(
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
         { error: String(dexError) },
       );
       this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
+      this.#cachedValidatedDexs = this.#cachedValidatedDexs ?? [null];
       dexsToMap = [null];
     }
 
@@ -7326,7 +7315,6 @@ export class HyperLiquidProvider implements PerpsProvider {
       this.#cachedMetaByDex.clear();
       this.#cachedSpotMeta = null;
       this.#perpDexsCache = { data: null, timestamp: 0 };
-      this.#dexDiscoveryComplete = false;
 
       // Await pending initialization before clearing to prevent the IIFE from
       // setting clientsInitialized = true after disconnect completes

@@ -300,6 +300,7 @@ const createMockExchangeClient = (overrides: Record<string, unknown> = {}) => ({
 // Create shared mock platform dependencies for provider tests
 const mockPlatformDependencies: PerpsPlatformDependencies =
   createMockInfrastructure();
+
 const mockMessenger = createMockMessenger();
 
 /**
@@ -8731,6 +8732,28 @@ describe('HyperLiquidProvider', () => {
         // clearinghouseState should be called for both main + xyz DEX (from cache)
         expect(infoClient.clearinghouseState).toHaveBeenCalledTimes(2);
       });
+    });
+  });
+
+  describe('buildAssetMapping with perpDexs network failure', () => {
+    it('completes asset mapping using fallback when perpDexs throws', async () => {
+      // Arrange — perpDexs throws, so getValidatedDexs falls back to [null]
+      const freshProvider = createTestProvider({ hip3Enabled: true });
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          perpDexs: jest.fn().mockRejectedValue(new Error('Network timeout')),
+        }),
+      );
+      MockedHyperLiquidClientService.mockImplementation(
+        () => mockClientService,
+      );
+
+      // Act — triggering ensureReady -> buildAssetMapping via getPositions
+      await freshProvider.initialize();
+      const markets = await freshProvider.getMarkets();
+
+      // Assert — provider remains functional with main DEX only
+      expect(Array.isArray(markets)).toBe(true);
     });
   });
 });

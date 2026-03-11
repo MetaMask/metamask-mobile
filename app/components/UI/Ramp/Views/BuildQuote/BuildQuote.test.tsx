@@ -44,13 +44,9 @@ const createMockToken = (overrides?: Partial<RampsToken>): RampsToken => ({
 
 const mockTokenNetworkInfo = {
   networkName: 'Ethereum Mainnet',
-  networkImageSource: { uri: 'https://example.com/eth.png' },
 };
 
 const mockGetTokenNetworkInfo = jest.fn(() => mockTokenNetworkInfo);
-const mockGetRampsBuildQuoteNavbarOptions = jest.fn(
-  (_navigation: unknown, _options: unknown) => ({}),
-);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -86,10 +82,50 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../../Navbar', () => ({
-  getRampsBuildQuoteNavbarOptions: (navigation: unknown, options: unknown) =>
-    mockGetRampsBuildQuoteNavbarOptions(navigation, options),
-}));
+jest.mock(
+  '../../../../../component-library/components-temp/HeaderCompactStandard',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        title,
+        subtitle,
+        onBack,
+        backButtonProps,
+        endButtonIconProps,
+      }: {
+        title?: string;
+        subtitle?: string;
+        onBack?: () => void;
+        backButtonProps?: { testID?: string };
+        endButtonIconProps?: {
+          iconName: string;
+          onPress?: () => void;
+          testID?: string;
+        }[];
+      }) => (
+        <View testID="header-compact-standard">
+          {title ? <Text>{title}</Text> : null}
+          {subtitle ? <Text>{subtitle}</Text> : null}
+          {onBack ? (
+            <View
+              testID={backButtonProps?.testID ?? 'back-button'}
+              onTouchEnd={onBack}
+            />
+          ) : null}
+          {endButtonIconProps?.map((btn, i) => (
+            <View
+              key={i}
+              testID={btn.testID ?? `end-button-${i}`}
+              onTouchEnd={btn.onPress}
+            />
+          ))}
+        </View>
+      ),
+    };
+  },
+);
 
 jest.mock('../../../../hooks/useFormatters', () => ({
   useFormatters: () => ({
@@ -216,8 +252,21 @@ jest.mock('../../hooks/useTransakRouting', () => ({
   }),
 }));
 
-jest.mock('../NativeFlow/EnterEmail', () => ({
-  createV2EnterEmailNavDetails: (params: unknown) => ['RampEnterEmail', params],
+jest.mock('../NativeFlow/VerifyIdentity', () => ({
+  createV2VerifyIdentityNavDetails: (params: unknown) => [
+    'RampVerifyIdentity',
+    params,
+  ],
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => 'aggregator'),
+}));
+
+jest.mock('../../../../../reducers/fiatOrders', () => ({
+  getRampRoutingDecision: jest.fn(),
+  UnifiedRampRoutingType: { AGGREGATOR: 'aggregator', DEPOSIT: 'deposit' },
 }));
 
 const renderWithTheme = (component: React.ReactElement) =>
@@ -262,7 +311,7 @@ describe('BuildQuote', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
   });
 
   it('displays initial amount as $100', () => {
@@ -320,7 +369,15 @@ describe('BuildQuote', () => {
     expect(getByText('$100123')).toBeOnTheScreen();
   });
 
-  it('deletes last digit when delete button is pressed', () => {
+  it('clears the default amount when delete is pressed', () => {
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+
+    expect(getByText('$0')).toBeOnTheScreen();
+  });
+
+  it('deletes one character when delete button is pressed after typing', () => {
     const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
     fireEvent.press(getByText('1'));
@@ -330,24 +387,29 @@ describe('BuildQuote', () => {
     expect(getByText('$1001')).toBeOnTheScreen();
   });
 
-  it('sets navigation options with token and network data', () => {
-    renderWithTheme(<BuildQuote />);
+  it('deletes one character when delete is pressed after user has modified amount even if value equals default', () => {
+    const { getByText, getByTestId } = renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        goBack: mockGoBack,
-      }),
-      expect.objectContaining({
-        tokenName: 'USD Coin',
-        tokenSymbol: 'USDC',
-        tokenIconUrl: 'https://example.com/usdc.png',
-        networkName: 'Ethereum Mainnet',
-        networkImageSource: { uri: 'https://example.com/eth.png' },
-        onSettingsPress: expect.any(Function),
-      }),
-    );
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    expect(getByText('$0')).toBeOnTheScreen();
+
+    fireEvent.press(getByText('1'));
+    fireEvent.press(getByText('0'));
+    fireEvent.press(getByText('0'));
+    expect(getByText('$100')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('keypad-delete-button'));
+    expect(getByText('$10')).toBeOnTheScreen();
+  });
+
+  it('renders inline header with token and network data', () => {
+    const { getByTestId, getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.buy')).toBeOnTheScreen();
+    expect(getByText('fiat_on_ramp.on_network')).toBeOnTheScreen();
+    expect(getByTestId('build-quote-back-button')).toBeOnTheScreen();
+    expect(getByTestId('build-quote-settings-button')).toBeOnTheScreen();
   });
 
   it('renders the payment method pill', () => {
@@ -370,29 +432,17 @@ describe('BuildQuote', () => {
     );
   });
 
-  it('sets navigation options with undefined values when token is not found (shows skeleton)', () => {
+  it('renders inline header without title or subtitle when token is not found', () => {
     mockTokens = {
       allTokens: [],
       topTokens: [],
     };
 
-    renderWithTheme(<BuildQuote />);
+    const { getByTestId, queryByText } = renderWithTheme(<BuildQuote />);
 
-    expect(mockGetRampsBuildQuoteNavbarOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        goBack: mockGoBack,
-      }),
-      expect.objectContaining({
-        tokenName: undefined,
-        tokenSymbol: undefined,
-        tokenIconUrl: undefined,
-        networkName: undefined,
-        networkImageSource: undefined,
-        onSettingsPress: expect.any(Function),
-      }),
-    );
+    expect(getByTestId('header-compact-standard')).toBeOnTheScreen();
+    expect(queryByText('fiat_on_ramp.buy')).toBeNull();
+    expect(queryByText('fiat_on_ramp.on_network')).toBeNull();
   });
 
   it('renders quick amount buttons when amount is zero', () => {
@@ -454,6 +504,30 @@ describe('BuildQuote', () => {
 
     expect(queryByTestId('quick-amounts')).toBeNull();
     expect(getByTestId('build-quote-continue-button')).toBeOnTheScreen();
+  });
+
+  it('displays powered by provider text when selected provider is set', () => {
+    mockSelectedProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      environmentType: 'PRODUCTION',
+      description: 'Test Provider',
+      hqAddress: '123 Test St',
+      links: [],
+      logos: { light: '', dark: '', height: 24, width: 79 },
+    };
+
+    const { getByText } = renderWithTheme(<BuildQuote />);
+
+    expect(getByText('fiat_on_ramp.powered_by_provider')).toBeOnTheScreen();
+  });
+
+  it('does not display powered by text when no selected provider is set', () => {
+    mockSelectedProvider = null;
+
+    const { queryByText } = renderWithTheme(<BuildQuote />);
+
+    expect(queryByText('fiat_on_ramp.powered_by_provider')).toBeNull();
   });
 
   it('matches snapshot', () => {
@@ -723,7 +797,7 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('navigates to enter email for native provider when no existing token', async () => {
+    it('navigates to verify identity for native provider when no existing token', async () => {
       mockTransakCheckExistingToken.mockResolvedValue(false);
 
       const mockNativeQuote = {
@@ -774,7 +848,7 @@ describe('BuildQuote', () => {
 
       expect(mockTransakCheckExistingToken).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(
-        'RampEnterEmail',
+        'RampVerifyIdentity',
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
@@ -1444,7 +1518,7 @@ describe('BuildQuote', () => {
       expect(getByTestId('build-quote-continue-button')).toBeDisabled();
     });
 
-    it('does not navigate to payment selection when amount is zero', () => {
+    it('navigates to payment selection when amount is zero', () => {
       const { getByTestId } = renderWithTheme(<BuildQuote />);
 
       fireEvent.press(getByTestId('keypad-delete-button'));
@@ -1455,7 +1529,13 @@ describe('BuildQuote', () => {
 
       fireEvent.press(getByTestId('payment-method-pill'));
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
+          params: { amount: 0 },
+        }),
+      );
     });
   });
 

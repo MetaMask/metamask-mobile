@@ -64,6 +64,7 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
 jest.mock('../../../../../util/address');
 jest.mock('../../../../Base/TokenIcon', () => jest.fn(() => null));
 jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon.png' })),
 }));
 

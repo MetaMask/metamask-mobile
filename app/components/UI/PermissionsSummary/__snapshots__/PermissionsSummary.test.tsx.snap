@@ -4,7 +4,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -12,7 +12,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -96,8 +96,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderColor": "#b7bbc866",
+                        "backgroundColor": "#f3f3f4",
+                        "borderColor": "#b4b4b566",
                         "borderRadius": 16,
                         "borderWidth": 1,
                         "height": 32,
@@ -111,7 +111,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -231,9 +231,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -246,7 +246,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -331,7 +331,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#b7bbc8",
+                        "borderColor": "#949596",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "height": 75,
@@ -383,7 +383,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -397,7 +397,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -428,7 +428,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -574,7 +574,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Wallet"
@@ -599,7 +599,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -631,7 +631,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -644,7 +644,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -714,7 +714,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -759,7 +759,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Data"
@@ -784,7 +784,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -816,7 +816,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -828,7 +828,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -909,7 +909,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -954,7 +954,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -1024,7 +1024,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -1058,7 +1058,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],
@@ -1139,7 +1139,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -1147,7 +1147,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -1231,8 +1231,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderColor": "#b7bbc866",
+                        "backgroundColor": "#f3f3f4",
+                        "borderColor": "#b4b4b566",
                         "borderRadius": 16,
                         "borderWidth": 1,
                         "height": 32,
@@ -1246,7 +1246,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1366,9 +1366,9 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -1381,7 +1381,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -1519,7 +1519,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Data"
@@ -1544,7 +1544,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -1576,7 +1576,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -1588,7 +1588,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -1602,7 +1602,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Medium",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -1674,7 +1674,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -1744,7 +1744,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -1778,7 +1778,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],
@@ -1859,7 +1859,7 @@ exports[`PermissionsSummary should render only the account permissions card when
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -1867,7 +1867,7 @@ exports[`PermissionsSummary should render only the account permissions card when
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": 325,
@@ -1951,8 +1951,8 @@ exports[`PermissionsSummary should render only the account permissions card when
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderColor": "#b7bbc866",
+                        "backgroundColor": "#f3f3f4",
+                        "borderColor": "#b4b4b566",
                         "borderRadius": 16,
                         "borderWidth": 1,
                         "height": 32,
@@ -1966,7 +1966,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -2086,9 +2086,9 @@ exports[`PermissionsSummary should render only the account permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -2101,7 +2101,7 @@ exports[`PermissionsSummary should render only the account permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2154,7 +2154,7 @@ exports[`PermissionsSummary should render only the account permissions card when
               }
             >
               <SvgMock
-                color="#686e7d"
+                color="#66676a"
                 fill="currentColor"
                 height={20}
                 name="Wallet"
@@ -2179,7 +2179,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2211,7 +2211,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -2224,7 +2224,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -2294,7 +2294,7 @@ exports[`PermissionsSummary should render only the account permissions card when
               testID="connection-details-button"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -2338,7 +2338,7 @@ exports[`PermissionsSummary should render only the account permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -2408,7 +2408,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -2442,7 +2442,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],
@@ -2523,7 +2523,7 @@ exports[`PermissionsSummary should render only the network permissions card when
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -2531,7 +2531,7 @@ exports[`PermissionsSummary should render only the network permissions card when
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": 325,
@@ -2612,7 +2612,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 style={
                   [
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 24,
                       "textAlign": "center",
@@ -2653,9 +2653,9 @@ exports[`PermissionsSummary should render only the network permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -2668,7 +2668,7 @@ exports[`PermissionsSummary should render only the network permissions card when
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -2720,7 +2720,7 @@ exports[`PermissionsSummary should render only the network permissions card when
               }
             >
               <SvgMock
-                color="#686e7d"
+                color="#66676a"
                 fill="currentColor"
                 height={20}
                 name="Data"
@@ -2745,7 +2745,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -2777,7 +2777,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#121314",
+                        "color": "#131416",
                         "fontFamily": "Geist-Regular",
                         "fontSize": 16,
                         "letterSpacing": 0,
@@ -2789,7 +2789,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 14,
                           "letterSpacing": 0,
@@ -2870,7 +2870,7 @@ exports[`PermissionsSummary should render only the network permissions card when
               testID="connection-details-button"
             >
               <SvgMock
-                color="#121314"
+                color="#131416"
                 fill="currentColor"
                 height={20}
                 name="ArrowRight"
@@ -2914,7 +2914,7 @@ exports[`PermissionsSummary should render only the network permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -2984,7 +2984,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -3018,7 +3018,7 @@ exports[`PermissionsSummary should render only the network permissions card when
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],
@@ -3099,7 +3099,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -3107,7 +3107,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -3191,8 +3191,8 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderColor": "#b7bbc866",
+                        "backgroundColor": "#f3f3f4",
+                        "borderColor": "#b4b4b566",
                         "borderRadius": 16,
                         "borderWidth": 1,
                         "height": 32,
@@ -3206,7 +3206,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3326,9 +3326,9 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -3341,7 +3341,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -3426,7 +3426,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#b7bbc8",
+                        "borderColor": "#949596",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "height": 75,
@@ -3478,7 +3478,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -3492,7 +3492,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -3523,7 +3523,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -3669,7 +3669,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Wallet"
@@ -3694,7 +3694,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -3726,7 +3726,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3739,7 +3739,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -3809,7 +3809,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -3854,7 +3854,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Data"
@@ -3879,7 +3879,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -3911,7 +3911,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -3923,7 +3923,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -4004,7 +4004,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -4049,7 +4049,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -4119,7 +4119,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -4153,7 +4153,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],
@@ -4234,7 +4234,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
 <RCTSafeAreaView
   style={
     {
-      "backgroundColor": "#f3f5f9",
+      "backgroundColor": "#f3f3f4",
     }
   }
 >
@@ -4242,7 +4242,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
     style={
       [
         {
-          "backgroundColor": "#f3f5f9",
+          "backgroundColor": "#f3f3f4",
           "borderTopLeftRadius": 20,
           "borderTopRightRadius": 20,
           "height": undefined,
@@ -4326,8 +4326,8 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f3f5f9",
-                        "borderColor": "#b7bbc866",
+                        "backgroundColor": "#f3f3f4",
+                        "borderColor": "#b4b4b566",
                         "borderRadius": 16,
                         "borderWidth": 1,
                         "height": 32,
@@ -4341,7 +4341,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -4461,9 +4461,9 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Bold",
-              "fontSize": 18,
+              "fontSize": 20,
               "letterSpacing": 0,
               "lineHeight": 24,
               "textAlign": "center",
@@ -4476,7 +4476,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#131416",
               "fontFamily": "Geist-Regular",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -4561,7 +4561,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#b7bbc8",
+                        "borderColor": "#949596",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "height": 75,
@@ -4613,7 +4613,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#121314",
+                              "color": "#131416",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -4627,7 +4627,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                           numberOfLines={1}
                           style={
                             {
-                              "color": "#686e7d",
+                              "color": "#66676a",
                               "fontFamily": "Geist-Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -4658,7 +4658,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Regular",
                                 "fontSize": 16,
                                 "letterSpacing": 0,
@@ -4804,7 +4804,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Wallet"
@@ -4829,7 +4829,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -4861,7 +4861,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -4874,7 +4874,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -4944,7 +4944,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -4989,7 +4989,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 }
               >
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={20}
                   name="Data"
@@ -5014,7 +5014,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Regular",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -5046,7 +5046,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -5058,7 +5058,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
+                            "color": "#131416",
                             "fontFamily": "Geist-Regular",
                             "fontSize": 14,
                             "letterSpacing": 0,
@@ -5139,7 +5139,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 testID="connection-details-button"
               >
                 <SvgMock
-                  color="#121314"
+                  color="#131416"
                   fill="currentColor"
                   height={20}
                   name="ArrowRight"
@@ -5184,7 +5184,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#3c4d9d0f",
+              "backgroundColor": "#b4b4b528",
               "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
@@ -5254,7 +5254,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#686e7d",
+                  "borderColor": "#66676a",
                   "borderWidth": 1,
                 },
                 [
@@ -5288,7 +5288,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                     "textAlign": "center",
                   },
                   {
-                    "color": "#686e7d",
+                    "color": "#66676a",
                   },
                   undefined,
                 ],

@@ -98,6 +98,9 @@ jest.mock('../../app/core/Engine', () => {
           return undefined;
         },
       },
+      AuthenticationController: {
+        getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
+      },
       NetworkController: {
         state: { networksMetadata: {} },
         findNetworkClientIdByChainId() {

@@ -103,6 +103,10 @@
       "message": "Not enough {{ticker}} to cover fees. Use a token on another network or add more {{ticker}} to continue.",
       "title": "Insufficient funds"
     },
+    "insufficient_pay_token_native_post_quote": {
+      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
+      "title": "Insufficient funds for post quote"
+    },
     "no_pay_token_quotes": {
       "message": "This payment route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
       "title": "No quotes"
@@ -2071,14 +2075,14 @@
   },
   "market_insights": {
     "title": "Market insights",
-    "disclaimer": "AI insights. Not financial advice.",
     "a_closer_look": "A closer look",
     "whats_being_said": "What's being said",
-    "fixed_footer_disclaimer": "AI summary • Not financial advice",
+    "footer_disclaimer": "AI summary for information only",
     "trade_button": "Trade",
     "sources_count": "+{{count}} sources",
-    "sources_title": "Sources",
+    "sources_title": "News sources",
     "feedback_submitted": "Feedback submitted",
+    "helpful_prompt": "Was this helpful?",
     "feedback": {
       "title": "Feedback",
       "description": "Help improve our AI-generated market insights.",
@@ -2329,7 +2333,8 @@
       "exchange_fee": "Exchange fee",
       "exchange_fee_description": "Fee paid to the exchange or market",
       "total_incl_fees": "incl. fees",
-      "close": "Close"
+      "close": "Close",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Unable to connect to predictions",
@@ -2911,10 +2916,6 @@
     "enabling_notifications": "Enabling notifications...",
     "updating_notifications": "Updating notifications...",
     "updating_account_settings": "Updating account settings...",
-    "reset_notifications_title": "Reset notifications",
-    "reset_notifications_description": "Resetting notifications, means you're deleting your notifications storage keys and resetting all your notification history. Are you sure you want to do this?",
-    "reset_notifications": "Reset notifications",
-    "reset_notifications_success": "Notifications storage key deleted/recreated, and notifications history reset.",
     "notifications_dismiss_modal": "Dismiss",
     "select_rpc_url": "Select RPC URL",
     "title": "Settings",
@@ -3390,11 +3391,10 @@
     ],
     "private_key_explanation": "Save it somewhere safe and secret.",
     "private_key_warning": "This is the private key for the current selected account: {{accountName}}. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
-    "seed_phrase_warning_explanation": [
-      "Make sure nobody is looking at your screen. ",
-      "MetaMask Support will never request this."
-    ],
+    "seed_phrase_warning_explanation":
+      "Make sure nobody is looking at your screen. MetaMask Support will never ask for this.",
     "private_key_warning_explanation": "Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.",
+    "reveal_srp_description": "Your Secret Recovery Phrase gives full access to your wallet. Do not share it with anyone.",
     "reveal_credential_modal": [
       "Your {{credentialName}} provides ",
       "full access to your account and funds.\n\nDo not share this with anyone.\n",
@@ -3426,7 +3426,8 @@
     "srp_text": "Secret Recovery Phrase",
     "private_key_text": "Private key",
     "got_it": "Got it",
-    "learn_more": "Learn more"
+    "learn_more": "Learn more",
+    "copied_to_clipboard": "Copied to clipboard"
   },
   "screenshot_deterrent": {
     "title": "Safety alert",
@@ -3702,6 +3703,10 @@
     "speedup_tx_title": "Attempt to speed up?",
     "speedup_tx_message": "Submitting this attempt does not guarantee your original transaction will be accelerated. If the speed up attempt is successful, you will be charged the transaction fee above.",
     "nevermind": "Never mind",
+    "cancel_speedup_speedup_title": "Speed up Transaction",
+    "cancel_speedup_cancel_title": "Cancel Transaction",
+    "cancel_speedup_speedup_message": "This network fee will replace the original.",
+    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
     "edit_network_fee": "Edit gas fee",
     "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation fee",
@@ -4834,6 +4839,10 @@
     "quote_unavailable": "Quote unavailable.",
     "providers": "Providers",
     "quotes_displayed_for": "Quotes displayed for {{paymentMethodName}}.",
+    "other_options": "Other options",
+    "previously_used": "Previously used",
+    "best_rate": "Best rate",
+    "most_reliable": "Most reliable",
     "continue": "Continue",
     "powered_by_provider": "Powered by {{provider}}",
     "purchased_currency": "Purchased {{currency}}",
@@ -4940,7 +4949,12 @@
     },
     "provider_picker_modal": {
       "title": "Choose a provider"
-    }
+    },
+    "contact_provider_support": "Contact {{provider}} support",
+    "got_it": "Got it",
+    "encountered_error": "We've encountered an error",
+    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "change_provider_button": "Change provider"
   },
   "fiat_on_ramp_aggregator": {
     "buy": "buy",
@@ -5188,6 +5202,19 @@
     "error_message": "Unable to load order details. Please try again.",
     "try_again": "Try again",
     "close": "Close"
+  },
+  "ramps_v2": {
+    "notifications": {
+      "purchase_pending_title": "Processing your purchase of {{cryptocurrency}}",
+      "purchase_pending_description": "This should only take a few minutes...",
+      "purchase_completed_title": "Your purchase of {{amount}} {{cryptocurrency}} was successful!",
+      "purchase_completed_description": "Your {{cryptocurrency}} is now available",
+      "purchase_failed_title": "Purchase of {{cryptocurrency}} failed",
+      "purchase_failed_description": "Please try again momentarily",
+      "purchase_cancelled_title": "Your purchase was cancelled",
+      "purchase_cancelled_description": "Your purchase of {{cryptocurrency}} has been cancelled",
+      "track": "Track"
+    }
   },
   "swaps": {
     "title": "Swap",
@@ -5705,12 +5732,15 @@
     "new_wallet_needed_description_part_three": "To keep this from happening again, be sure to always keep your MetaMask app and OS updated to the latest version."
   },
   "srp_security_quiz": {
+    "question_step": "Question {{step}} of {{total}}",
     "title": "Security quiz",
     "introduction": "To reveal your Secret Recovery Phrase, you need to correctly answer two questions",
     "get_started": "Get started",
     "learn_more": "Learn more",
     "try_again": "Try again",
     "continue": "Continue",
+    "correct": "Correct!",
+    "incorrect": "Incorrect!",
     "of": "of",
     "question_one": {
       "question": "If you lose your Secret Recovery Phrase, MetaMask...",
@@ -5886,7 +5916,7 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
-    "claimable_bonus_tooltip": "An annual bonus claimable daily from your wallet.",
+    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
@@ -5977,7 +6007,6 @@
       "ok": "OK",
       "continue": "Continue",
       "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "no_boost": "No boost",
       "your_musd": "Your mUSD",
       "balance_breakdown_title": "Your mUSD balances by network",
       "balance_amount": "{{amount}} mUSD",
@@ -5995,39 +6024,36 @@
       "toasts": {
         "converting": "Converting {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "Your mUSD is here!",
+        "delivered": "mUSD conversion successful",
+        "delivered_description": "Bonus will be claimable within a day.",
         "failed": "mUSD conversion failed"
       },
       "education": {
         "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD, MetaMask’s US dollar-backed stablecoin, and receive up to a {{percentage}}% bonus.",
+        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
         "terms_apply": "Terms apply.",
         "primary_button": "Get Started",
         "secondary_button": "Not now"
       },
       "buy_musd": "Buy mUSD",
       "get_musd": "Get mUSD",
-      "boost_title": "Get {{percentage}}% on your stablecoins",
-      "boost_description": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% bonus.",
+      "bonus_title": "Get {{percentage}}% on your stablecoins",
+      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
       "powered_by_relay": "Powered by Relay",
-      "earn_rewards_when": "Earn rewards when",
-      "you_convert_to": "you convert to",
       "max": "Max",
       "quick_convert_button": "Convert",
-      "cta_body_earn_apy": "Earn {{apy}} yield automatically for holding mUSD.",
       "learn_more": "Learn more",
       "tooltip_title": "Earn yield with mUSD",
       "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
       "quick_convert": {
-        "title": "Convert and get {{apy}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{apy}}% bonus.",
+        "title": "Convert and get {{percentage}}%",
+        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
         "inline_failed_message": "Conversion failed. Try again.",
         "confirmation": {
           "title": "Convert max"
-        },
-        "failed_to_get_quotes": "Failed to get quotes. Please close this modal and try again."
+        }
       },
-      "percentage_boost": "{{percentage}}% boost",
+      "percentage_bonus": "{{percentage}}% bonus",
       "rate": "Rate"
     },
     "bonus_claim": {
@@ -7211,6 +7237,7 @@
         "order_metal_card_description": "Order your physical Metal Card now",
         "cashback": "Cashback",
         "cashback_description": "Earn 1% back on all spending",
+        "cashback_description_metal": "Earn 3% back on all spending",
         "freeze_card": "Freeze card",
         "unfreeze_card": "Unfreeze card",
         "freeze_card_description": "Pause all spending on your card",
@@ -7797,6 +7824,14 @@
     "show_not_found": {
       "title": "Connection Not Found",
       "description": "Please establish a new connection from the app to continue."
+    },
+    "show_internal_error": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. Please try again."
+    },
+    "show_method_error": {
+      "title": "Request failed",
+      "description": "The request could not be completed. Please try again."
     }
   },
   "network_connection_banner": {
@@ -7855,6 +7890,95 @@
     "primary_action_reload": "Reload",
     "primary_action_acknowledge": "Got it"
   },
+  "hardware_wallet": {
+    "device_names": {
+      "ledger": "Ledger",
+      "qr": "QR Hardware Wallet",
+      "hardware_wallet": "Hardware Wallet"
+    },
+    "common": {
+      "cancel": "Cancel",
+      "continue": "Continue"
+    },
+    "connecting": {
+      "title": "Connect your {{device}}",
+      "searching": "Looking for {{device}}...",
+      "tips_header": "To continue, make sure:",
+      "tip_unlock": "Your {{device}} is unlocked",
+      "tip_open_app": "The Ethereum app is open",
+      "tip_enable_bluetooth": "Bluetooth is turned on",
+      "tip_dnd_off": "Do Not Disturb is turned off",
+      "tip_bluetooth_permission": "Location and Bluetooth permission is granted",
+      "tip_bluetooth_permission_v12": "Nearby devices permission is granted",
+      "tip_stay_close": "Your device stays close to your phone"
+    },
+    "awaiting_app": {
+      "title": "Open {{app}}",
+      "message": "Please open the {{app}} app on your {{device}}",
+      "current_app": "Currently open: {{app}}"
+    },
+    "awaiting_confirmation": {
+      "title_transaction": "Confirm on {{device}}",
+      "title_message": "Sign on {{device}}",
+      "message": "Review and confirm on your {{device}}"
+    },
+    "success": {
+      "title": "{{device}} connected"
+    },
+    "errors": {
+      "device_locked": "Unlock it and try again to continue",
+      "app_not_open": "Please open the Ethereum app on your device",
+      "device_disconnected": "Your {{device}} was disconnected. Please reconnect and try again",
+      "device_not_found": "Could not find your {{device}}. Please make sure it's connected",
+      "device_not_ready": "Your device is not ready. Please check it and try again",
+      "blind_signing": "Blind signing is disabled. Please enable it in your device settings",
+      "connection_closed": "The connection was lost. Please try again",
+      "connection_timeout": "Connection timed out. Please try again",
+      "user_cancelled": "The action was cancelled on your device",
+      "pending_confirmation": "There's a pending action on your device. Please complete or cancel it",
+      "bluetooth_permission_denied": "Bluetooth permission is required to connect to your device",
+      "location_permission_denied": "Location permission is required to scan for devices",
+      "nearby_permission_denied": "Nearby devices permission is required",
+      "bluetooth_off": "Please turn on Bluetooth to connect to your device",
+      "bluetooth_scan_failed": "Failed to scan for devices. Please try again",
+      "bluetooth_connection_failed": "Enable Bluetooth on your device to continue",
+      "not_supported": "This operation is not supported",
+      "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "default_title": "An error occurred",
+      "continue": "Continue",
+      "retry": "Retry",
+      "view_settings": "View Settings",
+      "device_locked_title": "{{device}} locked",
+      "device_disconnected_title": "{{device}} disconnected",
+      "device_not_found_title": "{{device}} not found",
+      "app_not_open": "Ethereum App Not Open",
+      "blind_signing_disabled": "Blind Signing Disabled",
+      "connection_timeout": "Device Unresponsive",
+      "connection_closed": "Connection Lost",
+      "user_cancelled": "Action Cancelled",
+      "pending_confirmation": "Pending Confirmation",
+      "bluetooth_required": "Bluetooth required",
+      "bluetooth_permission_denied": "Bluetooth Permission Required",
+      "location_permission_denied": "Location Permission Required",
+      "nearby_devices_permission_denied": "Nearby Devices Permission Required",
+      "scan_failed": "Scan Failed",
+      "something_went_wrong": "Something went wrong"
+    },
+    "device_selection": {
+      "title": "Select {{device}}",
+      "scanning": "Scanning for devices...",
+      "no_devices_found": "No devices found",
+      "no_devices_hint": "Make sure your {{device}} is unlocked and Bluetooth is enabled",
+      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "connect": "Connect",
+      "rescan": "Scan Again",
+      "unknown_device": "Unknown Device",
+      "signal_strength": "Signal: {{rssi}} dBm"
+    }
+  },
   "homepage": {
     "sections": {
       "tokens": "Tokens",
@@ -7864,8 +7988,7 @@
       "nfts": "NFTs",
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
-      "more_predictions": "More predictions",
-      "more_perps": "More perps",
+      "view_more": "View more",
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
