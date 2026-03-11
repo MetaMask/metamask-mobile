@@ -40,7 +40,7 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
 const mockGetBuyWidgetData = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
 
-const rampsControllerState = {
+const rampsControllerState: any = {
   userRegion: {
     country: { currency: 'USD', quickAmounts: [50, 100, 200] },
     regionCode: 'US',
