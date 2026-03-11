@@ -1055,7 +1055,7 @@ describe('BridgeView', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
         });
       });
     });
@@ -1081,7 +1081,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
           },
         );
       });
@@ -1108,7 +1108,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
           },
         );
       });
@@ -1144,7 +1144,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.BRIDGE_VIEW,
+            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
           },
         );
       });
@@ -1171,7 +1171,7 @@ describe('BridgeView', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
         });
       });
       expect(queryByTestId('edit-slippage-button')).toBeNull();

@@ -32,13 +32,10 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectIsSelectingRecipient,
-  selectIsSelectingToken,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
   useRoute,
-  useIsFocused,
   type RouteProp,
 } from '@react-navigation/native';
 import { getBridgeNavbar } from '../../../Navbar';
@@ -88,6 +85,7 @@ import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../hooks/useBridgeViewOnFocus/index.ts';
+import { useRenderQuoteExpireModal } from '../../hooks/useRenderQuoteExpireModal/index.ts';
 import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/index.ts';
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
@@ -100,9 +98,6 @@ const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
-  const isSelectingRecipient = useSelector(selectIsSelectingRecipient);
-  const isSelectingToken = useSelector(selectIsSelectingToken);
-  const isBridgeViewFocused = useIsFocused();
 
   // Inline selector because this is a temporary feature flag
   // TODO: Remove this once trending tokens feature is prod hardened
@@ -207,48 +202,9 @@ const BridgeView = () => {
     isNoQuotesAvailable,
     blockaidError,
     shouldShowPriceImpactWarning,
-    isExpired,
-    willRefresh,
   } = useBridgeQuoteData({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
-
-  // Tracks whether the expired-quote modal has already been shown for the
-  // current expiry cycle to prevent re-triggering on unrelated re-renders.
-  const hasShownExpiredModal = useRef(false);
-
-  useEffect(() => {
-    if (!isExpired) {
-      hasShownExpiredModal.current = false;
-    }
-  }, [isExpired]);
-
-  useEffect(() => {
-    if (
-      isExpired &&
-      !willRefresh &&
-      isBridgeViewFocused &&
-      !isSelectingRecipient &&
-      !isSelectingToken &&
-      !isSubmittingTx &&
-      !hasShownExpiredModal.current
-    ) {
-      hasShownExpiredModal.current = true;
-      inputRef.current?.blur();
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-      });
-    }
-  }, [
-    isExpired,
-    willRefresh,
-    isBridgeViewFocused,
-    isSelectingRecipient,
-    isSelectingToken,
-    isSubmittingTx,
-    navigation,
-    inputRef,
-  ]);
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -376,6 +332,8 @@ const BridgeView = () => {
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'dest',
     });
+
+  useRenderQuoteExpireModal({ inputRef, latestSourceBalance });
 
   const isRWATokenSelected = useMemo(
     () =>
