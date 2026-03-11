@@ -10,10 +10,12 @@ import ListItem from '../../../../../component-library/components/List/ListItem/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import createStyles from './ManageCardListItem.styles';
 
 export interface ManageCardListItemProps {
@@ -44,9 +46,14 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root}>
         <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {title}
+          </Text>
           {typeof description === 'string' ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {description}
             </Text>
           ) : (

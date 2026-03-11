@@ -2,7 +2,7 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
