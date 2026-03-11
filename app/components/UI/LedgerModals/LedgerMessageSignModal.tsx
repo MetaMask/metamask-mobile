@@ -71,8 +71,8 @@ const LedgerMessageSignModal = () => {
     await onConfirmationComplete(true);
   }, [onConfirmationComplete]);
 
-  const onRejection = useCallback(async () => {
-    await onConfirmationComplete(false);
+  const onRejection = useCallback(() => {
+    onConfirmationComplete(false);
     goBack();
   }, [onConfirmationComplete, goBack]);
 

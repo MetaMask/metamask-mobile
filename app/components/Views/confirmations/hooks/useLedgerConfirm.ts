@@ -72,7 +72,7 @@ export function useLedgerConfirm({
     } catch (err) {
       hideAwaitingConfirmation();
 
-      if (!isUserCancellation(err)) {
+      if (!hasRejectedRef.current && !isUserCancellation(err)) {
         showHardwareWalletError(err);
       }
 
