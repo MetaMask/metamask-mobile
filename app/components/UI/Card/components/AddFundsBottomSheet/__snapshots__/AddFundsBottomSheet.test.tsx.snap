@@ -647,15 +647,18 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
-                                          testID="label"
                                         >
                                           Fund with cash
                                         </Text>
@@ -760,15 +763,18 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
-                                          testID="label"
                                         >
                                           Fund with crypto
                                         </Text>
@@ -2047,15 +2053,18 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
-                                          testID="label"
                                         >
                                           Fund with cash
                                         </Text>
@@ -2752,15 +2761,18 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
-                                          testID="label"
                                         >
                                           Fund with crypto
                                         </Text>

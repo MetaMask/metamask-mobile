@@ -176,10 +176,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
@@ -436,7 +437,11 @@ export const useTokenActions = ({
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+    goToSwaps(
+      buySourceToken,
+      currentTokenAsBridgeToken,
+      strings('asset_overview.buy_button'),
+    );
   }, [
     goToSwaps,
     goToBuy,
@@ -449,7 +454,11 @@ export const useTokenActions = ({
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, undefined);
+    goToSwaps(
+      currentTokenAsBridgeToken,
+      undefined,
+      strings('asset_overview.sell_button'),
+    );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {

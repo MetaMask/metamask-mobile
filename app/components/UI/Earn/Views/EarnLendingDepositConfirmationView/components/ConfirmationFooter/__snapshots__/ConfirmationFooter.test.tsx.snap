@@ -183,7 +183,7 @@ exports[`ConfirmationFooter renders correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#f3f3f4",
+                "backgroundColor": "#b4b4b528",
                 "borderRadius": 12,
                 "height": 24,
                 "justifyContent": "center",

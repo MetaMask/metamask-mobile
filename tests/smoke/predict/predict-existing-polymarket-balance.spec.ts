@@ -16,10 +16,11 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 const EXPECTED_BALANCE_TEXT = '$28.16';
 
 const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(
-    mockServer,
-    remoteFeatureFlagPredictEnabled(true),
-  );
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...remoteFeatureFlagPredictEnabled(true),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
+  });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
 };
 
@@ -63,6 +64,7 @@ describe(SmokePredictions('Existing Polymarket account'), () => {
       },
       async () => {
         await loginToApp();
+        await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description: 'Wallet container should be visible',
         });

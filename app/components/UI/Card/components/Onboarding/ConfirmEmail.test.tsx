@@ -258,22 +258,19 @@ jest.mock('react-native-confirmation-code-field', () => {
 });
 
 // Mock useStyles hook
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      codeFieldRoot: {},
-      cellRoot: {},
-      focusCell: {},
-    },
-    theme: {
-      colors: {
-        text: {
-          alternative: '#6a737d',
-        },
+jest.mock('../../../../../component-library/hooks', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useStyles: jest.fn(() => ({
+      styles: {
+        codeFieldRoot: {},
+        cellRoot: {},
+        focusCell: {},
       },
-    },
-  })),
-}));
+      theme: mockTheme,
+    })),
+  };
+});
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
