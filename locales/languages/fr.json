@@ -104,8 +104,8 @@
       "title": "Fonds insuffisants"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Pas assez de {{ticker}} pour couvrir les frais. Ajoutez des {{ticker}} pour continuer.",
+      "title": "Fonds insuffisants pour l’étape post-cotation"
     },
     "no_pay_token_quotes": {
       "message": "Cette voie de paiement n’est pas disponible pour le moment. Essayez de modifier le montant, le réseau ou le jeton, et nous trouverons la meilleure option.",
@@ -2077,12 +2077,12 @@
     "title": "Aperçu du marché",
     "a_closer_look": "Regarder de plus près",
     "whats_being_said": "Ce qu’on en dit",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "Résumé généré par l’IA fourni à titre informatif uniquement",
     "trade_button": "Trader",
     "sources_count": "+{{count}} sources",
-    "sources_title": "News sources",
+    "sources_title": "Sources d’information",
     "feedback_submitted": "Commentaire soumis",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "Cela vous a-t-il été utile ?",
     "feedback": {
       "title": "Commentaires",
       "description": "Aidez-nous à améliorer nos analyses de marché générées par l’IA.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Solde disponible",
     "claim_amount_text": "Réclamer {{amount}} $",
     "claim_winnings_text": "Réclamer vos gains",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Profits et pertes non réalisés",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Impossible de charger",
@@ -2275,6 +2276,9 @@
           "title": "Quelque chose a mal tourné",
           "description": "Échec de la réclamation",
           "try_again": "Réessayez"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Frais de change",
       "exchange_fee_description": "Frais payés à la bourse ou au marché",
       "total_incl_fees": "frais inclus",
-      "close": "Fermer"
+      "close": "Fermer",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Impossible de se connecter aux marchés de prédiction",
@@ -3701,10 +3706,10 @@
     "speedup_tx_title": "Essayer d’accélérer ?",
     "speedup_tx_message": "Cette tentative ne garantit aucunement l’accélération de votre transaction initiale. Si la tentative d’accélération réussit, les frais de transaction ci-dessus vous seront facturés.",
     "nevermind": "Peu importe",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "Accélérer la transaction",
+    "cancel_speedup_cancel_title": "Annuler la transaction",
+    "cancel_speedup_speedup_message": "Ces frais de réseau remplaceront les frais initiaux.",
+    "cancel_speedup_cancel_message": "Cette transaction sera annulée et ces frais de réseau remplaceront les frais initiaux.",
     "edit_network_fee": "Modifier les frais de gaz",
     "edit_priority": "Modifier la priorité",
     "gas_cancel_fee": "Frais de gaz d’annulation",
@@ -4837,7 +4842,7 @@
     "quote_unavailable": "Cotation non disponible.",
     "providers": "Fournisseurs",
     "quotes_displayed_for": "Cotations affichées pour {{paymentMethodName}}.",
-    "other_options": "Other options",
+    "other_options": "Autres options",
     "previously_used": "Utilisé précédemment",
     "best_rate": "Meilleur taux",
     "most_reliable": "Le plus fiable",
@@ -4948,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Choisir un fournisseur"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "Contacter le service d’assistance de {{provider}}",
     "got_it": "J’ai compris",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Une erreur s’est produite",
+    "no_quotes_error": "Nous avons rencontré un problème lors de la récupération des cotations de {{provider}}. Essayez un autre montant ou changez de fournisseur.",
     "change_provider_button": "Changer de fournisseur"
   },
   "fiat_on_ramp_aggregator": {
@@ -5914,7 +5919,7 @@
     "error_description": "L’installation de {{snap}} a échoué."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "Le bonus annualisé que vous avez gagné pour avoir détenu des mUSD. Vous pouvez réclamer votre bonus quotidiennement sur Linea.",
     "earn_a_percentage_bonus": "Obtenez un bonus de {{percentage}} %",
     "claimable_bonus": "Bonus réclamable",
     "claim_bonus": "Réclamer le bonus",
@@ -6022,21 +6027,21 @@
       "toasts": {
         "converting": "Conversion de {{token}} → mUSD",
         "eta": "Environ {{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "Conversion en mUSD effectuée avec succès",
+        "delivered_description": "Le bonus pourra être réclamé dans un délai d’un jour.",
         "failed": "Échec de la conversion en mUSD"
       },
       "education": {
         "heading": "OBTENEZ {{percentage}} % SUR LES\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Convertissez vos stablecoins en mUSD et gagnez jusqu’à {{percentage}} % de bonus annualisé que vous pouvez réclamer quotidiennement.",
         "terms_apply": "Des conditions s’appliquent.",
         "primary_button": "Commencer",
         "secondary_button": "Pas maintenant"
       },
       "buy_musd": "Acheter des mUSD",
       "get_musd": "Obtenir des mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Obtenez {{percentage}} % sur vos stablecoins",
+      "bonus_description": "Convertissez vos stablecoins en mUSD et obtenez un bonus annualisé de {{percentage}} %.",
       "powered_by_relay": "Propulsé par Relay",
       "max": "Maximum",
       "quick_convert_button": "Convertir",
@@ -6044,14 +6049,14 @@
       "tooltip_title": "Obtenez un rendement en détenant des mUSD",
       "tooltip_content": "Convertissez vos USDC, USDT ou DAI en mUSD, la stablecoin adossée au dollar de MetaMask. Obtenez un rendement de {{apy}} sur chaque mUSD que vous détenez.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Convertissez et obtenez {{percentage}} %",
+        "subtitle": "Convertissez vos stablecoins en mUSD et obtenez jusqu’à {{percentage}} % de bonus annualisé que vous pouvez réclamer quotidiennement.",
         "inline_failed_message": "La conversion a échoué. Veuillez réessayer.",
         "confirmation": {
           "title": "Convertir le maximum"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "Bonus de {{percentage}} %",
       "rate": "Taux"
     },
     "bonus_claim": {
@@ -6092,7 +6097,9 @@
       "fee": "Frais",
       "errors": {
         "insufficient_balance": "Vous ne disposez pas d’un solde suffisant pour effectuer cette action."
-      }
+      },
+      "trx_unstaking_in_progress": "Déstaking de {{amount}} TRX en cours. Le déstaking prend 14 jours.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Staker des ETH",
     "unstake_eth": "Déstaker des ETH",
@@ -6343,7 +6350,8 @@
       "metamask_fee": "Commission MetaMask",
       "network_fee": "Frais de réseau",
       "bridge_fee": "Frais du fournisseur de passerelles",
-      "provider_fee": "Commission du fournisseur"
+      "provider_fee": "Commission du fournisseur",
+      "sending": "Envoi"
     },
     "title": {
       "signature": "Demande de signature",
@@ -6381,10 +6389,10 @@
         "transaction_fee": "Nous échangerons vos jetons contre des USDC.e sur Polygon, le réseau utilisé par « Prédictions ». Les fournisseurs de services d’échange peuvent facturer des frais, mais MetaMask ne le fera pas."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "MetaMask échangera vos jetons pour vous. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "Les frais de conversion en mUSD comprennent les coûts de réseau et peuvent inclure des frais de fournisseur. Aucuns frais MetaMask ne s’appliquent lorsque vous effectuez un échange contre des mUSD."
       },
       "title": {
         "transaction_fee": "Frais"
@@ -6570,12 +6578,12 @@
     "hardware_wallet_not_supported": "Les portefeuilles matériels ne sont pas encore pris en charge. Utilisez un portefeuille connecté pour continuer.",
     "hardware_wallet_not_supported_solana": "Les portefeuilles matériels ne sont pas encore pris en charge pour Solana. Utilisez un portefeuille connecté pour continuer.",
     "price_impact_info_title": "Impact sur les prix",
-    "price_impact_info_description": "L’impact sur le prix reflète la manière dont votre ordre de swap affecte le prix du marché de l’actif. Il dépend du volume de la transaction et de la liquidité disponible dans le pool. MetaMask n’influence ni ne contrôle l’impact sur le prix.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "L’impact sur le prix reflète la manière dont votre ordre de swap affecte le prix de l’actif sur le marché. Si vous ne disposez pas de fonds suffisants pour payer les frais de gaz, une partie de votre jeton source est automatiquement allouée pour couvrir ces frais, ce qui augmente l’impact sur le prix. MetaMask n’influence ni ne contrôle l’impact sur le prix.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Impact élevé sur le prix",
+    "price_impact_execution_description": "Vous perdrez environ {{priceImpact}} de la valeur de vos jetons lors de cet échange. Essayez de réduire le montant ou de choisir une voie plus liquide.",
+    "proceed": "Continuer",
     "cancel": "Annuler",
     "slippage_info_title": "Slippage/effet de glissement",
     "slippage_info_description": "Le pourcentage de variation de prix que vous êtes prêt à accepter avant que votre transaction ne soit annulée.",
@@ -6603,7 +6611,14 @@
     "exceeding_upper_slippage_error": "Vous ne pouvez pas saisir une valeur supérieure à {{value}} %",
     "custom": "Personnalisé",
     "invalid_recipient_address": "Adresse non valide",
-    "got_it": "Got it"
+    "select_quote": "Sélectionner la cotation",
+    "select_quote_info": "Les cotations sont triées par coût total estimé, qui comprend le taux de change et les frais de réseau.",
+    "lowest_cost": "Coût le moins élevé",
+    "total_cost": "Coût total",
+    "got_it": "J’ai compris",
+    "price_impact_warning_title": "Impact élevé sur le prix",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "De nouvelles cotations sont disponibles",
@@ -6900,7 +6915,7 @@
       "title": "Saisissez votre mot de passe",
       "description": "Saisissez le mot de passe de votre portefeuille pour afficher les détails de la carte.",
       "description_unfreeze": "Saisissez le mot de passe de votre portefeuille pour réactiver les paiements avec votre carte.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Saisissez le mot de passe de votre portefeuille pour afficher le code PIN de votre carte.",
       "placeholder": "Mot de passe",
       "confirm": "Confirmer",
       "cancel": "Annuler",
@@ -6908,7 +6923,7 @@
       "error_incorrect": "Mot de passe incorrect. Veuillez réessayer."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "Le code PIN de votre carte"
     },
     "choose_your_card": {
       "title": "Choisissez votre carte",
@@ -7225,9 +7240,9 @@
         "view_card_details": "Afficher les détails de la carte",
         "hide_card_details": "Masquer les détails de la carte",
         "view_card_details_description": "Numéro, date d’expiration et CVV de la carte",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "Afficher le code PIN",
+        "view_pin_description": "Consultez le code PIN de votre carte en toute sécurité",
+        "view_pin_error": "Échec du chargement du code PIN. Veuillez réessayer.",
         "manage_spending_limit": "Gérer la limite",
         "manage_spending_limit_description_restricted": "La limite de dépenses est activée",
         "manage_spending_limit_description_full": "L’accès complet est activé",
@@ -7240,7 +7255,7 @@
         "order_metal_card_description": "Commandez votre Carte Metal physique dès maintenant",
         "cashback": "Cashback",
         "cashback_description": "Gagner 1 % sur toutes vos dépenses",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Gagner 3 % sur toutes vos dépenses",
         "freeze_card": "Bloquer la carte",
         "unfreeze_card": "Débloquer la carte",
         "freeze_card_description": "Suspendre tous les paiements avec votre carte",
@@ -7394,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Sélectionnez le mode de paiement",
     "title_receive": "Sélectionner le jeton à recevoir",
-    "no_gas": "Pas de solde natif pour le gaz"
+    "no_gas": "Pas de solde natif pour le gaz",
+    "not_supported": "Non pris en charge"
   },
   "connection_removed_modal": {
     "title": "Connexions supprimées",
@@ -7632,12 +7648,12 @@
       "environment_selector": "Environnement",
       "environment_cancel": "Annuler",
       "environment_default": "Par défaut",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Comptes inscrits manquants",
+      "off_device_accounts_banner_description": "Certains comptes inscrits au programme de récompenses n’ont pas été détectés sur cet appareil.",
+      "off_device_accounts_banner_cta": "Afficher",
+      "off_device_accounts_sheet_title": "Comptes inscrits manquants",
+      "off_device_accounts_sheet_description": "Ils peuvent appartenir à un portefeuille qui n’a pas encore été ajouté après la réinstallation de MetaMask. Ne reconnaissez-vous aucune de ces adresses ?",
+      "off_device_accounts_sheet_let_us_know": "Faites-le nous savoir"
     },
     "referred_by_code": {
       "title": "Code de parrainage",
@@ -7835,12 +7851,12 @@
       "description": "Veuillez établir une nouvelle connexion depuis l’application pour continuer."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Quelque chose a mal tourné",
+      "description": "Une erreur inattendue est survenue, veuillez réessayer."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Échec de la demande",
+      "description": "La demande n’a pas pu être traitée. Veuillez réessayer."
     }
   },
   "network_connection_banner": {
@@ -7981,7 +7997,7 @@
       "scanning": "Recherche d’appareils…",
       "no_devices_found": "Aucun appareil trouvé",
       "no_devices_hint": "Assurez-vous que votre {{device}} est déverrouillé et que le Bluetooth est activé",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Déverrouillez votre {{device}}, activez le Bluetooth et assurez-vous que le mode « Ne pas déranger » est désactivé",
       "connect": "Connecter",
       "rescan": "Rechercher à nouveau",
       "unknown_device": "Appareil inconnu",
@@ -7997,7 +8013,7 @@
       "nfts": "NFT",
       "import_nfts": "Importer des NFT",
       "import_nfts_description": "Ajoutez facilement vos objets de collection",
-      "view_more": "View more",
+      "view_more": "Afficher plus",
       "positions": {
         "no_tp_sl": "Aucun TP/SL"
       }
