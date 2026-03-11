@@ -46,7 +46,9 @@ export const DiffHighlightedAddress = ({
       currentSegment = { text: address[i], isDiff };
     }
   }
-  segments.push(currentSegment);
+  if (currentSegment.text.length > 0) {
+    segments.push(currentSegment);
+  }
 
   return (
     <Box twClassName="rounded-lg bg-background-alternative p-3">
