@@ -55,6 +55,8 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...Object.assign({}, ...confirmationFeatureFlags),
+    carouselBanners: false,
+    homepageRedesignV1: { enabled: false },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);
@@ -203,7 +205,6 @@ describe(SmokePredictions('Claim winnings:'), () => {
     );
   });
 
-  // Disabling this test as it is currently blocking CI
   it('claim winnings via market details', async () => {
     await withFixtures(
       {
@@ -227,6 +228,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
         );
 
+        await Assertions.expectElementToBeVisible(WalletView.claimButton, {
+          description:
+            'Claim button should be visible (positions loaded with winnings)',
+        });
+
         await WalletView.scrollToPosition(positions.Lost);
 
         await WalletView.tapPredictPosition(positions.Lost);
@@ -240,8 +246,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
         );
         await PredictDetailsPage.tapBackButton();
 
-        await WalletView.scrollToPosition(positions.Won);
+        await Utilities.waitForElementToStopMoving(
+          WalletView.PredictionsTabContainer,
+        );
 
+        await WalletView.scrollToPosition(positions.Won);
         await WalletView.tapPredictPosition(positions.Won);
 
         await Assertions.expectElementToBeVisible(

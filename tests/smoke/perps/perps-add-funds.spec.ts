@@ -37,13 +37,11 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           .withPerpsFirstTimeUser(false)
           .withKeyringControllerOfMultipleAccounts()
           .withNetworkController({
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0xa4b1',
-              rpcUrl: 'https://arb1.arbitrum.io/rpc',
-              nickname: 'Arbitrum One',
-              ticker: 'ETH',
-            },
+            type: 'rpc',
+            chainId: '0xa4b1',
+            rpcUrl: 'https://arb1.arbitrum.io/rpc',
+            nickname: 'Arbitrum One',
+            ticker: 'ETH',
           })
           .withTokensForAllPopularNetworks([
             {

@@ -41,6 +41,8 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 import AppConstants from '../../../../../core/AppConstants';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../types/musd.types';
 import { selectMusdQuickConvertEnabledFlag } from '../../selectors/featureFlags';
+import { toChecksumAddress } from '../../../../../util/address';
+import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
@@ -81,6 +83,7 @@ const EarnMusdConversionEducationView = () => {
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     isMusdBuyable,
+    conversionTokens,
   } = useMusdConversionFlowData();
 
   const { styles } = useStyles(styleSheet, {});
@@ -106,7 +109,18 @@ const EarnMusdConversionEducationView = () => {
 
     // Try conversion flow if user has convertible tokens
     if (hasConvertibleTokens) {
-      const paymentToken = getPaymentTokenForSelectedNetwork();
+      const fallbackToken = conversionTokens[0];
+      const fallbackChainIdHex = fallbackToken?.chainId
+        ? safeFormatChainIdToHex(fallbackToken.chainId)
+        : null;
+      const paymentToken =
+        getPaymentTokenForSelectedNetwork() ??
+        (fallbackToken?.address && fallbackChainIdHex?.startsWith('0x')
+          ? {
+              address: toChecksumAddress(fallbackToken.address) as Hex,
+              chainId: fallbackChainIdHex as Hex,
+            }
+          : null);
       if (paymentToken) {
         return {
           action: 'convert' as const,
@@ -131,6 +145,7 @@ const EarnMusdConversionEducationView = () => {
     getPaymentTokenForSelectedNetwork,
     getChainIdForBuyFlow,
     isMusdBuyable,
+    conversionTokens,
   ]);
 
   const primaryButtonText = useMemo(() => {

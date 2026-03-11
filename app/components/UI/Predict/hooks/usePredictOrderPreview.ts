@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Logger from '../../../../util/Logger';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { OrderPreview, PreviewOrderParams } from '../types';
-import { usePredictTrading } from './usePredictTrading';
-import { ensureError, parseErrorMessage } from '../utils/predictErrorHandler';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import { predictQueries } from '../queries';
+import { parseErrorMessage, ensureError } from '../utils/predictErrorHandler';
+import { PREDICT_ERROR_CODES, PREDICT_CONSTANTS } from '../constants/errors';
+import Logger from '../../../../util/Logger';
 
 interface OrderPreviewResult {
   preview?: OrderPreview | null;
@@ -12,22 +13,14 @@ interface OrderPreviewResult {
   error: string | null;
 }
 
+/**
+ * Wraps useQuery with debounced params and custom loading semantics.
+ * Debouncing prevents excessive API calls during rapid input; custom
+ * isLoading/isCalculating flags are used by all 3 consumers for skeleton/inline states.
+ */
 export function usePredictOrderPreview(
   params: PreviewOrderParams & { autoRefreshTimeout?: number },
 ): OrderPreviewResult {
-  const [preview, setPreview] = useState<OrderPreview | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
-
-  const currentOperationRef = useRef<number>(0);
-  const isMountedRef = useRef<boolean>(true);
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const { previewOrder } = usePredictTrading();
-
-  const isLoading = useMemo(() => preview === null && !error, [preview, error]);
-
-  // Destructure params for stable dependencies
   const {
     marketId,
     outcomeId,
@@ -38,43 +31,19 @@ export function usePredictOrderPreview(
     positionId,
   } = params;
 
-  // Define ref before using it in scheduleNextRefresh
-  const calculatePreviewRef = useRef<(() => Promise<void>) | null>(null);
+  // Debounce param changes by 100ms to avoid rapid recalculations
+  const [debouncedParams, setDebouncedParams] = useState({
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    side,
+    size,
+    positionId,
+  });
 
-  const scheduleNextRefresh = useCallback(() => {
-    if (!autoRefreshTimeout || !isMountedRef.current) return;
-
-    // Clear any existing timer
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-    }
-
-    // Schedule next refresh after the timeout
-    refreshTimerRef.current = setTimeout(() => {
-      calculatePreviewRef.current?.();
-    }, autoRefreshTimeout);
-  }, [autoRefreshTimeout]);
-
-  const scheduleNextRefreshRef = useRef(scheduleNextRefresh);
-  scheduleNextRefreshRef.current = scheduleNextRefresh;
-
-  const calculatePreview = useCallback(async () => {
-    const operationId = ++currentOperationRef.current;
-
-    if (!isMountedRef.current) return;
-
-    if (!size || size <= 0) {
-      if (operationId === currentOperationRef.current) {
-        setPreview(null);
-        setIsCalculating(false);
-      }
-      return;
-    }
-
-    setIsCalculating(true);
-
-    try {
-      const p = await previewOrder({
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedParams({
         marketId,
         outcomeId,
         outcomeTokenId,
@@ -82,84 +51,54 @@ export function usePredictOrderPreview(
         size,
         positionId,
       });
-      if (operationId === currentOperationRef.current && isMountedRef.current) {
-        setPreview(p);
-        setError(null);
-        // Schedule next refresh after successful response
-        scheduleNextRefreshRef.current();
-      }
-    } catch (err) {
-      console.error('Failed to preview order:', err);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [marketId, outcomeId, outcomeTokenId, side, size, positionId]);
 
-      // Log error with order preview context (no sensitive amounts)
-      Logger.error(ensureError(err), {
-        tags: {
-          feature: PREDICT_CONSTANTS.FEATURE_NAME,
-          component: 'usePredictOrderPreview',
-        },
-        context: {
-          name: 'usePredictOrderPreview',
-          data: {
-            method: 'calculatePreview',
-            action: 'order_preview',
-            operation: 'order_management',
-            side,
-            marketId,
-            outcomeId,
-          },
-        },
-      });
+  const hasValidSize = !!debouncedParams.size && debouncedParams.size > 0;
 
-      if (operationId === currentOperationRef.current && isMountedRef.current) {
-        const parsedErrorMessage = parseErrorMessage({
-          error: err,
-          defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
-        });
-        setError(parsedErrorMessage);
-        // Schedule next refresh after error response
-        scheduleNextRefreshRef.current();
-      }
-    } finally {
-      if (operationId === currentOperationRef.current && isMountedRef.current) {
-        setIsCalculating(false);
-      }
-    }
-  }, [
-    size,
-    previewOrder,
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    side,
-    positionId,
-  ]);
+  const query = useQuery({
+    ...predictQueries.orderPreview.options(debouncedParams),
+    enabled: hasValidSize,
+    refetchInterval:
+      hasValidSize && autoRefreshTimeout ? autoRefreshTimeout : false,
+  });
 
-  calculatePreviewRef.current = calculatePreview;
-
-  useEffect(
-    () => () => {
-      isMountedRef.current = false;
-      // Clear refresh timer on unmount
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current);
-      }
-    },
-    [],
-  );
+  const preview = hasValidSize ? (query.data ?? null) : null;
+  const error = query.error
+    ? parseErrorMessage({
+        error: query.error,
+        defaultCode: PREDICT_ERROR_CODES.PREVIEW_FAILED,
+      })
+    : null;
+  const isLoading = preview === null && !error;
+  const isCalculating = query.isFetching;
 
   useEffect(() => {
-    // Clear any pending refresh timer when parameters change
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
-
-    const debounceTimer = setTimeout(() => {
-      calculatePreviewRef.current?.();
-    }, 100);
-
-    return () => clearTimeout(debounceTimer);
-  }, [marketId, outcomeId, outcomeTokenId, side, size, autoRefreshTimeout]);
+    if (!query.error) return;
+    Logger.error(ensureError(query.error), {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        component: 'usePredictOrderPreview',
+      },
+      context: {
+        name: 'usePredictOrderPreview',
+        data: {
+          method: 'previewOrder',
+          action: 'order_preview',
+          operation: 'order_management',
+          side: debouncedParams.side,
+          marketId: debouncedParams.marketId,
+          outcomeId: debouncedParams.outcomeId,
+        },
+      },
+    });
+  }, [
+    query.error,
+    debouncedParams.side,
+    debouncedParams.marketId,
+    debouncedParams.outcomeId,
+  ]);
 
   return {
     preview,

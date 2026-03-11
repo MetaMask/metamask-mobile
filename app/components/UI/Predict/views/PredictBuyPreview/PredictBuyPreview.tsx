@@ -34,6 +34,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -78,7 +79,7 @@ import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-
+import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 export const MINIMUM_BET = 1; // $1 minimum bet
 
 const PredictBuyPreview = () => {
@@ -131,6 +132,7 @@ const PredictBuyPreview = () => {
     usePredictBalance();
 
   const { deposit } = usePredictDeposit();
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const [currentValue, setCurrentValue] = useState(0);
   const [currentValueUSDString, setCurrentValueUSDString] = useState('');
@@ -653,6 +655,7 @@ const PredictBuyPreview = () => {
           betAmount={currentValue}
           total={total}
           onClose={handleFeeBreakdownClose}
+          fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
       <PredictOrderRetrySheet

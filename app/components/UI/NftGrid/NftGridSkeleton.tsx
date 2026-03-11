@@ -4,12 +4,12 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const NftGridSkeleton = () => {
+const NftGridSkeleton = ({ isFullView = false }: { isFullView?: boolean }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
 
   return (
-    <View style={tw.style('flex-1 p-1')}>
+    <View style={tw.style('flex-1 pt-1', isFullView ? 'px-4' : 'px-1')}>
       <SkeletonPlaceholder
         backgroundColor={colors.background.section}
         highlightColor={colors.background.subsection}
