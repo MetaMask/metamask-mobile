@@ -108,7 +108,7 @@ describe('useMusdConversionConfirmationMetrics', () => {
     useParamsMock.mockReturnValue({ forceBottomSheet: false });
   });
 
-  it('dispatches custom_input_convert source when forceBottomSheet is false', () => {
+  it('dispatches custom_amount_screen source when forceBottomSheet is false', () => {
     useParamsMock.mockReturnValue({ forceBottomSheet: false });
 
     runHook();
@@ -208,7 +208,7 @@ describe('useMusdConversionConfirmationMetrics', () => {
     });
   });
 
-  it('dispatches custom_input_convert source when forceBottomSheet is undefined', () => {
+  it('dispatches custom_amount_screen source when forceBottomSheet is undefined', () => {
     useParamsMock.mockReturnValue({});
 
     runHook();
