@@ -125,57 +125,77 @@ jest.mock(
 
 jest.mock(
   '../../../../component-library/components-temp/HeaderStandardAnimated/HeaderStandardAnimated',
-  () => ({
-    __esModule: true,
-    default: (props: {
-      title?: string;
-      subtitle?: string;
-      onBack?: () => void;
-      endButtonIconProps?: unknown[];
-    }) => {
-      const React = require('react');
-      const { View, Text, Pressable } = require('react-native');
-      return (
-        <View testID="header-standard-animated">
-          {props.title != null && (
-            <Text testID="header-title">{props.title}</Text>
-          )}
-          {props.subtitle != null && (
-            <Text testID="header-subtitle">{props.subtitle}</Text>
-          )}
-          {props.onBack != null && (
-            <Pressable
-              testID="header-back-button"
-              onPress={() => props.onBack?.()}
-            />
-          )}
-          {props.endButtonIconProps != null &&
-            props.endButtonIconProps.length > 0 && (
-              <View testID="header-more-button" />
-            )}
-        </View>
-      );
-    },
-  }),
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View, Text, Pressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: {
+        title?: string;
+        subtitle?: string;
+        onBack?: () => void;
+        endButtonIconProps?: unknown[];
+      }) =>
+        ReactActual.createElement(
+          View,
+          { testID: 'header-standard-animated' },
+          props.title != null &&
+            ReactActual.createElement(
+              Text,
+              {
+                testID: 'header-title',
+              },
+              props.title,
+            ),
+          props.subtitle != null &&
+            ReactActual.createElement(
+              Text,
+              {
+                testID: 'header-subtitle',
+              },
+              props.subtitle,
+            ),
+          props.onBack != null &&
+            ReactActual.createElement(Pressable, {
+              testID: 'header-back-button',
+              onPress: () => props.onBack?.(),
+            }),
+          props.endButtonIconProps != null &&
+            props.endButtonIconProps.length > 0 &&
+            ReactActual.createElement(View, { testID: 'header-more-button' }),
+        ),
+    };
+  },
 );
 
-jest.mock('../../../../component-library/components-temp/TitleSubpage', () => ({
-  __esModule: true,
-  default: (props: { title?: string; bottomLabel?: string }) => {
-    const React = require('react');
-    const { View, Text } = require('react-native');
-    return (
-      <View testID="title-subpage">
-        {props.title != null && (
-          <Text testID="title-subpage-title">{props.title}</Text>
-        )}
-        {props.bottomLabel != null && (
-          <Text testID="title-subpage-bottom-label">{props.bottomLabel}</Text>
-        )}
-      </View>
-    );
-  },
-}));
+jest.mock('../../../../component-library/components-temp/TitleSubpage', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: { title?: string; bottomLabel?: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'title-subpage' },
+        props.title != null &&
+          ReactActual.createElement(
+            Text,
+            {
+              testID: 'title-subpage-title',
+            },
+            props.title,
+          ),
+        props.bottomLabel != null &&
+          ReactActual.createElement(
+            Text,
+            {
+              testID: 'title-subpage-bottom-label',
+            },
+            props.bottomLabel,
+          ),
+      ),
+  };
+});
 
 jest.mock('../components/AssetOverviewContent', () => {
   const ReactLib = jest.requireActual('react');
@@ -202,30 +222,43 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
   default: () => null,
 }));
 
-jest.mock('../../Transactions', () => ({
-  __esModule: true,
-  default: ({
-    header,
-    embeddedInScrollView,
-  }: {
-    header?: React.ReactNode;
-    embeddedInScrollView?: boolean;
-  }) => {
-    const React = require('react');
-    const { View } = require('react-native');
-    if (embeddedInScrollView) {
-      return <View testID="transactions-embedded" />;
-    }
-    return header ?? null;
-  },
-}));
+jest.mock('../../Transactions', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      header,
+      embeddedInScrollView,
+    }: {
+      header?: React.ReactNode;
+      embeddedInScrollView?: boolean;
+    }) => {
+      if (embeddedInScrollView) {
+        return ReactActual.createElement(View, {
+          testID: 'transactions-embedded',
+        });
+      }
+      return header ?? null;
+    },
+  };
+});
 
 jest.mock(
   '../../../Views/MultichainTransactionsView/MultichainTransactionsView',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: (props: { embeddedInScrollView?: boolean }) =>
+        props.embeddedInScrollView
+          ? ReactActual.createElement(View, {
+              testID: 'multichain-transactions-embedded',
+            })
+          : null,
+    };
+  },
 );
 
 jest.mock('../../../../selectors/networkController', () => ({
@@ -511,6 +544,27 @@ describe('TokenDetails', () => {
       const { getByTestId } = render(<TokenDetails />);
 
       expect(getByTestId('header-more-button')).toBeOnTheScreen();
+    });
+
+    it('renders MultichainTransactionsView with embeddedInScrollView when isNonEvmAsset is true', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        isNonEvmAsset: true,
+      });
+
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getByTestId('multichain-transactions-embedded')).toBeOnTheScreen();
+    });
+
+    it('calls setTitleSectionHeight when title section Box fires onLayout', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      fireEvent(getByTestId('token-details-title-section'), 'layout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(120);
     });
   });
 });

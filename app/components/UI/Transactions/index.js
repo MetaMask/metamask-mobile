@@ -419,11 +419,16 @@ class Transactions extends PureComponent {
     }
   };
 
-  getItemLayout = (_data, index) => ({
-    length: ROW_HEIGHT,
-    offset: this.props.headerHeight + ROW_HEIGHT * index,
-    index,
-  });
+  getItemLayout = (_data, index) => {
+    const effectiveHeaderHeight = this.props.embeddedInScrollView
+      ? 0
+      : this.props.headerHeight;
+    return {
+      length: ROW_HEIGHT,
+      offset: effectiveHeaderHeight + ROW_HEIGHT * index,
+      index,
+    };
+  };
 
   keyExtractor = (item) => item.id.toString();
 

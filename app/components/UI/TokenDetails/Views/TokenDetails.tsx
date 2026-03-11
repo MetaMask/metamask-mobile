@@ -333,6 +333,7 @@ const TokenDetails: React.FC<{
           style={styles.wrapper}
         >
           <Box
+            testID="token-details-title-section"
             onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
             twClassName="px-4"
           >
