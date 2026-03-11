@@ -7,6 +7,8 @@ export enum Side {
   SELL = 'SELL',
 }
 
+export type PredictOrderType = 'FOK' | 'FAK';
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -420,7 +422,6 @@ export interface GetMarketsParams {
   sortDirection?: 'asc' | 'desc';
   offset?: number;
   limit?: number;
-  liveSportsLeagues?: string[];
   customQueryParams?: string;
 }
 
@@ -434,6 +435,8 @@ export interface PredictFees {
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 /**
@@ -469,6 +472,7 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+  orderType?: PredictOrderType;
 }
 
 export type OrderResult = Result<{
@@ -540,3 +544,5 @@ export interface GetAccountStateParams {}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareWithdrawParams {}
+
+export type { PredictFeatureFlags } from './flags';

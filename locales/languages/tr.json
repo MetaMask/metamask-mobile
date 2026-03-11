@@ -104,8 +104,8 @@
       "title": "Yetersiz bakiye"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Ücretleri karşılamak için yeterli {{ticker}} yok. Devam etmek için {{ticker}} ekleyin.",
+      "title": "Teklifi yayınlamak için fon yetersiz"
     },
     "no_pay_token_quotes": {
       "message": "Bu ödeme rotası şu anda kullanılamıyor. Tutarı, ağı veya token'ı değiştirmeyi deneyin ve sizin için en iyi seçeneği bulalım.",
@@ -2077,12 +2077,12 @@
     "title": "Piyasa içgörüleri",
     "a_closer_look": "Daha yakın bir görünüm",
     "whats_being_said": "Neler söyleniyor",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "Yapay zeka özeti yalnızca bilgi amaçlıdır",
     "trade_button": "İşlem Yap",
     "sources_count": "+{{count}} kaynak",
-    "sources_title": "News sources",
+    "sources_title": "Haber kaynakları",
     "feedback_submitted": "Geri bildirim gönderildi",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "Bu faydalı oldu mu?",
     "feedback": {
       "title": "Geri Bildirim",
       "description": "Yapay zeka ile oluşturulmuş piyasa içgörülerimizi iyileştirmemize yardımcı olun.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Kullanılabilir bakiye",
     "claim_amount_text": "{{amount}}$ al",
     "claim_winnings_text": "Kazançları al",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Gerçekleşmemiş K&Z",
     "unrealized_pnl_value": "({{percent}}) {{amount}}",
     "unrealized_pnl_error": "Yüklenemiyor",
@@ -2275,6 +2276,9 @@
           "title": "Bir şeyler ters gitti",
           "description": "Alım ile ilerleme başarısız oldu",
           "try_again": "Tekrar dene"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Borsa ücreti",
       "exchange_fee_description": "Borsaya veya piyasaya ödenen ücret",
       "total_incl_fees": "ücretler dahil",
-      "close": "Kapat"
+      "close": "Kapat",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Tahminlere bağlanılamıyor",
@@ -2915,10 +2920,6 @@
     "enabling_notifications": "Bildirimler etkinleştiriliyor...",
     "updating_notifications": "Bildirimler güncelleniyor...",
     "updating_account_settings": "Hesap ayarları güncelleniyor...",
-    "reset_notifications_title": "Bildirimleri sıfırla",
-    "reset_notifications_description": "Bildirimlerin sıfırlanması, bildirim depolama anahtarlarınızı sildiğiniz ve tüm bildirim geçmişinizi sıfırladığınız anlamına gelir. Bunu yapmak istediğinizden emin misiniz?",
-    "reset_notifications": "Bildirimleri sıfırla",
-    "reset_notifications_success": "Bildirim depolama anahtarı silindi/yeniden oluşturuldu ve bildirim geçmişi sıfırlandı.",
     "notifications_dismiss_modal": "Yok say",
     "select_rpc_url": "RPC URL adresini seç",
     "title": "Ayarlar",
@@ -3705,10 +3706,10 @@
     "speedup_tx_title": "Hızlandırmayı dene?",
     "speedup_tx_message": "Bu denemeyi göndermek ilk işlemin hızlandırılmasını garanti etmez. Hızlandırma denemesi başarılı olursa sizden yukarıdaki işlem ücreti alınır.",
     "nevermind": "Vazgeç",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "İşlemi Hızlandır",
+    "cancel_speedup_cancel_title": "İşlemi İptal Et",
+    "cancel_speedup_speedup_message": "Bu ağ ücreti orijinalinin yerine geçecektir.",
+    "cancel_speedup_cancel_message": "Bu işlem iptal edilecek ve bu ağ ücreti orijinalinin yerine geçecektir.",
     "edit_network_fee": "Gaz ücretini düzenle",
     "edit_priority": "Önceliği düzenle",
     "gas_cancel_fee": "Gaz iptal ücreti",
@@ -4841,7 +4842,7 @@
     "quote_unavailable": "Teklif kullanılamıyor.",
     "providers": "Sağlayıcılar",
     "quotes_displayed_for": "{{paymentMethodName}} için teklifler görüntüleniyor.",
-    "other_options": "Other options",
+    "other_options": "Diğer seçenekler",
     "previously_used": "Daha önce kullanılan",
     "best_rate": "En iyi oran",
     "most_reliable": "En güvenilir",
@@ -4952,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Bir sağlayıcı seç"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "{{provider}} destek ekibi ile iletişime geçin",
     "got_it": "Anladım",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Bir hata ile karşılaştık",
+    "no_quotes_error": "{{provider}} adlı sağlayıcıdan teklifleri getirirken bir sorunla karşılaştık. Farklı bir miktar deneyin veya sağlayıcı değiştirin.",
     "change_provider_button": "Sağlayıcı değiştirin"
   },
   "fiat_on_ramp_aggregator": {
@@ -5918,7 +5919,7 @@
     "error_description": "{{snap}} yüklemesi başarısız oldu."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "mUSD tuttuğunuz için kazandığınız yıllıklandırılmış bonus. Bonusunuzu Linea üzerinde günlük olarak alabilirsiniz.",
     "earn_a_percentage_bonus": "%{{percentage}} bonus kazanın",
     "claimable_bonus": "Alınabilir bonus",
     "claim_bonus": "Bonusu al",
@@ -6026,21 +6027,21 @@
       "toasts": {
         "converting": "{{token}} → mUSD dönüştürülüyor",
         "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "mUSD dönüştürme işlemi başarılı",
+        "delivered_description": "Bonus bir gün içinde alınabilir olacaktır.",
         "failed": "mUSD dönüştürme işlemi başarısız oldu"
       },
       "education": {
         "heading": "STABİL KRİPTO PARALARDA\n%{{percentage}} AL",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz %{{percentage}} oranına varan yıllıklandırılmış bonus kazanın.",
         "terms_apply": "Şartlar uygulanır.",
         "primary_button": "Başlarken",
         "secondary_button": "Şimdi değil"
       },
       "buy_musd": "mUSD al",
       "get_musd": "mUSD kazan",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Stabil kripto paranızda %{{percentage}} bonus kazanın",
+      "bonus_description": "Stabil kripto paranızı mUSD'ye dönüştürün ve %{{percentage}} oranında yıllıklandırılmış bonus alın.",
       "powered_by_relay": "Destekleyen Relay",
       "max": "Maksimum",
       "quick_convert_button": "Dönüştür",
@@ -6048,14 +6049,14 @@
       "tooltip_title": "mUSD ile getiri elde et",
       "tooltip_content": "USDC, USDT veya DAI'nizi MetaMask'in dolar destekli stabil kripto parası olan mUSD'ye dönüştürün. Tuttuğunuz her dolar için {{apy}} getiri elde edin.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Dönüştür ve %{{percentage}} al",
+        "subtitle": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve günlük olarak alabileceğiniz %{{percentage}} oranına varan yıllıklandırılmış bonus alın.",
         "inline_failed_message": "Dönüştürme işlemi başarısız oldu. Tekrar deneyin.",
         "confirmation": {
           "title": "Maksimumu dönüştür"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "%{{percentage}} bonus",
       "rate": "Oran"
     },
     "bonus_claim": {
@@ -6096,7 +6097,9 @@
       "fee": "Ücret",
       "errors": {
         "insufficient_balance": "Bu eylemi gerçekleştirmek için yeterli kaynak bakiyeniz yok."
-      }
+      },
+      "trx_unstaking_in_progress": "{{amount}} TRX unstake işlemi devam ediyor. Unstake işlemi 14 gün sürer.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "ETH Stake Et",
     "unstake_eth": "ETH Unstake Et",
@@ -6347,7 +6350,8 @@
       "metamask_fee": "MetaMask ücreti",
       "network_fee": "Ağ ücreti",
       "bridge_fee": "Köprü sağlayıcı ücreti",
-      "provider_fee": "Sağlayıcı ücreti"
+      "provider_fee": "Sağlayıcı ücreti",
+      "sending": "Gönderiliyor"
     },
     "title": {
       "signature": "İmza talebi",
@@ -6385,10 +6389,10 @@
         "transaction_fee": "Tokenlerinizi Tahminler tarafından kullanılan Polygon ağı üzerinden USDC ile takas edeceğiz. Takas sağlayıcıları ücret alabilir ancak MetaMask ücret talep etmez."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "MetaMask, sizin için istediğiniz tokena takas gerçekleştirecek. mUSD'ye takas gerçekleştirirken MetaMask ücreti uygulanmaz."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "mUSD dönüştürme işlemine ağ maliyetleri dahildir ve sağlayıcı ücretleri dahil olabilir. mUSD dönüştürürken MetaMask ücreti uygulanmaz."
       },
       "title": {
         "transaction_fee": "Ücretler"
@@ -6574,12 +6578,12 @@
     "hardware_wallet_not_supported": "Donanım cüzdanları henüz desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
     "hardware_wallet_not_supported_solana": "Donanım cüzdanları henüz Solana için desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
     "price_impact_info_title": "Piyasa etkisi",
-    "price_impact_info_description": "Fiyat etkisi, takas emrinizin varlığın piyasa fiyatını nasıl etkilediğini yansıtır. İşlem boyutuna ve havuzdaki mevcut likiditeye bağlıdır. MetaMask'in fiyat etkisi üzerinde bir etkisi veya kontrolü bulunmamaktadır.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Fiyat etkisi, takas emrinizin varlığın piyasa fiyatını nasıl etkilediğini yansıtır. Gaz için yeterli fon tutmazsanız kaynak token'inizin bir kısmı otomatik olarak ücretleri karşılamak üzere ayrılır, bu nedenle fiyat etkisi artar. MetaMask fiyat etkisini etkilemez veya kontrol etmez.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Yüksek fiyat etkisi",
+    "price_impact_execution_description": "Bu takas işleminde tokenınızın değerinden yaklaşık {{priceImpact}} kaybedeceksiniz. Miktarı düşürmeyi veya daha likit bir rota seçmeyi deneyin.",
+    "proceed": "Devam et",
     "cancel": "İptal",
     "slippage_info_title": "Kayma",
     "slippage_info_description": "İşleminiz iptal edilmeden önce izin vermek istediğiniz fiyat değişim % oranı.",
@@ -6607,7 +6611,14 @@
     "exceeding_upper_slippage_error": "%{{value}} değerin üzerinde olan bir değer giremezsiniz",
     "custom": "Özel",
     "invalid_recipient_address": "Geçersiz adres",
-    "got_it": "Got it"
+    "select_quote": "Teklif Seç",
+    "select_quote_info": "Teklifler, döviz kurunu ve ağ ücretini içeren tahmini toplam maliyete göre sıralanır.",
+    "lowest_cost": "En düşük maliyet",
+    "total_cost": "Toplam Maliyet",
+    "got_it": "Anladım",
+    "price_impact_warning_title": "Yüksek fiyat etkisi",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "Yeni teklifler mevcut",
@@ -6904,7 +6915,7 @@
       "title": "Şifre girin",
       "description": "Kart bilgilerini görüntülemek için cüzdan şifrenizi girin.",
       "description_unfreeze": "Kartınızda harcama yapmaya devam edebilmek için cüzdan şifrenizi girin.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Kartınızın PIN kodunu görüntülemek için cüzdan şifrenizi girin.",
       "placeholder": "Şifre",
       "confirm": "Onayla",
       "cancel": "İptal et",
@@ -6912,7 +6923,7 @@
       "error_incorrect": "Şifre yanlış. Lütfen tekrar deneyin."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "Kartınızın PIN kodu"
     },
     "choose_your_card": {
       "title": "Kartınızı seçin",
@@ -7229,9 +7240,9 @@
         "view_card_details": "Kart bilgilerini görüntüle",
         "hide_card_details": "Kart bilgilerini gizle",
         "view_card_details_description": "Kart numarası, son geçerlilik tarihi ve CVV",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "PIN kodunu görüntüle",
+        "view_pin_description": "Kartınızın PIN kodunu gizli bir şekilde görüntüleyin",
+        "view_pin_error": "PIN kodu yüklenemedi. Lütfen tekrar deneyin.",
         "manage_spending_limit": "Limiti yönet",
         "manage_spending_limit_description_restricted": "Sınırlı harcama açık",
         "manage_spending_limit_description_full": "Tam erişim açık",
@@ -7244,7 +7255,7 @@
         "order_metal_card_description": "Hemen Fiziksel Metal Kart siparişinizi verin",
         "cashback": "Para iadesi",
         "cashback_description": "Tüm harcamalarda %1 iade al",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Tüm harcamalarda %3 iade al",
         "freeze_card": "Kartı dondur",
         "unfreeze_card": "Kartı dondurma işlemini iptal et",
         "freeze_card_description": "Kartındaki tüm harcamaları duraklat",
@@ -7398,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Ödeme yöntemi seç",
     "title_receive": "Token al seçeneğini seç",
-    "no_gas": "Gaz için yerel bakiye yok"
+    "no_gas": "Gaz için yerel bakiye yok",
+    "not_supported": "Desteklenmiyor"
   },
   "connection_removed_modal": {
     "title": "Bağlantılar kaldırıldı",
@@ -7636,12 +7648,12 @@
       "environment_selector": "Ortam",
       "environment_cancel": "İptal",
       "environment_default": "Varsayılan",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Eksik Kayıtlı Hesaplar",
+      "off_device_accounts_banner_description": "Ödül programına kaydolmuş olan ancak bu cihazda bulunmayan hesaplar var.",
+      "off_device_accounts_banner_cta": "Görüntüle",
+      "off_device_accounts_sheet_title": "Eksik Kayıtlı Hesaplar",
+      "off_device_accounts_sheet_description": "Bunlar, MetaMask’i yeniden yükledikten sonra henüz eklenmemiş bir cüzdana ait olabilir. Bu adreslerden hiçbirini tanımıyor musunuz?",
+      "off_device_accounts_sheet_let_us_know": "Bize bildirin"
     },
     "referred_by_code": {
       "title": "Referans Kodu",
@@ -7839,12 +7851,12 @@
       "description": "Devam etmek için lütfen uygulamadan yeni bir bağlantı kurun."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Bir şeyler ters gitti",
+      "description": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Talep başarısız oldu",
+      "description": "Talep tamamlanamadı. Lütfen tekrar deneyin."
     }
   },
   "network_connection_banner": {
@@ -7985,7 +7997,7 @@
       "scanning": "Cihazlar taranıyor...",
       "no_devices_found": "Cihaz bulunamadı",
       "no_devices_hint": "{{device}} cihazınızın kilidinin açık olduğundan ve Bluetooth özelliğinin etkin olduğundan emin olun",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "{{device}} cihazınızın kilidini açın, Bluetooth'u etkinleştirin ve Rahatsız Etme modunun kapalı olduğunda emin olun",
       "connect": "Bağla",
       "rescan": "Tekrar Tara",
       "unknown_device": "Bilinmeyen Cihaz",
@@ -8001,7 +8013,7 @@
       "nfts": "NFT'ler",
       "import_nfts": "NFT'leri içe aktar",
       "import_nfts_description": "Koleksiyon ögelerinizi kolayca ekleyin",
-      "view_more": "View more",
+      "view_more": "Daha fazlasını görüntüle",
       "positions": {
         "no_tp_sl": "KA/ZD yok"
       }

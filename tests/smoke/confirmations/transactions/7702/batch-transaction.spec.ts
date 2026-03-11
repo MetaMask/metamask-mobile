@@ -119,13 +119,11 @@ describe(SmokeConfirmations('7702 - smart account'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .withPermissionControllerConnectedToTestDapp(
               buildPermissions(['0x539']),
@@ -216,13 +214,11 @@ describe(SmokeConfirmations('7702 - smart account'), () => {
 
           return new FixtureBuilder()
             .withNetworkController({
-              providerConfig: {
-                chainId: '0x539',
-                rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
-                type: 'custom',
-                nickname: 'Local RPC',
-                ticker: 'ETH',
-              },
+              chainId: '0x539',
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Local RPC',
+              ticker: 'ETH',
             })
             .build();
         },

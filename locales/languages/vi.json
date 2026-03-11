@@ -104,8 +104,8 @@
       "title": "Không đủ tiền"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Không đủ {{ticker}} để chi trả phí. Nạp thêm {{ticker}} để tiếp tục.",
+      "title": "Không đủ tiền cho báo giá sau"
     },
     "no_pay_token_quotes": {
       "message": "Lộ trình thanh toán này hiện không khả dụng. Hãy thử thay đổi số lượng, mạng hoặc token và chúng tôi sẽ tìm phương án tốt nhất.",
@@ -2077,12 +2077,12 @@
     "title": "Thông tin thị trường",
     "a_closer_look": "Xem chi tiết hơn",
     "whats_being_said": "Những gì đang được nói",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "Tóm tắt AI chỉ mang tính chất cung cấp thông tin",
     "trade_button": "Giao dịch",
     "sources_count": "+{{count}} nguồn",
-    "sources_title": "News sources",
+    "sources_title": "Nguồn tin tức",
     "feedback_submitted": "Đã gửi phản hồi",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "Thông tin này có hữu ích không?",
     "feedback": {
       "title": "Phản hồi",
       "description": "Giúp cải thiện thông tin thị trường do AI tạo ra.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Số dư khả dụng",
     "claim_amount_text": "Nhận ${{amount}}",
     "claim_winnings_text": "Nhận tiền thắng",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Lãi/Lỗ chưa thực hiện",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Không thể tải",
@@ -2275,6 +2276,9 @@
           "title": "Đã xảy ra sự cố",
           "description": "Không thể thực hiện yêu cầu nhận tiền",
           "try_again": "Thử lại"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Phí sàn giao dịch",
       "exchange_fee_description": "Phí trả cho sàn giao dịch hoặc thị trường",
       "total_incl_fees": "bao gồm phí",
-      "close": "Đóng"
+      "close": "Đóng",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Không thể kết nối với thị trường dự đoán",
@@ -2915,10 +2920,6 @@
     "enabling_notifications": "Đang bật thông báo...",
     "updating_notifications": "Đang cập nhật thông báo...",
     "updating_account_settings": "Đang cập nhật chế độ cài đặt tài khoản...",
-    "reset_notifications_title": "Đặt lại thông báo",
-    "reset_notifications_description": "Đặt lại thông báo có nghĩa là bạn đang xóa các khóa lưu trữ thông báo và đặt lại toàn bộ lịch sử thông báo. Bạn có chắc chắn muốn thực hiện điều này không?",
-    "reset_notifications": "Đặt lại thông báo",
-    "reset_notifications_success": "Khóa lưu trữ thông báo đã bị xóa/được tạo lại và lịch sử thông báo đã được đặt lại.",
     "notifications_dismiss_modal": "Đóng",
     "select_rpc_url": "Chọn URL RPC",
     "title": "Cài đặt",
@@ -3705,10 +3706,10 @@
     "speedup_tx_title": "Cố tăng tốc?",
     "speedup_tx_message": "Việc cố tăng tốc này không đảm bảo giao dịch ban đầu của bạn sẽ được tăng tốc. Nếu tăng tốc thành công, bạn sẽ bị tính phí giao dịch ở trên.",
     "nevermind": "Đừng bận tâm",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "Tăng tốc giao dịch",
+    "cancel_speedup_cancel_title": "Hủy giao dịch",
+    "cancel_speedup_speedup_message": "Phí mạng này sẽ thay thế phí ban đầu.",
+    "cancel_speedup_cancel_message": "Giao dịch này sẽ bị hủy và phí mạng này sẽ thay thế phí ban đầu.",
     "edit_network_fee": "Sửa phí gas",
     "edit_priority": "Sửa mức ưu tiên",
     "gas_cancel_fee": "Phí hủy gas",
@@ -4841,7 +4842,7 @@
     "quote_unavailable": "Không có báo giá.",
     "providers": "Nhà cung cấp",
     "quotes_displayed_for": "Báo giá được hiển thị cho {{paymentMethodName}}.",
-    "other_options": "Other options",
+    "other_options": "Tùy chọn khác",
     "previously_used": "Đã sử dụng trước đây",
     "best_rate": "Tỷ giá tốt nhất",
     "most_reliable": "Đáng tin cậy nhất",
@@ -4952,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Chọn nhà cung cấp"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "Liên hệ bộ phận hỗ trợ của {{provider}}",
     "got_it": "Tôi đã hiểu",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Chúng tôi đã gặp lỗi",
+    "no_quotes_error": "Chúng tôi đã gặp sự cố khi tìm nạp báo giá từ {{provider}}. Hãy thử số tiền khác hoặc thay đổi nhà cung cấp.",
     "change_provider_button": "Thay đổi nhà cung cấp"
   },
   "fiat_on_ramp_aggregator": {
@@ -5918,7 +5919,7 @@
     "error_description": "Cài đặt {{snap}} thất bại."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "Phần thưởng quy đổi theo năm bạn đã nhận được khi nắm giữ mUSD. Bạn có thể nhận thưởng hằng ngày trên Linea.",
     "earn_a_percentage_bonus": "Nhận thưởng {{percentage}}%",
     "claimable_bonus": "Thưởng có thể nhận",
     "claim_bonus": "Nhận thưởng",
@@ -6026,21 +6027,21 @@
       "toasts": {
         "converting": "Đang chuyển đổi {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "Chuyển đổi mUSD thành công",
+        "delivered_description": "Bạn sẽ có thể nhận thưởng trong vòng một ngày.",
         "failed": "Chuyển đổi mUSD thất bại"
       },
       "education": {
         "heading": "NHẬN {{percentage}}%\nĐỒNG ỔN ĐỊNH",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm lên đến {{percentage}}% mà bạn có thể nhận hằng ngày.",
         "terms_apply": "Áp dụng điều khoản.",
         "primary_button": "Bắt đầu",
         "secondary_button": "Không phải bây giờ"
       },
       "buy_musd": "Mua mUSD",
       "get_musd": "Nhận mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Nhận {{percentage}}% cho đồng ổn định của bạn",
+      "bonus_description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm {{percentage}}%.",
       "powered_by_relay": "Cung cấp bởi Relay",
       "max": "Tối đa",
       "quick_convert_button": "Chuyển đổi",
@@ -6048,14 +6049,14 @@
       "tooltip_title": "Nhận lợi suất với mUSD",
       "tooltip_content": "Chuyển đổi USDC, USDT hoặc DAI sang mUSD, đồng ổn định được hỗ trợ bằng đô-la của MetaMask. Nhận lợi suất {{apy}} trên mỗi đô-la bạn nắm giữ.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Chuyển đổi và nhận {{percentage}}%",
+        "subtitle": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm lên đến {{percentage}}% mà bạn có thể nhận hằng ngày.",
         "inline_failed_message": "Chuyển đổi thất bại. Hãy thử lại.",
         "confirmation": {
           "title": "Chuyển đổi tối đa"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "Thưởng {{percentage}}%",
       "rate": "Tỷ lệ"
     },
     "bonus_claim": {
@@ -6096,7 +6097,9 @@
       "fee": "Phí",
       "errors": {
         "insufficient_balance": "Bạn không có đủ số dư tài nguyên để thực hiện hành động này."
-      }
+      },
+      "trx_unstaking_in_progress": "Đang tiến hành hủy ký gửi {{amount}} TRX. Quá trình hủy ký gửi sẽ mất 14 ngày.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Ký gửi ETH",
     "unstake_eth": "Hủy ký gửi ETH",
@@ -6347,7 +6350,8 @@
       "metamask_fee": "Phí MetaMask",
       "network_fee": "Phí mạng",
       "bridge_fee": "Phí nhà cung cấp cầu nối",
-      "provider_fee": "Phí nhà cung cấp"
+      "provider_fee": "Phí nhà cung cấp",
+      "sending": "Đang gửi"
     },
     "title": {
       "signature": "Yêu cầu chữ ký",
@@ -6385,10 +6389,10 @@
         "transaction_fee": "Chúng tôi sẽ hoán đổi token của bạn sang USDC.e trên Polygon, mạng được thị trường Dự đoán sử dụng. Các nhà cung cấp dịch vụ hoán đổi có thể tính phí, nhưng MetaMask thì không."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "MetaMask sẽ hoán đổi sang token mà bạn mong muốn. Không áp dụng phí MetaMask khi bạn hoán đổi sang mUSD."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "Phí chuyển đổi mUSD bao gồm phí mạng và có thể bao gồm phí từ nhà cung cấp. Không áp dụng phí MetaMask khi bạn chuyển đổi sang mUSD."
       },
       "title": {
         "transaction_fee": "Phí"
@@ -6574,12 +6578,12 @@
     "hardware_wallet_not_supported": "Ví cứng hiện chưa được hỗ trợ. Hãy sử dụng ví nóng để tiếp tục.",
     "hardware_wallet_not_supported_solana": "Ví cứng hiện chưa được hỗ trợ cho Solana. Hãy sử dụng ví nóng để tiếp tục.",
     "price_impact_info_title": "Mức tác động giá",
-    "price_impact_info_description": "Tác động giá phản ánh cách lệnh hoán đổi của bạn ảnh hưởng đến giá thị trường của tài sản. Nó phụ thuộc vào kích thước giao dịch và thanh khoản có sẵn trong bể. MetaMask không ảnh hưởng hoặc kiểm soát tác động giá.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Tác động giá phản ánh cách lệnh hoán đổi của bạn ảnh hưởng đến giá thị trường của tài sản. Nếu bạn không có đủ tiền để trả phí gas, một phần token gốc của bạn sẽ tự động được phân bổ để trả phí, làm tăng tác động giá. MetaMask không can thiệp hoặc kiểm soát tác động giá.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Tác động giá cao",
+    "price_impact_execution_description": "Bạn sẽ mất khoảng {{priceImpact}} giá trị token trong lần hoán đổi này. Hãy thử giảm số lượng hoặc chọn tuyến thanh khoản tốt hơn.",
+    "proceed": "Tiếp tục",
     "cancel": "Hủy",
     "slippage_info_title": "Trượt giá",
     "slippage_info_description": "Phần trăm thay đổi giá mà bạn chấp nhận trước khi giao dịch bị hủy.",
@@ -6607,7 +6611,14 @@
     "exceeding_upper_slippage_error": "Bạn không thể nhập giá trị lớn hơn {{value}}%",
     "custom": "Tùy chỉnh",
     "invalid_recipient_address": "Địa chỉ không hợp lệ",
-    "got_it": "Got it"
+    "select_quote": "Chọn báo giá",
+    "select_quote_info": "Các báo giá được sắp xếp theo tổng chi phí ước tính, bao gồm tỷ giá và phí mạng.",
+    "lowest_cost": "Chi phí thấp nhất",
+    "total_cost": "Tổng chi phí",
+    "got_it": "Tôi đã hiểu",
+    "price_impact_warning_title": "Tác động giá cao",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "Đã có báo giá mới",
@@ -6904,7 +6915,7 @@
       "title": "Nhập mật khẩu",
       "description": "Nhập mật khẩu ví của bạn để xem thông tin thẻ.",
       "description_unfreeze": "Nhập mật khẩu ví của bạn để tiếp tục chi tiêu bằng thẻ.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Nhập mật khẩu ví của bạn để xem mã PIN thẻ.",
       "placeholder": "Mật khẩu",
       "confirm": "Xác nhận",
       "cancel": "Hủy",
@@ -6912,7 +6923,7 @@
       "error_incorrect": "Mật khẩu không chính xác. Vui lòng thử lại."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "Mã PIN thẻ của bạn"
     },
     "choose_your_card": {
       "title": "Chọn thẻ của bạn",
@@ -7229,9 +7240,9 @@
         "view_card_details": "Xem thông tin thẻ",
         "hide_card_details": "Ẩn thông tin thẻ",
         "view_card_details_description": "Số thẻ, ngày hết hạn và số CVV",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "Xem mã PIN",
+        "view_pin_description": "Xem mã PIN thẻ của bạn một cách an toàn",
+        "view_pin_error": "Không tải được mã PIN. Vui lòng thử lại.",
         "manage_spending_limit": "Quản lý hạn mức",
         "manage_spending_limit_description_restricted": "Giới hạn chi tiêu đang bật",
         "manage_spending_limit_description_full": "Quyền truy cập đầy đủ đang bật",
@@ -7244,7 +7255,7 @@
         "order_metal_card_description": "Đặt hàng Thẻ Metal vật lý ngay",
         "cashback": "Hoàn tiền",
         "cashback_description": "Nhận lại 1% cho mọi chi tiêu",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Nhận lại 3% cho mọi chi tiêu",
         "freeze_card": "Khóa thẻ",
         "unfreeze_card": "Mở khóa thẻ",
         "freeze_card_description": "Tạm dừng mọi chi tiêu trên thẻ của bạn",
@@ -7398,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Chọn phương thức thanh toán",
     "title_receive": "Chọn token nhận được",
-    "no_gas": "Không có số dư token gốc để trả phí gas"
+    "no_gas": "Không có số dư token gốc để trả phí gas",
+    "not_supported": "Không được hỗ trợ"
   },
   "connection_removed_modal": {
     "title": "Kết nối đã bị xóa",
@@ -7636,12 +7648,12 @@
       "environment_selector": "Môi trường",
       "environment_cancel": "Hủy",
       "environment_default": "Mặc định",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Thiếu tài khoản đã đăng ký",
+      "off_device_accounts_banner_description": "Có các tài khoản đã được đăng ký vào chương trình phần thưởng nhưng không tìm thấy trên thiết bị này.",
+      "off_device_accounts_banner_cta": "Xem",
+      "off_device_accounts_sheet_title": "Thiếu tài khoản đã đăng ký",
+      "off_device_accounts_sheet_description": "Những tài khoản này có thể thuộc về một ví chưa được thêm vào sau khi cài đặt lại MetaMask. Bạn không nhận ra bất kỳ địa chỉ nào trong số này?",
+      "off_device_accounts_sheet_let_us_know": "Hãy cho chúng tôi biết"
     },
     "referred_by_code": {
       "title": "Mã giới thiệu",
@@ -7839,12 +7851,12 @@
       "description": "Vui lòng thiết lập kết nối mới từ ứng dụng để tiếp tục."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Đã xảy ra sự cố",
+      "description": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Yêu cầu thất bại",
+      "description": "Không thể hoàn tất yêu cầu. Vui lòng thử lại."
     }
   },
   "network_connection_banner": {
@@ -7985,7 +7997,7 @@
       "scanning": "Đang quét thiết bị...",
       "no_devices_found": "Không tìm thấy thiết bị nào",
       "no_devices_hint": "Đảm bảo {{device}} đã được mở khóa và Bluetooth đã được bật",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Mở khóa {{device}} của bạn, bật Bluetooth và đảm bảo đã tắt chế độ Không làm phiền",
       "connect": "Kết nối",
       "rescan": "Quét lại",
       "unknown_device": "Thiết bị không xác định",
@@ -8001,7 +8013,7 @@
       "nfts": "NFT",
       "import_nfts": "Nhập NFT",
       "import_nfts_description": "Dễ dàng thêm các bộ sưu tập của bạn",
-      "view_more": "View more",
+      "view_more": "Xem thêm",
       "positions": {
         "no_tp_sl": "Không có Chốt lời/Cắt lỗ"
       }

@@ -40,7 +40,7 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
 }));
 
-jest.mock('../Analytics/whenEngineReady', () => ({
+jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

@@ -27,7 +27,14 @@ import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
-import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import {
+  saveOnboardingEvent as saveEvent,
+  setAccountType,
+} from '../../../actions/onboarding';
+import {
+  AccountType,
+  getSocialAccountType,
+} from '../../../constants/onboarding';
 import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
   storePna25Acknowledged as storePna25AcknowledgedAction,
@@ -350,14 +357,15 @@ const Onboarding = () => {
         [PREVIOUS_SCREEN]: ONBOARDING,
         onboardingTraceCtx: onboardingTraceCtx.current,
       });
+      dispatch(setAccountType(AccountType.Metamask));
       track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-        account_type: 'metamask',
+        account_type: AccountType.Metamask,
       });
     };
 
     handleExistingUser(action);
     endTrace({ name: TraceName.OnboardingCreateWallet });
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const onPressImport = useCallback(async (): Promise<void> => {
     if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -384,12 +392,13 @@ const Onboarding = () => {
           onboardingTraceCtx: onboardingTraceCtx.current,
         },
       );
+      dispatch(setAccountType(AccountType.Imported));
       track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-        account_type: 'imported',
+        account_type: AccountType.Imported,
       });
     };
     handleExistingUser(action);
-  }, [metrics, navigation, track, handleExistingUser]);
+  }, [metrics, navigation, track, handleExistingUser, dispatch]);
 
   const handlePostSocialLogin = useCallback(
     (
@@ -404,9 +413,11 @@ const Onboarding = () => {
       }
 
       if (result.type === 'success') {
-        // Track social login completed
+        const accountType = getSocialAccountType(provider, result.existingUser);
+        dispatch(setAccountType(accountType));
+
         track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
-          account_type: provider,
+          account_type: accountType,
         });
         if (createWallet) {
           if (result.existingUser) {
@@ -480,7 +491,7 @@ const Onboarding = () => {
         // handle error: show error message in the UI
       }
     },
-    [navigation, track],
+    [navigation, track, dispatch],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -529,7 +540,10 @@ const Onboarding = () => {
           // login as an alternative since the user's intent is to sign in - they just prefer
           // not to use the One Tap UI. Browser OAuth provides a familiar login experience.
           error.code === OAuthErrorType.GoogleLoginUserDisabledOneTapFeature ||
-          error.code === OAuthErrorType.GoogleLoginOneTapFailure
+          error.code === OAuthErrorType.GoogleLoginOneTapFailure ||
+          // GoogleLoginNoProviderDependencies: The Android Credential Manager cannot find
+          // required provider dependencies. Fallback to browser-based OAuth.
+          error.code === OAuthErrorType.GoogleLoginNoProviderDependencies
         ) {
           // For Android Google, try browser fallback instead of showing error.
           // Note: We intentionally call handleOAuthLoginError (not handleLoginError) in the
@@ -676,13 +690,14 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
+      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
-          account_type: `metamask_${provider}`,
+          account_type: accountType,
         });
       } else {
         track(MetaMetricsEvents.WALLET_IMPORT_STARTED, {
-          account_type: `imported_${provider}`,
+          account_type: accountType,
         });
       }
 

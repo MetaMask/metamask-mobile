@@ -7,6 +7,7 @@ import type { OnChainRawNotification } from '@metamask/notification-services-con
 import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { ModalFooterType } from '../../../../../util/notifications/constants/config';
 import {
@@ -33,20 +34,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const trackEventMock = jest.fn();
 
-(useAnalytics as jest.MockedFn<typeof useAnalytics>).mockReturnValue({
-  trackEvent: trackEventMock,
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
-
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
 }));
@@ -54,6 +41,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 describe('BlockExplorerFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: trackEventMock,
+        // The real builder is needed so build() produces the correct event shape
+        // for assertions on trackEvent call arguments.
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('returns null when no URL is available', () => {

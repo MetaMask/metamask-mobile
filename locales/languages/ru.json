@@ -104,8 +104,8 @@
       "title": "Недостаточно средств"
     },
     "insufficient_pay_token_native_post_quote": {
-      "message": "Not enough {{ticker}} to cover fees. Add {{ticker}} to continue.",
-      "title": "Insufficient funds for post quote"
+      "message": "Недостаточно {{ticker}} для покрытия комиссий. Добавьте {{ticker}}, чтобы продолжить.",
+      "title": "Недостаточно средств для публикации котировки"
     },
     "no_pay_token_quotes": {
       "message": "Этот путь оплаты сейчас недоступен. Попробуйте изменить сумму, сеть или токен, и мы подберём оптимальный вариант.",
@@ -2077,12 +2077,12 @@
     "title": "Аналитика рынка",
     "a_closer_look": "Подробный обзор",
     "whats_being_said": "Что говорят",
-    "footer_disclaimer": "AI summary for information only",
+    "footer_disclaimer": "ИИ-сводка только для информации",
     "trade_button": "Торговать",
     "sources_count": "+{{count}} источника(-ов)",
-    "sources_title": "News sources",
+    "sources_title": "Источники новостей",
     "feedback_submitted": "Отзыв отправлен",
-    "helpful_prompt": "Was this helpful?",
+    "helpful_prompt": "Это было полезно?",
     "feedback": {
       "title": "Отзыв",
       "description": "Помогите улучшить наши обзоры рынка, созданные с помощью ИИ.",
@@ -2197,6 +2197,7 @@
     "available_balance": "Доступный баланс",
     "claim_amount_text": "Получить {{amount}} $",
     "claim_winnings_text": "Получить выигрыши",
+    "claiming_text": "Claiming...",
     "unrealized_pnl_label": "Нереализованные П/У",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Не удалось загрузить",
@@ -2275,6 +2276,9 @@
           "title": "Что-то пошло не так",
           "description": "Не удалось востребовать",
           "try_again": "Повторить попытку"
+        },
+        "in_progress": {
+          "title": "Claim already in progress"
         }
       }
     },
@@ -2333,7 +2337,8 @@
       "exchange_fee": "Комиссия биржи",
       "exchange_fee_description": "Комиссия, уплачиваемая бирже или рынку",
       "total_incl_fees": "вкл. комиссии",
-      "close": "Закрыть"
+      "close": "Закрыть",
+      "fak_partial_fill_note": "Prices shown assume your order is fully filled. Actual amounts may vary if the order is only partially filled."
     },
     "error": {
       "title": "Невозможно подключиться к прогнозам",
@@ -2915,10 +2920,6 @@
     "enabling_notifications": "Включение уведомлений...",
     "updating_notifications": "Обновление уведомлений...",
     "updating_account_settings": "Обновление настроек счета…",
-    "reset_notifications_title": "Сбросить уведомления",
-    "reset_notifications_description": "Сброс уведомлений приведет к удалению ключей хранения уведомлений и сбросу всей истории уведомлений. Уверены, что хотите это сделать?",
-    "reset_notifications": "Сбросить уведомления",
-    "reset_notifications_success": "Ключ хранения уведомлений удален и/или создан заново, а история уведомлений сброшена.",
     "notifications_dismiss_modal": "Отклонить",
     "select_rpc_url": "Выберите URL-адрес RPC",
     "title": "Настройки",
@@ -3705,10 +3706,10 @@
     "speedup_tx_title": "Попытаться ускорить?",
     "speedup_tx_message": "Эта попытка не гарантирует, что ваша первоначальная транзакция будет ускорена. Если попытка ускорения окажется успешной, с вас будет удержана вышеуказанная комиссия за транзакцию.",
     "nevermind": "Неважно",
-    "cancel_speedup_speedup_title": "Speed up Transaction",
-    "cancel_speedup_cancel_title": "Cancel Transaction",
-    "cancel_speedup_speedup_message": "This network fee will replace the original.",
-    "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
+    "cancel_speedup_speedup_title": "Ускорить транзакцию",
+    "cancel_speedup_cancel_title": "Отменить транзакцию",
+    "cancel_speedup_speedup_message": "Эта комиссия сети заменит исходную.",
+    "cancel_speedup_cancel_message": "Эта транзакция будет отменена, а эта комиссия сети заменит исходную.",
     "edit_network_fee": "Изменить плату за газ",
     "edit_priority": "Изменить приоритет",
     "gas_cancel_fee": "Плата за газ при отмене",
@@ -4841,7 +4842,7 @@
     "quote_unavailable": "Котировка недоступна.",
     "providers": "Поставщики",
     "quotes_displayed_for": "Котировки отображаются для {{paymentMethodName}}.",
-    "other_options": "Other options",
+    "other_options": "Другие варианты",
     "previously_used": "Ранее использовались",
     "best_rate": "Лучший курс",
     "most_reliable": "Самый надежный",
@@ -4952,10 +4953,10 @@
     "provider_picker_modal": {
       "title": "Выберите поставщика"
     },
-    "contact_provider_support": "Contact {{provider}} support",
+    "contact_provider_support": "Связаться с поддержкой {{provider}}",
     "got_it": "Понятно",
-    "encountered_error": "We've encountered an error",
-    "no_quotes_error": "We encountered a problem fetching quotes from {{provider}}. Try a different amount or changing provider.",
+    "encountered_error": "Произошла ошибка",
+    "no_quotes_error": "У нас возникла проблема с получением котировок от {{provider}}. Попробуйте другую сумму или смените поставщика.",
     "change_provider_button": "Изменить поставщика"
   },
   "fiat_on_ramp_aggregator": {
@@ -5918,7 +5919,7 @@
     "error_description": "Не удалось установить {{snap}}."
   },
   "earn": {
-    "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
+    "claimable_bonus_tooltip": "Годовой бонус, который вы заработали за хранение mUSD. Ваш бонус можно получить ежедневно на Linea.",
     "earn_a_percentage_bonus": "Заработайте бонус в размере {{percentage}}%",
     "claimable_bonus": "Встребуемый бонус",
     "claim_bonus": "Получить бонус",
@@ -6026,21 +6027,21 @@
       "toasts": {
         "converting": "Конвертация {{token}} → mUSD",
         "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
+        "delivered": "Конвертация в mUSD прошла успешно",
+        "delivered_description": "Бонус можно будет получить в течение дня.",
         "failed": "Конвертация mUSD не удалась."
       },
       "education": {
         "heading": "ПОЛУЧИТЕ {{percentage}}% НА\nСТЕЙБЛКОИНЫ",
-        "description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "description": "Конвертируйте свои стейблкоины в mUSD и получайте до {{percentage}}% годовых в виде бонуса, который можно забирать ежедневно.",
         "terms_apply": "Применяются условия.",
         "primary_button": "Начало работы",
         "secondary_button": "Не сейчас"
       },
       "buy_musd": "Купить mUSD",
       "get_musd": "Получить mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
+      "bonus_title": "Получите {{percentage}}% на ваши стейблкоины",
+      "bonus_description": "Конвертируйте свои стейблкоины в mUSD и получайте бонус {{percentage}}% годовых.",
       "powered_by_relay": "При поддержке Relay",
       "max": "Максимум",
       "quick_convert_button": "Конвертировать",
@@ -6048,14 +6049,14 @@
       "tooltip_title": "Получайте доходность с mUSD",
       "tooltip_content": "Конвертируйте свои USDC, USDT или DAI в mUSD, стейблкоин MetaMask, обеспеченный долларом. Получайте доходность в размере {{apy}} с каждого имеющегося у вас доллара.",
       "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
+        "title": "Конвертируйте и получите {{percentage}}%",
+        "subtitle": "Конвертируйте свои стейблкоины в mUSD и получайте бонус до {{percentage}}% годовых, который можно забирать ежедневно.",
         "inline_failed_message": "Ошибка конвертации. Попробуйте еще раз.",
         "confirmation": {
           "title": "Конвертировать максимум"
         }
       },
-      "percentage_bonus": "{{percentage}}% bonus",
+      "percentage_bonus": "Бонус {{percentage}}%",
       "rate": "Курс"
     },
     "bonus_claim": {
@@ -6096,7 +6097,9 @@
       "fee": "Комиссия",
       "errors": {
         "insufficient_balance": "У вас недостаточно ресурсов для выполнения этого действия."
-      }
+      },
+      "trx_unstaking_in_progress": "Выполняется вывод {{amount}} TRX из стейкинга. Он займет 14 дней.",
+      "has_claimable_trx": "You can claim {{amount}} TRX. Once claimed you'll get TRX back in your wallet."
     },
     "stake_eth": "Выполнить стейкинг ETH",
     "unstake_eth": "Отменить стейкинг ETH",
@@ -6347,7 +6350,8 @@
       "metamask_fee": "Комиссия MetaMask",
       "network_fee": "Комиссия сети",
       "bridge_fee": "Комиссия поставщика моста",
-      "provider_fee": "Комиссия поставщика"
+      "provider_fee": "Комиссия поставщика",
+      "sending": "Отправка"
     },
     "title": {
       "signature": "Запрос подписи",
@@ -6385,10 +6389,10 @@
         "transaction_fee": "Мы обменяем ваши токены на USDC.e в Polygon, сети, используемой функцией «Прогнозы». Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
       },
       "predict_withdraw": {
-        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
+        "transaction_fee": "MetaMask автоматически обменяет ваш токен на желаемый. При обмене на mUSD комиссия MetaMask не взимается."
       },
       "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
+        "transaction_fee": "В стоимость конвертации mUSD входят расходы сети, а также могут входить комиссии поставщика. При обмене на mUSD комиссия MetaMask не взимается."
       },
       "title": {
         "transaction_fee": "Комиссии"
@@ -6574,12 +6578,12 @@
     "hardware_wallet_not_supported": "Аппаратные кошельки пока не поддерживаются. Используйте горячий кошелек, чтобы продолжить.",
     "hardware_wallet_not_supported_solana": "Аппаратные кошельки пока не поддерживаются для Solana. Используйте горячий кошелек, чтобы продолжить.",
     "price_impact_info_title": "Влияние на цену",
-    "price_impact_info_description": "Влияние на цену отражает, как ваш своп-ордер влияет на рыночную цену актива. Оно зависит от объёма сделки и доступной ликвидности в пуле. MetaMask не имеет отношения к влиянию на цену и не контролирует его.",
+    "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Влияние на цену отражает, как ваш ордер на своп влияет на рыночную цену актива. Если у вас недостаточно средств для оплаты газа, часть вашего исходного токена автоматически выделяется на покрытие комиссий, что увеличивает влияние на цену. MetaMask не влияет на воздействие цену и не контролирует его.",
-    "price_impact_warning_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
-    "price_impact_high": "High price impact",
-    "price_impact_execution_description": "You'll lose approximately {{priceImpact}} of your token's value on this swap. Try lowering the amount or choosing a more liquid route.",
-    "proceed": "Proceed",
+    "price_impact_warning_description": "Because of your trade size and available liquidity, you'll get about {{priceImpact}} less than the market price. This is already factored into your quote.",
+    "price_impact_high": "Сильное влияние на цену",
+    "price_impact_execution_description": "В результате этого обмена вы потеряете примерно {{priceImpact}} от стоимости вашего токена. Попробуйте уменьшить сумму или выбрать более ликвидный вариант.",
+    "proceed": "Продолжить",
     "cancel": "Отмена",
     "slippage_info_title": "Проскальзывание",
     "slippage_info_description": "Процент изменения цены, который вы готовы допустить, прежде чем транзакция будет отменена.",
@@ -6607,7 +6611,14 @@
     "exceeding_upper_slippage_error": "Вы не можете ввести значение более {{value}}%",
     "custom": "Пользовательские",
     "invalid_recipient_address": "Недействительный адрес",
-    "got_it": "Got it"
+    "select_quote": "Выбрать котировку",
+    "select_quote_info": "Котировки отсортированы по расчетной общей стоимости, которая включает обменный курс и комиссию сети.",
+    "lowest_cost": "Самая низкая стоимость",
+    "total_cost": "Общая стоимость",
+    "got_it": "Понятно",
+    "price_impact_warning_title": "Сильное влияние на цену",
+    "price_impact_error_title": "Very high price impact",
+    "price_impact_error_description": "You'll lose approximately {{priceImpact}} of your token's market price on this swap. Try a smaller trade or a more liquid route to improve your rate."
   },
   "quote_expired_modal": {
     "title": "Доступны новые котировки",
@@ -6904,7 +6915,7 @@
       "title": "Введите пароль",
       "description": "Введите пароль от своего кошелька, чтобы просмотреть реквизиты карты.",
       "description_unfreeze": "Введите пароль от своего кошелька, чтобы возобновить расходы по карте.",
-      "description_view_pin": "Enter your wallet password to view your card PIN.",
+      "description_view_pin": "Введите пароль от кошелька, чтобы посмотреть PIN-код карты.",
       "placeholder": "Пароль",
       "confirm": "Подтвердить",
       "cancel": "Отмена",
@@ -6912,7 +6923,7 @@
       "error_incorrect": "Неверный пароль. Повторите попытку."
     },
     "view_pin_bottomsheet": {
-      "title": "Your Card PIN"
+      "title": "PIN-код вашей карты"
     },
     "choose_your_card": {
       "title": "Выберите свою карту",
@@ -7229,9 +7240,9 @@
         "view_card_details": "Смотреть реквизиты карты",
         "hide_card_details": "Скрыть реквизиты карты",
         "view_card_details_description": "Номер карты, срок действия и CVV-код",
-        "view_pin": "View PIN",
-        "view_pin_description": "View your card PIN securely",
-        "view_pin_error": "Failed to load PIN. Please try again.",
+        "view_pin": "Посмотреть PIN-код",
+        "view_pin_description": "Безопасный просмотр PIN-кода вашей карты",
+        "view_pin_error": "Не удалось загрузить PIN-код. Повторите попытку.",
         "manage_spending_limit": "Управление лимитом",
         "manage_spending_limit_description_restricted": "Активирован лимит расходов",
         "manage_spending_limit_description_full": "Активирован полный доступ",
@@ -7244,7 +7255,7 @@
         "order_metal_card_description": "Закажите свою физическую металлическую карту прямо сейчас",
         "cashback": "Кешбэк",
         "cashback_description": "Получайте 1% всех трат обратно",
-        "cashback_description_metal": "Earn 3% back on all spending",
+        "cashback_description_metal": "Получайте 3% всех трат обратно",
         "freeze_card": "Заблокировать карту",
         "unfreeze_card": "Разблокировать карту",
         "freeze_card_description": "Приостановить все расходы по вашей карте",
@@ -7398,7 +7409,8 @@
   "pay_with_modal": {
     "title": "Выбрать способ оплаты",
     "title_receive": "Выберите токен для получения",
-    "no_gas": "Нет нативного баланса для оплаты газа"
+    "no_gas": "Нет нативного баланса для оплаты газа",
+    "not_supported": "Не поддерживается"
   },
   "connection_removed_modal": {
     "title": "Соединения удалены",
@@ -7636,12 +7648,12 @@
       "environment_selector": "Среда",
       "environment_cancel": "Отмена",
       "environment_default": "По умолчанию",
-      "off_device_accounts_banner_title": "Missing Enrolled Accounts",
-      "off_device_accounts_banner_description": "There are accounts that were enrolled into the rewards program but are not found on this device.",
-      "off_device_accounts_banner_cta": "View",
-      "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
-      "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
-      "off_device_accounts_sheet_let_us_know": "Let us know"
+      "off_device_accounts_banner_title": "Отсутствуют зарегистрированные счета",
+      "off_device_accounts_banner_description": "Есть счета, зарегистрированные в программе вознаграждений, но не найденные на этом устройстве.",
+      "off_device_accounts_banner_cta": "Просмотр",
+      "off_device_accounts_sheet_title": "Отсутствуют зарегистрированные счета",
+      "off_device_accounts_sheet_description": "Возможно, эти адреса принадлежат кошельку, который еще не был добавлен после переустановки MetaMask. Не узнаете ни один из этих адресов?",
+      "off_device_accounts_sheet_let_us_know": "Сообщите нам"
     },
     "referred_by_code": {
       "title": "Реферальный код",
@@ -7839,12 +7851,12 @@
       "description": "Для продолжения установите новое соединение через приложение."
     },
     "show_internal_error": {
-      "title": "Something went wrong",
-      "description": "An unexpected error occurred. Please try again."
+      "title": "Что-то пошло не так",
+      "description": "Произошла непредвиденная ошибка. Повторите попытку."
     },
     "show_method_error": {
-      "title": "Request failed",
-      "description": "The request could not be completed. Please try again."
+      "title": "Не удалось выполнить запрос",
+      "description": "Не удалось выполнить запрос. Повторите попытку."
     }
   },
   "network_connection_banner": {
@@ -7985,7 +7997,7 @@
       "scanning": "Поиск устройств...",
       "no_devices_found": "Устройства не найдены",
       "no_devices_hint": "Убедитесь, что ваше {{device}} разблокировано и Bluetooth включен",
-      "tips": "Unlock your {{device}}, enable Bluetooth, and ensure Do Not Disturb is turned off",
+      "tips": "Разблокируйте свой {{device}}, включите Bluetooth и убедитесь, что режим «Не беспокоить» выключен",
       "connect": "Подключиться",
       "rescan": "Повторить поиск",
       "unknown_device": "Неизвестное устройство",
@@ -8001,7 +8013,7 @@
       "nfts": "NFT",
       "import_nfts": "Импорт NFT",
       "import_nfts_description": "Легко добавляйте свои предметы коллекционирования",
-      "view_more": "View more",
+      "view_more": "Показать еще",
       "positions": {
         "no_tp_sl": "Нет TP/SL"
       }

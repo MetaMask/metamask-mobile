@@ -4,7 +4,11 @@ import { LocalNodeType, TestSuiteParams } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Assertions from '../../framework/Assertions';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import { PerpsHelpers } from '../../helpers/perps/perps-helpers';
@@ -33,13 +37,11 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           .withPerpsFirstTimeUser(false)
           .withKeyringControllerOfMultipleAccounts()
           .withNetworkController({
-            providerConfig: {
-              type: 'rpc',
-              chainId: '0xa4b1',
-              rpcUrl: 'https://arb1.arbitrum.io/rpc',
-              nickname: 'Arbitrum One',
-              ticker: 'ETH',
-            },
+            type: 'rpc',
+            chainId: '0xa4b1',
+            rpcUrl: 'https://arb1.arbitrum.io/rpc',
+            nickname: 'Arbitrum One',
+            ticker: 'ETH',
           })
           .withTokensForAllPopularNetworks([
             {
@@ -65,7 +67,13 @@ describe(SmokePerps('Perps - Add funds (has funds, not first time)'), () => {
           )
           .build(),
         restartDevice: true,
-        testSpecificMock: PERPS_ARBITRUM_MOCKS,
+        testSpecificMock: async (mockServer) => {
+          await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
+        },
         useCommandQueueServer: true,
         localNodeOptions: [
           {

@@ -343,6 +343,21 @@ export const isTestNetworkWithFaucet = (chainId) =>
  */
 export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
+/**
+ * Returns whether the network can be deleted by the user.
+ * Aligns with NetworkSelector: mainnet, Linea mainnet, and testnets cannot be removed.
+ *
+ * @param {string} chainId - The chain ID to check (e.g. '0x1', '0x89').
+ * @returns {boolean} True if the network can be deleted, false otherwise.
+ */
+export const canDeleteNetwork = (chainId) =>
+  Boolean(
+    chainId &&
+      !isTestNet(chainId) &&
+      !isMainNet(chainId) &&
+      !isLineaMainnetChainId(chainId),
+  );
+
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NetworkSwitchErrorType.missingNetworkId);

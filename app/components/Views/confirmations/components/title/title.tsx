@@ -155,9 +155,7 @@ const getTitleAndSubTitle = (
         };
       }
       if (TRANSFER_TRANSACTION_TYPES.includes(transactionType)) {
-        return {
-          title: strings('confirm.title.transfer'),
-        };
+        return {};
       }
       if (APPROVE_TRANSACTION_TYPES.includes(transactionType)) {
         const { title, subTitle } = getApproveTitle(approveTransactionData);
@@ -180,6 +178,14 @@ const getTitleAndSubTitle = (
         return {
           title: strings('confirm.title.contract_deployment'),
           subTitle: strings('confirm.sub_title.contract_deployment'),
+        };
+      }
+
+      if (transactionType === TransactionType.musdConversion) {
+        return {
+          title: strings(
+            'earn.musd_conversion.quick_convert.confirmation.title',
+          ),
         };
       }
 
@@ -221,6 +227,14 @@ const Title = () => {
     return null;
   }
 
+  // Avoid rendering a fallback title while transaction metadata is still loading
+  if (
+    approvalRequest?.type === ApprovalType.Transaction &&
+    !transactionMetadata
+  ) {
+    return null;
+  }
+
   const { title, subTitle } = getTitleAndSubTitle(
     approvalRequest,
     signatureRequest,
@@ -231,6 +245,10 @@ const Title = () => {
     approveTransactionData,
     networkName,
   );
+
+  if (!title) {
+    return null;
+  }
 
   return (
     <View style={styles.titleContainer}>

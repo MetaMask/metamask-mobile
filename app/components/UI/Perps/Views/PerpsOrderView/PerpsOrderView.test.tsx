@@ -406,12 +406,6 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   })),
 }));
 
-jest.mock('../../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: jest.fn(() => ({
-    navigateToConfirmation: jest.fn(),
-  })),
-}));
-
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
   () => ({
@@ -600,8 +594,9 @@ jest.mock('../../components/PerpsNotificationTooltip', () => {
   };
 });
 
-// Mock network utils - these are external utilities that should be mocked
+// Mock network utils - spread actual to satisfy transitive deps (e.g. stakeableTokens.getDecimalChainId), override only what we need
 jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   getDefaultNetworkByChainId: jest.fn(() => ({ name: 'Arbitrum' })),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon' })),
 }));
