@@ -3622,10 +3622,8 @@ describe('PredictController', () => {
         chainId: '0x89',
       });
 
-      (addTransaction as jest.Mock).mockResolvedValue({
-        transactionMeta: {
-          id: 'tx-pay-with-any-token',
-        },
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'tx-pay-with-any-token',
       });
 
       await withController(async ({ controller }) => {
@@ -3638,20 +3636,20 @@ describe('PredictController', () => {
           },
         });
 
-        expect(addTransaction).toHaveBeenCalledWith(
-          {
-            to: depositTransaction.params.to,
-            from: '0x1234567890123456789012345678901234567890',
-            data: depositTransaction.params.data,
-          },
+        expect(addTransactionBatch).toHaveBeenCalledWith(
           expect.objectContaining({
-            type: 'predictDepositAndOrder',
+            from: '0x1234567890123456789012345678901234567890',
+            transactions: expect.arrayContaining([
+              expect.objectContaining({
+                type: 'predictDepositAndOrder',
+              }),
+            ]),
           }),
         );
       });
     });
 
-    it('throws when deposit transaction is missing from preparation response', async () => {
+    it('processes batch when no predict deposit transaction type is present', async () => {
       mockPolymarketProvider.prepareDeposit.mockResolvedValue({
         transactions: [
           {
@@ -3665,12 +3663,21 @@ describe('PredictController', () => {
         chainId: '0x89',
       });
 
-      await withController(async ({ controller }) => {
-        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
-          'No predict deposit transaction returned from deposit preparation',
-        );
+      (addTransactionBatch as jest.Mock).mockResolvedValue({
+        batchId: 'batch-no-deposit',
+      });
 
-        expect(addTransaction).not.toHaveBeenCalled();
+      await withController(async ({ controller }) => {
+        const result = await controller.payWithAnyTokenConfirmation();
+
+        expect(result).toEqual({
+          success: true,
+          response: {
+            batchId: 'batch-no-deposit',
+          },
+        });
+
+        expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
   });

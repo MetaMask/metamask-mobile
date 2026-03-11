@@ -70,7 +70,10 @@ describe('usePredictPaymentToken', () => {
       rerender({ onTokenSelected });
     });
 
-    expect(onTokenSelected).toHaveBeenCalledWith('0x1234', '0x1234');
+    expect(onTokenSelected).toHaveBeenCalledWith({
+      tokenAddress: '0x1234',
+      tokenKey: '0x1234',
+    });
   });
 
   it('calls onTokenSelected with predict-balance key when switching back to predict balance', async () => {
@@ -94,7 +97,10 @@ describe('usePredictPaymentToken', () => {
       rerender({ onTokenSelected });
     });
 
-    expect(onTokenSelected).toHaveBeenCalledWith(null, 'predict-balance');
+    expect(onTokenSelected).toHaveBeenCalledWith({
+      tokenAddress: null,
+      tokenKey: 'predict-balance',
+    });
   });
 
   it('does not call onTokenSelected when token selection does not change', async () => {

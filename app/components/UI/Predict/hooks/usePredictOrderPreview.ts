@@ -69,8 +69,8 @@ export function usePredictOrderPreview(
   });
 
   const preview = hasValidSize
-    ? (query.data ?? params.initialPreview)
-    : params.initialPreview;
+    ? (query.data ?? params.initialPreview ?? null)
+    : (params.initialPreview ?? null);
   const error = query.error
     ? parseErrorMessage({
         error: query.error,

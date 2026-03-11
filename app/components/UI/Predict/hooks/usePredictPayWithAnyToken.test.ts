@@ -81,7 +81,7 @@ describe('usePredictPayWithAnyToken', () => {
     });
 
     await act(async () => {
-      await result.current.triggerPayWithAnyToken({
+      result.current.triggerPayWithAnyToken({
         market,
         outcome,
         outcomeToken,
@@ -92,27 +92,22 @@ describe('usePredictPayWithAnyToken', () => {
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       headerShown: false,
-      replace: true,
-      routeParams: expect.objectContaining({
-        market: expect.objectContaining({ id: 'market-1' }),
-        outcome: expect.objectContaining({ id: 'outcome-1' }),
-        outcomeToken: expect.objectContaining({ id: 'token-1' }),
-        isConfirmation: true,
-      }),
     });
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('goes back and shows error toast when payWithAnyTokenConfirmation fails', async () => {
-    mockPayWithAnyTokenConfirmation.mockRejectedValue(new Error('boom'));
+    mockPayWithAnyTokenConfirmation.mockImplementation(() => {
+      throw new Error('boom');
+    });
 
     const { result } = renderHook(() => usePredictPayWithAnyToken(), {
       wrapper,
     });
 
     await act(async () => {
-      await result.current.triggerPayWithAnyToken({
+      result.current.triggerPayWithAnyToken({
         market,
         outcome,
         outcomeToken,

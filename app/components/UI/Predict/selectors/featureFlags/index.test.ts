@@ -934,7 +934,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictPayWithAnyToken: {
+                predictWithAnyToken: {
                   enabled: true,
                   minimumVersion: '1.0.0',
                 },
@@ -957,7 +957,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictPayWithAnyToken: {
+                predictWithAnyToken: {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
@@ -980,7 +980,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictPayWithAnyToken: {
+                predictWithAnyToken: {
                   enabled: true,
                   minimumVersion: '99.0.0',
                 },
@@ -1002,7 +1002,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictPayWithAnyToken: null,
+                predictWithAnyToken: null,
               },
               cacheTimestamp: 0,
             },
@@ -1043,7 +1043,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictPayWithAnyToken: {
+                predictWithAnyToken: {
                   enabled: 'invalid',
                   minimumVersion: 123,
                 },

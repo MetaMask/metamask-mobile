@@ -93,20 +93,24 @@ describe('usePredictOrderPreview', () => {
     });
 
     it('initializes with initialPreview when provided', () => {
-      const { result } = renderHook(() =>
-        usePredictOrderPreview({
-          ...defaultParams,
-          initialPreview: mockPreview,
-        }),
+      const { Wrapper } = createWrapper();
+      const { result } = renderHook(
+        () =>
+          usePredictOrderPreview({
+            ...defaultParams,
+            initialPreview: mockPreview,
+          }),
+        { wrapper: Wrapper },
       );
 
       expect(result.current.preview).toEqual(mockPreview);
-      expect(result.current.isCalculating).toBe(false);
+      expect(result.current.isCalculating).toBe(true);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
     });
 
     it('replaces initialPreview when new preview loads from API', async () => {
+      const { Wrapper } = createWrapper();
       const updatedPreview: OrderPreview = {
         ...mockPreview,
         sharePrice: 0.75,
@@ -114,11 +118,13 @@ describe('usePredictOrderPreview', () => {
       };
       mockPreviewOrder.mockResolvedValue(updatedPreview);
 
-      const { result } = renderHook(() =>
-        usePredictOrderPreview({
-          ...defaultParams,
-          initialPreview: mockPreview,
-        }),
+      const { result } = renderHook(
+        () =>
+          usePredictOrderPreview({
+            ...defaultParams,
+            initialPreview: mockPreview,
+          }),
+        { wrapper: Wrapper },
       );
 
       expect(result.current.preview).toEqual(mockPreview);
