@@ -40,6 +40,8 @@ export function getRampsControllerMessenger(
       'RampsService:getPaymentMethods',
       'RampsService:getQuotes',
       'RampsService:getBuyWidgetUrl',
+      'RampsService:getOrder',
+      'RampsService:getOrderFromCallback',
       'TransakService:setApiKey',
       'TransakService:setAccessToken',
       'TransakService:clearAccessToken',

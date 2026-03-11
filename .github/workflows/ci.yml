@@ -502,7 +502,8 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    # Temporarily skipped until SonarCloud is fixed
+    if: false
     steps:
       - uses: actions/checkout@v3
         with:
@@ -521,8 +522,8 @@ jobs:
       - name: SonarCloud Scan
         if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
         continue-on-error: true
-        # This is SonarSource/sonarqube-scan-action@v5.3.1
-        uses: SonarSource/sonarqube-scan-action@1a6d90ebcb0e6a6b1d87e37ba693fe453195ae25
+        # This is SonarSource/sonarqube-scan-action@v7.0.0
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -545,7 +546,8 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    # Temporarily skipped until SonarCloud is fixed
+    if: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -622,7 +624,6 @@ jobs:
         cv-test,
         check-workflows,
         js-bundle-size-check,
-        sonar-cloud-quality-gate-status,
       ]
     outputs:
       ALL_JOBS_PASSED: ${{ steps.jobs-passed-status.outputs.ALL_JOBS_PASSED }}

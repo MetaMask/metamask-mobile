@@ -3,7 +3,7 @@ import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardScreens } from '../../util/metrics';
 import { clearCacheData } from '../../../../../core/redux/slices/card';
 
@@ -61,15 +61,11 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockReduxDispatch,
 }));
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'Card Viewed',
-    CARD_BUTTON_CLICKED: 'Card Button Clicked',
-  },
 }));
 
 const mockPollPaymentStatus = jest.fn();

@@ -411,8 +411,47 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                     onLayout={[Function]}
                                   >
                                     <View
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "transparent",
+                                            "borderRadius": 8,
+                                            "height": 32,
+                                            "justifyContent": "center",
+                                            "opacity": 1,
+                                            "width": 32,
+                                          },
+                                          undefined,
                                           {
                                             "transform": [
                                               {
@@ -420,74 +459,24 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                               },
                                             ],
                                           },
-                                          {
-                                            "alignItems": "center",
-                                            "justifyContent": "center",
-                                          },
                                         ]
                                       }
+                                      testID="close-button-on-account-screen"
                                     >
-                                      <View
-                                        accessibilityState={
-                                          {
-                                            "busy": undefined,
-                                            "checked": undefined,
-                                            "disabled": false,
-                                            "expanded": undefined,
-                                            "selected": undefined,
-                                          }
-                                        }
-                                        accessibilityValue={
-                                          {
-                                            "max": undefined,
-                                            "min": undefined,
-                                            "now": undefined,
-                                            "text": undefined,
-                                          }
-                                        }
-                                        accessible={true}
-                                        collapsable={false}
-                                        focusable={true}
-                                        onBlur={[Function]}
-                                        onClick={[Function]}
-                                        onFocus={[Function]}
-                                        onResponderGrant={[Function]}
-                                        onResponderMove={[Function]}
-                                        onResponderRelease={[Function]}
-                                        onResponderTerminate={[Function]}
-                                        onResponderTerminationRequest={[Function]}
-                                        onStartShouldSetResponder={[Function]}
+                                      <SvgMock
+                                        fill="currentColor"
+                                        name="ArrowLeft"
                                         style={
                                           [
                                             {
-                                              "alignItems": "center",
-                                              "backgroundColor": "transparent",
-                                              "borderRadius": 8,
-                                              "height": 32,
-                                              "justifyContent": "center",
-                                              "opacity": 1,
-                                              "width": 32,
+                                              "color": "#121314",
+                                              "height": 24,
+                                              "width": 24,
                                             },
                                             undefined,
                                           ]
                                         }
-                                        testID="close-button-on-account-screen"
-                                      >
-                                        <SvgMock
-                                          fill="currentColor"
-                                          name="ArrowLeft"
-                                          style={
-                                            [
-                                              {
-                                                "color": "#121314",
-                                                "height": 24,
-                                                "width": 24,
-                                              },
-                                              undefined,
-                                            ]
-                                          }
-                                        />
-                                      </View>
+                                      />
                                     </View>
                                   </View>
                                 </View>
