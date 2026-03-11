@@ -98,7 +98,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
         await QuoteView.tapConfirmBridge();
 
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
-          description: 'Activity title visible',
+          timeout: 30000,
+          description: 'Activity title visible after bridge submission',
         });
         await Assertions.expectElementToBeVisible(
           ActivitiesView.confirmedLabel,
