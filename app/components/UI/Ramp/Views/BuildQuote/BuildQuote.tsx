@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, View } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
@@ -64,6 +64,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 export interface BuildQuoteParams {
   assetId?: string;
@@ -104,36 +105,7 @@ function BuildQuote() {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          duration: 800,
-          easing: Easing.bounce,
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          easing: Easing.bounce,
-          duration: 800,
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    blinkAnimation.start();
-
-    return () => {
-      blinkAnimation.stop();
-    };
-  }, [cursorOpacity]);
+  const cursorOpacity = useBlinkingCursor();
 
   const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);

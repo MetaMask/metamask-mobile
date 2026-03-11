@@ -122,7 +122,7 @@ exports[`BuildQuote Continue button displays error banner when quote fetch fails
                     {
                       "backgroundColor": "#4459ff",
                       "height": 48,
-                      "marginBottom": 6,
+                      "marginBottom": 12,
                       "marginLeft": 4,
                       "opacity": 0.6,
                       "width": 2,
@@ -1193,7 +1193,7 @@ exports[`BuildQuote matches snapshot 1`] = `
                     {
                       "backgroundColor": "#4459ff",
                       "height": 48,
-                      "marginBottom": 6,
+                      "marginBottom": 12,
                       "marginLeft": 4,
                       "opacity": 0.6,
                       "width": 2,

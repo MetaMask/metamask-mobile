@@ -88,7 +88,7 @@ describe('AmountInput', () => {
 
     expect(
       screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('does not show live cursor when input is not highlighted', () => {

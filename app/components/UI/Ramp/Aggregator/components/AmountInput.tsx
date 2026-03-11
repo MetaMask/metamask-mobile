@@ -1,11 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Easing,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
@@ -19,6 +13,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 import { useTheme } from '../../../../../util/theme';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 const styles = StyleSheet.create({
   amount: {
@@ -70,36 +65,7 @@ const AmountInput: React.FC<Props> = ({
   onCurrencyPress,
 }: Props) => {
   const { colors } = useTheme();
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'test') {
-      return;
-    }
-
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          duration: 800,
-          easing: Easing.bounce,
-          toValue: 0,
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          easing: Easing.bounce,
-          duration: 800,
-          toValue: 1,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    blinkAnimation.start();
-
-    return () => {
-      blinkAnimation.stop();
-    };
-  }, [cursorOpacity]);
+  const cursorOpacity = useBlinkingCursor();
 
   const textColor = highlightedError ? TextColor.Error : TextColor.Default;
 
