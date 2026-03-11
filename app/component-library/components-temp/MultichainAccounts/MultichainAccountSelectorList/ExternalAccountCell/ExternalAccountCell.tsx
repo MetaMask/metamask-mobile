@@ -15,6 +15,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { strings } from '../../../../../../locales/i18n';
 import createStyles from '../MultichainAccountSelectorList.styles';
+import { EXTERNAL_ACCOUNT_CELL_TEST_IDS } from './ExternalAccountCell.testIds';
 
 /**
  * ExternalAccountCell Component
@@ -56,7 +57,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
             styles.externalAccountContainer,
             isDisabled && styles.externalAccountContainerDisabled,
           ]}
-          testID="external-account-cell-touchable"
+          testID={EXTERNAL_ACCOUNT_CELL_TEST_IDS.CONTAINER}
         >
           <AvatarAccount
             accountAddress={address}

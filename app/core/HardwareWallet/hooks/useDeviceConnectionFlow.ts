@@ -195,7 +195,10 @@ export const useDeviceConnectionFlow = ({
         pendingReadyResolveRef.current = null;
       }
 
-      const targetType = walletType ?? HardwareWalletType.Ledger;
+      const targetType =
+        refs.targetWalletTypeRef.current ??
+        walletType ??
+        HardwareWalletType.Ledger;
 
       if (!targetDeviceId) {
         setters.setDeviceId(null);
@@ -256,6 +259,10 @@ export const useDeviceConnectionFlow = ({
     const adapter = refs.adapterRef.current;
     if (adapter?.resetFlowState) {
       adapter.resetFlowState();
+    }
+
+    if (adapter && !(await adapter.ensurePermissions())) {
+      return;
     }
 
     if (adapter && (await checkTransportEnabledOrShowError(adapter))) {

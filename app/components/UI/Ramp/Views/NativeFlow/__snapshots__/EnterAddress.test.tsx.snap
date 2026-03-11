@@ -225,16 +225,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.enter_address.address_line_1
               </Text>
@@ -340,16 +344,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.enter_address.address_line_2
               </Text>
@@ -431,6 +439,7 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -466,16 +475,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.city
                 </Text>
@@ -582,16 +595,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.state
                 </Text>
@@ -703,16 +720,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.postal_code
                 </Text>
@@ -820,16 +841,20 @@ exports[`V2EnterAddress matches snapshot 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.country
                 </Text>
@@ -1330,16 +1355,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.enter_address.address_line_1
               </Text>
@@ -1445,16 +1474,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  {
-                    "color": "#131416",
-                    "fontFamily": "Geist-Regular",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                    "marginBottom": 6,
-                  }
+                  [
+                    {
+                      "color": "#131416",
+                      "fontFamily": "Geist-Regular",
+                      "fontSize": 16,
+                      "fontWeight": 400,
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    },
+                    {
+                      "marginBottom": 6,
+                    },
+                  ]
                 }
-                testID="label"
               >
                 deposit.enter_address.address_line_2
               </Text>
@@ -1536,6 +1569,7 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                         "fontWeight": "400",
                         "height": 46,
                         "letterSpacing": 0,
+                        "lineHeight": 0,
                         "opacity": 1,
                       }
                     }
@@ -1571,16 +1605,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.city
                 </Text>
@@ -1687,16 +1725,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.state
                 </Text>
@@ -1808,16 +1850,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.postal_code
                 </Text>
@@ -1925,16 +1971,20 @@ exports[`V2EnterAddress matches snapshot for non-US region 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Regular",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                      "marginBottom": 6,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      {
+                        "marginBottom": 6,
+                      },
+                    ]
                   }
-                  testID="label"
                 >
                   deposit.enter_address.country
                 </Text>

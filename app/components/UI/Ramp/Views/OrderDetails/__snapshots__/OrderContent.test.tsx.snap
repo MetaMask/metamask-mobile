@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`OrderContent renders completed state correctly 1`] = `
 <View
@@ -6,6 +6,9 @@ exports[`OrderContent renders completed state correctly 1`] = `
     [
       {
         "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
         "width": "100%",
       },
       undefined,
@@ -166,6 +169,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
           undefined,
         ]
       }
+      testID="ramps-order-details-token-amount"
     >
       0.05
        
@@ -537,22 +541,18 @@ exports[`OrderContent renders completed state correctly 1`] = `
       ]
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "marginBottom": 16,
-            },
-            undefined,
-          ]
-        }
+      <TouchableOpacity
+        onPress={[Function]}
       >
         <Text
           accessibilityRole="text"
@@ -565,30 +565,37 @@ exports[`OrderContent renders completed state correctly 1`] = `
                 "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "center",
               },
               undefined,
             ]
           }
         >
           Card purchases typically take a few minutes
+           
+          <SvgMock
+            fill="currentColor"
+            name="Info"
+            style={
+              [
+                {
+                  "color": "#66676a",
+                  "height": 16,
+                  "width": 16,
+                },
+                {
+                  "transform": [
+                    {
+                      "translateY": 4,
+                    },
+                  ],
+                },
+              ]
+            }
+          />
         </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Info"
-          style={
-            [
-              {
-                "color": "#66676a",
-                "height": 16,
-                "marginLeft": 4,
-                "width": 16,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
@@ -599,6 +606,9 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
     [
       {
         "display": "flex",
+        "flexBasis": "0%",
+        "flexGrow": 1,
+        "flexShrink": 1,
         "width": "100%",
       },
       undefined,
@@ -759,6 +769,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
           undefined,
         ]
       }
+      testID="ramps-order-details-token-amount"
     >
       0.05
        
@@ -1025,22 +1036,18 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       ]
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
     >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-              "justifyContent": "center",
-              "marginBottom": 16,
-            },
-            undefined,
-          ]
-        }
+      <TouchableOpacity
+        onPress={[Function]}
       >
         <Text
           accessibilityRole="text"
@@ -1053,30 +1060,37 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
                 "fontWeight": 400,
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "center",
               },
               undefined,
             ]
           }
         >
           Card purchases typically take a few minutes
+           
+          <SvgMock
+            fill="currentColor"
+            name="Info"
+            style={
+              [
+                {
+                  "color": "#66676a",
+                  "height": 16,
+                  "width": 16,
+                },
+                {
+                  "transform": [
+                    {
+                      "translateY": 4,
+                    },
+                  ],
+                },
+              ]
+            }
+          />
         </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Info"
-          style={
-            [
-              {
-                "color": "#66676a",
-                "height": 16,
-                "marginLeft": 4,
-                "width": 16,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;

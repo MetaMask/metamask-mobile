@@ -255,6 +255,7 @@ exports[`V2VerifyIdentity matches snapshot 1`] = `
               "paddingHorizontal": 16,
             }
           }
+          testID="ramps-verify-identity-continue-button"
         >
           <Text
             accessibilityRole="text"

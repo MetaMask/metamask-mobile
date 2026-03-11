@@ -4,6 +4,8 @@ import { TokenIconProps } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -21,6 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../../../../util/address');
 jest.mock('../../../hooks/metrics/useConfirmationMetricEvents');
 
@@ -68,6 +71,10 @@ describe('PayWithRow', () => {
     });
 
     useTransactionPayRequiredTokensMock.mockReturnValue(undefined as never);
+
+    jest
+      .mocked(useTransactionPaySelectedFiatPaymentMethod)
+      .mockReturnValue(undefined);
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
       payToken: {
@@ -194,6 +201,42 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = render();
       expect(getByTestId('pay-with-row-skeleton')).toBeDefined();
+    });
+  });
+
+  describe('fiat payment method', () => {
+    const FIAT_PAYMENT_METHOD_MOCK = {
+      id: 'pm-card',
+      paymentType: 'debit-credit-card',
+      name: 'Credit Card',
+      score: 1,
+      icon: 'card-icon',
+    } as PaymentMethod;
+
+    it('renders fiat payment method row when selected', () => {
+      jest
+        .mocked(useTransactionPaySelectedFiatPaymentMethod)
+        .mockReturnValue(FIAT_PAYMENT_METHOD_MOCK);
+
+      const { getByText } = render();
+
+      expect(getByText('Pay with Credit Card')).toBeDefined();
+    });
+
+    it('navigates to modal when fiat payment method row is pressed', async () => {
+      jest
+        .mocked(useTransactionPaySelectedFiatPaymentMethod)
+        .mockReturnValue(FIAT_PAYMENT_METHOD_MOCK);
+
+      const { getByText } = render();
+
+      await act(() => {
+        fireEvent.press(getByText('Pay with Credit Card'));
+      });
+
+      expect(navigateMock).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_MODAL,
+      );
     });
   });
 });

@@ -36,6 +36,16 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
+      - name: Restore .metamask folder
+        id: restore-metamask
+        uses: actions/cache@v4
+        with:
+          path: .metamask
+          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+      - name: Install Foundry if cache missed
+        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        run: yarn install:foundryup
       - name: Clean state and following up dependencies installation with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -52,7 +62,7 @@ jobs:
           else
             echo "No changes detected"
           fi
-  
+
   dedupe:
     runs-on: ubuntu-latest
     steps:
@@ -173,7 +183,7 @@ jobs:
           NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
-        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 52
+        run: ./scripts/js-bundle-stats.sh ios/main.jsbundle 53
 
       - name: Upload iOS bundle
         uses: actions/upload-artifact@v4
@@ -244,6 +254,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-unit-${{ matrix.shard }}.json
+          cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -378,6 +389,7 @@ jobs:
         shell: bash
         run: |
           mv ./tests/coverage/coverage-final.json ./tests/coverage/coverage-cv-${{ matrix.shard }}.json
+          cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
       - uses: actions/upload-artifact@v4
@@ -392,6 +404,7 @@ jobs:
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     continue-on-error: true
     permissions:
       contents: read
@@ -399,6 +412,7 @@ jobs:
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
+      force_run: ${{ steps.e2e-selection.outputs.force_run }}
     steps:
       - name: Checkout for action definition
         uses: actions/checkout@v4
@@ -429,9 +443,9 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.android_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -446,7 +460,7 @@ jobs:
 
   e2e-smoke-tests-android:
     name: 'Android E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -456,7 +470,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
@@ -466,9 +480,9 @@ jobs:
     if: >-
       ${{
         github.event_name != 'merge_group' &&
-        needs.needs_e2e_build.outputs.ios_changed == 'true' &&
-        !(needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]') &&
-        !github.event.pull_request.head.repo.fork
+        !github.event.pull_request.head.repo.fork &&
+        (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -480,15 +494,15 @@ jobs:
   ios-tests-ready:
     name: 'iOS Tests Ready'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' }}
-    needs: [needs_e2e_build, build-ios-apps]
+    if: ${{ github.event_name != 'merge_group' && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
+    needs: [needs_e2e_build, build-ios-apps, smart-e2e-selection]
     steps:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
   e2e-smoke-tests-ios:
     name: 'iOS E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -498,7 +512,7 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
@@ -507,7 +521,7 @@ jobs:
 
   e2e-smoke-tests-android-flask:
     name: 'Android Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.android_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.android_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -517,14 +531,14 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
 
   e2e-smoke-tests-ios-flask:
     name: 'iOS Flask E2E Smoke Tests'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
@@ -534,20 +548,19 @@ jobs:
       changed_files: ${{ needs.needs_e2e_build.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (needs.smart-e2e-selection.outputs.ai_confidence >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # TODO: Remove continue-on-error once fixture validation is stable
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ github.event_name != 'merge_group' && needs.needs_e2e_build.outputs.ios_changed == 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork && (needs.needs_e2e_build.outputs.ios_changed == 'true' || needs.smart-e2e-selection.outputs.force_run == 'true') }}
     permissions:
       contents: read
       id-token: write
-    needs: [needs_e2e_build, ios-tests-ready]
+    needs: [needs_e2e_build, ios-tests-ready, smart-e2e-selection]
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -573,7 +586,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
-          name: test-e2e-validate-e2e-fixtures-junit-results
+          name: test-e2e-main-validate-e2e-fixtures-junit-results
           path: fixture-results/
 
       - name: Report results
@@ -589,7 +602,7 @@ jobs:
   sonar-cloud:
     runs-on: ubuntu-latest
     needs: merge-unit-and-component-view-tests
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -633,7 +646,7 @@ jobs:
   sonar-cloud-quality-gate-status:
     runs-on: ubuntu-latest
     needs: sonar-cloud
-    if: ${{ !cancelled() && github.event_name != 'merge_group' }}
+    if: ${{ !cancelled() && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -709,10 +722,12 @@ jobs:
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           EVENT_NAME: ${{ github.event_name }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
           # Check results of all required jobs dynamically
           # On merge_group events, "skipped" is acceptable (some jobs intentionally skip)
-          # On other events (PR, push), all jobs must succeed
+          # On fork PRs, "skipped" is acceptable (secret-dependent jobs are intentionally skipped)
+          # On other events (push to main), all jobs must succeed
 
           FAILED="false"
 
@@ -721,8 +736,8 @@ jobs:
               echo "::error::Job '$job_name' failed with result: $result"
               FAILED="true"
             elif [[ "$result" == "skipped" ]]; then
-              if [[ "$EVENT_NAME" == "merge_group" ]]; then
-                echo "Job '$job_name' was skipped (OK for merge_group events)"
+              if [[ "$EVENT_NAME" == "merge_group" ]] || [[ "$IS_FORK" == "true" ]]; then
+                echo "Job '$job_name' was skipped (OK for merge_group events and fork PRs)"
               else
                 echo "::error::Job '$job_name' was unexpectedly skipped on $EVENT_NAME event"
                 FAILED="true"
@@ -738,7 +753,7 @@ jobs:
           fi
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
-  
+
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
@@ -794,7 +809,7 @@ jobs:
     name: Log merge group failure
     runs-on: ubuntu-latest
     # Only run this job if the merge group event fails, skip on forks
-    if: ${{ github.event_name == 'merge_group' && failure() && !github.event.repository.fork }}
+    if: ${{ github.event_name == 'merge_group' && failure() }}
     needs:
       - check-all-jobs-pass
     steps:
