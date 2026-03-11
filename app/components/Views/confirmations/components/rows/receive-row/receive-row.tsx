@@ -42,8 +42,12 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
     const targetNetworkFee = new BigNumber(
       totals.fees?.targetNetwork?.usd ?? 0,
     );
+    const metaMaskFee = new BigNumber(totals.fees?.metaMask?.usd ?? 0);
 
-    const totalFees = providerFee.plus(sourceNetworkFee).plus(targetNetworkFee);
+    const totalFees = providerFee
+      .plus(sourceNetworkFee)
+      .plus(targetNetworkFee)
+      .plus(metaMaskFee);
     const youReceive = inputUsd.minus(totalFees);
     return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
   }, [totals, formatFiat, inputAmountUsd]);
