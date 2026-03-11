@@ -354,6 +354,14 @@ jobs:
             ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
+      - name: Upload iOS sourcemap
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_sourcemap_path }}
+          if-no-files-found: warn
+
       # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
       - name: Upload Android dev artifacts
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
@@ -373,3 +381,12 @@ jobs:
             ${{ steps.rename.outputs.android_apk_path }}
             ${{ steps.rename.outputs.android_aab_path }}
           if-no-files-found: error
+
+      # Non-Debug builds (prod, RC, beta, test, e2e, exp): sourcemaps — mirrors Bitrise Deploy Android Sourcemaps step
+      - name: Upload Android sourcemaps
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-sourcemaps-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_sourcemap_dir }}
+          if-no-files-found: warn

@@ -1022,6 +1022,35 @@ describe('polymarket utils', () => {
 
       expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
     });
+
+    it('includes allowancesTx in request body when provided', async () => {
+      const allowancesTx = { to: '0xSafeAddress', data: '0xallowanceData' };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        allowancesTx,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.allowancesTx).toEqual(allowancesTx);
+    });
+
+    it('omits allowancesTx from request body when not provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).not.toHaveProperty('allowancesTx');
+    });
   });
 
   describe('parsePolymarketEvents', () => {

@@ -2,8 +2,23 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { Image, Text, TouchableOpacity, View, StyleSheet } from 'react-native';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  AppState,
+  AppStateStatus,
+  Image,
+  Linking,
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -110,6 +125,21 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    openSettingsButton: {
+      marginTop: 24,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 40,
+      borderWidth: 1,
+      borderColor: theme.brandColors.white,
+    },
+    openSettingsText: {
+      color: theme.brandColors.white,
+      fontSize: 16,
+      textAlign: 'center',
+      ...fontStyles.normal,
     },
   });
 
@@ -142,6 +172,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const appState = useRef(AppState.currentState);
 
   let expectedURTypes: string[];
   if (purpose === QrScanRequestType.PAIR) {
@@ -153,19 +184,42 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
 
-  useEffect(() => {
-    let cancelled = false;
-    if (!hasPermission && visible) {
-      requestPermission().then((granted) => {
-        if (!cancelled && !granted) {
-          onScanError(strings('transaction.no_camera_permission'));
-        }
-      });
+  const refreshCameraPermission = useCallback(() => {
+    if (!visible || hasPermission) {
+      return;
     }
+
+    requestPermission();
+  }, [hasPermission, requestPermission, visible]);
+
+  useEffect(() => {
+    refreshCameraPermission();
+  }, [refreshCameraPermission]);
+
+  useEffect(() => {
+    if (!visible) {
+      return undefined;
+    }
+
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        const hasReturnedToForeground =
+          /inactive|background/.test(appState.current) &&
+          nextAppState === 'active';
+
+        appState.current = nextAppState;
+
+        if (hasReturnedToForeground) {
+          refreshCameraPermission();
+        }
+      },
+    );
+
     return () => {
-      cancelled = true;
+      subscription?.remove?.();
     };
-  }, [hasPermission, requestPermission, visible, onScanError]);
+  }, [refreshCameraPermission, visible]);
 
   const reset = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -317,9 +371,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               </View>
 
               <View style={styles.overlay}>
-                <Text style={styles.scanningText}>{`${strings(
-                  'qr_scanner.scanning',
-                )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                {progress > 0 && (
+                  <Text style={styles.scanningText}>{`${strings(
+                    'qr_scanner.scanning',
+                  )} ${progress ? `${progress.toString()}%` : ''}`}</Text>
+                )}
               </View>
             </View>
             {/* Close button */}
@@ -336,6 +392,15 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
               <Text style={styles.scanningText}>
                 {strings('transaction.no_camera_permission')}
               </Text>
+              <TouchableOpacity
+                style={styles.openSettingsButton}
+                onPress={() => Linking.openSettings()}
+                testID="open-settings-button"
+              >
+                <Text style={styles.openSettingsText}>
+                  {strings('qr_scanner.open_settings')}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}

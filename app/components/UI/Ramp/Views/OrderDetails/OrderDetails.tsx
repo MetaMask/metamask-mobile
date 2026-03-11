@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -31,6 +31,7 @@ import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 interface RampsOrderDetailsParams {
   orderId: string;
@@ -54,6 +55,15 @@ const PENDING_STATUSES = new Set([
  * Legacy orders (DEPOSIT, RAMPS_V2 in Redux) are routed to the aggregator
  * detail screen by OrdersList — they never reach this component.
  */
+const styles = StyleSheet.create({
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});
+
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
@@ -196,8 +206,9 @@ const OrderDetails = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
+        contentContainerStyle={styles.scrollContentContainer}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -208,7 +219,7 @@ const OrderDetails = () => {
         }
       >
         <ScreenLayout.Body>
-          <ScreenLayout.Content>
+          <ScreenLayout.Content style={styles.contentContainer}>
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}

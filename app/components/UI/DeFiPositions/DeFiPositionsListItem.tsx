@@ -25,6 +25,7 @@ import { useStyles } from '../../hooks/useStyles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -111,6 +112,9 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
   return (
     <TouchableOpacity
+      testID={WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(
+        protocolAggregate.protocolDetails.name,
+      )}
       onPress={() => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED)

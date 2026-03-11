@@ -37,10 +37,14 @@ import Button, {
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
+  },
+  inlineIcon: {
+    transform: [{ translateY: 4 }],
   },
 });
 
@@ -287,7 +291,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   }, [hasBankDetails, getFieldValue]);
 
   return (
-    <Box twClassName="w-full">
+    <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -309,6 +313,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </BadgeWrapper>
 
         <Text
+          testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
@@ -550,27 +555,41 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Box>
       )}
 
-      <Box twClassName="pt-4 pb-4 w-full">
+      <Box
+        twClassName={
+          showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
+        }
+      >
         {order.statusDescription && (
-          <TouchableOpacity onPress={handleInfoPress}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center justify-center mb-4"
-            >
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {order.statusDescription}
+          <Box twClassName={showCloseButton ? 'mb-4' : ''}>
+            <TouchableOpacity onPress={handleInfoPress}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-alternative text-center"
+              >
+                {(order.status === RampsOrderStatus.Pending ||
+                  order.status === RampsOrderStatus.Created ||
+                  order.status === RampsOrderStatus.Precreated ||
+                  order.status === RampsOrderStatus.Unknown) &&
+                order.statusDescription.startsWith('Your order')
+                  ? order.statusDescription.replace(
+                      /^Your order.*?is processing\.\s*/,
+                      '',
+                    ) || order.statusDescription
+                  : order.statusDescription}{' '}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  twClassName="text-alternative"
+                  style={localStyles.inlineIcon}
+                />
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                twClassName="text-alternative ml-1"
-              />
-            </Box>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </Box>
         )}
-
         {showCloseButton && (
           <Button
+            testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

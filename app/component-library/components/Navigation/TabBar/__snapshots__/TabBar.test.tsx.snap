@@ -95,7 +95,7 @@ exports[`TabBar renders correctly 1`] = `
           color="#131416"
           fill="currentColor"
           height={24}
-          name="Home"
+          name="HomeFilled"
           style={
             {
               "height": 24,
