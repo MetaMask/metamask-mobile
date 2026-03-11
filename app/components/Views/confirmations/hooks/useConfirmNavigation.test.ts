@@ -111,8 +111,8 @@ describe('useConfirmNavigation', () => {
       Engine.context.ApprovalController,
     );
 
-    expect(approvalControllerMock.reject).toHaveBeenCalledTimes(1);
-    expect(approvalControllerMock.reject).toHaveBeenCalledWith(
+    expect(approvalControllerMock.rejectRequest).toHaveBeenCalledTimes(1);
+    expect(approvalControllerMock.rejectRequest).toHaveBeenCalledWith(
       TRANSACTION_ID_MOCK,
       expect.anything(),
     );

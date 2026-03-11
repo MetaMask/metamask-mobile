@@ -26,7 +26,7 @@ jest.mock('../../core/Engine', () => ({
   },
 }));
 
-const mockReject = Engine.context.ApprovalController.reject as jest.Mock;
+const mockReject = Engine.context.ApprovalController.rejectRequest as jest.Mock;
 
 describe('Permission Utils', () => {
   afterEach(() => {

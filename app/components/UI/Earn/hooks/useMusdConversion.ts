@@ -314,7 +314,7 @@ export const useMusdConversion = () => {
               'Error creating max conversion transaction',
             );
             try {
-              ApprovalController.reject(
+              ApprovalController.rejectRequest(
                 transactionId,
                 providerErrors.userRejectedRequest({
                   message:

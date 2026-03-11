@@ -1916,7 +1916,9 @@ describe('getRpcMethodMiddlewareHooks', () => {
     it('should call ApprovalController.has with correct origin', () => {
       hooks.hasApprovalRequestsForOrigin();
 
-      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+      expect(
+        MockEngine.context.ApprovalController.hasRequest,
+      ).toHaveBeenCalledWith({
         origin: testOrigin,
       });
     });
