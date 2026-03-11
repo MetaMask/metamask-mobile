@@ -967,7 +967,7 @@ describe('useMusdConversion', () => {
         ).rejects.toThrow(postCreationError);
       });
 
-      expect(mockApprovalController.reject).toHaveBeenCalledWith(
+      expect(mockApprovalController.rejectRequest).toHaveBeenCalledWith(
         'tx-max-123',
         expect.objectContaining({
           message:
@@ -1004,7 +1004,7 @@ describe('useMusdConversion', () => {
       );
 
       const rejectCleanupError = new Error('Failed to reject pending approval');
-      mockApprovalController.reject.mockImplementation(() => {
+      mockApprovalController.rejectRequest.mockImplementation(() => {
         throw rejectCleanupError;
       });
 
@@ -1016,7 +1016,7 @@ describe('useMusdConversion', () => {
         ).rejects.toThrow(postCreationError);
       });
 
-      expect(mockApprovalController.reject).toHaveBeenCalledTimes(1);
+      expect(mockApprovalController.rejectRequest).toHaveBeenCalledTimes(1);
       expect(Logger.error).toHaveBeenCalledWith(
         rejectCleanupError,
         '[mUSD Max Conversion] Failed to reject transaction after post-creation configuration error',

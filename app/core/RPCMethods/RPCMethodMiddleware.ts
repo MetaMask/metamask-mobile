@@ -457,7 +457,7 @@ export const getRpcMethodMiddleware = ({
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
-      await Engine.context.ApprovalController.clear(
+      await Engine.context.ApprovalController.clearRequests(
         providerErrors.userRejectedRequest(),
       );
 

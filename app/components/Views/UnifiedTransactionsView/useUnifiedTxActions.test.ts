@@ -449,7 +449,8 @@ describe('useUnifiedTxActions', () => {
         await result.current.cancelUnsignedQRTransaction(tx);
       });
 
-      const rejectMock = engineContext.ApprovalController.reject as jest.Mock;
+      const rejectMock = engineContext.ApprovalController
+        .rejectRequest as jest.Mock;
       expect(rejectMock).toHaveBeenCalled();
       const [id] = rejectMock.mock.calls[0];
       expect(id).toBe('13');
