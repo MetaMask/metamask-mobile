@@ -76,8 +76,8 @@ import MarketInsightsFeedbackBottomSheet, {
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
-const BACKGROUND_ANIMATION_HEIGHT = 77;
-const BACKGROUND_FADE_HEIGHT = 36;
+const BACKGROUND_ANIMATION_HEIGHT = 96;
+const BACKGROUND_FADE_HEIGHT = 80;
 const SCROLL_CONTENT_FADE_HEIGHT = 32;
 const SECTION_ANIMATION_DELAYS_MS = {
   topArticle: 50,
@@ -418,9 +418,11 @@ const MarketInsightsView: React.FC = () => {
         twClassName={`absolute top-0 left-0 right-0 overflow-hidden h-[${insets.top + BACKGROUND_ANIMATION_HEIGHT}px]`}
       >
         {isDarkMode ? (
-          <AlternateBackgroundAnimation
-            testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-          />
+          <Box twClassName="pt-[8px]">
+            <AlternateBackgroundAnimation
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          </Box>
         ) : null}
         <LinearGradient
           pointerEvents="none"
@@ -446,7 +448,7 @@ const MarketInsightsView: React.FC = () => {
         */}
       </Box>
 
-      <Box twClassName={`pt-[${insets.top}px]`}>
+      <Box twClassName={`pt-[${insets.top}px] pb-[${15}px]`}>
         <MarketInsightsViewHeader onBackPress={handleBackPress} />
       </Box>
 
