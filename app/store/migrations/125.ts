@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
+import { cloneDeep } from 'lodash';
 
 const migrationVersion = 125;
 
@@ -10,10 +11,12 @@ const migrationVersion = 125;
  * @param state - The persisted Redux state.
  * @returns The migrated Redux state.
  */
-export default async function migrate(state: unknown) {
-  if (!ensureValidState(state, migrationVersion)) {
-    return state;
+export default async function migrate(versionedState: unknown) {
+  if (!ensureValidState(versionedState, migrationVersion)) {
+    return versionedState;
   }
+
+  const state = cloneDeep(versionedState);
 
   const preferencesControllerState =
     state.engine.backgroundState.PreferencesController;
