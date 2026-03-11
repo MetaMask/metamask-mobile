@@ -50,7 +50,7 @@ export function PercentageRow() {
           </Text>
         </Text>
       }
-      tooltipColor={IconColor.Alternative}
+      tooltipColor={IconColor.Muted}
     >
       <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
         {MUSD_CONVERSION_APY}%

@@ -10,7 +10,7 @@ const stylesSheet = (params: { theme: Theme }) => {
       flexGrow: 1,
       paddingTop: 8,
       paddingHorizontal: 16,
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       justifyContent: 'space-between',
     },
     cardsContainer: {
