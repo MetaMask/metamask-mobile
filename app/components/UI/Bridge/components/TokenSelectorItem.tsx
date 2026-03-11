@@ -158,7 +158,7 @@ const FiatBalanceView = ({
 
   return (
     <Text
-      variant={TextVariant.BodySM}
+      variant={TextVariant.BodyMD}
       color={TextColor.Alternative}
       numberOfLines={1}
     >
@@ -272,7 +272,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             >
               <Box style={styles.tokenMainInfo} gap={4}>
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMDMedium}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -297,7 +297,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                   <View style={styles.skeleton} />
                 ) : (
                   <Text
-                    variant={TextVariant.BodyMD}
+                    variant={TextVariant.BodyMDMedium}
                     color={TextColor.Default}
                     numberOfLines={1}
                     style={styles.rightValue}
@@ -314,7 +314,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
               justifyContent={JustifyContent.spaceBetween}
             >
               <Text
-                variant={TextVariant.BodySM}
+                variant={TextVariant.BodyMD}
                 color={TextColor.Alternative}
                 numberOfLines={1}
                 ellipsizeMode="tail"
